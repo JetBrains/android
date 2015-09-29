@@ -43,6 +43,8 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Range;
 import com.intellij.util.containers.EmptyIterator;
+import com.intellij.util.ui.StatusText;
+import com.intellij.util.xml.ui.EmptyPane;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,7 +69,8 @@ public class MemoryController extends Controller {
 
   @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull private final JBLoadingPanel myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject(), 50);
-  @NotNull private final JScrollPane myScrollPane = new JBScrollPane();
+  @NotNull private final EmptyPanel myEmptyPanel = new EmptyPanel();
+  @NotNull private final JScrollPane myScrollPane = new JBScrollPane(myEmptyPanel);
   @NotNull private DataType myDataType = DataType.Bytes;
   private MemoryDataModel myMemoryData;
 
@@ -101,7 +104,7 @@ public class MemoryController extends Controller {
 
   @Override
   public void notifyPath(PathEvent event) {
-    myScrollPane.setViewportView(null);
+    myScrollPane.setViewportView(myEmptyPanel);
     if (event.path instanceof MemoryRangePath) {
       myLoading.startLoading();
 
@@ -180,6 +183,26 @@ public class MemoryController extends Controller {
     };
 
     public abstract MemoryModel getMemoryModel(MemoryDataModel memory);
+  }
+
+  private static class EmptyPanel extends JComponent {
+    private final StatusText myEmptyText = new StatusText() {
+      @Override
+      protected boolean isStatusVisible() {
+        return true;
+      }
+    };
+
+    public EmptyPanel() {
+      myEmptyText.setText(GfxTraceEditor.SELECT_MEMORY);
+      myEmptyText.attachTo(this);
+    }
+
+    @Override
+    protected void paintComponent(Graphics graphics) {
+      super.paintComponent(graphics);
+      myEmptyText.paint(this, graphics);
+    }
   }
 
   private static class MemoryPanel extends JComponent implements Scrollable, DataProvider, CopyProvider {
