@@ -62,7 +62,7 @@ public final class AtomRangeTimer implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {116, 0, -57, -68, -128, -37, -22, -76, 91, -108, -28, -49, 100, 97, -68, 95, -100, -54, 28, -14, };
+  private static final byte[] IDBytes = {-73, -66, -78, 20, 67, -101, -127, -89, 47, 110, -63, 59, -93, 27, -99, -34, 123, -18, 73, -90, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

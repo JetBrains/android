@@ -32,7 +32,7 @@ final public class FmtPNG extends Format {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-51, -16, 56, -39, 107, 93, 14, -85, -39, -49, -46, -31, -65, 77, -52, -83, 15, -47, -53, 80, };
+  private static final byte[] IDBytes = {-38, 88, 56, -15, -92, -97, -89, -41, 100, 126, 88, -72, -47, 116, 92, 15, -39, 78, 67, 6, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

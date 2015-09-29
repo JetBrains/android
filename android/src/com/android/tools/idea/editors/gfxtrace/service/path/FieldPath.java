@@ -57,7 +57,7 @@ public final class FieldPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-46, 79, 127, 100, -20, -127, -110, 6, 108, 37, 96, -6, 90, 11, -100, 110, 115, -9, 75, 76, };
+  private static final byte[] IDBytes = {9, -120, 21, -114, 16, 96, -18, 79, 124, 43, -93, -11, 99, -41, -18, 31, -118, 10, 126, -14, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

@@ -60,7 +60,7 @@ public final class CapturePath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {14, -101, -29, 98, 123, 103, 91, -32, 68, 123, 123, 33, -95, 80, 109, 27, -5, -57, 71, -26, };
+  private static final byte[] IDBytes = {57, -21, -25, 61, -104, 48, 81, -29, -113, -38, -69, 6, -56, -15, 88, 110, 52, 49, 83, 80, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

@@ -47,7 +47,7 @@ public final class TimingInfoPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-83, -57, -71, 27, -86, -100, -104, -62, 40, -80, -36, 58, 111, -37, -88, -1, -100, -74, -102, -119, };
+  private static final byte[] IDBytes = {21, -24, 91, -97, 127, -43, -87, 33, 84, -104, 127, -71, 92, 61, 124, -62, 71, -47, 38, 90, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

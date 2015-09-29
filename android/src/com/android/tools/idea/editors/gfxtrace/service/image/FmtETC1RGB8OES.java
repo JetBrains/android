@@ -32,7 +32,7 @@ final public class FmtETC1RGB8OES extends Format {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-59, 90, 21, 66, 89, 83, 91, -110, -68, -9, -21, -67, 107, -23, -89, 106, -92, -36, -74, 62, };
+  private static final byte[] IDBytes = {116, 86, 77, -41, 59, 54, 127, -65, 89, -75, 52, -69, -104, 8, 32, 124, 97, 25, 76, 0, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

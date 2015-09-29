@@ -43,7 +43,7 @@ final class ResultSet implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-122, -111, -16, 63, -8, 55, -11, -115, 112, -21, -64, -121, 0, -98, 66, -44, -114, -119, -61, -37, };
+  private static final byte[] IDBytes = {93, -119, -22, 92, 26, -95, 41, -19, -84, 106, 76, 37, 122, -45, -42, -118, -121, -25, -94, -96, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

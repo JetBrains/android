@@ -87,7 +87,7 @@ public final class AtomGroup implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {29, -128, -52, -6, -27, -70, 14, -120, 63, 17, 59, -43, 7, 22, 86, 19, -11, 67, 66, -21, };
+  private static final byte[] IDBytes = {5, 106, 51, -17, 50, -42, -75, 125, 41, 92, -77, -96, 100, -34, 41, 8, -95, -122, 86, -25, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
