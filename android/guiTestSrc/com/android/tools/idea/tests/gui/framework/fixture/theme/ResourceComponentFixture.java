@@ -27,7 +27,6 @@ import java.awt.*;
 
 import static org.junit.Assert.assertNotNull;
 
-
 public class ResourceComponentFixture extends JPanelFixture {
 
   public ResourceComponentFixture(@NotNull Robot robot, @NotNull ResourceComponent target) {
@@ -36,16 +35,16 @@ public class ResourceComponentFixture extends JPanelFixture {
 
   @NotNull
   private JButtonFixture getLabel() {
-    return new JButtonFixture(robot(), robot().finder().findByName(ResourceComponent.NAME_LABEL, ClickableLabel.class));
+    return new JButtonFixture(robot(), robot().finder().findByName(target(), ResourceComponent.NAME_LABEL, ClickableLabel.class));
   }
 
   @NotNull
   private SwatchComponentFixture getValueComponent() {
-    return SwatchComponentFixture.find(robot());
+    return SwatchComponentFixture.find(robot(), target());
   }
 
   @NotNull
-  public String getAttributeName() {
+  public String getLabelText() {
     String labelValue = getLabel().text();
     assertNotNull(labelValue);
     return labelValue;

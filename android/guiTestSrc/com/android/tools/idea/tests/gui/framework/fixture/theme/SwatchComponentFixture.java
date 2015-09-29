@@ -20,14 +20,16 @@ import com.android.tools.swing.ui.SwatchComponent;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+
 public class SwatchComponentFixture extends JComponentFixture<SwatchComponentFixture, SwatchComponent> {
-  private SwatchComponentFixture(Robot robot, SwatchComponent target) {
+  public SwatchComponentFixture(Robot robot, SwatchComponent target) {
     super(SwatchComponentFixture.class, robot, target);
   }
 
   @NotNull
-  public static SwatchComponentFixture find(@NotNull Robot robot) {
-    return new SwatchComponentFixture(robot, robot.finder().findByType(SwatchComponent.class));
+  public static SwatchComponentFixture find(@NotNull Robot robot, @NotNull Container target) {
+    return new SwatchComponentFixture(robot, robot.finder().findByType(target, SwatchComponent.class));
   }
 
   @NotNull
