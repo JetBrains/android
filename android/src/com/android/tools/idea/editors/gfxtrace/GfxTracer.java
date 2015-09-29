@@ -175,7 +175,7 @@ public class GfxTracer {
         }
         finally {
           // Undo the preload wrapping
-          captureAdbShell(myDevice, "setprop wrap." + pkg + " LD_PRELOAD=\"\"");
+          captureAdbShell(myDevice, "setprop wrap." + pkg + " \"\"");
         }
       }
       finally {
