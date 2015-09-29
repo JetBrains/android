@@ -46,7 +46,7 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
   private ActionBarIconGenerator myActionBarIconGenerator;
   private LauncherIconGenerator myLauncherIconGenerator;
   private VectorIconGenerator myVectorIconGenerator;
-  @SuppressWarnings("deprecation") private TemplateWizardState myState = new TemplateWizardState();
+  private TemplateWizardState myState = new TemplateWizardState();
   private AssetStudioAssetGenerator myAssetGenerator;
   private static final String ASSET_NAME = "ThisIsTheFileName";
 
@@ -237,7 +237,7 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
 
     ActionBarIconGenerator generator = mock(ActionBarIconGenerator.class);
 
-    @SuppressWarnings("deprecation") TemplateWizardState state = new TemplateWizardState();
+    TemplateWizardState state = new TemplateWizardState();
     AssetStudioAssetGenerator studioGenerator = new AssetStudioAssetGenerator(new TemplateWizardContextAdapter(state),
                                                                               generator, null, null, null);
     pickImage(state);
