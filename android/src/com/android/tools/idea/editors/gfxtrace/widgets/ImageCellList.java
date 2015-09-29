@@ -27,7 +27,7 @@ import java.awt.*;
  * A {@link CellList} that shows an Image in each cell.
  */
 public abstract class ImageCellList<T extends ImageCellList.Data> extends CellList<T> {
-  public static class Data extends CellList.Data {
+  public static class Data extends CellWidget.Data {
     @NotNull public final String label;
     @Nullable public ImageIcon icon;
 
