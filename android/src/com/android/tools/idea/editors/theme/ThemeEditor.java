@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.ProjectTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
@@ -48,13 +49,19 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
+        // Avoid invoking reload on the event listener thread. The rootsChanged event is called while holding the write lock
+        // so calling reload can potentially cause a deadlock.
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            // If the SDK is changing we will not be able to reload anything as AndroidTargetData.getTargetData will be returning null;
+            if (ModuleRootManager.getInstance(myComponent.getSelectedModule()).getSdk() == null) return;
+            final ThemeEditorStyle theme = myComponent.getSelectedTheme();
+            final ThemeEditorStyle subStyle = myComponent.getCurrentSubStyle();
 
-        // If the SDK is changing we will not be able to reload anything as AndroidTargetData.getTargetData will be returning null;
-        if (ModuleRootManager.getInstance(myComponent.getSelectedModule()).getSdk() == null) return;
-
-        ThemeEditorStyle theme = myComponent.getSelectedTheme();
-        ThemeEditorStyle subStyle = myComponent.getCurrentSubStyle();
-        myComponent.reload((theme == null) ? null : theme.getQualifiedName(), (subStyle == null) ? null : subStyle.getQualifiedName());
+            myComponent.reload((theme == null) ? null : theme.getQualifiedName(), (subStyle == null) ? null : subStyle.getQualifiedName());
+          }
+        });
       }
     });
   }
