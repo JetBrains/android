@@ -120,56 +120,32 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
   }
 
   public void testFindResourceFields() {
-    String lightRCode = "package light;" +
-                        "class R {" +
-                        "static class string {" +
-                        "static final int hello = 1;" +
-                        "static final int goodbye = 2;" +
-                        "}" +
-                        "}";
-    myFacet.setLightRClass(myFixture.addClass(lightRCode));
-
     myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
 
     PsiField[] fields = AndroidResourceUtil.findResourceFields(myFacet, "string", "hello", false);
 
-    Set<String> dirNames = Sets.newHashSet();
     for (PsiField field : fields) {
       assertEquals("hello", field.getName());
-      dirNames.add(field.getContainingFile().getContainingDirectory().getName());
+      assertEquals("p2", field.getContainingFile().getContainingDirectory().getName());
     }
-    assertEquals(ImmutableSet.of("light", "p2"), dirNames);
-    assertEquals(2, fields.length);
+    assertEquals(1, fields.length);
   }
 
   public void testFindResourceFieldsWithMultipleResourceNames() {
-    String lightRCode = "package light;" +
-                        "class R {" +
-                        "static class string {" +
-                        "static final int hello = 1;" +
-                        "static final int goodbye = 2;" +
-                        "}" +
-                        "}";
-    myFacet.setLightRClass(myFixture.addClass(lightRCode));
-
     myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
 
     PsiField[] fields = AndroidResourceUtil.findResourceFields(
       myFacet, "string", ImmutableList.of("hello", "goodbye"), false);
 
-    Set<String> dirNames = Sets.newHashSet();
-    Map<String, Integer> fieldNames = Maps.newHashMap();
+    Set<String> fieldNames = Sets.newHashSet();
     for (PsiField field : fields) {
-      String name = field.getName();
-      int count = Objects.firstNonNull(fieldNames.get(name), Integer.valueOf(0));
-      fieldNames.put(name, count + 1);
-      dirNames.add(field.getContainingFile().getContainingDirectory().getName());
+      fieldNames.add(field.getName());
+      assertEquals("p2", field.getContainingFile().getContainingDirectory().getName());
     }
-    assertEquals(ImmutableMap.of("hello", 2, "goodbye", 2), fieldNames);
-    assertEquals(ImmutableSet.of("light", "p2"), dirNames);
-    assertEquals(4, fields.length);
+    assertEquals(ImmutableSet.of("hello", "goodbye"), fieldNames);
+    assertEquals(2, fields.length);
   }
 
   /** Tests that "inherited" resource references are found (R fields in generated in dependent modules). */
