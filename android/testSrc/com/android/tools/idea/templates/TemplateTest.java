@@ -873,12 +873,7 @@ public class TemplateTest extends AndroidGradleTestCase {
             assert template != null;
             File moduleRoot = new File(projectRoot, modifiedProjectName);
             templateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
-            try {
-              templateValues.populateDirectoryParameters();
-            }
-            catch (IOException e) {
-              throw new RuntimeException(e);
-            }
+            templateValues.populateDirectoryParameters();
             template.render(moduleRoot, moduleRoot, templateValues.getParameters());
             if (Template.ourMostRecentException != null) {
               fail(Template.ourMostRecentException.getMessage());
