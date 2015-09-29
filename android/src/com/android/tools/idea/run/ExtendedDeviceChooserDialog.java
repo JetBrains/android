@@ -48,8 +48,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URI;
 
 import static com.android.tools.idea.run.cloud.CloudConfiguration.Kind.MATRIX;
 
@@ -67,6 +69,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
   private CloudConfigurationComboBox myCloudConfigurationCombo;
   private CloudProjectIdLabel myCloudProjectIdLabel;
   private ActionButton myCloudProjectIdUpdateButton;
+  private ActionButton myCloudMatrixHelpButton;
   private JButton myLaunchEmulatorButton;
   private JRadioButton myLaunchEmulatorRadioButton;
   private final AvdComboBox myAvdCombo;
@@ -320,6 +323,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     myCloudProjectLabel.setVisible(isGoogleCloudRadioButtonShown);
     myCloudProjectIdLabel.setVisible(isGoogleCloudRadioButtonShown);
     myCloudProjectIdUpdateButton.setVisible(isGoogleCloudRadioButtonShown);
+    myCloudMatrixHelpButton.setVisible(isGoogleCloudRadioButtonShown);
   }
 
   private void updateOkButton() {
@@ -452,7 +456,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
   private void createUIComponents() {
     myCloudProjectIdLabel = new CloudProjectIdLabel(MATRIX);
 
-    AnAction action = new AnAction() {
+    AnAction projectIdUpdateAction = new AnAction() {
       @Override
       public void actionPerformed(AnActionEvent e) {
         if (myCloudConfigurationProvider == null) {
@@ -476,7 +480,28 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     };
 
     myCloudProjectIdUpdateButton =
-      new ActionButton(action, new PresentationFactory().getPresentation(action), "MyPlace", JBUI.size(25, 25));
+      new ActionButton(projectIdUpdateAction, new PresentationFactory().getPresentation(projectIdUpdateAction), "MyPlace", JBUI.size(25, 25));
+
+    AnAction cloudMatrixHelpAction = new AnAction() {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        try {
+          Desktop.getDesktop().browse(new URI("https://cloud.google.com/test-lab/android-studio"));
+        } catch (Exception ex) {
+          // ignore
+        }
+      }
+
+      @Override
+      public void update(AnActionEvent event) {
+        Presentation presentation = event.getPresentation();
+        presentation.setText("Learn about using Cloud Test Lab from Android Studio");
+        presentation.setIcon(AllIcons.Actions.Help);
+      }
+    };
+
+    myCloudMatrixHelpButton =
+      new ActionButton(cloudMatrixHelpAction, new PresentationFactory().getPresentation(cloudMatrixHelpAction), "MyPlace", JBUI.size(25, 25));
 
     myCloudConfigurationCombo = new CloudConfigurationComboBox(MATRIX);
     Disposer.register(myDisposable, myCloudConfigurationCombo);
