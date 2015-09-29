@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.propertyTable.editors;
 
+import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.intellij.android.designer.model.RadModelBuilder;
@@ -44,28 +45,14 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.plaf.basic.ComboPopup;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.EnumSet;
 import java.util.Set;
-
-import static com.android.SdkConstants.*;
 
 /**
  * @author Alexander Lobas
@@ -118,6 +105,7 @@ public class ResourceEditor extends PropertyEditor {
       };
 
       final JComboBox comboBox = editor.getComboBox();
+      assert values != null;
       DefaultComboBoxModel model = new DefaultComboBoxModel(values);
       model.insertElementAt(StringsComboEditor.UNSET, 0);
       comboBox.setModel(model);
@@ -137,8 +125,7 @@ public class ResourceEditor extends PropertyEditor {
     else {
       myEditor = new TextFieldWithBrowseButton() {
         @Override
-        protected void installPathCompletion(FileChooserDescriptor fileChooserDescriptor,
-                                             @Nullable Disposable parent) {
+        protected void installPathCompletion(FileChooserDescriptor fileChooserDescriptor, @Nullable Disposable parent) {
         }
 
         @Override
@@ -153,20 +140,19 @@ public class ResourceEditor extends PropertyEditor {
       }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
       JTextField textField = getComboText();
+      assert textField != null;
       textField.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
           fireValueCommitted(false, true);
         }
       });
-      textField.getDocument().addDocumentListener(
-        new DocumentAdapter() {
-          @Override
-          protected void textChanged(final DocumentEvent e) {
-            preferredSizeChanged();
-          }
+      textField.getDocument().addDocumentListener(new DocumentAdapter() {
+        @Override
+        protected void textChanged(final DocumentEvent e) {
+          preferredSizeChanged();
         }
-      );
+      });
       selectTextOnFocusGain(textField);
     }
 
@@ -244,6 +230,8 @@ public class ResourceEditor extends PropertyEditor {
           types.add(ResourceType.ID);
           types.add(ResourceType.STYLE);
           break;
+        default:
+          break;
       }
     }
 
@@ -316,24 +304,25 @@ public class ResourceEditor extends PropertyEditor {
       return null;
     }
     if (myIsDimension &&
-        !value.startsWith(PREFIX_RESOURCE_REF) &&
-        !value.endsWith(UNIT_DIP) &&
-        !value.equalsIgnoreCase(VALUE_WRAP_CONTENT) &&
-        !value.equalsIgnoreCase(VALUE_FILL_PARENT) &&
-        !value.equalsIgnoreCase(VALUE_MATCH_PARENT)) {
+        !value.startsWith(SdkConstants.PREFIX_RESOURCE_REF) &&
+        !value.startsWith(SdkConstants.PREFIX_THEME_REF) &&
+        !value.endsWith(SdkConstants.UNIT_DIP) &&
+        !value.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT) &&
+        !value.equalsIgnoreCase(SdkConstants.VALUE_FILL_PARENT) &&
+        !value.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
       if (value.length() <= 2) {
-        return value + UNIT_DP;
+        return value + SdkConstants.UNIT_DP;
       }
       int index = value.length() - 2;
       String dimension = value.substring(index);
       if (ArrayUtil.indexOf(ResourceRenderer.DIMENSIONS, dimension) == -1) {
-        return value + UNIT_DP;
+        return value + SdkConstants.UNIT_DP;
       }
     }
 
     // If it looks like a reference, don't escape it.
     if (myIsString &&
-        (value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) &&
+        (value.startsWith(SdkConstants.PREFIX_RESOURCE_REF) || value.startsWith(SdkConstants.PREFIX_THEME_REF)) &&
         ResourceUrl.parse(value) == null) {
       return "\\" + value;
     }
