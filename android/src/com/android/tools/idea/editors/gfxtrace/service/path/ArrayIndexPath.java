@@ -57,7 +57,7 @@ public final class ArrayIndexPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {112, 69, -81, -42, 0, 32, 76, 44, 114, 54, 116, -61, 46, 30, -71, -11, 75, -26, 104, -5, };
+  private static final byte[] IDBytes = {117, -71, 36, -27, -102, 15, 59, -37, -18, -54, -37, 54, -93, 79, 30, 113, -111, 28, -53, 82, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

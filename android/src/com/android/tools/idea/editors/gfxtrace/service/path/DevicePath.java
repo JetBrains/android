@@ -47,7 +47,7 @@ public final class DevicePath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-26, -54, 110, 13, -89, -54, -80, -53, -43, -98, 24, -95, -53, -125, -56, -109, -17, -20, 18, -64, };
+  private static final byte[] IDBytes = {3, -4, 32, -2, -91, 120, 32, -37, 125, -83, 38, -119, 119, -92, 18, 60, -5, -95, 100, 61, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

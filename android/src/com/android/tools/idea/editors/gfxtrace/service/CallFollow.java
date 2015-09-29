@@ -43,7 +43,7 @@ final class CallFollow implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-31, 44, 13, 0, -46, -125, -32, -43, 97, -7, 15, -50, -2, -73, 58, 101, 109, 62, -71, -114, };
+  private static final byte[] IDBytes = {-27, -24, 59, -80, -32, -48, 117, -110, 127, -113, 126, 77, 79, 65, -88, 35, -15, 32, 0, -69, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

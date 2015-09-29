@@ -82,7 +82,7 @@ public final class MemoryRangePath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {104, 109, -113, -31, -117, 52, 82, -65, -86, 11, 60, -32, 8, -26, -41, 6, 110, 96, 9, -35, };
+  private static final byte[] IDBytes = {53, 96, 28, 103, -37, 47, -11, -105, 76, -67, 116, 23, -41, -20, -3, 13, 123, -54, 15, 89, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

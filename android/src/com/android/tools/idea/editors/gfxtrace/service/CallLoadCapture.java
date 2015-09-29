@@ -48,7 +48,7 @@ final class CallLoadCapture implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-78, -107, 105, -119, 127, -47, 110, 10, 26, -99, -5, 85, 6, -5, -23, -27, -5, -94, 90, 106, };
+  private static final byte[] IDBytes = {-14, 52, 30, 68, 103, -62, -59, 4, 58, 44, -92, 65, 17, 72, 103, 117, 112, 77, -4, 10, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {

@@ -79,7 +79,7 @@ public final class ImageInfo implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {32, 16, 61, -43, 100, -14, 13, -126, 103, -73, 2, 126, -107, -96, 31, 49, 126, -105, 23, -35, };
+  private static final byte[] IDBytes = {-96, -71, -110, -37, 32, 107, -112, 93, -29, 112, -110, -67, 72, 62, 69, 58, 5, 112, -97, 28, };
   public static final BinaryID ID = new BinaryID(IDBytes);
 
   static {
