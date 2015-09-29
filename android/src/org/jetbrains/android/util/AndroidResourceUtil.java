@@ -159,18 +159,10 @@ public class AndroidResourceUtil {
                                               @NotNull String resClassName,
                                               @NotNull Collection<String> resourceNames,
                                               boolean onlyInOwnPackages) {
-    final Set<PsiClass> rClasses = findRJavaClasses(facet, onlyInOwnPackages);
-
-    PsiClass inMemoryRClass = facet.getLightRClass();
-    if (inMemoryRClass != null) {
-      rClasses.add(inMemoryRClass);
-    }
-
     final List<PsiField> result = new ArrayList<PsiField>();
-    for (PsiClass rClass : rClasses) {
+    for (PsiClass rClass : findRJavaClasses(facet, onlyInOwnPackages)) {
       findResourceFieldsFromClass(rClass, resClassName, resourceNames, result);
     }
-
     return result.toArray(new PsiField[result.size()]);
   }
 
