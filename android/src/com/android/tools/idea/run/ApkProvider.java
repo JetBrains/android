@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * An interface for providing information about the APKs to install on devices and/or emulators
@@ -43,4 +44,7 @@ public interface ApkProvider {
    */
   @Nullable
   String getTestPackageName() throws ApkProvisionException;
+
+  @NotNull
+  List<ValidationError> validate();
 }

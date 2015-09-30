@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -172,5 +173,11 @@ public class NonGradleApkProvider implements ApkProvider {
     if (fail) {
       throw new ApkProvisionException(messageBuilder.toString());
     }
+  }
+
+  @NotNull
+  @Override
+  public List<ValidationError> validate() {
+    return ImmutableList.of();
   }
 }
