@@ -26,6 +26,7 @@ public class LaunchUtilsTest extends AndroidGradleTestCase {
 
     loadProject("projects/runConfig/activity");
     assertFalse(LaunchUtils.isWatchFaceApp(myAndroidFacet));
+    assertFalse(LaunchUtils.isWatchFeatureRequired(myAndroidFacet));
   }
 
   public void testActivityAlias() throws Exception {
@@ -46,5 +47,6 @@ public class LaunchUtilsTest extends AndroidGradleTestCase {
 
     loadProject("projects/runConfig/watchface");
     assertTrue(LaunchUtils.isWatchFaceApp(myAndroidFacet));
+    assertTrue(LaunchUtils.isWatchFeatureRequired(myAndroidFacet));
   }
 }
