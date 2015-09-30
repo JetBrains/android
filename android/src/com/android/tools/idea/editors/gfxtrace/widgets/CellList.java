@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.gfxtrace.widgets;
 
-import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -64,8 +63,8 @@ public abstract class CellList<T extends CellWidget.Data> extends CellWidget<T, 
 
   @NotNull private final JBList myList;
 
-  public CellList(Orientation orientation, CellRenderer.CellLoader<T> loader) {
-    super(createComponent(orientation), loader);
+  public CellList(Orientation orientation, String emptyText, CellRenderer.CellLoader<T> loader) {
+    super(createComponent(orientation, emptyText), loader);
     myList = (JBList)myComponent.getViewport().getView();
 
     myList.setCellRenderer(myRenderer);
@@ -74,12 +73,12 @@ public abstract class CellList<T extends CellWidget.Data> extends CellWidget<T, 
     myList.setFixedCellHeight(cellSize.height);
   }
 
-  private static JBScrollPane createComponent(Orientation orientation) {
+  private static JBScrollPane createComponent(Orientation orientation, String emptyText) {
     JBList list = new JBList();
     list.setLayoutOrientation(orientation.listWrap);
     list.setExpandableItemsEnabled(false); // Turn this off, since the "preview" will cause all the thumbnails to be loaded.
     list.setVisibleRowCount(1);
-    list.getEmptyText().setText(GfxTraceEditor.SELECT_ATOM);
+    list.getEmptyText().setText(emptyText);
 
     JBScrollPane scrollPane = orientation.createScrollPane();
     scrollPane.setViewportView(list);
@@ -99,6 +98,11 @@ public abstract class CellList<T extends CellWidget.Data> extends CellWidget<T, 
     if (data.size() == 0) {
       myList.getEmptyText().setText(StatusText.DEFAULT_EMPTY_TEXT);
     }
+  }
+
+  @Override
+  public int getSelectedItem() {
+    return myList.getSelectedIndex();
   }
 
   @Override

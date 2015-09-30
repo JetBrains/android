@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBViewport;
+import com.intellij.util.ui.StatusText;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -52,23 +53,35 @@ public class ImagePanel extends JPanel {
     myImage.addToolbarActions(group);
   }
 
+  public StatusText getEmptyText() {
+    return myImage.getEmptyText();
+  }
+
   public void setImage(Image image) {
     myImage.setImage(image);
   }
 
   private static final class ImageComponent extends JComponent {
     private static final double ZOOM_FIT = Double.POSITIVE_INFINITY;
-    private static final double MAX_ZOOM = 8;
+    private static final double MAX_ZOOM_FACTOR = 8;
     private static final double MIN_ZOOM_WIDTH = 100.0;
     private static final BufferedImage EMPTY_IMAGE = UIUtil.createImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
 
     private final JViewport parent;
+    private final StatusText emptyText;
     private Image image = EMPTY_IMAGE;
     private double zoom;
 
     public ImageComponent(JBScrollPane scrollPane) {
       scrollPane.setViewportView(this);
       this.parent = scrollPane.getViewport();
+      this.emptyText = new StatusText() {
+        @Override
+        protected boolean isStatusVisible() {
+          return image == EMPTY_IMAGE;
+        }
+      };
+      this.emptyText.attachTo(parent);
       this.zoom = ZOOM_FIT;
 
       MouseAdapter mouseHandler = new MouseAdapter() {
@@ -115,9 +128,9 @@ public class ImagePanel extends JPanel {
       };
 
       // Add the mouse listeners to the scrollpane, so the coordinates stay consistent.
-      scrollPane.addMouseListener(mouseHandler);
-      scrollPane.addMouseWheelListener(mouseHandler);
-      scrollPane.addMouseMotionListener(mouseHandler);
+      parent.addMouseListener(mouseHandler);
+      parent.addMouseWheelListener(mouseHandler);
+      parent.addMouseMotionListener(mouseHandler);
 
       addKeyListener(new KeyAdapter() {
         @Override
@@ -160,12 +173,16 @@ public class ImagePanel extends JPanel {
       });
     }
 
+    public StatusText getEmptyText() {
+      return emptyText;
+    }
+
     public void setImage(Image image) {
       if (this.image == EMPTY_IMAGE) {
         // Ignore any zoom actions that might have happened before the first real image was shown.
         zoomToFit();
       }
-      this.image = image;
+      this.image = (image == null) ? EMPTY_IMAGE : image;
       revalidate();
       repaint();
     }
@@ -207,6 +224,11 @@ public class ImagePanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
+      if (image == EMPTY_IMAGE) {
+        emptyText.paint(parent, g);
+        return;
+      }
+
       double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
       int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
       g.drawImage(image, (getWidth() - w) / 2, (getHeight() - h) / 2, w, h, this);
@@ -236,7 +258,7 @@ public class ImagePanel extends JPanel {
         zoom = getFitRatio();
       }
       int delta = Math.min(Math.max(amount, -5), 5);
-      zoom = Math.min(MAX_ZOOM, Math.max(getMinZoom(), zoom * (1 - 0.05 * delta)));
+      zoom = Math.min(getMaxZoom(), Math.max(getMinZoom(), zoom * (1 - 0.05 * delta)));
       invalidate();
 
       Dimension newSize = getPreferredSize();
@@ -267,6 +289,10 @@ public class ImagePanel extends JPanel {
     private double getMinZoom() {
       // The smallest zoom factor to see the whole image or that causes the larger dimension to be no less than MIN_ZOOM_WIDTH pixels.
       return Math.min(1, Math.min(getFitRatio(), Math.min(MIN_ZOOM_WIDTH / image.getWidth(this), MIN_ZOOM_WIDTH / image.getHeight(this))));
+    }
+
+    private double getMaxZoom() {
+      return Math.max(MAX_ZOOM_FACTOR, getFitRatio());
     }
   }
 }
