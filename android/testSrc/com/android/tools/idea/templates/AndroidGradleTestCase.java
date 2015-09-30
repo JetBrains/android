@@ -448,13 +448,17 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  public void assertBuildsCleanly(Project project, boolean allowWarnings) throws Exception {
+  public void assertBuildsCleanly(Project project, boolean allowWarnings, String... extraArgs) throws Exception {
     File base = virtualToIoFile(project.getBaseDir());
     File gradlew = new File(base, GRADLE_WRAPPER_EXECUTABLE_NAME);
     assertTrue(gradlew.exists());
     File pwd = base.getAbsoluteFile();
     // TODO: Add in --no-daemon, anything to suppress total time?
-    GeneralCommandLine cmdLine = new GeneralCommandLine(new String[]{gradlew.getPath(), "assembleDebug"}).withWorkDirectory(pwd);
+    String[] args = new String[2 + extraArgs.length];
+    args[0] = gradlew.getPath();
+    args[1] = "assembleDebug";
+    System.arraycopy(extraArgs, 0, args, 2, extraArgs.length);
+    GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
     int timeoutInMilliseconds = 5 * 60 * 1000;
