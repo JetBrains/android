@@ -64,17 +64,18 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
   @NotNull private final RenderSettings myRenderSettings = new RenderSettings();
 
   private ScrubberController(@NotNull final GfxTraceEditor editor) {
-    super(editor, CellList.Orientation.HORIZONTAL, PREVIEW_SIZE);
+    super(editor);
+    usingListWidget(CellList.Orientation.HORIZONTAL, PREVIEW_SIZE);
     myRenderSettings.setMaxWidth(PREVIEW_SIZE.width);
     myRenderSettings.setMaxHeight(PREVIEW_SIZE.height);
     myRenderSettings.setWireframeMode(WireframeMode.noWireframe());
   }
 
   @Override
-  public boolean loadCell(final Data cell, final Runnable onLoad) {
+  public void loadCell(final Data cell, final Runnable onLoad) {
     final DevicePath devicePath = myRenderDevice.getPath();
     if (devicePath == null) {
-      return false;
+      return;
     }
     final ServiceClient client = myEditor.getClient();
     ListenableFuture<ImageInfoPath> imagePathF = client.getFramebufferColor(devicePath, cell.atomPath, myRenderSettings);
@@ -84,7 +85,6 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
         loadCellImage(cell, client, imagePath, onLoad);
       }
     });
-    return true;
   }
 
   @Override
