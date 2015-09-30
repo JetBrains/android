@@ -15,24 +15,34 @@
  */
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
-import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
+import com.android.tools.idea.editors.gfxtrace.widgets.CellWidget;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 
-public abstract class CellRenderer<T extends CellList.Data> implements ListCellRenderer {
+public abstract class CellRenderer<T extends CellWidget.Data> implements ListCellRenderer {
   @NotNull private final CellLoader<T> myCellLoader;
+  @NotNull private final T myNullCell;
 
   public CellRenderer(CellLoader<T> loader) {
     myCellLoader = loader;
+    myNullCell = createNullCell();
   }
+
+  protected abstract T createNullCell();
 
   @Override
   public Component getListCellRendererComponent(
-      @NotNull final JList list, @NotNull Object data, int index, boolean isSelected, boolean cellHasFocus) {
-    assert (data instanceof CellList.Data);
-    final T cell = (T)data;
+      @NotNull final JList list, Object data, int index, boolean isSelected, boolean cellHasFocus) {
+
+    final T cell;
+    if (data != null) {
+      assert (data instanceof CellWidget.Data);
+      cell = (T)data;
+    } else {
+      cell = myNullCell;
+    }
     if (cell.requiresLoading()) {
       myCellLoader.loadCell(cell, new Runnable() {
         @Override
@@ -52,7 +62,7 @@ public abstract class CellRenderer<T extends CellList.Data> implements ListCellR
 
   public abstract Dimension getInitialCellSize();
 
-  public interface CellLoader<T extends CellList.Data> {
-    boolean loadCell(T cell, Runnable onLoad);
+  public interface CellLoader<T extends CellWidget.Data> {
+    void loadCell(T cell, Runnable onLoad);
   }
 }
