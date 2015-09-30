@@ -22,7 +22,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 /**
  * Represents a {@link GrLiteral} element.
  */
-public class LiteralElement extends GradleDslElement {
+public final class LiteralElement extends GradleDslElement {
   @NotNull private final String myName;
 
   @Nullable private GrLiteral myLiteral;
