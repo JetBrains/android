@@ -44,8 +44,6 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.JBUI;
 import gnu.trove.TIntArrayList;
-import org.jetbrains.android.dom.AndroidAttributeValue;
-import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -113,7 +111,15 @@ public class DeviceChooser implements Disposable {
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
-    myRequiredHardwareFeatures = getRequiredHardwareFeatures(ManifestInfo.get(facet.getModule(), true).getRequiredFeatures());
+
+    // Currently, we only look at whether the device supports the watch feature.
+    // We may not want to search the device for every possible feature, but only a small subset of important
+    // features, starting with hardware type watch.
+    if (LaunchUtils.isWatchFeatureRequired(facet)) {
+      myRequiredHardwareFeatures = EnumSet.of(IDevice.HardwareFeature.WATCH);
+    } else {
+      myRequiredHardwareFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
+    }
 
     myDeviceTable = new JBTable();
     myPanel = ScrollPaneFactory.createScrollPane(myDeviceTable);
@@ -186,21 +192,6 @@ public class DeviceChooser implements Disposable {
 
     myRefreshingAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
     myBridge = AndroidSdkUtils.getDebugBridge(myFacet.getModule().getProject());
-  }
-
-  private static EnumSet<IDevice.HardwareFeature> getRequiredHardwareFeatures(List<UsesFeature> requiredFeatures) {
-    // Currently, this method is hardcoded to only search if the list of required features includes a watch.
-    // We may not want to search the device for every possible feature, but only a small subset of important
-    // features, starting with hardware type watch..
-
-    for (UsesFeature feature : requiredFeatures) {
-      AndroidAttributeValue<String> name = feature.getName();
-      if (name != null && UsesFeature.HARDWARE_TYPE_WATCH.equals(name.getStringValue())) {
-        return EnumSet.of(IDevice.HardwareFeature.WATCH);
-      }
-    }
-
-    return EnumSet.noneOf(IDevice.HardwareFeature.class);
   }
 
   private static void setColumnWidth(JBTable deviceTable, int columnIndex, String sampleText) {
