@@ -30,9 +30,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.Projects.isProjectModule;
 import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_6;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
 /**
  * Configures Java SDK for Java library module.
@@ -48,8 +48,7 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaP
     }
     LanguageLevel languageLevel = javaProject.getJavaLanguageLevel();
 
-    if (languageLevel == null) {
-      // Java language 1.8 is not supported, fall back to the minimum Java language level in dependent modules.
+    if (languageLevel == null && !isProjectModule(module)) {
       List<Module> dependents = getAllDependentModules(module);
       languageLevel = getMinimumLanguageLevelForAndroidModules(dependents.toArray(new Module[dependents.size()]));
     }
