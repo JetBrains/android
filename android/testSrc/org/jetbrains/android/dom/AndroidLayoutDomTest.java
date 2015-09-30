@@ -509,6 +509,14 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.checkHighlighting(true, false, false);
   }
 
+  // Regression test for http://b.android.com/175619
+  public void testStyleShortNameCompletion() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("StyleNameCompletion_layout.xml", "res/layout/layout.xml"));
+    copyFileToProject("StyleNameCompletion_style.xml", "res/values/styles.xml");
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResultByFile(testFolder + "/StyleNameCompletion_layout_after.xml");
+  }
+
   public void testIdReferenceCompletion() throws Throwable {
     toTestCompletion("idref1.xml", "idref1_after.xml");
   }
