@@ -67,9 +67,8 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
     mySampler.myProfileStateListener = this;
     myPanel = new JPanel(new BorderLayout());
 
-    addOverlayText(NEEDS_NEWER_API_LABEL, 0);
-    addOverlayText(PAUSED_LABEL, 1);
-    addOverlayText(NEEDS_PROFILING_ENABLED_LABEL, 2);
+    addOverlayText(NEEDS_NEWER_API_LABEL, PAUSED_LABEL_PRIORITY - 1);
+    addOverlayText(NEEDS_PROFILING_ENABLED_LABEL, PAUSED_LABEL_PRIORITY + 1);
 
     myApiLevel = mySampler.getApiLevel();
     configureTimelineComponent(mySampler.getTimelineData());
@@ -77,8 +76,6 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
 
     myPanel.setBackground(BACKGROUND_COLOR);
     setViewComponent(myPanel);
-
-    setPaused(true); // Start GPU monitor as paused because GPU monitor uses app memory on the device.
   }
 
   @Override
@@ -108,6 +105,17 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
         configureTimelineComponent(mySampler.getTimelineData());
       }
     }
+  }
+
+  @Override
+  protected boolean getPreferredPausedState() {
+    return true;
+  }
+
+  @NotNull
+  @Override
+  public String getMonitorName() {
+    return "GpuMonitor";
   }
 
   @NotNull
