@@ -24,9 +24,11 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.lint.checks.ApiLookup;
+import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -36,12 +38,21 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TAG_STYLE;
+
 /**
  * Utility methods for style resolution.
  */
 public class ResolutionUtils {
 
   private static final Logger LOG = Logger.getInstance(ResolutionUtils.class);
+
+  private static final Pattern RESOURCE_URL_MATCHER = Pattern.compile("@(.*:)?(.+/)(.+)");
 
   // Utility methods class isn't meant to be constructed, all methods are static.
   private ResolutionUtils() { }
@@ -52,10 +63,15 @@ public class ResolutionUtils {
    */
   @NotNull
   public static String getStyleResourceUrl(@NotNull String qualifiedName) {
-    if (qualifiedName.startsWith(SdkConstants.PREFIX_ANDROID)) {
-      return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + qualifiedName.substring(SdkConstants.PREFIX_ANDROID.length());
+    int colonIndex = qualifiedName.indexOf(':');
+    if (colonIndex != -1) {
+      // The theme name contains a namespace, change the format to be "@namespace:style/ThemeName"
+      String namespace = qualifiedName.substring(0, colonIndex + 1); // Name space plus + colon
+      String themeNameWithoutNamespace = StringUtil.trimStart(qualifiedName, namespace);
+      return PREFIX_RESOURCE_REF + namespace + TAG_STYLE + "/" + themeNameWithoutNamespace;
     }
-    return SdkConstants.STYLE_RESOURCE_PREFIX + qualifiedName;
+
+    return STYLE_RESOURCE_PREFIX + qualifiedName;
   }
 
   /**
@@ -64,11 +80,14 @@ public class ResolutionUtils {
    */
   @NotNull
   public static String getQualifiedNameFromResourceUrl(@NotNull String styleResourceUrl) {
-    assert styleResourceUrl.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX) || styleResourceUrl.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX);
-    if (styleResourceUrl.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
-      return styleResourceUrl.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length());
-    }
-    return SdkConstants.PREFIX_ANDROID + styleResourceUrl.substring(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX.length());
+    Matcher matcher = RESOURCE_URL_MATCHER.matcher(styleResourceUrl);
+    boolean matches = matcher.find();
+    assert matches;
+
+    String namespace = Strings.nullToEmpty(matcher.group(1)); // the namespace containing the colon (if existing)
+    String resourceName = matcher.group(3); // the resource name
+
+    return namespace + resourceName;
   }
 
   /**
