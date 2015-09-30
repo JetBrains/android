@@ -16,13 +16,9 @@
 
 package com.android.tools.idea.run;
 
-import com.android.builder.model.AndroidArtifactOutput;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.run.cloud.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -41,7 +37,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
 import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.*;
 import com.intellij.openapi.util.io.FileUtil;
@@ -160,7 +155,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
     }
     errors.addAll(validateAvd(facet));
-    errors.addAll(validateApkSigning(facet));
+    errors.addAll(getApkProvider(facet).validate());
 
     errors.addAll(checkConfiguration(facet));
 
@@ -187,37 +182,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return ImmutableList.of(ValidationError.fatal(message));
     }
     return ImmutableList.of();
-  }
-
-  @NotNull
-  private static List<ValidationError> validateApkSigning(@NotNull final AndroidFacet facet) {
-    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
-    if (androidGradleModel == null) {
-      return ImmutableList.of();
-    }
-
-    if (androidGradleModel.getMainArtifact().isSigned()) {
-      return ImmutableList.of();
-    }
-
-    AndroidArtifactOutput output = GradleUtil.getOutput(androidGradleModel.getMainArtifact());
-    final String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName(),
-                                                 androidGradleModel.getSelectedVariant().getDisplayName());
-
-    Runnable quickFix = new Runnable() {
-      @Override
-      public void run() {
-        Module module = facet.getModule();
-        ProjectSettingsService service = ProjectSettingsService.getInstance(module.getProject());
-        if (service instanceof AndroidProjectSettingsService) {
-          ((AndroidProjectSettingsService)service).openSigningConfiguration(module);
-        }
-        else {
-          service.openModuleSettings(module);
-        }
-      }
-    };
-    return ImmutableList.of(ValidationError.fatal(message, quickFix));
   }
 
   /** Returns whether the configuration supports running library projects, and if it doesn't, then an explanation as to why it doesn't. */
@@ -328,7 +292,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
-    return new AndroidRunningState(env, facet, getApkProvider(), deviceTarget, printer, getApplicationLauncher(facet), CLEAR_LOGCAT,
+    return new AndroidRunningState(env, facet, getApkProvider(facet), deviceTarget, printer, getApplicationLauncher(facet), CLEAR_LOGCAT,
                                    shouldDeploy(), this);
   }
 
@@ -382,7 +346,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  protected abstract ApkProvider getApkProvider();
+  protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet);
 
   @Nullable
   public static Pair<File, String> getCopyOfCompilerManifestFile(@NotNull AndroidFacet facet) throws IOException {
