@@ -141,7 +141,53 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
     literalElement = new LiteralElement(this, property);
     literalElement.setValue(value);
     myToBeAddedProperties.put(property, literalElement);
-    setModified(true);
+    return this;
+  }
+
+  @NotNull
+  protected GradleDslPropertiesElement addToListProperty(@NotNull String property, @NotNull String value) {
+    return addToListPropertyImpl(property, value);
+  }
+
+  @NotNull
+  protected GradleDslPropertiesElement removeFromListProperty(@NotNull String property, @NotNull String value) {
+    return removeFromListPropertyImpl(property, value);
+  }
+
+  @NotNull
+  protected GradleDslPropertiesElement replaceInListProperty(@NotNull String property, @NotNull String oldValue, @NotNull String newValue) {
+    return replaceInListPropertyImpl(property, oldValue, newValue);
+  }
+
+  @NotNull
+  private GradleDslPropertiesElement addToListPropertyImpl(@NotNull String property, @NotNull Object value) {
+    ListElement listElement = getProperty(property, ListElement.class);
+    if (listElement != null) {
+      listElement.add(value);
+      return this;
+    }
+    listElement = new ListElement(this, property);
+    listElement.add(value);
+    myToBeAddedProperties.put(property, listElement);
+    return this;
+  }
+
+  @NotNull
+  private GradleDslPropertiesElement removeFromListPropertyImpl(@NotNull String property, @NotNull Object value) {
+    ListElement listElement = getProperty(property, ListElement.class);
+    if (listElement != null) {
+      listElement.remove(value);
+    }
+    return this;
+  }
+
+  @NotNull
+  private GradleDslPropertiesElement replaceInListPropertyImpl(@NotNull String property,
+                                                               @NotNull Object oldValue, @NotNull Object newValue) {
+    ListElement listElement = getProperty(property, ListElement.class);
+    if (listElement != null) {
+      listElement.replace(oldValue, newValue);
+    }
     return this;
   }
 
