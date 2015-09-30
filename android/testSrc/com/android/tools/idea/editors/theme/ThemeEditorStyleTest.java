@@ -536,9 +536,9 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     ConfigurationManager configurationManager = myFacet.getConfigurationManager();
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver resolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = resolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle theme = resolver.getTheme("AppTheme");
 
-    assertEquals(3, theme.getConfiguredValues().values().size());
+    assertEquals(3, theme.getConfiguredValues().size());
   }
 
 }
