@@ -20,12 +20,15 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.IntentFilter;
 import org.jetbrains.android.dom.manifest.Service;
+import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -75,5 +78,29 @@ public class LaunchUtils {
                AndroidDomUtil.containsCategory(filters.get(0), AndroidUtils.WATCHFACE_CATEGORY_NAME);
       }
     });
+  }
+
+  /** Returns whether the watch hardware feature is required for the given facet. */
+  public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
+    List<UsesFeature> usedFeatures = ManifestInfo.get(facet.getModule(), true).getUsedFeatures();
+
+    for (UsesFeature feature : usedFeatures) {
+      AndroidAttributeValue<String> name = feature.getName();
+      if (name != null && UsesFeature.HARDWARE_TYPE_WATCH.equals(name.getStringValue())) {
+        return isRequired(feature.getRequired());
+      }
+    }
+
+    return false;
+  }
+
+  private static boolean isRequired(@Nullable AndroidAttributeValue<Boolean> required) {
+    if (required == null) {
+      return true;
+    }
+
+    Boolean value = required.getValue();
+    return value == null // unspecified => required
+           || value;
   }
 }

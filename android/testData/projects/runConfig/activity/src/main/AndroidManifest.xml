@@ -25,4 +25,5 @@
       <activity android:name=".Main" android:label="Main" />
     </application>
 
+    <uses-feature android:name="android.hardware.type.watch" android:required="false" />
 </manifest>
