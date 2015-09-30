@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.activity.*;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
@@ -40,6 +41,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
@@ -60,12 +63,15 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
   }
 
+  @NotNull
   @Override
-  protected void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException {
+  protected List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
+    List<ValidationError> errors = Lists.newArrayList();
     if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_DEVICE_LAUNCH && !IS_VALID_CLOUD_DEVICE_SELECTION) {
-      throw new RuntimeConfigurationError(INVALID_CLOUD_DEVICE_SELECTION_ERROR);
+      errors.add(ValidationError.fatal(INVALID_CLOUD_DEVICE_SELECTION_ERROR));
     }
-    getApplicationLauncher(facet).checkConfiguration();
+    errors.addAll(getApplicationLauncher(facet).checkConfiguration());
+    return errors;
   }
 
   @Override
