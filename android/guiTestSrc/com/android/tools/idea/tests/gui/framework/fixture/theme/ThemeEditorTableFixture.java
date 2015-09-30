@@ -56,7 +56,7 @@ public class ThemeEditorTableFixture extends JTableFixture {
         }
 
         ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
-        return resourceComponent.getAttributeName();
+        return resourceComponent.getLabelText();
       }
     });
   }

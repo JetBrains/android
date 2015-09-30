@@ -63,6 +63,7 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.PanelUI;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -798,10 +799,18 @@ public class ThemeEditorComponent extends Splitter {
 
     configureFilter();
 
+    int row = myAttributesTable.getEditingRow();
+    int column = myAttributesTable.getEditingColumn();
+    // If an editor is present, remove it to update the entire table, do nothing otherwise
     myAttributesTable.removeEditor();
+
+    // update the table
     myAttributesTable.setModel(myModel);
     myAttributesTable.setRowSorter(myAttributesSorter);
     myAttributesTable.updateRowHeights();
+
+    // as a refresh can happen at any point, we want to restore the editor if one was present, do nothing otherwise
+    myAttributesTable.editCellAt(row, column);
 
     myPanel.getPalette().setModel(new AttributesModelColorPaletteModel(configuration, myModel));
     myPanel.getPalette().addItemListener(new ItemListener() {
