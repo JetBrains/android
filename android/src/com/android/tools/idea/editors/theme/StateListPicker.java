@@ -46,7 +46,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -70,7 +69,6 @@ import java.util.List;
 import java.util.Map;
 
 public class StateListPicker extends JPanel {
-  private static final String LABEL_TEMPLATE = "<html><nobr><b><font color=\"#%1$s\">%2$s</font></b>";
   private static final String API_ERROR_TEXT = "This resource requires at least an API level of %d";
   private static final ResourceType[] DIMENSIONS_ONLY = {ResourceType.DIMEN};
   private static final Icon QUESTION_ICON = AllIcons.Actions.Help;
@@ -126,7 +124,7 @@ public class StateListPicker extends JPanel {
     }
 
     String stateDescription = attributeDescriptions.size() == 0 ? "Default" : Joiner.on(", ").join(attributeDescriptions);
-    stateComponent.setNameText(String.format(LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), stateDescription));
+    stateComponent.setNameText(stateDescription);
 
     stateComponent.setComponentPopupMenu(createAlphaPopupMenu(state, stateComponent));
 
