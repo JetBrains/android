@@ -89,7 +89,6 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.content.impl.ContentImpl;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
-import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.UIUtil;
@@ -514,7 +513,7 @@ public class AndroidUtils {
       AndroidFacetConfiguration configuration = facet.getConfiguration();
       configuration.init(module, contentRoot);
       if (library) {
-        configuration.getState().LIBRARY_PROJECT = true;
+        facet.getProperties().LIBRARY_PROJECT = true;
       }
       model.addFacet(facet);
     }
@@ -760,7 +759,7 @@ public class AndroidUtils {
         return panel;
       }
     };
-    wrapper.setTitle("Stack trace");
+    wrapper.setTitle("Stack Trace");
     wrapper.show();
   }
 

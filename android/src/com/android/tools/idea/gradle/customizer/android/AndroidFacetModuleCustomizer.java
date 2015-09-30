@@ -62,7 +62,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<AndroidGra
       else {
         // Module does not have Android facet. Create one and add it.
         ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
-        final AndroidFacetType facetType = AndroidFacet.getFacetType();
+        AndroidFacetType facetType = AndroidFacet.getFacetType();
         facet = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null);
         model.addFacet(facet);
         configureFacet(facet, androidModel);
