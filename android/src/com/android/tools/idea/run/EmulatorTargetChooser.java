@@ -47,19 +47,19 @@ public class EmulatorTargetChooser implements TargetChooser {
   private final String myAvd;
   @NotNull private final AndroidFacet myFacet;
   private final boolean mySupportMultipleDevices;
-  @NotNull private final String myCommandLine;
+  @NotNull private final EmulatorLaunchOptions myEmulatorLaunchOptions;
   @NotNull private final ConsolePrinter myPrinter;
 
   public EmulatorTargetChooser(
     @NotNull AndroidFacet facet,
     boolean supportMultipleDevices,
-    @NotNull String commandLine,
+    @NotNull EmulatorLaunchOptions emulatorLaunchOptions,
     @NotNull ConsolePrinter printer,
     @Nullable String avd
   ) {
     myFacet = facet;
     mySupportMultipleDevices = supportMultipleDevices;
-    myCommandLine = commandLine;
+    myEmulatorLaunchOptions = emulatorLaunchOptions;
     myPrinter = printer;
     assert avd == null || avd.length() > 0;
     myAvd = avd;
@@ -106,7 +106,7 @@ public class EmulatorTargetChooser implements TargetChooser {
       // The user canceled.
       return null;
     }
-    myFacet.launchEmulator(avd, myCommandLine);
+    myFacet.launchEmulator(avd, myEmulatorLaunchOptions.getCommandLine());
 
     // Wait for an AVD to come up with name matching the one we just launched.
     Predicate<IDevice> avdNameFilter = new Predicate<IDevice>() {
