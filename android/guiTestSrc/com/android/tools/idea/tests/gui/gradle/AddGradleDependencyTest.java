@@ -95,24 +95,24 @@ public class AddGradleDependencyTest extends GuiTestCase {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     GradleBuildModelFixture library3BuildModel = myProjectFrame.parseBuildFileForModule("library3", false);
-    ExternalDependencySpec guava = new ExternalDependencySpec("guava", "com.google.guava" ,"18.0");
-    library3BuildModel.getTarget().dependencies().add(COMPILE, guava);
+    ExternalDependencySpec gson = new ExternalDependencySpec("gson", "com.google.code.gson", "2.4");
+    library3BuildModel.getTarget().dependencies().add(COMPILE, gson);
     library3BuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     EditorFixture editor = myProjectFrame.getEditor().open("app/src/main/java/com/android/multimodule/MainActivity.java");
 
-    String classToImport = "com.google.common.base.Objects";
+    String classToImport = "com.google.gson.Gson";
     addImport(editor, classToImport);
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     moveCaretToClassName(editor, classToImport);
 
-    editor.invokeIntentionAction("Add library 'com.google.guava:guava:18.0' to classpath");
+    editor.invokeIntentionAction("Add library 'gson-2.4' to classpath");
     myProjectFrame.waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    appBuildModel.requireDependency(COMPILE, guava);
+    appBuildModel.requireDependency(COMPILE, gson);
 
     verifyUndo(editor, 1);
   }
@@ -122,19 +122,19 @@ public class AddGradleDependencyTest extends GuiTestCase {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    ExternalDependencySpec guava = new ExternalDependencySpec("guava", "com.google.guava", "18.0");
-    appBuildModel.getTarget().dependencies().add(COMPILE, guava);
+    ExternalDependencySpec gson = new ExternalDependencySpec("gson", "com.google.code.gson", "2.4");
+    appBuildModel.getTarget().dependencies().add(COMPILE, gson);
     appBuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     EditorFixture editor = myProjectFrame.getEditor().open("library3/src/main/java/com/example/MyLibrary.java");
 
-    String classToImport = "com.google.common.base.Objects";
+    String classToImport = "com.google.gson.Gson";
     addImport(editor, classToImport);
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     moveCaretToClassName(editor, classToImport);
 
-    editor.invokeIntentionAction("Add library 'com.google.guava:guava:18.0' to classpath");
+    editor.invokeIntentionAction("Add library 'gson-2.4' to classpath");
     myProjectFrame.waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
@@ -146,7 +146,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     EditorFixture editor = myProjectFrame.getEditor().open("library3/src/main/java/com/example/MyLibrary.java");
-    String classToImport = "com.android.multimodule.MainActivity;";
+    String classToImport = "com.android.multimodule.MainActivity";
     addImport(editor, classToImport);
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     moveCaretToClassName(editor, classToImport);
@@ -159,7 +159,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     EditorFixture editor = myProjectFrame.getEditor().open("library/src/main/java/com/android/library/MainActivity.java");
-    String classToImport = "com.android.multimodule.MainActivity;";
+    String classToImport = "com.android.multimodule.MainActivity";
     addImport(editor, classToImport);
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     moveCaretToClassName(editor, classToImport);
@@ -186,7 +186,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
     editor.waitForCodeAnalysisHighlightCount(ERROR, 6);
     editor.moveTo(editor.findOffset("@^Test"));
-    editor.invokeIntentionAction("Add JUnit to classpath");
+    editor.invokeIntentionAction("Add 'JUnit4' to classpath");
 
     myProjectFrame.waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
@@ -209,13 +209,13 @@ public class AddGradleDependencyTest extends GuiTestCase {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
 
     editor.moveTo(editor.findOffset("@Not^Null "));
-    editor.invokeIntentionAction("Add library 'org.jetbrains:annotations:13.0' to classpath");
+    editor.invokeIntentionAction("Add 'annotations' to classpath");
 
     myProjectFrame.waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    ExternalDependencySpec expected = new ExternalDependencySpec("org.jetbrains", "annotations", "13.0");
+    ExternalDependencySpec expected = new ExternalDependencySpec("annotations", "org.jetbrains", "13.0");
     appBuildModel.requireDependency(COMPILE, expected);
 
     editor.invokeAction(UNDO); // Undo the import statement first

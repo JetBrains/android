@@ -808,11 +808,12 @@
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
     <generatedSourcesFilter implementation="com.android.tools.idea.editors.AndroidGeneratedSourcesFilter"/>
-    <codeInsight.unresolvedReferenceQuickFixProvider
-        implementation="com.android.tools.idea.gradle.quickfix.AndroidUnresolvedReferenceQuickFixProvider" order="last"/>
     <!-- Temporarily disabled due to https://code.google.com/p/android/issues/detail?id=183801 -->
     <!--<highlightVisitor implementation="com.android.tools.idea.gradle.highlight.GradleHighlightQuickfixReplacementVisitor" order="last"/>-->
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
+    <codeInsight.unresolvedReferenceQuickFixProvider
+        implementation="com.android.tools.idea.gradle.quickfix.AndroidUnresolvedReferenceQuickFixProvider"/>
+    <projectModelModifier implementation="com.android.tools.idea.gradle.AndroidGradleJavaProjectModelModifier"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
