@@ -36,7 +36,6 @@ import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileTask;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
@@ -70,7 +69,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
   @NotNull
   public static AndroidGradleProjectComponent getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidGradleProjectComponent.class);
+    AndroidGradleProjectComponent component = project.getComponent(AndroidGradleProjectComponent.class);
+    assert component != null;
+    return component;
   }
 
   public AndroidGradleProjectComponent(@NotNull final Project project) {
