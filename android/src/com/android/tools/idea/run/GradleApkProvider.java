@@ -23,10 +23,14 @@ import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.SplitOutputMatcher;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -121,5 +125,34 @@ public class GradleApkProvider implements ApkProvider {
       throw new ApkProvisionException(message);
     }
     return apkFiles.get(0).getOutputFile();
+  }
+
+  @NotNull
+  @Override
+  public List<ValidationError> validate() {
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(myFacet);
+    assert androidGradleModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
+    if (androidGradleModel.getMainArtifact().isSigned()) {
+      return ImmutableList.of();
+    }
+
+    AndroidArtifactOutput output = GradleUtil.getOutput(androidGradleModel.getMainArtifact());
+    final String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName(),
+                                                 androidGradleModel.getSelectedVariant().getDisplayName());
+
+    Runnable quickFix = new Runnable() {
+      @Override
+      public void run() {
+        Module module = myFacet.getModule();
+        ProjectSettingsService service = ProjectSettingsService.getInstance(module.getProject());
+        if (service instanceof AndroidProjectSettingsService) {
+          ((AndroidProjectSettingsService)service).openSigningConfiguration(module);
+        }
+        else {
+          service.openModuleSettings(module);
+        }
+      }
+    };
+    return ImmutableList.of(ValidationError.fatal(message, quickFix));
   }
 }
