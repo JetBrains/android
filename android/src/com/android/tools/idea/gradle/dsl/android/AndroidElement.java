@@ -92,6 +92,21 @@ public class AndroidElement extends GradleDslPropertiesElement {
     return getListProperty(FLAVOR_DIMENSIONS, String.class);
   }
 
+  @NotNull
+  public AndroidElement addFlavorDimension(@NotNull String flavorDimension) {
+    return (AndroidElement)addToListProperty(FLAVOR_DIMENSIONS, flavorDimension);
+  }
+
+  @NotNull
+  public AndroidElement removeFlavorDimension(@NotNull String flavorDimension) {
+    return (AndroidElement)removeFromListProperty(FLAVOR_DIMENSIONS, flavorDimension);
+  }
+
+  @NotNull
+  public AndroidElement replaceFlavorDimension(@NotNull String oldFlavorDimension, @NotNull String newFlavorDimension) {
+    return (AndroidElement)replaceInListProperty(FLAVOR_DIMENSIONS, oldFlavorDimension, newFlavorDimension);
+  }
+
   @Nullable
   public Boolean generatePureSplits() {
     return getProperty(GENERATE_PURE_SPLITS, Boolean.class);

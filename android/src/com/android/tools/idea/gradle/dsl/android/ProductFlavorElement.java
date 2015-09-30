@@ -74,6 +74,22 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     return getListProperty(CONSUMER_PROGUARD_FILES, String.class);
   }
 
+  @NotNull
+  public ProductFlavorElement addConsumerProguardFile(@NotNull String consumerProguardFile) {
+    return (ProductFlavorElement)addToListProperty(CONSUMER_PROGUARD_FILES, consumerProguardFile);
+  }
+
+  @NotNull
+  public ProductFlavorElement removeConsumerProguardFile(@NotNull String consumerProguardFile) {
+    return (ProductFlavorElement)removeFromListProperty(CONSUMER_PROGUARD_FILES, consumerProguardFile);
+  }
+
+  @NotNull
+  public ProductFlavorElement replaceConsumerProguardFile(@NotNull String oldConsumerProguardFile,
+                                                          @NotNull String newConsumerProguardFile) {
+    return (ProductFlavorElement)replaceInListProperty(CONSUMER_PROGUARD_FILES, oldConsumerProguardFile, newConsumerProguardFile);
+  }
+
   @Nullable
   public String dimension() {
     return getProperty(DIMENSION, String.class);
@@ -130,9 +146,39 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     return getListProperty(PROGUARD_FILES, String.class);
   }
 
+  @NotNull
+  public ProductFlavorElement addProguardFile(@NotNull String proguardFile) {
+    return (ProductFlavorElement)addToListProperty(PROGUARD_FILES, proguardFile);
+  }
+
+  @NotNull
+  public ProductFlavorElement removeProguardFile(@NotNull String proguardFile) {
+    return (ProductFlavorElement)removeFromListProperty(PROGUARD_FILES, proguardFile);
+  }
+
+  @NotNull
+  public ProductFlavorElement replaceProguardFile(@NotNull String oldProguardFile, @NotNull String newProguardFile) {
+    return (ProductFlavorElement)replaceInListProperty(PROGUARD_FILES, oldProguardFile, newProguardFile);
+  }
+
   @Nullable
   public List<String> resConfigs() {
     return getListProperty(RES_CONFIGS, String.class);
+  }
+
+  @NotNull
+  public ProductFlavorElement addResConfig(@NotNull String resConfig) {
+    return (ProductFlavorElement)addToListProperty(RES_CONFIGS, resConfig);
+  }
+
+  @NotNull
+  public ProductFlavorElement removeResConfig(@NotNull String resConfig) {
+    return (ProductFlavorElement)removeFromListProperty(RES_CONFIGS, resConfig);
+  }
+
+  @NotNull
+  public ProductFlavorElement replaceResConfig(@NotNull String oldResConfig, @NotNull String newResConfig) {
+    return (ProductFlavorElement)replaceInListProperty(RES_CONFIGS, oldResConfig, newResConfig);
   }
 
   @Nullable
