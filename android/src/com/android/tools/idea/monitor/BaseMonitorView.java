@@ -21,6 +21,7 @@ import com.android.tools.chartlib.EventData;
 import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.EdtExecutor;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithActions;
@@ -41,20 +42,24 @@ import java.util.PriorityQueue;
 
 public abstract class BaseMonitorView<T extends DeviceSampler>
   implements HierarchyListener, TimelineEventListener, DeviceContext.DeviceSelectionListener {
-  @NotNull protected static final String PAUSED_LABEL = "This monitor is disabled.";
+  @NotNull private static final String PAUSED_KEY = ".paused";
+  @NotNull private static final String PAUSED_LABEL = "This monitor is disabled.";
   @NotNull private static final Integer OVERLAY_LAYER = JLayeredPane.DEFAULT_LAYER + 10;
   @NotNull private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
+
+  protected static final int PAUSED_LABEL_PRIORITY = 5;
 
   @NotNull protected Project myProject;
   @NotNull protected DeviceContext myDeviceContext;
   @NotNull protected JLayeredPane myContentPane;
-  @NotNull private JPanel myTextPanel;
   @NotNull protected volatile TimelineComponent myTimelineComponent;
+  @NotNull protected final T mySampler;
+  @NotNull protected final EventData myEvents = new EventData();
+
+  @NotNull private JPanel myTextPanel;
   @NotNull private JTextPane myOverlayText;
   @NotNull private HashMap<String, ZOrderedOverlayText> myOverlayLookup;
   @NotNull private PriorityQueue<ZOrderedOverlayText> myVisibleOverlays;
-  @NotNull protected final T mySampler;
-  @NotNull protected final EventData myEvents = new EventData();
 
   private static class ZOrderedOverlayText {
     @NotNull private String myText;
@@ -129,6 +134,9 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
     myTextPanel.setVisible(false);
     myContentPane.add(myTextPanel, OVERLAY_LAYER, 0);
     myContentPane.addHierarchyListener(this);
+
+    addOverlayText(PAUSED_LABEL, PAUSED_LABEL_PRIORITY);
+    performPausing(getPausedSetting());
   }
 
   @Override
@@ -177,11 +185,12 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
   public void deviceSelected(@Nullable IDevice device) {
   }
 
-
+  /**
+   * Pauses and records the state in the project properties.
+   */
   public void setPaused(boolean paused) {
-    mySampler.setIsPaused(paused);
-    setOverlayEnabled(PAUSED_LABEL, paused);
-    myTimelineComponent.setUpdateData(!paused);
+    performPausing(paused);
+    PropertiesComponent.getInstance(myProject).setValue(getMonitorName() + PAUSED_KEY, Boolean.toString(paused));
   }
 
   public boolean isPaused() {
@@ -209,6 +218,9 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
     });
     myTimelineComponent.setUpdateData(false);
   }
+
+  @NotNull
+  public abstract String getMonitorName();
 
   @NotNull
   public abstract String getDescription();
@@ -254,6 +266,29 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
 
   protected final void setViewComponent(@NotNull JComponent component) {
     myContentPane.add(component, JLayeredPane.DEFAULT_LAYER, 0);
+  }
+
+  /**
+   * Returns the preferred paused state of this monitor. Can be overridden.
+   */
+  protected boolean getPreferredPausedState() {
+    return false;
+  }
+
+  /**
+   * Gets whether the paused state has been set in the project. If not, returns the preferred paused state of this monitor.
+   */
+  private boolean getPausedSetting() {
+    return PropertiesComponent.getInstance(myProject).getBoolean(getMonitorName() + PAUSED_KEY, getPreferredPausedState());
+  }
+
+  /**
+   * Performs the steps necessary to pause the monitor.
+   */
+  private void performPausing(boolean paused) {
+    mySampler.setIsPaused(paused);
+    setOverlayEnabled(PAUSED_LABEL, paused);
+    myTimelineComponent.setUpdateData(!paused);
   }
 
   private void updateOverlayText(String text) {
