@@ -23,8 +23,10 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.cloud.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -106,66 +108,99 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Override
   public final void checkConfiguration() throws RuntimeConfigurationException {
-    JavaRunConfigurationModule configurationModule = getConfigurationModule();
-    configurationModule.checkForWarning();
-    final Module module = configurationModule.getModule();
-
-    if (module == null) {
+    List<ValidationError> errors = validate();
+    if (errors.isEmpty()) {
       return;
+    }
+    // TODO: Do something with the extra error information? Error count?
+    ValidationError topError = Ordering.natural().max(errors);
+    if (topError.isFatal()) {
+      throw new RuntimeConfigurationError(topError.getMessage(), topError.getQuickfix());
+    }
+    throw new RuntimeConfigurationWarning(topError.getMessage(), topError.getQuickfix());
+  }
+
+  /**
+   * We collect errors rather than throwing to avoid missing fatal errors by exiting early for a warning.
+   * We use a separate method for the collection so the compiler prevents us from accidentally throwing.
+   */
+  private List<ValidationError> validate() {
+    List<ValidationError> errors = Lists.newArrayList();
+    JavaRunConfigurationModule configurationModule = getConfigurationModule();
+    try {
+      configurationModule.checkForWarning();
+    }
+    catch (RuntimeConfigurationException e) {
+      errors.add(ValidationError.fromException(e));
+    }
+    final Module module = configurationModule.getModule();
+    if (module == null) {
+      // Can't proceed, and fatal error has been caught in ConfigurationModule#checkForWarnings
+      return errors;
     }
 
     final Project project = module.getProject();
     if (requiredAndroidModelMissing(project)) {
       // This only shows an error message on the "Run Configuration" dialog, but does not prevent user from running app.
-      throw new RuntimeConfigurationException(GRADLE_SYNC_FAILED_ERR_MSG);
+      errors.add(ValidationError.warning(GRADLE_SYNC_FAILED_ERR_MSG));
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
-      throw new RuntimeConfigurationError(AndroidBundle.message("android.no.facet.error"));
+      // Can't proceed.
+      return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("android.no.facet.error")));
     }
     if (facet.isLibraryProject()) {
       Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
       if (!result.getFirst()) {
-        throw new RuntimeConfigurationError(result.getSecond());
+        errors.add(ValidationError.fatal(result.getSecond()));
       }
     }
     if (facet.getConfiguration().getAndroidPlatform() == null) {
-      throw new RuntimeConfigurationError(AndroidBundle.message("select.platform.error"));
+      errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
     if (facet.getManifest() == null) {
-      throw new RuntimeConfigurationError(AndroidBundle.message("android.manifest.not.found.error"));
+      errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
     }
-    if (PREFERRED_AVD.length() > 0) {
-      AvdManager avdManager = facet.getAvdManagerSilently();
-      if (avdManager == null) {
-        throw new RuntimeConfigurationError(AndroidBundle.message("avd.cannot.be.loaded.error"));
-      }
-      AvdInfo avdInfo = avdManager.getAvd(PREFERRED_AVD, false);
-      if (avdInfo == null) {
-        throw new RuntimeConfigurationError(AndroidBundle.message("avd.not.found.error", PREFERRED_AVD));
-      }
-      if (avdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
-        String message = avdInfo.getErrorMessage();
-        message = AndroidBundle.message("avd.not.valid.error", PREFERRED_AVD) +
-                  (message != null ? ": " + message: "") + ". Try to repair it through AVD manager";
-        throw new RuntimeConfigurationError(message);
-      }
-    }
+    errors.addAll(validateAvd(facet));
+    errors.addAll(validateApkSigning(facet));
 
-    validateApkSigning(facet);
+    errors.addAll(checkConfiguration(facet));
 
-    checkConfiguration(facet);
+    return errors;
   }
 
-  private static void validateApkSigning(@NotNull final AndroidFacet facet) throws RuntimeConfigurationError {
+  @NotNull
+  private List<ValidationError> validateAvd(@NotNull AndroidFacet facet) {
+    if (PREFERRED_AVD.isEmpty()) {
+      return ImmutableList.of();
+    }
+    AvdManager avdManager = facet.getAvdManagerSilently();
+    if (avdManager == null) {
+      return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("avd.cannot.be.loaded.error")));
+    }
+    AvdInfo avdInfo = avdManager.getAvd(PREFERRED_AVD, false);
+    if (avdInfo == null) {
+      return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("avd.not.found.error", PREFERRED_AVD)));
+    }
+    if (avdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
+      String message = avdInfo.getErrorMessage();
+      message = AndroidBundle.message("avd.not.valid.error", PREFERRED_AVD) +
+                (message != null ? ": " + message: "") + ". Try to repair it through AVD manager";
+      return ImmutableList.of(ValidationError.fatal(message));
+    }
+    return ImmutableList.of();
+  }
+
+  @NotNull
+  private static List<ValidationError> validateApkSigning(@NotNull final AndroidFacet facet) {
     AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
     if (androidGradleModel == null) {
-      return;
+      return ImmutableList.of();
     }
 
     if (androidGradleModel.getMainArtifact().isSigned()) {
-      return;
+      return ImmutableList.of();
     }
 
     AndroidArtifactOutput output = GradleUtil.getOutput(androidGradleModel.getMainArtifact());
@@ -185,13 +220,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         }
       }
     };
-    throw new RuntimeConfigurationError(message, quickFix);
+    return ImmutableList.of(ValidationError.fatal(message, quickFix));
   }
 
   /** Returns whether the configuration supports running library projects, and if it doesn't, then an explanation as to why it doesn't. */
   protected abstract Pair<Boolean,String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet);
 
-  protected abstract void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException;
+  @NotNull
+  protected abstract List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet);
 
   @Override
   public Collection<Module> getValidModules() {
