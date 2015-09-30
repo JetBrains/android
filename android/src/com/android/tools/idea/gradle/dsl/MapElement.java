@@ -29,7 +29,7 @@ import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 /**
  * Represents a map from properties of type {@link String} and values of type {@link LiteralElement}.
  */
-public class MapElement extends GradleDslPropertiesElement {
+public final class MapElement extends GradleDslPropertiesElement {
   @NotNull private final String myName;
 
   public MapElement(@Nullable GradleDslElement parent, @NotNull String name) {
