@@ -55,9 +55,8 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
     // Some system images do not have the network stats file, it is a bug; we show a label before the bug is fixed.
-    addOverlayText(MISSING_LABEL, 0);
-    addOverlayText(PAUSED_LABEL, 1);
-    addOverlayText(STARTING_LABEL, 2);
+    addOverlayText(MISSING_LABEL, PAUSED_LABEL_PRIORITY - 1);
+    addOverlayText(STARTING_LABEL, PAUSED_LABEL_PRIORITY + 1);
 
     setViewComponent(myTimelineComponent);
     deviceContext.addListener(this, project);
@@ -103,6 +102,12 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
         }
       });
     }
+  }
+
+  @NotNull
+  @Override
+  public String getMonitorName() {
+    return "NetworkMonitor";
   }
 
   @NotNull
