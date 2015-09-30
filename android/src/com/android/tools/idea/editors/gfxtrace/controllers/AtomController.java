@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
+import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
@@ -29,6 +30,7 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.idea.editors.gfxtrace.widgets.LoadingIndicator;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.base.Objects;
@@ -171,7 +173,7 @@ public class AtomController extends TreeController {
 
       @Override
       public void mouseEntered(MouseEvent event) {
-        updateHoveringGroupFor(event);
+        updateHoveringGroupFor(event.getX(), event.getY());
       }
 
       @Override
@@ -181,7 +183,7 @@ public class AtomController extends TreeController {
 
       @Override
       public void mouseMoved(MouseEvent event) {
-        updateHoveringGroupFor(event);
+        updateHoveringGroupFor(event.getX(), event.getY());
       }
 
       @Override
@@ -196,17 +198,22 @@ public class AtomController extends TreeController {
             listener.mouseWheelMoved(converted);
           }
         }
+
+        // Update the hover position after the scroll.
+        Point location = new Point(MouseInfo.getPointerInfo().getLocation());
+        SwingUtilities.convertPointFromScreen(location, myTree);
+        updateHoveringGroupFor(location.x, location.y);
       }
 
-      private void updateHoveringGroupFor(MouseEvent event) {
-        TreePath path = myTree.getClosestPathForLocation(event.getX(), event.getY());
+      private void updateHoveringGroupFor(int mouseX, int mouseY) {
+        TreePath path = myTree.getClosestPathForLocation(mouseX, mouseY);
         if (path != null) {
           Object userObject = ((DefaultMutableTreeNode)path.getLastPathComponent()).getUserObject();
           if (userObject instanceof AtomController.Group) {
             Group group = (Group)userObject;
             if (shouldShowPreview(group)) {
               Rectangle bounds = myTree.getPathBounds(path);
-              int x = event.getX() - bounds.x, y = event.getY() - bounds.y;
+              int x = mouseX - bounds.x, y = mouseY - bounds.y;
               if (x >= 0 && y >= 0 && x < Group.THUMBNAIL_SIZE && y < Group.THUMBNAIL_SIZE) {
                 setHoveringGroup(group, bounds.x + Group.THUMBNAIL_SIZE, bounds.y + Group.THUMBNAIL_SIZE / 2);
                 return;
@@ -268,9 +275,12 @@ public class AtomController extends TreeController {
               @Override
               public void run() {
                 image = Futures.getUnchecked(imageFuture).icon.getImage();
-                revalidate();
+                Balloon parent = lastShownBalloon;
+                if (parent != null) {
+                  parent.revalidate();
+                }
               }
-            }, MoreExecutors.sameThreadExecutor());
+            }, EdtExecutor.INSTANCE);
           }
         }
 
@@ -284,8 +294,11 @@ public class AtomController extends TreeController {
         protected void paintComponent(Graphics g) {
           g.setColor(getBackground());
           g.fillRect(0, 0, getWidth(), getHeight());
-          if (image != null) {
-            g.drawImage(image, (getWidth() - image.getWidth(this)) / 2, (getHeight() - image.getHeight(this)) / 2, this);
+          if (image == null) {
+            LoadingIndicator.paint(this, g, 0, 0, getWidth(), getHeight());
+            LoadingIndicator.scheduleForRedraw(this);
+          } else {
+            RenderUtils.drawImage(this, g, image, 0, 0, getWidth(), getHeight());
           }
         }
       }
@@ -324,12 +337,12 @@ public class AtomController extends TreeController {
             setIcon(new Icon() {
               @Override
               public void paintIcon(Component component, Graphics g, int x, int y) {
-                if (image != null) {
+                if (image == null) {
+                  LoadingIndicator.paint(tree, g, x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
+                  LoadingIndicator.scheduleForRedraw(tree);
+                } else {
                   ImageIcon icon = image.icon;
-                  int size = Math.max(icon.getIconWidth(), icon.getIconHeight());
-                  float factor = (float)Group.THUMBNAIL_SIZE / size;
-                  int w = (int)(factor * icon.getIconWidth()), h = (int)(factor * icon.getIconHeight());
-                  g.drawImage(icon.getImage(), x + (Group.THUMBNAIL_SIZE - w) / 2, y + (Group.THUMBNAIL_SIZE - h) / 2, w, h, component);
+                  RenderUtils.drawImage(tree, g, icon.getImage(), x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
                 }
               }
 

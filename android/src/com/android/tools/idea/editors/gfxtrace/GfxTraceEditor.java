@@ -70,6 +70,8 @@ import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String SELECT_CAPTURE = "Select a capture";
   @NotNull public static final String SELECT_ATOM = "Select a frame or command";
+  @NotNull public static final String SELECT_MEMORY = "Select a memory range in the command list";
+
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
 
