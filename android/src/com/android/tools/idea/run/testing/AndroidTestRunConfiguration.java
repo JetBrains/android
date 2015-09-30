@@ -181,6 +181,11 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   }
 
   @Override
+  protected boolean shouldDeploy() {
+    return true;
+  }
+
+  @Override
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     final RunProfileState state = super.getState(executor, env);
 
