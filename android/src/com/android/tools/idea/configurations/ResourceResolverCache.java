@@ -162,7 +162,7 @@ public class ResourceResolverCache {
       }
 
       // Resource Resolver
-      assert themeStyle.startsWith(STYLE_RESOURCE_PREFIX) || themeStyle.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) : themeStyle;
+      assert themeStyle.startsWith(PREFIX_RESOURCE_REF) : themeStyle;
       boolean isProjectTheme = ResourceHelper.isProjectStyle(themeStyle);
       String themeName = ResourceHelper.styleToTheme(themeStyle);
       resolver = ResourceResolver.create(configuredAppRes, frameworkResources, themeName, isProjectTheme);
