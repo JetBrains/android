@@ -21,8 +21,11 @@ import com.android.tools.idea.gradle.dsl.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependency;
 import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.intellij.openapi.command.WriteCommandAction;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nullable;
 
 import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -49,8 +52,15 @@ public class GradleBuildModelFixture {
   }
 
   public void requireDependency(@NotNull ExpectedModuleDependency expected) {
-    for (ModuleDependency dependency : myTarget.dependencies().toModules()) {
-      if (expected.path.equals(dependency.getPath()) && expected.configurationName.equals(dependency.configurationName())) {
+    for (final ModuleDependency dependency : myTarget.dependencies().toModules()) {
+      String path = execute(new GuiQuery<String>() {
+        @Nullable
+        @Override
+        protected String executeInEDT() throws Throwable {
+          return dependency.getPath();
+        }
+      });
+      if (expected.path.equals(path) && expected.configurationName.equals(dependency.configurationName())) {
         return;
       }
     }
