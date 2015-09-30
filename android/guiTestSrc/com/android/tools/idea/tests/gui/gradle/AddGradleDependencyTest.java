@@ -98,7 +98,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     GradleBuildModelFixture library3BuildModel = myProjectFrame.parseBuildFileForModule("library3", false);
-    ExternalDependencySpec guava = new ExternalDependencySpec("com.google.guava", "guava", "18.0");
+    ExternalDependencySpec guava = new ExternalDependencySpec("guava", "com.google.guava" ,"18.0");
     library3BuildModel.getTarget().dependencies().add(COMPILE, guava);
     library3BuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
@@ -125,7 +125,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    ExternalDependencySpec guava = new ExternalDependencySpec("com.google.guava", "guava", "18.0");
+    ExternalDependencySpec guava = new ExternalDependencySpec("guava", "com.google.guava", "18.0");
     appBuildModel.getTarget().dependencies().add(COMPILE, guava);
     appBuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
