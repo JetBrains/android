@@ -45,8 +45,8 @@ public abstract class ImageCellList<T extends ImageCellList.Data> extends CellLi
     }
   }
 
-  public ImageCellList(Orientation orientation, CellRenderer.CellLoader<T> loader) {
-    super(orientation, loader);
+  public ImageCellList(Orientation orientation, String emptyText, CellRenderer.CellLoader<T> loader) {
+    super(orientation, emptyText, loader);
   }
 
   @Override
