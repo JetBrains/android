@@ -31,7 +31,7 @@ public class ManualTargetChooser implements TargetChooser {
   @NotNull private final AndroidRunConfigurationBase myConfiguration;
   @NotNull private final AndroidFacet myFacet;
   private final boolean mySupportMultipleDevices;
-  @NotNull private final String myCommandLine;
+  @NotNull private final EmulatorLaunchOptions myEmulatorLaunchOptions;
   @NotNull private final Executor myExecutor;
   @NotNull private final ConsolePrinter myPrinter;
 
@@ -39,14 +39,14 @@ public class ManualTargetChooser implements TargetChooser {
     @NotNull AndroidRunConfigurationBase configuration,
     @NotNull AndroidFacet facet,
     boolean supportMultipleDevices,
-    @NotNull String commandLine,
+    @NotNull EmulatorLaunchOptions emulatorLaunchOptions,
     @NotNull Executor executor,
     @NotNull ConsolePrinter printer
   ) {
     myConfiguration = configuration;
     myFacet = facet;
     mySupportMultipleDevices = supportMultipleDevices;
-    myCommandLine = commandLine;
+    myEmulatorLaunchOptions = emulatorLaunchOptions;
     myExecutor = executor;
     myPrinter = printer;
   }
@@ -77,7 +77,7 @@ public class ManualTargetChooser implements TargetChooser {
     boolean showCloudTarget = myConfiguration instanceof AndroidTestRunConfiguration && !(myExecutor instanceof DefaultDebugExecutor);
     final ExtendedDeviceChooserDialog chooser =
       new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), mySupportMultipleDevices, true,
-                                      myConfiguration.USE_LAST_SELECTED_DEVICE, showCloudTarget, myCommandLine);
+                                      myConfiguration.USE_LAST_SELECTED_DEVICE, showCloudTarget, myEmulatorLaunchOptions.getCommandLine());
     chooser.show();
     if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
       // The user canceled.
@@ -90,7 +90,7 @@ public class ManualTargetChooser implements TargetChooser {
         return null;
       }
       EmulatorTargetChooser emulatorChooser =
-        new EmulatorTargetChooser(myFacet, mySupportMultipleDevices, myCommandLine, myPrinter, selectedAvd);
+        new EmulatorTargetChooser(myFacet, mySupportMultipleDevices, myEmulatorLaunchOptions, myPrinter, selectedAvd);
       return emulatorChooser.getTarget();
     }
     else if (chooser.isCloudTestOptionSelected()) {
