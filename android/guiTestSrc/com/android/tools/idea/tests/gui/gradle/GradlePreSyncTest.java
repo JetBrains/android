@@ -21,25 +21,27 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
-import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFixture;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.util.net.HttpConfigurable;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static org.junit.Assert.*;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class GradlePreSyncTest extends GuiTestCase {
-  /**
-   * Similar to {@link com.android.tools.idea.gradle.util.GradlePropertiesTest#testSetProxySettings} test, but also tests the UI
-   * element that is involved.
-   */
+
+  // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
+  // See https://code.google.com/p/android/issues/detail?id=65325
+  // Similar to {@link com.android.tools.idea.gradle.util.GradlePropertiesTest#testSetProxySettings} test, but also tests the UI
+  // element that is involved.
   @Test
   @IdeGuiTest
   public void testAddProxyConfigureToPropertyFile() throws IOException {
@@ -75,5 +77,32 @@ public class GradlePreSyncTest extends GuiTestCase {
 
     ideProxySettings.setProxyType(ProxySettings.HTTPS_PROXY_TYPE);
     assertEquals(ideProxySettings, properties.getHttpsProxySettings());
+  }
+
+  @Test @IdeGuiTest
+  public void testDoNotShowProxySettingDialog() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    PropertiesComponent.getInstance(projectFrame.getProject()).setValue("show.do.not.copy.http.proxy.settings.to.gradle", "true");
+
+    File gradlePropertiesPath = new File(projectFrame.getProjectPath(), "gradle.properties");
+    createIfNotExists(gradlePropertiesPath);
+
+    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
+    ideSettings.USE_HTTP_PROXY = true;
+    ideSettings.PROXY_HOST = "myproxy.test.com";
+    ideSettings.PROXY_PORT = 443;
+
+    projectFrame.requestProjectSync();
+
+    ProxySettingsDialogFixture proxySettingsDialog = ProxySettingsDialogFixture.find(myRobot);
+    assertNotNull(proxySettingsDialog);
+
+    proxySettingsDialog.setDoNotShowThisDialog(true);
+    proxySettingsDialog.clickOk();
+
+    projectFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
+
+    // Verifies that the "Do not show this dialog in the future" does not show up. If it does show up the test will timeout and fail.
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
   }
 }
