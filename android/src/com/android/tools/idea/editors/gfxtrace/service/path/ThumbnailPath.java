@@ -31,7 +31,7 @@ import java.io.IOException;
 public final class ThumbnailPath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
-    return myObject.stringPath(builder).append(".Thumbnail<").append(myDesiredWidth).append("x").append(myDesiredHeight).append("x");
+    return myObject.stringPath(builder).append(".Thumbnail<").append(myDesiredWidth).append("x").append(myDesiredHeight).append(">");
   }
 
   //<<<Start:Java.ClassBody:1>>>
