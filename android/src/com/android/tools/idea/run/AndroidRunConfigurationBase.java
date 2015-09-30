@@ -229,6 +229,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected abstract List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet);
 
+  /** @return true iff we should try to install APKs when launching this configuration to a device. */
+  protected abstract boolean shouldDeploy();
+
   @Override
   public Collection<Module> getValidModules() {
     final List<Module> result = new ArrayList<Module>();
@@ -328,7 +331,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
-    return new AndroidRunningState(env, facet, getApkProvider(), deviceTarget, printer, getApplicationLauncher(facet), CLEAR_LOGCAT, this);
+    return new AndroidRunningState(env, facet, getApkProvider(), deviceTarget, printer, getApplicationLauncher(facet), CLEAR_LOGCAT,
+                                   shouldDeploy(), this);
   }
 
   @Nullable
