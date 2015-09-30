@@ -23,10 +23,13 @@ import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
+import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
+import com.android.tools.idea.editors.gfxtrace.widgets.ImagePanel;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
@@ -38,93 +41,106 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TexturesController extends ImageCellController<TexturesController.Data> {
-  private static final Dimension PREVIEW_SIZE = JBUI.size(100, 50);
+public class TexturesController extends ImagePanelController {
+  private static final Dimension DISPLAY_SIZE = new Dimension(8192, 8192);
 
   public static JComponent createUI(GfxTraceEditor editor) {
     return new TexturesController(editor).myPanel;
   }
 
-  public static class Data extends ImageCellList.Data {
-    @NotNull public final ResourceInfo info;
-    @NotNull public final ResourcePath path;
-
-    public Data(@NotNull ResourceInfo info, @NotNull ResourcePath path) {
-      super(info.getName());
-      this.info = info;
-      this.path = path;
-    }
-  }
-
-  @NotNull private static final Logger LOG = Logger.getInstance(TexturesController.class);
-  @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
-  @NotNull private final PathStore<ResourcesPath> myResourcesPath = new PathStore<ResourcesPath>();
-  @NotNull private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
-  @NotNull private Resources myResources;
-
-  private TexturesController(@NotNull final GfxTraceEditor editor) {
+  public TexturesController(@NotNull GfxTraceEditor editor) {
     super(editor);
-    usingComboBoxWidget(PREVIEW_SIZE);
-    ((ImageCellRenderer<?>)myList.getRenderer()).setLayout(ImageCellRenderer.Layout.LEFT_TO_RIGHT);
-    myPanel.add(myList, BorderLayout.NORTH);
-  }
-
-  @Override
-  public void selected(@NotNull Data cell) {
-  }
-
-  @Override
-  public void loadCell(Data cell, Runnable onLoad) {
-    final ServiceClient client = myEditor.getClient();
-    final ThumbnailPath path = cell.path.thumbnail(PREVIEW_SIZE);
-    loadCellImage(cell, client, path, onLoad);
-  }
-
-  void update() {
-    if (myAtomPath.getPath() != null && myResources != null) {
-      final AtomPath atomPath = myAtomPath.getPath();
-      final Resources resources = myResources;
-      ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-        @Override
-        public void run() {
-          final List<Data> cells = new ArrayList<Data>();
-          for (ResourceInfo info : resources.getTextures()) {
-            cells.add(new Data(info, atomPath.resourceAfter(info.getID())));
-          }
-          EdtExecutor.INSTANCE.execute(new Runnable() {
-            @Override
-            public void run() {
-              // Back in the UI thread here
-              myList.setData(cells);
-            }
-          });
-        }
-      });
-    }
+    myPanel.add(new DropDownController(editor) {
+      @Override
+      public void selected(Data item) {
+        setImage(FetchedImage.load(myEditor.getClient(), item.path.thumbnail(DISPLAY_SIZE)));
+      }
+    }.myList, BorderLayout.NORTH);
+    initToolbar(new DefaultActionGroup());
   }
 
   @Override
   public void notifyPath(PathEvent event) {
-    boolean updateIcons = false;
-    if (event.path instanceof CapturePath) {
-      if (myResourcesPath.update(((CapturePath)event.path).resources())) {
-        Futures.addCallback(myEditor.getClient().get(myResourcesPath.getPath()), new LoadingCallback<Resources>(LOG) {
+  }
+
+  private abstract static class DropDownController extends ImageCellController<DropDownController.Data> {
+    private static final Dimension PREVIEW_SIZE = JBUI.size(100, 50);
+
+    public static class Data extends ImageCellList.Data {
+      @NotNull public final ResourceInfo info;
+      @NotNull public final ResourcePath path;
+
+      public Data(@NotNull ResourceInfo info, @NotNull ResourcePath path) {
+        super(info.getName());
+        this.info = info;
+        this.path = path;
+      }
+    }
+
+    @NotNull private static final Logger LOG = Logger.getInstance(TexturesController.class);
+    @NotNull private final PathStore<ResourcesPath> myResourcesPath = new PathStore<ResourcesPath>();
+    @NotNull private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
+    @NotNull private Resources myResources;
+
+    private DropDownController(@NotNull final GfxTraceEditor editor) {
+      super(editor);
+      usingComboBoxWidget(PREVIEW_SIZE);
+      ((ImageCellRenderer<?>)myList.getRenderer()).setLayout(ImageCellRenderer.Layout.LEFT_TO_RIGHT);
+    }
+
+    @Override
+    public void loadCell(Data cell, Runnable onLoad) {
+      final ServiceClient client = myEditor.getClient();
+      final ThumbnailPath path = cell.path.thumbnail(PREVIEW_SIZE);
+      loadCellImage(cell, client, path, onLoad);
+    }
+
+    void update() {
+      if (myAtomPath.getPath() != null && myResources != null) {
+        final AtomPath atomPath = myAtomPath.getPath();
+        final Resources resources = myResources;
+        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
           @Override
-          public void onSuccess(@Nullable final Resources resources) {
+          public void run() {
+            final List<Data> cells = new ArrayList<Data>();
+            for (ResourceInfo info : resources.getTextures()) {
+              cells.add(new Data(info, atomPath.resourceAfter(info.getID())));
+            }
             EdtExecutor.INSTANCE.execute(new Runnable() {
               @Override
               public void run() {
                 // Back in the UI thread here
-                myResources = resources;
-                update();
+                myList.setData(cells);
               }
             });
           }
         });
       }
     }
-    if ((event.path instanceof AtomPath) && myAtomPath.update((AtomPath)event.path)) {
-      update();
+
+    @Override
+    public void notifyPath(PathEvent event) {
+      boolean updateIcons = false;
+      if (event.path instanceof CapturePath) {
+        if (myResourcesPath.update(((CapturePath)event.path).resources())) {
+          Futures.addCallback(myEditor.getClient().get(myResourcesPath.getPath()), new LoadingCallback<Resources>(LOG) {
+            @Override
+            public void onSuccess(@Nullable final Resources resources) {
+              EdtExecutor.INSTANCE.execute(new Runnable() {
+                @Override
+                public void run() {
+                  // Back in the UI thread here
+                  myResources = resources;
+                  update();
+                }
+              });
+            }
+          });
+        }
+      }
+      if ((event.path instanceof AtomPath) && myAtomPath.update((AtomPath)event.path)) {
+        update();
+      }
     }
   }
 }

@@ -53,11 +53,20 @@ public class MainController extends Controller {
     threePanes.setFirstComponent(ScrubberController.createUI(editor));
     threePanes.setFirstSize(150);
 
+    // Configure the image tabs.
+    JBRunnerTabs imageTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
+    imageTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
+      .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
+    imageTabs.setBorder(JBUI.Borders.empty(0, 2, 0, 0));
+    imageTabs.addTab(new TabInfo(FrameBufferController.createUI(editor)).setText("Framebuffer"));
+    imageTabs.addTab(new TabInfo(TexturesController.createUI(editor)).setText("Textures"));
+
+
     // Now add the atom tree and buffer views to the middle pane in the main pane.
     final JBSplitter middleSplitter = new JBSplitter(false);
     middleSplitter.setMinimumSize(JBUI.size(100, 10));
     middleSplitter.setFirstComponent(AtomController.createUI(editor));
-    middleSplitter.setSecondComponent(FrameBufferController.createUI(editor));
+    middleSplitter.setSecondComponent(imageTabs);
     middleSplitter.setProportion(0.3f);
     threePanes.setInnerComponent(middleSplitter);
 
@@ -68,7 +77,6 @@ public class MainController extends Controller {
     miscTabs.setBorder(JBUI.Borders.empty(0, 2, 0, 0));
 
     // Add the textures view to the misc tabs.
-    miscTabs.addTab(new TabInfo(TexturesController.createUI(editor)).setText("Textures"));
     miscTabs.addTab(new TabInfo(MemoryController.createUI(editor)).setText("Memory"));
     miscTabs.addTab(new TabInfo(DocumentationController.createUI(editor)).setText("Docs"));
 
