@@ -64,7 +64,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.net.HttpConfigurable;
 import junit.framework.AssertionFailedError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -73,7 +72,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -87,7 +85,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -106,7 +103,6 @@ import static com.android.tools.idea.gradle.parser.Dependency.Scope.COMPILE;
 import static com.android.tools.idea.gradle.parser.Dependency.Type.EXTERNAL;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
-import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
@@ -118,7 +114,6 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
@@ -1136,52 +1131,6 @@ public class GradleSyncTest extends GuiTestCase {
     assertEquals("", GradleSettings.getInstance(project).getGradleVmOptions());
   }
 
-  // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
-  // See https://code.google.com/p/android/issues/detail?id=65325
-  @Test @IdeGuiTest
-  public void testWithIdeProxySettings() throws IOException {
-    System.getProperties().setProperty("show.do.not.copy.http.proxy.settings.to.gradle", "true");
-
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    File gradlePropertiesPath = new File(projectFrame.getProjectPath(), "gradle.properties");
-    createIfNotExists(gradlePropertiesPath);
-
-    String host = "myproxy.test.com";
-    int port = 443;
-
-    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
-    ideSettings.USE_HTTP_PROXY = true;
-    ideSettings.PROXY_HOST = host;
-    ideSettings.PROXY_PORT = port;
-
-    projectFrame.requestProjectSync();
-
-    // Expect IDE to ask user to copy proxy settings.
-    MessagesFixture message = projectFrame.findMessageDialog("Proxy Settings");
-    JCheckBox checkBox = message.find(new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
-      @Override
-      protected boolean isMatching(@NotNull JCheckBox c) {
-        return c.isVisible() && c.isShowing() && "Do not show this dialog in the future".equals(c.getText());
-      }
-    });
-    assertNotNull(checkBox);
-    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(myRobot, checkBox);
-    checkBoxFixture.setSelected(true);
-
-    message.clickYes();
-
-    projectFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
-
-    // Verify gradle.properties has proxy settings.
-    assertThat(gradlePropertiesPath).isFile();
-
-    Properties gradleProperties = getProperties(gradlePropertiesPath);
-    assertEquals(host, gradleProperties.getProperty("systemProp.http.proxyHost"));
-    assertEquals(String.valueOf(port), gradleProperties.getProperty("systemProp.http.proxyPort"));
-
-    // Verifies that the "Do not show this dialog in the future" does not show up. If it does show up the test will timeout and fail.
-    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-  }
 
   @Test @IdeGuiTest
   public void testMismatchingEncodings() throws IOException {
