@@ -116,7 +116,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   private volatile ProcessHandler myProcessHandler;
   private final Object myLock = new Object();
 
-  private volatile boolean myDeploy = true;
+  private final boolean myDeploy;
 
   private volatile boolean myApplicationDeployed = false;
 
@@ -131,6 +131,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
                              @NotNull ProcessHandlerConsolePrinter printer,
                              AndroidApplicationLauncher applicationLauncher,
                              boolean clearLogcatBeforeStart,
+                             boolean deploy,
                              @NotNull AndroidRunConfigurationBase configuration) {
     myFacet = facet;
     myApkProvider = apkProvider;
@@ -141,6 +142,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myEnv = environment;
     myApplicationLauncher = applicationLauncher;
     myClearLogcatBeforeStart = clearLogcatBeforeStart;
+    myDeploy = deploy;
   }
 
   public void setDebugMode(boolean debugMode) {
@@ -217,10 +219,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   @Override
   public ConsoleView getConsoleView() {
     return myConsole;
-  }
-
-  public void setDeploy(boolean deploy) {
-    myDeploy = deploy;
   }
 
   public void setTargetPackageName(String targetPackageName) {
