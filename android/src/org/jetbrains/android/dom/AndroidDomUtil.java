@@ -232,7 +232,7 @@ public class AndroidDomUtil {
     }
 
     if (resConverter == null && formats.contains(AttributeFormat.Enum)) {
-      resConverter = new ResourceReferenceConverter(Arrays.asList(ResourceType.INTEGER.getName()));
+      resConverter = new ResourceReferenceConverter(Collections.singletonList(ResourceType.INTEGER.getName()));
       resConverter.setQuiet(true);
     }
     ResolvingConverter<String> stringConverter = simplify(composite);
