@@ -458,18 +458,20 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     resetAvdCompatibilityWarningLabel(targetSelectionMode == TargetSelectionMode.EMULATOR ? getAvdCompatibilityWarning() : null);
 
-    myUseAdditionalCommandLineOptionsCheckBox.setSelected(configuration.USE_COMMAND_LINE);
-    myCommandLineField.setText(configuration.COMMAND_LINE);
-    myConfigurationSpecificEditor.resetFrom(configuration);
-    myWipeUserDataCheckBox.setSelected(configuration.WIPE_USER_DATA);
-    myDisableBootAnimationCombo.setSelected(configuration.DISABLE_BOOT_ANIMATION);
-    selectItemCaseInsensitively(myNetworkSpeedCombo, configuration.NETWORK_SPEED);
-    selectItemCaseInsensitively(myNetworkLatencyCombo, configuration.NETWORK_LATENCY);
+    EmulatorLaunchOptions emulatorLaunchOptions = configuration.getEmulatorLaunchOptions();
+    myUseAdditionalCommandLineOptionsCheckBox.setSelected(emulatorLaunchOptions.USE_COMMAND_LINE);
+    myCommandLineField.setText(emulatorLaunchOptions.COMMAND_LINE);
+    myWipeUserDataCheckBox.setSelected(emulatorLaunchOptions.WIPE_USER_DATA);
+    myDisableBootAnimationCombo.setSelected(emulatorLaunchOptions.DISABLE_BOOT_ANIMATION);
+    selectItemCaseInsensitively(myNetworkSpeedCombo, emulatorLaunchOptions.NETWORK_SPEED);
+    selectItemCaseInsensitively(myNetworkLatencyCombo, emulatorLaunchOptions.NETWORK_LATENCY);
 
     myClearLogCheckBox.setSelected(configuration.CLEAR_LOGCAT);
     myShowLogcatCheckBox.setSelected(configuration.SHOW_LOGCAT_AUTOMATICALLY);
     mySkipNoOpApkInstallation.setSelected(configuration.SKIP_NOOP_APK_INSTALLATIONS);
     myForceStopRunningApplicationCheckBox.setSelected(configuration.FORCE_STOP_RUNNING_APP);
+
+    myConfigurationSpecificEditor.resetFrom(configuration);
 
     updateEnabled();
   }
@@ -522,13 +524,15 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     configuration.INVALID_CLOUD_DEVICE_SELECTION_ERROR = getInvalidSelectionErrorMessage(SINGLE_DEVICE);
 
     configuration.USE_LAST_SELECTED_DEVICE = myUseLastSelectedDeviceCheckBox.isSelected();
-    configuration.COMMAND_LINE = myCommandLineField.getText();
-    configuration.USE_COMMAND_LINE = myUseAdditionalCommandLineOptionsCheckBox.isSelected();
     configuration.PREFERRED_AVD = "";
-    configuration.WIPE_USER_DATA = myWipeUserDataCheckBox.isSelected();
-    configuration.DISABLE_BOOT_ANIMATION = myDisableBootAnimationCombo.isSelected();
-    configuration.NETWORK_SPEED = ((String)myNetworkSpeedCombo.getSelectedItem()).toLowerCase();
-    configuration.NETWORK_LATENCY = ((String)myNetworkLatencyCombo.getSelectedItem()).toLowerCase();
+
+    EmulatorLaunchOptions emulatorLaunchOptions = configuration.getEmulatorLaunchOptions();
+    emulatorLaunchOptions.COMMAND_LINE = myCommandLineField.getText();
+    emulatorLaunchOptions.USE_COMMAND_LINE = myUseAdditionalCommandLineOptionsCheckBox.isSelected();
+    emulatorLaunchOptions.WIPE_USER_DATA = myWipeUserDataCheckBox.isSelected();
+    emulatorLaunchOptions.DISABLE_BOOT_ANIMATION = myDisableBootAnimationCombo.isSelected();
+    emulatorLaunchOptions.NETWORK_SPEED = ((String)myNetworkSpeedCombo.getSelectedItem()).toLowerCase();
+    emulatorLaunchOptions.NETWORK_LATENCY = ((String)myNetworkLatencyCombo.getSelectedItem()).toLowerCase();
 
     configuration.CLEAR_LOGCAT = myClearLogCheckBox.isSelected();
     configuration.SHOW_LOGCAT_AUTOMATICALLY = myShowLogcatCheckBox.isSelected();
