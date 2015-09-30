@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.actions.FramebufferTypeAction;
 import com.android.tools.idea.editors.gfxtrace.actions.FramebufferWireframeAction;
@@ -26,23 +25,17 @@ import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
-import com.android.tools.idea.editors.gfxtrace.widgets.ImagePanel;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
+import groovy.swing.impl.DefaultAction;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class FrameBufferController extends Controller {
+public class FrameBufferController extends ImagePanelController {
   public static JComponent createUI(GfxTraceEditor editor) {
     return new FrameBufferController(editor).myPanel;
   }
@@ -54,44 +47,22 @@ public class FrameBufferController extends Controller {
     Depth
   }
 
-  @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
-  @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
   @NotNull private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
-  @NotNull private final ImagePanel myImagePanel = new ImagePanel();
   @NotNull private final RenderSettings mySettings = new RenderSettings();
-  @NotNull private JBLoadingPanel myLoading;
   @NotNull private BufferType myBufferType = BufferType.Color;
-
-  private final AtomicInteger imageLoadCount = new AtomicInteger();
-  private ListenableFuture<?> request = Futures.immediateFuture(0);
-
-  public synchronized int newImageRequest(ListenableFuture<?> request) {
-    this.request.cancel(true);
-    this.request = request;
-    return imageLoadCount.incrementAndGet();
-  }
-
-  public boolean isCurrentImageRequest(int request) {
-    return imageLoadCount.get() == request;
-  }
 
   private FrameBufferController(@NotNull GfxTraceEditor editor) {
     super(editor);
 
-    myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
-    myLoading.add(myImagePanel, BorderLayout.CENTER);
-
     mySettings.setMaxHeight(MAX_SIZE);
     mySettings.setMaxWidth(MAX_SIZE);
     mySettings.setWireframeMode(WireframeMode.noWireframe());
-    myPanel.add(myLoading, BorderLayout.CENTER);
 
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getToolbarActions(), false);
-    myPanel.add(toolbar.getComponent(), BorderLayout.WEST);
+    initToolbar(getToolbarActions());
   }
 
-  public ActionGroup getToolbarActions() {
+  private DefaultActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new FramebufferTypeAction(this, BufferType.Color, "Color", "Display the color framebuffer", AllIcons.Gutter.Colors));
     group.add(new FramebufferTypeAction(this, BufferType.Depth, "Depth", "Display the depth framebuffer", AllIcons.Gutter.OverridenMethod));
@@ -103,7 +74,6 @@ public class FrameBufferController extends Controller {
     group.add(new FramebufferWireframeAction(this, WireframeMode.allWireframe(), "All", "Draw the framebuffer with full wireframing",
                                              AllIcons.Graph.Grid));
     group.add(new Separator());
-    myImagePanel.addToolbarActions(group);
     return group;
   }
 
@@ -146,38 +116,8 @@ public class FrameBufferController extends Controller {
     }
   }
 
-  public void updateBuffer() {
-    final ListenableFuture<FetchedImage> imageFuture = loadImage();
-    final int imageRequest = newImageRequest(imageFuture);
-
-    myLoading.startLoading();
-
-    Futures.addCallback(imageFuture, new FutureCallback<FetchedImage>() {
-      @Override
-      public void onSuccess(@Nullable FetchedImage result) {
-        updateBuffer(imageRequest, result);
-      }
-
-      @Override
-      public void onFailure(Throwable t) {
-        if (!(t instanceof CancellationException)) {
-          LOG.error(t);
-        }
-
-        EdtExecutor.INSTANCE.execute(new Runnable() {
-          @Override
-          public void run() {
-            if (isCurrentImageRequest(imageRequest)) {
-              myLoading.stopLoading();
-            }
-          }
-        });
-      }
-    });
-  }
-
-  private ListenableFuture<FetchedImage> loadImage() {
-    return FetchedImage.load(myEditor.getClient(), getImageInfoPath());
+  private void updateBuffer() {
+    setImage(FetchedImage.load(myEditor.getClient(), getImageInfoPath()));
   }
 
   private ListenableFuture<ImageInfoPath> getImageInfoPath() {
@@ -189,19 +129,5 @@ public class FrameBufferController extends Controller {
       default:
         return null;
     }
-  }
-
-  private void updateBuffer(final int imageRequest, FetchedImage fetchedImage) {
-    final Image image = fetchedImage.icon.getImage();
-    EdtExecutor.INSTANCE.execute(new Runnable() {
-      @Override
-      public void run() {
-        // Back in the UI thread here
-        if (isCurrentImageRequest(imageRequest)) {
-          myLoading.stopLoading();
-          myImagePanel.setImage(image);
-        }
-      }
-    });
   }
 }
