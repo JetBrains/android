@@ -81,5 +81,11 @@ public interface JpsAndroidModuleExtension extends JpsElement {
 
   boolean isPreDexingEnabled();
 
+  boolean isMultiDexEnabled();
+
+  String getMainDexList();
+
+  boolean isMinimalMainDex();
+
   boolean isCopyCustomGeneratedSources();
 }
