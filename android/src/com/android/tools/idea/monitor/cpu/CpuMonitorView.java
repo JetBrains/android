@@ -52,8 +52,6 @@ public class CpuMonitorView extends BaseMonitorView<CpuSampler> implements Timel
     myTimelineComponent.configureStream(1, "User", new JBColor(0xeb9f9f, 0x9d4c4c));
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
-    addOverlayText(PAUSED_LABEL, 0);
-
     setViewComponent(myTimelineComponent);
   }
 
@@ -67,6 +65,12 @@ public class CpuMonitorView extends BaseMonitorView<CpuSampler> implements Timel
     //group.add(new MyThreadDumpAction()); // thread dump -> systrace
 
     return group;
+  }
+
+  @NotNull
+  @Override
+  public String getMonitorName() {
+    return "CpuMonitor";
   }
 
   @NotNull
