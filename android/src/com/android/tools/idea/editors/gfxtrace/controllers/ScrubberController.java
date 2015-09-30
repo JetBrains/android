@@ -65,7 +65,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
   private ScrubberController(@NotNull final GfxTraceEditor editor) {
     super(editor);
-    usingListWidget(CellList.Orientation.HORIZONTAL, PREVIEW_SIZE);
+    usingListWidget(CellList.Orientation.HORIZONTAL, GfxTraceEditor.LOADING_CAPTURE, PREVIEW_SIZE);
     myRenderSettings.setMaxWidth(PREVIEW_SIZE.width);
     myRenderSettings.setMaxHeight(PREVIEW_SIZE.height);
     myRenderSettings.setWireframeMode(WireframeMode.noWireframe());

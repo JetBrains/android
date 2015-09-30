@@ -99,6 +99,8 @@ public abstract class CellWidget<T extends CellWidget.Data, C extends JComponent
     myData = data;
   }
 
+  public abstract int getSelectedItem();
+
   public void selectItem(int index, boolean fireEvents) {
     boolean previousValue = myFireSelectionEvents.getAndSet(fireEvents);
     try {

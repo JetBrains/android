@@ -68,9 +68,10 @@ import java.util.concurrent.Executors;
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
-  @NotNull public static final String SELECT_CAPTURE = "Select a capture";
+  @NotNull public static final String LOADING_CAPTURE = "Loading capture...";
   @NotNull public static final String SELECT_ATOM = "Select a frame or command";
   @NotNull public static final String SELECT_MEMORY = "Select a memory range in the command list";
+  @NotNull public static final String SELECT_TEXTURE = "Select a texture";
 
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);

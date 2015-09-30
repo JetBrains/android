@@ -129,7 +129,7 @@ public class AtomController extends TreeController {
   @NotNull private RegexFilterComponent mySearchField = new RegexFilterComponent(AtomController.class.getName(), 10, false);
 
   private AtomController(@NotNull GfxTraceEditor editor) {
-    super(editor, GfxTraceEditor.SELECT_CAPTURE);
+    super(editor, GfxTraceEditor.LOADING_CAPTURE);
     myPanel.add(mySearchField, BorderLayout.NORTH);
     myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU Commands"));
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
