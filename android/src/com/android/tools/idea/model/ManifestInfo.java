@@ -21,7 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
@@ -29,7 +29,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Function;
 import org.jetbrains.android.dom.manifest.*;
-import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,18 +47,12 @@ import static com.android.xml.AndroidManifest.*;
  */
 public abstract class ManifestInfo {
   public static class ActivityAttributes {
-    @Nullable
-    private final String myIcon;
-    @Nullable
-    private final String myLabel;
-    @NotNull
-    private final String myName;
-    @Nullable
-    private final String myParentActivity;
-    @Nullable
-    private final String myTheme;
-    @Nullable
-    private final String myUiOptions;
+    @Nullable private final String myIcon;
+    @Nullable private final String myLabel;
+    @NotNull private final String myName;
+    @Nullable private final String myParentActivity;
+    @Nullable private final String myTheme;
+    @Nullable private final String myUiOptions;
 
     public ActivityAttributes(@NotNull XmlTag activity, @Nullable String packageName) {
       // Get activity name.
@@ -69,7 +62,7 @@ public abstract class ManifestInfo {
       }
       int index = name.indexOf('.');
       if (index <= 0 && packageName != null && !packageName.isEmpty()) {
-        name =  packageName + (index == -1 ? "." : "") + name;
+        name = packageName + (index == -1 ? "." : "") + name;
       }
       myName = name;
 
@@ -77,7 +70,8 @@ public abstract class ManifestInfo {
       String value = activity.getAttributeValue(ATTRIBUTE_ICON, ANDROID_URI);
       if (value != null && value.length() > 0) {
         myIcon = value;
-      } else {
+      }
+      else {
         myIcon = null;
       }
 
@@ -85,7 +79,8 @@ public abstract class ManifestInfo {
       value = activity.getAttributeValue(ATTRIBUTE_LABEL, ANDROID_URI);
       if (value != null && value.length() > 0) {
         myLabel = value;
-      } else {
+      }
+      else {
         myLabel = null;
       }
 
@@ -101,7 +96,7 @@ public abstract class ManifestInfo {
             if (value != null) {
               index = value.indexOf('.');
               if (index <= 0 && packageName != null && !packageName.isEmpty()) {
-                value =  packageName + (index == -1 ? "." : "") + value;
+                value = packageName + (index == -1 ? "." : "") + value;
                 break;
               }
             }
@@ -110,7 +105,8 @@ public abstract class ManifestInfo {
       }
       if (value != null && value.length() > 0) {
         myParentActivity = value;
-      } else {
+      }
+      else {
         myParentActivity = null;
       }
 
@@ -118,7 +114,8 @@ public abstract class ManifestInfo {
       value = activity.getAttributeValue(ATTRIBUTE_THEME, ANDROID_URI);
       if (value != null && value.length() > 0) {
         myTheme = value;
-      } else {
+      }
+      else {
         myTheme = null;
       }
 
@@ -126,7 +123,8 @@ public abstract class ManifestInfo {
       value = activity.getAttributeValue(ATTRIBUTE_UI_OPTIONS, ANDROID_URI);
       if (value != null && value.length() > 0) {
         myUiOptions = value;
-      } else {
+      }
+      else {
         myUiOptions = null;
       }
     }
@@ -175,23 +173,23 @@ public abstract class ManifestInfo {
    *
    * @param module the module the finder is associated with
    * @return a {@ManifestInfo} for the given module, never null
-   * @deprecated Use {@link #get(com.intellij.openapi.module.Module, boolean)} which is explicit about
+   * @deprecated Use {@link #get(Module, boolean)} which is explicit about
    * whether a merged manifest should be used.
    */
   @NotNull
-  public static ManifestInfo get(Module module) {
+  public static ManifestInfo get(@NotNull  Module module) {
     return get(module, false);
   }
 
   /**
    * Returns the {@link ManifestInfo} for the given module.
    *
-   * @param module the module the finder is associated with
-   * @param useMergedManifest if true, the merged manifest is used if available, otherwise the main source set's manifest
+   * @param module            the module the finder is associated with
+   * @param useMergedManifest if {@code true}, the merged manifest is used if available, otherwise the main source set's manifest
    *                          is used
    * @return a {@ManifestInfo} for the given module
    */
-  public static ManifestInfo get(Module module, boolean useMergedManifest) {
+  public static ManifestInfo get(@NotNull Module module, boolean useMergedManifest) {
     Key<ManifestInfo> key = useMergedManifest ? MERGED_MANIFEST_FINDER : MANIFEST_FINDER;
 
     ManifestInfo finder = module.getUserData(key);
@@ -200,11 +198,28 @@ public abstract class ManifestInfo {
       if (facet == null) {
         throw new IllegalArgumentException("Manifest information can only be obtained on modules with the Android facet.");
       }
-
-      finder = useMergedManifest ? new MergedManifestInfo(module) : new PrimaryManifestInfo(module);
-      module.putUserData(key, finder);
+      finder = get(facet, useMergedManifest);
     }
 
+    return finder;
+  }
+
+  /**
+   * Returns the {@link ManifestInfo} for the given {@link AndroidFacet}.
+   *
+   * @param facet             the Android facet associated with a module.
+   * @param useMergedManifest if {@code true}, the merged manifest is used if available, otherwise the main source set's manifest
+   *                          is used
+   * @return a {@ManifestInfo} for the given module
+   */
+  public static ManifestInfo get(@NotNull AndroidFacet facet, boolean useMergedManifest) {
+    Key<ManifestInfo> key = useMergedManifest ? MERGED_MANIFEST_FINDER : MANIFEST_FINDER;
+    Module module = facet.getModule();
+    ManifestInfo finder = module.getUserData(key);
+    if (finder == null) {
+      finder = useMergedManifest ? new MergedManifestInfo(facet) : new PrimaryManifestInfo(module);
+      module.putUserData(key, finder);
+    }
     return finder;
   }
 
@@ -254,7 +269,8 @@ public abstract class ManifestInfo {
    * @return the theme to use for this project, never null
    */
   @NotNull
-  public abstract String getDefaultTheme(@Nullable IAndroidTarget renderingTarget, @Nullable ScreenSize screenSize,
+  public abstract String getDefaultTheme(@Nullable IAndroidTarget renderingTarget,
+                                         @Nullable ScreenSize screenSize,
                                          @Nullable Device device);
 
   /**
@@ -302,7 +318,9 @@ public abstract class ManifestInfo {
   @NotNull
   public abstract AndroidVersion getMinSdkVersion();
 
-  /** @return the list of activities defined in the manifest. */
+  /**
+   * @return the list of activities defined in the manifest.
+   */
   @NotNull
   public List<Activity> getActivities() {
     return getApplicationComponents(new Function<Application, List<Activity>>() {
@@ -313,7 +331,9 @@ public abstract class ManifestInfo {
     });
   }
 
-  /** @return the list of activity aliases defined in the manifest. */
+  /**
+   * @return the list of activity aliases defined in the manifest.
+   */
   @NotNull
   public List<ActivityAlias> getActivityAliases() {
     return getApplicationComponents(new Function<Application, List<ActivityAlias>>() {
@@ -324,7 +344,9 @@ public abstract class ManifestInfo {
     });
   }
 
-  /** @return the list of services defined in the manifest. */
+  /**
+   * @return the list of services defined in the manifest.
+   */
   @NotNull
   public List<Service> getServices() {
     return getApplicationComponents(new Function<Application, List<Service>>() {

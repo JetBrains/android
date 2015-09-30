@@ -63,7 +63,6 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
-import com.intellij.util.ExceptionUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -93,6 +92,7 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
+import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
@@ -224,7 +224,7 @@ public class PostProjectSetupTasksExecutor {
     }
     catch (Throwable t) {
       modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
+      rethrowAllAsUnchecked(t);
     }
 
     for (Sdk sdk: androidSdks) {
