@@ -20,6 +20,7 @@ import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.List;
@@ -32,7 +33,12 @@ public abstract class CellComboBox<T extends CellWidget.Data> extends CellWidget
     super(new ComboBox(), loader);
     myComponent.setRenderer(myRenderer);
     myComponent.setMaximumRowCount(5);
-    myComponent.setPreferredSize(myRenderer.getInitialCellSize());
+    myComponent.getPopup().getList().setFixedCellHeight(myRenderer.getInitialCellSize().height);
+  }
+
+  @Override
+  public int getSelectedItem() {
+    return myComponent.getSelectedIndex();
   }
 
   @Override
