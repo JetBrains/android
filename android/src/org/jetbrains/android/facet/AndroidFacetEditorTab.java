@@ -40,6 +40,7 @@ import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
@@ -115,6 +116,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private TextFieldWithBrowseButton myProguardLogsDirectoryField;
   private JBLabel myProGuardLogsDirectoryLabel;
   private JBCheckBox myEnableMultiDexCheckBox;
+  private JBTextField myMainDexList;
+  private JCheckBox myMinimalMainDexCheckBox;
 
   private static final String MAVEN_TAB_TITLE = "Maven";
   private final Component myMavenTabComponent;
@@ -411,6 +414,12 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (myConfiguration.getState().ENABLE_MULTI_DEX != myEnableMultiDexCheckBox.isSelected()) {
       return true;
     }
+    if (myConfiguration.getState().MINIMAL_MAIN_DEX != myMinimalMainDexCheckBox.isSelected()) {
+      return true;
+    }
+    if (!myMainDexList.getText().trim().equals(myConfiguration.getState().MAIN_DEX_LIST)) {
+      return true;
+    }
     if (myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE != myUseCustomManifestPackage.isSelected()) {
       return true;
     }
@@ -545,6 +554,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myConfiguration.getState().ENABLE_PRE_DEXING = myPreDexEnabledCheckBox.isSelected();
 
     myConfiguration.getState().ENABLE_MULTI_DEX = myEnableMultiDexCheckBox.isSelected();
+    myConfiguration.getState().MAIN_DEX_LIST = myMainDexList.getText().trim();
+    myConfiguration.getState().MINIMAL_MAIN_DEX = myMinimalMainDexCheckBox.isSelected();
 
     myConfiguration.getState().PACK_TEST_CODE = myIncludeTestCodeAndCheckBox.isSelected();
 
@@ -657,6 +668,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myProGuardConfigFilesPanel.setUrls(configuration.getState().myProGuardCfgFiles);
 
     myEnableMultiDexCheckBox.setSelected(configuration.getState().ENABLE_MULTI_DEX);
+    myMainDexList.setText(configuration.getState().MAIN_DEX_LIST);
+    myMinimalMainDexCheckBox.setSelected(configuration.getState().MINIMAL_MAIN_DEX);
 
     myUseCustomSourceDirectoryRadio.setSelected(configuration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER);
     myUseAptResDirectoryFromPathRadio.setSelected(!configuration.getState().USE_CUSTOM_APK_RESOURCE_FOLDER);
