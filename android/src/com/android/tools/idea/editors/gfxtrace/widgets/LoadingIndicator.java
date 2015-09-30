@@ -33,6 +33,7 @@ public class LoadingIndicator {
       AllIcons.Process.Big.Step_9, AllIcons.Process.Big.Step_10, AllIcons.Process.Big.Step_11, AllIcons.Process.Big.Step_12};
   private static final long MS_PER_FRAME = 60;
   private static final long CYCLE_LENGTH = LOADING_ICONS.length * MS_PER_FRAME;
+  private static final int MIN_SIZE = 3 * LOADING_ICONS[0].getIconWidth() / 2;
 
   private static final Set<Component> componentsToRedraw = Sets.newIdentityHashSet();
   private static final ScheduledExecutorService tickerScheduler =
@@ -40,7 +41,14 @@ public class LoadingIndicator {
 
   public static void paint(Component c, Graphics g, int x, int y, int w, int h) {
     long elapsed = System.currentTimeMillis() % CYCLE_LENGTH;
-    RenderUtils.drawIcon(c, g, LOADING_ICONS[(int)((elapsed * LOADING_ICONS.length) / CYCLE_LENGTH)], x, y, w, h);
+    if (Math.min(w, h) < MIN_SIZE) {
+      Graphics2D child = (Graphics2D)g.create(x, y, w, h);
+      child.scale(0.5, 0.5);
+      RenderUtils.drawIcon(c, child, LOADING_ICONS[(int)((elapsed * LOADING_ICONS.length) / CYCLE_LENGTH)], 0, 0, w * 2, h * 2);
+      child.dispose();
+    } else {
+      RenderUtils.drawIcon(c, g, LOADING_ICONS[(int)((elapsed * LOADING_ICONS.length) / CYCLE_LENGTH)], x, y, w, h);
+    }
   }
 
   public static Dimension getMinimumSize() {
