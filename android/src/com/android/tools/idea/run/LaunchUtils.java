@@ -59,7 +59,7 @@ public class LaunchUtils {
    * interested in matching the watch face template application.
    */
   public static boolean isWatchFaceApp(@NotNull AndroidFacet facet) {
-    ManifestInfo info = ManifestInfo.get(facet.getModule(), true);
+    ManifestInfo info = ManifestInfo.get(facet, true);
     if (!info.getActivities().isEmpty()) {
       return false;
     }

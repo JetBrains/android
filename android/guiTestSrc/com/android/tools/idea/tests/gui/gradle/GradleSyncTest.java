@@ -67,7 +67,6 @@ import com.intellij.util.SystemProperties;
 import junit.framework.AssertionFailedError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
@@ -250,7 +249,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     // add an extra source path.
     final Library.ModifiableModel libraryModel = library.getModifiableModel();
-    libraryModel.addRoot(url, OrderRootType.SOURCES);
+    libraryModel.addRoot(url, SOURCES);
 
     execute(new GuiTask() {
       @Override
@@ -270,7 +269,7 @@ public class GradleSyncTest extends GuiTestCase {
     library = libraryTable.getLibraryByName(libraryName);
     assertNotNull(library);
 
-    String[] urls = library.getUrls(OrderRootType.SOURCES);
+    String[] urls = library.getUrls(SOURCES);
     assertThat(urls).contains(url);
   }
 
@@ -1478,7 +1477,7 @@ public class GradleSyncTest extends GuiTestCase {
     Dependency aarDependency = new Dependency(COMPILE, EXTERNAL, "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar");
     dependencies.add(aarDependency);
 
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         runWriteCommandAction(project, new Runnable() {
@@ -1511,7 +1510,7 @@ public class GradleSyncTest extends GuiTestCase {
     final GradleBuildFile buildFile = GradleBuildFile.get(appModule);
     assertNotNull(buildFile);
 
-    GuiActionRunner.execute(new GuiTask() {
+    execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         runWriteCommandAction(project, new Runnable() {
