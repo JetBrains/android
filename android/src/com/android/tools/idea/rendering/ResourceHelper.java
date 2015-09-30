@@ -65,14 +65,14 @@ public class ResourceHelper {
   /**
    * Returns true if the given style represents a project theme
    *
-   * @param style a theme style string
+   * @param styleResourceUrl a theme style resource url
    * @return true if the style string represents a project theme, as opposed
    *         to a framework theme
    */
-  public static boolean isProjectStyle(@NotNull String style) {
-    assert style.startsWith(STYLE_RESOURCE_PREFIX) || style.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) : style;
+  public static boolean isProjectStyle(@NotNull String styleResourceUrl) {
+    assert styleResourceUrl.startsWith(PREFIX_RESOURCE_REF) : styleResourceUrl;
 
-    return style.startsWith(STYLE_RESOURCE_PREFIX);
+    return !styleResourceUrl.startsWith(ANDROID_STYLE_RESOURCE_PREFIX);
   }
 
   /**

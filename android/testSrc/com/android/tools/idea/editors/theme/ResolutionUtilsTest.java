@@ -40,6 +40,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
    */
   public void testGetStyleResourceUrl() {
     assertEquals("@android:style/Theme", ResolutionUtils.getStyleResourceUrl("android:Theme"));
+    assertEquals("@namespace:style/Theme", ResolutionUtils.getStyleResourceUrl("namespace:Theme"));
     assertEquals("@style/AppTheme", ResolutionUtils.getStyleResourceUrl("AppTheme"));
   }
 
@@ -48,6 +49,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
    */
   public void testGetQualifiedNameFromResourceUrl() {
     assertEquals("android:Theme", ResolutionUtils.getQualifiedNameFromResourceUrl("@android:style/Theme"));
+    assertEquals("namespace:Theme", ResolutionUtils.getQualifiedNameFromResourceUrl("@namespace:style/Theme"));
     assertEquals("AppTheme", ResolutionUtils.getQualifiedNameFromResourceUrl("@style/AppTheme"));
   }
 
