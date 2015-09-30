@@ -282,7 +282,9 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     if (REBUILD_CODE_WITH_GRADLE || REBUILD_RESOURCES_WITH_GRADLE) {
       runGradle(AndroidGradleModel.get(facet), facet, forceRestart, files);
     } else {
-      afterBuild(model, facet, forceRestart, files);
+      File arsc = findResourceArscFolder(facet);
+      long arscBefore = arsc != null ? arsc.lastModified() : 0L;
+      afterBuild(model, facet, forceRestart, files, arscBefore);
     }
   }
 
@@ -291,6 +293,9 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
                                         final Collection<VirtualFile> files) {
     assert REBUILD_CODE_WITH_GRADLE;
 
+
+    File arsc = findResourceArscFolder(facet);
+    final long arscBefore = arsc != null ? arsc.lastModified() : 0L;
 
     // Clean out *old* patch files (e.g. from a previous build such that if you for example
     // only change a resource, we don't redeploy the same .dex file over and over!
@@ -309,7 +314,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
         invoker.removeAfterGradleInvocationTask(reference.get());
 
         // Build is done: send message to app etc
-        afterBuild(model, facet, forceRestart, files);
+        afterBuild(model, facet, forceRestart, files, arscBefore);
       }
     };
     reference.set(task);
@@ -509,11 +514,9 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
   }
 
   private void afterBuild(AndroidGradleModel model, AndroidFacet facet, boolean forceRestart,
-                          Collection<VirtualFile> files) {
+                          Collection<VirtualFile> files, long arscBefore) {
     List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(4);
 
-    File arsc = findResourceArscFolder(facet);
-    long arscBefore = arsc != null ? arsc.lastModified() : 0L;
     if (REBUILD_CODE_WITH_GRADLE) {
       gatherGradleCodeChanges(model, changes);
     } else {
