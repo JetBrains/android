@@ -24,4 +24,7 @@ public interface UsesFeature extends ManifestElementWithName {
 
   @Attribute("name")
   AndroidAttributeValue<String> getName();
+
+  @Attribute("required")
+  AndroidAttributeValue<Boolean> getRequired();
 }
