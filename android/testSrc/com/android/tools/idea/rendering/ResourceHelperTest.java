@@ -60,6 +60,7 @@ public class ResourceHelperTest extends AndroidTestCase {
 
   public void testIsProjectStyle() throws Exception {
     assertFalse(ResourceHelper.isProjectStyle("@android:style/Theme"));
+    assertTrue(ResourceHelper.isProjectStyle("@namespace:style/Theme"));
     assertTrue(ResourceHelper.isProjectStyle("@style/LocalTheme"));
   }
 
