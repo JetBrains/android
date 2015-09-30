@@ -81,12 +81,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public String TARGET_SELECTION_MODE = TargetSelectionMode.EMULATOR.name();
   public boolean USE_LAST_SELECTED_DEVICE = false;
   public String PREFERRED_AVD = "";
-  public boolean USE_COMMAND_LINE = true;
-  public String COMMAND_LINE = "";
-  public boolean WIPE_USER_DATA = false;
-  public boolean DISABLE_BOOT_ANIMATION = false;
-  public String NETWORK_SPEED = "full";
-  public String NETWORK_LATENCY = "none";
+
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
   public boolean SKIP_NOOP_APK_INSTALLATIONS = true; // skip installation if the APK hasn't hasn't changed
@@ -101,6 +96,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public boolean IS_VALID_CLOUD_DEVICE_SELECTION = false; // indicates whether the selected cloud device config + project combo is valid
   public String INVALID_CLOUD_DEVICE_SELECTION_ERROR = ""; // specifies the error if the cloud device config + project combo is invalid
   public String CLOUD_DEVICE_SERIAL_NUMBER = "";
+
+  @NotNull private final EmulatorLaunchOptions myEmulatorLaunchOptions = new EmulatorLaunchOptions();
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory) {
     super(new JavaRunConfigurationModule(project, false), factory);
@@ -353,13 +350,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
+  public EmulatorLaunchOptions getEmulatorLaunchOptions() {
+    return myEmulatorLaunchOptions;
+  }
+
+  @NotNull
   protected TargetChooser getTargetChooser(@NotNull AndroidFacet facet, @NotNull Executor executor, @NotNull ConsolePrinter printer) {
     final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
     switch (getTargetSelectionMode()) {
       case SHOW_DIALOG:
-        return new ManualTargetChooser(this, facet, supportMultipleDevices, computeCommandLine(), executor, printer);
+        return new ManualTargetChooser(this, facet, supportMultipleDevices, myEmulatorLaunchOptions, executor, printer);
       case EMULATOR:
-        return new EmulatorTargetChooser(facet, supportMultipleDevices, computeCommandLine(), printer,
+        return new EmulatorTargetChooser(facet, supportMultipleDevices, myEmulatorLaunchOptions, printer,
                                          PREFERRED_AVD.length() > 0 ? PREFERRED_AVD : null);
       case USB_DEVICE:
         return new UsbDeviceTargetChooser(facet, supportMultipleDevices);
@@ -369,7 +371,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         if (executor instanceof DefaultDebugExecutor) {
           // It does not make sense to debug a matrix of devices on the cloud.
           // TODO: Consider making the debug executor unavailable in this case rather than popping the extended chooser dialog.
-          return new ManualTargetChooser(this, facet, supportMultipleDevices, computeCommandLine(), executor, printer);
+          return new ManualTargetChooser(this, facet, supportMultipleDevices, myEmulatorLaunchOptions, executor, printer);
         }
         return new CloudMatrixTargetChooser(SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID);
       case CLOUD_DEVICE_LAUNCH:
@@ -406,26 +408,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
   }
 
-  private String computeCommandLine() {
-    StringBuilder result = new StringBuilder();
-    result.append("-netspeed ").append(NETWORK_SPEED).append(' ');
-    result.append("-netdelay ").append(NETWORK_LATENCY).append(' ');
-    if (WIPE_USER_DATA) {
-      result.append("-wipe-data ");
-    }
-    if (DISABLE_BOOT_ANIMATION) {
-      result.append("-no-boot-anim ");
-    }
-    if (USE_COMMAND_LINE) {
-      result.append(COMMAND_LINE);
-    }
-    int last = result.length() - 1;
-    if (result.charAt(last) == ' ') {
-      result.deleteCharAt(last);
-    }
-    return result.toString();
-  }
-
   @NotNull
   protected abstract ConsoleView attachConsole(AndroidRunningState state, Executor executor) throws ExecutionException;
 
@@ -439,6 +421,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     super.readExternal(element);
     readModule(element);
     DefaultJDOMExternalizer.readExternal(this, element);
+    DefaultJDOMExternalizer.readExternal(myEmulatorLaunchOptions, element);
   }
 
   @Override
@@ -446,6 +429,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     super.writeExternal(element);
     writeModule(element);
     DefaultJDOMExternalizer.writeExternal(this, element);
+    DefaultJDOMExternalizer.writeExternal(myEmulatorLaunchOptions, element);
   }
 
   public boolean usesSimpleLauncher() {
