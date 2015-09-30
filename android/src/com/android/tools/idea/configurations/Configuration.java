@@ -26,6 +26,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.android.tools.idea.rendering.*;
 import com.google.common.base.Objects;
@@ -1003,14 +1004,7 @@ public class Configuration implements Disposable, ModificationTracker {
         return;
       }
 
-      // TODO: When we get a local project repository, handle this:
-      //ResourceRepository frameworkRes = mConfigChooser.getClient().getFrameworkResources();
-      //if (frameworkRes != null && frameworkRes.hasResourceItem(ANDROID_STYLE_RESOURCE_PREFIX + myTheme)) {
-      //  myTheme = ANDROID_STYLE_RESOURCE_PREFIX + myTheme;
-      //}
-      //else {
-      myTheme = STYLE_RESOURCE_PREFIX + myTheme;
-      //}
+      myTheme = ResolutionUtils.getStyleResourceUrl(myTheme);
     }
   }
 
