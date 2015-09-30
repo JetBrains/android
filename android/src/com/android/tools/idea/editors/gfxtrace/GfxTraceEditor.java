@@ -72,6 +72,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String SELECT_ATOM = "Select a frame or command";
   @NotNull public static final String SELECT_MEMORY = "Select a memory range in the command list";
   @NotNull public static final String SELECT_TEXTURE = "Select a texture";
+  @NotNull public static final String NO_TEXTURES = "No textures have been created by this point";
 
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);

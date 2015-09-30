@@ -53,7 +53,7 @@ public class TexturesController extends ImagePanelController {
     myPanel.add(new DropDownController(editor) {
       @Override
       public void selected(Data item) {
-        setEmptyText(GfxTraceEditor.SELECT_TEXTURE);
+        setEmptyText(myList.isEmpty() ? GfxTraceEditor.NO_TEXTURES : GfxTraceEditor.SELECT_TEXTURE);
         setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path.thumbnail(DISPLAY_SIZE)));
       }
     }.myList, BorderLayout.NORTH);
@@ -102,7 +102,9 @@ public class TexturesController extends ImagePanelController {
         List<Data> cells = new ArrayList<Data>();
         int selectedIndex = myList.getSelectedItem();
         for (ResourceInfo info : myResources.getTextures()) {
-          cells.add(new Data(info, atomPath.resourceAfter(info.getID())));
+          if (info.getFirstAccess() <= atomPath.getIndex()) {
+            cells.add(new Data(info, atomPath.resourceAfter(info.getID())));
+          }
         }
         myList.setData(cells);
         if (!resourcesChanged && selectedIndex >= 0 && selectedIndex < cells.size()) {
