@@ -123,7 +123,7 @@ public class AndroidPreDexBuilder extends AndroidTargetBuilder<AndroidPreDexBuil
         }
 
         if (!AndroidDexBuilder.runDex(platform, outputFile.getPath(), new String[]{srcFilePath}, context,
-          project, outputConsumer, BUILDER_NAME, srcFile.getName())) {
+          project, outputConsumer, BUILDER_NAME, srcFile.getName(), null)) {
           return false;
         }
       }
