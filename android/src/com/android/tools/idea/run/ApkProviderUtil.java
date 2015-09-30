@@ -18,17 +18,21 @@ package com.android.tools.idea.run;
 import com.android.SdkConstants;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.PathUtil;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +42,8 @@ import java.io.IOException;
  * TODO: The Gradle and non-Gradle logic here should be split and inlined into its respective provider implementations.
  */
 public class ApkProviderUtil {
+  private static final Logger LOG = Logger.getInstance(ApkProviderUtil.class);
+
   @NotNull
   static String computePackageName(@NotNull final AndroidFacet facet) throws ApkProvisionException {
     // TODO: Separate Gradle and non-Gradle logic here.
@@ -55,7 +61,7 @@ public class ApkProviderUtil {
       try {
         Pair<File, String> pair;
         try {
-          pair = AndroidRunConfigurationBase.getCopyOfCompilerManifestFile(facet);
+          pair = getCopyOfCompilerManifestFile(facet);
         } catch (IOException e) {
           throw new ApkProvisionException("Could not compute package name because of I/O error: " + e.getMessage(), e);
         }
@@ -106,4 +112,27 @@ public class ApkProviderUtil {
     }
   }
 
+  @Nullable
+  public static Pair<File, String> getCopyOfCompilerManifestFile(@NotNull AndroidFacet facet) throws IOException {
+    final VirtualFile manifestFile = AndroidRootUtil.getCustomManifestFileForCompiler(facet);
+
+    if (manifestFile == null) {
+      return null;
+    }
+    File tmpDir = null;
+    try {
+      tmpDir = FileUtil.createTempDirectory("android_manifest_file_for_execution", "tmp");
+      final File manifestCopy = new File(tmpDir, manifestFile.getName());
+      FileUtil.copy(new File(manifestFile.getPath()), manifestCopy);
+      //noinspection ConstantConditions
+      return Pair.create(manifestCopy, PathUtil.getLocalPath(manifestFile));
+    }
+    catch (IOException e) {
+      LOG.info(e);
+      if (tmpDir != null) {
+        FileUtil.delete(tmpDir);
+      }
+      throw e;
+    }
+  }
 }
