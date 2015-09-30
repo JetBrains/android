@@ -17,6 +17,8 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -74,7 +76,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   public ResourceReferenceConverter(@NotNull String resourceType, boolean withPrefix, boolean withExplicitResourceType) {
-    myResourceTypes = Arrays.asList(resourceType);
+    myResourceTypes = Collections.singletonList(resourceType);
     myWithPrefix = withPrefix;
     myWithExplicitResourceType = withExplicitResourceType;
   }
@@ -296,6 +298,18 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
 
     return super.getErrorMessage(s, context);
+  }
+
+  @Nullable
+  @Override
+  public LookupElement createLookupElement(ResourceValue resourceValue) {
+    LookupElementBuilder builder = LookupElementBuilder.create(resourceValue.toString()).withCaseSensitivity(true);
+    final String resourceName = resourceValue.getResourceName();
+    if (resourceName != null) {
+      builder = builder.withLookupString(resourceName);
+    }
+
+    return builder;
   }
 
   @Override
