@@ -33,7 +33,6 @@ import com.intellij.execution.*;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.process.ProcessOutputTypes;
-import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.testframework.ui.BaseTestsOutputConsoleView;
 import com.intellij.execution.ui.ConsoleView;
@@ -178,46 +177,35 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         errors.add(ValidationError.fatal(AndroidBundle.message("instrumentation.runner.class.not.specified.error")));
       }
     }
+
+    final AndroidFacetConfiguration configuration = facet.getConfiguration();
+    if (!facet.requiresAndroidModel() && !configuration.getState().PACK_TEST_CODE) {
+      final int count = getTestSourceRootCount(module);
+      if (count > 0) {
+        final String shortMessage = "Test code not included into APK";
+        final String fixMessage = "Code and resources under test source " + (count > 1 ? "roots" : "root") +
+                                  " aren't included into debug APK.\nWould you like to include them and recompile " +
+                                  module.getName() + " module?" + "\n(You may change this option in Android facet settings later)";
+        Runnable quickFix = new Runnable() {
+          @Override
+          public void run() {
+            final int result =
+              Messages.showYesNoCancelDialog(getProject(), fixMessage, shortMessage, Messages.getQuestionIcon());
+            if (result == Messages.YES) {
+              configuration.getState().PACK_TEST_CODE = true;
+            }
+          }
+        };
+        errors.add(ValidationError.fatal(shortMessage, quickFix));
+      }
+    }
+
     return errors;
   }
 
   @Override
   protected boolean shouldDeploy() {
     return true;
-  }
-
-  @Override
-  public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
-    final RunProfileState state = super.getState(executor, env);
-
-    if (!(state instanceof AndroidRunningState)) {
-      return state;
-    }
-
-    AndroidRunningState androidRunningState = (AndroidRunningState) state;
-    final AndroidFacet facet = androidRunningState.getFacet();
-    final AndroidFacetConfiguration configuration = facet.getConfiguration();
-
-    if (!facet.requiresAndroidModel() && !configuration.getState().PACK_TEST_CODE) {
-      final Module module = facet.getModule();
-      final int count = getTestSourceRootCount(module);
-      
-      if (count > 0) {
-        final String message = "Code and resources under test source " + (count > 1 ? "roots" : "root") +
-                               " aren't included into debug APK.\nWould you like to include them and recompile " +
-                               module.getName() + " module?" + "\n(You may change this option in Android facet settings later)";
-        final int result =
-          Messages.showYesNoCancelDialog(getProject(), message, "Test code not included into APK", Messages.getQuestionIcon());
-        
-        if (result == Messages.YES) {
-          configuration.getState().PACK_TEST_CODE = true;
-        }
-        else if (result == Messages.CANCEL) {
-          return null;
-        }
-      }
-    }
-    return state;
   }
 
   @Override
