@@ -49,11 +49,12 @@ public class TexturesController extends ImagePanelController {
   }
 
   public TexturesController(@NotNull GfxTraceEditor editor) {
-    super(editor);
+    super(editor, GfxTraceEditor.SELECT_ATOM);
     myPanel.add(new DropDownController(editor) {
       @Override
       public void selected(Data item) {
-        setImage(FetchedImage.load(myEditor.getClient(), item.path.thumbnail(DISPLAY_SIZE)));
+        setEmptyText(myList.isEmpty() ? GfxTraceEditor.NO_TEXTURES : GfxTraceEditor.SELECT_TEXTURE);
+        setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path.thumbnail(DISPLAY_SIZE)));
       }
     }.myList, BorderLayout.NORTH);
     initToolbar(new DefaultActionGroup());
@@ -95,51 +96,49 @@ public class TexturesController extends ImagePanelController {
       loadCellImage(cell, client, path, onLoad);
     }
 
-    void update() {
+    protected void update(boolean resourcesChanged) {
       if (myAtomPath.getPath() != null && myResources != null) {
-        final AtomPath atomPath = myAtomPath.getPath();
-        final Resources resources = myResources;
-        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-          @Override
-          public void run() {
-            final List<Data> cells = new ArrayList<Data>();
-            for (ResourceInfo info : resources.getTextures()) {
-              cells.add(new Data(info, atomPath.resourceAfter(info.getID())));
-            }
-            EdtExecutor.INSTANCE.execute(new Runnable() {
-              @Override
-              public void run() {
-                // Back in the UI thread here
-                myList.setData(cells);
-              }
-            });
+        AtomPath atomPath = myAtomPath.getPath();
+        List<Data> cells = new ArrayList<Data>();
+        int selectedIndex = myList.getSelectedItem();
+        for (ResourceInfo info : myResources.getTextures()) {
+          if (info.getFirstAccess() <= atomPath.getIndex()) {
+            cells.add(new Data(info, atomPath.resourceAfter(info.getID())));
           }
-        });
+        }
+        myList.setData(cells);
+        if (!resourcesChanged && selectedIndex >= 0 && selectedIndex < cells.size()) {
+          myList.selectItem(selectedIndex, false);
+          selected(cells.get(selectedIndex));
+        } else {
+          myList.selectItem(-1, false);
+          selected(null);
+        }
       }
     }
 
     @Override
     public void notifyPath(PathEvent event) {
-      boolean updateIcons = false;
       if (event.path instanceof CapturePath) {
         if (myResourcesPath.update(((CapturePath)event.path).resources())) {
           Futures.addCallback(myEditor.getClient().get(myResourcesPath.getPath()), new LoadingCallback<Resources>(LOG) {
             @Override
             public void onSuccess(@Nullable final Resources resources) {
-              EdtExecutor.INSTANCE.execute(new Runnable() {
-                @Override
-                public void run() {
-                  // Back in the UI thread here
-                  myResources = resources;
-                  update();
-                }
-              });
+              // Back in the UI thread here
+              myResources = resources;
+              update(true);
             }
-          });
+          }, EdtExecutor.INSTANCE);
         }
       }
+
       if ((event.path instanceof AtomPath) && myAtomPath.update((AtomPath)event.path)) {
-        update();
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            update(false);
+          }
+        });
       }
     }
   }

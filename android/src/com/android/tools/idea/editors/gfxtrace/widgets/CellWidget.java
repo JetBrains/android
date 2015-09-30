@@ -95,9 +95,15 @@ public abstract class CellWidget<T extends CellWidget.Data, C extends JComponent
     return myData;
   }
 
+  public boolean isEmpty() {
+    return myData.isEmpty();
+  }
+
   public void setData(@NotNull List<T> data) {
     myData = data;
   }
+
+  public abstract int getSelectedItem();
 
   public void selectItem(int index, boolean fireEvents) {
     boolean previousValue = myFireSelectionEvents.getAndSet(fireEvents);
