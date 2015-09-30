@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.tools.lint.detector.api.ClassContext;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
@@ -133,7 +132,7 @@ public abstract class RenderClassLoader extends ClassLoader {
   }
 
   @Nullable
-  protected Class<?> loadClass(String fqcn, @Nullable byte[] data) {
+  protected Class<?> loadClass(@NotNull String fqcn, @Nullable byte[] data) {
     if (data == null) {
       return null;
     }
@@ -148,7 +147,7 @@ public abstract class RenderClassLoader extends ClassLoader {
         //noinspection UseOfSystemOutOrSystemErr
         System.out.println("  defining class " + fqcn + " from disk file");
       }
-      return defineClassAndPackage(null, rewritten, 0, rewritten.length);
+      return defineClassAndPackage(fqcn, rewritten, 0, rewritten.length);
     } catch (UnsupportedClassVersionError inner) {
       // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
       // such that clients can look up the actual bytecode version required.
@@ -167,63 +166,20 @@ public abstract class RenderClassLoader extends ClassLoader {
       return null;
     }
 
-    String path = ClassContext.getInternalName(className).replace('/', File.separatorChar);
-    File file = new File(parent, path + DOT_CLASS);
-    if (file.exists()) {
-      return file;
-    }
-
-    if (className.indexOf('$') != -1) {
-      // The class name does not contain an ambiguous inner class name (inner classes
-      // have already been separated by $ instead of .) so no need to do a search.
-      return null;
-    }
-
-    // Inner classes? Dots are ambiguous (e.g. foo.bar.Foo.Bar), so try all valid combinations
-    // (fully qualified names usually use upper case for class names and lower case for package names, which
-    // is what the above getInternalName will use to decide between packages and classes, but
-    // it's not a language requirement, which is why we fall back to this)
-    //
-    // The following loop will for foo.bar.Foo.Bar try the relative paths
-    //    foo/bar/Foo/Baz.class
-    //    foo/bar/Foo$Baz.class
-    //    foo/bar$Foo$Baz.class
-    //    foo$bar$Foo$Baz.class
-    path = className.replace('.', File.separatorChar);
-    while (true) {
-      file = new File(parent, path + DOT_CLASS);
-      if (file.exists()) {
-        return file;
-      }
-
-      int last = path.lastIndexOf(File.separatorChar);
-      if (last == -1) {
-        return null;
-      }
-      path = path.substring(0, last) + '$' + path.substring(last + 1);
-    }
+    File file = new File(parent, className.replace('.', File.separatorChar) + DOT_CLASS);
+    return file.exists() ? file : null;
   }
 
   @NotNull
-  protected Class<?> defineClassAndPackage(@Nullable String name, @NotNull byte[] b, int offset, int len) {
-    if (name != null) {
-      definePackage(name);
-      return defineClass(name, b, offset, len);
-    }
-    // Class name is not known at the moment.
-    Class<?> aClass = defineClass(null, b, offset, len);
-    definePackage(aClass.getName());
-    return aClass;
-  }
-
-  private void definePackage(@NotNull String className) {
-    int i = className.lastIndexOf('.');
+  protected Class<?> defineClassAndPackage(@NotNull String name, @NotNull byte[] b, int offset, int len) {
+    int i = name.lastIndexOf('.');
     if (i > 0) {
-      String packageName = className.substring(0, i);
+      String packageName = name.substring(0, i);
       Package pkg = getPackage(packageName);
       if (pkg == null) {
         definePackage(packageName, null, null, null, null, null, null, null);
       }
     }
+    return defineClass(name, b, offset, len);
   }
 }
