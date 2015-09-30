@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.Log;
+import com.android.ddmlib.Log.LogLevel;
+import com.android.ddmlib.logcat.LogCatHeader;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.android.util.AndroidBundle;
@@ -35,14 +36,7 @@ public class ConfigureLogcatFormatDialog extends DialogWrapper {
   private static final String SAMPLE_OUTPUT;
 
   static {
-    AndroidLogcatReceiver.LogMessageHeader sampleHeader = new AndroidLogcatReceiver.LogMessageHeader();
-    sampleHeader.myTime = "12-34 45:67:89.000";
-    sampleHeader.myLogLevel = Log.LogLevel.INFO;
-    sampleHeader.myPid = 123;
-    sampleHeader.myTid = "456";
-    sampleHeader.myAppPackage = "com.android.sample";
-    sampleHeader.myTag = "SampleTag";
-
+    LogCatHeader sampleHeader = new LogCatHeader(LogLevel.INFO, "123", "456", "com.android.sample", "SampleTag", "12-34 12:34:56.789");
     SAMPLE_OUTPUT = AndroidLogcatFormatter.formatMessageFull(sampleHeader, "This is a sample message");
   }
 
