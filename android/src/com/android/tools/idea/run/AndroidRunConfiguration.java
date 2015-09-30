@@ -75,11 +75,15 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @Override
+  protected boolean shouldDeploy() {
+    return DEPLOY;
+  }
+
+  @Override
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     RunProfileState state = super.getState(executor, env);
     if (state instanceof AndroidRunningState) {
       AndroidRunningState androidRunningState = (AndroidRunningState) state;
-      androidRunningState.setDeploy(DEPLOY);
       androidRunningState.setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
     }
     return state;
