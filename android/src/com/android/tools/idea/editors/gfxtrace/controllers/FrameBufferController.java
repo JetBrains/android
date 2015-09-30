@@ -53,7 +53,7 @@ public class FrameBufferController extends ImagePanelController {
   @NotNull private BufferType myBufferType = BufferType.Color;
 
   private FrameBufferController(@NotNull GfxTraceEditor editor) {
-    super(editor);
+    super(editor, GfxTraceEditor.SELECT_ATOM);
 
     mySettings.setMaxHeight(MAX_SIZE);
     mySettings.setMaxWidth(MAX_SIZE);

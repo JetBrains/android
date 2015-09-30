@@ -29,6 +29,10 @@ import com.android.tools.rpclib.binary.Namespace;
 import java.io.IOException;
 
 public final class ResourceInfo implements BinaryObject {
+  public long getFirstAccess() {
+    return myAccesses.length > 0 ? myAccesses[0] : 0;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
   private String myName;
