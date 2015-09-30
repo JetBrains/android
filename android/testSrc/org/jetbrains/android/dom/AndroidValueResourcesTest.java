@@ -307,6 +307,18 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     toTestCompletion("bool.xml", "bool_after.xml");
   }
 
+  public void testTranslatableAttributeCompletion() throws Throwable {
+    toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
+  }
+
+  public void testTranslatableFalseCompletion() throws Throwable {
+    toTestCompletion("strings_translatable_false.xml", "strings_translatable_false_after.xml");
+  }
+
+  public void testTranslatableTrueCompletion() throws Throwable {
+    toTestCompletion("strings_translatable_true.xml", "strings_translatable_true_after.xml");
+  }
+
   public void testInlineResourceField() throws Exception {
     copyFileToProject("value_resources.xml", "res/values/value_resources.xml");
     final VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
