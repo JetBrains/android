@@ -91,11 +91,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   @NotNull
-  protected ApkProvider getApkProvider() {
-    Module module = getConfigurationModule().getModule();
-    assert module != null;
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
+  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet) {
     // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
     if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
       return new GradleApkProvider(facet, false);
