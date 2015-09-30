@@ -21,6 +21,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashMap;
@@ -43,7 +44,10 @@ import org.jetbrains.jps.builders.BuildOutputConsumer;
 import org.jetbrains.jps.builders.BuildRootDescriptor;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
 import org.jetbrains.jps.cmdline.ClasspathBootstrap;
-import org.jetbrains.jps.incremental.*;
+import org.jetbrains.jps.incremental.CompileContext;
+import org.jetbrains.jps.incremental.ExternalProcessUtil;
+import org.jetbrains.jps.incremental.ProjectBuildException;
+import org.jetbrains.jps.incremental.StopBuildException;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
@@ -240,7 +244,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
                                @NotNull BuildOutputConsumer outputConsumer) throws IOException {
     final String outFilePath = outputDir + File.separatorChar + AndroidCommonUtils.CLASSES_FILE_NAME;
     return runDex(platform, outFilePath, compileTargets, context, module.getProject(), outputConsumer,
-                  DEX_BUILDER_NAME, module.getName());
+                  DEX_BUILDER_NAME, module.getName(), module);
   }
 
   public static boolean runDex(@NotNull AndroidPlatform platform,
@@ -249,7 +253,8 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
                                @NotNull CompileContext context,
                                @NotNull JpsProject project, @NotNull BuildOutputConsumer outputConsumer,
                                @NotNull String builderName,
-                               @NotNull String srcTargetName) throws IOException {
+                               @NotNull String srcTargetName,
+                               @Nullable JpsModule module) throws IOException {
     BuildToolInfo buildToolInfo = platform.getTarget().getBuildToolInfo();
     if (buildToolInfo == null) {
       return false;
@@ -292,6 +297,21 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     }
     else {
       vmOptions = Collections.singletonList("-Xmx1024M");
+    }
+    if (module != null) {
+      JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
+      if (extension != null) {
+        if (extension.isMultiDexEnabled()) {
+          programParamList.add("--multi-dex");
+        }
+        if (!StringUtil.isEmpty(extension.getMainDexList())) {
+          programParamList.add("--main-dex-list");
+          programParamList.add(extension.getMainDexList());
+        }
+        if (extension.isMinimalMainDex()) {
+          programParamList.add("--minimal-main-dex");
+        }
+      }
     }
     programParamList.addAll(Arrays.asList(compileTargets));
     programParamList.add("--exclude");
