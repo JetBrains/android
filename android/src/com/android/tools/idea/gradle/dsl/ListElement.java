@@ -28,11 +28,18 @@ import java.util.List;
 /**
  * Represents a list of {@link LiteralElement}s.
  */
-public class ListElement extends GradleDslElement {
+public final class ListElement extends GradleDslElement {
   @NotNull private final String myName;
   @NotNull private final List<LiteralElement> myElements = Lists.newArrayList();
+  @NotNull private final List<LiteralElement> myToBeAddedElements = Lists.newArrayList();
+  @NotNull private final List<LiteralElement> myToBeRemovedElements = Lists.newArrayList();
 
-  public ListElement (@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap list) {
+  public ListElement(@Nullable GradleDslElement parent, @NotNull String name) {
+    super(parent);
+    myName = name;
+  }
+
+  public ListElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap list) {
     super(parent);
     assert !list.isMap();
     myName = name;
@@ -43,9 +50,15 @@ public class ListElement extends GradleDslElement {
     }
   }
 
-  public ListElement (@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrLiteral... literals) {
+  public ListElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrLiteral... literals) {
     super(parent);
     myName = name;
+    for (GrLiteral literal : literals) {
+      myElements.add(new LiteralElement(this, name, literal));
+    }
+  }
+
+  public void add(@NotNull String name, @NotNull GrLiteral... literals) {
     for (GrLiteral literal : literals) {
       myElements.add(new LiteralElement(this, name, literal));
     }
@@ -58,12 +71,41 @@ public class ListElement extends GradleDslElement {
 
   @NotNull
   public List<LiteralElement> getElements() {
-    return ImmutableList.copyOf(myElements);
+    if (myToBeAddedElements.isEmpty() && myToBeRemovedElements.isEmpty()) {
+      return ImmutableList.copyOf(myElements);
+    }
+
+    List<LiteralElement> result = Lists.newArrayList();
+    result.addAll(myElements);
+    result.addAll(myToBeAddedElements);
+    for (LiteralElement element : myToBeRemovedElements) {
+      result.remove(element);
+    }
+    return result;
   }
 
-  public void add( @NotNull String name, @NotNull GrLiteral... literals) {
-    for (GrLiteral literal : literals) {
-      myElements.add(new LiteralElement(this, name, literal));
+  public void add(@NotNull Object elementValue) {
+    LiteralElement element = new LiteralElement(this, myName);
+    element.setValue(elementValue);
+    myToBeAddedElements.add(element);
+  }
+
+  public void remove(@NotNull Object elementValue) {
+    for (LiteralElement element : getElements()) {
+      if (elementValue.equals(element.getValue())) {
+        myToBeRemovedElements.add(element);
+        setModified(true);
+        return;
+      }
+    }
+  }
+
+  public void replace(@NotNull Object oldElementValue, @NotNull Object newElementValue) {
+    for (LiteralElement element : getElements()) {
+      if (oldElementValue.equals(element.getValue())) {
+        element.setValue(newElementValue);
+        return;
+      }
     }
   }
 
@@ -75,7 +117,7 @@ public class ListElement extends GradleDslElement {
   @NotNull
   public <E> List<E> getValues(Class<E> clazz) {
     List<E> result = Lists.newArrayList();
-    for (LiteralElement element : myElements) {
+    for (LiteralElement element : getElements()) {
       E value = element.getValue(clazz);
       if (value != null) {
         result.add(value);
@@ -90,5 +132,12 @@ public class ListElement extends GradleDslElement {
 
   @Override
   protected void reset() {
+    myToBeAddedElements.clear();
+    myToBeRemovedElements.clear();
+    for (LiteralElement element : myElements) {
+      if (element.isModified()) {
+        element.reset();
+      }
+    }
   }
 }

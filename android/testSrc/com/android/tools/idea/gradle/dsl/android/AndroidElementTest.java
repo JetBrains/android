@@ -139,6 +139,57 @@ public class AndroidElementTest extends GradleBuildModelParserTestCase {
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix());
   }
 
+  public void testRemoveAndResetElements() throws Exception {
+    String text = "android { \n" +
+                  "  buildToolsVersion \"23.0.0\"\n" +
+                  "  compileSdkVersion \"23\"\n" +
+                  "  defaultPublishConfig \"debug\"\n" +
+                  "  flavorDimensions \"abi\", \"version\"\n" +
+                  "  generatePureSplits true\n" +
+                  "  publishNonDefault false\n" +
+                  "  resourcePrefix \"abcd\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
+    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+    assertEquals("generatePureSplits", Boolean.TRUE, android.generatePureSplits());
+    assertEquals("publishNonDefault", Boolean.FALSE, android.publishNonDefault());
+    assertEquals("resourcePrefix", "abcd", android.resourcePrefix());
+
+    android.removeProperty("buildToolsVersion");
+    android.removeProperty("compileSdkVersion");
+    android.removeProperty("defaultPublishConfig");
+    android.removeProperty("flavorDimensions");
+    android.removeProperty("generatePureSplits");
+    android.removeProperty("publishNonDefault");
+    android.removeProperty("resourcePrefix");
+
+    assertNull("buildToolsVersion", android.buildToolsVersion());
+    assertNull("compileSdkVersion", android.compileSdkVersion());
+    assertNull("defaultPublishConfig", android.defaultPublishConfig());
+    assertNull("flavorDimensions", android.flavorDimensions());
+    assertNull("generatePureSplits", android.generatePureSplits());
+    assertNull("publishNonDefault", android.publishNonDefault());
+    assertNull("resourcePrefix", android.resourcePrefix());
+
+    android.resetState();
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
+    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+    assertEquals("generatePureSplits", Boolean.TRUE, android.generatePureSplits());
+    assertEquals("publishNonDefault", Boolean.FALSE, android.publishNonDefault());
+    assertEquals("resourcePrefix", "abcd", android.resourcePrefix());
+  }
+
   public void testEditAndResetLiteralElements() throws Exception {
     String text = "android { \n" +
                   "  buildToolsVersion \"23.0.0\"\n" +
@@ -253,49 +304,74 @@ public class AndroidElementTest extends GradleBuildModelParserTestCase {
     assertNull("compileSdkVersion", android.compileSdkVersion());
   }
 
-  public void testRemoveAndResetLiteralElements() throws Exception {
+  public void testReplaceAndResetListElements() throws Exception {
     String text = "android { \n" +
-                  "  buildToolsVersion \"23.0.0\"\n" +
-                  "  compileSdkVersion \"23\"\n" +
-                  "  defaultPublishConfig \"debug\"\n" +
-                  "  generatePureSplits true\n" +
-                  "  publishNonDefault false\n" +
-                  "  resourcePrefix \"abcd\"\n" +
+                  "  flavorDimensions \"abi\", \"version\"\n" +
                   "}";
 
     writeToBuildFile(text);
 
     AndroidElement android = getGradleBuildModel().android();
     assertNotNull(android);
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
 
-    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
-    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
-    assertEquals("generatePureSplits", Boolean.TRUE, android.generatePureSplits());
-    assertEquals("publishNonDefault", Boolean.FALSE, android.publishNonDefault());
-    assertEquals("resourcePrefix", "abcd", android.resourcePrefix());
-
-    android.removeProperty("buildToolsVersion");
-    android.removeProperty("compileSdkVersion");
-    android.removeProperty("defaultPublishConfig");
-    android.removeProperty("generatePureSplits");
-    android.removeProperty("publishNonDefault");
-    android.removeProperty("resourcePrefix");
-
-    assertNull("buildToolsVersion", android.buildToolsVersion());
-    assertNull("compileSdkVersion", android.compileSdkVersion());
-    assertNull("defaultPublishConfig", android.defaultPublishConfig());
-    assertNull("generatePureSplits", android.generatePureSplits());
-    assertNull("publishNonDefault", android.publishNonDefault());
-    assertNull("resourcePrefix", android.resourcePrefix());
+    android.replaceFlavorDimension("abi", "xyz");
+    assertEquals("flavorDimensions", ImmutableList.of("xyz", "version"), android.flavorDimensions());
 
     android.resetState();
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+  }
 
-    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
-    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
-    assertEquals("generatePureSplits", Boolean.TRUE, android.generatePureSplits());
-    assertEquals("publishNonDefault", Boolean.FALSE, android.publishNonDefault());
-    assertEquals("resourcePrefix", "abcd", android.resourcePrefix());
+  public void testAddAndResetListElements() throws Exception {
+    String text = "android { \n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+    assertNull("flavorDimensions", android.flavorDimensions());
+
+    android.addFlavorDimension("xyz");
+    assertEquals("flavorDimensions", ImmutableList.of("xyz"), android.flavorDimensions());
+
+    android.resetState();
+    assertNull("flavorDimensions", android.flavorDimensions());
+  }
+
+  public void testAddToAndResetListElements() throws Exception {
+    String text = "android { \n" +
+                  "  flavorDimensions \"abi\", \"version\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+
+    android.addFlavorDimension("xyz");
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version", "xyz"), android.flavorDimensions());
+
+    android.resetState();
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+  }
+
+  public void testRemoveFromAndResetListElements() throws Exception {
+    String text = "android { \n" +
+                  "  flavorDimensions \"abi\", \"version\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+
+    android.removeFlavorDimension("version");
+    assertEquals("flavorDimensions", ImmutableList.of("abi"), android.flavorDimensions());
+
+    android.resetState();
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
   }
 }
