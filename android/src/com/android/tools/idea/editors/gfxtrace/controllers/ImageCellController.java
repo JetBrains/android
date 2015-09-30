@@ -52,8 +52,9 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
     super(editor);
   }
 
-  protected ImageCellController<T> usingListWidget(@NotNull CellList.Orientation orientation, final Dimension maxCellSize) {
-    myList = new ImageCellList<T>(orientation, this) {
+  protected ImageCellController<T> usingListWidget(
+    @NotNull CellList.Orientation orientation, String emptyText, final Dimension maxCellSize) {
+    myList = new ImageCellList<T>(orientation, emptyText, this) {
       @Override
       protected Dimension getMaxCellSize() {
         return maxCellSize;

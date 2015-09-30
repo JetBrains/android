@@ -42,8 +42,9 @@ public abstract class ImagePanelController extends Controller {
   @NotNull private final AtomicInteger imageLoadCount = new AtomicInteger();
   @NotNull private ListenableFuture<?> request = Futures.immediateFuture(0);
 
-  public ImagePanelController(@NotNull GfxTraceEditor editor) {
+  public ImagePanelController(@NotNull GfxTraceEditor editor, String emptyText) {
     super(editor);
+    myImagePanel.getEmptyText().setText(emptyText);
     myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
     myLoading.add(myImagePanel, BorderLayout.CENTER);
     myPanel.add(myLoading, BorderLayout.CENTER);
@@ -54,7 +55,16 @@ public abstract class ImagePanelController extends Controller {
     myPanel.add(ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, false).getComponent(), BorderLayout.WEST);
   }
 
+  protected void setEmptyText(String text) {
+    myImagePanel.getEmptyText().setText(text);
+  }
+
   protected void setImage(ListenableFuture<FetchedImage> imageFuture) {
+    if (imageFuture == null) {
+      myImagePanel.setImage(null);
+      return;
+    }
+
     final int imageRequest = newImageRequest(imageFuture);
     myLoading.startLoading();
 
