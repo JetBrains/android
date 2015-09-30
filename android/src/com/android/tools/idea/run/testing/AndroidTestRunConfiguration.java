@@ -26,6 +26,8 @@ import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.*;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.*;
@@ -57,6 +59,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * User: Eugene.Kudelevsky
@@ -133,13 +136,15 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return ExecutionBundle.message("all.tests.scope.presentable.text");
   }
 
+  @NotNull
   @Override
-  public void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException {
+  public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
+    List<ValidationError> errors = Lists.newArrayList();
     if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_MATRIX_TEST && !IS_VALID_CLOUD_MATRIX_SELECTION) {
-      throw new RuntimeConfigurationError(INVALID_CLOUD_MATRIX_SELECTION_ERROR);
+      errors.add(ValidationError.fatal(INVALID_CLOUD_MATRIX_SELECTION_ERROR));
     }
     if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_DEVICE_LAUNCH && !IS_VALID_CLOUD_DEVICE_SELECTION) {
-      throw new RuntimeConfigurationError(INVALID_CLOUD_DEVICE_SELECTION_ERROR);
+      errors.add(ValidationError.fatal(INVALID_CLOUD_DEVICE_SELECTION_ERROR));
     }
 
     Module module = facet.getModule();
@@ -148,25 +153,32 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       case TEST_ALL_IN_PACKAGE:
         final PsiPackage testPackage = facade.findPackage(PACKAGE_NAME);
         if (testPackage == null) {
-          throw new RuntimeConfigurationWarning(ExecutionBundle.message("package.does.not.exist.error.message", PACKAGE_NAME));
+          errors.add(ValidationError.warning(ExecutionBundle.message("package.does.not.exist.error.message", PACKAGE_NAME)));
         }
         break;
       case TEST_CLASS:
-        final PsiClass testClass =
-          getConfigurationModule().checkModuleAndClassName(CLASS_NAME, ExecutionBundle.message("no.test.class.specified.error.text"));
-        if (!JUnitUtil.isTestClass(testClass)) {
-          throw new RuntimeConfigurationWarning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME));
+        PsiClass testClass = null;
+        try {
+          testClass =
+            getConfigurationModule().checkModuleAndClassName(CLASS_NAME, ExecutionBundle.message("no.test.class.specified.error.text"));
+        }
+        catch (RuntimeConfigurationException e) {
+          errors.add(ValidationError.fromException(e));
+        }
+        if (testClass != null && !JUnitUtil.isTestClass(testClass)) {
+          errors.add(ValidationError.warning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
         }
         break;
       case TEST_METHOD:
-        checkTestMethod();
+        errors.addAll(checkTestMethod());
         break;
     }
     if (INSTRUMENTATION_RUNNER_CLASS.length() > 0) {
       if (facade.findClass(INSTRUMENTATION_RUNNER_CLASS, module.getModuleWithDependenciesAndLibrariesScope(true)) == null) {
-        throw new RuntimeConfigurationError(AndroidBundle.message("instrumentation.runner.class.not.specified.error"));
+        errors.add(ValidationError.fatal(AndroidBundle.message("instrumentation.runner.class.not.specified.error")));
       }
     }
+    return errors;
   }
 
   @Override
@@ -222,15 +234,22 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return manager.getSourceRoots(true).length - manager.getSourceRoots(false).length;
   }
 
-  private void checkTestMethod() throws RuntimeConfigurationException {
+  private List<ValidationError> checkTestMethod() {
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
-    final PsiClass testClass =
-      configurationModule.checkModuleAndClassName(CLASS_NAME, ExecutionBundle.message("no.test.class.specified.error.text"));
+    final PsiClass testClass;
+    try {
+        testClass = configurationModule.checkModuleAndClassName(CLASS_NAME, ExecutionBundle.message("no.test.class.specified.error.text"));
+    }
+    catch (RuntimeConfigurationException e) {
+      // We can't proceed without a test class.
+      return ImmutableList.of(ValidationError.fromException(e));
+    }
+    List<ValidationError> errors = Lists.newArrayList();
     if (!JUnitUtil.isTestClass(testClass)) {
-      throw new RuntimeConfigurationWarning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME));
+      errors.add(ValidationError.warning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
     }
     if (METHOD_NAME == null || METHOD_NAME.trim().length() == 0) {
-      throw new RuntimeConfigurationError(ExecutionBundle.message("method.name.not.specified.error.message"));
+      errors.add(ValidationError.fatal(ExecutionBundle.message("method.name.not.specified.error.message")));
     }
     final JUnitUtil.TestMethodFilter filter = new JUnitUtil.TestMethodFilter(testClass);
     boolean found = false;
@@ -240,20 +259,21 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       if (JUnitUtil.isTestAnnotated(method)) testAnnotated = true;
     }
     if (!found) {
-      throw new RuntimeConfigurationWarning(ExecutionBundle.message("test.method.doesnt.exist.error.message", METHOD_NAME));
+      errors.add(ValidationError.warning(ExecutionBundle.message("test.method.doesnt.exist.error.message", METHOD_NAME)));
     }
 
     if (!AnnotationUtil.isAnnotated(testClass, JUnitUtil.RUN_WITH, true) && !testAnnotated) {
       try {
         final PsiClass testCaseClass = JUnitUtil.getTestCaseClass(configurationModule.getModule());
         if (!testClass.isInheritor(testCaseClass, true)) {
-          throw new RuntimeConfigurationError(ExecutionBundle.message("class.isnt.inheritor.of.testcase.error.message", CLASS_NAME));
+          errors.add(ValidationError.fatal(ExecutionBundle.message("class.isnt.inheritor.of.testcase.error.message", CLASS_NAME)));
         }
       }
       catch (JUnitUtil.NoJUnitException e) {
-        throw new RuntimeConfigurationWarning(ExecutionBundle.message(AndroidBundle.message("cannot.find.testcase.error")));
+        errors.add(ValidationError.warning(ExecutionBundle.message(AndroidBundle.message("cannot.find.testcase.error"))));
       }
     }
+    return errors;
   }
 
   @NotNull
