@@ -27,17 +27,17 @@ import java.util.Map;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 
 /**
- * Represents a map from properties of type {@link String} and values of type {@link LiteralElement}.
+ * Represents an element which consists of a map from properties of type {@link String} and values of type {@link LiteralElement}.
  */
-public final class MapElement extends GradleDslPropertiesElement {
+public final class LiteralMapElement extends GradleDslPropertiesElement {
   @NotNull private final String myName;
 
-  public MapElement(@Nullable GradleDslElement parent, @NotNull String name) {
+  public LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent);
     myName = name;
   }
 
-  public MapElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap map) {
+  public LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap map) {
     super(parent);
     assert map.isMap();
     myName = name;
@@ -45,19 +45,23 @@ public final class MapElement extends GradleDslPropertiesElement {
       GrLiteral literal = getChildOfType(argument, GrLiteral.class);
       if (literal != null) {
         String argName = argument.getLabelName();
-        setProperty(argName, new LiteralElement(this, name, literal));
+        if (argName != null) {
+          setParsedElement(argName, new LiteralElement(this, name, literal));
+        }
       }
     }
   }
 
-  public MapElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrNamedArgument... namedArguments) {
+  public LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrNamedArgument... namedArguments) {
     super(parent);
     myName = name;
     for (GrNamedArgument argument : namedArguments) {
       GrLiteral literal = getChildOfType(argument, GrLiteral.class);
       if (literal != null) {
         String argName = argument.getLabelName();
-        setProperty(argName, new LiteralElement(this, name, literal));
+        if (argName != null) {
+          setParsedElement(argName, new LiteralElement(this, name, literal));
+        }
       }
     }
   }
@@ -65,6 +69,17 @@ public final class MapElement extends GradleDslPropertiesElement {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  public void put(String key, Object value) {
+    GradleDslElement propertyElement = getPropertyElement(key);
+    if (propertyElement instanceof LiteralElement) {
+      ((LiteralElement)propertyElement).setValue(value);
+      return;
+    }
+    LiteralElement literalElement = new LiteralElement(this, key);
+    setNewElement(key, literalElement);
+    literalElement.setValue(value);
   }
 
   /**
@@ -76,9 +91,12 @@ public final class MapElement extends GradleDslPropertiesElement {
   public <V> Map<String, V> getValues(@NotNull Class<V> clazz) {
     Map<String, V> result = Maps.newHashMap();
     for (String key : getProperties()) {
-      V value = getProperty(key, clazz);
-      if (value != null) {
-        result.put(key, value);
+      GradleDslElement propertyElement = getPropertyElement(key);
+      if (propertyElement instanceof LiteralElement) {
+        V value = ((LiteralElement)propertyElement).getValue(clazz);
+        if (value != null) {
+          result.put(key, value);
+        }
       }
     }
     return result;
@@ -87,10 +105,10 @@ public final class MapElement extends GradleDslPropertiesElement {
   @Override
   @Nullable
   public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    T value = super.getProperty(property, clazz);
-    if (value instanceof LiteralElement) {
-      value = ((LiteralElement)value).getValue(clazz);
+    GradleDslElement propertyElement = getPropertyElement(property);
+    if (propertyElement instanceof LiteralElement) {
+      return ((LiteralElement)propertyElement).getValue(clazz);
     }
-    return value;
+    return null;
   }
 }
