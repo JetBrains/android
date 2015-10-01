@@ -105,6 +105,26 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     return getMapProperty(MANIFEST_PLACEHOLDERS, Object.class);
   }
 
+  @NotNull
+  public ProductFlavorElement setManifestPlaceholder(@NotNull String name, @NotNull String value) {
+    return (ProductFlavorElement)setInMapProperty(MANIFEST_PLACEHOLDERS, name, value);
+  }
+
+  @NotNull
+  public ProductFlavorElement setManifestPlaceholder(@NotNull String name, int value) {
+    return (ProductFlavorElement)setInMapProperty(MANIFEST_PLACEHOLDERS, name, value);
+  }
+
+  @NotNull
+  public ProductFlavorElement setManifestPlaceholder(@NotNull String name, boolean value) {
+    return (ProductFlavorElement)setInMapProperty(MANIFEST_PLACEHOLDERS, name, value);
+  }
+
+  @NotNull
+  public ProductFlavorElement removeManifestPlaceholder(@NotNull String name) {
+    return (ProductFlavorElement)removeFromMapProperty(MANIFEST_PLACEHOLDERS, name);
+  }
+
   @Nullable
   public Integer maxSdkVersion() {
     return getProperty(MAX_SDK_VERSION, Integer.class);
@@ -183,15 +203,67 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
 
   @Nullable
   public List<ResValue> resValues() {
-    List<String> resValues = getListProperty(RES_VALUES, String.class);
-    if (resValues != null && resValues.size() % 3 == 0) {
-      List<ResValue> result = Lists.newArrayList();
-      for (int i = 0; i < resValues.size(); i += 3) {
-        result.add(new ResValue(resValues.get(i), resValues.get(i + 1), resValues.get(i + 2)));
-      }
-      return result;
+    GradleDslElementList resValues = getProperty(RES_VALUES, GradleDslElementList.class);
+    if (resValues == null) {
+      return null;
     }
-    return null;
+
+    List<ResValue> result = Lists.newArrayList();
+    for (GradleDslElement resValue : resValues.getElements()) {
+      if (resValue instanceof LiteralListElement) {
+        LiteralListElement listElement = (LiteralListElement)resValue;
+        List<String> values = listElement.getValues(String.class);
+        if (values.size() == 3) {
+          result.add(new ResValue(values.get(0), values.get(1), values.get(2)));
+        }
+      }
+    }
+    return result;
+  }
+
+  @NotNull
+  public ProductFlavorElement addResValue(@NotNull ResValue resValue) {
+    GradleDslElementList elementList = getProperty(RES_VALUES, GradleDslElementList.class);
+    if (elementList == null) {
+      elementList = new GradleDslElementList(this, RES_VALUES);
+      setNewElement(RES_VALUES, elementList);
+    }
+    elementList.addNewElement(resValue.toLiteralListElement(this));
+    return this;
+  }
+
+  @NotNull
+  public ProductFlavorElement removeResValue(@NotNull ResValue resValue) {
+    GradleDslElementList elementList = getProperty(RES_VALUES, GradleDslElementList.class);
+    if (elementList != null) {
+      for (LiteralListElement element : elementList.getElements(LiteralListElement.class)) {
+        List<String> values = element.getValues(String.class);
+        if (values.size() == 3
+            && resValue.type().equals(values.get(0)) && resValue.name().equals(values.get(1)) && resValue.value().equals(values.get(2))) {
+          elementList.removeElement(element);
+        }
+      }
+    }
+    return this;
+  }
+
+  @NotNull
+  public ProductFlavorElement replaceResValue(@NotNull ResValue oldResValue, @NotNull ResValue newResValue) {
+    GradleDslElementList elementList = getProperty(RES_VALUES, GradleDslElementList.class);
+    if (elementList != null) {
+      for (LiteralListElement element : elementList.getElements(LiteralListElement.class)) {
+        List<LiteralElement> literalElements = element.getElements();
+        if (literalElements.size() == 3
+            && oldResValue.type().equals(literalElements.get(0).getValue())
+            && oldResValue.name().equals(literalElements.get(1).getValue())
+            && oldResValue.value().equals(literalElements.get(2).getValue())) {
+          literalElements.get(0).setValue(newResValue.type());
+          literalElements.get(1).setValue(newResValue.name());
+          literalElements.get(2).setValue(newResValue.value());
+        }
+      }
+    }
+    return this;
   }
 
   @Nullable
@@ -255,6 +327,16 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     return getMapProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, String.class);
   }
 
+  @NotNull
+  public ProductFlavorElement setTestInstrumentationRunnerArgument(@NotNull String name, @NotNull String value) {
+    return (ProductFlavorElement)setInMapProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, name, value);
+  }
+
+  @NotNull
+  public ProductFlavorElement removeTestInstrumentationRunnerArgument(@NotNull String name) {
+    return (ProductFlavorElement)removeFromMapProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, name);
+  }
+
   @Nullable
   public Boolean useJack() {
     return getProperty(USE_JACK, Boolean.class);
@@ -292,7 +374,7 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
   }
 
   @Override
-  public void addProperty(@NotNull String property, @NotNull GradleDslElement element) {
+  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
     if (property.equals(PROGUARD_FILES) || property.equals("proguardFile")) {
       addToListElement(PROGUARD_FILES, element);
       return;
@@ -304,29 +386,35 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     }
 
     if (property.equals("resValue")) {
-      if (!(element instanceof ListElement)) {
+      if (!(element instanceof LiteralListElement)) {
         return;
       }
-      ListElement listElement = (ListElement)element;
+      LiteralListElement listElement = (LiteralListElement)element;
       if (listElement.getElements().size() != 3 || listElement.getValues(String.class).size() != 3) {
         return;
       }
-      addToListElement(RES_VALUES, element);
+
+      GradleDslElementList elementList = getProperty(RES_VALUES, GradleDslElementList.class);
+      if (elementList == null) {
+        elementList = new GradleDslElementList(this, RES_VALUES);
+        setParsedElement(RES_VALUES, elementList);
+      }
+      elementList.addParsedElement(element);
     }
 
     if (property.equals(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS)) {
-      if (!(element instanceof MapElement)) {
+      if (!(element instanceof LiteralMapElement)) {
         return;
       }
-      MapElement testInstrumentationRunnerArgumentsElement = getProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, MapElement.class);
+      LiteralMapElement testInstrumentationRunnerArgumentsElement = getProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, LiteralMapElement.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
-        setProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, element);
+        setParsedElement(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, element);
       } else {
-        MapElement elementsToAdd = (MapElement)element;
+        LiteralMapElement elementsToAdd = (LiteralMapElement)element;
         for (String key : elementsToAdd.getProperties()) {
           GradleDslElement elementToAdd = elementsToAdd.getPropertyElement(key);
           if (elementToAdd != null) {
-            testInstrumentationRunnerArgumentsElement.setProperty(key, elementToAdd);
+            testInstrumentationRunnerArgumentsElement.setParsedElement(key, elementToAdd);
           }
         }
       }
@@ -334,11 +422,11 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     }
 
     if (property.equals("testInstrumentationRunnerArgument")) {
-      if (!(element instanceof ListElement)) {
+      if (!(element instanceof LiteralListElement)) {
         return;
       }
-      ListElement listElement = (ListElement)element;
-      List<LiteralElement> elements = listElement.getElements();
+      LiteralListElement literalListElement = (LiteralListElement)element;
+      List<LiteralElement> elements = literalListElement.getElements();
       if (elements.size() != 2) {
         return;
       }
@@ -349,23 +437,23 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
       }
       LiteralElement value = elements.get(1);
 
-      MapElement testInstrumentationRunnerArgumentsElement = getProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, MapElement.class);
+      LiteralMapElement testInstrumentationRunnerArgumentsElement = getProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, LiteralMapElement.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
-        testInstrumentationRunnerArgumentsElement = new MapElement(this, TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
+        testInstrumentationRunnerArgumentsElement = new LiteralMapElement(this, TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
       }
-      testInstrumentationRunnerArgumentsElement.setProperty(key, value);
+      testInstrumentationRunnerArgumentsElement.setParsedElement(key, value);
       return;
     }
 
-    super.addProperty(property, element);
+    super.addParsedElement(property, element);
   }
 
   private void addToListElement(@NotNull String property, @NotNull GradleDslElement element) {
     GrLiteral[] literalsToAdd =  null;
     if (element instanceof LiteralElement) {
       literalsToAdd = new GrLiteral[]{((LiteralElement)element).getLiteral()};
-    } else if (element instanceof ListElement) {
-      List<LiteralElement> literalElements = ((ListElement)element).getElements();
+    } else if (element instanceof LiteralListElement) {
+      List<LiteralElement> literalElements = ((LiteralListElement)element).getElements();
       literalsToAdd = new GrLiteral[literalElements.size()];
       for (int i = 0; i < literalElements.size(); i++) {
         literalsToAdd[i] = literalElements.get(i).getLiteral();
@@ -375,20 +463,22 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
       return;
     }
 
-    ListElement listElement = getProperty(property, ListElement.class);
-    if (listElement != null) {
-      listElement.add(property, literalsToAdd);
+    LiteralListElement literalListElement = getProperty(property, LiteralListElement.class);
+    if (literalListElement != null) {
+      literalListElement.add(property, literalsToAdd);
       return;
     }
 
-    listElement = new ListElement(this, property, literalsToAdd);
-    super.addProperty(property, listElement);
+    literalListElement = new LiteralListElement(this, property, literalsToAdd);
+    super.addParsedElement(property, literalListElement);
   }
 
   /**
    * Represents a {@code resValue} statement defined in the product flavor block of the Gradle file.
    */
   static final class ResValue {
+    @NotNull public static final String NAME = "resValue";
+
     @NotNull private final String myType;
     @NotNull private final String myName;
     @NotNull private final String myValue;
@@ -435,6 +525,20 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     @Override
     public String toString() {
       return String.format("Type: %1$s, Name: %2$s, Value: %3$s", myType, myName, myValue);
+    }
+
+    @NotNull
+    LiteralListElement toLiteralListElement(@Nullable GradleDslElement parent) {
+      LiteralElement typeElement = new LiteralElement(parent, NAME);
+      typeElement.setValue(myType);
+      LiteralElement nameElement = new LiteralElement(parent, NAME);
+      nameElement.setValue(myName);
+      LiteralElement valueElement = new LiteralElement(parent, NAME);
+      valueElement.setValue(myValue);
+
+      LiteralListElement literalListElement = new LiteralListElement(parent, NAME);
+      literalListElement.add(typeElement, nameElement, valueElement);
+      return literalListElement;
     }
   }
 }
