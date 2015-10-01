@@ -154,7 +154,7 @@ public class AndroidDomUtil {
       }
     }
     if (resourceTypes.size() > 0) {
-      final ResourceReferenceConverter converter = new ResourceReferenceConverter(resourceTypes);
+      final ResourceReferenceConverter converter = new ResourceReferenceConverter(resourceTypes, attr);
       converter.setAllowLiterals(containsNotReference);
       return converter;
     }
@@ -224,7 +224,7 @@ public class AndroidDomUtil {
     }
 
     if (resConverter == null && formats.contains(AttributeFormat.Enum)) {
-      resConverter = new ResourceReferenceConverter(Collections.singletonList(ResourceType.INTEGER.getName()));
+      resConverter = new ResourceReferenceConverter(Collections.singletonList(ResourceType.INTEGER.getName()), attr);
       resConverter.setQuiet(true);
     }
     ResolvingConverter<String> stringConverter = compositeBuilder.build();
