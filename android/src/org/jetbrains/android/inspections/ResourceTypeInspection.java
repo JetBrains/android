@@ -337,6 +337,30 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             qualifiedName = a.getQualifiedName();
             if (qualifiedName != null && qualifiedName.endsWith(PERMISSION_ANNOTATION)) {
               checkPermissionRequirement(methodCall, holder, method, a);
+            } else if (STRING_DEF_ANNOTATION.equals(qualifiedName)) {
+              // Handle equals() as a special case: if you're invoking
+              //   .equals on a method whose return value annotated with @StringDef
+              //   we want to make sure that the equals parameter is compatible.
+              // 186598: StringDef dont warn using a getter and equals
+              PsiElement parent = methodCall.getParent();
+              PsiType type = method.getReturnType();
+              if (type != null && parent instanceof PsiReferenceExpression) {
+                PsiReferenceExpression expression = (PsiReferenceExpression)parent;
+                PsiElement name = expression.getReferenceNameElement();
+                if (name != null && "equals".equals(name.getText())) {
+                  PsiElement parent2 = parent.getParent();
+                  if (parent2 instanceof PsiMethodCallExpression) {
+                    PsiMethodCallExpression equalsCall = (PsiMethodCallExpression)parent2;
+                    PsiExpression[] arguments = equalsCall.getArgumentList().getExpressions();
+                    if (arguments.length == 1) {
+                      Constraints constraints = getAllowedValuesFromTypedef(type, a, methodCall.getManager());
+                      if (constraints != null) {
+                        checkConstraints(parent2, arguments[0], constraints, holder);
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
 
