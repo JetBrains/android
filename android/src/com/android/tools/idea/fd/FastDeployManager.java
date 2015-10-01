@@ -196,6 +196,11 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return buildConfiguration.INSTANT_RUN;
   }
 
+  public static boolean isRestartActivity(@NotNull Project project) {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    return buildConfiguration.RESTART_ACTIVITY;
+  }
+
   // ---- Implements BulkFileListener ----
 
   @Override
@@ -251,22 +256,22 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       files.add(file);
     }
     if (map != null) {
-      computeDeltas(map, false);
+      computeDeltas(map, UpdateMode.HOT_SWAP);
     }
   }
 
-  public void computeDeltas(AndroidFacet facet, VirtualFile file, boolean forceRestart) {
+  public void computeDeltas(AndroidFacet facet, VirtualFile file, @NotNull UpdateMode updateMode) {
     Map<AndroidFacet, Collection<VirtualFile>> map = Maps.newHashMap();
     Collection<VirtualFile> virtualFiles = Collections.singletonList(file);
     map.put(facet, virtualFiles);
-    computeDeltas(map, forceRestart);
+    computeDeltas(map, updateMode);
   }
 
-  public void computeDeltas(Map<AndroidFacet, Collection<VirtualFile>> map, boolean forceRestart) {
-    process(forceRestart, map);
+  public void computeDeltas(Map<AndroidFacet, Collection<VirtualFile>> map, @NotNull UpdateMode updateMode) {
+    process(updateMode, map);
   }
 
-  public void process(boolean forceRestart, Map<AndroidFacet, Collection<VirtualFile>> changedFiles) {
+  public void process(@NotNull UpdateMode updateMode, Map<AndroidFacet, Collection<VirtualFile>> changedFiles) {
     for (Map.Entry<AndroidFacet, Collection<VirtualFile>> entry : changedFiles.entrySet()) {
       AndroidFacet facet = entry.getKey();
       Collection<VirtualFile> files = entry.getValue();
@@ -274,23 +279,24 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       if (model == null) {
         continue;
       }
-      process(facet, model, files, forceRestart);
+      process(facet, model, files, updateMode);
     }
   }
 
-  public void process(AndroidFacet facet, AndroidGradleModel model, Collection<VirtualFile> files, boolean forceRestart) {
+  public void process(AndroidFacet facet, AndroidGradleModel model, Collection<VirtualFile> files, @NotNull UpdateMode updateMode) {
     if (REBUILD_CODE_WITH_GRADLE || REBUILD_RESOURCES_WITH_GRADLE) {
-      runGradle(AndroidGradleModel.get(facet), facet, forceRestart, files);
+      runGradle(AndroidGradleModel.get(facet), facet, updateMode, files);
     } else {
       File arsc = findResourceArscFolder(facet);
       long arscBefore = arsc != null ? arsc.lastModified() : 0L;
-      afterBuild(model, facet, forceRestart, files, arscBefore);
+      afterBuild(model, facet, updateMode, files, arscBefore);
     }
   }
 
-  private void runGradle(final AndroidGradleModel model, final AndroidFacet facet,
-                                        final boolean forceRestart,
-                                        final Collection<VirtualFile> files) {
+  private void runGradle(final AndroidGradleModel model,
+                         final AndroidFacet facet,
+                         final UpdateMode updateMode,
+                         final Collection<VirtualFile> files) {
     assert REBUILD_CODE_WITH_GRADLE;
 
 
@@ -314,7 +320,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
         invoker.removeAfterGradleInvocationTask(reference.get());
 
         // Build is done: send message to app etc
-        afterBuild(model, facet, forceRestart, files, arscBefore);
+        afterBuild(model, facet, updateMode, files, arscBefore);
       }
     };
     reference.set(task);
@@ -513,27 +519,34 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return null;
   }
 
-  private void afterBuild(AndroidGradleModel model, AndroidFacet facet, boolean forceRestart,
-                          Collection<VirtualFile> files, long arscBefore) {
+  private void afterBuild(AndroidGradleModel model,
+                          AndroidFacet facet,
+                          @NotNull UpdateMode updateMode,
+                          Collection<VirtualFile> files,
+                          long arscBefore) {
     List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(4);
 
     if (REBUILD_CODE_WITH_GRADLE) {
-      gatherGradleCodeChanges(model, changes);
+      updateMode = gatherGradleCodeChanges(model, changes, updateMode);
     } else {
-      computeCodeChangesDirectly(model, changes, facet, files);
+      updateMode = computeCodeChangesDirectly(model, changes, facet, files, updateMode);
     }
     if (REBUILD_RESOURCES_WITH_GRADLE) {
-      gatherGradleResourceChanges(model, facet, changes, arscBefore);
+      updateMode = gatherGradleResourceChanges(model, facet, changes, arscBefore, updateMode);
     } else {
-      computeResourceChangesDirectly(facet, files, changes);
+      updateMode = computeResourceChangesDirectly(facet, files, changes, updateMode);
     }
 
-    push(facet.getModule().getProject(), changes, forceRestart);
+    push(facet.getModule().getProject(), changes, updateMode);
   }
 
   @SuppressWarnings({"MethodMayBeStatic", "UnusedParameters"}) // won't be as soon as it really calls Gradle
-  private void gatherGradleResourceChanges(AndroidGradleModel model, AndroidFacet facet,
-                                           List<ApplicationPatch> changes, long arscBefore) {
+  @NotNull
+  private UpdateMode gatherGradleResourceChanges(AndroidGradleModel model,
+                                                 AndroidFacet facet,
+                                                 List<ApplicationPatch> changes,
+                                                 long arscBefore,
+                                                 @NotNull UpdateMode updateMode) {
     assert REBUILD_RESOURCES_WITH_GRADLE;
 
     File arsc = findResourceArscFolder(facet);
@@ -542,14 +555,21 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       try {
         byte[] bytes = Files.toByteArray(arsc);
         changes.add(new ApplicationPatch(path, bytes));
+        return updateMode.combine(UpdateMode.WARM_SWAP);
       }
       catch (IOException e) {
         LOG.warn("Couldn't read resource file file " + arsc);
       }
     }
+
+    return updateMode;
   }
 
-  private void computeResourceChangesDirectly(AndroidFacet facet, Collection<VirtualFile> files, List<ApplicationPatch> changes) {
+  @NotNull
+  private UpdateMode computeResourceChangesDirectly(@NotNull AndroidFacet facet,
+                                                    @NotNull Collection<VirtualFile> files,
+                                                    @NotNull List<ApplicationPatch> changes,
+                                                    @NotNull UpdateMode updateMode) {
     File res = findMergedResFolder(facet);
     if (res != null) {
       List<VirtualFile> resourceFiles = Lists.newArrayList();
@@ -572,19 +592,19 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
           File intermediates = findIntermediatesFolder(facet);
           if (intermediates == null) {
             LOG.warn("Couldn't find intermediates folder in the project for module " + facet.getModule());
-            return;
+            return updateMode;
           }
 
           File generated = findGeneratedFolder(facet);
           if (generated == null) {
             LOG.warn("Couldn't find generated source folder in the project for module " + facet.getModule());
-            return;
+            return updateMode;
           }
 
           File resourceDir = findMergedResourceFolder(facet);
           if (resourceDir == null) {
             LOG.warn("Couldn't find merged resource folder in the project for module " + facet.getModule());
-            return;
+            return updateMode;
           }
 
           ListIterator<VirtualFile> iterator = resourceFiles.listIterator();
@@ -622,7 +642,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
 
           if (resourceFiles.isEmpty()) {
             // No files changed: nothing to do.
-            return;
+            return updateMode;
           }
 
           // Next compile all the resources with a single aapt run
@@ -661,16 +681,20 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
             }
 
             FileUtil.delete(binaryXml);
+            return updateMode.combine(UpdateMode.WARM_SWAP);
           }
-
         } catch (IOException ioe) {
           LOG.warn(ioe);
         }
       }
     }
+    return updateMode;
   }
 
-  private static void gatherGradleCodeChanges(AndroidGradleModel model, List<ApplicationPatch> changes) {
+  @NotNull
+  private static UpdateMode gatherGradleCodeChanges(AndroidGradleModel model,
+                                                    List<ApplicationPatch> changes,
+                                                    @NotNull UpdateMode updateMode) {
     assert REBUILD_CODE_WITH_GRADLE;
 
     File restart = findStartDex(model);
@@ -687,11 +711,14 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
           if (!deleted) {
             Logger.getInstance(FastDeployManager.class).error("Couldn't delete " + incremental);
           }
+          return updateMode.combine(UpdateMode.HOT_SWAP);
         }
+        return updateMode.combine(UpdateMode.COLD_SWAP);
       } catch (Throwable t) {
         Logger.getInstance(FastDeployManager.class).error("Couldn't generate dex", t);
       }
     }
+    return updateMode;
   }
 
   private static void removeOldPatches(AndroidGradleModel model) {
@@ -712,8 +739,12 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
   }
 
   @SuppressWarnings("UnusedParameters")
-  private boolean computeCodeChangesDirectly(AndroidGradleModel model, List<ApplicationPatch> changes, AndroidFacet facet,
-                                             Collection<VirtualFile> files) {
+  @NotNull
+  private UpdateMode computeCodeChangesDirectly(@NotNull AndroidGradleModel model,
+                                                @NotNull List<ApplicationPatch> changes,
+                                                @NotNull AndroidFacet facet,
+                                                @NotNull Collection<VirtualFile> files,
+                                                @NotNull UpdateMode updateMode) {
     assert !REBUILD_CODE_WITH_GRADLE;
 
     // Could be a mixture of resources and java files: extract the JAva files
@@ -724,7 +755,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       }
     }
     if (sources.isEmpty()) {
-      return false;
+      return updateMode;
     }
 
     // Recompile & redex just these files. I really just want to call
@@ -735,7 +766,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     // So perform optimized stage here
     //GradleInvoker.getInstance(module.getProject()).compileJava(new Module[] { module }, GradleInvoker.TestCompileType.NONE);
     try {
-      compileJavaFiles(changes, facet, sources);
+      updateMode = compileJavaFiles(changes, facet, sources, updateMode);
     }
     catch (IOException e) {
       Logger.getInstance(FastDeployManager.class).error("Couldn't compile/dex Java", e);
@@ -744,11 +775,14 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       Logger.getInstance(FastDeployManager.class).error("Couldn't compile/dex Java", e);
     }
 
-    return false;
+    return updateMode;
   }
 
-  private void compileJavaFiles(List<ApplicationPatch> changes, AndroidFacet facet, List<VirtualFile> sources)
-      throws IOException, InterruptedException {
+  @NotNull
+  private UpdateMode compileJavaFiles(List<ApplicationPatch> changes,
+                                AndroidFacet facet,
+                                List<VirtualFile> sources,
+                                @NotNull UpdateMode updateMode) throws IOException, InterruptedException {
     List<String> args = Lists.newArrayList();
     File jdkPath = IdeSdks.getJdkPath();
     if (jdkPath == null) {
@@ -830,11 +864,14 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     int code = process.waitFor();
     if (code == 0) {
       compileDexFiles(changes, facet, classFolder);
+      return updateMode.combine(UpdateMode.COLD_SWAP);
     }
     else {
       dumpProcessOutput(process, "javac");
       postBalloon(MessageType.WARNING, "There were javac compilation errors; could not send code diffs to app");
     }
+
+    return updateMode;
   }
 
   private static void dumpProcessOutput(Process process, String processName) {
@@ -1225,12 +1262,16 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return null;
   }
 
-  private void push(@NotNull Project project, @NotNull List<ApplicationPatch> changes, boolean forceRestart) {
-    if (changes.isEmpty()) {
+  private void push(@NotNull Project project, @NotNull List<ApplicationPatch> changes, @NotNull UpdateMode updateMode) {
+    if (changes.isEmpty() || updateMode == UpdateMode.NO_CHANGES) {
       if (DISPLAY_STATISTICS) {
         postBalloon(MessageType.INFO, "Instant Run: No Changes", project);
       }
       return;
+    }
+
+    if (updateMode == UpdateMode.HOT_SWAP && isRestartActivity(project)) {
+      updateMode = updateMode.combine(UpdateMode.WARM_SWAP);
     }
 
     File adb = AndroidSdkUtils.getAdb(project);
@@ -1241,7 +1282,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
         for (IDevice device : devices) {
           // TODO: Look to see if this device has this app running:
           //device.getClient(applicationName) != null;
-          writeMessage(project, device, changes, forceRestart);
+          writeMessage(project, device, changes, updateMode);
         }
       } catch (InterruptedException ignore) {
       }
@@ -1254,11 +1295,11 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
   }
 
   public void writeMessage(@NotNull Project project, @NotNull IDevice device, @Nullable List<ApplicationPatch> changes,
-                           boolean forceRestart) {
+                           @NotNull  UpdateMode updateMode) {
     String packageName = getPackageName(project);
     try {
       device.createForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-      write(project, changes, forceRestart);
+      write(project, changes, updateMode);
       device.removeForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
     }
     catch (TimeoutException e) {
@@ -1288,13 +1329,13 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return null;
   }
 
-  public void write(@NotNull Project project, @Nullable List<ApplicationPatch> changes, boolean forceRestart) {
+  public void write(@NotNull Project project, @Nullable List<ApplicationPatch> changes, @NotNull  UpdateMode updateMode) {
     try {
       Socket socket = new Socket("127.0.0.1", STUDIO_PORT);
       try {
         DataOutputStream output = new DataOutputStream(socket.getOutputStream());
         try {
-          ApplicationPatch.write(output, changes, forceRestart);
+          ApplicationPatch.write(output, changes, updateMode);
 
           // Finally read a boolean back from the other side; this has the net effect of
           // waiting until applying/verifying code on the other side is done. (It doesn't

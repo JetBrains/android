@@ -59,6 +59,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private HyperlinkLabel myConfigureOnDemandDocHyperlinkLabel;
   private JBLabel myUseInProcessBuildSpacing;
   private JCheckBox myInstantRunCheckBox;
+  private JCheckBox myRestartActivityCheckBox;
 
   private final String myDisplayName;
 
@@ -111,7 +112,9 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
            myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD != isExperimentalBuildEnabled() ||
            myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND != isConfigurationOnDemandEnabled() ||
            myBuildConfiguration.INSTANT_RUN != isInstantRunEnabled() ||
-           !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS);
+           !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS) ||
+           myBuildConfiguration.RESTART_ACTIVITY != isRestartActivity();
+
   }
 
   @Override
@@ -122,6 +125,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
     myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND = isConfigurationOnDemandEnabled();
     myBuildConfiguration.INSTANT_RUN = isInstantRunEnabled();
+    myBuildConfiguration.RESTART_ACTIVITY = isRestartActivity();
   }
 
   private boolean isParallelBuildsEnabled() {
@@ -144,6 +148,10 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     return myInstantRunCheckBox.isSelected();
   }
 
+  private boolean isRestartActivity() {
+    return myRestartActivityCheckBox.isSelected();
+  }
+
   @NotNull
   private String getCommandLineOptions() {
     return myCommandLineOptionsEditor.getText().trim();
@@ -162,6 +170,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myCommandLineOptionsEditor.setText(commandLineOptions);
     myConfigureOnDemandCheckBox.setSelected(myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND);
     myInstantRunCheckBox.setSelected(myBuildConfiguration.INSTANT_RUN);
+    myRestartActivityCheckBox.setSelected(myBuildConfiguration.RESTART_ACTIVITY);
   }
 
   @Override
