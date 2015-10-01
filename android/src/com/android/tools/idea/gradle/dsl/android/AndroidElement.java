@@ -77,6 +77,13 @@ public class AndroidElement extends GradleDslPropertiesElement {
     return getProperty(DEFAULT_CONFIG, ProductFlavorElement.class);
   }
 
+  @NotNull
+  public AndroidElement createDefaultConfig() {
+    assert defaultConfig() == null;
+    ProductFlavorElement defaultConfig = new ProductFlavorElement(this, DEFAULT_CONFIG);
+    return (AndroidElement)setNewElement(DEFAULT_CONFIG, defaultConfig);
+  }
+
   @Nullable
   public String defaultPublishConfig() {
     return getProperty(DEFAULT_PUBLISH_CONFIG, String.class);
@@ -121,6 +128,31 @@ public class AndroidElement extends GradleDslPropertiesElement {
   public Collection<ProductFlavorElement> productFlavors() {
     ProductFlavorsElement productFlavors = getProperty(ProductFlavorsElement.NAME, ProductFlavorsElement.class);
     return productFlavors == null ? null : productFlavors.get();
+  }
+
+  @NotNull
+  public AndroidElement addProductFlavor(@NotNull String flavor) {
+    ProductFlavorsElement productFlavors = getProperty(ProductFlavorsElement.NAME, ProductFlavorsElement.class);
+    if (productFlavors == null) {
+      productFlavors = new ProductFlavorsElement(this);
+      setNewElement(ProductFlavorsElement.NAME, productFlavors);
+    }
+
+    ProductFlavorElement flavorElement = productFlavors.getProperty(flavor, ProductFlavorElement.class);
+    if (flavorElement == null) {
+      flavorElement = new ProductFlavorElement(this, flavor);
+      productFlavors.setNewElement(flavor, flavorElement);
+    }
+    return this;
+  }
+
+  @NotNull
+  public AndroidElement removeProductFlavor(@NotNull String flavor) {
+    ProductFlavorsElement productFlavors = getProperty(ProductFlavorsElement.NAME, ProductFlavorsElement.class);
+    if (productFlavors != null) {
+      productFlavors.removeProperty(flavor);
+    }
+    return this;
   }
 
   @Nullable

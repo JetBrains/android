@@ -32,11 +32,11 @@ import java.util.Set;
  * data as key value pairs and convenient methods to access the data.
  */
 public abstract class GradleDslPropertiesElement extends GradleDslElement {
-  @Nullable protected GrClosableBlock myPsiElement;
+  @Nullable private GrClosableBlock myPsiElement;
 
-  @NotNull protected Map<String, GradleDslElement> myProperties = Maps.newHashMap();
-  @NotNull protected Map<String, GradleDslElement> myToBeAddedProperties = Maps.newHashMap();
-  @NotNull protected Set<String> myToBeRemovedProperties = Sets.newHashSet();
+  @NotNull private Map<String, GradleDslElement> myProperties = Maps.newHashMap();
+  @NotNull private Map<String, GradleDslElement> myToBeAddedProperties = Maps.newHashMap();
+  @NotNull private Set<String> myToBeRemovedProperties = Sets.newHashSet();
 
   protected GradleDslPropertiesElement(@Nullable GradleDslElement parent) {
     super(parent);
@@ -51,24 +51,41 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
    *
    * <p>This method should be used when the given {@code property} is defined using an assigned statement.
    */
-  public void setProperty(@NotNull String property, @NotNull GradleDslElement element) {
+  public void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+    // TODO: Add assertion statement to allow only elements with valid PsiElement.
     myProperties.put(property, element);
   }
 
   /**
-   * Sets or replaces the given {@code property} value with the give {@code element}.
+   * Sets or replaces the given {@code property} value with the given {@code element}.
    *
    * <p>This method should be used when the given {@code property} is defined using an application statement. As the application statements
    * can have different meanings like append vs replace for list elements, the sub classes can override this method to do the right thing
    * for any given property.
    */
-  public void addProperty(@NotNull String property, @NotNull GradleDslElement element) {
+  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+    // TODO: Add assertion statement to allow only elements with valid PsiElement.
     myProperties.put(property, element);
+  }
+
+  /**
+   * Adds the given element to the to-be added elements list, which are applied when {@link #apply()} method is invoked
+   * or discarded when the {@lik #resetState()} method is invoked.
+   */
+  @NotNull
+  public GradleDslPropertiesElement setNewElement(@NotNull String property, @NotNull GradleDslElement newElement) {
+    myToBeAddedProperties.put(property, newElement);
+    setModified(true);
+    return this;
   }
 
   @NotNull
   public Collection<String> getProperties() {
-    return myProperties.keySet();
+    Set<String> result = Sets.newHashSet();
+    result.addAll(myProperties.keySet());
+    result.addAll(myToBeAddedProperties.keySet());
+    result.removeAll(myToBeRemovedProperties);
+    return result;
   }
 
   /**
@@ -133,14 +150,11 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
   @NotNull
   private GradleDslPropertiesElement setLiteralPropertyImpl(@NotNull String property, @NotNull Object value) {
     LiteralElement literalElement = getProperty(property, LiteralElement.class);
-    if (literalElement != null) {
-      literalElement.setValue(value);
-      return this;
+    if (literalElement == null) {
+      literalElement = new LiteralElement(this, property);
+      myToBeAddedProperties.put(property, literalElement);
     }
-
-    literalElement = new LiteralElement(this, property);
     literalElement.setValue(value);
-    myToBeAddedProperties.put(property, literalElement);
     return this;
   }
 
@@ -161,22 +175,20 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
 
   @NotNull
   private GradleDslPropertiesElement addToListPropertyImpl(@NotNull String property, @NotNull Object value) {
-    ListElement listElement = getProperty(property, ListElement.class);
-    if (listElement != null) {
-      listElement.add(value);
-      return this;
+    LiteralListElement literalListElement = getProperty(property, LiteralListElement.class);
+    if (literalListElement == null) {
+      literalListElement = new LiteralListElement(this, property);
+      myToBeAddedProperties.put(property, literalListElement);
     }
-    listElement = new ListElement(this, property);
-    listElement.add(value);
-    myToBeAddedProperties.put(property, listElement);
+    literalListElement.add(value);
     return this;
   }
 
   @NotNull
   private GradleDslPropertiesElement removeFromListPropertyImpl(@NotNull String property, @NotNull Object value) {
-    ListElement listElement = getProperty(property, ListElement.class);
-    if (listElement != null) {
-      listElement.remove(value);
+    LiteralListElement literalListElement = getProperty(property, LiteralListElement.class);
+    if (literalListElement != null) {
+      literalListElement.remove(value);
     }
     return this;
   }
@@ -184,9 +196,44 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
   @NotNull
   private GradleDslPropertiesElement replaceInListPropertyImpl(@NotNull String property,
                                                                @NotNull Object oldValue, @NotNull Object newValue) {
-    ListElement listElement = getProperty(property, ListElement.class);
-    if (listElement != null) {
-      listElement.replace(oldValue, newValue);
+    LiteralListElement literalListElement = getProperty(property, LiteralListElement.class);
+    if (literalListElement != null) {
+      literalListElement.replace(oldValue, newValue);
+    }
+    return this;
+  }
+
+  @NotNull
+  protected GradleDslPropertiesElement setInMapProperty(@NotNull String property, @NotNull String name, @NotNull String value) {
+    return setInMapPropertyImpl(property, name, value);
+  }
+
+  @NotNull
+  protected GradleDslPropertiesElement setInMapProperty(@NotNull String property, @NotNull String name, @NotNull Integer value) {
+    return setInMapPropertyImpl(property, name, value);
+  }
+
+  @NotNull
+  protected GradleDslPropertiesElement setInMapProperty(@NotNull String property, @NotNull String name, @NotNull Boolean value) {
+    return setInMapPropertyImpl(property, name, value);
+  }
+
+  @NotNull
+  private GradleDslPropertiesElement setInMapPropertyImpl(@NotNull String property, @NotNull String name, @NotNull Object value) {
+    LiteralMapElement literalMapElement = getProperty(property, LiteralMapElement.class);
+    if (literalMapElement == null) {
+      literalMapElement = new LiteralMapElement(this, property);
+      myToBeAddedProperties.put(property, literalMapElement);
+    }
+    literalMapElement.put(name, value);
+    return this;
+  }
+
+  @NotNull
+  protected GradleDslPropertiesElement removeFromMapProperty(@NotNull String property, @NotNull String name) {
+    LiteralMapElement literalMapElement = getProperty(property, LiteralMapElement.class);
+    if (literalMapElement != null) {
+      literalMapElement.removeProperty(name);
     }
     return this;
   }
@@ -200,41 +247,42 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
    */
   public void removeProperty(@NotNull String property) {
     myToBeRemovedProperties.add(property);
+    setModified(true);
   }
 
   /**
-   * Returns the list of values of type {@code clazz} when the given {@code property} corresponds to a {@link ListElement}.
+   * Returns the list of values of type {@code clazz} when the given {@code property} corresponds to a {@link LiteralListElement}.
    *
    * <p>Returns {@code null} when either the given {@code property} does not exists in this element or does not corresponds to a
-   * {@link ListElement}.
+   * {@link LiteralListElement}.
    *
-   * <p>Returns an empty list when the given {@code property} exists in this element and corresponds to a {@link ListElement}, but either
+   * <p>Returns an empty list when the given {@code property} exists in this element and corresponds to a {@link LiteralListElement}, but either
    * that list is empty or does not contain any element of type {@code clazz}.
    */
   @Nullable
   protected <E> List<E> getListProperty(@NotNull String property, @NotNull Class<E> clazz) {
-    ListElement listElement = getProperty(property, ListElement.class);
-    if (listElement != null) {
-      return listElement.getValues(clazz);
+    LiteralListElement literalListElement = getProperty(property, LiteralListElement.class);
+    if (literalListElement != null) {
+      return literalListElement.getValues(clazz);
     }
     return null;
   }
 
   /**
    * Returns the map from properties of the type {@link String} to the values of the type {@code clazz} when the given {@code property}
-   * corresponds to a {@link MapElement}.
+   * corresponds to a {@link LiteralMapElement}.
    *
    * <p>Returns {@code null} when either the given {@code property} does not exists in this element or does not corresponds to a
-   * {@link MapElement}.
+   * {@link LiteralMapElement}.
    *
-   * <p>Returns an empty map when the given {@code property} exists in this element and corresponds to a {@link MapElement}, but either that
+   * <p>Returns an empty map when the given {@code property} exists in this element and corresponds to a {@link LiteralMapElement}, but either that
    * map is empty or does not contain any values of type {@code clazz}.
    */
   @Nullable
   protected <V> Map<String, V> getMapProperty(@NotNull String property, @NotNull Class<V> clazz) {
-    MapElement mapElement = getProperty(property, MapElement.class);
-    if (mapElement != null) {
-      return mapElement.getValues(clazz);
+    LiteralMapElement literalMapElement = getProperty(property, LiteralMapElement.class);
+    if (literalMapElement != null) {
+      return literalMapElement.getValues(clazz);
     }
     return null;
   }
@@ -250,7 +298,7 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
     myToBeAddedProperties.clear();
     for (GradleDslElement element : myProperties.values()) {
       if (element.isModified()) {
-        element.reset();
+        element.resetState();
       }
     }
   }
