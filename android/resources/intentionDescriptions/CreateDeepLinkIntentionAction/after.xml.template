@@ -1,0 +1,13 @@
+<activity
+    android:name=".sampleActivity"
+    android:label="@string/title_activity_sample" >
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data
+            android:host="example.application.com"
+            android:pathPrefix="/sample"
+            android:scheme="http" />
+     </intent-filter>
+</activity>
