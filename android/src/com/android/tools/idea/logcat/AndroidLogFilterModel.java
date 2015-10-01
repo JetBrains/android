@@ -19,6 +19,7 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.ddmlib.logcat.LogCatTimestamp;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogFilter;
 import com.intellij.diagnostic.logging.LogFilterListener;
@@ -32,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -45,7 +45,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   private final List<LogFilterListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
 
   private LogCatHeader myPrevHeader;
-  private Date myRejectBeforeDate;
+  private LogCatTimestamp myRejectBeforeTime;
 
   private boolean myFullMessageApplicable = false;
   private boolean myFullMessageApplicableByCustomFilter = false;
@@ -117,7 +117,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
       return; // Haven't received any messages yet, so nothing to filter
     }
 
-    myRejectBeforeDate = myPrevHeader.getTimeAsDate();
+    myRejectBeforeTime = myPrevHeader.getTimestamp();
   }
 
 
@@ -245,8 +245,8 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
       key = getProcessOutputType(myPrevHeader.getLogLevel());
 
       isApplicable = myFullMessageApplicable && myFullMessageApplicableByCustomFilter;
-      if (isApplicable && myRejectBeforeDate != null && myPrevHeader != null) {
-        isApplicable = myPrevHeader.getTimeAsDate().after(myRejectBeforeDate);
+      if (isApplicable && myRejectBeforeTime != null && myPrevHeader != null) {
+        isApplicable = !myPrevHeader.getTimestamp().isBefore(myRejectBeforeTime);
       }
     }
 

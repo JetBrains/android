@@ -19,6 +19,7 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.ddmlib.logcat.LogCatTimestamp;
 import org.junit.Test;
 
 import java.util.Locale;
@@ -29,13 +30,14 @@ public class AndroidLogcatFormatterTest {
 
   @Test
   public void formatMessageToParseMessageKeepsAllInformation() {
-    LogCatHeader header = new LogCatHeader(LogLevel.DEBUG, "13", "123", "system_process", "ConnectivityService", "02-12 14:32:46.526");
+    LogCatHeader header =
+      new LogCatHeader(LogLevel.DEBUG, 13, 123, "system_process", "ConnectivityService", LogCatTimestamp.fromString("02-12 14:32:46.526"));
     String output = AndroidLogcatFormatter.formatMessageFull(header, "xyz");
     LogCatMessage message = AndroidLogcatFormatter.parseMessage(output);
 
     LogCatHeader header2 = message.getHeader();
 
-    assertEquals(header.getTime(), header2.getTime());
+    assertEquals(header.getTimestamp(), header2.getTimestamp());
     assertEquals(header.getLogLevel(), header2.getLogLevel());
     assertEquals(header.getPid(), header2.getPid());
     assertEquals(header.getTid(), header2.getTid());
@@ -94,9 +96,9 @@ public class AndroidLogcatFormatterTest {
 
   @Test
   public void variousFormatsWorkAsExpected(){
-    String message = "01-23 45:67:89.000      1234-56/com.dummy.test D/test: Test message";
+    String message = "01-23 12:34:56.789      1234-56/com.dummy.test D/test: Test message";
 
-    assertExpected(true, true, false, false, message, "01-23 45:67:89.000 1234-56 D: Test message");
+    assertExpected(true, true, false, false, message, "01-23 12:34:56.789 1234-56 D: Test message");
     assertExpected(false, true, false, false, message, "1234-56 D: Test message");
     assertExpected(false, false, true, true, message, "com.dummy.test D/test: Test message");
     assertExpected(false, false, false, true, message, "D/test: Test message");
