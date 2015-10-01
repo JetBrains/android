@@ -17,19 +17,28 @@ package com.android.tools.idea.run.cloud;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.*;
+import com.google.common.collect.Lists;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * A target chooser for picking cloud matrix test deploy targets.
  */
 public class CloudMatrixTargetChooser implements TargetChooser {
 
+  @NotNull private final AndroidFacet myFacet;
   private final int myMatrixConfigurationId;
   @NotNull private final String myCloudProjectId;
   @NotNull private final ManualTargetChooser myFallback;
 
-  public CloudMatrixTargetChooser(int matrixConfigurationId, @NotNull String cloudProjectId, @NotNull ManualTargetChooser fallback) {
+  public CloudMatrixTargetChooser(@NotNull AndroidFacet facet,
+                                  int matrixConfigurationId,
+                                  @NotNull String cloudProjectId,
+                                  @NotNull ManualTargetChooser fallback) {
+    myFacet = facet;
     myMatrixConfigurationId = matrixConfigurationId;
     myCloudProjectId = cloudProjectId;
     myFallback = fallback;
@@ -49,5 +58,12 @@ public class CloudMatrixTargetChooser implements TargetChooser {
   @Override
   public boolean matchesDevice(@NotNull IDevice device) {
     return false;
+  }
+
+  @NotNull
+  @Override
+  public List<ValidationError> validate() {
+    return CloudTargetChooserUtil.validate(
+      myFacet, CloudConfiguration.Kind.MATRIX, myCloudProjectId, myMatrixConfigurationId);
   }
 }

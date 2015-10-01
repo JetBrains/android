@@ -17,11 +17,13 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * A target chooser for selecting a connected USB device (any non-emulator).
@@ -48,5 +50,11 @@ public class UsbDeviceTargetChooser implements TargetChooser {
       return null;
     }
     return DeviceTarget.forDevices(runningDevices);
+  }
+
+  @NotNull
+  @Override
+  public List<ValidationError> validate() {
+    return ImmutableList.of();
   }
 }

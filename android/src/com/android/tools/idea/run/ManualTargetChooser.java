@@ -14,10 +14,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A target chooser corresponding to the "Extended device chooser" dialog.
@@ -125,5 +122,11 @@ public class ManualTargetChooser implements TargetChooser {
       return Collections.emptySet();
     }
     return Sets.newHashSet(debugBridge.getDevices());
+  }
+
+  @NotNull
+  @Override
+  public List<ValidationError> validate() {
+    return ImmutableList.of();
   }
 }
