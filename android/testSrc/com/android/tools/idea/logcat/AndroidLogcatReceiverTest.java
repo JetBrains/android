@@ -17,7 +17,6 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
-import com.intellij.openapi.util.text.StringUtil;
 import org.easymock.EasyMock;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -80,10 +79,10 @@ public class AndroidLogcatReceiverTest {
 
   @Test
   public void processNewLineUsesQuestionMarkForUnknownClientIds() {
-    myReceiver.processNewLine("[ 01-23 45:67:89.000 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
     myReceiver.processNewLine("Dummy Message");
 
-    String expected = "01-23 45:67:89.000 99-99/? V/UnknownClient: Dummy Message\n";
+    String expected = "01-23 12:34:56.789 99-99/? V/UnknownClient: Dummy Message\n";
     assertThat(myWriter.toString()).isEqualTo(expected);
   }
 
@@ -122,9 +121,9 @@ public class AndroidLogcatReceiverTest {
       "warning message",
       "[ 08-11 19:11:07.132   495:0x1ef F/wtftag   ]",
       "wtf message",
-      "[ 08-11 21:15:35.7524  540:0x21c D/debug tag    ]",
+      "[ 08-11 21:15:35.754   540:0x21c D/debug tag    ]",
       "debug message",
-      "[ 08-11 21:15:35.7524  540:0x21c I/tag:with:colons ]",
+      "[ 08-11 21:15:35.754   540:0x21c I/tag:with:colons ]",
       "message:with:colons",
     };
 
@@ -139,8 +138,8 @@ public class AndroidLogcatReceiverTest {
                       "08-11 19:11:07.132 495-495/? W/wtag: warning message\n" +
                       "08-11 19:11:07.132 495-495/? A/wtftag: wtf message\n" +
                       // NOTE: "debug tag" uses a special-case "no break" space character
-                      "08-11 21:15:35.7524 540-540/? D/debug tag: debug message\n" +
-                      "08-11 21:15:35.7524 540-540/? I/tag:with:colons: message:with:colons\n";
+                      "08-11 21:15:35.754 540-540/? D/debug tag: debug message\n" +
+                      "08-11 21:15:35.754 540-540/? I/tag:with:colons: message:with:colons\n";
 
     assertThat(myWriter.toString()).isEqualTo(expected);
   }

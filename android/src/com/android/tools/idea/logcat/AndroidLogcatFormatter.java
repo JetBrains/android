@@ -19,6 +19,7 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.ddmlib.logcat.LogCatTimestamp;
 import com.intellij.diagnostic.logging.DefaultLogFormatter;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -115,7 +116,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     String tag = header.getTag().replace(' ', '\u00A0');
 
     return String.format(Locale.US, format,
-                         header.getTime(),
+                         header.getTimestamp(),
                          ids,
                          header.getAppName(),
                          header.getLogLevel().getPriorityLetter(),
@@ -127,7 +128,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
    * Construct a fake logcat message at the specified level.
    */
   public static String formatMessage(@NotNull Log.LogLevel level, @NotNull String message) {
-    LogCatHeader fakeHeader = new LogCatHeader(level, "0", "0", "?", "Internal", "00-00 00:00:00.000");
+    LogCatHeader fakeHeader = new LogCatHeader(level, 0, 0, "?", "Internal", LogCatTimestamp.ZERO);
     return formatMessageFull(fakeHeader, message);
   }
 
@@ -158,11 +159,11 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     @SuppressWarnings("ConstantConditions") // matcher.matches verifies all groups below are non-null
     LogCatHeader header = new LogCatHeader(
       Log.LogLevel.getByLetter(matcher.group(5).charAt(0)),
-      matcher.group(2),
-      matcher.group(3),
+      Integer.parseInt(matcher.group(2)),
+      Integer.parseInt(matcher.group(3)),
       matcher.group(4),
       matcher.group(6),
-      matcher.group(1));
+      LogCatTimestamp.fromString(matcher.group(1)));
 
     String message = matcher.group(7);
 
