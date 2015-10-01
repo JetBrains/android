@@ -39,6 +39,10 @@ public final class AtomPath extends Path {
     return new StatePath().setAfter(this);
   }
 
+  public static StatePath stateAfter(AtomPath atomPath) {
+    return (atomPath == null) ? null : atomPath.stateAfter();
+  }
+
   public ResourcePath resourceAfter(BinaryID id) {
     return new ResourcePath().setAfter(this).setID(id);
   }
