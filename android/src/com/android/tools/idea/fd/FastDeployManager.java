@@ -18,36 +18,20 @@ package com.android.tools.idea.fd;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
-import com.android.resources.ResourceFolderType;
-import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.run.AndroidRunningState;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.lint.detector.api.LintUtils;
-import com.android.utils.SdkUtils;
-import com.android.utils.XmlUtils;
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.*;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.BalloonBuilder;
@@ -55,68 +39,91 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.newvfs.BulkFileListener;
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.wm.WindowManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidOutputReceiver;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.jar.JarInputStream;
-import java.util.zip.ZipEntry;
-
-import static com.android.SdkConstants.*;
-import static java.io.File.separator;
 
 /**
- * TODO: Migrate aapt to gradle
  * TODO: Handle edits in assets
  * TODO: Handle manifest edits
  * TODO: Display error message if not using correct Gradle model
  */
-public class FastDeployManager implements ProjectComponent, BulkFileListener {
+public class FastDeployManager implements ProjectComponent {
+  // -----------------------------------------------------------------------
+  // NOTE: Keep all these communication constants (and message send/receive
+  // logic) in sync with the corresponding values in the fast deploy runtime
+  // -----------------------------------------------------------------------
+
+  /**
+   * Magic (random) number used to identify the protocol
+   */
+  public static final long PROTOCOL_IDENTIFIER = 0x35107124L;
+
+  /**
+   * Version of the protocol
+   */
+  public static final int PROTOCOL_VERSION = 2;
+
+  /**
+   * Message: sending patches
+   */
+  public static final int MESSAGE_PATCHES = 1;
+
+  /**
+   * Message: ping, send ack back
+   */
+  public static final int MESSAGE_PING = 2;
+
+  /**
+   * No updates
+   */
+  public static final int UPDATE_MODE_NONE = 0;
+
+  /**
+   * Patch changes directly, keep app running without any restarting
+   */
+  public static final int UPDATE_MODE_HOT_SWAP = 1;
+
+  /**
+   * Patch changes, restart activity to reflect changes
+   */
+  public static final int UPDATE_MODE_WARM_SWAP = 2;
+
+  /**
+   * Store change in app directory, restart app
+   */
+  public static final int UPDATE_MODE_COLD_SWAP = 3;
+
   private static final Logger LOG = Logger.getInstance(FastDeployManager.class);
 
   /** Display instant run statistics */
   @SuppressWarnings("SimplifiableConditionalExpression")
   public static final boolean DISPLAY_STATISTICS = System.getProperty("fd.stats") != null ? Boolean.getBoolean("fd.stats") : true;
 
-  /** Build code changes with Gradle rather than IDE hooks? */
-  @SuppressWarnings("SimplifiableConditionalExpression")
-  public static boolean REBUILD_CODE_WITH_GRADLE = System.getProperty("fd.code") != null ? Boolean.getBoolean("fd.code") : true;
-
-  /** Build resources changes with Gradle rather than IDE hooks? */
-  @SuppressWarnings("SimplifiableConditionalExpression")
-  public static final boolean REBUILD_RESOURCES_WITH_GRADLE = System.getProperty("fd.resources") != null ? Boolean.getBoolean("fd.resources") : true;
-
   /** Local port on the desktop machine that we tunnel to the Android device via */
   public static final int STUDIO_PORT = 8888;
+
+  private static final String LOCAL_HOST = "127.0.0.1";
 
   private static String getDataFolder(@NotNull String applicationId) {
     // Location on the device where application data is stored. Currently using sdcard location
@@ -129,14 +136,17 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return "/data/data/" + applicationId + "/files/studio-fd";
   }
 
-  private static final boolean SEND_WHOLE_AP_FILE = true;
   private static final String RESOURCE_FILE_NAME = "resources.ap_";
 
   @NotNull private final Project myProject;
-  @Nullable private MessageBusConnection myConnection;
 
   public FastDeployManager(@NotNull Project project) {
     myProject = project;
+  }
+
+  @NotNull
+  public static FastDeployManager get(@NotNull Project project) {
+    return project.getComponent(FastDeployManager.class);
   }
 
   @NotNull
@@ -161,145 +171,34 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
   public void disposeComponent() {
   }
 
-  public boolean isActive() {
-    return myConnection != null;
-  }
-
-  public void setActive(boolean activate) {
-    if (activate == isActive()) {
-      return;
-    }
-    if (activate) {
-      enable();
-    }
-    else {
-      disable();
-    }
-  }
-
-  public void enable() {
-    if (myConnection == null) {
-      myConnection = ApplicationManager.getApplication().getMessageBus().connect();
-      myConnection.subscribe(VirtualFileManager.VFS_CHANGES, this);
-    }
-  }
-
-  public void disable() {
-    if (myConnection != null) {
-      myConnection.disconnect();
-      myConnection = null;
-    }
-  }
-
+  /** Is instant run enabled in the given project */
   public static boolean isInstantRunEnabled(@NotNull Project project) {
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     return buildConfiguration.INSTANT_RUN;
   }
 
+  /** Assuming instant run is enabled, does code patching require an activity restart in the given project? */
   public static boolean isRestartActivity(@NotNull Project project) {
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     return buildConfiguration.RESTART_ACTIVITY;
   }
 
-  // ---- Implements BulkFileListener ----
-
-  @Override
-  public void before(@NotNull List<? extends VFileEvent> events) {
-  }
-
-  @Override
-  public void after(@NotNull List<? extends VFileEvent> events) {
-    Set<VirtualFile> files = null;
-    Map<AndroidFacet, Collection<VirtualFile>> map = null;
-    for (VFileEvent event : events) {
-      VirtualFile file = event.getFile();
-      if (file == null) {
-        continue;
+  public void performUpdate(@Nullable IDevice device, @NotNull UpdateMode updateMode, @Nullable Module module) {
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        AndroidGradleModel model = AndroidGradleModel.get(facet);
+        if (model != null) {
+          runGradle(device, model, facet, updateMode);
+        }
       }
-
-      if (file.getParent().getName().equals(Project.DIRECTORY_STORE_FOLDER)) {
-        // Ignore common file events -- such as workspace.xml on Window focus loss etc
-        continue;
-      }
-
-      if (myProject.isDisposed()) {
-        continue;
-      }
-
-      ApplicationManager.getApplication().assertReadAccessAllowed();
-      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
-      if (psiFile == null) {
-        continue;
-      }
-      AndroidFacet facet = AndroidFacet.getInstance(psiFile);
-      if (facet == null) {
-        continue;
-      }
-      boolean isJava = file.getFileType() == StdFileTypes.JAVA;
-      if (!isJava && !AndroidResourceUtil.isResourceFile(file, facet)) {
-        continue;
-      }
-
-      if (map == null) {
-        map = new HashMap<AndroidFacet, Collection<VirtualFile>>();
-      }
-      Collection<VirtualFile> list = map.get(facet);
-      if (list == null) {
-        list = new ArrayList<VirtualFile>();
-        map.put(facet, list);
-      }
-      list.add(file);
-
-      if (files == null) {
-        files = new HashSet<VirtualFile>();
-      }
-      files.add(file);
-    }
-    if (map != null) {
-      computeDeltas(map, UpdateMode.HOT_SWAP);
     }
   }
 
-  public void computeDeltas(AndroidFacet facet, VirtualFile file, @NotNull UpdateMode updateMode) {
-    Map<AndroidFacet, Collection<VirtualFile>> map = Maps.newHashMap();
-    Collection<VirtualFile> virtualFiles = Collections.singletonList(file);
-    map.put(facet, virtualFiles);
-    computeDeltas(map, updateMode);
-  }
-
-  public void computeDeltas(Map<AndroidFacet, Collection<VirtualFile>> map, @NotNull UpdateMode updateMode) {
-    process(updateMode, map);
-  }
-
-  public void process(@NotNull UpdateMode updateMode, Map<AndroidFacet, Collection<VirtualFile>> changedFiles) {
-    for (Map.Entry<AndroidFacet, Collection<VirtualFile>> entry : changedFiles.entrySet()) {
-      AndroidFacet facet = entry.getKey();
-      Collection<VirtualFile> files = entry.getValue();
-      AndroidGradleModel model = AndroidGradleModel.get(facet);
-      if (model == null) {
-        continue;
-      }
-      process(facet, model, files, updateMode);
-    }
-  }
-
-  public void process(AndroidFacet facet, AndroidGradleModel model, Collection<VirtualFile> files, @NotNull UpdateMode updateMode) {
-    if (REBUILD_CODE_WITH_GRADLE || REBUILD_RESOURCES_WITH_GRADLE) {
-      runGradle(AndroidGradleModel.get(facet), facet, updateMode, files);
-    } else {
-      File arsc = findResourceArscFolder(facet);
-      long arscBefore = arsc != null ? arsc.lastModified() : 0L;
-      afterBuild(model, facet, updateMode, files, arscBefore);
-    }
-  }
-
-  private void runGradle(final AndroidGradleModel model,
-                         final AndroidFacet facet,
-                         final UpdateMode updateMode,
-                         final Collection<VirtualFile> files) {
-    assert REBUILD_CODE_WITH_GRADLE;
-
-
+  private void runGradle(@Nullable final IDevice device,
+                         @NotNull final AndroidGradleModel model,
+                         @NotNull final AndroidFacet facet,
+                         @NotNull final UpdateMode updateMode) {
     File arsc = findResourceArscFolder(facet);
     final long arscBefore = arsc != null ? arsc.lastModified() : 0L;
 
@@ -320,7 +219,7 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
         invoker.removeAfterGradleInvocationTask(reference.get());
 
         // Build is done: send message to app etc
-        afterBuild(model, facet, updateMode, files, arscBefore);
+        afterBuild(device, model, facet, updateMode, arscBefore);
       }
     };
     reference.set(task);
@@ -340,28 +239,6 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       if (intermediates.exists()) {
         return intermediates;
       }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  private static File findMergedResFolder(@NotNull AndroidFacet facet) {
-    File intermediates = findIntermediatesFolder(facet);
-    if (intermediates != null) {
-      String variantName = getVariantName(facet);
-      File res = new File(intermediates, "res" + separator + "merged" + separator + variantName);
-      if (res.isDirectory()) {
-        return res;
-      }
-
-      // Older Gradle plugin had it here: Do we still need to look for it?
-      // Look for resources in known Android plugin intermediate dirs; this should be handled by Gradle instead:
-      // res/debug/values/values.xml
-      //res = new File(intermediates, "res" + separator + variantName);
-      //if (res.isDirectory()) {
-      //  return res;
-      //}
     }
 
     return null;
@@ -392,80 +269,6 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
       File intermediates = new File(build, "intermediates");
       if (intermediates.exists()) {
         return intermediates;
-      }
-    }
-
-    return null;
-  }
-
-  // TODO: Get the merged resource folder from the model itself!
-  @Nullable
-  private static File findMergedResourceFolder(@NotNull AndroidFacet facet) {
-    File intermediates = findIntermediatesFolder(facet);
-    if (intermediates != null) {
-      String variantName = getVariantName(facet);
-      File resourceDir = new File(intermediates, "res" + File.separator + "merged" + File.separator + variantName);
-      if (resourceDir.exists()) {
-        return resourceDir;
-      }
-    }
-    return null;
-  }
-
-  // TODO: Get the generated folder from the model itself!
-  @Nullable
-  private static File findGeneratedFolder(@NotNull AndroidFacet facet) {
-    File build = findBuildFolder(facet);
-    if (build != null) {
-      File generated = new File(build, "generated");
-      if (generated.exists()) {
-        return generated;
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  private static File findMergedManifestFile(@NotNull AndroidFacet facet) {
-    // TODO: This might already be in the model
-    File intermediates = findIntermediatesFolder(facet);
-    if (intermediates != null) {
-      String variantName = getVariantName(facet);
-      File manifest = new File(intermediates, "manifests" + File.separator + "full" + File.separator + variantName
-                                              + File.separator + ANDROID_MANIFEST_XML);
-      if (manifest.exists()) {
-        return manifest;
-      }
-    }
-
-    return null;
-  }
-
-  // TODO: Get the assets folder from the model itself!
-  @Nullable
-  private static File findAssetsFolder(@NotNull AndroidFacet facet) {
-    File intermediates = findIntermediatesFolder(facet);
-    if (intermediates != null) {
-      String variantName = getVariantName(facet);
-      File assets = new File(intermediates, "assets" + File.separator + variantName);
-      if (assets.exists()) {
-        return assets;
-      }
-    }
-
-    return null;
-  }
-
-  // TODO: Get the R class folder from the model itself!
-  @Nullable
-  private static File findResourceClassFolder(@NotNull AndroidFacet facet) {
-    File generated = findGeneratedFolder(facet);
-    if (generated != null) {
-      String variantName = getVariantName(facet);
-      File resourceClassFolder = new File(generated, "source" + File.separator + "r" + File.separator + variantName);
-      if (resourceClassFolder.exists()) {
-        return resourceClassFolder;
       }
     }
 
@@ -519,25 +322,17 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return null;
   }
 
-  private void afterBuild(AndroidGradleModel model,
-                          AndroidFacet facet,
+  private void afterBuild(@Nullable IDevice device,
+                          @NotNull AndroidGradleModel model,
+                          @NotNull AndroidFacet facet,
                           @NotNull UpdateMode updateMode,
-                          Collection<VirtualFile> files,
                           long arscBefore) {
     List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(4);
 
-    if (REBUILD_CODE_WITH_GRADLE) {
-      updateMode = gatherGradleCodeChanges(model, changes, updateMode);
-    } else {
-      updateMode = computeCodeChangesDirectly(model, changes, facet, files, updateMode);
-    }
-    if (REBUILD_RESOURCES_WITH_GRADLE) {
-      updateMode = gatherGradleResourceChanges(model, facet, changes, arscBefore, updateMode);
-    } else {
-      updateMode = computeResourceChangesDirectly(facet, files, changes, updateMode);
-    }
+    updateMode = gatherGradleCodeChanges(model, changes, updateMode);
+    updateMode = gatherGradleResourceChanges(model, facet, changes, arscBefore, updateMode);
 
-    push(facet.getModule().getProject(), changes, updateMode);
+    push(device, facet.getModule(), changes, updateMode);
   }
 
   @SuppressWarnings({"MethodMayBeStatic", "UnusedParameters"}) // won't be as soon as it really calls Gradle
@@ -547,8 +342,6 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
                                                  List<ApplicationPatch> changes,
                                                  long arscBefore,
                                                  @NotNull UpdateMode updateMode) {
-    assert REBUILD_RESOURCES_WITH_GRADLE;
-
     File arsc = findResourceArscFolder(facet);
     if (arsc != null && arsc.lastModified() > arscBefore) {
       String path = RESOURCE_FILE_NAME;
@@ -566,137 +359,9 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
   }
 
   @NotNull
-  private UpdateMode computeResourceChangesDirectly(@NotNull AndroidFacet facet,
-                                                    @NotNull Collection<VirtualFile> files,
-                                                    @NotNull List<ApplicationPatch> changes,
-                                                    @NotNull UpdateMode updateMode) {
-    File res = findMergedResFolder(facet);
-    if (res != null) {
-      List<VirtualFile> resourceFiles = Lists.newArrayList();
-      List<VirtualFile> sourceFiles = Lists.newArrayList();
-
-      for (VirtualFile file : files) {
-        if (file.getFileType() == StdFileTypes.JAVA) {
-          sourceFiles.add(file);
-        } else {
-          ResourceFolderType folderType = ResourceHelper.getFolderType(file);
-          if (folderType != null || file.getName().equals(ANDROID_MANIFEST_XML)) {
-            resourceFiles.add(file);
-          }
-        }
-      }
-
-      if (!resourceFiles.isEmpty()) {
-        try {
-          // Attempt to just push the whole arsc envelope over
-          File intermediates = findIntermediatesFolder(facet);
-          if (intermediates == null) {
-            LOG.warn("Couldn't find intermediates folder in the project for module " + facet.getModule());
-            return updateMode;
-          }
-
-          File generated = findGeneratedFolder(facet);
-          if (generated == null) {
-            LOG.warn("Couldn't find generated source folder in the project for module " + facet.getModule());
-            return updateMode;
-          }
-
-          File resourceDir = findMergedResourceFolder(facet);
-          if (resourceDir == null) {
-            LOG.warn("Couldn't find merged resource folder in the project for module " + facet.getModule());
-            return updateMode;
-          }
-
-          ListIterator<VirtualFile> iterator = resourceFiles.listIterator();
-          while (iterator.hasNext()) {
-            VirtualFile file = iterator.next();
-            ResourceFolderType folderType = ResourceHelper.getFolderType(file);
-            File oldFile;
-            if (folderType == ResourceFolderType.VALUES) {
-              oldFile = new File(res, file.getParent().getName() + separator + file.getParent().getName() + DOT_XML);
-            }
-            else if (folderType != null) {
-              // File resources
-              oldFile = new File(res, file.getParent().getName() + separator + file.getName());
-              if (!oldFile.exists() || !isDifferent(facet.getModule().getProject(), oldFile, file)) {
-                iterator.remove();
-                continue;
-              }
-
-            }
-            else {
-              // Manifest file
-              // TODO: Handle manifest files! I'll need to run the manifest merger again here!
-              // This is probably not worth doing until we merge this functionality into the
-              // Gradle plugin
-              LOG.warn("Skipping manifest files for now");
-              iterator.remove();
-              continue;
-            }
-
-            boolean ok = updateMergedResourceFile(resourceDir, oldFile, file, folderType);
-            if (!ok) {
-              LOG.warn("Failed to merge updates to file " + file);
-            }
-          }
-
-          if (resourceFiles.isEmpty()) {
-            // No files changed: nothing to do.
-            return updateMode;
-          }
-
-          // Next compile all the resources with a single aapt run
-          File binaryXml = compileResources(facet, resourceDir);
-          if (binaryXml != null) {
-            // Extract all the files
-            for (VirtualFile file : resourceFiles) {
-              ResourceFolderType folderType = ResourceHelper.getFolderType(file);
-              if (folderType == null) {
-                // TODO: Handle manifest files!
-                continue;
-              }
-              byte[] bytes = extractFile(binaryXml, file, folderType);
-              if (bytes != null) {
-                if (folderType == ResourceFolderType.VALUES ) {
-                  changes.add(new ApplicationPatch(RESOURCE_FILE_NAME, bytes));
-                }
-                else {
-                  // TODO: If it's a PNG file, perform aapt crunching and nine patch processing:
-                  //
-                  //     aapt c[runch] [-v] -S resource-sources ... -C output-folder ...
-                  //      Do PNG preprocessing on one or several resource folders
-                  //      and store the results in the output folder.
-                  //
-                  //    aapt s[ingleCrunch] [-v] -i input-file -o outputfile
-                  //      Do PNG preprocessing on a single file.
-
-                  // TODO: Consider sending across the whole .ap_
-
-                  @SuppressWarnings("ConstantConditions") String path =
-                    // NOTE: *Not* using File.separator in Android file paths
-                    SEND_WHOLE_AP_FILE ? RESOURCE_FILE_NAME : "res/" + file.getParent().getName() + "/" + file.getName();
-                  changes.add(new ApplicationPatch(path, bytes));
-                }
-              }
-            }
-
-            FileUtil.delete(binaryXml);
-            return updateMode.combine(UpdateMode.WARM_SWAP);
-          }
-        } catch (IOException ioe) {
-          LOG.warn(ioe);
-        }
-      }
-    }
-    return updateMode;
-  }
-
-  @NotNull
   private static UpdateMode gatherGradleCodeChanges(AndroidGradleModel model,
                                                     List<ApplicationPatch> changes,
                                                     @NotNull UpdateMode updateMode) {
-    assert REBUILD_CODE_WITH_GRADLE;
-
     File restart = findStartDex(model);
     if (restart != null) {
       try {
@@ -738,429 +403,6 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     }
   }
 
-  @SuppressWarnings("UnusedParameters")
-  @NotNull
-  private UpdateMode computeCodeChangesDirectly(@NotNull AndroidGradleModel model,
-                                                @NotNull List<ApplicationPatch> changes,
-                                                @NotNull AndroidFacet facet,
-                                                @NotNull Collection<VirtualFile> files,
-                                                @NotNull UpdateMode updateMode) {
-    assert !REBUILD_CODE_WITH_GRADLE;
-
-    // Could be a mixture of resources and java files: extract the JAva files
-    List<VirtualFile> sources = Lists.newArrayListWithExpectedSize(files.size());
-    for (VirtualFile file : files) {
-      if (file.getFileType() == StdFileTypes.JAVA) {
-        sources.add(file);
-      }
-    }
-    if (sources.isEmpty()) {
-      return updateMode;
-    }
-
-    // Recompile & redex just these files. I really just want to call
-    //    ./gradlew :app:preDexDebug :app:dexDebug
-    // here and have that do the bare minimum (e.g. compile just the changed java files
-    // and just dex the changed files) but this currently seems to depend on many other things,
-    // e.g. it runs mergeDebugResources (because it needs the R class?) etc.
-    // So perform optimized stage here
-    //GradleInvoker.getInstance(module.getProject()).compileJava(new Module[] { module }, GradleInvoker.TestCompileType.NONE);
-    try {
-      updateMode = compileJavaFiles(changes, facet, sources, updateMode);
-    }
-    catch (IOException e) {
-      Logger.getInstance(FastDeployManager.class).error("Couldn't compile/dex Java", e);
-    }
-    catch (InterruptedException e) {
-      Logger.getInstance(FastDeployManager.class).error("Couldn't compile/dex Java", e);
-    }
-
-    return updateMode;
-  }
-
-  @NotNull
-  private UpdateMode compileJavaFiles(List<ApplicationPatch> changes,
-                                AndroidFacet facet,
-                                List<VirtualFile> sources,
-                                @NotNull UpdateMode updateMode) throws IOException, InterruptedException {
-    List<String> args = Lists.newArrayList();
-    File jdkPath = IdeSdks.getJdkPath();
-    if (jdkPath == null) {
-      throw new IOException("No jdk");
-    }
-    File javac = new File(jdkPath, "bin" + File.separator + "javac"); // TODO: Windows
-    if (!(javac.exists())) {
-      throw new IOException("No javac found in " + jdkPath);
-    }
-    args.add(javac.getPath());
-    // Compute class path
-    StringBuilder sb = new StringBuilder(1000);
-
-    for (OrderEntry orderEntry : ModuleRootManager.getInstance(facet.getModule()).getOrderEntries()) {
-      if (orderEntry instanceof LibraryOrSdkOrderEntry) {
-        VirtualFile[] rootFiles = ((LibraryOrSdkOrderEntry)orderEntry).getRootFiles(OrderRootType.CLASSES);
-        for (VirtualFile rootFile : rootFiles) {
-          final File root = VfsUtilCore.virtualToIoFile(rootFile);
-          if (root.exists()) {
-            if (sb.length() != 0) {
-              sb.append(File.pathSeparatorChar);
-            }
-            sb.append(root.getPath());
-          }
-        }
-      } else if (orderEntry instanceof ModuleSourceOrderEntry) {
-        final VirtualFile[] rootFiles = orderEntry.getFiles(OrderRootType.SOURCES);
-        for (VirtualFile rootFile : rootFiles) {
-          final File root = VfsUtilCore.virtualToIoFile(rootFile);
-          if (root.exists()) {
-            if (sb.length() != 0) {
-              sb.append(File.pathSeparatorChar);
-            }
-            sb.append(root.getPath());
-          }
-        }
-      } else if (orderEntry instanceof ModuleOrderEntry) {
-        ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
-        if (moduleOrderEntry.getScope() == DependencyScope.COMPILE) {
-          //final VirtualFile[] rootFiles = orderEntry.getFiles(OrderRootType.CLASSES);
-          // TODO: This includes sources in libraries too. Redundant. I should instead point to the -d folder
-          final VirtualFile[] rootFiles = orderEntry.getFiles(OrderRootType.SOURCES);
-          for (VirtualFile rootFile : rootFiles) {
-            final File root = VfsUtilCore.virtualToIoFile(rootFile);
-            if (root.exists()) {
-              if (sb.length() != 0) {
-                sb.append(File.pathSeparatorChar);
-              }
-              sb.append(root.getPath());
-            }
-          }
-        }
-      }
-    }
-
-    args.add("-source");
-    args.add("1.7"); // TODO: Fetch from project
-    args.add("-target");
-    args.add("1.7");
-    args.add("-classpath");
-    args.add(sb.toString());
-
-    // Add in the source files
-    for (VirtualFile source : sources) {
-      File file = VfsUtilCore.virtualToIoFile(source);
-      args.add(file.getPath());
-    }
-
-    // Output directory
-    args.add("-d");
-    File classFolder = Files.createTempDir();
-    // TODO: Set the output directory
-    args.add(classFolder.getPath());
-    // Actually I don't need to point to the sources - just point to the current output directory too, right?
-    // Add the files to compile
-
-    String[] argv = ArrayUtil.toStringArray(args);
-    final Process process = Runtime.getRuntime().exec(argv);
-    int code = process.waitFor();
-    if (code == 0) {
-      compileDexFiles(changes, facet, classFolder);
-      return updateMode.combine(UpdateMode.COLD_SWAP);
-    }
-    else {
-      dumpProcessOutput(process, "javac");
-      postBalloon(MessageType.WARNING, "There were javac compilation errors; could not send code diffs to app");
-    }
-
-    return updateMode;
-  }
-
-  private static void dumpProcessOutput(Process process, String processName) {
-    try {
-      InputStream stdoutStream = process.getInputStream();
-      InputStream stderrStream = process.getErrorStream();
-      String stdout = new String(ByteStreams.toByteArray(stdoutStream), Charsets.UTF_8);
-      String stderr = new String(ByteStreams.toByteArray(stderrStream), Charsets.UTF_8);
-      if (!stdout.isEmpty()) {
-        LOG.warn(processName + " stdout:\n" + stdout + "\n");
-      }
-      if (!stderr.isEmpty()) {
-        LOG.warn(processName + " stderr:\n" + stderr + "\n");
-      }
-    } catch (IOException ignore) {
-    }
-  }
-
-  private void compileDexFiles(List<ApplicationPatch> changes, AndroidFacet facet, File classFolder)
-      throws IOException, InterruptedException {
-    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
-    if (platform == null) {
-      return;
-    }
-    AndroidSdkData sdkData = facet.getSdkData();
-    if (sdkData == null) {
-      return;
-    }
-    LocalSdk localSdk = sdkData.getLocalSdk();
-
-    // TODO: Use version used by the project instead?
-    BuildToolInfo latestBuildTool = localSdk.getLatestBuildTool();
-    if (latestBuildTool == null) {
-      return;
-    }
-    File dex = new File(latestBuildTool.getPath(BuildToolInfo.PathId.DX));
-    if (!dex.exists()) {
-      throw new IOException("Dex not found: " + dex);
-    }
-
-    List<String> args = Lists.newArrayList();
-    args.add(dex.getPath());
-
-    args.add("--dex");
-    args.add("--output");
-
-    File output = FileUtil.createTempFile("classes", ".dex");
-    args.add(output.getPath());
-    args.add(classFolder.getPath());
-
-    // Actually I don't need to point to the sources - just point to the current output directory too, right?
-    // Add the files to compile
-
-    // TODO: Set the output directory
-
-
-    String[] argv = ArrayUtil.toStringArray(args);
-    final Process process = Runtime.getRuntime().exec(argv);
-    int code = process.waitFor();
-    if (code == 0) {
-      byte[] bytes = Files.toByteArray(output);
-      changes.add(new ApplicationPatch("classes.dex", bytes));
-      postBalloon(MessageType.INFO, "Pushed code changes to app");
-
-    }
-    else {
-      dumpProcessOutput(process, "dex");
-      postBalloon(MessageType.WARNING, "There were dex errors; could not send code diffs to app");
-    }
-  }
-
-  private static boolean updateMergedResourceFile(@NotNull File resourceDir, @NotNull File oldFile, @NotNull VirtualFile file,
-                                                  @NotNull ResourceFolderType folderType) throws IOException {
-    String parentName = file.getParent().getName();
-    if (folderType == ResourceFolderType.VALUES) {
-      // Nope - turns out it's now using the parent name + xml - e.g.
-      //   we have values/values.xml and values-21/values-21.xml, not values-21/values.xml !
-      File targetFile = new File(resourceDir, parentName + separator + parentName + DOT_XML);
-      // This isn't quite right: we might be rewriting resources into values that were overridden by higher priority overlays!
-
-      Document allDoc = XmlUtils.parseDocumentSilently(Files.toString(targetFile, Charsets.UTF_8), true);
-      Document newDoc = XmlUtils.parseDocumentSilently(new String(file.contentsToByteArray(), Charsets.UTF_8), true);
-      if (newDoc == null || allDoc == null) {
-        return false;
-      }
-      Element allRoot = allDoc.getDocumentElement();
-      Element documentElement = newDoc.getDocumentElement();
-      if (documentElement == null || allRoot == null) {
-        return false;
-      }
-      Map<String, Element> insertMap = Maps.newHashMap();
-      for (Element element : LintUtils.getChildren(documentElement)) {
-        // Can't just stash elements by name: the same file can contain multiple identical names separated
-        // by different types (e.g. in the I/O app we have both <string name="social_extended"> and <color name="social_extended">)
-        String key = getKey(element);
-        if (key != null) {
-          insertMap.put(key, element);
-        }
-      }
-      for (Element element : LintUtils.getChildren(allRoot)) {
-        String key = getKey(element);
-        if (key != null) {
-          Element replacement = insertMap.get(key);
-          if (replacement != null) {
-            Node imported = duplicateNode(allDoc, replacement);
-            allRoot.replaceChild(imported, element);
-            insertMap.remove(key);
-          }
-        }
-      }
-
-      for (Element remaining : insertMap.values()) {
-        Node imported = duplicateNode(allDoc, remaining);
-        allRoot.appendChild(imported);
-      }
-
-      String xml = XmlUtils.toXml(allDoc);
-      Files.write(xml, targetFile, Charsets.UTF_8);
-
-      // I don't actually need to copy if I'm going to do it this way!
-      Files.write(xml, oldFile, Charsets.UTF_8);
-    }
-    else {
-      // Non-value resources: much simpler, just replace the file
-      byte[] bytes = file.contentsToByteArray();
-      FileUtil.writeToFile(oldFile, bytes);
-    }
-
-    return true;
-  }
-
-  private static boolean isDifferent(Project project, File oldFile, VirtualFile file) {
-    if (oldFile.length() != file.getLength()) {
-      return true;
-    }
-
-    long oldStamp = oldFile.lastModified();
-    File newFile = VfsUtilCore.virtualToIoFile(file);
-    if (newFile.lastModified() > oldStamp) {
-      return true;
-    }
-
-
-    if (oldFile.getName().equals(file.getName())) {
-      return true;
-    }
-
-    if (SdkUtils.endsWithIgnoreCase(oldFile.getPath(), DOT_XML)) {
-      try {
-        String oldContents = Files.toString(oldFile, Charsets.UTF_8);
-        String newContents = TemplateUtils.readTextFile(project, file);
-        return oldContents.equals(newContents);
-      } catch (IOException ignore) {
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Create an aapt binary packaged version of the given file.
-   * <p/>
-   * We should port this to Java, but for now perform a (very inefficient) aapt packaging task instead
-   */
-  @Nullable
-  private File compileResources(@NotNull AndroidFacet facet, @NotNull File resourceDir) throws IOException {
-    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
-    if (platform == null) {
-      return null;
-    }
-    AndroidSdkData sdkData = facet.getSdkData();
-    if (sdkData == null) {
-      return null;
-    }
-    LocalSdk localSdk = sdkData.getLocalSdk();
-
-    File binaryXml = FileUtil.createTempFile("binaryXml", ".ap_");
-
-    // Try to repackage the XML files
-    try {
-      // TODO: Use version used by the project instead?
-      BuildToolInfo latestBuildTool = localSdk.getLatestBuildTool();
-      if (latestBuildTool == null) {
-        return null;
-      }
-      File aapt = new File(latestBuildTool.getPath(BuildToolInfo.PathId.AAPT));
-
-      List<String> args = Lists.newArrayList();
-      args.add(aapt.getPath());
-      args.add("package");
-      args.add("-f");
-      args.add("--no-crunch");
-      args.add("-I");
-
-      // Find android.jar
-      File androidJar = platform.getTarget().getFile(IAndroidTarget.ANDROID_JAR);
-      args.add(androidJar.getPath());
-
-      File manifest = findMergedManifestFile(facet);
-      if (manifest != null) {
-        args.add("-M");
-        args.add(manifest.getPath());
-
-      }
-      args.add("-S");
-      args.add(resourceDir.getPath());
-
-      File assetsFolder = findAssetsFolder(facet);
-      if (assetsFolder != null) {
-        // TODO: Copy this asset folder to a different directory and override with current versions!
-        args.add("-A");
-        args.add(assetsFolder.getPath()); // TODO: We probably don't need to include this if we're just packaging resources?
-      }
-
-      args.add("-m");
-
-      File resourceClassFolder = findResourceClassFolder(facet);
-      if (resourceClassFolder != null) {
-        args.add("-J");
-        args.add(resourceClassFolder.getPath());
-      }
-      args.add("-F");
-      args.add(binaryXml.getPath());
-      args.add("--debug-mode");
-      args.add("--custom-package");
-      String pkg = AndroidModuleInfo.get(facet).getPackage();
-      if (pkg == null) {
-        return null;
-      }
-      args.add(pkg);
-      args.add("-0");
-      args.add("apk");
-
-      String[] argv = ArrayUtil.toStringArray(args);
-      final Process process = Runtime.getRuntime().exec(argv);
-      int code = process.waitFor();
-      if (code == 0) {
-        return binaryXml;
-      }
-      else {
-        dumpProcessOutput(process, "Incremental aapt");
-        postBalloon(MessageType.WARNING, "There were errors computing resources; could not send resource diffs to app");
-      }
-    }
-    catch (InterruptedException e) {
-      LOG.warn(e);
-    }
-
-    FileUtil.delete(binaryXml);
-    return null;
-  }
-
-  /**
-   * Create an aapt binary packaged version of the given file.
-   * <p/>
-   * We should port this to Java, but for now perform a (very inefficient) aapt packaging task instead
-   */
-  @Nullable
-  private static byte[] extractFile(@NotNull File binaryXml, @NotNull VirtualFile file, @NotNull ResourceFolderType folderType)
-      throws IOException {
-    if (folderType == ResourceFolderType.VALUES || SEND_WHOLE_AP_FILE) {
-      return Files.toByteArray(binaryXml);
-    }
-    else {
-      // Look in the generated .ap_ file for the target resource
-      InputStream inputStream = new FileInputStream(binaryXml);
-      JarInputStream jarInputStream = new JarInputStream(inputStream);
-      try {
-        // Always using / rather than File.separator in ZipEntry paths
-        String parentName = file.getParent().getName();
-        String target = FD_RES + '/' + parentName + '/' + file.getName();
-
-        ZipEntry entry = jarInputStream.getNextEntry();
-        while (entry != null) {
-          String name = entry.getName();
-          if (name.equals(target)) {
-            return ByteStreams.toByteArray(jarInputStream);
-          }
-          entry = jarInputStream.getNextEntry();
-        }
-      }
-      finally {
-        jarInputStream.close();
-      }
-
-      return null;
-    }
-  }
-
   @NotNull
   private static String getVariantName(@NotNull AndroidFacet facet) {
     return getVariantName(AndroidGradleModel.get(facet));
@@ -1175,11 +417,11 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return "debug";
   }
 
-  private void postBalloon(final MessageType type, final String message) {
+  void postBalloon(@NotNull MessageType type, @NotNull String message) {
     postBalloon(type, message, myProject);
   }
 
-  private static void postBalloon(final MessageType type, final String message, final Project project) {
+  static void postBalloon(@NotNull final MessageType type, @NotNull final String message, @NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -1201,106 +443,75 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     });
   }
 
-  // Based on NodeUtils#duplicateNode, but that code is package private and not complete (it doesn
-  // duplicate non-element nodes etc). Seems to be optimized for resource manager. Here we need a more
-  // complete and accurate way to duplicate an element into another document, adjusting namespaces if necessary.
-  public static Node duplicateNode(Document document, Node node) {
-    Node newNode;
-    if (node.getNamespaceURI() != null) {
-      newNode = document.createElementNS(node.getNamespaceURI(), node.getLocalName());
-      String prefix = document.lookupPrefix(node.getNamespaceURI());
-      if (prefix != null) {
-        newNode.setPrefix(prefix);
-      }
-    } else {
-      newNode = document.createElement(node.getNodeName());
-    }
-
-    // copy the attributes
-    NamedNodeMap attributes = node.getAttributes();
-    for (int i = 0 ; i < attributes.getLength(); i++) {
-      Attr attr = (Attr) attributes.item(i);
-
-      Attr newAttr;
-      if (attr.getNamespaceURI() != null) {
-        newAttr = document.createAttributeNS(attr.getNamespaceURI(), attr.getLocalName());
-        newNode.getAttributes().setNamedItemNS(newAttr);
-      } else {
-        newAttr = document.createAttribute(attr.getName());
-        newNode.getAttributes().setNamedItem(newAttr);
-      }
-
-      newAttr.setValue(attr.getValue());
-    }
-
-    // then duplicate the sub-nodes.
-    NodeList children = node.getChildNodes();
-    for (int i = 0 ; i < children.getLength() ; i++) {
-      Node child = children.item(i);
-      if (child.getNodeType() != Node.ELEMENT_NODE) {
-        Node duplicatedChild = document.importNode(child, true);
-        newNode.appendChild(duplicatedChild);
-        continue;
-      }
-      Node duplicatedChild = duplicateNode(document, child);
-      newNode.appendChild(duplicatedChild);
-    }
-
-    return newNode;
-  }
-
-  @Nullable
-  private static String getKey(@NotNull Element element) {
-    String name = element.getAttribute(ATTR_NAME);
-    if (name != null && !name.isEmpty()) {
-      String type = element.getTagName();
-      if (type.equals(TAG_ITEM)) {
-        type = element.getAttribute(ATTR_TYPE);
-      }
-      return name + type;
-    }
-    return null;
-  }
-
-  private void push(@NotNull Project project, @NotNull List<ApplicationPatch> changes, @NotNull UpdateMode updateMode) {
+  private void push(@Nullable IDevice device,
+                    @Nullable Module module,
+                    @NotNull List<ApplicationPatch> changes,
+                    @NotNull UpdateMode updateMode) {
     if (changes.isEmpty() || updateMode == UpdateMode.NO_CHANGES) {
       if (DISPLAY_STATISTICS) {
-        postBalloon(MessageType.INFO, "Instant Run: No Changes", project);
+        postBalloon(MessageType.INFO, "Instant Run: No Changes");
       }
       return;
     }
 
-    if (updateMode == UpdateMode.HOT_SWAP && isRestartActivity(project)) {
+    if (updateMode == UpdateMode.HOT_SWAP && isRestartActivity(myProject)) {
       updateMode = updateMode.combine(UpdateMode.WARM_SWAP);
     }
 
-    File adb = AndroidSdkUtils.getAdb(project);
-    if (adb != null) {
-      try {
-        AndroidDebugBridge bridge = AdbService.getInstance().getDebugBridge(adb).get();
-        IDevice[] devices = bridge.getDevices();
-        for (IDevice device : devices) {
-          // TODO: Look to see if this device has this app running:
-          //device.getClient(applicationName) != null;
-          writeMessage(project, device, changes, updateMode);
-        }
-      } catch (InterruptedException ignore) {
-      }
-      catch (ExecutionException ignore) {
-      }
-      if (DISPLAY_STATISTICS) {
-        notifyEnd(project);
-      }
+    if (device == null) {
+      // TEMPORARY: Try all devices. This should be removed soon; when we hook into the Run
+      // machinery we'll know the device (we'll ask the first time, then keep using the same
+      // device for instant runs)
+      device = guessDevice(module);
+    }
+    if (device != null) {
+      writeChanges(module, device, changes, updateMode);
+    }
+    if (DISPLAY_STATISTICS) {
+      notifyEnd(myProject);
     }
   }
 
-  public void writeMessage(@NotNull Project project, @NotNull IDevice device, @Nullable List<ApplicationPatch> changes,
-                           @NotNull  UpdateMode updateMode) {
-    String packageName = getPackageName(project);
+  // TEMPORARY: Try all devices. This should be removed soon; when we hook into the Run
+  // machinery we'll know the device (we'll ask the first time, then keep using the same
+  // device for instant runs)
+  @Nullable
+  private IDevice guessDevice(@Nullable Module module) {
+    String applicationId = getPackageName(module);
+    if (applicationId == null) {
+      return null;
+    }
+    try {
+      File adb = AndroidSdkUtils.getAdb(myProject);
+      if (adb != null) {
+        AndroidDebugBridge bridge = AdbService.getInstance().getDebugBridge(adb).get();
+        IDevice[] devices = bridge.getDevices();
+        for (IDevice d : devices) {
+          if (d.getClient(applicationId) != null) {
+            return d;
+          }
+        }
+      }
+    }
+    catch (InterruptedException ignore) {
+    }
+    catch (ExecutionException ignore) {
+    }
+
+    return null;
+  }
+
+  public void writeChanges(@Nullable Module module, @NotNull IDevice device, @Nullable List<ApplicationPatch> changes,
+                           @NotNull UpdateMode updateMode) {
+    String packageName = getPackageName(module);
     try {
       device.createForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-      write(project, changes, updateMode);
-      device.removeForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+      try {
+        writeChanges(changes, updateMode);
+      }
+      finally {
+        device.removeForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+      }
     }
     catch (TimeoutException e) {
       LOG.warn(e);
@@ -1313,14 +524,11 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     }
   }
 
-  private static String getPackageName(@NotNull Project project) {
-    for (Module m : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(m);
-      if (facet == null) {
-        continue;
-      }
-
-      AndroidModuleInfo info = AndroidModuleInfo.create(facet);
+  @Nullable
+  String getPackageName(@Nullable Module module) {
+    AndroidFacet facet = findAppModule(module);
+    if (facet != null) {
+      AndroidModuleInfo info = AndroidModuleInfo.get(facet);
       if (info.getPackage() != null) {
         return info.getPackage();
       }
@@ -1329,12 +537,38 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     return null;
   }
 
-  public void write(@NotNull Project project, @Nullable List<ApplicationPatch> changes, @NotNull  UpdateMode updateMode) {
+  @Nullable
+  AndroidFacet findAppModule(@Nullable Module module) {
+    if (module != null) {
+      assert module.getProject() == myProject;
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && !facet.isLibraryProject()) {
+        return facet;
+      }
+    }
+
+    // TODO: Here we should really look for app modules that *depend*
+    // on the given module (if non null), not just use the first app
+    // module we find.
+
+    for (Module m : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(m);
+      if (facet != null && !facet.isLibraryProject()) {
+        return facet;
+      }
+    }
+    return null;
+  }
+
+  public void writeChanges(@Nullable List<ApplicationPatch> changes, @NotNull UpdateMode updateMode) {
     try {
-      Socket socket = new Socket("127.0.0.1", STUDIO_PORT);
+      Socket socket = new Socket(LOCAL_HOST, STUDIO_PORT);
       try {
         DataOutputStream output = new DataOutputStream(socket.getOutputStream());
         try {
+          output.writeLong(PROTOCOL_IDENTIFIER);
+          output.writeInt(PROTOCOL_VERSION);
+          output.writeInt(MESSAGE_PATCHES);
           ApplicationPatch.write(output, changes, updateMode);
 
           // Finally read a boolean back from the other side; this has the net effect of
@@ -1361,34 +595,49 @@ public class FastDeployManager implements ProjectComponent, BulkFileListener {
     }
     catch (SocketException e) {
       if (e.getMessage().equals("Broken pipe")) {
-        final JFrame frame = WindowManager.getInstance().getFrame(project.isDefault() ? null : project);
-        if (frame == null) {
-          return;
-        }
-        final JComponent component = frame.getRootPane();
-        if (component == null) {
-          LOG.warn(e);
-          return;
-        }
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            Rectangle rect = component.getVisibleRect();
-            Point p = new Point(rect.x + rect.width - 10, rect.y + 10);
-            RelativePoint point = new RelativePoint(component, p);
-            JBPopupFactory.getInstance().createHtmlTextBalloonBuilder("No connection to app; cannot sync resource changes",
-                                                                      MessageType.WARNING.getDefaultIcon(),
-                                                                      MessageType.WARNING.getPopupBackground(), null)
-              .setShowCallout(false).setCloseButtonEnabled(true)
-              .createBalloon().show(point, Balloon.Position.atLeft);
-          }
-        });
+        postBalloon(MessageType.ERROR, "No connection to app; cannot sync resource changes");
         return;
       }
       LOG.warn(e);
     }
     catch (IOException e) {
       LOG.warn(e);
+    }
+  }
+
+  /**
+   * Attempts to connect to a given device and sees if an instant run enabled app is running there.
+   */
+  public boolean ping(@NotNull IDevice device, @NotNull Module module) {
+    String packageName = getPackageName(module);
+    try {
+      device.createForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+
+      try {
+        Socket socket = new Socket(LOCAL_HOST, STUDIO_PORT);
+        try {
+          DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+          try {
+            output.writeLong(PROTOCOL_IDENTIFIER);
+            output.writeInt(PROTOCOL_VERSION);
+            output.writeInt(MESSAGE_PING);
+            return true;
+          } finally {
+            output.close();
+          }
+        } finally {
+          socket.close();
+        }
+      }
+      catch (Throwable e) {
+        return false;
+      }
+      finally {
+        device.removeForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+      }
+    }
+    catch (Throwable e) {
+      return false;
     }
   }
 

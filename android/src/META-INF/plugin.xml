@@ -134,8 +134,7 @@
     </action>
     <group id="AndroidToolsGroup" popup="true" text="Android" icon="AndroidIcons.Android"
            class="org.jetbrains.android.actions.AndroidToolsActionGroup">
-      <action id="Android.PushToDevice" class="com.android.tools.idea.fd.PushToDeviceAction"/>
-      <action id="PushFileToDevice" class="com.android.tools.idea.fd.PushFileToDeviceAction"/>
+      <action id="PatchRunningApp" class="com.android.tools.idea.fd.PatchRunningAppAction"/>
       <action id="Android.ShowNavigationEditor" class="com.android.tools.idea.actions.AndroidShowNavigationEditor"
               icon="AndroidIcons.NavigationEditor"/>
       <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync"/>
@@ -150,8 +149,7 @@
     </group>
     <group id="Android.MainToolBarActionGroup">
       <separator/>
-      <reference id="PushFileToDevice" />
-      <!--<reference id="Android.PushToDevice" />-->
+      <reference id="PatchRunningApp" />
       <reference id="Android.SyncProject" />
       <reference id="Android.RunAndroidAvdManager" />
       <reference id="Android.RunAndroidSdkManager" />
