@@ -28,17 +28,13 @@ import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
-import com.android.tools.idea.editors.theme.qualifiers.QualifierUtils;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -197,16 +193,6 @@ public class ThemeEditorStyle {
     return !isProjectStyle();
   }
 
-  private static ImmutableCollection<FolderConfiguration> getFolderConfigurationsFromResourceItems(@NotNull Collection<ResourceItem> items) {
-    ImmutableList.Builder<FolderConfiguration> listBuilder = ImmutableList.builder();
-    for (ResourceItem item : items) {
-      assert item != null;
-      listBuilder.add(item.getConfiguration());
-    }
-
-    return listBuilder.build();
-  }
-
   /**
    * Returns all the style attributes and its values. For each attribute, multiple {@link ConfiguredElement} can be returned
    * representing the multiple values in different configurations for each item.
@@ -283,63 +269,20 @@ public class ThemeEditorStyle {
     if (isFramework()) {
       // Framework themes do not have multiple parents so we just get the only one.
       ThemeEditorStyle parent = getParent();
-
       if (parent != null) {
         return ImmutableList.of(ConfiguredElement.create(getConfiguration().getEditedConfig(), parent.getQualifiedName()));
       }
-
       // The theme has no parent (probably the main "Theme" style)
       return Collections.emptyList();
     }
 
-    // Load the current style from all the folders where it exists
-    ConfigurationManager manager = myConfiguration.getConfigurationManager();
-
-    // We create new ResourceResolverCache instead of using cache from myConfiguration to optimize memory instead of time/speed
-    // Because, it creates a lot of instances of ResourceResolver here, that won't be used outside of ThemeEditor
-    ResourceResolverCache resolverCache = new ResourceResolverCache(manager);
-    Collection<ResourceItem> allStyleDefinitions = getStyleResourceItems();
-
-    // Get the configuration associated to each version of the style
-    Collection<FolderConfiguration> allConfigurations = getFolderConfigurationsFromResourceItems(allStyleDefinitions);
-
-    FolderConfiguration fullBaseConfiguration = myConfiguration.getFullConfig();
     ImmutableList.Builder<ConfiguredElement<String>> parents = ImmutableList.builder();
-    // For every version of the style, get the parent
-    for (final ResourceItem item : allStyleDefinitions) {
-      // Get all the configurations but the one from the current item
-      Collection<FolderConfiguration> notSelectedConfigurations =
-        Collections2.filter(allConfigurations, new Predicate<FolderConfiguration>() {
-          @Override
-          public boolean apply(FolderConfiguration input) {
-            return !input.equals(item.getConfiguration());
-          }
-        });
-      // folderConfiguration is the FolderConfiguration that needs to be selected in order to the current item
-      // to be resolved.
-      FolderConfiguration folderConfiguration = QualifierUtils.restrictConfiguration(item.getConfiguration(), notSelectedConfigurations);
-      if (folderConfiguration == null) {
-        LOG.warn(String.format(
-          "For item '%1$s': Folder configuration '%2$s' can never be selected. There are no qualifiers combination that would allow selecting it.",
-          item.getName(), item.getConfiguration()));
-        continue;
-      }
-
-      // We apply the folderConfiguration to the full configuration that we get from the current theme resolver. We use Sthe full
-      // configuration to simulate what the device would do when resolving attributes and match more specific folders.
-      FolderConfiguration fullFolderConfiguration = FolderConfiguration.copyOf(fullBaseConfiguration);
-      fullFolderConfiguration.add(folderConfiguration);
-
-      // Get a ResourceResolver configured with the item FolderConfiguration
-      ResourceResolver resolver = resolverCache.getResourceResolver(myConfiguration.getTarget(), getStyleResourceUrl(), fullFolderConfiguration);
-      // Resolve the parent of the current theme, using that configuration
-      StyleResourceValue parent = resolver.getParent(myStyleResourceValue);
-      if (parent != null) {
-        parents.add(ConfiguredElement.create(item.getConfiguration(), ResolutionUtils.getQualifiedStyleName(parent)));
-      }
-      else {
-        // Further information on this condition is available at http://b.android.com/183268
-        LOG.warn(String.format("Parent of %s is null", myStyleResourceValue.getName()));
+    for (final ResourceItem styleItem : getStyleResourceItems()) {
+      StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue(false);
+      assert style != null;
+      String parentName = ResolutionUtils.getParentQualifiedName(style);
+      if (parentName != null) {
+        parents.add(ConfiguredElement.create(styleItem.getConfiguration(), parentName));
       }
     }
     return parents.build();
