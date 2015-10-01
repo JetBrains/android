@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.dsl.android;
 import com.android.tools.idea.gradle.dsl.parser.GradleBuildModelParserTestCase;
 import com.google.common.collect.ImmutableList;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 /**
  * Tests for {@link AndroidElement}.
  */
@@ -373,5 +376,72 @@ public class AndroidElementTest extends GradleBuildModelParserTestCase {
 
     android.resetState();
     assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+  }
+
+  public void testAddAndResetBlockElements() throws Exception {
+    String text = "android { \n" +
+                  "}";
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+    assertNull(android.defaultConfig());
+    assertNull(android.productFlavors());
+
+    android.createDefaultConfig();
+    android.addProductFlavor("flavor");
+
+    assertNotNull(android.defaultConfig());
+    Collection<ProductFlavorElement> productFlavorElements = android.productFlavors();
+    assertNotNull(productFlavorElements);
+    assertEquals("productFlavors", 1, productFlavorElements.size());
+    assertEquals("productFlavors", "flavor", productFlavorElements.iterator().next().name());
+
+    android.resetState();
+    assertNull(android.defaultConfig());
+    assertNull(android.productFlavors());
+  }
+
+  public void testRemoveAndResetBlockElements() throws Exception {
+    String text = "android { \n" +
+                  "  defaultConfig { \n" +
+                  "  } \n" +
+                  "  productFlavors { \n" +
+                  "    flavor1 { \n" +
+                  "    } \n" +
+                  "    flavor2 {" +
+                  "    } \n" +
+                  "  } \n" +
+                  "}";
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+    assertNotNull(android.defaultConfig());
+    Collection<ProductFlavorElement> productFlavorElements = android.productFlavors();
+    assertNotNull(productFlavorElements);
+    assertEquals("productFlavors", 2, productFlavorElements.size());
+    Iterator<ProductFlavorElement> iterator = productFlavorElements.iterator();
+    assertEquals("productFlavors", "flavor1", iterator.next().name());
+    assertEquals("productFlavors", "flavor2", iterator.next().name());
+
+    android.removeProperty("defaultConfig");
+    android.removeProductFlavor("flavor1");
+
+    assertNull(android.defaultConfig());
+    productFlavorElements = android.productFlavors();
+    assertNotNull(productFlavorElements);
+    assertEquals("productFlavors", 1, productFlavorElements.size());
+    iterator = productFlavorElements.iterator();
+    assertEquals("productFlavors", "flavor2", iterator.next().name());
+
+    android.resetState();
+    assertNotNull(android.defaultConfig());
+    productFlavorElements = android.productFlavors();
+    assertNotNull(productFlavorElements);
+    assertEquals("productFlavors", 2, productFlavorElements.size());
+    iterator = productFlavorElements.iterator();
+    assertEquals("productFlavors", "flavor1", iterator.next().name());
+    assertEquals("productFlavors", "flavor2", iterator.next().name());
   }
 }

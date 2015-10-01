@@ -16,29 +16,21 @@
 package com.android.tools.idea.gradle.dsl.android;
 
 import com.android.tools.idea.gradle.dsl.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.GradleDslPropertiesElement;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.gradle.dsl.GradleDslElementMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 
-public class ProductFlavorsElement extends GradleDslPropertiesElement {
+public class ProductFlavorsElement extends GradleDslElementMap {
   public static final String NAME = "productFlavors";
 
   public ProductFlavorsElement(@Nullable GradleDslElement parent) {
-    super(parent);
+    super(parent, NAME);
   }
 
   @NotNull
   public Collection<ProductFlavorElement> get() {
-    List<ProductFlavorElement> productFlavors = Lists.newArrayList();
-    for (GradleDslElement element : myProperties.values()) {
-      if (element instanceof ProductFlavorElement) {
-        productFlavors.add((ProductFlavorElement)element);
-      }
-    }
-    return productFlavors;
+    return getValues(ProductFlavorElement.class);
   }
 }
