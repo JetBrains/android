@@ -19,7 +19,6 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
 import com.android.tools.rpclib.schema.Dynamic;
@@ -114,10 +113,8 @@ public class StateController extends TreeController {
 
   @Override
   public void notifyPath(PathEvent event) {
-    boolean updateState = false;
-    if (event.path instanceof AtomPath) {
-      updateState |= myStatePath.update(((AtomPath)event.path).stateAfter());
-    }
+    boolean updateState = myStatePath.updateIfNotNull(AtomPath.stateAfter(event.findAtomPath()));
+
     if (updateState && myStatePath.getPath() != null) {
       Futures.addCallback(myEditor.getClient().get(myStatePath.getPath()), new LoadingCallback<Object>(LOG, myLoadingPanel) {
         @Override

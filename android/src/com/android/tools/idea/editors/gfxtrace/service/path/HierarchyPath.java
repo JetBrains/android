@@ -28,6 +28,11 @@ public final class HierarchyPath extends Path {
     return myCapture.stringPath(builder).append(".Hierarchy");
   }
 
+  @Override
+  public Path getParent() {
+    return myCapture;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private CapturePath myCapture;
 

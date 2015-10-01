@@ -28,6 +28,11 @@ public final class ImageInfoPath extends Path {
     return builder.append("ImageInfo(").append(myID).append(")");
   }
 
+  @Override
+  public Path getParent() {
+    return null;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
 

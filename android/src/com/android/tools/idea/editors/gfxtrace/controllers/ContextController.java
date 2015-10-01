@@ -20,7 +20,6 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.Device;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -167,16 +166,14 @@ public class ContextController extends Controller {
 
   @Override
   public void notifyPath(PathEvent event) {
-    if (event.path instanceof DevicePath) {
-      if (mySelectedDevice.update((DevicePath)event.path)) {
-        if (myDevices != null) {
-          for (DeviceEntry myDevice : myDevices) {
-            if (mySelectedDevice.is(myDevice.myPath)) {
-              return;
-            }
+    if (mySelectedDevice.updateIfNotNull(event.findDevicePath())) {
+      if (myDevices != null) {
+        for (DeviceEntry myDevice : myDevices) {
+          if (mySelectedDevice.is(myDevice.myPath)) {
+            return;
           }
-          mySelectedDevice.update(null);
         }
+        mySelectedDevice.update(null);
       }
     }
   }

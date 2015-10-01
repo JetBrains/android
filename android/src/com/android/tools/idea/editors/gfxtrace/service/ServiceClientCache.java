@@ -21,21 +21,23 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 
 public class ServiceClientCache extends ServiceClientWrapper {
+  private static final Logger LOG = Logger.getInstance(ServiceClientCache.class);
+
   private ListenableFuture<Message> mySchema;
   private final Object mySchemaLock = new Object();
   private final LoadingCache<Path, ListenableFuture<Object>> myPathCache;
-  private static final int MAXIMUM_CACHE_COUNT = 1000;
 
   public ServiceClientCache(ServiceClient client) {
     super(client);
     myPathCache = CacheBuilder.newBuilder()
-      .maximumSize(MAXIMUM_CACHE_COUNT)
       .softValues()
       .build(new CacheLoader<Path, ListenableFuture<Object>>() {
         @Override
         public ListenableFuture<Object> load(Path p) {
+          LOG.debug("Cache miss for " + p);
           return myClient.get(p);
         }
       });

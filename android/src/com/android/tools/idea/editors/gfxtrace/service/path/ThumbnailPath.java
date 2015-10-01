@@ -34,6 +34,11 @@ public final class ThumbnailPath extends Path {
     return myObject.stringPath(builder).append(".Thumbnail<").append(myDesiredWidth).append("x").append(myDesiredHeight).append(">");
   }
 
+  @Override
+  public Path getParent() {
+    return myObject;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Path myObject;
   private int myDesiredWidth;

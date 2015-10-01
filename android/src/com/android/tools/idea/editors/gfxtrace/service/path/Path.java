@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 public abstract class Path implements BinaryObject {
   private String myString;
 
+  public abstract Path getParent();
+
   @Override
   public String toString() {
     if (myString == null) {
