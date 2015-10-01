@@ -22,12 +22,9 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.run.cloud.CloudConfigurationProvider;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -43,9 +40,11 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,40 +57,28 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 
-public class DeviceChooser implements Disposable {
+public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener {
+  private final static int UPDATE_DELAY_MILLIS = 250;
   private static final String[] COLUMN_TITLES = new String[]{"Device", "State", "Compatible", "Serial Number"};
   private static final int DEVICE_NAME_COLUMN_INDEX = 0;
   private static final int DEVICE_STATE_COLUMN_INDEX = 1;
   private static final int COMPATIBILITY_COLUMN_INDEX = 2;
   private static final int SERIAL_COLUMN_INDEX = 3;
-  private static final int REFRESH_INTERVAL_MS = 500;
 
   public static final IDevice[] EMPTY_DEVICE_ARRAY = new IDevice[0];
 
   private final List<DeviceChooserListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
-  private final Alarm myRefreshingAlarm;
-  private final AndroidDebugBridge myBridge;
+  private final MergingUpdateQueue myUpdateQueue;
 
   private volatile boolean myProcessSelectionFlag = true;
 
-  /** The current list of devices that is displayed in the table. */
-  private IDevice[] myDisplayedDevices = EMPTY_DEVICE_ARRAY;
+  private final JComponent myPanel;
+  private final JBTable myDeviceTable;
 
-  /**
-   * The current list of devices obtained from the debug bridge. This is updated in a background thread.
-   * If it is different than {@link #myDisplayedDevices}, then a {@link #refreshTable} invocation in the EDT thread
-   * will update the displayed list to match the detected list.
-   */
-  private AtomicReference<IDevice[]> myDetectedDevicesRef = new AtomicReference<IDevice[]>(EMPTY_DEVICE_ARRAY);
-
-  private JComponent myPanel;
-  private JBTable myDeviceTable;
-
-  private final AndroidFacet myFacet;
   private final Predicate<IDevice> myFilter;
   private final AndroidVersion myMinSdkVersion;
   private final IAndroidTarget myProjectTarget;
@@ -99,15 +86,14 @@ public class DeviceChooser implements Disposable {
   private final CloudConfigurationProvider myCloudConfigurationProvider;
 
   private int[] mySelectedRows;
+  private final AtomicBoolean myDevicesDetected = new AtomicBoolean();
 
   public DeviceChooser(boolean multipleSelection,
                        @NotNull final Action okAction,
                        @NotNull AndroidFacet facet,
                        @NotNull IAndroidTarget projectTarget,
                        @Nullable Predicate<IDevice> filter) {
-
     myCloudConfigurationProvider = CloudConfigurationProvider.getCloudConfigurationProvider();
-    myFacet = facet;
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
@@ -117,7 +103,8 @@ public class DeviceChooser implements Disposable {
     // features, starting with hardware type watch.
     if (LaunchUtils.isWatchFeatureRequired(facet)) {
       myRequiredHardwareFeatures = EnumSet.of(IDevice.HardwareFeature.WATCH);
-    } else {
+    }
+    else {
       myRequiredHardwareFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
     }
 
@@ -126,9 +113,8 @@ public class DeviceChooser implements Disposable {
     myPanel.setPreferredSize(JBUI.size(550, 220));
 
     myDeviceTable.setModel(new MyDeviceTableModel(EMPTY_DEVICE_ARRAY));
-    myDeviceTable.setSelectionMode(multipleSelection ?
-                                   ListSelectionModel.MULTIPLE_INTERVAL_SELECTION :
-                                   ListSelectionModel.SINGLE_SELECTION);
+    myDeviceTable
+      .setSelectionMode(multipleSelection ? ListSelectionModel.MULTIPLE_INTERVAL_SELECTION : ListSelectionModel.SINGLE_SELECTION);
     myDeviceTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
@@ -190,8 +176,13 @@ public class DeviceChooser implements Disposable {
     // Allow sorting by columns (in lexicographic order)
     myDeviceTable.setAutoCreateRowSorter(true);
 
-    myRefreshingAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
-    myBridge = AndroidSdkUtils.getDebugBridge(myFacet.getModule().getProject());
+    // the device change notifications from adb can sometimes be noisy (esp. when a device is [dis]connected)
+    // we use this merging queue to collapse multiple updates to one
+    myUpdateQueue = new MergingUpdateQueue("android.device.chooser", UPDATE_DELAY_MILLIS, true, null, this, null,
+                                           Alarm.ThreadToUse.POOLED_THREAD);
+
+    AndroidDebugBridge.addDebugBridgeChangeListener(this);
+    AndroidDebugBridge.addDeviceChangeListener(this);
   }
 
   private static void setColumnWidth(JBTable deviceTable, int columnIndex, String sampleText) {
@@ -209,23 +200,6 @@ public class DeviceChooser implements Disposable {
     if (selectedSerials != null) {
       resetSelection(selectedSerials);
     }
-    addUpdatingRequest();
-  }
-
-  private final Runnable myUpdateRequest = new Runnable() {
-    @Override
-    public void run() {
-      updateTable();
-      addUpdatingRequest();
-    }
-  };
-
-  private void addUpdatingRequest() {
-    if (myRefreshingAlarm.isDisposed()) {
-      return;
-    }
-    myRefreshingAlarm.cancelAllRequests();
-    myRefreshingAlarm.addRequest(myUpdateRequest, REFRESH_INTERVAL_MS);
   }
 
   private void resetSelection(@NotNull String[] selectedSerials) {
@@ -248,8 +222,8 @@ public class DeviceChooser implements Disposable {
     }
   }
 
-  void updateTable() {
-    IDevice[] devices = myBridge != null ? getFilteredDevices(myBridge) : EMPTY_DEVICE_ARRAY;
+  private void updateTable() {
+    final IDevice[] devices = getFilteredDevices();
     if (devices.length > 1) {
       // sort by API level
       Arrays.sort(devices, new Comparator<IDevice>() {
@@ -264,28 +238,24 @@ public class DeviceChooser implements Disposable {
           try {
             String s = device.getProperty(IDevice.PROP_BUILD_API_LEVEL);
             return StringUtil.isNotEmpty(s) ? Integer.parseInt(s) : 0;
-          } catch (Exception e) {
+          }
+          catch (Exception e) {
             return 0;
           }
         }
       });
     }
 
-    if (!Arrays.equals(myDisplayedDevices, devices)) {
-      myDetectedDevicesRef.set(devices);
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          refreshTable();
-        }
-      }, ModalityState.stateForComponent(myDeviceTable));
-    }
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        myDevicesDetected.set(devices.length > 0);
+        refreshTable(devices);
+      }
+    });
   }
 
-  private void refreshTable() {
-    IDevice[] devices = myDetectedDevicesRef.get();
-    myDisplayedDevices = devices;
-
+  private void refreshTable(IDevice[] devices) {
     final IDevice[] selectedDevices = getSelectedDevices(false);
     final TIntArrayList selectedRows = new TIntArrayList();
     for (int i = 0; i < devices.length; i++) {
@@ -309,7 +279,7 @@ public class DeviceChooser implements Disposable {
   }
 
   public boolean hasDevices() {
-    return myDetectedDevicesRef.get().length > 0;
+    return myDevicesDetected.get();
   }
 
   public JComponent getPreferredFocusComponent() {
@@ -329,7 +299,8 @@ public class DeviceChooser implements Disposable {
     for (int row : rows) {
       if (!isRowCompatible(row)) {
         hasIncompatible = true;
-      } else {
+      }
+      else {
         hasCompatible = true;
       }
     }
@@ -362,11 +333,7 @@ public class DeviceChooser implements Disposable {
           continue;
         }
         Object serial = myDeviceTable.getValueAt(row, SERIAL_COLUMN_INDEX);
-        final AndroidDebugBridge bridge = AndroidSdkUtils.getDebugBridge(myFacet.getModule().getProject());
-        if (bridge == null) {
-          return EMPTY_DEVICE_ARRAY;
-        }
-        IDevice[] devices = getFilteredDevices(bridge);
+        IDevice[] devices = getFilteredDevices();
         for (IDevice device : devices) {
           if (device.getSerialNumber().equals(serial.toString())) {
             result.add(device);
@@ -379,14 +346,20 @@ public class DeviceChooser implements Disposable {
   }
 
   @NotNull
-  private IDevice[] getFilteredDevices(AndroidDebugBridge bridge) {
+  private IDevice[] getFilteredDevices() {
+    AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+    if (bridge == null || !bridge.isConnected()) {
+      return EMPTY_DEVICE_ARRAY;
+    }
+
     final List<IDevice> filteredDevices = new ArrayList<IDevice>();
     for (IDevice device : bridge.getDevices()) {
       if (myFilter == null || myFilter.apply(device)) {
         filteredDevices.add(device);
       }
     }
-    // Do not filter launching cloud devices as they are just unselectable progress markers
+
+    // Do not filter launching cloud devices as they are not selectable progress markers
     // that are replaced with the actual cloud devices as soon as they are up and the actual cloud devices will be filtered above.
     if (myCloudConfigurationProvider != null) {
       filteredDevices.addAll(myCloudConfigurationProvider.getLaunchingCloudDevices());
@@ -406,6 +379,8 @@ public class DeviceChooser implements Disposable {
 
   @Override
   public void dispose() {
+    AndroidDebugBridge.removeDebugBridgeChangeListener(this);
+    AndroidDebugBridge.removeDeviceChangeListener(this);
   }
 
   public void setEnabled(boolean enabled) {
@@ -418,7 +393,7 @@ public class DeviceChooser implements Disposable {
     return state != null ? capitalize(state.name().toLowerCase()) : "";
   }
 
-  public void fireSelectedDevicesChanged() {
+  private void fireSelectedDevicesChanged() {
     for (DeviceChooserListener listener : myListeners) {
       listener.selectedDevicesChanged();
     }
@@ -426,6 +401,40 @@ public class DeviceChooser implements Disposable {
 
   public void addListener(@NotNull DeviceChooserListener listener) {
     myListeners.add(listener);
+  }
+
+  @Override
+  public void bridgeChanged(AndroidDebugBridge bridge) {
+    postUpdate();
+  }
+
+  @Override
+  public void deviceConnected(IDevice device) {
+    postUpdate();
+  }
+
+  @Override
+  public void deviceDisconnected(IDevice device) {
+    postUpdate();
+  }
+
+  @Override
+  public void deviceChanged(IDevice device, int changeMask) {
+    postUpdate();
+  }
+
+  private void postUpdate() {
+    myUpdateQueue.queue(new Update("updateTable") {
+      @Override
+      public void run() {
+        updateTable();
+      }
+
+      @Override
+      public boolean canEat(Update update) {
+        return true;
+      }
+    });
   }
 
   private class MyDeviceTableModel extends AbstractTableModel {
@@ -475,9 +484,11 @@ public class DeviceChooser implements Disposable {
     public Class<?> getColumnClass(int columnIndex) {
       if (columnIndex == COMPATIBILITY_COLUMN_INDEX) {
         return LaunchCompatibility.class;
-      } else if (columnIndex == DEVICE_NAME_COLUMN_INDEX) {
+      }
+      else if (columnIndex == DEVICE_NAME_COLUMN_INDEX) {
         return IDevice.class;
-      } else {
+      }
+      else {
         return String.class;
       }
     }
@@ -494,10 +505,12 @@ public class DeviceChooser implements Disposable {
       ThreeState compatible = compatibility.isCompatible();
       if (compatible == ThreeState.YES) {
         append("Yes");
-      } else {
+      }
+      else {
         if (compatible == ThreeState.NO) {
           append("No", SimpleTextAttributes.ERROR_ATTRIBUTES);
-        } else {
+        }
+        else {
           append("Maybe");
         }
         String reason = compatibility.getReason();
