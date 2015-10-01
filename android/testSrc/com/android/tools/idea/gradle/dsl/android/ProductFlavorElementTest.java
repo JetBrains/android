@@ -686,6 +686,7 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
                   "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
                   "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
                   "    resConfigs \"abcd\", \"efgh\"\n" +
+                  "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
                   "  }\n" +
                   "}";
 
@@ -701,16 +702,19 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
 
     defaultConfig
       .replaceConsumerProguardFile("proguard-android.txt", "proguard-android-1.txt")
       .replaceProguardFile("proguard-android.txt", "proguard-android-1.txt")
-      .replaceResConfig("abcd", "xyz");
+      .replaceResConfig("abcd", "xyz")
+      .replaceResValue(new ResValue("abcd", "efgh", "ijkl"), new ResValue("abcd", "mnop", "qrst"));
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("xyz", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "mnop", "qrst")), defaultConfig.resValues());
 
     defaultConfig.resetState();
 
@@ -718,6 +722,7 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
   }
 
   public void testAddAndResetListElements() throws Exception {
@@ -737,21 +742,25 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
     assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
     assertNull("proguardFiles", defaultConfig.proguardFiles());
     assertNull("resConfigs", defaultConfig.resConfigs());
+    assertNull("resValues", defaultConfig.resValues());
 
     defaultConfig
       .addConsumerProguardFile("proguard-android.txt")
       .addProguardFile("proguard-android.txt")
-      .addResConfig("abcd");
+      .addResConfig("abcd")
+      .addResValue(new ResValue("mnop", "qrst", "uvwx"));
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("mnop", "qrst", "uvwx")), defaultConfig.resValues());
 
     defaultConfig.resetState();
 
     assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
     assertNull("proguardFiles", defaultConfig.proguardFiles());
     assertNull("resConfigs", defaultConfig.resConfigs());
+    assertNull("resValues", defaultConfig.resValues());
   }
 
   public void testAddToAndResetListElements() throws Exception {
@@ -760,6 +769,7 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
                   "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
                   "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
                   "    resConfigs \"abcd\", \"efgh\"\n" +
+                  "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
                   "  }\n" +
                   "}";
 
@@ -775,17 +785,21 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
 
     defaultConfig
       .addConsumerProguardFile("proguard-android-1.txt")
       .addProguardFile("proguard-android-1.txt")
-      .addResConfig("xyz");
+      .addResConfig("xyz")
+      .addResValue(new ResValue("mnop", "qrst", "uvwx"));
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
                  defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd", "efgh", "xyz"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl"), new ResValue("mnop", "qrst", "uvwx")),
+                 defaultConfig.resValues());
 
     defaultConfig.resetState();
 
@@ -793,6 +807,7 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
   }
 
   public void testRemoveFromAndResetListElements() throws Exception {
@@ -801,6 +816,8 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
                   "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
                   "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
                   "    resConfigs \"abcd\", \"efgh\"\n" +
+                  "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
+                  "    resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
                   "  }\n" +
                   "}";
 
@@ -816,15 +833,19 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl"), new ResValue("mnop", "qrst", "uvwx")),
+                 defaultConfig.resValues());
 
     defaultConfig
       .removeConsumerProguardFile("proguard-rules.pro")
       .removeProguardFile("proguard-rules.pro")
-      .removeResConfig("efgh");
+      .removeResConfig("efgh")
+      .removeResValue(new ResValue("mnop", "qrst", "uvwx"));
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
 
     defaultConfig.resetState();
 
@@ -832,5 +853,114 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl"), new ResValue("mnop", "qrst", "uvwx")),
+                 defaultConfig.resValues());
+  }
+
+  public void testSetAndResentMapElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    manifestPlaceholders key1:\"value1\", key2:\"value2\"\n" +
+                  "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("key1", "value1", "key2", "value2"), defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+
+    defaultConfig.setManifestPlaceholder("key1", 12345);
+    defaultConfig.setManifestPlaceholder("key3", true);
+    defaultConfig.setTestInstrumentationRunnerArgument("size", "small");
+    defaultConfig.setTestInstrumentationRunnerArgument("key", "value");
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("key1", 12345, "key2", "value2", "key3", true),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "foo", "bar", "key", "value"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+
+    defaultConfig.resetState();
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("key1", "value1", "key2", "value2"), defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+  }
+
+  public void testAddAndResentMapElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertNull("manifestPlaceholders", defaultConfig.manifestPlaceholders());
+    assertNull("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments());
+
+    defaultConfig.setManifestPlaceholder("activityLabel1", "newName1");
+    defaultConfig.setManifestPlaceholder("activityLabel2", "newName2");
+    defaultConfig.setTestInstrumentationRunnerArgument("size", "small");
+    defaultConfig.setTestInstrumentationRunnerArgument("key", "value");
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "key", "value"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+
+    defaultConfig.resetState();
+
+    assertNull("manifestPlaceholders", defaultConfig.manifestPlaceholders());
+    assertNull("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments());
+  }
+
+  public void testRemoveAndResentMapElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
+                  "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidElement android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+
+    defaultConfig.removeManifestPlaceholder("activityLabel1");
+    defaultConfig.removeTestInstrumentationRunnerArgument("size");
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel2", "defaultName2"),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("foo", "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+
+    defaultConfig.resetState();
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments());
   }
 }
