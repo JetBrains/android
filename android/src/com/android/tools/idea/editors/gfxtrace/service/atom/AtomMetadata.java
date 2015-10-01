@@ -58,7 +58,7 @@ public final class AtomMetadata implements BinaryObject {
         myResultIndex = index;
       }
       if (field.getType() instanceof Struct) {
-        BinaryID id = ((Struct)field.getType()).getID();
+        BinaryID id = ((Struct)field.getType()).getEntity().getTypeID();
         if (id.equals(Observations.ID)) {
           myObservationsIndex = index;
         }
