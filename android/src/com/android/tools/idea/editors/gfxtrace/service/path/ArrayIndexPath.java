@@ -28,6 +28,11 @@ public final class ArrayIndexPath extends Path {
     return myArray.stringPath(builder).append("[").append(myIndex).append("]");
   }
 
+  @Override
+  public Path getParent() {
+    return myArray;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Path myArray;
   private long myIndex;

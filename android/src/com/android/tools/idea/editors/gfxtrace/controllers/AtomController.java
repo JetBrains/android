@@ -148,8 +148,7 @@ public class AtomController extends TreeController {
           myEditor.activatePath(myAtomsPath.getPath().index(((Node)object).index), AtomController.this);
         }
         else if (object instanceof Memory) {
-          Memory memory = (Memory) object;
-          myEditor.activatePath(myAtomsPath.getPath().index(((Memory)object).index), AtomController.this);
+          Memory memory = (Memory)object;
           myEditor.activatePath(
             myAtomsPath.getPath().index(memory.index).memoryAfter(PoolID.applicationPool(), memory.observation.getRange()),
             AtomController.this);
@@ -427,14 +426,18 @@ public class AtomController extends TreeController {
     return group.lastLeaf.isEndOfFrame() || group.lastLeaf.isDrawCall();
   }
 
-  public void selectDeepestVisibleNode(long atomIndex) {
+  private void selectDeepestVisibleNode(AtomPath atomPath) {
+    if (atomPath == null) {
+      return;
+    }
+
     Object object = myTree.getModel().getRoot();
     assert (object instanceof DefaultMutableTreeNode);
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)object;
-    selectDeepestVisibleNode(root, new TreePath(root), atomIndex);
+    selectDeepestVisibleNode(root, new TreePath(root), atomPath.getIndex());
   }
 
-  public void selectDeepestVisibleNode(DefaultMutableTreeNode node, TreePath path, long atomIndex) {
+  private void selectDeepestVisibleNode(DefaultMutableTreeNode node, TreePath path, long atomIndex) {
     if (node.isLeaf() || !myTree.isExpanded(path)) {
       myTree.setSelectionPath(path);
       myTree.scrollPathToVisible(path);
@@ -459,19 +462,16 @@ public class AtomController extends TreeController {
 
   @Override
   public void notifyPath(PathEvent event) {
-    boolean updateAtoms = false;
-    if (event.path instanceof CapturePath) {
-      updateAtoms |= myAtomsPath.update(((CapturePath)event.path).atoms());
+    boolean updateAtoms = myAtomsPath.updateIfNotNull(CapturePath.atoms(event.findCapturePath()));
+    if (myRenderDevice.updateIfNotNull(event.findDevicePath())) {
+      // Only the icons would need to be changed.
+      myTree.repaint();
     }
-    if (event.path instanceof DevicePath) {
-      if (myRenderDevice.update((DevicePath)event.path)) {
-        // Only the icons would need to be changed.
-        myTree.repaint();
-      }
+
+    if (event.source != this) {
+      selectDeepestVisibleNode(event.findAtomPath());
     }
-    if (event.path instanceof AtomPath && event.source != this) {
-      selectDeepestVisibleNode(((AtomPath)event.path).getIndex());
-    }
+
     if (updateAtoms && myAtomsPath.getPath() != null) {
       myTree.getEmptyText().setText("");
       myLoadingPanel.startLoading();
