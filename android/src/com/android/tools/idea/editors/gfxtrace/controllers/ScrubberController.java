@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
-import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
@@ -116,10 +115,14 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
     return generatedList;
   }
 
-  private void selectFrame(long atomIndex) {
+  private void selectFrame(AtomPath atomPath) {
+    if (atomPath == null) {
+      return;
+    }
+
     int index = 0;
     for (Data data : myList.items()) {
-      if (data.range.contains(atomIndex)) {
+      if (data.range.contains(atomPath.getIndex())) {
         myList.selectItem(index, false);
         break;
       }
@@ -129,16 +132,11 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
   @Override
   public void notifyPath(PathEvent event) {
-    boolean updateIcons = false;
-    if (event.path instanceof DevicePath) {
-      updateIcons |= myRenderDevice.update((DevicePath)event.path);
-    }
-    if (event.path instanceof CapturePath) {
-      updateIcons |= myAtomsPath.update(((CapturePath)event.path).atoms());
-    }
-    if (event.path instanceof AtomPath) {
-      selectFrame(((AtomPath)event.path).getIndex());
-    }
+    boolean updateIcons = myRenderDevice.updateIfNotNull(event.findDevicePath());
+    updateIcons = myAtomsPath.update(CapturePath.atoms(event.findCapturePath())) | updateIcons;
+
+    selectFrame(event.findAtomPath());
+
     if (updateIcons && myAtomsPath.getPath() != null) {
       Futures.addCallback(myEditor.getClient().get(myAtomsPath.getPath()), new LoadingCallback<AtomList>(LOG) {
         @Override

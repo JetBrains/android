@@ -28,6 +28,11 @@ public final class AtomsPath extends Path {
     return myCapture.stringPath(builder).append(".Atoms");
   }
 
+  @Override
+  public Path getParent() {
+    return myCapture;
+  }
+
   public AtomPath index(long i) {
     return new AtomPath().setAtoms(this).setIndex(i);
   }
