@@ -32,6 +32,7 @@ import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
@@ -65,6 +66,8 @@ public class AndroidDomUtil {
   public static final Map<String, String> SPECIAL_RESOURCE_TYPES = Maps.newHashMapWithExpectedSize(20);
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
+
+  private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
 
   static {
     // This section adds additional resource type registrations where the attrs metadata is lacking. For
@@ -345,11 +348,9 @@ public class AndroidDomUtil {
 
       // However, there are some attributes with other meanings: http://tools.android.com/tech-docs/tools-attributes
       // Filter some of these out such that they are not treated as the (unrelated but identically named) platform attributes
-      if (ATTR_CONTEXT.equals(localName)
-          || ATTR_IGNORE.equals(localName)
-          || ATTR_LOCALE.equals(localName)
-          || ATTR_TARGET_API.equals(localName)) {
-        return null;
+      AttributeDefinition toolsAttr = TOOLS_ATTRIBUTE_DEFINITIONS.getAttrDefByName(localName);
+      if (toolsAttr != null) {
+        return toolsAttr;
       }
     }
 
