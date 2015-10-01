@@ -25,6 +25,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
+import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -42,8 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -105,7 +105,7 @@ public class RecipeMergeUtils {
       assert currentDocument != null : targetXml + " failed to parse";
       Document fragment = XmlUtils.parseDocumentSilently(sourceXml, true);
       assert fragment != null : sourceXml + " failed to parse";
-      contents = mergeManifest(targetFile, sourceXml);
+      contents = mergeManifest(targetFile, targetXml, sourceXml);
       ok = contents != null;
     }
     else {
@@ -244,17 +244,23 @@ public class RecipeMergeUtils {
    * Merges the given manifest fragment into the given manifest file
    */
   @Nullable
-  private static String mergeManifest(@NotNull File targetManifest, @NotNull String mergeText) {
+  private static String mergeManifest(@NotNull File targetManifest, @NotNull final String targetXml, @NotNull String mergeText) {
     File tempFile = null;
     try {
       //noinspection SpellCheckingInspection
       tempFile = FileUtil.createTempFile("manifmerge", DOT_XML);
       FileUtil.writeToFile(tempFile, mergeText);
       StdLogger logger = new StdLogger(StdLogger.Level.INFO);
-      ManifestMerger2.Invoker merger = ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
+      MergingReport mergeReport = ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
         .withFeatures(ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS, ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)
-        .addLibraryManifest(tempFile);
-      MergingReport mergeReport = merger.merge();
+        .addLibraryManifest(tempFile)
+        .withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
+          @Override
+          protected InputStream getInputStream(@NotNull File file) throws FileNotFoundException {
+            return new ByteArrayInputStream(targetXml.getBytes(Charsets.UTF_8));
+          }
+        })
+        .merge();
       if (mergeReport.getMergedDocument().isPresent()) {
         return XmlPrettyPrinter
           .prettyPrint(mergeReport.getMergedDocument().get().getXml(), createXmlFormatPreferences(), XmlFormatStyle.MANIFEST, "\n",

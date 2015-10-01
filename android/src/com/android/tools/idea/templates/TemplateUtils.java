@@ -420,6 +420,25 @@ public class TemplateUtils {
    * @return the contents of the file as text, or null if for some reason it couldn't be read
    */
   @Nullable
+  public static String readTextFile(@NotNull final Project project, @NotNull File file) {
+    if (!project.isInitialized()) {
+      return readTextFile(file);
+    }
+    VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+    if (vFile == null) {
+      LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
+      return null;
+    }
+    return readTextFile(project, vFile);
+  }
+
+  /**
+   * Reads the given file as text (or the current contents of the edited buffer of the file, if open and not saved.)
+   *
+   * @param file The file to read.
+   * @return the contents of the file as text, or null if for some reason it couldn't be read
+   */
+  @Nullable
   public static String readTextFile(@NotNull final Project project, @NotNull final VirtualFile file) {
     return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
       @Nullable
