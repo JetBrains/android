@@ -30,11 +30,23 @@ import java.util.List;
 // in sync right now.
 @SuppressWarnings({"Assert", "unused"})
 public class ApplicationPatch {
-  /**
-   * Magic (random) number used to identify the protocol
-   */
+  /** Magic (random) number used to identify the protocol */
   public static final long PROTOCOL_IDENTIFIER = 0x35107124L;
-  public static final int PROTOCOL_VERSION = 1;
+
+  /** Version of the protocol */
+  public static final int PROTOCOL_VERSION = 2;
+
+  /** No updates */
+  public static final int UPDATE_MODE_NONE      = 0; // NOTE: keep in sync with values in the IDE!
+
+  /** Patch changes directly, keep app running without any restarting */
+  public static final int UPDATE_MODE_HOT_SWAP  = 1; // NOTE: keep in sync with values in the IDE!
+
+  /** Patch changes, restart activity to reflect changes */
+  public static final int UPDATE_MODE_WARM_SWAP = 2; // NOTE: keep in sync with values in the IDE!
+
+  /** Store change in app directory, restart app */
+  public static final int UPDATE_MODE_COLD_SWAP = 3; // NOTE: keep in sync with values in the IDE!
 
   public final String path;
   public final byte[] data;
@@ -54,7 +66,7 @@ public class ApplicationPatch {
   }
 
   // Only needed on the IDE side
-  public static void write(@NonNull DataOutputStream output, @Nullable List<ApplicationPatch> changes, boolean forceRestart)
+  public static void write(@NonNull DataOutputStream output, @Nullable List<ApplicationPatch> changes, @NonNull UpdateMode updateMode)
       throws IOException {
     output.writeLong(PROTOCOL_IDENTIFIER);
     output.writeInt(PROTOCOL_VERSION);
@@ -67,7 +79,7 @@ public class ApplicationPatch {
         write(output, change);
       }
     }
-    output.writeBoolean(forceRestart);
+    output.writeInt(updateMode.getId());
   }
 
   // Only needed on the IDE side
@@ -77,37 +89,6 @@ public class ApplicationPatch {
     byte[] bytes = change.data;
     output.writeInt(bytes.length);
     output.write(bytes);
-  }
-
-  // Only needed on the Android side
-  @Nullable
-  public static List<ApplicationPatch> read(@NonNull DataInputStream input) throws IOException {
-    long magic = input.readLong();
-    if (magic != PROTOCOL_IDENTIFIER) {
-      return null;
-    }
-    int version = input.readInt();
-    if (version != PROTOCOL_VERSION) {
-      return null;
-    }
-
-    int changeCount = input.readInt();
-
-    List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(changeCount);
-    for (int i = 0; i < changeCount; i++) {
-      String path = input.readUTF();
-      int size = input.readInt();
-      byte[] bytes = new byte[size];
-      input.readFully(bytes);
-      changes.add(new ApplicationPatch(path, bytes));
-    }
-
-    boolean forceRestart = input.readBoolean();
-    if (changeCount > 0) {
-      changes.get(0).forceRestart = forceRestart;
-    }
-
-    return changes;
   }
 
   public String getPath() {
