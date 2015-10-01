@@ -21,6 +21,7 @@ import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.fd.PatchRunningAppAction;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
@@ -405,6 +406,15 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
     if (myLaunchOptions.isClearLogcatBeforeStart()) {
       clearLogcatAndConsole(getModule().getProject(), device);
+    }
+
+    Module module = myFacet.getModule();
+    if (!isDebugMode() && PatchRunningAppAction.isPatchableApp(module) && PatchRunningAppAction.isAppRunning(device, module)) {
+      myPrinter.stdout("Incrementally updating running app.");
+      PatchRunningAppAction.perform(device, module, false);
+
+      // TODO: returning here means debugging won't work
+      return true;
     }
 
     myPrinter.stdout("Target device: " + device.getName());

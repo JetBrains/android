@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
+import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -94,13 +95,10 @@ public class PatchRunningAppAction extends AnAction {
    *               the infrastructure will look for other app modules
    * @param forceRestart if true, force a full restart of the given app (normally false)
    */
-  public static void perform(@Nullable IDevice device, @NotNull Module module, boolean forceRestart) {
+  public static void perform(@Nullable final IDevice device, @NotNull final Module module, final boolean forceRestart) {
     if (FastDeployManager.DISPLAY_STATISTICS) {
       FastDeployManager.notifyBegin();
     }
-
-    // Save changes first such that Gradle can pick up the changes
-    ApplicationManager.getApplication().saveAll();
 
     Project project = module.getProject();
     UpdateMode updateMode = forceRestart ? UpdateMode.COLD_SWAP : UpdateMode.HOT_SWAP;
@@ -118,6 +116,10 @@ public class PatchRunningAppAction extends AnAction {
         return;
       }
       boolean forceRestart = (e.getModifiers() & InputEvent.CTRL_MASK) != 0;
+
+      // Save changes first such that Gradle can pick up the changes
+      ApplicationManager.getApplication().saveAll();
+
       perform(null, module, forceRestart);
     }
   }
