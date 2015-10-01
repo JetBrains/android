@@ -29,6 +29,11 @@ public final class MapIndexPath extends Path {
     return myMap.stringPath(builder).append("[").append(myKey).append("]");
   }
 
+  @Override
+  public Path getParent() {
+    return myMap;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Path myMap;
   private Object myKey;

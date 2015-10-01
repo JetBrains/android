@@ -28,6 +28,11 @@ public final class TimingInfoPath extends Path {
     return builder.append("TimingInfo(").append(myID).append(")");
   }
 
+  @Override
+  public Path getParent() {
+    return null;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
 

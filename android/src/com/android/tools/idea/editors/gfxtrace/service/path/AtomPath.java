@@ -30,8 +30,17 @@ public final class AtomPath extends Path {
     return myAtoms.stringPath(builder).append("[").append(myIndex).append("]");
   }
 
+  @Override
+  public Path getParent() {
+    return myAtoms;
+  }
+
   public StatePath stateAfter() {
     return new StatePath().setAfter(this);
+  }
+
+  public static StatePath stateAfter(AtomPath atomPath) {
+    return (atomPath == null) ? null : atomPath.stateAfter();
   }
 
   public ResourcePath resourceAfter(BinaryID id) {

@@ -19,7 +19,6 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.MemoryRangePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -44,7 +43,6 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Range;
 import com.intellij.util.containers.EmptyIterator;
 import com.intellij.util.ui.StatusText;
-import com.intellij.util.xml.ui.EmptyPane;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,11 +102,9 @@ public class MemoryController extends Controller {
 
   @Override
   public void notifyPath(PathEvent event) {
-    myScrollPane.setViewportView(myEmptyPanel);
-    if (event.path instanceof MemoryRangePath) {
+    final MemoryRangePath memoryPath = event.findMemoryPath();
+    if (memoryPath != null) {
       myLoading.startLoading();
-
-      final MemoryRangePath memoryPath = (MemoryRangePath)event.path;
       PagedMemoryDataModel.MemoryFetcher fetcher = new PagedMemoryDataModel.MemoryFetcher() {
         @Override
         public ListenableFuture<byte[]> get(long address, long count) {
@@ -140,6 +136,8 @@ public class MemoryController extends Controller {
           }
         });
       }
+    } else {
+      myScrollPane.setViewportView(myEmptyPanel);
     }
   }
 

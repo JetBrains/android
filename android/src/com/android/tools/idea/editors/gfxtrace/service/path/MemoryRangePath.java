@@ -29,6 +29,11 @@ public final class MemoryRangePath extends Path {
       .append("[").append(Long.toHexString(myAddress)).append(":").append(Long.toHexString(getEndAddress())).append("]");
   }
 
+  @Override
+  public Path getParent() {
+    return myAfter;
+  }
+
   public long getEndAddress() {
     return myAddress + mySize-1;
   }

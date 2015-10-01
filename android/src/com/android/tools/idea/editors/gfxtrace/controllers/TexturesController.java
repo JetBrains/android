@@ -18,16 +18,13 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
-import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
-import com.android.tools.idea.editors.gfxtrace.widgets.ImagePanel;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
@@ -71,8 +68,8 @@ public class TexturesController extends ImagePanelController {
       @NotNull public final ResourceInfo info;
       @NotNull public final ResourcePath path;
 
-      public Data(@NotNull ResourceInfo info, @NotNull ResourcePath path) {
-        super(info.getName());
+      public Data(@NotNull ResourceInfo info, @NotNull String typeLabel, @NotNull ResourcePath path) {
+        super(typeLabel + " " + info.getName());
         this.info = info;
         this.path = path;
       }
@@ -98,14 +95,13 @@ public class TexturesController extends ImagePanelController {
 
     protected void update(boolean resourcesChanged) {
       if (myAtomPath.getPath() != null && myResources != null) {
-        AtomPath atomPath = myAtomPath.getPath();
         List<Data> cells = new ArrayList<Data>();
+        addTextures(cells, myResources.getTextures1D(), "1D");
+        addTextures(cells, myResources.getTextures2D(), "2D");
+        addTextures(cells, myResources.getTextures3D(), "3D");
+        addTextures(cells, myResources.getCubemaps(), "Cubemap");
+
         int selectedIndex = myList.getSelectedItem();
-        for (ResourceInfo info : myResources.getTextures2D()) {
-          if (info.getFirstAccess() <= atomPath.getIndex()) {
-            cells.add(new Data(info, atomPath.resourceAfter(info.getID())));
-          }
-        }
         myList.setData(cells);
         if (!resourcesChanged && selectedIndex >= 0 && selectedIndex < cells.size()) {
           myList.selectItem(selectedIndex, false);
@@ -117,22 +113,29 @@ public class TexturesController extends ImagePanelController {
       }
     }
 
-    @Override
-    public void notifyPath(PathEvent event) {
-      if (event.path instanceof CapturePath) {
-        if (myResourcesPath.update(((CapturePath)event.path).resources())) {
-          Futures.addCallback(myEditor.getClient().get(myResourcesPath.getPath()), new LoadingCallback<Resources>(LOG) {
-            @Override
-            public void onSuccess(@Nullable final Resources resources) {
-              // Back in the UI thread here
-              myResources = resources;
-              update(true);
-            }
-          }, EdtExecutor.INSTANCE);
+    private void addTextures(List<Data> cells, ResourceInfo[] textures, String typeLabel) {
+      AtomPath atomPath = myAtomPath.getPath();
+      for (ResourceInfo info : textures) {
+        if (info.getFirstAccess() <= atomPath.getIndex()) {
+          cells.add(new Data(info, typeLabel, atomPath.resourceAfter(info.getID())));
         }
       }
+    }
 
-      if ((event.path instanceof AtomPath) && myAtomPath.update((AtomPath)event.path)) {
+    @Override
+    public void notifyPath(PathEvent event) {
+      if (myResourcesPath.updateIfNotNull(CapturePath.resources(event.findCapturePath()))) {
+        Futures.addCallback(myEditor.getClient().get(myResourcesPath.getPath()), new LoadingCallback<Resources>(LOG) {
+          @Override
+          public void onSuccess(@Nullable final Resources resources) {
+            // Back in the UI thread here
+            myResources = resources;
+            update(true);
+          }
+        }, EdtExecutor.INSTANCE);
+      }
+
+      if (myAtomPath.updateIfNotNull(event.findAtomPath())) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
