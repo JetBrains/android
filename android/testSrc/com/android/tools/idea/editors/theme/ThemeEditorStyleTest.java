@@ -215,7 +215,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     assertNotNull(configuration.getTarget());
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 22, null));
 
-    ThemeEditorStyle myTheme = ResolutionUtils.getStyle(configuration, "Theme.MyTheme", null);
+    ThemeEditorStyle myTheme = ResolutionUtils.getStyle(configuration, "MyTheme", null);
     assertNotNull(myTheme);
     Set<String> expectedAttributes = Sets.newHashSet("actionModeStyle", "windowIsFloating", "checkedTextViewStyle");
     for(EditedStyleItem item : ThemeEditorTestUtils.getStyleLocalValues(myTheme)) {
@@ -254,7 +254,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
 
     // Test with a v14 configuration
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 14, null));
-    myTheme = ResolutionUtils.getStyle(configuration, "Theme.MyTheme", null);
+    myTheme = ResolutionUtils.getStyle(configuration, "MyTheme", null);
     assertNotNull(myTheme);
 
     Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(myTheme);
@@ -477,6 +477,28 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     assertContainsElements(parentNames, "Base.V20", "Base.V17");
   }
 
+  /**
+   * Test {@link ThemeEditorStyle#getParentNames()} for a style:
+   * <style name="ATheme.Red"></style>, i.e parent defined in the name
+   */
+  public void testGetParentNamesParenInName() {
+    VirtualFile virtualFile = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_1.xml", "res/values-v19/styles.xml");
+
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    Configuration configuration = configurationManager.getConfiguration(virtualFile);
+    ThemeResolver resolver = new ThemeResolver(configuration);
+    ThemeEditorStyle theme = resolver.getTheme("ATheme.Red");
+    assertNotNull(theme);
+
+    HashSet<String> parents = Sets.newHashSet();
+    for (ConfiguredElement<String> parent : theme.getParentNames()) {
+      parents.add(parent.getElement());
+    }
+    assertEquals(2, parents.size());
+    assertContainsElements(parents, "ATheme", "BTheme");
+  }
+
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
@@ -537,7 +559,7 @@ public class ThemeEditorStyleTest extends AndroidTestCase {
     Configuration configuration = configurationManager.getConfiguration(virtualFile);
     ThemeResolver resolver = new ThemeResolver(configuration);
     ThemeEditorStyle theme = resolver.getTheme("AppTheme");
-
+    assertNotNull(theme);
     assertEquals(3, theme.getConfiguredValues().size());
   }
 
