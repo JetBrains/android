@@ -652,7 +652,7 @@ public class FastDeployManager implements ProjectComponent {
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
     // Clear any locally cached data on the device related to this app
     String pkg = remotePath.substring(remotePath.lastIndexOf('/') + 1);
-    state.executeDeviceCommandAndWriteToConsole(device, "adb shell rm -rf " + getDataFolder(pkg), receiver);
+    state.executeDeviceCommandAndWriteToConsole(device, "rm -rf " + getDataFolder(pkg), receiver);
   }
 
   private static long ourBeginTime;
