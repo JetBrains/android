@@ -54,7 +54,7 @@ public class DeviceSelectionUtils {
   @Nullable
   public static Collection<IDevice> chooseRunningDevice(@NotNull final AndroidFacet facet,
                                                         @NotNull final Predicate<IDevice> deviceFilter,
-                                                        final boolean supportMultipleDevices) {
+                                                        @NotNull final DeviceCount deviceCount) {
     final Collection<IDevice> compatibleDevices = getAllCompatibleDevices(deviceFilter);
 
     if (compatibleDevices.size() == 0) {
@@ -69,7 +69,7 @@ public class DeviceSelectionUtils {
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
-          devicesRef.set(chooseDevicesManually(facet, deviceFilter, supportMultipleDevices));
+          devicesRef.set(chooseDevicesManually(facet, deviceFilter, deviceCount));
         }
       }, ModalityState.defaultModalityState());
       // Return the selected devices, or null if the user cancelled.
@@ -97,7 +97,7 @@ public class DeviceSelectionUtils {
   @NotNull
   private static IDevice[] chooseDevicesManually(@NotNull AndroidFacet facet,
                                                  @NotNull Predicate<IDevice> filter,
-                                                 boolean supportMultipleDevices) {
+                                                 @NotNull DeviceCount deviceCount) {
     final Project project = facet.getModule().getProject();
     String value = PropertiesComponent.getInstance(project).getValue(ANDROID_TARGET_DEVICES_PROPERTY);
     String[] selectedSerials = value != null ? deserialize(value) : null;
@@ -106,7 +106,8 @@ public class DeviceSelectionUtils {
       LOG.error("Android platform not set for module: " + facet.getModule().getName());
       return DeviceChooser.EMPTY_DEVICE_ARRAY;
     }
-    DeviceChooserDialog chooser = new DeviceChooserDialog(facet, platform.getTarget(), supportMultipleDevices, selectedSerials, filter);
+    DeviceChooserDialog chooser =
+      new DeviceChooserDialog(facet, platform.getTarget(), deviceCount.isMultiple(), selectedSerials, filter);
     chooser.show();
     IDevice[] devices = chooser.getSelectedDevices();
     if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE || devices.length == 0) {
