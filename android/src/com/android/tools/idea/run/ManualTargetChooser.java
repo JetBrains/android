@@ -6,8 +6,6 @@ import com.android.tools.idea.run.cloud.CloudMatrixTarget;
 import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import com.intellij.execution.Executor;
-import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -30,25 +28,16 @@ public class ManualTargetChooser implements TargetChooser {
 
   @NotNull private final AndroidRunConfigurationBase myConfiguration;
   @NotNull private final AndroidFacet myFacet;
-  private final boolean mySupportMultipleDevices;
   @NotNull private final EmulatorLaunchOptions myEmulatorLaunchOptions;
-  @NotNull private final Executor myExecutor;
-  @NotNull private final ConsolePrinter myPrinter;
 
   public ManualTargetChooser(
     @NotNull AndroidRunConfigurationBase configuration,
     @NotNull AndroidFacet facet,
-    boolean supportMultipleDevices,
-    @NotNull EmulatorLaunchOptions emulatorLaunchOptions,
-    @NotNull Executor executor,
-    @NotNull ConsolePrinter printer
+    @NotNull EmulatorLaunchOptions emulatorLaunchOptions
   ) {
     myConfiguration = configuration;
     myFacet = facet;
-    mySupportMultipleDevices = supportMultipleDevices;
     myEmulatorLaunchOptions = emulatorLaunchOptions;
-    myExecutor = executor;
-    myPrinter = printer;
   }
 
   @Override
@@ -62,8 +51,8 @@ public class ManualTargetChooser implements TargetChooser {
 
   @Nullable
   @Override
-  public DeployTarget getTarget() {
-    Collection<IDevice> devices = getReusableDevices();
+  public DeployTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
+    Collection<IDevice> devices = getReusableDevices(deviceCount);
     if (!devices.isEmpty()) {
       return DeviceTarget.forDevices(devices);
     }
@@ -74,9 +63,9 @@ public class ManualTargetChooser implements TargetChooser {
       return null;
     }
 
-    boolean showCloudTarget = myConfiguration instanceof AndroidTestRunConfiguration && !(myExecutor instanceof DefaultDebugExecutor);
+    boolean showCloudTarget = myConfiguration instanceof AndroidTestRunConfiguration && !debug;
     final ExtendedDeviceChooserDialog chooser =
-      new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), mySupportMultipleDevices, true,
+      new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), deviceCount.isMultiple(), true,
                                       myConfiguration.USE_LAST_SELECTED_DEVICE, showCloudTarget, myEmulatorLaunchOptions.getCommandLine());
     chooser.show();
     if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
@@ -90,8 +79,8 @@ public class ManualTargetChooser implements TargetChooser {
         return null;
       }
       EmulatorTargetChooser emulatorChooser =
-        new EmulatorTargetChooser(myFacet, mySupportMultipleDevices, myEmulatorLaunchOptions, myPrinter, selectedAvd);
-      return emulatorChooser.getTarget();
+        new EmulatorTargetChooser(myFacet, myEmulatorLaunchOptions, selectedAvd);
+      return emulatorChooser.getTarget(printer, deviceCount, debug);
     }
     else if (chooser.isCloudTestOptionSelected()) {
       return new CloudMatrixTarget(chooser.getSelectedMatrixConfigurationId(), chooser.getChosenCloudProjectId());
@@ -114,7 +103,7 @@ public class ManualTargetChooser implements TargetChooser {
 
   /** Re-use the last used devices if we are configured to do so and the online devices have not changed. */
   @NotNull
-  private Collection<IDevice> getReusableDevices() {
+  private Collection<IDevice> getReusableDevices(@NotNull DeviceCount deviceCount) {
     DeviceStateAtLaunch devicesToReuse = myConfiguration.getDevicesUsedInLastLaunch();
     if (!myConfiguration.USE_LAST_SELECTED_DEVICE || devicesToReuse == null) {
       return ImmutableList.of();
@@ -123,7 +112,7 @@ public class ManualTargetChooser implements TargetChooser {
     Set<IDevice> onlineDevices = getOnlineDevices();
     if (devicesToReuse.matchesCurrentAvailableDevices(onlineDevices)) {
       Collection<IDevice> usedDevices = devicesToReuse.filterByUsed(onlineDevices);
-      if (usedDevices.size() == 1 || mySupportMultipleDevices) {
+      if (usedDevices.size() == 1 || deviceCount.isMultiple()) {
         return usedDevices;
       }
     }

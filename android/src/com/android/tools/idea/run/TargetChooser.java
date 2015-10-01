@@ -14,7 +14,7 @@ public interface TargetChooser {
    * if an error needs to be displayed, the target chooser should surface it.
    */
   @Nullable
-  DeployTarget getTarget();
+  DeployTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug);
 
   boolean matchesDevice(@NotNull IDevice device);
 }

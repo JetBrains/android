@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.cloud;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.TargetChooser;
+import com.android.tools.idea.run.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,15 +27,22 @@ public class CloudMatrixTargetChooser implements TargetChooser {
 
   private final int myMatrixConfigurationId;
   @NotNull private final String myCloudProjectId;
+  @NotNull private final ManualTargetChooser myFallback;
 
-  public CloudMatrixTargetChooser(int matrixConfigurationId, @NotNull String cloudProjectId) {
+  public CloudMatrixTargetChooser(int matrixConfigurationId, @NotNull String cloudProjectId, @NotNull ManualTargetChooser fallback) {
     myMatrixConfigurationId = matrixConfigurationId;
     myCloudProjectId = cloudProjectId;
+    myFallback = fallback;
   }
 
   @Nullable
   @Override
-  public CloudMatrixTarget getTarget() {
+  public DeployTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
+    if (debug) {
+      // It does not make sense to debug a matrix of devices on the cloud. In debug mode, fall back to manual chooser.
+      // TODO: Consider making the debug executor unavailable in this case rather than popping the extended chooser dialog.
+      return myFallback.getTarget(printer, deviceCount, debug);
+    }
     return new CloudMatrixTarget(myMatrixConfigurationId, myCloudProjectId);
   }
 
