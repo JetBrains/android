@@ -35,7 +35,6 @@ public final class Factory {
     Report.register();
     ResourceInfo.register();
     Resources.register();
-    Schema.register();
     TimingInfo.register();
     CallFollow.register();
     CallGet.register();
