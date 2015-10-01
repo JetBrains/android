@@ -43,8 +43,8 @@ public class UsbDeviceTargetChooser implements TargetChooser {
   @Nullable
   @Override
   public DeviceTarget getTarget() {
-    Collection<IDevice> runningDevices = DeviceSelectionUtils
-      .chooseRunningDevice(myFacet, new TargetDeviceFilter(this), mySupportMultipleDevices);
+    Collection<IDevice> runningDevices =
+      DeviceSelectionUtils.chooseRunningDevice(myFacet, new TargetDeviceFilter(this), mySupportMultipleDevices);
     if (runningDevices == null) {
       // The user canceled.
       return null;
