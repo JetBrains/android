@@ -17,8 +17,6 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.run.cloud.*;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -71,13 +69,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
 
   public int SELECTED_CLOUD_MATRIX_CONFIGURATION_ID = 0;
+  @NotNull
   public String SELECTED_CLOUD_MATRIX_PROJECT_ID = "";
   public int SELECTED_CLOUD_DEVICE_CONFIGURATION_ID = 0;
+  @NotNull
   public String SELECTED_CLOUD_DEVICE_PROJECT_ID = "";
-  public boolean IS_VALID_CLOUD_MATRIX_SELECTION = false; // indicates whether the selected matrix config + project combo is valid
-  public String INVALID_CLOUD_MATRIX_SELECTION_ERROR = ""; // specifies the error if the matrix config + project combo is invalid
-  public boolean IS_VALID_CLOUD_DEVICE_SELECTION = false; // indicates whether the selected cloud device config + project combo is valid
-  public String INVALID_CLOUD_DEVICE_SELECTION_ERROR = ""; // specifies the error if the cloud device config + project combo is invalid
   public String CLOUD_DEVICE_SERIAL_NUMBER = "";
 
   @NotNull private final EmulatorLaunchOptions myEmulatorLaunchOptions = new EmulatorLaunchOptions();
@@ -141,34 +137,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (facet.getManifest() == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
     }
-    errors.addAll(validateAvd(facet));
+    errors.addAll(getTargetChooser(facet).validate());
     errors.addAll(getApkProvider(facet).validate());
 
     errors.addAll(checkConfiguration(facet));
 
     return errors;
-  }
-
-  @NotNull
-  private List<ValidationError> validateAvd(@NotNull AndroidFacet facet) {
-    if (PREFERRED_AVD.isEmpty()) {
-      return ImmutableList.of();
-    }
-    AvdManager avdManager = facet.getAvdManagerSilently();
-    if (avdManager == null) {
-      return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("avd.cannot.be.loaded.error")));
-    }
-    AvdInfo avdInfo = avdManager.getAvd(PREFERRED_AVD, false);
-    if (avdInfo == null) {
-      return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("avd.not.found.error", PREFERRED_AVD)));
-    }
-    if (avdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
-      String message = avdInfo.getErrorMessage();
-      message = AndroidBundle.message("avd.not.valid.error", PREFERRED_AVD) +
-                (message != null ? ": " + message: "") + ". Try to repair it through AVD manager";
-      return ImmutableList.of(ValidationError.fatal(message));
-    }
-    return ImmutableList.of();
   }
 
   /** Returns whether the configuration supports running library projects, and if it doesn't, then an explanation as to why it doesn't. */
@@ -313,9 +287,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         return new CloudDebuggingTargetChooser(CLOUD_DEVICE_SERIAL_NUMBER);
       case CLOUD_MATRIX_TEST:
         ManualTargetChooser fallback = new ManualTargetChooser(this, facet, myEmulatorLaunchOptions);
-        return new CloudMatrixTargetChooser(SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID, fallback);
+        return new CloudMatrixTargetChooser(facet, SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID, fallback);
       case CLOUD_DEVICE_LAUNCH:
-        return new CloudDeviceTargetChooser(SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
+        return new CloudDeviceTargetChooser(facet, SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
       default:
         throw new IllegalStateException("Unknown target selection mode " + TARGET_SELECTION_MODE);
     }
