@@ -17,14 +17,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.idea.editors.gfxtrace.service.image.Format;
+import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
-
-import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
-import com.android.tools.rpclib.binary.BinaryObject;
-import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.binary.Encoder;
-import com.android.tools.rpclib.binary.Namespace;
 
 import java.awt.*;
 import java.io.IOException;
@@ -40,9 +35,11 @@ public final class ResourcePath extends Path {
     return myAfter;
   }
 
-  public ThumbnailPath thumbnail(Dimension dimension) {
-    return new ThumbnailPath().setObject(this).setDesiredWidth(dimension.width).setDesiredHeight(dimension.height);
+  public ThumbnailPath thumbnail(Dimension dimension, Format fmt) {
+    return new ThumbnailPath().setObject(this).setDesiredMaxWidth(dimension.width).setDesiredMaxHeight(dimension.height)
+      .setDesiredFormat(fmt);
   }
+
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
   private AtomPath myAfter;
