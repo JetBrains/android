@@ -31,6 +31,7 @@ public final class Factory {
     FmtLuminanceAlpha.register();
     FmtPNG.register();
     FmtRGB.register();
+    FmtRGB565.register();
     FmtRGBA.register();
     //<<<End:Java.FactoryBody:2>>>
   }
