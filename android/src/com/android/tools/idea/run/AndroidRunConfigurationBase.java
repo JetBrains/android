@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.run.cloud.*;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
@@ -27,7 +28,6 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.diagnostic.Logger;
@@ -242,12 +242,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (AndroidSdkUtils.getDebugBridge(getProject()) == null) return null;
 
     ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
-    TargetChooser targetChooser = getTargetChooser(facet, executor, printer);
+    TargetChooser targetChooser = getTargetChooser(facet);
 
     // If there is a session that we will embed to, we need to re-use the devices from that session.
     DeployTarget deployTarget = getOldSessionTarget(project, executor, targetChooser);
     if (deployTarget == null) {
-      deployTarget = targetChooser.getTarget();
+      deployTarget = targetChooser.getTarget(printer, getDeviceCount(debug), debug);
       if (deployTarget == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
         return null;
@@ -301,25 +301,19 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  protected TargetChooser getTargetChooser(@NotNull AndroidFacet facet, @NotNull Executor executor, @NotNull ConsolePrinter printer) {
-    final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
+  protected TargetChooser getTargetChooser(@NotNull AndroidFacet facet) {
     switch (getTargetSelectionMode()) {
       case SHOW_DIALOG:
-        return new ManualTargetChooser(this, facet, supportMultipleDevices, myEmulatorLaunchOptions, executor, printer);
+        return new ManualTargetChooser(this, facet, myEmulatorLaunchOptions);
       case EMULATOR:
-        return new EmulatorTargetChooser(facet, supportMultipleDevices, myEmulatorLaunchOptions, printer,
-                                         PREFERRED_AVD.length() > 0 ? PREFERRED_AVD : null);
+        return new EmulatorTargetChooser(facet, myEmulatorLaunchOptions, Strings.emptyToNull(PREFERRED_AVD));
       case USB_DEVICE:
-        return new UsbDeviceTargetChooser(facet, supportMultipleDevices);
+        return new UsbDeviceTargetChooser(facet);
       case CLOUD_DEVICE_DEBUGGING:
         return new CloudDebuggingTargetChooser(CLOUD_DEVICE_SERIAL_NUMBER);
       case CLOUD_MATRIX_TEST:
-        if (executor instanceof DefaultDebugExecutor) {
-          // It does not make sense to debug a matrix of devices on the cloud.
-          // TODO: Consider making the debug executor unavailable in this case rather than popping the extended chooser dialog.
-          return new ManualTargetChooser(this, facet, supportMultipleDevices, myEmulatorLaunchOptions, executor, printer);
-        }
-        return new CloudMatrixTargetChooser(SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID);
+        ManualTargetChooser fallback = new ManualTargetChooser(this, facet, myEmulatorLaunchOptions);
+        return new CloudMatrixTargetChooser(SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID, fallback);
       case CLOUD_DEVICE_LAUNCH:
         return new CloudDeviceTargetChooser(SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
       default:
@@ -336,6 +330,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected abstract AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet);
 
+  @NotNull
+  public final DeviceCount getDeviceCount(boolean debug) {
+    return DeviceCount.fromBoolean(supportMultipleDevices() && !debug);
+  }
+
+  /** @return true iff this run configuration supports deploying to multiple devices. */
   protected abstract boolean supportMultipleDevices();
 
   @Override

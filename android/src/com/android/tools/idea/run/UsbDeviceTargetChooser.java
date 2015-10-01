@@ -28,11 +28,9 @@ import java.util.Collection;
  */
 public class UsbDeviceTargetChooser implements TargetChooser {
   @NotNull private final AndroidFacet myFacet;
-  private final boolean mySupportMultipleDevices;
 
-  public UsbDeviceTargetChooser(@NotNull AndroidFacet facet, boolean supportMultipleDevices) {
+  public UsbDeviceTargetChooser(@NotNull AndroidFacet facet) {
     myFacet = facet;
-    mySupportMultipleDevices = supportMultipleDevices;
   }
 
   @Override
@@ -42,9 +40,9 @@ public class UsbDeviceTargetChooser implements TargetChooser {
 
   @Nullable
   @Override
-  public DeviceTarget getTarget() {
+  public DeployTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
     Collection<IDevice> runningDevices =
-      DeviceSelectionUtils.chooseRunningDevice(myFacet, new TargetDeviceFilter(this), mySupportMultipleDevices);
+      DeviceSelectionUtils.chooseRunningDevice(myFacet, new TargetDeviceFilter(this), deviceCount);
     if (runningDevices == null) {
       // The user canceled.
       return null;

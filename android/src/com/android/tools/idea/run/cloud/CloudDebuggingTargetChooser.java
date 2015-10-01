@@ -17,10 +17,7 @@ package com.android.tools.idea.run.cloud;
 
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.DeviceSelectionUtils;
-import com.android.tools.idea.run.DeviceTarget;
-import com.android.tools.idea.run.TargetChooser;
-import com.android.tools.idea.run.TargetDeviceFilter;
+import com.android.tools.idea.run.*;
 import org.jetbrains.annotations.NotNull;
 
 public class CloudDebuggingTargetChooser implements TargetChooser {
@@ -39,7 +36,7 @@ public class CloudDebuggingTargetChooser implements TargetChooser {
 
   @NotNull
   @Override
-  public DeviceTarget getTarget() {
+  public DeviceTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
     // TODO: Prompt the user to launch a cloud device if none found.
     // TODO: Assert that we don't get multiple devices out here?
     return DeviceTarget.forDevices(DeviceSelectionUtils.getAllCompatibleDevices(new TargetDeviceFilter(this)));
