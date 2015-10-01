@@ -101,7 +101,7 @@ public class TexturesController extends ImagePanelController {
         AtomPath atomPath = myAtomPath.getPath();
         List<Data> cells = new ArrayList<Data>();
         int selectedIndex = myList.getSelectedItem();
-        for (ResourceInfo info : myResources.getTextures()) {
+        for (ResourceInfo info : myResources.getTextures2D()) {
           if (info.getFirstAccess() <= atomPath.getIndex()) {
             cells.add(new Data(info, atomPath.resourceAfter(info.getID())));
           }
