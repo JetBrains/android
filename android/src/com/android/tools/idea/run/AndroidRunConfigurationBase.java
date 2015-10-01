@@ -177,8 +177,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected abstract List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet);
 
-  /** @return true iff we should try to install APKs when launching this configuration to a device. */
-  protected abstract boolean shouldDeploy();
+  /** Subclasses should override to adjust the launch options passed to AndroidRunningState. */
+  @NotNull
+  protected LaunchOptions.Builder getLaunchOptions() {
+    return LaunchOptions.builder()
+      .setClearLogcatBeforeStart(CLEAR_LOGCAT)
+      .setSkipNoopApkInstallations(SKIP_NOOP_APK_INSTALLATIONS)
+      .setForceStopRunningApp(FORCE_STOP_RUNNING_APP);
+  }
 
   @Override
   public Collection<Module> getValidModules() {
@@ -225,10 +231,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     Project project = env.getProject();
 
+    boolean debug = false;
     if (executor instanceof DefaultDebugExecutor) {
       if (!AndroidSdkUtils.activateDdmsIfNecessary(facet.getModule().getProject())) {
         return null;
       }
+      debug = true;
     }
 
     if (AndroidSdkUtils.getDebugBridge(getProject()) == null) return null;
@@ -262,8 +270,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
-    return new AndroidRunningState(env, facet, getApkProvider(facet), deviceTarget, printer, getApplicationLauncher(facet), CLEAR_LOGCAT,
-                                   shouldDeploy(), this);
+    LaunchOptions launchOptions = getLaunchOptions()
+      .setDebug(debug)
+      .build();
+
+    return new AndroidRunningState(env, facet, getApkProvider(facet), deviceTarget, printer, getApplicationLauncher(facet),
+                                   launchOptions, this);
   }
 
   @Nullable

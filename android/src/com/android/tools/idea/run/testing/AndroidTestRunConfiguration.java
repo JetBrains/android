@@ -204,11 +204,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   }
 
   @Override
-  protected boolean shouldDeploy() {
-    return true;
-  }
-
-  @Override
   @NotNull
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet) {
     // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
