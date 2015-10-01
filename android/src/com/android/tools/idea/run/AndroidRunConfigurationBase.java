@@ -35,20 +35,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.*;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
@@ -323,30 +317,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet);
-
-  @Nullable
-  public static Pair<File, String> getCopyOfCompilerManifestFile(@NotNull AndroidFacet facet) throws IOException {
-    final VirtualFile manifestFile = AndroidRootUtil.getCustomManifestFileForCompiler(facet);
-
-    if (manifestFile == null) {
-      return null;
-    }
-    File tmpDir = null;
-    try {
-      tmpDir = FileUtil.createTempDirectory("android_manifest_file_for_execution", "tmp");
-      final File manifestCopy = new File(tmpDir, manifestFile.getName());
-      FileUtil.copy(new File(manifestFile.getPath()), manifestCopy);
-      //noinspection ConstantConditions
-      return Pair.create(manifestCopy, PathUtil.getLocalPath(manifestFile));
-    }
-    catch (IOException e) {
-      LOG.info(e);
-      if (tmpDir != null) {
-        FileUtil.delete(tmpDir);
-      }
-      throw e;
-    }
-  }
 
   @NotNull
   protected abstract ConsoleView attachConsole(AndroidRunningState state, Executor executor) throws ExecutionException;
