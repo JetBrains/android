@@ -18,16 +18,13 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
-import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
-import com.android.tools.idea.editors.gfxtrace.widgets.ImagePanel;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
@@ -119,20 +116,18 @@ public class TexturesController extends ImagePanelController {
 
     @Override
     public void notifyPath(PathEvent event) {
-      if (event.path instanceof CapturePath) {
-        if (myResourcesPath.update(((CapturePath)event.path).resources())) {
-          Futures.addCallback(myEditor.getClient().get(myResourcesPath.getPath()), new LoadingCallback<Resources>(LOG) {
-            @Override
-            public void onSuccess(@Nullable final Resources resources) {
-              // Back in the UI thread here
-              myResources = resources;
-              update(true);
-            }
-          }, EdtExecutor.INSTANCE);
-        }
+      if (myResourcesPath.updateIfNotNull(CapturePath.resources(event.findCapturePath()))) {
+        Futures.addCallback(myEditor.getClient().get(myResourcesPath.getPath()), new LoadingCallback<Resources>(LOG) {
+          @Override
+          public void onSuccess(@Nullable final Resources resources) {
+            // Back in the UI thread here
+            myResources = resources;
+            update(true);
+          }
+        }, EdtExecutor.INSTANCE);
       }
 
-      if ((event.path instanceof AtomPath) && myAtomPath.update((AtomPath)event.path)) {
+      if (myAtomPath.updateIfNotNull(event.findAtomPath())) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {

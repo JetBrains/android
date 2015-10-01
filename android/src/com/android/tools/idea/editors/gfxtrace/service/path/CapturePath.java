@@ -37,6 +37,10 @@ public final class CapturePath extends Path {
     return new AtomsPath().setCapture(this);
   }
 
+  public static AtomsPath atoms(CapturePath capture) {
+    return (capture == null) ? null : capture.atoms();
+  }
+
   public HierarchyPath hierarchy() {
     return new HierarchyPath().setCapture(this);
   }
@@ -45,6 +49,9 @@ public final class CapturePath extends Path {
     return new ResourcesPath().setCapture(this);
   }
 
+  public static ResourcesPath resources(CapturePath capture) {
+    return (capture == null) ? null : capture.resources();
+  }
 
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
