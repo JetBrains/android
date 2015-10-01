@@ -19,16 +19,15 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.activity.*;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.execution.configurations.*;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.RefactoringListenerProvider;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.junit.RefactoringListeners;
-import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -74,19 +73,12 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return errors;
   }
 
+  @NotNull
   @Override
-  protected boolean shouldDeploy() {
-    return DEPLOY;
-  }
-
-  @Override
-  public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
-    RunProfileState state = super.getState(executor, env);
-    if (state instanceof AndroidRunningState) {
-      AndroidRunningState androidRunningState = (AndroidRunningState) state;
-      androidRunningState.setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
-    }
-    return state;
+  protected LaunchOptions.Builder getLaunchOptions() {
+    return super.getLaunchOptions()
+      .setDeploy(DEPLOY)
+      .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
   }
 
   @Override

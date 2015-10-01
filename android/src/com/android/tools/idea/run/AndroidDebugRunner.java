@@ -115,6 +115,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     if (runProfile instanceof AndroidTestRunConfiguration) {
       // attempt to set the target package only in case on non Gradle projects
       if (!state.getFacet().requiresAndroidModel()) {
+        // TODO: Don't do this here - do it when setting up the AndroidRunningState or in AndroidRunningState itself.
         String targetPackage = getTargetPackage((AndroidTestRunConfiguration)runProfile, state);
         if (targetPackage == null) {
           throw new ExecutionException(AndroidBundle.message("target.package.not.specified.error"));
@@ -123,7 +124,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       }
     }
 
-    state.setDebugMode(true);
     RunContentDescriptor runDescriptor;
     synchronized (myDebugLock) {
       MyDebugLauncher launcher = new MyDebugLauncher(state, environment);
