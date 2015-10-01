@@ -119,12 +119,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
       }
     }
     else {
-      LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
-      assert repository != null;
-      // Find every definition of this style and get all the attributes defined
-      List<ResourceItem> styleDefinitions = repository.getResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
-      assert styleDefinitions != null; // Style doesn't exist anymore?
-      for (ResourceItem styleDefinition : styleDefinitions) {
+      for (ResourceItem styleDefinition : getStyleResourceItems()) {
         ResourceValue styleResourceValue = styleDefinition.getResourceValue(isFramework());
         FolderConfiguration folderConfiguration = styleDefinition.getConfiguration();
 
