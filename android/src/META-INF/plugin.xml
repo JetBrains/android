@@ -209,6 +209,10 @@
         overrides="true"
         text="Submit _Feedback"
         description="Submit feedback to the Android Studio team"/>
+    <action id="AndroidDeepLinkCodeGeneratorAction" class="com.android.tools.idea.actions.DeepLinkCodeGeneratorAction"
+            text="Deep Link" description="Generate a new intent filter for deep linking">
+      <add-to-group group-id="GenerateGroup" anchor="first"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
@@ -375,6 +379,11 @@
 
     <intentionAction>
       <className>com.android.tools.idea.actions.OverrideResourceAction</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <className>com.android.tools.idea.actions.CreateDeepLinkIntentionAction</className>
       <category>Android</category>
     </intentionAction>
 
