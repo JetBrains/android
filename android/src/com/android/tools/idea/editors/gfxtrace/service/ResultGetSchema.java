@@ -18,23 +18,24 @@
 package com.android.tools.idea.editors.gfxtrace.service;
 
 import com.android.tools.rpclib.binary.*;
+import com.android.tools.rpclib.schema.Message;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 final class ResultGetSchema implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  private Schema myValue;
+  private Message myValue;
 
   // Constructs a default-initialized {@link ResultGetSchema}.
   public ResultGetSchema() {}
 
 
-  public Schema getValue() {
+  public Message getValue() {
     return myValue;
   }
 
-  public ResultGetSchema setValue(Schema v) {
+  public ResultGetSchema setValue(Message v) {
     myValue = v;
     return this;
   }
@@ -69,7 +70,7 @@ final class ResultGetSchema implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ResultGetSchema o = (ResultGetSchema)obj;
-      o.myValue = new Schema();
+      o.myValue = new Message();
       d.value(o.myValue);
     }
     //<<<End:Java.KlassBody:2>>>
