@@ -35,6 +35,11 @@ public final class ResourcePath extends Path {
     return myAfter.stringPath(builder).append(".Resource<").append(myID).append(">");
   }
 
+  @Override
+  public Path getParent() {
+    return myAfter;
+  }
+
   public ThumbnailPath thumbnail(Dimension dimension) {
     return new ThumbnailPath().setObject(this).setDesiredWidth(dimension.width).setDesiredHeight(dimension.height);
   }

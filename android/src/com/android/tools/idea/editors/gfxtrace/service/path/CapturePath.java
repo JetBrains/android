@@ -28,6 +28,11 @@ public final class CapturePath extends Path {
     return builder.append("Capture(").append(myID).append(")");
   }
 
+  @Override
+  public Path getParent() {
+    return null;
+  }
+
   public AtomsPath atoms() {
     return new AtomsPath().setCapture(this);
   }
