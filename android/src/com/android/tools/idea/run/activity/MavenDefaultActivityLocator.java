@@ -17,7 +17,7 @@ package com.android.tools.idea.run.activity;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.ApkProviderUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
@@ -53,7 +53,7 @@ public class MavenDefaultActivityLocator extends ActivityLocator {
     try {
       Pair<File, String> pair;
       try {
-        pair = AndroidRunConfigurationBase.getCopyOfCompilerManifestFile(myFacet);
+        pair = ApkProviderUtil.getCopyOfCompilerManifestFile(myFacet);
       }
       catch (IOException e) {
         throw new ActivityLocatorException("Error while obtaining compiler manifest file", e);
