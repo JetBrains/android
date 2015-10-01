@@ -151,7 +151,7 @@ public class GradleDslParser implements GradleDslElementParser {
       }
       else if (element instanceof GrNamedArgument) { // ex: manifestPlaceholders activityLabel:"defaultName"
         GrNamedArgument namedArgument = (GrNamedArgument)element;
-        propertyElement = new MapElement(blockElement, propertyName, namedArgument);
+        propertyElement = new LiteralMapElement(blockElement, propertyName, namedArgument);
       }
     }
     else {
@@ -160,7 +160,7 @@ public class GradleDslParser implements GradleDslElementParser {
         for (int i = 0; i < arguments.length; i++) {
           literals[i] = (GrLiteral)arguments[i];
         }
-        propertyElement = new ListElement(blockElement, propertyName, literals);
+        propertyElement = new LiteralListElement(blockElement, propertyName, literals);
       }
       else if (arguments[0] instanceof GrNamedArgument) {
         // ex: manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
@@ -168,14 +168,14 @@ public class GradleDslParser implements GradleDslElementParser {
         for (int i = 0; i < arguments.length; i++) {
           namedArguments[i] = (GrNamedArgument)arguments[i];
         }
-        propertyElement = new MapElement(blockElement, propertyName, namedArguments);
+        propertyElement = new LiteralMapElement(blockElement, propertyName, namedArguments);
       }
     }
     if (propertyElement == null) {
       return false;
     }
 
-    blockElement.addProperty(propertyName, propertyElement);
+    blockElement.addParsedElement(propertyName, propertyElement);
     return true;
   }
 
@@ -210,17 +210,17 @@ public class GradleDslParser implements GradleDslElementParser {
     else if (right instanceof GrListOrMap) {
       GrListOrMap listOrMap = (GrListOrMap)right;
       if (listOrMap.isMap()) { // ex: manifestPlaceholders = [activityLabel1:"defaultName1", activityLabel2:"defaultName2"]
-        propertyElement = new MapElement(blockElement, propertyName, listOrMap);
+        propertyElement = new LiteralMapElement(blockElement, propertyName, listOrMap);
       }
       else { // ex: proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
-        propertyElement = new ListElement(blockElement, propertyName, listOrMap);
+        propertyElement = new LiteralListElement(blockElement, propertyName, listOrMap);
       }
     }
     if (propertyElement == null) {
       return false;
     }
 
-    blockElement.setProperty(propertyName, propertyElement);
+    blockElement.setParsedElement(propertyName, propertyElement);
     return true;
   }
 
@@ -257,12 +257,12 @@ public class GradleDslParser implements GradleDslElementParser {
         }
         else if (resultElement instanceof ProductFlavorElement
                  && ("manifestPlaceholders".equals(nestedElementName) || "testInstrumentationRunnerArguments".equals(nestedElementName))){
-          newElement = new MapElement(resultElement, nestedElementName);
+          newElement = new LiteralMapElement(resultElement, nestedElementName);
         }
         else {
           return null;
         }
-        resultElement.setProperty(nestedElementName, newElement);
+        resultElement.setParsedElement(nestedElementName, newElement);
         resultElement = newElement;
       }
       else if (element instanceof GradleDslPropertiesElement) {

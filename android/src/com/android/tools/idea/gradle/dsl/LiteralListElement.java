@@ -26,20 +26,20 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import java.util.List;
 
 /**
- * Represents a list of {@link LiteralElement}s.
+ * Represents an element which consists a list of {@link LiteralElement}s.
  */
-public final class ListElement extends GradleDslElement {
+public final class LiteralListElement extends GradleDslElement {
   @NotNull private final String myName;
   @NotNull private final List<LiteralElement> myElements = Lists.newArrayList();
   @NotNull private final List<LiteralElement> myToBeAddedElements = Lists.newArrayList();
   @NotNull private final List<LiteralElement> myToBeRemovedElements = Lists.newArrayList();
 
-  public ListElement(@Nullable GradleDslElement parent, @NotNull String name) {
+  public LiteralListElement(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent);
     myName = name;
   }
 
-  public ListElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap list) {
+  public LiteralListElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap list) {
     super(parent);
     assert !list.isMap();
     myName = name;
@@ -50,7 +50,7 @@ public final class ListElement extends GradleDslElement {
     }
   }
 
-  public ListElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrLiteral... literals) {
+  public LiteralListElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrLiteral... literals) {
     super(parent);
     myName = name;
     for (GrLiteral literal : literals) {
@@ -61,6 +61,12 @@ public final class ListElement extends GradleDslElement {
   public void add(@NotNull String name, @NotNull GrLiteral... literals) {
     for (GrLiteral literal : literals) {
       myElements.add(new LiteralElement(this, name, literal));
+    }
+  }
+
+  public void add(@NotNull LiteralElement... elements) {
+    for (LiteralElement element : elements) {
+      myElements.add(element);
     }
   }
 
@@ -136,7 +142,7 @@ public final class ListElement extends GradleDslElement {
     myToBeRemovedElements.clear();
     for (LiteralElement element : myElements) {
       if (element.isModified()) {
-        element.reset();
+        element.resetState();
       }
     }
   }
