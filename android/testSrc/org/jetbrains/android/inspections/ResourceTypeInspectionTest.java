@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+@SuppressWarnings("StatementWithEmptyBody")
 public class ResourceTypeInspectionTest extends LightInspectionTestCase {
 
   @Override
@@ -966,6 +967,40 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testStringDefOnEquals() {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=186598
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.StringDef;\n" +
+            "\n" +
+            "import java.lang.annotation.Retention;\n" +
+            "\n" +
+            "@SuppressWarnings({\"unused\", \"StringEquality\"})\n" +
+            "public class X {\n" +
+            "    public static final String SUNDAY = \"a\";\n" +
+            "    public static final String MONDAY = \"b\";\n" +
+            "\n" +
+            "    @StringDef(value = {\n" +
+            "            SUNDAY,\n" +
+            "            MONDAY\n" +
+            "    })\n" +
+            "    @Retention(java.lang.annotation.RetentionPolicy.SOURCE)\n" +
+            "    public @interface Day {\n" +
+            "    }\n" +
+            "\n" +
+            "    @Day\n" +
+            "    public String getDay() {\n" +
+            "        return MONDAY;\n" +
+            "    }\n" +
+            "\n" +
+            "    public void test(Object object) {\n" +
+            "        boolean ok1 = this.getDay() == /*Must be one of: X.SUNDAY, X.MONDAY*/\"Any String\"/**/;\n" +
+            "        boolean ok2 = this.getDay().equals(MONDAY);\n" +
+            "        boolean wrong1 = this.getDay().equals(/*Must be one of: X.SUNDAY, X.MONDAY*/\"Any String\"/**/);\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   @Override
   protected String[] getEnvironmentClasses() {
     @Language("JAVA")
@@ -1080,6 +1115,14 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                     "    boolean flag() default false;\n" +
                     "}\n";
     classes.add(header + intDef);
+
+    @Language("JAVA")
+    String stringDef = "@Retention(SOURCE)\n" +
+                       "@Target({ANNOTATION_TYPE})\n" +
+                       "public @interface StringDef {\n" +
+                       "    String[] value() default {};\n" +
+                       "}\n";
+    classes.add(header + stringDef);
 
     for (ResourceType type : ResourceType.values()) {
       if (type == ResourceType.FRACTION || type == ResourceType.PUBLIC) {
