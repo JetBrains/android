@@ -28,6 +28,11 @@ public final class StatePath extends Path {
     return myAfter.stringPath(builder).append(".State");
   }
 
+  @Override
+  public Path getParent() {
+    return myAfter;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private AtomPath myAfter;
 

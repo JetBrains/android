@@ -35,6 +35,11 @@ public final class AsPath extends Path {
     return myObject.stringPath(builder).append(".As<").append(myType).append(">");
   }
 
+  @Override
+  public Path getParent() {
+    return myObject;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Path myObject;
   private Object myType;

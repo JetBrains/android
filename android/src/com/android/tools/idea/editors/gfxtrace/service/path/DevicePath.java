@@ -28,6 +28,11 @@ public final class DevicePath extends Path {
     return builder.append("Device(").append(myID).append(")");
   }
 
+  @Override
+  public Path getParent() {
+    return null;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
 
