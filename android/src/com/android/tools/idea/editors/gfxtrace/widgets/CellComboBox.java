@@ -30,10 +30,20 @@ import java.util.List;
  */
 public abstract class CellComboBox<T extends CellWidget.Data> extends CellWidget<T, ComboBox> {
   public CellComboBox(CellRenderer.CellLoader<T> loader) {
-    super(new ComboBox(), loader);
+    super(new ComboBox() {
+      @Override
+      public Object getPrototypeDisplayValue() {
+        // Every item is a prototype value. This will prevent it from loading all items to determine the size.
+        ComboBoxModel model = getModel();
+        return (model.getSize() == 0) ? null : model.getElementAt(0);
+      }
+    }, loader);
     myComponent.setRenderer(myRenderer);
     myComponent.setMaximumRowCount(5);
-    myComponent.getPopup().getList().setFixedCellHeight(myRenderer.getInitialCellSize().height);
+    JList list = myComponent.getPopup().getList();
+    Dimension initialSize = myRenderer.getInitialCellSize();
+    list.setFixedCellHeight(initialSize.height);
+    list.setFixedCellWidth(initialSize.width);
   }
 
   @Override

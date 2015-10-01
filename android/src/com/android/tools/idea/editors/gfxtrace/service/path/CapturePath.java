@@ -28,8 +28,17 @@ public final class CapturePath extends Path {
     return builder.append("Capture(").append(myID).append(")");
   }
 
+  @Override
+  public Path getParent() {
+    return null;
+  }
+
   public AtomsPath atoms() {
     return new AtomsPath().setCapture(this);
+  }
+
+  public static AtomsPath atoms(CapturePath capture) {
+    return (capture == null) ? null : capture.atoms();
   }
 
   public HierarchyPath hierarchy() {
@@ -40,6 +49,9 @@ public final class CapturePath extends Path {
     return new ResourcesPath().setCapture(this);
   }
 
+  public static ResourcesPath resources(CapturePath capture) {
+    return (capture == null) ? null : capture.resources();
+  }
 
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;

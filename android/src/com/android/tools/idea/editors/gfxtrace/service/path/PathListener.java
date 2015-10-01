@@ -26,5 +26,35 @@ public interface PathListener {
       this.path = path;
       this.source = source;
     }
+
+    /**
+     * Returns a path of the requested type if this event's path or one of its ancestors is of the given type, or {@code null}.
+     */
+    public <T extends Path> T findPathOfType(Class<T> cls) {
+      Path p = path;
+      while (p != null) {
+        if (cls.isInstance(p)) {
+          return cls.cast(p);
+        }
+        p = p.getParent();
+      }
+      return null;
+    }
+
+    public DevicePath findDevicePath() {
+      return findPathOfType(DevicePath.class);
+    }
+
+    public CapturePath findCapturePath() {
+      return findPathOfType(CapturePath.class);
+    }
+
+    public AtomPath findAtomPath() {
+      return findPathOfType(AtomPath.class);
+    }
+
+    public MemoryRangePath findMemoryPath() {
+      return findPathOfType(MemoryRangePath.class);
+    }
   }
 }

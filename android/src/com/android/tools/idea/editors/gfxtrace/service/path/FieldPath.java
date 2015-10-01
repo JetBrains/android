@@ -28,6 +28,11 @@ public final class FieldPath extends Path {
     return myStruct.stringPath(builder).append(".").append(myName);
   }
 
+  @Override
+  public Path getParent() {
+    return myStruct;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Path myStruct;
   private String myName;
