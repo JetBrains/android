@@ -136,12 +136,7 @@ public class TexturesController extends ImagePanelController {
       }
 
       if (myAtomPath.updateIfNotNull(event.findAtomPath())) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            update(false);
-          }
-        });
+        update(false);
       }
     }
   }
