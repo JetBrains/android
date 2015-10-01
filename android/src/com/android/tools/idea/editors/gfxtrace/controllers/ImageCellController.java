@@ -64,15 +64,19 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
     return this;
   }
 
-  protected ImageCellController<T> usingComboBoxWidget(final Dimension maxCellSize) {
+  protected ImageCellController<T> usingComboBoxWidget(final Dimension imageSize) {
     myList = new CellComboBox<T>(this) {
       @Override
       protected CellRenderer<T> createCellRenderer(CellRenderer.CellLoader<T> loader) {
-        return new ImageCellRenderer<T>(loader, maxCellSize) {
+        return new ImageCellRenderer<T>(loader, imageSize) {
+          {
+            setMinimumIconSize(imageSize);
+          }
+
           @Override
           public Dimension getInitialCellSize() {
             return
-              new Dimension(maxCellSize.width + 2 * ImageCellRenderer.BORDER_SIZE, maxCellSize.height + 2 * ImageCellRenderer.BORDER_SIZE);
+              new Dimension(imageSize.width + 2 * ImageCellRenderer.BORDER_SIZE, imageSize.height + 2 * ImageCellRenderer.BORDER_SIZE);
           }
         };
       }

@@ -62,6 +62,12 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
     return myCellComponent;
   }
 
+  public void setMinimumIconSize(Dimension dimension) {
+    myLargestKnownIconDimension.width = Math.max(myLargestKnownIconDimension.width, dimension.width);
+    myLargestKnownIconDimension.height = Math.max(myLargestKnownIconDimension.height, dimension.height);
+    myCellComponent.setImageSize(myLargestKnownIconDimension);
+  }
+
   @Override
   public Dimension getInitialCellSize() {
     return INITIAL_SIZE;

@@ -27,10 +27,8 @@ import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
-import groovy.swing.impl.DefaultAction;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -103,15 +101,10 @@ public class FrameBufferController extends ImagePanelController {
 
   @Override
   public void notifyPath(PathEvent event) {
-    boolean updateTabs = false;
-    if (event.path instanceof DevicePath) {
-      updateTabs |= myRenderDevice.update((DevicePath)event.path);
-    }
-    if (event.path instanceof AtomPath) {
-      updateTabs |= myAtomPath.update((AtomPath)event.path);
-    }
-    if (updateTabs && myRenderDevice.getPath() != null && myAtomPath.getPath() != null) {
-      // TODO: maybe do the selected tab first, but it's probably not much of a win
+    boolean updateBuffer = myRenderDevice.updateIfNotNull(event.findDevicePath());
+    updateBuffer = myAtomPath.updateIfNotNull(event.findAtomPath()) | updateBuffer;
+
+    if (updateBuffer && myRenderDevice.getPath() != null && myAtomPath.getPath() != null) {
       updateBuffer();
     }
   }

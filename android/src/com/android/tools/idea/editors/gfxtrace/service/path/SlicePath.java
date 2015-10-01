@@ -28,6 +28,11 @@ public final class SlicePath extends Path {
     return myArray.stringPath(builder).append("[").append(myStart).append(":").append(myEnd).append("]");
   }
 
+  @Override
+  public Path getParent() {
+    return myArray;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Path myArray;
   private long myStart;
