@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.fd.PatchRunningAppAction;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -34,6 +35,7 @@ import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -47,6 +49,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.Semaphore;
+import com.intellij.util.containers.ContainerUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -234,6 +237,24 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       Collection<IDevice> devices = getTargetDevices(env);
       final List<String> properties = getGradleArgumentsToTarget(devices);
 
+      final Module[] modules;
+      if (configuration instanceof ModuleRunProfile) {
+        // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
+        // which is AbstractRerunFailedTestsAction.MyRunProfile.
+        modules = ((ModuleRunProfile)configuration).getModules();
+      }
+      else {
+        modules = Projects.getModulesToBuildFromSelection(myProject, context);
+      }
+
+      if (devices.size() == 1 &&
+          env.getExecutor() instanceof DefaultRunExecutor &&
+          canUpdateIncrementally(ContainerUtil.getFirstItem(devices), modules)) {
+        // Currently fast deploy relies on extracting timestamps for arsc files before and after the build
+        // So we don't perform a build here, and let the
+        return true;
+      }
+
       if (myProject.isDisposed()) {
         done.up();
       }
@@ -243,16 +264,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         SwingUtilities.invokeAndWait(new Runnable() {
           @Override
           public void run() {
-            Module[] modules;
-            if (configuration instanceof ModuleRunProfile) {
-              // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
-              // which is AbstractRerunFailedTestsAction.MyRunProfile.
-              modules = ((ModuleRunProfile)configuration).getModules();
-            }
-            else {
-              modules = Projects.getModulesToBuildFromSelection(myProject, context);
-            }
-
             gradleInvoker.addAfterGradleInvocationTask(afterTask);
             String goal = task.getGoal();
             if (StringUtil.isEmpty(goal)) {
@@ -277,6 +288,19 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
     return success.get();
+  }
+
+  private static boolean canUpdateIncrementally(@Nullable IDevice device, @NotNull Module[] modules) {
+    if (modules.length != 1) {
+      return false;
+    }
+
+    if (device == null) {
+      return false;
+    }
+
+    Module module = modules[0];
+    return PatchRunningAppAction.isPatchableApp(module) && PatchRunningAppAction.isAppRunning(device, module);
   }
 
   @NotNull

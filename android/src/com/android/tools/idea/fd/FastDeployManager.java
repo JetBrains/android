@@ -293,7 +293,7 @@ public class FastDeployManager implements ProjectComponent {
 
   // TODO: This should be provided as part of the model!
   @NotNull
-  private static String getIncrementalDexTask(@NotNull AndroidGradleModel model) {
+  static String getIncrementalDexTask(@NotNull AndroidGradleModel model) {
     final String variantName = getVariantName(model);
 
     // TODO: Add in task for resources too!
