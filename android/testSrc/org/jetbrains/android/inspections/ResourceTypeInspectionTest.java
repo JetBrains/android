@@ -711,6 +711,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "import android.location.LocationManager;\n" +
             "import android.support.annotation.RequiresPermission;\n" +
             "\n" +
+            "import java.io.IOException;\n" +
             "import java.security.AccessControlException;\n" +
             "\n" +
             "public class X {\n" +
@@ -788,6 +789,17 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "\n" +
             "    @RequiresPermission(\"my.dangerous.P2\")\n" +
             "    public static void methodRequiresDangerous() {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void test8() { // Regression test for http://b.android.com/187204\n" +
+            "        try {\n" +
+            "            methodRequiresDangerous();\n" +
+            "            mightThrow();\n" +
+            "        } catch (SecurityException | IOException se) { // OK: Checked in multi catch\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public void mightThrow() throws IOException {\n" +
             "    }\n" +
             "\n" +
             "}\n");
