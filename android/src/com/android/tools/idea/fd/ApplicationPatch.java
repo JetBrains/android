@@ -18,10 +18,8 @@ package com.android.tools.idea.fd;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 // This class is used in both the Android runtime and in the IDE.
@@ -30,24 +28,6 @@ import java.util.List;
 // in sync right now.
 @SuppressWarnings({"Assert", "unused"})
 public class ApplicationPatch {
-  /** Magic (random) number used to identify the protocol */
-  public static final long PROTOCOL_IDENTIFIER = 0x35107124L;
-
-  /** Version of the protocol */
-  public static final int PROTOCOL_VERSION = 2;
-
-  /** No updates */
-  public static final int UPDATE_MODE_NONE      = 0; // NOTE: keep in sync with values in the IDE!
-
-  /** Patch changes directly, keep app running without any restarting */
-  public static final int UPDATE_MODE_HOT_SWAP  = 1; // NOTE: keep in sync with values in the IDE!
-
-  /** Patch changes, restart activity to reflect changes */
-  public static final int UPDATE_MODE_WARM_SWAP = 2; // NOTE: keep in sync with values in the IDE!
-
-  /** Store change in app directory, restart app */
-  public static final int UPDATE_MODE_COLD_SWAP = 3; // NOTE: keep in sync with values in the IDE!
-
   public final String path;
   public final byte[] data;
   public boolean forceRestart;
@@ -65,12 +45,10 @@ public class ApplicationPatch {
            '}';
   }
 
+
   // Only needed on the IDE side
   public static void write(@NonNull DataOutputStream output, @Nullable List<ApplicationPatch> changes, @NonNull UpdateMode updateMode)
       throws IOException {
-    output.writeLong(PROTOCOL_IDENTIFIER);
-    output.writeInt(PROTOCOL_VERSION);
-
     if (changes == null) {
       output.writeInt(0);
     } else {
