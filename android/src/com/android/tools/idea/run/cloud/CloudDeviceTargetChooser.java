@@ -16,6 +16,9 @@
 package com.android.tools.idea.run.cloud;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.DeployTarget;
+import com.android.tools.idea.run.DeviceCount;
 import com.android.tools.idea.run.TargetChooser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +38,7 @@ public class CloudDeviceTargetChooser implements TargetChooser {
 
   @Nullable
   @Override
-  public CloudDeviceLaunchTarget getTarget() {
+  public DeployTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
     // TODO: Actually launch the chosen device in here and return a DeviceTarget.
     return new CloudDeviceLaunchTarget(myCloudDeviceConfigurationId, myCloudDeviceProjectId);
   }
