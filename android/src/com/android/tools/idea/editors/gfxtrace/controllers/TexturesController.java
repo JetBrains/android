@@ -68,8 +68,8 @@ public class TexturesController extends ImagePanelController {
       @NotNull public final ResourceInfo info;
       @NotNull public final ResourcePath path;
 
-      public Data(@NotNull ResourceInfo info, @NotNull ResourcePath path) {
-        super(info.getName());
+      public Data(@NotNull ResourceInfo info, @NotNull String typeLabel, @NotNull ResourcePath path) {
+        super(typeLabel + " " + info.getName());
         this.info = info;
         this.path = path;
       }
@@ -95,14 +95,13 @@ public class TexturesController extends ImagePanelController {
 
     protected void update(boolean resourcesChanged) {
       if (myAtomPath.getPath() != null && myResources != null) {
-        AtomPath atomPath = myAtomPath.getPath();
         List<Data> cells = new ArrayList<Data>();
+        addTextures(cells, myResources.getTextures1D(), "1D");
+        addTextures(cells, myResources.getTextures2D(), "2D");
+        addTextures(cells, myResources.getTextures3D(), "3D");
+        addTextures(cells, myResources.getCubemaps(), "Cubemap");
+
         int selectedIndex = myList.getSelectedItem();
-        for (ResourceInfo info : myResources.getTextures2D()) {
-          if (info.getFirstAccess() <= atomPath.getIndex()) {
-            cells.add(new Data(info, atomPath.resourceAfter(info.getID())));
-          }
-        }
         myList.setData(cells);
         if (!resourcesChanged && selectedIndex >= 0 && selectedIndex < cells.size()) {
           myList.selectItem(selectedIndex, false);
@@ -110,6 +109,15 @@ public class TexturesController extends ImagePanelController {
         } else {
           myList.selectItem(-1, false);
           selected(null);
+        }
+      }
+    }
+
+    private void addTextures(List<Data> cells, ResourceInfo[] textures, String typeLabel) {
+      AtomPath atomPath = myAtomPath.getPath();
+      for (ResourceInfo info : textures) {
+        if (info.getFirstAccess() <= atomPath.getIndex()) {
+          cells.add(new Data(info, typeLabel, atomPath.resourceAfter(info.getID())));
         }
       }
     }
