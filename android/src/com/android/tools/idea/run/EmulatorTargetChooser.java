@@ -46,21 +46,15 @@ public class EmulatorTargetChooser implements TargetChooser {
 
   private final String myAvd;
   @NotNull private final AndroidFacet myFacet;
-  private final boolean mySupportMultipleDevices;
   @NotNull private final EmulatorLaunchOptions myEmulatorLaunchOptions;
-  @NotNull private final ConsolePrinter myPrinter;
 
   public EmulatorTargetChooser(
     @NotNull AndroidFacet facet,
-    boolean supportMultipleDevices,
     @NotNull EmulatorLaunchOptions emulatorLaunchOptions,
-    @NotNull ConsolePrinter printer,
     @Nullable String avd
   ) {
     myFacet = facet;
-    mySupportMultipleDevices = supportMultipleDevices;
     myEmulatorLaunchOptions = emulatorLaunchOptions;
-    myPrinter = printer;
     assert avd == null || avd.length() > 0;
     myAvd = avd;
   }
@@ -89,9 +83,9 @@ public class EmulatorTargetChooser implements TargetChooser {
 
   @Nullable
   @Override
-  public DeviceTarget getTarget() {
+  public DeployTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
     Collection<IDevice> runningDevices = DeviceSelectionUtils
-      .chooseRunningDevice(myFacet, new TargetDeviceFilter(this), mySupportMultipleDevices);
+      .chooseRunningDevice(myFacet, new TargetDeviceFilter(this), deviceCount);
     if (runningDevices == null) {
       // The user canceled.
       return null;
@@ -116,7 +110,7 @@ public class EmulatorTargetChooser implements TargetChooser {
       }
     };
 
-    return DeviceTarget.forFuture(DeviceReadyListener.getReadyDevice(avdNameFilter, myPrinter));
+    return DeviceTarget.forFuture(DeviceReadyListener.getReadyDevice(avdNameFilter, printer));
   }
 
   @Nullable
