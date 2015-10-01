@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
+import com.android.tools.rpclib.schema.Message;
 import com.android.tools.idea.editors.gfxtrace.service.path.TimingInfoPath;
 import com.android.tools.rpclib.rpccore.Broadcaster;
 import java.io.InputStream;
@@ -65,7 +66,7 @@ public final class ServiceClientRPC extends ServiceClient {
     return myExecutorService.submit(new GetFramebufferDepthCallable(device, after));
   }
   @Override
-  public ListenableFuture<Schema> getSchema() {
+  public ListenableFuture<Message> getSchema() {
     return myExecutorService.submit(new GetSchemaCallable());
   }
   @Override
@@ -164,14 +165,14 @@ public final class ServiceClientRPC extends ServiceClient {
       return result.getValue();
     }
   }
-  private class GetSchemaCallable implements Callable<Schema> {
+  private class GetSchemaCallable implements Callable<Message> {
     private final CallGetSchema myCall;
 
     private GetSchemaCallable() {
       myCall = new CallGetSchema();
     }
     @Override
-    public Schema call() throws Exception {
+    public Message call() throws Exception {
       ResultGetSchema result = (ResultGetSchema)myBroadcaster.Send(myCall);
       return result.getValue();
     }
