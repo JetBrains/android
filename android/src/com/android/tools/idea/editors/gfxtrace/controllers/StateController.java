@@ -119,15 +119,9 @@ public class StateController extends TreeController {
       Futures.addCallback(myEditor.getClient().get(myStatePath.getPath()), new LoadingCallback<Object>(LOG, myLoadingPanel) {
         @Override
         public void onSuccess(@Nullable final Object state) {
-          final DefaultMutableTreeNode stateNode = createNode("state", null, state);
-          EdtExecutor.INSTANCE.execute(new Runnable() {
-            @Override
-            public void run() {
-              setRoot(stateNode);
-            }
-          });
+          setRoot(createNode("state", null, state));
         }
-      });
+      }, EdtExecutor.INSTANCE);
     }
   }
 }
