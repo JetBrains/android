@@ -1,6 +1,5 @@
 <resources>
-  <style name="BTheme" parent="@android:style/Theme">
-  </style>
-  <style name="AppTheme" parent="BTheme">
-  </style>
+  <style name="BTheme" parent="@android:style/Theme"></style>
+  <style name="AppTheme" parent="BTheme"></style>
+  <style name="ATheme.Red" parent="BTheme"></style>
 </resources>

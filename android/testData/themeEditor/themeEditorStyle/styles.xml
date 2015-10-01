@@ -3,4 +3,5 @@
   </style>
   <style name="AppTheme" parent="ATheme">
   </style>
+  <style name="ATheme.Red"></style>
 </resources>
