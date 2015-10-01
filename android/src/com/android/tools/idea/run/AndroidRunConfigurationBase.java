@@ -23,7 +23,6 @@ import com.android.tools.idea.run.cloud.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
-import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.*;
@@ -35,9 +34,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
-import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -45,9 +41,7 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -133,14 +127,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     final Project project = module.getProject();
     if (requiredAndroidModelMissing(project)) {
-      // This only shows an error message on the "Run Configuration" dialog, but does not prevent user from running app.
-      errors.add(ValidationError.warning(GRADLE_SYNC_FAILED_ERR_MSG));
+      errors.add(ValidationError.fatal(GRADLE_SYNC_FAILED_ERR_MSG));
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       // Can't proceed.
-      return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("android.no.facet.error")));
+      return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("no.facet.error", module.getName())));
     }
     if (facet.isLibraryProject()) {
       Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
@@ -232,28 +225,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Override
   public RunProfileState getState(@NotNull final Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     final Module module = getConfigurationModule().getModule();
-    if (module == null) {
-      throw new ExecutionException("Module is not found");
-    }
+    assert module != null : "Enforced by fatal validation check in checkConfiguration.";
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      throw new ExecutionException(AndroidBundle.message("no.facet.error", module.getName()));
-    }
+    assert facet != null : "Enforced by fatal validation check in checkConfiguration.";
 
     Project project = env.getProject();
-
-    if (requiredAndroidModelMissing(project)) {
-      // This prevents user from running the app.
-      throw new ExecutionException(GRADLE_SYNC_FAILED_ERR_MSG);
-    }
-
-    AndroidFacetConfiguration configuration = facet.getConfiguration();
-    AndroidPlatform platform = configuration.getAndroidPlatform();
-    if (platform == null) {
-      Messages.showErrorDialog(project, AndroidBundle.message("specify.platform.error"), CommonBundle.getErrorTitle());
-      ModulesConfigurator.showDialog(project, module.getName(), ClasspathEditor.NAME);
-      return null;
-    }
 
     if (executor instanceof DefaultDebugExecutor) {
       if (!AndroidSdkUtils.activateDdmsIfNecessary(facet.getModule().getProject())) {
