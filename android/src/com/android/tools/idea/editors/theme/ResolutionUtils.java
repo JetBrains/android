@@ -224,4 +224,19 @@ public class ResolutionUtils {
       return apiLookup.getFieldVersion("android/R$" + resUrl.type, AndroidResourceUtil.getFieldNameByResourceName(resUrl.name));
     }
   }
+
+  @Nullable("if this style doesn't have parent")
+  public static String getParentQualifiedName(@NotNull StyleResourceValue style) {
+    String parentName = ResourceResolver.getParentName(style);
+    if (parentName == null) {
+      return null;
+    }
+    if (parentName.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+      parentName = getQualifiedNameFromResourceUrl(parentName);
+    }
+    if (style.isFramework() && !parentName.startsWith(SdkConstants.PREFIX_ANDROID)) {
+      parentName = SdkConstants.PREFIX_ANDROID + parentName;
+    }
+    return parentName;
+  }
 }
