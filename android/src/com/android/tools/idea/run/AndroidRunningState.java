@@ -96,16 +96,14 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   private String myTargetPackageName;
   @NotNull private final AndroidFacet myFacet;
-  private final AndroidApplicationLauncher myApplicationLauncher;
+  @NotNull private final AndroidApplicationLauncher myApplicationLauncher;
   @NotNull private final ProcessHandlerConsolePrinter myPrinter;
-  private final AndroidRunConfigurationBase myConfiguration;
+  @NotNull private final AndroidRunConfigurationBase myConfiguration;
+  @NotNull private final LaunchOptions myLaunchOptions;
 
   private final Object myDebugLock = new Object();
 
   @NotNull private final DeviceTarget myDeviceTarget;
-
-  private volatile boolean myDebugMode;
-  private volatile boolean myOpenLogcatAutomatically;
 
   private volatile DebugLauncher myDebugLauncher;
 
@@ -115,12 +113,9 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   private volatile ProcessHandler myProcessHandler;
   private final Object myLock = new Object();
 
-  private final boolean myDeploy;
-
   private volatile boolean myApplicationDeployed = false;
 
   private ConsoleView myConsole;
-  private final boolean myClearLogcatBeforeStart;
   private final List<AndroidRunningStateListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
 
   public AndroidRunningState(@NotNull ExecutionEnvironment environment,
@@ -128,9 +123,8 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
                              @NotNull ApkProvider apkProvider,
                              @NotNull DeviceTarget deviceTarget,
                              @NotNull ProcessHandlerConsolePrinter printer,
-                             AndroidApplicationLauncher applicationLauncher,
-                             boolean clearLogcatBeforeStart,
-                             boolean deploy,
+                             @NotNull AndroidApplicationLauncher applicationLauncher,
+                             @NotNull LaunchOptions launchOptions,
                              @NotNull AndroidRunConfigurationBase configuration) {
     myFacet = facet;
     myApkProvider = apkProvider;
@@ -140,12 +134,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
     myEnv = environment;
     myApplicationLauncher = applicationLauncher;
-    myClearLogcatBeforeStart = clearLogcatBeforeStart;
-    myDeploy = deploy;
-  }
-
-  public void setDebugMode(boolean debugMode) {
-    myDebugMode = debugMode;
+    myLaunchOptions = launchOptions;
   }
 
   @Nullable
@@ -158,7 +147,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   }
 
   public boolean isDebugMode() {
-    return myDebugMode;
+    return myLaunchOptions.isDebug();
   }
 
   @Override
@@ -245,7 +234,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
         if (myDebugLauncher == null) {
           return;
         }
-        if (myDeploy && !myApplicationDeployed) {
+        if (myLaunchOptions.isDeploy() && !myApplicationDeployed) {
           return;
         }
         IDevice device = client.getDevice();
@@ -356,7 +345,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
           if (myStopped.get() || device == null) {
             return;
           }
-          if (myDebugMode) {
+          if (isDebugMode()) {
             // Listen for when the installed app is ready for debugging.
             final MyClientChangeListener listener = new MyClientChangeListener(device);
             AndroidDebugBridge.addClientChangeListener(listener);
@@ -368,7 +357,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
             });
           }
           if (prepareAndStartApp(device)) {
-            if (startedCount.incrementAndGet() == myDeviceTarget.getDeviceFutures().size() && !myDebugMode) {
+            if (startedCount.incrementAndGet() == myDeviceTarget.getDeviceFutures().size() && !isDebugMode()) {
               // All the devices have been started, and we don't need to wait to attach the debugger. We're done.
               myStopped.set(true);
               getProcessHandler().destroyProcess();
@@ -407,23 +396,19 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     }
   }
 
-  public void setOpenLogcatAutomatically(boolean openLogcatAutomatically) {
-    myOpenLogcatAutomatically = openLogcatAutomatically;
-  }
-
   private boolean prepareAndStartApp(@NotNull final IDevice device) {
-    if (myDebugMode && !LaunchUtils.canDebugAppOnDevice(myFacet, device)) {
+    if (isDebugMode() && !LaunchUtils.canDebugAppOnDevice(myFacet, device)) {
       myPrinter.stderr(AndroidBundle.message("android.cannot.debug.noDebugPermissions", getPackageName(), device.getName()));
       return false;
     }
 
-    if (myClearLogcatBeforeStart) {
+    if (myLaunchOptions.isClearLogcatBeforeStart()) {
       clearLogcatAndConsole(getModule().getProject(), device);
     }
 
     myPrinter.stdout("Target device: " + device.getName());
     try {
-      if (myDeploy) {
+      if (myLaunchOptions.isDeploy()) {
         Collection<ApkInfo> apks;
         try {
           apks = myApkProvider.getApks(device);
@@ -482,7 +467,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
           }
         }
       }
-      if (!myDebugMode && myOpenLogcatAutomatically) {
+      if (!isDebugMode() && myLaunchOptions.isOpenLogcatAutomatically()) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
@@ -583,7 +568,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   private boolean checkDdms() {
     AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
-    if (myDebugMode && bridge != null && AdbService.canDdmsBeCorrupted(bridge)) {
+    if (isDebugMode() && bridge != null && AdbService.canDdmsBeCorrupted(bridge)) {
       myPrinter.stderr(AndroidBundle.message("ddms.corrupted.error"));
       JComponent component = myConsole == null ? null : myConsole.getComponent();
       if (component != null) {
@@ -625,9 +610,9 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myPrinter.stdout("Uploading file\n\tlocal path: " + localFile + "\n\tremote path: " + remotePath);
     try {
       InstalledApkCache installedApkCache = ServiceManager.getService(InstalledApkCache.class);
-      if (myConfiguration.SKIP_NOOP_APK_INSTALLATIONS && installedApkCache.isInstalled(device, localFile, packageName)) {
+      if (myLaunchOptions.isSkipNoopApkInstallations() && installedApkCache.isInstalled(device, localFile, packageName)) {
         myPrinter.stdout("No apk changes detected.");
-        if (myConfiguration.FORCE_STOP_RUNNING_APP) {
+        if (myLaunchOptions.isForceStopRunningApp()) {
           myPrinter.stdout("Skipping file upload, force stopping package instead.");
           forceStopPackageSilently(device, packageName, true);
         }
