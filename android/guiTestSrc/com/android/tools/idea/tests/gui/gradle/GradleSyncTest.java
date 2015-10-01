@@ -32,6 +32,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.ContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
@@ -51,7 +52,6 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
@@ -60,10 +60,12 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.net.HttpConfigurable;
 import junit.framework.AssertionFailedError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -71,6 +73,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -84,6 +87,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -102,6 +106,7 @@ import static com.android.tools.idea.gradle.parser.Dependency.Scope.COMPILE;
 import static com.android.tools.idea.gradle.parser.Dependency.Type.EXTERNAL;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
@@ -183,11 +188,10 @@ public class GradleSyncTest extends GuiTestCase {
 
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/build.gradle")
-      .moveTo(editor.findOffset("^compile fileTree"))
-      .enterText("androidTestCompile project(':library3')\n");
+          .moveTo(editor.findOffset("^compile fileTree"))
+          .enterText("androidTestCompile project(':library3')\n");
 
-    projectFrame.requestProjectSync();
-    projectFrame.waitForBackgroundTasksToFinish();
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
     Module appModule = projectFrame.getModule("app");
 
     for (OrderEntry entry : ModuleRootManager.getInstance(appModule).getOrderEntries()) {
@@ -517,7 +521,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     // Sync should be successful for multi-module projects with an empty settings.gradle file.
     projectFrame.requestProjectSync()
-                .waitForGradleProjectSyncToFinish();
+                .waitForBackgroundTasksToFinish();
   }
 
   @Test @IdeGuiTest
@@ -616,7 +620,6 @@ public class GradleSyncTest extends GuiTestCase {
                      "javaHome=c:\\Program Files\\Java\\jdk,daemonRegistryDir=C:\\Users\\user.name\\.gradle\\daemon,pid=7868,idleTimeout=null]\n" +
                      "javaHome=C:\\Program Files\\Java\\jdk\\jre,daemonRegistryDir=C:\\Users\\user.name\\.gradle\\daemon,pid=4792,idleTimeout=10800000]";
     projectFrame.requestProjectSyncAndSimulateFailure(failure);
-
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("The newly created daemon"));
 
@@ -854,7 +857,7 @@ public class GradleSyncTest extends GuiTestCase {
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("AarDependency");
 
     String stringsXmlPath = "app/src/main/res/values/strings.xml";
-    projectFrame.getEditor().open(stringsXmlPath, EditorFixture.Tab.EDITOR);
+    projectFrame.getEditor().open(stringsXmlPath, Tab.EDITOR);
 
     FileFixture file = projectFrame.findExistingFileByRelativePath(stringsXmlPath);
     file.requireCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
@@ -970,7 +973,7 @@ public class GradleSyncTest extends GuiTestCase {
       return;
     }
 
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     // Set the plugin version to 1.0.0. This version is incompatible with Gradle 2.4.
     // We expect the IDE to warn the user about this incompatibility.
@@ -988,21 +991,13 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testJavaModelSerialization() throws IOException {
     IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-    final File projectPath = projectFrame.getProjectPath();
 
     projectFrame.requestProjectSync()
-                .waitForGradleProjectSyncToFinish();
-    projectFrame.closeProject();
+                .waitForGradleProjectSyncToFinish()
+                .closeProject();
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-        projectManager.loadAndOpenProject(projectPath.getPath());
-      }
-    });
+    projectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
 
-    projectFrame = findIdeFrame(projectPath);
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(projectFrame.getProject());
     // When serialization of Java model fails, libraries are not set up.
     // Here we confirm that serialization works, because the Java module has the dependency declared in its build.gradle file.
@@ -1081,6 +1076,8 @@ public class GradleSyncTest extends GuiTestCase {
     propertiesDialog.addAttachment(javadocJarPath)
                     .clickOk();
 
+    projectFrame.waitForBackgroundTasksToFinish();
+
     String javadocJarUrl = pathToUrl(javadocJarPath.getPath());
 
     // Verify that the library has the Javadoc attachment we just added.
@@ -1103,33 +1100,78 @@ public class GradleSyncTest extends GuiTestCase {
     Project project = projectFrame.getProject();
 
     GradleProperties gradleProperties = new GradleProperties(project);
-    gradleProperties.setJvmArgs("");
+    gradleProperties.clear();
+    gradleProperties.save();
+
+    VirtualFile gradlePropertiesFile = findFileByIoFile(gradleProperties.getPath(), true);
+    assertNotNull(gradlePropertiesFile);
+    projectFrame.getEditor().open(gradlePropertiesFile, Tab.DEFAULT);
 
     String jvmArgs = "-Xmx2048m";
-    projectFrame.setGradleJvmArgs(jvmArgs)
-                .requestProjectSync();
+    projectFrame.setGradleJvmArgs(jvmArgs);
+
+    projectFrame.requestProjectSync();
 
     // Copy JVM args to gradle.properties file.
     projectFrame.findMessageDialog(GRADLE_SETTINGS_DIALOG_TITLE).clickYes();
 
     // Verify JVM args were removed from IDE's Gradle settings.
     projectFrame.waitForGradleProjectSyncToFinish();
-    assertEquals("", GradleSettings.getInstance(project).getGradleVmOptions());
+    assertNull(GradleSettings.getInstance(project).getGradleVmOptions());
 
     // Verify JVM args were copied to gradle.properties file
+
+    LocalFileSystem.getInstance().refresh(false);
     gradleProperties = new GradleProperties(project);
     assertEquals(jvmArgs, gradleProperties.getJvmArgs());
-
-    projectFrame.setGradleJvmArgs(jvmArgs).invokeProjectMake(new Runnable() {
-      @Override
-      public void run() {
-        // Copy JVM args to gradle.properties file.
-        projectFrame.findMessageDialog(GRADLE_SETTINGS_DIALOG_TITLE).clickYes();
-      }
-    });
-    assertEquals("", GradleSettings.getInstance(project).getGradleVmOptions());
   }
 
+  // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
+  // See https://code.google.com/p/android/issues/detail?id=65325
+  @Test @IdeGuiTest @Ignore
+  public void testWithIdeProxySettings() throws IOException {
+    System.getProperties().setProperty("show.do.not.copy.http.proxy.settings.to.gradle", "true");
+
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    File gradlePropertiesPath = new File(projectFrame.getProjectPath(), "gradle.properties");
+    createIfNotExists(gradlePropertiesPath);
+
+    String host = "myproxy.test.com";
+    int port = 443;
+
+    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
+    ideSettings.USE_HTTP_PROXY = true;
+    ideSettings.PROXY_HOST = host;
+    ideSettings.PROXY_PORT = port;
+
+    projectFrame.requestProjectSync();
+
+    // Expect IDE to ask user to copy proxy settings.
+    MessagesFixture message = projectFrame.findMessageDialog("Proxy Settings");
+    JCheckBox checkBox = message.find(new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
+      @Override
+      protected boolean isMatching(@NotNull JCheckBox c) {
+        return c.isVisible() && c.isShowing() && "Do not show this dialog in the future".equals(c.getText());
+      }
+    });
+    assertNotNull(checkBox);
+    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(myRobot, checkBox);
+    checkBoxFixture.setSelected(true);
+
+    message.clickYes();
+
+    projectFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
+
+    // Verify gradle.properties has proxy settings.
+    assertThat(gradlePropertiesPath).isFile();
+
+    Properties gradleProperties = getProperties(gradlePropertiesPath);
+    assertEquals(host, gradleProperties.getProperty("systemProp.http.proxyHost"));
+    assertEquals(String.valueOf(port), gradleProperties.getProperty("systemProp.http.proxyPort"));
+
+    // Verifies that the "Do not show this dialog in the future" does not show up. If it does show up the test will timeout and fail.
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+  }
 
   @Test @IdeGuiTest
   public void testMismatchingEncodings() throws IOException {
