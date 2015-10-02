@@ -134,7 +134,6 @@ public final class GuiTests {
   }
 
   // Called by IdeTestApplication via reflection.
-  @SuppressWarnings("UnusedDeclaration")
   public static void setUpDefaultGeneralSettings() {
     setGuiTestingMode(true);
 
@@ -156,7 +155,10 @@ public final class GuiTests {
           @Override
           public void run() {
             IdeSdks.setAndroidSdkPath(androidSdkPath, null);
+            System.out.println(String.format("Android SDK set to '%1$s", androidSdkPath.getPath()));
             IdeSdks.setJdkPath(jdkPath);
+            System.out.println(String.format("JDK set to '%1$s'", jdkPath.getPath()));
+            System.out.println();
           }
         });
       }

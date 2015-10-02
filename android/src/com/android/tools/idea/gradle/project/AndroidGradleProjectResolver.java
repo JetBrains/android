@@ -62,7 +62,6 @@ import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.getModelVersion;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.trackSyncError;
-import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
@@ -232,12 +231,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         application.putUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY, null);
         task.run();
       }
-    }
-    if (isAndroidStudio()) {
-      LocalProperties localProperties = getLocalProperties();
-      // Ensure that Android Studio and the project (local.properties) point to the same Android SDK home. If they are not the same, we'll
-      // ask the user to choose one and updates either the IDE's default SDK or project's SDK based on the user's choice.
-      syncIdeAndProjectAndroidSdks(localProperties);
     }
   }
 
