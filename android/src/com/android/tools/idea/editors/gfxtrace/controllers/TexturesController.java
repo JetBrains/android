@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
+import com.android.tools.idea.editors.gfxtrace.service.image.FmtRGBA;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.google.common.util.concurrent.Futures;
@@ -51,7 +52,7 @@ public class TexturesController extends ImagePanelController {
       @Override
       public void selected(Data item) {
         setEmptyText(myList.isEmpty() ? GfxTraceEditor.NO_TEXTURES : GfxTraceEditor.SELECT_TEXTURE);
-        setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path.thumbnail(DISPLAY_SIZE)));
+        setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path.thumbnail(DISPLAY_SIZE, FmtRGBA.INSTANCE)));
       }
     }.myList, BorderLayout.NORTH);
     initToolbar(new DefaultActionGroup());
@@ -62,7 +63,8 @@ public class TexturesController extends ImagePanelController {
   }
 
   private abstract static class DropDownController extends ImageCellController<DropDownController.Data> {
-    private static final Dimension PREVIEW_SIZE = JBUI.size(100, 50);
+    private static final Dimension CONTROL_SIZE = JBUI.size(100, 50);
+    private static final Dimension REQUEST_SIZE = JBUI.size(100, 100);
 
     public static class Data extends ImageCellList.Data {
       @NotNull public final ResourceInfo info;
@@ -82,14 +84,14 @@ public class TexturesController extends ImagePanelController {
 
     private DropDownController(@NotNull final GfxTraceEditor editor) {
       super(editor);
-      usingComboBoxWidget(PREVIEW_SIZE);
+      usingComboBoxWidget(CONTROL_SIZE);
       ((ImageCellRenderer<?>)myList.getRenderer()).setLayout(ImageCellRenderer.Layout.LEFT_TO_RIGHT);
     }
 
     @Override
     public void loadCell(Data cell, Runnable onLoad) {
       final ServiceClient client = myEditor.getClient();
-      final ThumbnailPath path = cell.path.thumbnail(PREVIEW_SIZE);
+      final ThumbnailPath path = cell.path.thumbnail(REQUEST_SIZE, FmtRGBA.INSTANCE);
       loadCellImage(cell, client, path, onLoad);
     }
 
