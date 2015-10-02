@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,11 +65,15 @@ public final class Range implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-65, 102, -55, -112, 28, 38, -16, 119, 121, 31, 116, 105, 69, 53, 25, -64, 20, -54, -45, -76, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("atom","Range","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Start", new Primitive("uint64", Method.Uint64)),
+      new Field("End", new Primitive("uint64", Method.Uint64)),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -77,7 +82,7 @@ public final class Range implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new Range(); }

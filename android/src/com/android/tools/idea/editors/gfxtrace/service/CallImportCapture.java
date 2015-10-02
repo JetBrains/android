@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,11 +53,15 @@ final class CallImportCapture implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-118, -80, 21, -56, -75, 91, -35, -15, -125, -17, -121, 42, -67, 83, -61, 76, 26, -93, 27, -9, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","callImportCapture","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("name", new Primitive("string", Method.String)),
+      new Field("Data", new Slice("", new Primitive("uint8", Method.Uint8))),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -65,7 +70,7 @@ final class CallImportCapture implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new CallImportCapture(); }
