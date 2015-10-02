@@ -134,7 +134,7 @@ public class MemoryController extends Controller {
           public void onFailure(Throwable t) {
             LOG.error("Failed to load memory " + memoryPath, t);
           }
-        });
+        }, EdtExecutor.INSTANCE);
       }
     } else {
       myScrollPane.setViewportView(myEmptyPanel);
@@ -142,14 +142,8 @@ public class MemoryController extends Controller {
   }
 
   private void update() {
-    final MemoryPanel contents = new MemoryPanel(myDataType.getMemoryModel(myMemoryData));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        myLoading.stopLoading();
-        myScrollPane.setViewportView(contents);
-      }
-    });
+    myLoading.stopLoading();
+    myScrollPane.setViewportView(new MemoryPanel(myDataType.getMemoryModel(myMemoryData)));
   }
 
   private enum DataType {

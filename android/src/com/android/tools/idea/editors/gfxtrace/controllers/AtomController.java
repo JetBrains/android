@@ -481,19 +481,11 @@ public class AtomController extends TreeController {
         @Override
         public void onSuccess(@Nullable final java.util.List<BinaryObject> all) {
           myLoadingPanel.stopLoading();
-          final AtomList atoms = (AtomList)all.get(0);
-          final AtomGroup group = (AtomGroup)all.get(1);
-          final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
-          group.addChildren(root, atoms);
-          EdtExecutor.INSTANCE.execute(new Runnable() {
-            @Override
-            public void run() {
-              // Back in the UI thread here
-              setRoot(root);
-            }
-          });
+          DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
+          ((AtomGroup)all.get(1)).addChildren(root, (AtomList)all.get(0));
+          setRoot(root);
         }
-      });
+      }, EdtExecutor.INSTANCE);
     }
   }
 }
