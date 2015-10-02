@@ -25,6 +25,8 @@ import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.AndroidRunningState;
+import com.android.tools.idea.run.ApkProviderUtil;
+import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
@@ -458,47 +460,12 @@ public class FastDeployManager implements ProjectComponent {
       updateMode = updateMode.combine(UpdateMode.WARM_SWAP);
     }
 
-    if (device == null) {
-      // TEMPORARY: Try all devices. This should be removed soon; when we hook into the Run
-      // machinery we'll know the device (we'll ask the first time, then keep using the same
-      // device for instant runs)
-      device = guessDevice(module);
-    }
     if (device != null) {
       writeChanges(module, device, changes, updateMode);
     }
     if (DISPLAY_STATISTICS) {
       notifyEnd(myProject);
     }
-  }
-
-  // TEMPORARY: Try all devices. This should be removed soon; when we hook into the Run
-  // machinery we'll know the device (we'll ask the first time, then keep using the same
-  // device for instant runs)
-  @Nullable
-  private IDevice guessDevice(@Nullable Module module) {
-    String applicationId = getPackageName(module);
-    if (applicationId == null) {
-      return null;
-    }
-    try {
-      File adb = AndroidSdkUtils.getAdb(myProject);
-      if (adb != null) {
-        AndroidDebugBridge bridge = AdbService.getInstance().getDebugBridge(adb).get();
-        IDevice[] devices = bridge.getDevices();
-        for (IDevice d : devices) {
-          if (d.getClient(applicationId) != null) {
-            return d;
-          }
-        }
-      }
-    }
-    catch (InterruptedException ignore) {
-    }
-    catch (ExecutionException ignore) {
-    }
-
-    return null;
   }
 
   public void writeChanges(@Nullable Module module, @NotNull IDevice device, @Nullable List<ApplicationPatch> changes,
@@ -609,7 +576,24 @@ public class FastDeployManager implements ProjectComponent {
    * Attempts to connect to a given device and sees if an instant run enabled app is running there.
    */
   public boolean ping(@NotNull IDevice device, @NotNull Module module) {
-    String packageName = getPackageName(module);
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return false;
+    }
+
+    String packageName;
+    try {
+      packageName = ApkProviderUtil.computePackageName(facet);
+    }
+    catch (ApkProvisionException e) {
+      LOG.warn("Unable to identify package name for app in module: " + module.getName());
+      return false;
+    }
+
+    if (device.getClient(packageName) == null) {
+      return false;
+    }
+
     try {
       device.createForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
 
