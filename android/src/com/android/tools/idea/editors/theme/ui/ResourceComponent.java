@@ -173,4 +173,12 @@ public class ResourceComponent extends JPanel {
     }
     return super.getToolTipText(event);
   }
+
+  /**
+   * Returns the current swatch icon size in pixels.
+   */
+  public Dimension getSwatchIconSize() {
+    // Since the icons are square we just use the height of the component.
+    return new Dimension(mySwatchComponent.getHeight(), mySwatchComponent.getHeight());
+  }
 }
