@@ -58,7 +58,6 @@ public class ConfigurationStateManagerTest extends AndroidTestCase {
 
     VirtualFile file = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout.xml");
     ConfigurationFileState configState1 = new ConfigurationFileState();
-    project.getProjectFilePath();
     configState1.setTheme("@style/Theme.Holo.Light");
     configState1.setDeviceState("port");
     manager.setConfigurationState(file, configState1);
