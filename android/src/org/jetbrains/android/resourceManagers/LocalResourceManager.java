@@ -18,6 +18,7 @@ package org.jetbrains.android.resourceManagers;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -166,9 +167,9 @@ public class LocalResourceManager extends ResourceManager {
     for (ResourceType resourceType : AndroidResourceUtil.ALL_VALUE_RESOURCE_TYPES) {
       final ResourceEntry typeMarkerEntry = AndroidValueResourcesIndex.createTypeMarkerKey(resourceType.getName());
 
-      index.processValues(AndroidValueResourcesIndex.INDEX_ID, typeMarkerEntry, null, new FileBasedIndex.ValueProcessor<Set<AndroidValueResourcesIndex.MyResourceInfo>>() {
+      index.processValues(AndroidValueResourcesIndex.INDEX_ID, typeMarkerEntry, null, new FileBasedIndex.ValueProcessor<ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo>>() {
         @Override
-        public boolean process(VirtualFile file, Set<AndroidValueResourcesIndex.MyResourceInfo> infos) {
+        public boolean process(VirtualFile file, ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo> infos) {
           for (AndroidValueResourcesIndex.MyResourceInfo info : infos) {
             Set<String> resourcesInFile = file2Types.get(file);
 
