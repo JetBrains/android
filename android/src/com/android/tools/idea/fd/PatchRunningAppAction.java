@@ -55,7 +55,8 @@ public class PatchRunningAppAction extends AnAction {
   /**
    * Checks whether the app associated with the given module is capable of being run time patched
    * (whether or not it's running). This checks whether we have a Gradle project, and if that
-   * Gradle project is using a recent enough Gradle plugin with incremental support, etc.
+   * Gradle project is using a recent enough Gradle plugin with incremental support, etc. It
+   * also checks whether the user has disabled instant run.
    *
    * @param module a module context, normally the main app module (but if it's a library module
    *               the infrastructure will look for other app modules
@@ -63,6 +64,10 @@ public class PatchRunningAppAction extends AnAction {
    */
   @SuppressWarnings("unused") // Pending integration with Run configuration infrastructure
   public static boolean isPatchableApp(@NotNull Module module) {
+    if (!FastDeployManager.isInstantRunEnabled(module.getProject())) {
+      return false;
+    }
+
     FastDeployManager manager = FastDeployManager.get(module.getProject());
     AndroidFacet facet = manager.findAppModule(module);
     if (facet == null) {
