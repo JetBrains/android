@@ -18,15 +18,17 @@ package com.android.tools.idea.editors.theme.ui;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
 
 /**
  * Component for displaying a color or a drawable resource with attribute name, type and value text.
@@ -37,13 +39,13 @@ public class ResourceComponent extends JPanel {
    */
   public static final String NAME_LABEL = "Name Label";
 
-  private final SwatchComponent mySwatchComponent = new SwatchComponent();
+  private final SwatchComponent mySwatchComponent;
   private final JLabel myNameLabel = new JLabel();
   protected final JLabel myWarningLabel = new JLabel();
 
   private final VariantsComboBox myVariantCombo = new VariantsComboBox();
 
-  public ResourceComponent() {
+  public ResourceComponent(@NotNull Project project) {
     super(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP));
     setBorder(BorderFactory.createEmptyBorder(ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0, ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0));
 
@@ -61,6 +63,7 @@ public class ResourceComponent extends JPanel {
     topRowPanel.add(myVariantCombo);
     add(topRowPanel, BorderLayout.CENTER);
 
+    mySwatchComponent = new SwatchComponent(project);
     add(mySwatchComponent, BorderLayout.SOUTH);
   }
 
@@ -156,6 +159,10 @@ public class ResourceComponent extends JPanel {
 
   public boolean hasWarningIcon() {
     return mySwatchComponent.hasWarningIcon();
+  }
+
+  public void setCompletionStrings(@NotNull List<String> completions) {
+    mySwatchComponent.setCompletionStrings(completions);
   }
 
   public void setVariantComboVisible(boolean isVisible) {

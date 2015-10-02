@@ -38,6 +38,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -48,7 +50,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -64,7 +65,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -109,7 +109,7 @@ public class StateListPicker extends JPanel {
 
   @NotNull
   private StateComponent createStateComponent(@NotNull ResourceHelper.StateListState state) {
-    final StateComponent stateComponent = new StateComponent();
+    final StateComponent stateComponent = new StateComponent(myModule.getProject());
     myStateComponents.add(stateComponent);
 
     String stateValue = state.getValue();
@@ -313,7 +313,7 @@ public class StateListPicker extends JPanel {
     myIsBackgroundStateList = isBackgroundStateList;
   }
 
-  class ValueActionListener extends DocumentAdapter implements ActionListener {
+  class ValueActionListener implements ActionListener, DocumentListener {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 
@@ -323,7 +323,17 @@ public class StateListPicker extends JPanel {
     }
 
     @Override
-    protected void textChanged(DocumentEvent e) {
+    public void beforeDocumentChange(DocumentEvent e) {
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      assert facet != null;
+      List<String> completionStrings = ResourceHelper.getCompletionFromTypes(facet, myStateList.getType() == ResourceFolderType.COLOR
+                                                                                    ? GraphicalResourceRendererEditor.COLORS_ONLY
+                                                                                    : GraphicalResourceRendererEditor.DRAWABLES_ONLY);
+      myComponent.getResourceComponent().setCompletionStrings(completionStrings);
+    }
+
+    @Override
+    public void documentChanged(DocumentEvent e) {
       myState.setValue(myComponent.getResourceValue());
       updateComponent(myComponent, myComponent.getResourceValue(), myComponent.getAlphaValue());
       myComponent.repaint();
@@ -372,7 +382,7 @@ public class StateListPicker extends JPanel {
     }
   }
 
-  private class AlphaActionListener extends DocumentAdapter implements ActionListener {
+  private class AlphaActionListener implements ActionListener, DocumentListener {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 
@@ -382,7 +392,14 @@ public class StateListPicker extends JPanel {
     }
 
     @Override
-    protected void textChanged(DocumentEvent e) {
+    public void beforeDocumentChange(DocumentEvent e) {
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      assert facet != null;
+      myComponent.getAlphaComponent().setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, DIMENSIONS_ONLY));
+    }
+
+    @Override
+    public void documentChanged(DocumentEvent e) {
       myState.setAlpha(myComponent.getAlphaValue());
       updateComponent(myComponent, myComponent.getResourceValue(), myComponent.getAlphaValue());
       myComponent.repaint();
@@ -489,16 +506,16 @@ public class StateListPicker extends JPanel {
     private final JBLabel myAlphaErrorLabel;
     private AlphaActionListener myAlphaActionListener;
 
-    public StateComponent() {
+    public StateComponent(@NotNull Project project) {
       super(BoxLayout.PAGE_AXIS);
 
-      myResourceComponent = new ResourceComponent();
+      myResourceComponent = new ResourceComponent(project);
       add(myResourceComponent);
       myResourceComponent
         .setMaximumSize(new Dimension(myResourceComponent.getMaximumSize().width, myResourceComponent.getPreferredSize().height));
       myResourceComponent.setVariantComboVisible(false);
 
-      myAlphaComponent = new SwatchComponent();
+      myAlphaComponent = new SwatchComponent(project);
       myAlphaComponent.setBackground(JBColor.WHITE);
       myAlphaComponent.setForeground(null);
       add(myAlphaComponent);
