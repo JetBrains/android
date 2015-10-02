@@ -29,14 +29,24 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.ColorUtil;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
 
 /**
  * Class that implements a {@link javax.swing.JTable} renderer and editor for drawable attributes.
  */
 public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
+  private static final RenderLogger DRAWABLE_RENDER_LOGGER = new RenderLogger("ThemeEditorLogger", null);
+  /**
+   * Minimum size in pixels for the drawable preview render. This doesn't need to be exact as the actual icon
+   * will be scaled to match the swatch size.
+   */
+  private static final int MIN_DRAWABLE_PREVIEW_SIZE = JBUI.scale(25);
+
   @Nullable
   private final RenderTask myRenderTask;
 
@@ -52,7 +62,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
       final RenderService service = RenderService.get(facet);
-      result = service.createTask(null, configuration, new RenderLogger("ThemeEditorLogger", module), null);
+      result = service.createTask(null, configuration, DRAWABLE_RENDER_LOGGER, null);
     }
 
     return result;
@@ -63,6 +73,12 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     assert context.getResourceResolver() != null;
 
     if (myRenderTask != null) {
+      // Set a maximum size to avoid rendering big previews that then we will scale down to the size of the swatch icon.
+      Dimension iconSize = component.getSwatchIconSize();
+      // When the component it's been created but hasn't been added to the table yet, it might report a 0 size, so we set a minimum size.
+      int iconWidth = Math.max(iconSize.width, MIN_DRAWABLE_PREVIEW_SIZE);
+      int iconHeight = Math.max(iconSize.height, MIN_DRAWABLE_PREVIEW_SIZE);
+      myRenderTask.setMaxRenderSize(iconWidth, iconHeight);
       component.setSwatchIcons(SwatchComponent.imageListOf(myRenderTask.renderDrawableAllStates(item.getSelectedValue())));
     }
     String nameText = String
