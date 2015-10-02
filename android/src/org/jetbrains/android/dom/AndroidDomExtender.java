@@ -334,9 +334,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       registerSubtags("reset-password", XmlResourceElement.class, callback, registeredSubtags);
       registerSubtags("force-lock", XmlResourceElement.class, callback, registeredSubtags);
       registerSubtags("wipe-data", XmlResourceElement.class, callback, registeredSubtags);
+      registerSubtags("set-global-proxy", XmlResourceElement.class, callback, registeredSubtags);
       registerSubtags("expire-password", XmlResourceElement.class, callback, registeredSubtags);
       registerSubtags("encrypted-storage", XmlResourceElement.class, callback, registeredSubtags);
       registerSubtags("disable-camera", XmlResourceElement.class, callback, registeredSubtags);
+      registerSubtags("disable-keyguard-features", XmlResourceElement.class, callback, registeredSubtags);
     }
 
     // DevicePolicyManager API
