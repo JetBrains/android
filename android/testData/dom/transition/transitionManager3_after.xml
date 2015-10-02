@@ -1,0 +1,3 @@
+<transitionManager xmlns:android="http://schemas.android.com/apk/res/android">
+  <transition android:fromScene="@layout/transition_scene1"
+</transitionManager>
