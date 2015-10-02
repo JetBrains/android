@@ -79,31 +79,18 @@ public abstract class ImagePanelController extends Controller {
         if (!(t instanceof CancellationException)) {
           LOG.error(t);
         }
-
-        EdtExecutor.INSTANCE.execute(new Runnable() {
-          @Override
-          public void run() {
-            if (isCurrentImageRequest(imageRequest)) {
-              myLoading.stopLoading();
-            }
-          }
-        });
+        if (isCurrentImageRequest(imageRequest)) {
+          myLoading.stopLoading();
+        }
       }
-    });
+    }, EdtExecutor.INSTANCE);
   }
 
   private void updateImage(final int imageRequest, FetchedImage fetchedImage) {
-    final Image image = fetchedImage.icon.getImage();
-    EdtExecutor.INSTANCE.execute(new Runnable() {
-      @Override
-      public void run() {
-        // Back in the UI thread here
-        if (isCurrentImageRequest(imageRequest)) {
-          myLoading.stopLoading();
-          myImagePanel.setImage(image);
-        }
-      }
-    });
+    if (isCurrentImageRequest(imageRequest)) {
+      myLoading.stopLoading();
+      myImagePanel.setImage(fetchedImage.icon.getImage());
+    }
   }
 
   private synchronized int newImageRequest(ListenableFuture<?> request) {

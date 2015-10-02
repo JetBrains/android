@@ -141,16 +141,9 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
       Futures.addCallback(myEditor.getClient().get(myAtomsPath.getPath()), new LoadingCallback<AtomList>(LOG) {
         @Override
         public void onSuccess(@Nullable final AtomList atoms) {
-          final List<Data> cells = prepareData(myAtomsPath.getPath(), atoms);
-          EdtExecutor.INSTANCE.execute(new Runnable() {
-            @Override
-            public void run() {
-              // Back in the UI thread here
-              myList.setData(cells);
-            }
-          });
+          myList.setData(prepareData(myAtomsPath.getPath(), atoms));
         }
-      });
+      }, EdtExecutor.INSTANCE);
     }
   }
 }
