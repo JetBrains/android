@@ -21,10 +21,10 @@ import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.dsl.GradleBuildModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
@@ -79,6 +79,7 @@ import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
+import org.fest.swing.util.TimeoutWatch;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -103,9 +104,7 @@ import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
 import static com.google.common.io.Files.write;
@@ -113,11 +112,14 @@ import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
+import static org.fest.swing.timing.Timeout.timeout;
+import static org.fest.swing.util.TimeoutWatch.startWatchWithTimeoutOf;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.*;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
@@ -517,7 +519,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Runnable failTask = new Runnable() {
       @Override
       public void run() {
-        throw new RuntimeException(failure);
+        throw new ExternalSystemException(failure);
       }
     };
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY, failTask);
@@ -539,8 +541,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return isNotEmpty(runConfigurationComboBox.getText());
       }
     }, SHORT_TIMEOUT);
-    findActionButtonByActionId("Android.SyncProject").click();
+
+    waitForBackgroundTasksToFinish();
+    findGradleSyncAction().waitUntilEnabledAndShowing();
+    // TODO figure out why in IDEA 15 even though an action is enabled, visible and showing, clicking it (via UI testing infrastructure)
+    // does not work consistently
+    GradleProjectImporter.getInstance().requestProjectSync(getProject(), null);
+
     return this;
+  }
+
+  @NotNull
+  private ActionButtonFixture findGradleSyncAction() {
+    return findActionButtonByActionId("Android.SyncProject");
   }
 
   @NotNull
@@ -595,6 +608,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return syncFinished;
       }
     }, LONG_TIMEOUT);
+
+    findGradleSyncAction().waitUntilEnabledAndShowing();
 
     if (myGradleProjectEventListener.hasSyncError()) {
       RuntimeException syncError = myGradleProjectEventListener.getSyncError();
@@ -787,7 +802,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public GradleProjectSettings getGradleSettings() {
-    GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(getProject());
+    GradleProjectSettings settings = getGradleProjectSettings(getProject());
     assertNotNull(settings);
     return settings;
   }
