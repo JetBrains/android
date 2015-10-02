@@ -15,27 +15,23 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.image;
 
-import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
-import com.android.tools.idea.editors.gfxtrace.service.path.AsPath;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Cubemap;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Texture2D;
 import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class FetchedImage {
   @NotNull private static final Logger LOG = Logger.getInstance(FetchedImage.class);
@@ -54,24 +50,21 @@ public class FetchedImage {
   }
 
   public static ListenableFuture<FetchedImage> load(final ServiceClient client, final Path imagePath) {
-    return Futures.transform(client.get(imagePath), new AsyncFunction<Object, FetchedImage>() {
+    return Futures.transform(client.get(imagePath.as(FmtRGBA.INSTANCE)), new AsyncFunction<Object, FetchedImage>() {
       @Override
       public ListenableFuture<FetchedImage> apply(Object object) throws Exception {
-        assert (object instanceof ImageInfo);
-        final ImageInfo imageInfo = (ImageInfo) object;
-        if (imageInfo.getFormat() instanceof FmtRGBA) {
-          return load(client, imageInfo);
+        if (object instanceof ImageInfo) {
+          return load(client, (ImageInfo)object);
         }
-        else {
-          AsPath asPath = new AsPath().setObject(imagePath).setType(new FmtRGBA());
-          return Futures.transform(client.get(asPath), new AsyncFunction<Object, FetchedImage>() {
-            @Override
-            public ListenableFuture<FetchedImage> apply(Object object) throws Exception {
-              assert (object instanceof ImageInfo);
-              return load(client, (ImageInfo) object);
-            }
-          });
+        if (object instanceof Texture2D) {
+          // TODO: Display mip-level selection, etc.
+          return load(client, ((Texture2D)object).getLevels()[0]);
         }
+        if (object instanceof Cubemap) {
+          // TODO: Display mip-level and face selection, etc.
+          return load(client, ((Cubemap)object).getLevels()[0].getNegativeX());
+        }
+        throw new UnsupportedOperationException("Unexpected resource type " + object.toString());
       }
     });
   }
@@ -90,7 +83,7 @@ public class FetchedImage {
     myData = data;
     dimensions = new Dimension((int)myImageInfo.getWidth(), (int)myImageInfo.getHeight());
     //noinspection UndesirableClassUsage
-    BufferedImage image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_4BYTE_ABGR_PRE);
+    BufferedImage image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_4BYTE_ABGR);
     WritableRaster raster = image.getRaster();
     DataBufferByte dataBuffer = (DataBufferByte)raster.getDataBuffer();
     assert (myImageInfo.getFormat() instanceof FmtRGBA);
@@ -105,10 +98,10 @@ public class FetchedImage {
       for (int x = 0; x < stride; x += 4) {
         int destinationOffset = yOffsetDestination + x;
         int sourceOffset = yOffsetSource + x;
-        destination[destinationOffset] = (byte)0xff;
+        destination[destinationOffset + 0] = data[sourceOffset + 3];
         destination[destinationOffset + 1] = data[sourceOffset + 2];
         destination[destinationOffset + 2] = data[sourceOffset + 1];
-        destination[destinationOffset + 3] = data[sourceOffset];
+        destination[destinationOffset + 3] = data[sourceOffset + 0];
       }
     }
     icon = new ImageIcon(image);
