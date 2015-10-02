@@ -87,21 +87,15 @@ public class ContextController extends Controller {
               return;
             }
 
-            EdtExecutor.INSTANCE.execute(new Runnable() {
-              @Override
-              public void run() {
-                // Back in the UI thread here
-                myDevices = new DeviceEntry[paths.length];
-                for (int i = 0; i < paths.length; i++) {
-                  myDevices[i] = new DeviceEntry(paths[i], devices.get(i));
-                }
-                if (paths.length > 0 && mySelectedDevice.update(paths[0]) && mySelectedDevice.getPath() != null) {
-                  myEditor.activatePath(mySelectedDevice.getPath(), ContextController.this);
-                }
-              }
-            });
+            myDevices = new DeviceEntry[paths.length];
+            for (int i = 0; i < paths.length; i++) {
+              myDevices[i] = new DeviceEntry(paths[i], devices.get(i));
+            }
+            if (paths.length > 0 && mySelectedDevice.update(paths[0]) && mySelectedDevice.getPath() != null) {
+              myEditor.activatePath(mySelectedDevice.getPath(), ContextController.this);
+            }
           }
-        });
+        }, EdtExecutor.INSTANCE);
       }
     });
   }
