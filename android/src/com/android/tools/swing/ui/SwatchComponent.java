@@ -17,21 +17,27 @@ package com.android.tools.swing.ui;
 
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.swing.util.GraphicsUtil;
+import com.google.common.collect.Lists;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.RoundedLineBorder;
-import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
 
@@ -64,8 +70,9 @@ public class SwatchComponent extends Box {
     }
   };
 
-  private final JBTextField myTextField;
+  private final TextFieldWithAutoCompletion<String> myTextField;
   private final ClickableLabel mySwatchButton;
+  private final List<ActionListener> myTextListeners = Lists.newArrayList();
 
   private Color myBorderColor;
 
@@ -74,13 +81,46 @@ public class SwatchComponent extends Box {
    * the component will display a text with the number of icons left to display. When the user clicks that icon the
    * icons will expand until the user leaves the control area.
    */
-  public SwatchComponent() {
+  public SwatchComponent(@NotNull Project project) {
     super(BoxLayout.LINE_AXIS);
     setBorder(null);
 
     myBorderColor = DEFAULT_BORDER_COLOR;
     mySwatchButton = new ClickableLabel();
-    myTextField = new JBTextField() {
+    //noinspection unchecked (EMPTY_COMPLETION doesn't need the generic type as it is empty)
+    myTextField = new TextFieldWithAutoCompletion<String>(project, TextFieldWithAutoCompletion.EMPTY_COMPLETION, true, null) {
+      @Override
+      protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+          ActionEvent event = new ActionEvent(myTextField, ActionEvent.ACTION_PERFORMED, null);
+          for (ActionListener listener : myTextListeners) {
+            listener.actionPerformed(event);
+          }
+          return true;
+        }
+        return false;
+      }
+
+      @Override
+      protected void updateBorder(@NotNull EditorEx editor) {
+        // Necessary to not have any border when not in a JTable
+        editor.setBorder(null);
+      }
+
+      @Override
+      public void removeNotify() {
+        // The editor needs to be removed manually because it normally is removed by invokeLater, which may happen to late
+        // and cause a crash when closing the project.
+        Editor editor = getEditor();
+        if (editor != null && !editor.isDisposed()) {
+          EditorFactory.getInstance().releaseEditor(editor);
+        }
+        super.removeNotify();
+      }
+    };
+    myTextField.setOneLineMode(true);
+
+    final JPanel textFieldWrapper = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics graphics) {
         setupAAPainting(graphics);
@@ -94,16 +134,23 @@ public class SwatchComponent extends Box {
         g.setClip(savedClip);
       }
     };
-    final Insets insets = myTextField.getInsets();
-    myTextField.setBorder(new RoundedLineBorder(myBorderColor, ARC_SIZE, 1) {
+    textFieldWrapper.setBorder(new RoundedLineBorder(myBorderColor, ARC_SIZE, 1) {
       @Override
       public Insets getBorderInsets(Component c) {
-        return insets;
+        return new Insets(0, 0, 0, 0);
       }
     });
+    textFieldWrapper.setBackground(JBColor.WHITE);
+
+    textFieldWrapper.add(Box.createVerticalStrut(TEXT_PADDING), BorderLayout.PAGE_START);
+    textFieldWrapper.add(Box.createHorizontalStrut(TEXT_PADDING), BorderLayout.LINE_START);
+    textFieldWrapper.add(myTextField, BorderLayout.CENTER);
+    textFieldWrapper.add(Box.createHorizontalStrut(TEXT_PADDING), BorderLayout.LINE_END);
+    textFieldWrapper.add(Box.createVerticalStrut(TEXT_PADDING), BorderLayout.PAGE_END);
+
     add(mySwatchButton);
     add(Box.createHorizontalStrut(PADDING));
-    add(myTextField);
+    add(textFieldWrapper);
   }
 
   public void setSwatchIcon(@NotNull SwatchIcon icon) {
@@ -132,7 +179,9 @@ public class SwatchComponent extends Box {
   @Override
   public Dimension getMinimumSize() {
     if (!isPreferredSizeSet()) {
-      FontMetrics fm = getFontMetrics(getFont());
+      // Since the text may be bold or not, we make sure to use the bold version of the font to compute the size
+      // That way we ensure all components will have the same size
+      FontMetrics fm = getFontMetrics(getFont().deriveFont(Font.BOLD));
       return new Dimension(0, fm.getHeight() + 2 * TEXT_PADDING);
     }
     return super.getPreferredSize();
@@ -213,15 +262,19 @@ public class SwatchComponent extends Box {
   }
 
   public void addTextListener(@NotNull ActionListener listener) {
-    myTextField.addActionListener(listener);
+    myTextListeners.add(listener);
   }
 
   public void addTextDocumentListener(@NotNull final DocumentListener listener) {
-    myTextField.getDocument().addDocumentListener(listener);
+    myTextField.addDocumentListener(listener);
   }
 
   public boolean hasWarningIcon() {
     return WARNING_ICON.equals(mySwatchButton.getIcon());
+  }
+
+  public void setCompletionStrings(@NotNull List<String> completionStrings) {
+    myTextField.setVariants(completionStrings);
   }
 
   public abstract static class SwatchIcon implements Icon {
