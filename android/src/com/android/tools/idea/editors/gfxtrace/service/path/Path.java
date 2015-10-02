@@ -56,4 +56,16 @@ public abstract class Path implements BinaryObject {
   public BinaryObject unwrap() {
     return this;
   }
+
+  /**
+   * as returns a path to the object this path refers to, but converted to type.
+   * @param type The target type.
+   * @return The path to the converted object.
+   */
+  public AsPath as(Object type) {
+    AsPath p = new AsPath();
+    p.setObject(this);
+    p.setType(type);
+    return p;
+  }
 }
