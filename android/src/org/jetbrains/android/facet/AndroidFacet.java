@@ -131,8 +131,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps = Maps.newHashMap();
 
-  private PsiClass myLightRClass;
-
   private Map<String, CachedValue<Map<String, PsiClass>>> myClassMaps = Maps.newHashMap();
 
   private final Object myClassMapLock = new Object();
@@ -954,21 +952,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public void addListener(@NotNull GradleSyncListener listener) {
     Module module = getModule();
     GradleSyncState.subscribe(module.getProject(), listener);
-  }
-
-  /**
-   * @return The generated in-memory R class for this facet, if one exists.
-   */
-  @Nullable
-  public PsiClass getLightRClass() {
-    return myLightRClass;
-  }
-
-  /**
-   * Sets the generated in-memory R class for this facet.
-   */
-  public void setLightRClass(@NotNull PsiClass rClass) {
-    myLightRClass = rClass;
   }
 
   @NotNull
