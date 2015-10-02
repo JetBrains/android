@@ -12,6 +12,8 @@
   - logcat spam from fd (shows up in the app's logcat)
   - run config mechanism: run action works, but not debug
   - need a stop button to force terminate FDR?
+  - When the app is running in the background, instant run detects no changes, but
+    doesn't bring it to the foreground..
 
 # Gradle
   - incrementalDex fails if a closure is removed from a class, e.g. if you comment out
