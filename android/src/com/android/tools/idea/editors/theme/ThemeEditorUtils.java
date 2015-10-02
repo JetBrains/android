@@ -137,6 +137,15 @@ public class ThemeEditorUtils {
     return item.isDeprecated() ? "<html><body><strike>" + item.getQualifiedName() + "</strike></body></html>" : item.getQualifiedName();
   }
 
+  public static boolean isThemeEditorSelected(@NotNull Project project) {
+    for (FileEditor editor : FileEditorManager.getInstance(project).getSelectedEditors()) {
+      if (editor instanceof ThemeEditor) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public static void openThemeEditor(@NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
