@@ -15,9 +15,12 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.tools.idea.editors.theme.ColorUtils;
 import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.android.tools.swing.ui.ClickableLabel;
+import com.android.tools.swing.util.GraphicsUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.LafManager;
@@ -56,6 +59,7 @@ import java.awt.image.MemoryImageSource;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Color picker with support for Material suggestions and ARGB.
@@ -66,8 +70,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
   private Color myColor;
   private ColorPreviewComponent myPreviewComponent;
-  private JLabel previewColorName;
-  private ClickableLabel colorSuggestionPreview;
+  private JLabel myPreviewColorName;
+  private ClickableLabel myColorSuggestionPreview;
+  private Color myClosestColor;
   private final ColorSelectionPanel myColorSelectionPanel;
   private final JTextField myAlpha;
   private final JTextField myRed;
@@ -253,6 +258,10 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     return myColor;
   }
 
+  public void setContrastParameters(@NotNull Map<String, Color> contrastColorsWithWarning, boolean isBackground) {
+    myPreviewComponent.setContrastParameters(contrastColorsWithWarning, isBackground);
+  }
+
   @Override
   public void insertUpdate(DocumentEvent e) {
     update(((NumberDocument)e.getDocument()).mySrc);
@@ -348,22 +357,16 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     String name = MaterialColorUtils.getMaterialName(color);
     if (name == null) {
       name = "Custom color";
-      final Color closestColor = MaterialColorUtils.getClosestMaterialColor(color);
-      colorSuggestionPreview.setVisible(true);
-      String toolTip = "<html>Change to <b>" + MaterialColorUtils.getMaterialName(closestColor);
-      colorSuggestionPreview.setToolTipText(toolTip);
-      colorSuggestionPreview.setIcon(new ColorIcon(JBUI.scale(12), closestColor));
-      colorSuggestionPreview.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent mouseEvent) {
-          myColorSelectionPanel.setColor(closestColor, this);
-        }
-      });
+      myClosestColor = MaterialColorUtils.getClosestMaterialColor(color);
+      myColorSuggestionPreview.setVisible(true);
+      String toolTip = "<html>Change to <b>" + MaterialColorUtils.getMaterialName(myClosestColor);
+      myColorSuggestionPreview.setToolTipText(toolTip);
+      myColorSuggestionPreview.setIcon(new ColorIcon(JBUI.scale(12), myClosestColor));
     }
     else {
-      colorSuggestionPreview.setVisible(false);
+      myColorSuggestionPreview.setVisible(false);
     }
-    previewColorName.setText(name);
+    myPreviewColorName.setText(name);
   }
 
   private void fireColorChanged(Color color) {
@@ -462,14 +465,22 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     final JComponent result = new Box(BoxLayout.PAGE_AXIS);
 
     JComponent namePanel = new Box(BoxLayout.LINE_AXIS);
-    previewColorName = new JLabel("");
-    Font f = previewColorName.getFont();
-    previewColorName.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
-    colorSuggestionPreview = new ClickableLabel("CLOSEST MATERIAL COLOR");
-    colorSuggestionPreview.setFont(f.deriveFont(JBUI.scale(8.0f)));
-    namePanel.add(previewColorName);
+    myPreviewColorName = new JLabel("");
+    Font f = myPreviewColorName.getFont();
+    myPreviewColorName.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
+
+    myColorSuggestionPreview = new ClickableLabel("CLOSEST MATERIAL COLOR");
+    myColorSuggestionPreview.setFont(f.deriveFont(JBUI.scale(8.0f)));
+    myColorSuggestionPreview.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myColorSelectionPanel.setColor(myClosestColor, this);
+      }
+    });
+
+    namePanel.add(myPreviewColorName);
     namePanel.add(Box.createRigidArea(new Dimension(JBUI.scale(5), 0)));
-    namePanel.add(colorSuggestionPreview);
+    namePanel.add(myColorSuggestionPreview);
     namePanel.add(Box.createHorizontalGlue());
     result.add(namePanel);
 
@@ -755,8 +766,18 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
   }
 
-  private static class ColorPreviewComponent extends JComponent {
+  public static class ColorPreviewComponent extends JComponent {
+    private static final Icon WARNING_ICON = AllIcons.General.BalloonWarning;
+    private static final String TEXT = "Text";
+    private static final int PADDING = JBUI.scale(18);
+    private static final float FONT_SIZE_RATIO = 1.5f;
+
     private Color myColor;
+    private boolean myIsContrastPreview = false;
+    private ImmutableSet<Color> myContrastColorSet;
+    private boolean myIsBackgroundColor;
+    private String myErrorString;
+    private Map<String, Color> myContrastColorsWithWarning;
 
     private ColorPreviewComponent() {
       setBorder(JBUI.Borders.empty(0, 2));
@@ -767,9 +788,25 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       return new Dimension(Integer.MAX_VALUE, JBUI.scale(32));
     }
 
+    /**
+     * Adds text to the preview so the user can see the contrast of two colors
+     *
+     * @param contrastColorsWithWarning the colors we are testing the contrast against, and their associate warning for potential display.
+     *                                  If the user is editing a state list, this might be more than 1.
+     * @param isBackgroundColor true if it's a background color, of false if it's a text color
+     */
+    public void setContrastParameters(@NotNull Map<String, Color> contrastColorsWithWarning, boolean isBackgroundColor) {
+      myIsContrastPreview = true;
+      myContrastColorsWithWarning = contrastColorsWithWarning;
+      myContrastColorSet = ImmutableSet.copyOf(contrastColorsWithWarning.values());
+      myIsBackgroundColor = isBackgroundColor;
+      myErrorString = ColorUtils.getContrastWarningMessage(contrastColorsWithWarning, myColor);
+      setToolTipText(myErrorString);
+    }
+
     @Override
     public Dimension getPreferredSize() {
-      return new Dimension(super.getPreferredSize().width, JBUI.scale(32));
+      return JBUI.size(100, 32);
     }
 
     @Override
@@ -779,19 +816,50 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     public void setColor(Color c) {
       myColor = c;
+      if (myIsContrastPreview) {
+        myErrorString = ColorUtils.getContrastWarningMessage(myContrastColorsWithWarning, c);
+        setToolTipText(myErrorString);
+      }
       repaint();
     }
 
     @Override
+    @SuppressWarnings("UseJBColor")
     protected void paintComponent(Graphics g) {
       final Insets i = getInsets();
       final Rectangle r = getBounds();
-
       final int width = r.width - i.left - i.right;
       final int height = r.height - i.top - i.bottom;
+      com.intellij.util.ui.GraphicsUtil.setupAntialiasing(g);
+      if (!myIsContrastPreview) {
+        g.setColor(myColor);
+        g.fillRect(i.left, i.top, width, height);
+        return;
+      }
 
-      g.setColor(myColor);
-      g.fillRect(i.left, i.top, width, height);
+      int colorCellWidth = width / myContrastColorSet.size();
+      Rectangle drawingRectangle = new Rectangle(r.x, r.y, colorCellWidth, r.height);
+      Font defaultFont = UIUtil.getLabelFont();
+      Font textFont = defaultFont.deriveFont(defaultFont.getSize() * FONT_SIZE_RATIO);
+
+      for (Color color : myContrastColorSet) {
+        Color textColor = myIsBackgroundColor ? color : myColor;
+        Color backgroundColor = myIsBackgroundColor ? myColor : color;
+
+        g.setColor(backgroundColor);
+        g.fillRect(drawingRectangle.x, drawingRectangle.y, drawingRectangle.width, drawingRectangle.height);
+        g.setColor(textColor);
+        g.setFont(textFont);
+        GraphicsUtil.drawCenteredString(g, drawingRectangle, TEXT);
+        drawingRectangle.x += colorCellWidth;
+      }
+      if (!myErrorString.isEmpty()) {
+        WARNING_ICON.paintIcon(this, g, width - PADDING, height - PADDING);
+      }
+    }
+
+    public interface WarningStringGenerator {
+      String generateWarningString(@NotNull Color color);
     }
   }
 
@@ -854,10 +922,10 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
   }
 
-  private class RecommendedColorsComponent extends JComponent {
-    private final int SPACE = JBUI.scale(3);
-    private final int CELL_SIZE = JBUI.scale(40);
-    private final int COLUMN_COUNT = 10;
+  private static class RecommendedColorsComponent extends JComponent {
+    private static final int SPACE = JBUI.scale(3);
+    private static final int CELL_SIZE = JBUI.scale(40);
+    private static final int COLUMN_COUNT = 10;
 
     private List<Color> myRecommendedColors = new ArrayList<Color>();
 
@@ -1083,11 +1151,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private Graphics2D myGraphics;
     private BufferedImage myImage;
     private Point myHotspot;
-    private Point myCaptureOffset;
     private BufferedImage myMagnifierImage;
     private Color myTransparentColor = new Color(0, true);
     private Rectangle myZoomRect;
-    private Rectangle myGlassRect;
     private ColorListener myColorListener;
     private BufferedImage myMaskImage;
     private Alarm myColorListenersNotifier = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
@@ -1173,10 +1239,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         JRootPane rootPane = ((JDialog)myPickerFrame).getRootPane();
         rootPane.putClientProperty("Window.shadow", Boolean.FALSE);
 
-        myGlassRect = new Rectangle(0, 0, 32, 32);
         myPickOffset = new Point(0, 0);
         myCaptureRect = new Rectangle(-4, -4, 8, 8);
-        myCaptureOffset = new Point(myCaptureRect.x, myCaptureRect.y);
         myHotspot = new Point(14, 16);
 
         myZoomRect = new Rectangle(0, 0, 32, 32);
@@ -1199,14 +1263,6 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
         graphics.setColor(Color.BLACK);
-        //graphics.drawOval(1, 1, 30, 30);
-        //graphics.drawOval(2, 2, 28, 28);
-        //
-        //graphics.drawLine(2, 16, 12, 16);
-        //graphics.drawLine(20, 16, 30, 16);
-        //
-        //graphics.drawLine(16, 2, 16, 12);
-        //graphics.drawLine(16, 20, 16, 30);
         AllIcons.Ide.Pipette.paintIcon(null, graphics, 14, 0);
 
         graphics.dispose();
