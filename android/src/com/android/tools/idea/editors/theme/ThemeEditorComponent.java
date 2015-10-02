@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
 import com.android.tools.idea.editors.theme.attributes.AttributesModelColorPaletteModel;
@@ -63,7 +62,6 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.PanelUI;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -469,6 +467,7 @@ public class ThemeEditorComponent extends Splitter {
     if (myIsSubscribedResourceNotification) {
       return;
     }
+
     ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
     AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentContextModule());
     assert facet != null : myThemeEditorContext.getCurrentContextModule().getName() + " module doesn't have an AndroidFacet";
@@ -494,8 +493,6 @@ public class ThemeEditorComponent extends Splitter {
    */
   public void selectNotify() {
     reload(myThemeName, mySubStyleName);
-    // TODO calling reload will call subscribeResourceNotification, so why call it here?
-    subscribeResourceNotification();
   }
 
   /**
@@ -735,11 +732,15 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   public void reload(@Nullable final String defaultThemeName, @Nullable final String defaultSubStyleName, @Nullable final String defaultModuleName) {
-    // Need to clean myHoverPreviewTheme, because we are no longer "hovering".
-    myHoverPreviewTheme = null;
-
     // Unsubscribing from ResourceNotificationManager, because Module might be changed
     unsubscribeResourceNotification();
+
+    if (!ThemeEditorUtils.isThemeEditorSelected(myProject)) {
+      return;
+    }
+
+    // Need to clean myHoverPreviewTheme, because we are no longer "hovering".
+    myHoverPreviewTheme = null;
 
     initializeModulesCombo(defaultModuleName);
     myThemeEditorContext.setCurrentContextModule(getSelectedModule());
