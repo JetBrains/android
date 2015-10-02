@@ -159,18 +159,6 @@ public class AndroidDomUtil {
   }
 
   @Nullable
-  public static ResolvingConverter<String> simplify(CompositeConverter composite) {
-    switch (composite.size()) {
-      case 0:
-        return null;
-      case 1:
-        return composite.getConverters().get(0);
-      default:
-        return composite;
-    }
-  }
-
-  @Nullable
   public static Converter getSpecificConverter(@NotNull XmlName attrName, DomElement context) {
     if (context == null) {
       return null;
@@ -210,14 +198,15 @@ public class AndroidDomUtil {
   @Nullable
   public static ResolvingConverter getConverter(@NotNull AttributeDefinition attr) {
     Set<AttributeFormat> formats = attr.getFormats();
-    CompositeConverter composite = new CompositeConverter();
+
+    CompositeConverter.Builder compositeBuilder = new CompositeConverter.Builder();
     String[] values = attr.getValues();
     boolean containsUnsupportedFormats = false;
 
     for (AttributeFormat format : formats) {
       ResolvingConverter<String> converter = getStringConverter(format, values);
       if (converter != null) {
-        composite.addConverter(converter);
+        compositeBuilder.addConverter(converter);
       }
       else {
         containsUnsupportedFormats = true;
@@ -226,18 +215,18 @@ public class AndroidDomUtil {
     ResourceReferenceConverter resConverter = getResourceReferenceConverter(attr);
     if (formats.contains(AttributeFormat.Flag)) {
       if (resConverter != null) {
-        composite.addConverter(new LightFlagConverter(values));
+        compositeBuilder.addConverter(new LightFlagConverter(values));
       }
-      return new FlagConverter(simplify(composite), values);
+      return new FlagConverter(compositeBuilder.build(), values);
     }
 
     if (resConverter == null && formats.contains(AttributeFormat.Enum)) {
       resConverter = new ResourceReferenceConverter(Collections.singletonList(ResourceType.INTEGER.getName()));
       resConverter.setQuiet(true);
     }
-    ResolvingConverter<String> stringConverter = simplify(composite);
+    ResolvingConverter<String> stringConverter = compositeBuilder.build();
     if (resConverter != null) {
-      resConverter.setAdditionalConverter(simplify(composite), containsUnsupportedFormats);
+      resConverter.setAdditionalConverter(stringConverter, containsUnsupportedFormats);
       return resConverter;
     }
     return stringConverter;
