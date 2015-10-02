@@ -45,7 +45,7 @@ public class ApkProviderUtil {
   private static final Logger LOG = Logger.getInstance(ApkProviderUtil.class);
 
   @NotNull
-  static String computePackageName(@NotNull final AndroidFacet facet) throws ApkProvisionException {
+  public static String computePackageName(@NotNull final AndroidFacet facet) throws ApkProvisionException {
     // TODO: Separate Gradle and non-Gradle logic here.
     if (facet.getProperties().USE_CUSTOM_MANIFEST_PACKAGE) {
       return facet.getProperties().CUSTOM_MANIFEST_PACKAGE;
