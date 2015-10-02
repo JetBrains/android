@@ -47,7 +47,7 @@ public class ColorUtilsTest extends AndroidTestCase {
     assertEquals("<html>Not enough contrast with <b>colorPrimary</b>", ColorUtils
       .getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "textColor"), Color.WHITE));
     assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "textColor"), Color.BLACK));
-    assertEquals("<html>Not enough contrast with <b>textColorPrimary</b> and <b>textColor</b>",
+    assertEquals("<html>Not enough contrast with <b>textColor</b> and <b>textColorPrimary</b>",
                  ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "colorPrimary"), Color.WHITE));
     assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "colorPrimary"), Color.BLACK));
 
