@@ -35,9 +35,10 @@ public class AndroidDataSourceStorage implements PersistentStateComponent<Androi
   public void loadState(State state) {
     myDataSources.clear();
     for (AndroidDataSource.State dataSourceState : state.myDataSources) {
-      AndroidDataSource dataSource = new AndroidDataSource();
-      dataSource.loadState(dataSourceState);
-      addDataSource(dataSource);
+      AndroidDataSource o = new AndroidDataSource();
+      o.loadState(dataSourceState);
+      o.ensureDriverConfigured();
+      addDataSource(o);
     }
   }
 
