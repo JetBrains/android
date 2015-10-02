@@ -18,11 +18,11 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
@@ -77,7 +77,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -767,47 +766,26 @@ public class ThemeEditorUtils {
   public static ChooseResourceDialog getResourceDialog(@NotNull EditedStyleItem item,
                                                        @NotNull ThemeEditorContext context,
                                                        ResourceType[] allowedTypes) {
-    String itemValue = item.getValue();
-    String resourceName;
-    // If it points to an existing resource.
-    if (!RenderResources.REFERENCE_EMPTY.equals(itemValue) &&
-        !RenderResources.REFERENCE_NULL.equals(itemValue) &&
-        itemValue.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-      // Use the name of that resource.
-      resourceName = itemValue.substring(itemValue.indexOf('/') + 1);
-    }
-    else {
-      // Otherwise use the name of the attribute.
-      resourceName = item.getName();
-    }
-
-    resourceName = getDefaultResourceName(context, resourceName);
-
     Module module = context.getModuleForResources();
     final Configuration configuration = getConfigurationForModule(module);
 
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     assert resourceResolver != null;
 
-    ChooseResourceDialog dialog;
-    ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(resourceResolver, item.getSelectedValue(), context.getProject());
-    if (stateList != null) {
-      dialog = new ChooseResourceDialog(context.getModuleForResources(), context.getConfiguration(), allowedTypes, stateList,
-                                        ChooseResourceDialog.ResourceNameVisibility.FORCE, resourceName);
+    ItemResourceValue itemSelectedValue = item.getSelectedValue();
+
+    String value = itemSelectedValue.getValue();
+    boolean isFrameworkValue = itemSelectedValue.isFramework();
+
+    String nameSuggestion = value;
+    ResourceUrl url = ResourceUrl.parse(value, isFrameworkValue);
+    if (url != null) {
+      nameSuggestion = url.name;
     }
-    else {
-      String resolvedResource;
-      Color color = ResourceHelper.resolveColor(resourceResolver, item.getSelectedValue(), context.getProject());
-      if (color != null) {
-        resolvedResource = ResourceHelper.colorToString(color);
-      }
-      else {
-        resolvedResource = resourceResolver.resolveResValue(item.getSelectedValue()).getName();
-      }
-      dialog = new ChooseResourceDialog(context.getModuleForResources(), allowedTypes, resolvedResource, null,
-                                        ChooseResourceDialog.ResourceNameVisibility.FORCE, resourceName);
-    }
-    return dialog;
+    nameSuggestion = getDefaultResourceName(context, nameSuggestion);
+
+    return new ChooseResourceDialog(module, configuration, allowedTypes, value, isFrameworkValue,
+                                    ChooseResourceDialog.ResourceNameVisibility.FORCE, nameSuggestion);
   }
 
   /**
@@ -872,5 +850,26 @@ public class ThemeEditorUtils {
       }
     }
     return result + " Dark";
+  }
+
+  /**
+   * Returns a StringBuilder with the words concatenated into an enumeration w1, w2, ..., w(n-1) and  wn
+   */
+  @NotNull
+  public static String generateWordEnumeration(@NotNull Collection<String> words) {
+    StringBuilder sentenceBuilder = new StringBuilder();
+    int nWords = words.size();
+    int i = 0;
+    for (String word : words) {
+      sentenceBuilder.append(word);
+      if (i < nWords - 2) {
+        sentenceBuilder.append(", ");
+      }
+      else if (i == nWords - 2) {
+        sentenceBuilder.append(" and ");
+      }
+      i++;
+    }
+    return sentenceBuilder.toString();
   }
 }

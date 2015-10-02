@@ -789,5 +789,28 @@ public class ResourceHelper {
     public Map<String, Boolean> getAttributes() {
       return myAttributes;
     }
+
+    /**
+     * @return a list of all the attribute names. Names are capitalized is capitalize is true
+     */
+    @NotNull
+    public ImmutableList<String> getAttributesNames(boolean capitalize) {
+      Map<String, Boolean> attributes = getAttributes();
+
+      if (attributes.isEmpty()) {
+        return ImmutableList.of(capitalize ? "Default" : "default");
+      }
+
+      ImmutableList.Builder<String> attributeDescriptions = ImmutableList.builder();
+      for (Map.Entry<String, Boolean> attribute : attributes.entrySet()) {
+        String description = attribute.getKey().substring(STATE_NAME_PREFIX.length());
+        if (!attribute.getValue()) {
+          description = "not " + description;
+        }
+        attributeDescriptions.add(capitalize ? StringUtil.capitalize(description) : description);
+      }
+
+      return attributeDescriptions.build();
+    }
   }
 }

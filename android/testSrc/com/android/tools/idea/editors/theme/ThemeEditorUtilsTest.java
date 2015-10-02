@@ -45,10 +45,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 import java.util.HashSet;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -348,6 +346,13 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertEquals("Material Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.Material.Light")));
     assertEquals("Theme Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme("android:Theme")));
     assertEquals("Theme Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.Light")));
+  }
+
+  public void testGenerateWordEnumeration() {
+    assertEquals("", ThemeEditorUtils.generateWordEnumeration(Collections.<String>emptyList()));
+    assertEquals("one", ThemeEditorUtils.generateWordEnumeration(Collections.singletonList("one")));
+    assertEquals("one and two", ThemeEditorUtils.generateWordEnumeration(Arrays.asList("one", "two")));
+    assertEquals("one, two and Three", ThemeEditorUtils.generateWordEnumeration(Arrays.asList("one", "two", "Three")));
   }
 
   public void testThemeNamesListOrder() {
