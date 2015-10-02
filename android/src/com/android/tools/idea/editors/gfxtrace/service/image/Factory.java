@@ -33,6 +33,7 @@ public final class Factory {
     FmtRGB.register();
     FmtRGB565.register();
     FmtRGBA.register();
+    FmtRGBAF32.register();
     //<<<End:Java.FactoryBody:2>>>
   }
 }
