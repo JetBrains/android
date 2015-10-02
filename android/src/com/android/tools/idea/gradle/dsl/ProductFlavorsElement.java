@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android;
+package com.android.tools.idea.gradle.dsl;
 
-import com.android.tools.idea.gradle.dsl.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.GradleDslElementMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-public class ProductFlavorsElement extends GradleDslElementMap {
+final class ProductFlavorsElement extends GradleDslElementMap {
   public static final String NAME = "productFlavors";
 
-  public ProductFlavorsElement(@Nullable GradleDslElement parent) {
+  ProductFlavorsElement(@Nullable GradleDslElement parent) {
     super(parent, NAME);
   }
 
   @NotNull
-  public Collection<ProductFlavorElement> get() {
+  Collection<ProductFlavorElement> get() {
     return getValues(ProductFlavorElement.class);
   }
 }

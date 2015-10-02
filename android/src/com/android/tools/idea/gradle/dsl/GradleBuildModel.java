@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl;
 
-import com.android.tools.idea.gradle.dsl.android.AndroidElement;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
-import com.android.tools.idea.gradle.dsl.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.parser.*;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaProjectElementParser;
 import com.google.common.collect.Lists;

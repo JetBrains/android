@@ -22,34 +22,34 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 /**
  * Represents a {@link GrLiteral} element.
  */
-public final class LiteralElement extends GradleDslElement {
+final class LiteralElement extends GradleDslElement {
   @NotNull private final String myName;
 
   @Nullable private GrLiteral myLiteral;
   @Nullable private Object myUnsavedValue;
 
-  public LiteralElement(@Nullable GradleDslElement parent, @NotNull String name) {
+  LiteralElement(@Nullable GradleDslElement parent, @NotNull String name) {
     this(parent, name, null);
   }
 
-  public LiteralElement(@Nullable GradleDslElement parent, @NotNull String name, @Nullable GrLiteral literal) {
+  LiteralElement(@Nullable GradleDslElement parent, @NotNull String name, @Nullable GrLiteral literal) {
     super(parent);
     myName = name;
     myLiteral = literal;
   }
 
   @NotNull
-  public String getName() {
+  String getName() {
     return myName;
   }
 
   @Nullable
-  public GrLiteral getLiteral() {
+  GrLiteral getLiteral() {
     return myLiteral;
   }
 
   @Nullable
-  public Object getValue() {
+  Object getValue() {
     if (myUnsavedValue != null) {
       return myUnsavedValue;
     }
@@ -65,7 +65,7 @@ public final class LiteralElement extends GradleDslElement {
    * or {@code null} otherwise.
    */
   @Nullable
-  public <T> T getValue(@NotNull Class<T> clazz) {
+  <T> T getValue(@NotNull Class<T> clazz) {
     Object value = getValue();
     if (value != null && clazz.isInstance(value)) {
       return clazz.cast(value);
@@ -73,7 +73,7 @@ public final class LiteralElement extends GradleDslElement {
     return null;
   }
 
-  public void setValue(@NotNull Object value) {
+  void setValue(@NotNull Object value) {
     myUnsavedValue = value;
     setModified(true);
   }

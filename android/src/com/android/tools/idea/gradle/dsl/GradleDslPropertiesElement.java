@@ -31,7 +31,7 @@ import java.util.Set;
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
  * data as key value pairs and convenient methods to access the data.
  */
-public abstract class GradleDslPropertiesElement extends GradleDslElement {
+abstract class GradleDslPropertiesElement extends GradleDslElement {
   @Nullable private GrClosableBlock myPsiElement;
 
   @NotNull private Map<String, GradleDslElement> myProperties = Maps.newHashMap();
@@ -42,7 +42,7 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
     super(parent);
   }
 
-  public void setBlockElement(@NotNull GrClosableBlock psiElement) {
+  void setBlockElement(@NotNull GrClosableBlock psiElement) {
     myPsiElement = psiElement;
   }
 
@@ -51,7 +51,7 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
    *
    * <p>This method should be used when the given {@code property} is defined using an assigned statement.
    */
-  public void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
     // TODO: Add assertion statement to allow only elements with valid PsiElement.
     myProperties.put(property, element);
   }
@@ -63,7 +63,7 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
    * can have different meanings like append vs replace for list elements, the sub classes can override this method to do the right thing
    * for any given property.
    */
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
     // TODO: Add assertion statement to allow only elements with valid PsiElement.
     myProperties.put(property, element);
   }
@@ -73,14 +73,14 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
    * or discarded when the {@lik #resetState()} method is invoked.
    */
   @NotNull
-  public GradleDslPropertiesElement setNewElement(@NotNull String property, @NotNull GradleDslElement newElement) {
+  GradleDslPropertiesElement setNewElement(@NotNull String property, @NotNull GradleDslElement newElement) {
     myToBeAddedProperties.put(property, newElement);
     setModified(true);
     return this;
   }
 
   @NotNull
-  public Collection<String> getProperties() {
+  Collection<String> getProperties() {
     Set<String> result = Sets.newHashSet();
     result.addAll(myProperties.keySet());
     result.addAll(myToBeAddedProperties.keySet());
@@ -93,7 +93,7 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
    * does not exist in this element.
    */
   @Nullable
-  public GradleDslElement getPropertyElement(@NotNull String property) {
+  GradleDslElement getPropertyElement(@NotNull String property) {
     if (!property.contains(".")) {
       if (myToBeRemovedProperties.contains(property)) {
         return null;
@@ -119,7 +119,7 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
    * not exists in this element or the given {@code property} value is not of the type {@code clazz}.
    */
   @Nullable
-  public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
+  <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
     GradleDslElement propertyElement = getPropertyElement(property);
     if (propertyElement != null) {
       if (clazz.isInstance(propertyElement)) {
@@ -245,7 +245,7 @@ public abstract class GradleDslPropertiesElement extends GradleDslElement {
    *
    * <p>The property will be un-marked for removal when {@link #reset()} method is invoked.
    */
-  public void removeProperty(@NotNull String property) {
+  void removeProperty(@NotNull String property) {
     myToBeRemovedProperties.add(property);
     setModified(true);
   }

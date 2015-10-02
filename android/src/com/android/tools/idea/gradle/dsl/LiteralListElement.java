@@ -28,18 +28,18 @@ import java.util.List;
 /**
  * Represents an element which consists a list of {@link LiteralElement}s.
  */
-public final class LiteralListElement extends GradleDslElement {
+final class LiteralListElement extends GradleDslElement {
   @NotNull private final String myName;
   @NotNull private final List<LiteralElement> myElements = Lists.newArrayList();
   @NotNull private final List<LiteralElement> myToBeAddedElements = Lists.newArrayList();
   @NotNull private final List<LiteralElement> myToBeRemovedElements = Lists.newArrayList();
 
-  public LiteralListElement(@Nullable GradleDslElement parent, @NotNull String name) {
+  LiteralListElement(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent);
     myName = name;
   }
 
-  public LiteralListElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap list) {
+  LiteralListElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap list) {
     super(parent);
     assert !list.isMap();
     myName = name;
@@ -50,7 +50,7 @@ public final class LiteralListElement extends GradleDslElement {
     }
   }
 
-  public LiteralListElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrLiteral... literals) {
+  LiteralListElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrLiteral... literals) {
     super(parent);
     myName = name;
     for (GrLiteral literal : literals) {
@@ -58,25 +58,25 @@ public final class LiteralListElement extends GradleDslElement {
     }
   }
 
-  public void add(@NotNull String name, @NotNull GrLiteral... literals) {
+  void add(@NotNull String name, @NotNull GrLiteral... literals) {
     for (GrLiteral literal : literals) {
       myElements.add(new LiteralElement(this, name, literal));
     }
   }
 
-  public void add(@NotNull LiteralElement... elements) {
+  void add(@NotNull LiteralElement... elements) {
     for (LiteralElement element : elements) {
       myElements.add(element);
     }
   }
 
   @NotNull
-  public String getName() {
+  String getName() {
     return myName;
   }
 
   @NotNull
-  public List<LiteralElement> getElements() {
+  List<LiteralElement> getElements() {
     if (myToBeAddedElements.isEmpty() && myToBeRemovedElements.isEmpty()) {
       return ImmutableList.copyOf(myElements);
     }
@@ -90,13 +90,13 @@ public final class LiteralListElement extends GradleDslElement {
     return result;
   }
 
-  public void add(@NotNull Object elementValue) {
+  void add(@NotNull Object elementValue) {
     LiteralElement element = new LiteralElement(this, myName);
     element.setValue(elementValue);
     myToBeAddedElements.add(element);
   }
 
-  public void remove(@NotNull Object elementValue) {
+  void remove(@NotNull Object elementValue) {
     for (LiteralElement element : getElements()) {
       if (elementValue.equals(element.getValue())) {
         myToBeRemovedElements.add(element);
@@ -106,7 +106,7 @@ public final class LiteralListElement extends GradleDslElement {
     }
   }
 
-  public void replace(@NotNull Object oldElementValue, @NotNull Object newElementValue) {
+  void replace(@NotNull Object oldElementValue, @NotNull Object newElementValue) {
     for (LiteralElement element : getElements()) {
       if (oldElementValue.equals(element.getValue())) {
         element.setValue(newElementValue);
@@ -121,7 +121,7 @@ public final class LiteralListElement extends GradleDslElement {
    * <p>Returns an empty list when there are no elements of type {@code clazz}.
    */
   @NotNull
-  public <E> List<E> getValues(Class<E> clazz) {
+  <E> List<E> getValues(Class<E> clazz) {
     List<E> result = Lists.newArrayList();
     for (LiteralElement element : getElements()) {
       E value = element.getValue(clazz);
