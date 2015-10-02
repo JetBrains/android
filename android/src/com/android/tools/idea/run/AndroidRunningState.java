@@ -20,10 +20,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectHyperlink;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.stats.UsageTracker;
@@ -50,9 +46,6 @@ import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.DataManager;
-import com.intellij.notification.NotificationType;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -60,14 +53,10 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
-import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
@@ -79,7 +68,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -91,6 +79,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunningState");
 
   public static final int WAITING_TIME_SECS = 20;
+  public static final String DEVICE_COMMAND_PREFIX = "DEVICE SHELL COMMAND: ";
 
   private final ApkProvider myApkProvider;
 
@@ -135,11 +124,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myEnv = environment;
     myApplicationLauncher = applicationLauncher;
     myLaunchOptions = launchOptions;
-  }
-
-  @Nullable
-  public DebugLauncher getDebugLauncher() {
-    return myDebugLauncher;
   }
 
   public void setDebugLauncher(@NotNull DebugLauncher debugLauncher) {
@@ -417,8 +401,17 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
           LOG.warn(e);
           return false;
         }
+
+        ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), myPrinter);
         for (ApkInfo apk : apks) {
-          if (!uploadAndInstallApk(device, apk.getApplicationId(), apk.getFile())) {
+          if (!apk.getFile().exists()) {
+            String message = "The APK file " + apk.getFile().getPath() + " does not exist on disk.";
+            myPrinter.stderr(message);
+            LOG.error(message);
+            return false;
+          }
+
+          if (!installer.uploadAndInstallApk(device, apk.getApplicationId(), apk.getFile(), myStopped)) {
             return false;
           }
         }
@@ -596,283 +589,12 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     return true;
   }
 
-  /**
-   * Installs the given apk on the device.
-   * @return whether the installation was successful
-   */
-  private boolean uploadAndInstallApk(@NotNull IDevice device, @NotNull String packageName, @NotNull File localFile)
-    throws IOException, AdbCommandRejectedException, TimeoutException {
-
-    if (myStopped.get()) return false;
-    String remotePath = "/data/local/tmp/" + packageName;
-    String exceptionMessage;
-    String errorMessage;
-    myPrinter.stdout("Uploading file\n\tlocal path: " + localFile + "\n\tremote path: " + remotePath);
-    try {
-      InstalledApkCache installedApkCache = ServiceManager.getService(InstalledApkCache.class);
-      if (myLaunchOptions.isSkipNoopApkInstallations() && installedApkCache.isInstalled(device, localFile, packageName)) {
-        myPrinter.stdout("No apk changes detected.");
-        if (myLaunchOptions.isForceStopRunningApp()) {
-          myPrinter.stdout("Skipping file upload, force stopping package instead.");
-          forceStopPackageSilently(device, packageName, true);
-        }
-        return true;
-      } else {
-        device.pushFile(localFile.getPath(), remotePath);
-        boolean installed = installApp(device, remotePath, packageName);
-        if (installed) {
-          installedApkCache.setInstalled(device, localFile, packageName);
-        }
-        return installed;
-      }
-    }
-    catch (TimeoutException e) {
-      LOG.info(e);
-      exceptionMessage = e.getMessage();
-      errorMessage = "Connection timeout";
-    }
-    catch (AdbCommandRejectedException e) {
-      LOG.info(e);
-      exceptionMessage = e.getMessage();
-      errorMessage = "ADB refused the command";
-    }
-    catch (final SyncException e) {
-      LOG.info(e);
-      final SyncException.SyncError errorCode = e.getErrorCode();
-
-      if (SyncException.SyncError.NO_LOCAL_FILE.equals(errorCode)) {
-        // Sometimes, users see the issue that for Gradle projects, the apk location used is incorrect (points to build/classes/?.apk
-        // instead of build/apk/?.apk).
-        // This happens reasonably often, but isn't reproducible, so we add this workaround here to show a popup to 'Sync Project with
-        // Gradle Files' if it is a gradle project.
-        // See https://code.google.com/p/android/issues/detail?id=59018 for more info.
-
-        // The problem is that at this point, the project maybe a Gradle-based project, but its AndroidGradleModel may be null.
-        // We can check if there is a top-level build.gradle or settings.gradle file.
-        DataManager.getInstance().getDataContextFromFocus().doWhenDone(new Consumer<DataContext>() {
-          @Override
-          public void consume(DataContext dataContext) {
-            if (dataContext != null) {
-              Project project = CommonDataKeys.PROJECT.getData(dataContext);
-              if (project != null && hasGradleFiles(project)) {
-                AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
-                String message =
-                  errorCode.getMessage() + '\n' + e.getMessage() + '\n' + "The project may need to be synced with Gradle files.";
-                notification.showBalloon("Unexpected Error", message, NotificationType.ERROR, new SyncProjectHyperlink());
-              }
-            }
-          }
-
-          private boolean hasGradleFiles(@NotNull Project project) {
-            File rootDirPath = new File(FileUtil.toSystemDependentName(project.getBasePath()));
-            return GradleUtil.getGradleBuildFilePath(rootDirPath).isFile() || GradleUtil.getGradleSettingsFilePath(rootDirPath).isFile();
-          }
-        });
-      }
-
-      errorMessage = errorCode.getMessage();
-      exceptionMessage = e.getMessage();
-    }
-    if (errorMessage.equals(exceptionMessage) || exceptionMessage == null) {
-      myPrinter.stderr(errorMessage);
-    }
-    else {
-      myPrinter.stderr(errorMessage + '\n' + exceptionMessage);
-    }
-    return false;
-  }
-
-  /** Attempts to force stop package running on given device. */
-  private void forceStopPackageSilently(@NotNull IDevice device, @NotNull String packageName, boolean ignoreErrors) {
-    try {
-      executeDeviceCommandAndWriteToConsole(device, "am force-stop " + packageName, new ErrorMatchingReceiver(myStopped));
-    }
-    catch (Exception e) {
-      if (!ignoreErrors) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-
-  @SuppressWarnings({"DuplicateThrows"})
   public void executeDeviceCommandAndWriteToConsole(@NotNull IDevice device,
                                                     @NotNull String command,
                                                     @NotNull AndroidOutputReceiver receiver)
     throws IOException, TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException {
     myPrinter.stdout("DEVICE SHELL COMMAND: " + command);
     AndroidUtils.executeCommandOnDevice(device, command, receiver, false);
-  }
-
-  private boolean installApp(@NotNull IDevice device, @NotNull String remotePath, @NotNull String packageName)
-    throws IOException, AdbCommandRejectedException, TimeoutException {
-    myPrinter.stdout("Installing " + packageName);
-
-    InstallResult result = null;
-    boolean retry = true;
-    while (!myStopped.get() && retry) {
-      result = installApp(device, remotePath);
-      if (result.installOutput != null) {
-        if (result.failureCode == InstallResult.FailureCode.NO_ERROR) {
-          myPrinter.stdout(result.installOutput);
-        } else {
-          myPrinter.stderr(result.installOutput);
-        }
-      }
-
-      switch (result.failureCode) {
-        case DEVICE_NOT_RESPONDING:
-          myPrinter.stdout("Device is not ready. Waiting for " + WAITING_TIME_SECS + " sec.");
-          synchronized (myLock) {
-            try {
-              myLock.wait(WAITING_TIME_SECS * 1000);
-            }
-            catch (InterruptedException e) {
-              LOG.info(e);
-            }
-          }
-          retry = true;
-          break;
-        case INSTALL_FAILED_VERSION_DOWNGRADE:
-          String reason = AndroidBundle.message("deployment.failed.uninstall.prompt.text",
-                                                AndroidBundle.message("deployment.failed.reason.version.downgrade"));
-          retry = promptUninstallExistingApp(reason) && uninstallPackage(device, packageName);
-          break;
-        case INCONSISTENT_CERTIFICATES:
-          reason = AndroidBundle.message("deployment.failed.uninstall.prompt.text",
-                                         AndroidBundle.message("deployment.failed.reason.different.signature"));
-          retry = promptUninstallExistingApp(reason) && uninstallPackage(device, packageName);
-          break;
-        case INSTALL_FAILED_DEXOPT:
-          reason = AndroidBundle.message("deployment.failed.uninstall.prompt.text",
-                                         AndroidBundle.message("deployment.failed.reason.dexopt"));
-          retry = promptUninstallExistingApp(reason) && uninstallPackage(device, packageName);
-          break;
-        case NO_CERTIFICATE:
-          myPrinter.stderr(AndroidBundle.message("deployment.failed.no.certificates.explanation"));
-          showMessageDialog(AndroidBundle.message("deployment.failed.no.certificates.explanation"));
-          retry = false;
-          break;
-        case INSTALL_FAILED_OLDER_SDK:
-          reason = validateSdkVersion(device);
-          if (reason != null) {
-            if (shouldOpenProjectStructure(reason)) {
-              openProjectStructure();
-            }
-            retry =  false;  // Don't retry as there needs to be another sync and build.
-            break;
-          }
-          // Maybe throw an exception because this shouldn't happen. But let it fall through to UNTYPED_ERROR for now.
-        case UNTYPED_ERROR:
-          reason = AndroidBundle.message("deployment.failed.uninstall.prompt.generic.text", result.failureMessage);
-          retry = promptUninstallExistingApp(reason) && uninstallPackage(device, packageName);
-          break;
-        default:
-          retry = false;
-          break;
-      }
-    }
-
-    return result != null && result.failureCode == InstallResult.FailureCode.NO_ERROR;
-  }
-
-  private boolean uninstallPackage(@NotNull IDevice device, @NotNull String packageName) {
-    myPrinter.stdout("DEVICE SHELL COMMAND: pm uninstall " + packageName);
-    String output;
-    try {
-      output = device.uninstallPackage(packageName);
-    }
-    catch (InstallException e) {
-      return false;
-    }
-
-    if (output != null) {
-      myPrinter.stderr(output);
-      return false;
-    }
-    return true;
-  }
-
-  private boolean promptUninstallExistingApp(final String reason) {
-    final AtomicBoolean uninstall = new AtomicBoolean(false);
-    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        int result = Messages.showOkCancelDialog(myFacet.getModule().getProject(),
-                                                 reason,
-                                                 AndroidBundle.message("deployment.failed.title"),
-                                                 Messages.getQuestionIcon());
-        uninstall.set(result == Messages.OK);
-      }
-    }, ModalityState.defaultModalityState());
-
-    return uninstall.get();
-  }
-
-  private void showMessageDialog(@NotNull final String message) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        Messages.showErrorDialog(myFacet.getModule().getProject(), message, AndroidBundle.message("deployment.failed.title"));
-      }
-    });
-  }
-
-  private InstallResult installApp(@NotNull IDevice device, @NotNull String remotePath)
-    throws AdbCommandRejectedException, TimeoutException, IOException {
-
-    ErrorMatchingReceiver receiver = new ErrorMatchingReceiver(myStopped);
-    try {
-      executeDeviceCommandAndWriteToConsole(device, "pm install -r \"" + remotePath + "\"", receiver);
-    }
-    catch (ShellCommandUnresponsiveException e) {
-      LOG.info(e);
-      return new InstallResult(InstallResult.FailureCode.DEVICE_NOT_RESPONDING, null, null);
-    }
-
-    return InstallResult.forLaunchOutput(receiver);
-  }
-
-  private String validateSdkVersion(@NotNull IDevice device) {
-    AndroidVersion deviceVersion = DevicePropertyUtil.getDeviceVersion(device);
-    AndroidVersion minSdkVersion = myFacet.getAndroidModuleInfo().getRuntimeMinSdkVersion();
-    if (!deviceVersion.canRun(minSdkVersion)) {
-      myPrinter.stderr("Device API level: " + deviceVersion.toString()); // Log the device version to console for easy reference.
-      return AndroidBundle.message("deployment.failed.reason.oldersdk", minSdkVersion.toString(), deviceVersion.toString());
-    }
-    else {
-      return null;
-    }
-  }
-
-  private boolean shouldOpenProjectStructure(@NotNull final String reason) {
-    final AtomicBoolean open = new AtomicBoolean(false);
-    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        int result = Messages.showOkCancelDialog(myFacet.getModule().getProject(), reason,
-                                                 AndroidBundle.message("deployment.failed.title"),
-                                                 Messages.getQuestionIcon());
-        open.set(result == Messages.OK);
-      }
-    }, ModalityState.defaultModalityState());
-
-    return open.get();
-  }
-
-  /**
-   * Opens the project structure dialog and selects the flavors tab.
-   */
-  private boolean openProjectStructure() {
-    final ProjectSettingsService service = ProjectSettingsService.getInstance(myFacet.getModule().getProject());
-    if (service instanceof AndroidProjectSettingsService) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          ((AndroidProjectSettingsService)service).openAndSelectFlavorsEditor(myFacet.getModule());
-        }
-      });
-    }
-    return false;
   }
 
   public void addListener(@NotNull AndroidRunningStateListener listener) {
