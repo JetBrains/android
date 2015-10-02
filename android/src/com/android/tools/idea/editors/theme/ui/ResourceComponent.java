@@ -20,6 +20,7 @@ import com.android.tools.swing.ui.ClickableLabel;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,7 +77,10 @@ public class ResourceComponent extends JPanel {
       int firstRowHeight = Math.max(getFontMetrics(getFont()).getHeight(), myVariantCombo.getPreferredSize().height);
       int secondRowHeight = mySwatchComponent.getPreferredSize().height;
 
-      return new Dimension(0, ThemeEditorConstants.ATTRIBUTE_MARGIN + ThemeEditorConstants.ATTRIBUTE_ROW_GAP + firstRowHeight + secondRowHeight);
+      return new Dimension(0, ThemeEditorConstants.ATTRIBUTE_MARGIN +
+                              ThemeEditorConstants.ATTRIBUTE_ROW_GAP +
+                              firstRowHeight +
+                              secondRowHeight);
     }
 
     return super.getPreferredSize();
@@ -90,12 +94,14 @@ public class ResourceComponent extends JPanel {
     myNameLabel.setText(name);
   }
 
-  public void setWarning(@NotNull String warning){
-    myWarningLabel.setToolTipText(warning);
-  }
-
-  public void setWarningVisible(boolean isVisible){
-    myWarningLabel.setVisible(isVisible);
+  public void setWarning(@Nullable String warning) {
+    if (!StringUtil.isEmpty(warning)) {
+      myWarningLabel.setToolTipText(warning);
+      myWarningLabel.setVisible(true);
+    }
+    else {
+      myWarningLabel.setVisible(false);
+    }
   }
 
   public void setVariantsModel(@Nullable ComboBoxModel comboBoxModel) {

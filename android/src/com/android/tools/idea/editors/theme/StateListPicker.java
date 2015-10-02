@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
@@ -64,7 +63,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -88,7 +86,14 @@ public class StateListPicker extends JPanel {
   private final List<StateComponent> myStateComponents;
   private @Nullable final RenderTask myRenderTask;
 
-  public StateListPicker(@NotNull ResourceHelper.StateList stateList, @NotNull Module module, @NotNull Configuration configuration) {
+  private boolean myIsBackgroundStateList;
+  /** If not null, it contains colors to compare with the state list items colors to find out any possible contrast problems,
+   *  and warnings to use in case there is a problem. */
+  private Map<String, Color> myContrastColorsWithWarning;
+
+  public StateListPicker(@NotNull ResourceHelper.StateList stateList,
+                         @NotNull Module module,
+                         @NotNull Configuration configuration) {
     myStateList = stateList;
     myModule = module;
     myConfiguration = configuration;
@@ -112,20 +117,8 @@ public class StateListPicker extends JPanel {
     String stateValue = state.getValue();
     updateComponent(stateComponent, stateValue, state.getAlpha());
 
-    Map<String, Boolean> attributes = state.getAttributes();
-    List<String> attributeDescriptions = new ArrayList<String>();
-
-    for (Map.Entry<String, Boolean> attribute : attributes.entrySet()) {
-      String description = attribute.getKey().substring(ResourceHelper.STATE_NAME_PREFIX.length());
-      if (!attribute.getValue()) {
-        description = "Not " + description;
-      }
-      attributeDescriptions.add(StringUtil.capitalize(description));
-    }
-
-    String stateDescription = attributeDescriptions.size() == 0 ? "Default" : Joiner.on(", ").join(attributeDescriptions);
+    String stateDescription = Joiner.on(", ").join(state.getAttributesNames(true));
     stateComponent.setNameText(stateDescription);
-
     stateComponent.setComponentPopupMenu(createAlphaPopupMenu(state, stateComponent));
 
     return stateComponent;
@@ -300,6 +293,11 @@ public class StateListPicker extends JPanel {
     return url != null && url.framework && !targetData.isResourcePublic(url.type.getName(), url.name);
   }
 
+  public void setContrastParameters(@NotNull Map<String, Color> contrastColorsWithWarning, boolean isBackgroundStateList) {
+    myContrastColorsWithWarning = contrastColorsWithWarning;
+    myIsBackgroundStateList = isBackgroundStateList;
+  }
+
   class ValueActionListener implements ActionListener {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
@@ -313,33 +311,10 @@ public class StateListPicker extends JPanel {
     public void actionPerformed(ActionEvent e) {
       ResourceComponent resourceComponent = myComponent.getResourceComponent();
 
-      String itemValue = resourceComponent.getValueText();
-      final String resourceName;
-      // If it points to an existing resource.
-      if (!RenderResources.REFERENCE_EMPTY.equals(itemValue) &&
-          !RenderResources.REFERENCE_NULL.equals(itemValue) &&
-          itemValue.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        // Use the name of that resource.
-        resourceName = itemValue.substring(itemValue.indexOf('/') + 1);
-      }
-      else {
-        // Otherwise use the name of the attribute.
-        resourceName = itemValue;
-      }
-
-      ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
-      assert resourceResolver != null;
-      String resolvedResource = itemValue;
-
-      ResourceValue resValue = resourceResolver.findResValue(itemValue, false);
-      if (resValue != null) {
-        if (resValue.getResourceType() == ResourceType.COLOR) {
-          resolvedResource = ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, resValue, myModule.getProject()));
-        }
-        else {
-          resolvedResource = resourceResolver.resolveResValue(resValue).getName();
-        }
-      }
+      final String attributeValue = resourceComponent.getValueText();
+      ResourceUrl attributeValueUrl = ResourceUrl.parse(attributeValue);
+      boolean isFrameworkValue = attributeValueUrl != null && attributeValueUrl.framework;
+      String nameSuggestion = attributeValueUrl != null ? attributeValueUrl.name : attributeValue;
 
       ResourceType[] allowedTypes;
       if (myStateList.getType() == ResourceFolderType.COLOR) {
@@ -350,8 +325,12 @@ public class StateListPicker extends JPanel {
       }
 
       final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myModule, allowedTypes, resolvedResource, null, ChooseResourceDialog.ResourceNameVisibility.FORCE,
-                                 resourceName);
+        new ChooseResourceDialog(myModule, myConfiguration, allowedTypes, attributeValue, isFrameworkValue,
+                                 ChooseResourceDialog.ResourceNameVisibility.FORCE, nameSuggestion);
+
+      if (!myContrastColorsWithWarning.isEmpty()) {
+        dialog.setContrastParameters(myContrastColorsWithWarning, myIsBackgroundStateList);
+      }
 
       dialog.show();
 
