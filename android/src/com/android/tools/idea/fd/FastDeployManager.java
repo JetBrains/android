@@ -186,13 +186,11 @@ public class FastDeployManager implements ProjectComponent {
   }
 
   public void performUpdate(@Nullable IDevice device, @NotNull UpdateMode updateMode, @Nullable Module module) {
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        AndroidGradleModel model = AndroidGradleModel.get(facet);
-        if (model != null) {
-          runGradle(device, model, facet, updateMode);
-        }
+    AndroidFacet facet = findAppModule(module);
+    if (facet != null) {
+      AndroidGradleModel model = AndroidGradleModel.get(facet);
+      if (model != null) {
+        runGradle(device, model, facet, updateMode);
       }
     }
   }
