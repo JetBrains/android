@@ -18,27 +18,81 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.util.Ref;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import java.awt.*;
+import java.util.Collection;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.fest.swing.timing.Pause.pause;
 
 public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, ActionButton> {
   @NotNull
-  public static ActionButtonFixture findByActionId(@NotNull final String actionId, @NotNull Robot robot, @NotNull Container container) {
-    final ActionButton button = robot.finder().find(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+  public static ActionButtonFixture findByActionId(@NotNull final String actionId,
+                                                   @NotNull final Robot robot,
+                                                   @NotNull final Container container) {
+    final Ref<ActionButton> actionButtonRef = new Ref<ActionButton>();
+    pause(new Condition("Find ActionButton with ID '" + actionId + "'") {
       @Override
-      protected boolean isMatching(@NotNull ActionButton button) {
-        AnAction action = button.getAction();
-        if (action != null) {
-          String id = ActionManager.getInstance().getId(action);
-          return actionId.equals(id);
+      public boolean test() {
+        Collection<ActionButton> found = robot.finder().findAll(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+          @Override
+          protected boolean isMatching(@NotNull ActionButton button) {
+            if (button.isVisible()) {
+              AnAction action = button.getAction();
+              if (action != null) {
+                String id = ActionManager.getInstance().getId(action);
+                return actionId.equals(id);
+              }
+            }
+            return false;
+          }
+        });
+        if (found.size() == 1) {
+          actionButtonRef.set(getFirstItem(found));
+          return true;
         }
         return false;
       }
-    });
+    }, SHORT_TIMEOUT);
+
+    ActionButton button = actionButtonRef.get();
+    if (button == null) {
+      throw new ComponentLookupException("Failed to find ActionButton with ID '" + actionId + "'");
+    }
     return new ActionButtonFixture(robot, button);
+  }
+
+  @NotNull
+  public ActionButtonFixture waitUntilEnabledAndShowing() {
+    pause(new Condition("wait for action to be enabled and showing") {
+      @Override
+      public boolean test() {
+        //noinspection ConstantConditions
+        return execute(new GuiQuery<Boolean>() {
+          @Nullable
+          @Override
+          protected Boolean executeInEDT() throws Throwable {
+            ActionButton target = target();
+            if (target.getAction().getTemplatePresentation().isEnabledAndVisible()) {
+              return target.isShowing() && target.isVisible() && target.isEnabled();
+            }
+            return false;
+          }
+        });
+      }
+    }, LONG_TIMEOUT);
+    return this;
   }
 
   @NotNull

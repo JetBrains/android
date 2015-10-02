@@ -129,6 +129,8 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
   @NotNull
   public LibraryPropertiesDialogFixture clickOk() {
     findAndClickOkButton(this);
+    LibraryPropertiesDialog dialog = this.getDialogWrapper();
+    dialog.applyChanges();
     return this;
   }
 
