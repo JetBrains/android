@@ -32,6 +32,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.Collection;
 
+import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtilRt.getRelativePath;
@@ -55,7 +56,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<AndroidGra
       removeAllFacetsOfType(AndroidFacet.ID, modelsProvider.getModifiableFacetModel(module));
     }
     else {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
+      AndroidFacet facet = findFacet(module, modelsProvider, AndroidFacet.ID);
       if (facet != null) {
         configureFacet(facet, androidModel);
       }

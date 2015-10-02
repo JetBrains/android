@@ -84,7 +84,7 @@ public class SdkSyncTest extends IdeaTestCase {
         return myAndroidSdkPath;
       }
     };
-    SdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, task);
+    SdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
 
     assertProjectSdkSet();
     assertDefaultSdkSet();
@@ -99,7 +99,7 @@ public class SdkSyncTest extends IdeaTestCase {
       }
     };
     try {
-      SdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, task);
+      SdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
       fail("Expecting ExternalSystemException");
     } catch (ExternalSystemException e) {
       // expected
