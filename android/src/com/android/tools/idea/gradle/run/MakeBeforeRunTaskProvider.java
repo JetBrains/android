@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -24,6 +25,9 @@ import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.DeployTarget;
+import com.android.tools.idea.run.DeviceTarget;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
@@ -44,11 +48,12 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -226,6 +231,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         }
       };
 
+      Collection<IDevice> devices = getTargetDevices(env);
+      final List<String> properties = getGradleArgumentsToTarget(devices);
+
       if (myProject.isDisposed()) {
         done.up();
       }
@@ -254,10 +262,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
                 gradleInvoker.compileJava(affectedModules, TestCompileType.JAVA_TESTS);
               } else {
                 TestCompileType testCompileType = getTestCompileType(configuration);
-                gradleInvoker.assemble(modules, testCompileType);
+                gradleInvoker.assemble(modules, testCompileType, properties);
               }
             } else {
-              gradleInvoker.executeTasks(Lists.newArrayList(goal));
+              gradleInvoker.executeTasks(Lists.newArrayList(goal), properties);
             }
           }
         });
@@ -269,6 +277,22 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
     return success.get();
+  }
+
+  @NotNull
+  private static List<String> getGradleArgumentsToTarget(Collection<IDevice> devices) {
+    // TODO: fix this once we know exactly what properties are required by Gradle
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  private static Collection<IDevice> getTargetDevices(@NotNull ExecutionEnvironment env) {
+    DeployTarget deployTarget = env.getCopyableUserData(AndroidRunConfigurationBase.DEPLOY_TARGET_KEY);
+    Collection<IDevice> readyDevices = null;
+    if (deployTarget instanceof DeviceTarget) {
+      readyDevices = ((DeviceTarget)deployTarget).getDevicesIfReady();
+    }
+    return readyDevices == null ? Collections.<IDevice>emptyList() : readyDevices;
   }
 
   @NotNull
