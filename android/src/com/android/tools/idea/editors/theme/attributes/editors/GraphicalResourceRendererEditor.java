@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
@@ -49,6 +50,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.TreeSet;
 
 /**
@@ -216,12 +218,22 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
 
       ItemResourceValue primaryColorResourceValue =
         ThemeEditorUtils.resolveItemFromParents(style, MaterialColors.PRIMARY_MATERIAL_ATTR, !ThemeEditorUtils.isAppCompatTheme(style));
-      Color primaryColor = ResourceHelper.resolveColor(styleResourceResolver, primaryColorResourceValue, myContext.getProject());
+
+      final Project project = myContext.getProject();
+      Color primaryColor = ResourceHelper.resolveColor(styleResourceResolver, primaryColorResourceValue, project);
 
       ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, getAllowedResourceTypes());
+
+      String attributeName = myItem.getName();
       if (primaryColor != null) {
-        dialog.generateColorSuggestions(primaryColor, myItem.getName());
+        dialog.generateColorSuggestions(primaryColor, attributeName);
       }
+
+      Map<String, Color> contrastColorsWithWarning = ColorUtils.getContrastColorsWithWarning(myContext, attributeName);
+      if (!contrastColorsWithWarning.isEmpty()) {
+        dialog.setContrastParameters(contrastColorsWithWarning, ColorUtils.isBackgroundAttribute(attributeName));
+      }
+
       final String oldValue = myItem.getSelectedValue().getValue();
 
       dialog.setResourcePickerListener(new ChooseResourceDialog.ResourcePickerListener() {
@@ -237,7 +249,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
               // resValue ending in ".xml" signifies a color state list, in which case we do not want to resolve it further
               // resolveColor applied to a state list would pick only one color, while the preview will deal with it correctly
               resolvedResource =
-                ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, resValue, myContext.getProject()));
+                ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, resValue, project));
             }
             myItem.getSelectedValue().setValue(resolvedResource);
           }
