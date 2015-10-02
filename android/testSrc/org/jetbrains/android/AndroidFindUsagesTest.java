@@ -43,13 +43,6 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject(BASE_PATH + "picture3.gif", "res/drawable/picture3.gif");
-    setupR();
-  }
-
-  /**
-   * This method is overridden to test alternate methods of supplying the top level R class.
-   */
-  protected void setupR() {
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
   }
 
