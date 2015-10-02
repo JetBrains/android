@@ -90,12 +90,22 @@ abstract class AndroidDomTest extends AndroidTestCase {
   }
 
   protected void doTestCompletionVariants(String fileName, String... variants) throws Throwable {
+    List<String> lookupElementStrings = getCompletionElements(fileName);
+    assertNotNull(lookupElementStrings);
+    UsefulTestCase.assertSameElements(lookupElementStrings, variants);
+  }
+
+  protected void doTestCompletionVarinatsContains(String fileName, String... variants) throws Throwable {
+    List<String> lookupElementStrings = getCompletionElements(fileName);
+    assertNotNull(lookupElementStrings);
+    assertContainsElements(lookupElementStrings, variants);
+  }
+
+  private List<String> getCompletionElements(String fileName) throws IOException {
     VirtualFile file = copyFileToProject(fileName);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
-    List<String> lookupElementStrings = myFixture.getLookupElementStrings();
-    assertNotNull(lookupElementStrings);
-    UsefulTestCase.assertSameElements(lookupElementStrings, variants);
+    return myFixture.getLookupElementStrings();
   }
 
   protected void doTestHighlighting() throws Throwable {
