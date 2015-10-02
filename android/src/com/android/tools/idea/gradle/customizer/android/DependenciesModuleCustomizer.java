@@ -46,6 +46,7 @@ import java.util.Set;
 
 import static com.android.SdkConstants.FD_JARS;
 import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.*;
+import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
@@ -94,7 +95,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
                                       @NotNull AndroidProject androidProject) {
     Module moduleDependency = null;
     for (Module m : modelsProvider.getModules()) {
-      AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(m);
+      AndroidGradleFacet androidGradleFacet = findFacet(m, modelsProvider, AndroidGradleFacet.TYPE_ID);
       if (androidGradleFacet != null) {
         String gradlePath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
         if (Objects.equal(gradlePath, dependency.getGradlePath())) {
