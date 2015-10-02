@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PluginPathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -215,7 +216,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
     final PathListener.PathEvent event = new PathListener.PathEvent(path, source);
     // All path notifications are executed in the editor thread
-    EdtExecutor.INSTANCE.execute(new Runnable() {
+    Runnable eventDispatch = new Runnable() {
       @Override
       public void run() {
         LOG.info("Activate path " + path + ", source: " + source.getClass().getName());
@@ -223,7 +224,13 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           listener.notifyPath(event);
         }
       }
-    });
+    };
+    Application application = ApplicationManager.getApplication();
+    if (application.isDispatchThread()) {
+      eventDispatch.run();
+    } else {
+      application.invokeLater(eventDispatch);
+    }
   }
 
   public void addPathListener(@NotNull PathListener listener) {
