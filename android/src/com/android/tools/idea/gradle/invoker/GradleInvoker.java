@@ -131,10 +131,14 @@ public class GradleInvoker {
   }
 
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
+    assemble(modules, testCompileType, Collections.<String>emptyList());
+  }
+
+  public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType, @NotNull List<String> arguments) {
     BuildMode buildMode = BuildMode.ASSEMBLE;
     setProjectBuildMode(buildMode);
     List<String> tasks = findTasksToExecute(modules, buildMode, testCompileType);
-    executeTasks(tasks);
+    executeTasks(tasks, arguments);
   }
 
   public void rebuild() {
