@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,11 +63,16 @@ public final class Capture implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {11, -118, 68, -40, 99, 119, 42, -39, -30, 23, 42, 93, 18, -43, -67, -89, -27, -126, -70, 109, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","Capture","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Name", new Primitive("string", Method.String)),
+      new Field("Atoms", new Primitive("AtomsID", Method.ID)),
+      new Field("Apis", new Slice("", new Primitive("ApiID", Method.ID))),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -75,7 +81,7 @@ public final class Capture implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new Capture(); }

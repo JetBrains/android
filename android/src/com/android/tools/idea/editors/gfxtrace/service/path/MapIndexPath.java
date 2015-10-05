@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.any.Box;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
@@ -63,11 +64,15 @@ public final class MapIndexPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-117, 46, -84, 108, 75, 107, -28, 75, -55, -28, 55, 3, 8, -26, 124, -120, -77, -67, -114, 59, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","MapIndex","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Map", new Interface("Path")),
+      new Field("Key", new AnyType()),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -76,7 +81,7 @@ public final class MapIndexPath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new MapIndexPath(); }

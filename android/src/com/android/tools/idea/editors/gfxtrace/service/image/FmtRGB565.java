@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.image;
 
+import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
@@ -38,11 +39,13 @@ final class FmtRGB565 extends Format {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-15, 78, 1, -121, 102, -37, 86, 85, 91, -114, 27, -78, -77, -93, -105, 121, 94, 106, 12, -119, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("image","fmtRGB565","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -51,7 +54,7 @@ final class FmtRGB565 extends Format {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new FmtRGB565(); }

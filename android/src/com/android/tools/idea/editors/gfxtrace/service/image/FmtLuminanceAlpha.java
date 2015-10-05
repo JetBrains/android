@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.image;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,11 +33,13 @@ final public class FmtLuminanceAlpha extends Format {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-122, -118, 47, -16, -128, -78, 97, 31, 87, -48, 110, 68, 95, 2, 17, 96, 43, -128, -23, 24, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("image","fmtLuminanceAlpha","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -45,7 +48,7 @@ final public class FmtLuminanceAlpha extends Format {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new FmtLuminanceAlpha(); }

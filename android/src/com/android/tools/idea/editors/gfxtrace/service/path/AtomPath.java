@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
 import com.android.tools.rpclib.binary.*;
@@ -80,11 +81,15 @@ public final class AtomPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-4, 95, 80, -66, 81, -104, 52, 66, -57, 127, -31, 68, -64, 45, -102, -49, 43, 7, 10, 117, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","Atom","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Atoms", new Pointer(new Struct(AtomsPath.Klass.INSTANCE.entity()))),
+      new Field("Index", new Primitive("uint64", Method.Uint64)),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -93,7 +98,7 @@ public final class AtomPath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new AtomPath(); }

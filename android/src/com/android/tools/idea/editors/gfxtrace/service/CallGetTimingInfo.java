@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.rpclib.binary.*;
@@ -64,11 +65,16 @@ final class CallGetTimingInfo implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {68, 17, 99, 95, -120, -63, -37, 103, 103, 120, -93, -77, 99, 70, 18, -122, -76, 79, -126, 20, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","callGetTimingInfo","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("device", new Pointer(new Struct(DevicePath.Klass.INSTANCE.entity()))),
+      new Field("capture", new Pointer(new Struct(CapturePath.Klass.INSTANCE.entity()))),
+      new Field("flags", new Primitive("TimingFlags", Method.Int32)),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -77,7 +83,7 @@ final class CallGetTimingInfo implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new CallGetTimingInfo(); }
