@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -30,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Class that implements a {@link javax.swing.JTable} renderer and editor for color attributes.
@@ -52,7 +52,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
 
     if (!colors.isEmpty()) {
       Color color = Iterables.getLast(colors);
-      Map<String, Color> contrastColorsWithWarning = ColorUtils.getContrastColorsWithWarning(context, item.getName());
+      ImmutableMap<String, Color> contrastColorsWithWarning = ColorUtils.getContrastColorsWithWarning(context, item.getName());
       component.setWarning(ColorUtils.getContrastWarningMessage(contrastColorsWithWarning, color));
     }
     else {
