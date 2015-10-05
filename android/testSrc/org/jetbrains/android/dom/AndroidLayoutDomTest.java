@@ -293,6 +293,14 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     toTestCompletion("can5.xml", "can5_after.xml");
   }
 
+  public void testToolsAttributesCompletion() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
+    // Create layout that we will use to test the layout completion
+    myFixture.copyFileToProject(testFolder + "/tools_context_completion_after.xml", "res/layout/other_layout.xml");
+    toTestFirstCompletion("tools_context_completion.xml", "tools_context_completion_after.xml");
+    toTestCompletion("tools_showIn_completion.xml", "tools_showIn_completion_after.xml");
+  }
+
   public void testCustomAttributeValueCompletion() throws Throwable {
     doTestCompletionVariants("cav.xml", "@color/color0", "@color/color1", "@color/color2");
   }
