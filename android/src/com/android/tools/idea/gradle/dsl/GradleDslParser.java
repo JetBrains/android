@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser;
+package com.android.tools.idea.gradle.dsl;
 
-import com.android.tools.idea.gradle.dsl.*;
-import com.android.tools.idea.gradle.dsl.android.AndroidElement;
-import com.android.tools.idea.gradle.dsl.android.ProductFlavorElement;
-import com.android.tools.idea.gradle.dsl.android.ProductFlavorsElement;
-import com.android.tools.idea.gradle.dsl.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslElementParser;
 import com.google.common.base.Splitter;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +42,7 @@ import static com.intellij.psi.util.PsiTreeUtil.*;
  * {@link AndroidElement}. See {@link #getElement(List, GradleDslPropertiesElement)} for all the block elements currently supported
  * by this parser.
  */
-public class GradleDslParser implements GradleDslElementParser {
+final class GradleDslParser implements GradleDslElementParser {
   @Override
   public boolean parse(@NotNull GroovyPsiElement e, @NotNull GradleBuildModel buildModel) {
     if (e instanceof GrMethodCallExpression) {
