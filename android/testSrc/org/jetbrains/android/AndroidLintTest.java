@@ -143,6 +143,11 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/res/layout/layout.xml", "xml");
   }
 
+  public void testParcelCreator() throws Exception {
+    doTestNoFix(new AndroidLintInspectionToolProvider.AndroidLintParcelCreatorInspection(),
+                "/src/test/pkg/ParcelableDemo.java", "java");
+  }
+
   public void testInefficientWeight() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintInefficientWeightInspection(),
                   AndroidBundle.message("android.lint.fix.replace.with.zero.dp"),
