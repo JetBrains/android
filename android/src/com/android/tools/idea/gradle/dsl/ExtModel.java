@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.ext;
+package com.android.tools.idea.gradle.dsl;
 
-import com.android.tools.idea.gradle.dsl.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.GradleDslPropertiesElement;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -26,10 +24,10 @@ import org.jetbrains.annotations.Nullable;
  * <a href="https://docs.gradle.org/current/userguide/writing_build_scripts.html#sec:extra_properties">Extra Properties</a>.
  * </p>
  */
-public class ExtModel extends GradleDslPropertiesElement {
+public final class ExtModel extends GradleDslPropertiesElement {
   public static final String NAME = "ext";
 
-  public ExtModel(@Nullable GradleDslElement parent) {
+  ExtModel(@Nullable GradleDslElement parent) {
     super(parent);
   }
 }

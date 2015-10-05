@@ -29,15 +29,15 @@ import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 /**
  * Represents an element which consists of a map from properties of type {@link String} and values of type {@link LiteralElement}.
  */
-public final class LiteralMapElement extends GradleDslPropertiesElement {
+final class LiteralMapElement extends GradleDslPropertiesElement {
   @NotNull private final String myName;
 
-  public LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name) {
+  LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent);
     myName = name;
   }
 
-  public LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap map) {
+  LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap map) {
     super(parent);
     assert map.isMap();
     myName = name;
@@ -52,7 +52,7 @@ public final class LiteralMapElement extends GradleDslPropertiesElement {
     }
   }
 
-  public LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrNamedArgument... namedArguments) {
+  LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrNamedArgument... namedArguments) {
     super(parent);
     myName = name;
     for (GrNamedArgument argument : namedArguments) {
@@ -67,11 +67,11 @@ public final class LiteralMapElement extends GradleDslPropertiesElement {
   }
 
   @NotNull
-  public String getName() {
+  String getName() {
     return myName;
   }
 
-  public void put(String key, Object value) {
+  void put(String key, Object value) {
     GradleDslElement propertyElement = getPropertyElement(key);
     if (propertyElement instanceof LiteralElement) {
       ((LiteralElement)propertyElement).setValue(value);
@@ -88,7 +88,7 @@ public final class LiteralMapElement extends GradleDslPropertiesElement {
    * <p>Returns an empty map when the given there are no values of type {@code clazz}.
    */
   @NotNull
-  public <V> Map<String, V> getValues(@NotNull Class<V> clazz) {
+  <V> Map<String, V> getValues(@NotNull Class<V> clazz) {
     Map<String, V> result = Maps.newHashMap();
     for (String key : getProperties()) {
       GradleDslElement propertyElement = getPropertyElement(key);
