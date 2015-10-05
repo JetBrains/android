@@ -33,6 +33,7 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
@@ -50,7 +51,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.TreeSet;
 
 /**
@@ -229,7 +229,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
         dialog.generateColorSuggestions(primaryColor, attributeName);
       }
 
-      Map<String, Color> contrastColorsWithWarning = ColorUtils.getContrastColorsWithWarning(myContext, attributeName);
+      ImmutableMap<String, Color> contrastColorsWithWarning = ColorUtils.getContrastColorsWithWarning(myContext, attributeName);
       if (!contrastColorsWithWarning.isEmpty()) {
         dialog.setContrastParameters(contrastColorsWithWarning, ColorUtils.isBackgroundAttribute(attributeName));
       }
