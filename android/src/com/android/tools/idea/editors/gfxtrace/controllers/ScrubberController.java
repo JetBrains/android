@@ -133,15 +133,16 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
   @Override
   public void notifyPath(PathEvent event) {
     boolean updateIcons = myRenderDevice.updateIfNotNull(event.findDevicePath());
-    updateIcons = myAtomsPath.update(CapturePath.atoms(event.findCapturePath())) | updateIcons;
+    updateIcons = myAtomsPath.updateIfNotNull(CapturePath.atoms(event.findCapturePath())) | updateIcons;
 
     selectFrame(event.findAtomPath());
 
-    if (updateIcons && myAtomsPath.getPath() != null) {
-      Futures.addCallback(myEditor.getClient().get(myAtomsPath.getPath()), new LoadingCallback<AtomList>(LOG) {
+    final AtomsPath atomsPath = myAtomsPath.getPath();
+    if (updateIcons && atomsPath != null) {
+      Futures.addCallback(myEditor.getClient().get(atomsPath), new LoadingCallback<AtomList>(LOG) {
         @Override
         public void onSuccess(@Nullable final AtomList atoms) {
-          myList.setData(prepareData(myAtomsPath.getPath(), atoms));
+          myList.setData(prepareData(atomsPath, atoms));
         }
       }, EdtExecutor.INSTANCE);
     }
