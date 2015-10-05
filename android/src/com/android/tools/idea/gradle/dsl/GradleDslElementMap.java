@@ -25,16 +25,16 @@ import java.util.List;
 /**
  * Represents a map of {@link GradleDslElement}s from their names.
  */
-public class GradleDslElementMap extends GradleDslPropertiesElement {
+class GradleDslElementMap extends GradleDslPropertiesElement {
   @NotNull private final String myName;
 
-  public GradleDslElementMap(@Nullable GradleDslElement parent, @NotNull String name) {
+  GradleDslElementMap(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent);
     myName = name;
   }
 
   @NotNull
-  public <E extends GradleDslElement> Collection<E> getValues(Class<E> clazz) {
+  <E extends GradleDslElement> Collection<E> getValues(Class<E> clazz) {
     List<E> result = Lists.newArrayList();
     for (String property : getProperties()) {
       GradleDslElement element = getPropertyElement(property);
