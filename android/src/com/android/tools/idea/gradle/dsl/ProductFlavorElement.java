@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android;
+package com.android.tools.idea.gradle.dsl;
 
-import com.android.tools.idea.gradle.dsl.*;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +24,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import java.util.List;
 import java.util.Map;
 
-public class ProductFlavorElement extends GradleDslPropertiesElement {
+public final class ProductFlavorElement extends GradleDslPropertiesElement {
   private static final String APPLICATION_ID = "applicationId";
   private static final String CONSUMER_PROGUARD_FILES = "consumerProguardFiles";
   private static final String DIMENSION = "dimension";
@@ -49,7 +48,7 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
   @NotNull
   private final String myName;
 
-  public ProductFlavorElement(@Nullable GradleDslElement parent, @NotNull String name) {
+  ProductFlavorElement(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent);
     myName = name;
   }
@@ -476,7 +475,7 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
   /**
    * Represents a {@code resValue} statement defined in the product flavor block of the Gradle file.
    */
-  static final class ResValue {
+  public static final class ResValue {
     @NotNull public static final String NAME = "resValue";
 
     @NotNull private final String myType;
@@ -528,7 +527,7 @@ public class ProductFlavorElement extends GradleDslPropertiesElement {
     }
 
     @NotNull
-    LiteralListElement toLiteralListElement(@Nullable GradleDslElement parent) {
+    private LiteralListElement toLiteralListElement(@Nullable GradleDslElement parent) {
       LiteralElement typeElement = new LiteralElement(parent, NAME);
       typeElement.setValue(myType);
       LiteralElement nameElement = new LiteralElement(parent, NAME);
