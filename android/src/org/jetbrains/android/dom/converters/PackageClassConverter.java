@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -47,14 +48,25 @@ import java.util.List;
 public class PackageClassConverter extends ResolvingConverter<PsiClass> implements CustomReferenceConverter<PsiClass> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.converters.PackageClassConverter");
 
+  private final boolean myUseManifestBasePackage;
   private final String[] myExtendClassesNames;
 
-  public PackageClassConverter(String... extendClassesNames) {
+  /**
+   * @param useManifestBasePackage if true, even when the attribute it's not defined within the manifest, the resolution will use the
+   *                               manifest package for completion.
+   * @param extendClassesNames list of the classes that the searched class can extend
+   */
+  public PackageClassConverter(boolean useManifestBasePackage, String... extendClassesNames) {
+    myUseManifestBasePackage = useManifestBasePackage;
     myExtendClassesNames = extendClassesNames;
   }
 
+  public PackageClassConverter(String... extendClassesNames) {
+    this(false, extendClassesNames);
+  }
+
   public PackageClassConverter() {
-    myExtendClassesNames = ArrayUtil.EMPTY_STRING_ARRAY;
+    this(false, ArrayUtil.EMPTY_STRING_ARRAY);
   }
 
   @Override
@@ -63,13 +75,24 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     return Collections.emptyList();
   }
 
-  @Override
-  public PsiClass fromString(@Nullable @NonNls String s, ConvertContext context) {
-    if (s == null) return null;
+  @Nullable
+  private String getManifestPackage(@NotNull ConvertContext context) {
     DomElement domElement = context.getInvocationElement();
     Manifest manifest = domElement.getParentOfType(Manifest.class, true);
-    s = s.replace('$', '.');
     String packageName = manifest != null ? manifest.getPackage().getValue() : null;
+
+    if (packageName == null && myUseManifestBasePackage) {
+      packageName = ManifestInfo.get(context.getModule(), false).getPackage();
+    }
+
+    return packageName;
+  }
+
+  @Override
+  public PsiClass fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
+    if (s == null) return null;
+    String packageName = getManifestPackage(context);
+    s = s.replace('$', '.');
     String className = null;
 
     if (packageName != null) {
@@ -103,8 +126,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     final int start = attrValue.getValueTextRange().getStartOffset() - attrValue.getTextRange().getStartOffset();
 
     final DomElement domElement = context.getInvocationElement();
-    final Manifest manifest = domElement.getParentOfType(Manifest.class, true);
-    final String basePackage = manifest == null ? null : manifest.getPackage().getValue();
+    final String basePackage = getManifestPackage(context);
     final ExtendClass extendClassAnnotation = domElement.getAnnotation(ExtendClass.class);
 
     final String[] extendClassesNames = extendClassAnnotation != null
