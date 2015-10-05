@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.logcat.AndroidConfiguredLogFilters.FilterEntry;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
@@ -294,12 +295,8 @@ final class EditLogFilterDialog extends DialogWrapper {
 
     final String[] lines = StringUtil.splitByLines(document.toString());
     for (String line : lines) {
-      AndroidLogcatFormatter.Message result = AndroidLogcatFormatter.parseMessage(line);
-      if (result.getHeader() == null) {
-        continue;
-      }
-
-      pidSet.add(Integer.toString(result.getHeader().myPid));
+      LogCatMessage message = AndroidLogcatFormatter.parseMessage(line);
+      pidSet.add(message.getPid());
     }
 
     myUsedPids = Lists.newArrayList(pidSet);
