@@ -1,0 +1,14 @@
+<resources>
+  <style name="Parent">
+  </style>
+
+  <style name="Parent2">
+  </style>
+
+  <style name="NoXxxx"> <!-- style not containing the letter P -->
+  </style>
+
+  <style name="AppTheme" parent="P<caret>">
+    <item name="android:windowBackground">@drawable/picture1</item>
+  </style>
+</resources>
