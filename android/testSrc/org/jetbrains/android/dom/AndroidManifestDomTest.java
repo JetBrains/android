@@ -263,6 +263,12 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestCompletion(false);
   }
 
+  // Tests for completion of actions outside of set of constants defined in android.intent.Intent
+  // Regression test for http://b.android.com/187026
+  public void testTelephonyActionCompletion() throws Throwable {
+    toTestCompletion("TelephonyActionCompletion.xml", "TelephonyActionCompletion_after.xml");
+  }
+
   public void testIntentActionsHighlighting() throws Throwable {
     doTestHighlighting();
   }
