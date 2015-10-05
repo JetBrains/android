@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+import com.android.tools.rpclib.schema.*;
 final class CallGetDevices implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
 
@@ -32,11 +33,13 @@ final class CallGetDevices implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {57, -54, 38, -27, 110, 13, 62, -128, 85, -67, 49, 16, 6, 19, 126, -30, 62, -6, 55, 46, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","callGetDevices","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -45,7 +48,7 @@ final class CallGetDevices implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new CallGetDevices(); }

@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,11 +63,15 @@ public final class FieldPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {9, -120, 21, -114, 16, 96, -18, 79, 124, 43, -93, -11, 99, -41, -18, 31, -118, 10, 126, -14, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","Field","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Struct", new Interface("Path")),
+      new Field("Name", new Primitive("string", Method.String)),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -75,7 +80,7 @@ public final class FieldPath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new FieldPath(); }
