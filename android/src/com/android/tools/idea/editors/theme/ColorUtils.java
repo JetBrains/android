@@ -90,9 +90,9 @@ public class ColorUtils {
    * @return all the colors the attribute needs to be checked against, each associated with the appropriate string to use in a warning
    */
   @NotNull
-  public static Map<String, Color> getContrastColorsWithWarning(@NotNull ThemeEditorContext context,
-                                                                @NotNull String styleAttributeName) {
-    Map<String, Color> contrastColors = Maps.newHashMap();
+  public static ImmutableMap<String, Color> getContrastColorsWithWarning(@NotNull ThemeEditorContext context,
+                                                                         @NotNull String styleAttributeName) {
+    ImmutableMap.Builder<String, Color> contrastColorsBuilder = ImmutableMap.builder();
     ResourceResolver styleResourceResolver = context.getResourceResolver();
     assert styleResourceResolver != null;
     Project project = context.getProject();
@@ -106,7 +106,7 @@ public class ColorUtils {
             .resolveColor(styleResourceResolver, styleResourceResolver.findResValue(stateListState.getValue(), false), project);
           if (stateListColor != null) {
             for (String attributeName : stateListState.getAttributesNames(false)) {
-              contrastColors.put(attributeName + " <b>" + contrastItem.getName() + "</b>", stateListColor);
+              contrastColorsBuilder.put(attributeName + " <b>" + contrastItem.getName() + "</b>", stateListColor);
             }
           }
         }
@@ -114,11 +114,11 @@ public class ColorUtils {
       else {
         Color resolvedColor = ResourceHelper.resolveColor(styleResourceResolver, contrastItem, project);
         if (resolvedColor != null) {
-          contrastColors.put("<b>" + contrastItem.getName() + "</b>", resolvedColor);
+          contrastColorsBuilder.put("<b>" + contrastItem.getName() + "</b>", resolvedColor);
         }
       }
     }
-    return contrastColors;
+    return contrastColorsBuilder.build();
   }
 
   /**
