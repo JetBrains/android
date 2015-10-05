@@ -19,6 +19,7 @@ package com.android.tools.idea.editors.gfxtrace.service.image;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.BinaryClass;
 import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.rpclib.binary.BinaryObject;
@@ -79,11 +80,17 @@ public final class ImageInfo implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-96, -71, -110, -37, 32, 107, -112, 93, -29, 112, -110, -67, 72, 62, 69, 58, 5, 112, -97, 28, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("image","Info","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Format", new Interface("Format")),
+      new Field("Width", new Primitive("uint32", Method.Uint32)),
+      new Field("Height", new Primitive("uint32", Method.Uint32)),
+      new Field("Data", new Pointer(new Struct(BlobPath.Klass.INSTANCE.entity()))),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -92,7 +99,7 @@ public final class ImageInfo implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new ImageInfo(); }

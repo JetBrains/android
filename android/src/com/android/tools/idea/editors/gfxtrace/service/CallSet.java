@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.rpclib.any.Box;
 import com.android.tools.rpclib.binary.*;
@@ -54,11 +55,15 @@ final class CallSet implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {77, -116, -43, -43, 14, 3, -90, 102, 1, -97, -103, -28, -63, 36, -103, -89, 68, 91, -28, 16, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","callSet","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("p", new Interface("path.Path")),
+      new Field("v", new AnyType()),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -67,7 +72,7 @@ final class CallSet implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new CallSet(); }

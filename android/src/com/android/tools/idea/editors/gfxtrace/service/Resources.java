@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
@@ -78,11 +79,17 @@ public final class Resources implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-89, -110, 76, -82, -81, -7, -64, -7, 103, 12, -126, -90, -128, 40, -42, 101, -15, 21, 117, 59, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","Resources","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Textures1D", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
+      new Field("Textures2D", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
+      new Field("Textures3D", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
+      new Field("Cubemaps", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -91,7 +98,7 @@ public final class Resources implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new Resources(); }

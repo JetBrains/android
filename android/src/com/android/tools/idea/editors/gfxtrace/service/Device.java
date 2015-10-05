@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -132,11 +133,23 @@ public final class Device implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {102, 121, 100, 116, 48, 91, 34, -50, 12, -48, 20, 5, -22, -48, -8, 84, -92, -111, -50, 11, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","Device","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Name", new Primitive("string", Method.String)),
+      new Field("Model", new Primitive("string", Method.String)),
+      new Field("OS", new Primitive("string", Method.String)),
+      new Field("PointerSize", new Primitive("uint8", Method.Uint8)),
+      new Field("PointerAlignment", new Primitive("uint8", Method.Uint8)),
+      new Field("MaxMemorySize", new Primitive("uint64", Method.Uint64)),
+      new Field("Extensions", new Primitive("string", Method.String)),
+      new Field("Renderer", new Primitive("string", Method.String)),
+      new Field("Vendor", new Primitive("string", Method.String)),
+      new Field("Version", new Primitive("string", Method.String)),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -145,7 +158,7 @@ public final class Device implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new Device(); }
