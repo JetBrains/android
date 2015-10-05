@@ -61,7 +61,7 @@ public final class Observation implements BinaryObject {
     Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Range", new Struct(MemoryRange.Klass.INSTANCE.entity())),
-      new Field("ID", new Primitive("binary.ID", Method.ID)),
+      new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
     });
   }
   public static void register() {}
@@ -80,7 +80,8 @@ public final class Observation implements BinaryObject {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Observation o = (Observation)obj;
       e.value(o.myRange);
-      e.id(o.myID);
+      o.myID.write(e);
+
     }
 
     @Override
@@ -88,7 +89,8 @@ public final class Observation implements BinaryObject {
       Observation o = (Observation)obj;
       o.myRange = new MemoryRange();
       d.value(o.myRange);
-      o.myID = d.id();
+      o.myID = new BinaryID(d);
+
     }
     //<<<End:Java.KlassBody:2>>>
   }

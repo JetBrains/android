@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.idea.editors.gfxtrace.service.path.ResourceID;
 import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +36,7 @@ public final class ResourceInfo implements BinaryObject {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  private BinaryID myID;
+  private ResourceID myID;
   private String myName;
   private long[] myAccesses;
 
@@ -43,11 +44,11 @@ public final class ResourceInfo implements BinaryObject {
   public ResourceInfo() {}
 
 
-  public BinaryID getID() {
+  public ResourceID getID() {
     return myID;
   }
 
-  public ResourceInfo setID(BinaryID v) {
+  public ResourceInfo setID(ResourceID v) {
     myID = v;
     return this;
   }
@@ -79,7 +80,7 @@ public final class ResourceInfo implements BinaryObject {
   static {
     Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
-      new Field("ID", new Primitive("path.ResourceID", Method.ID)),
+      new Field("ID", new Array("path.ResourceID", new Primitive("byte", Method.Uint8), 20)),
       new Field("Name", new Primitive("string", Method.String)),
       new Field("Accesses", new Slice("", new Primitive("uint64", Method.Uint64))),
     });
@@ -99,7 +100,8 @@ public final class ResourceInfo implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ResourceInfo o = (ResourceInfo)obj;
-      e.id(o.myID);
+      o.myID.write(e);
+
       e.string(o.myName);
       e.uint32(o.myAccesses.length);
       for (int i = 0; i < o.myAccesses.length; i++) {
@@ -110,7 +112,8 @@ public final class ResourceInfo implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ResourceInfo o = (ResourceInfo)obj;
-      o.myID = d.id();
+      o.myID = new ResourceID(d);
+
       o.myName = d.string();
       o.myAccesses = new long[d.uint32()];
       for (int i = 0; i <o.myAccesses.length; i++) {
