@@ -26,6 +26,7 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.dynamic.*;
+import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -49,6 +50,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
+import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -183,8 +185,9 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
 
   public ConfigureAvdOptionsStep(@Nullable final Disposable parentDisposable) {
     super(parentDisposable);
-//    myAvdConfigurationOptionHelpPanel.setPreferredSize(new Dimension(360, -1));
     setBodyComponent(myRoot);
+    FormScalingUtil.scaleComponentTree(this.getClass(), createStepBody());
+
     registerAdvancedOptionsVisibility();
     toggleAdvancedSettings(false);
     myShowAdvancedSettingsButton.setText(SHOW);

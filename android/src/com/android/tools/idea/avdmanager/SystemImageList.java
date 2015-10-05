@@ -418,7 +418,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         return codeName + maybeDeprecated;
       }
     },
-    new SystemImageColumnInfo("API Level", 100) {
+    new SystemImageColumnInfo("API Level", JBUI.scale(100)) {
       @Nullable
       @Override
       public String valueOf(SystemImageDescription systemImage) {
@@ -429,7 +429,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         return "Unknown";
       }
     },
-    new SystemImageColumnInfo("ABI", 100) {
+    new SystemImageColumnInfo("ABI", JBUI.scale(100)) {
       @Nullable
       @Override
       public String valueOf(SystemImageDescription systemImage) {
