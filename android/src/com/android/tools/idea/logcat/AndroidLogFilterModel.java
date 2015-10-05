@@ -17,7 +17,8 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log;
-import com.android.tools.idea.logcat.AndroidLogcatReceiver.LogMessageHeader;
+import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogFilter;
 import com.intellij.diagnostic.logging.LogFilterListener;
@@ -30,8 +31,6 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -45,12 +44,11 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   private final List<LogFilterListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
 
-  private LogMessageHeader myPrevMessageHeader;
+  private LogCatHeader myPrevHeader;
   private Date myRejectBeforeDate;
 
   private boolean myFullMessageApplicable = false;
   private boolean myFullMessageApplicableByCustomFilter = false;
-  private StringBuilder myMessageBuilder = new StringBuilder();
   private @Nullable Pattern myCustomPattern;
 
   protected List<AndroidLogFilter> myLogFilters = new ArrayList<AndroidLogFilter>();
@@ -115,11 +113,11 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
    * will be skipped.
    */
   public void beginRejectingOldMessages() {
-    if (myPrevMessageHeader == null) {
+    if (myPrevHeader == null) {
       return; // Haven't received any messages yet, so nothing to filter
     }
 
-    myRejectBeforeDate = myPrevMessageHeader.getTimeAsDate();
+    myRejectBeforeDate = myPrevHeader.getTimeAsDate();
   }
 
 
@@ -167,29 +165,9 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
       return true;
     }
 
-    Log.LogLevel logLevel = null;
-    String tag = null;
-    String pkg = null;
-    String pid = null;
-    String message = text;
-
-    AndroidLogcatFormatter.Message result = AndroidLogcatFormatter.parseMessage(text);
-    if (result.getHeader() != null) {
-      LogMessageHeader header = result.getHeader();
-      logLevel = header.myLogLevel;
-      tag = header.myTag;
-      pkg = header.myAppPackage;
-      pid = Integer.toString(header.myPid);
-      message = result.getMessage();
-    }
-    else if (myPrevMessageHeader != null) {
-      tag = myPrevMessageHeader.myTag;
-      pkg = myPrevMessageHeader.myAppPackage;
-      pid = Integer.toString(myPrevMessageHeader.myPid);
-      logLevel = myPrevMessageHeader.myLogLevel;
-    }
-
-    return configuredFilterName.isApplicable(message, tag, pkg, pid, logLevel);
+    LogCatMessage message = AndroidLogcatFormatter.parseMessage(text);
+    return configuredFilterName
+      .isApplicable(message.getMessage(), message.getTag(), message.getAppName(), message.getPid(), message.getLogLevel());
   }
 
   @Override
@@ -197,7 +175,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     return myLogFilters;
   }
 
-  private final class AndroidLogFilter extends LogFilter {
+  private static final class AndroidLogFilter extends LogFilter {
     final Log.LogLevel myLogLevel;
 
     private AndroidLogFilter(Log.LogLevel logLevel) {
@@ -207,16 +185,8 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
     @Override
     public boolean isAcceptable(String line) {
-      Log.LogLevel logLevel = null;
-
-      AndroidLogcatFormatter.Message result = AndroidLogcatFormatter.parseMessage(line);
-      if (result.getHeader() != null) {
-        logLevel = result.getHeader().myLogLevel;
-      }
-      else if (myPrevMessageHeader != null) {
-        logLevel = myPrevMessageHeader.myLogLevel;
-      }
-      return logLevel != null && logLevel.getPriority() >= myLogLevel.getPriority();
+      LogCatMessage message = AndroidLogcatFormatter.tryParseMessage(line);
+      return message != null && message.getLogLevel().getPriority() >= myLogLevel.getPriority();
     }
   }
 
@@ -254,48 +224,32 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   @Override
   public void processingStarted() {
-    myPrevMessageHeader = null;
+    myPrevHeader = null;
     myFullMessageApplicable = false;
     myFullMessageApplicableByCustomFilter = false;
-    myMessageBuilder.setLength(0);
   }
 
   @Override
   @NotNull
   public final MyProcessingResult processLine(String line) {
-    AndroidLogcatFormatter.Message result = AndroidLogcatFormatter.parseMessage(line);
-    final boolean hasHeader = result.getHeader() != null;
 
-    if (hasHeader) {
-      myPrevMessageHeader = result.getHeader();
-    }
-    final boolean applicable = isApplicable(line);
-    final boolean applicableByCustomFilter = isApplicableByCustomFilter(line);
+    Key key = ProcessOutputTypes.STDOUT;
+    boolean isApplicable = false;
 
-    String messagePrefix;
+    LogCatMessage message = AndroidLogcatFormatter.tryParseMessage(line);
+    if (message != null) {
+      myPrevHeader = message.getHeader();
+      myFullMessageApplicable = isApplicable(line);
+      myFullMessageApplicableByCustomFilter = isApplicableByCustomFilter(line);
 
-    if (hasHeader) {
-      messagePrefix = null;
-      myMessageBuilder.setLength(0);
-      myMessageBuilder.append(line).append('\n');
-      myFullMessageApplicable = applicable;
-      myFullMessageApplicableByCustomFilter = applicableByCustomFilter;
-    }
-    else {
-      messagePrefix = (myFullMessageApplicable || applicable) &&
-                      (myFullMessageApplicableByCustomFilter || applicableByCustomFilter) &&
-                      !(myFullMessageApplicable && myFullMessageApplicableByCustomFilter) ? myMessageBuilder.toString() : null;
-      myMessageBuilder.append(line).append('\n');
-      myFullMessageApplicable = myFullMessageApplicable || applicable;
-      myFullMessageApplicableByCustomFilter = myFullMessageApplicableByCustomFilter || applicableByCustomFilter;
-    }
-    final Key key = myPrevMessageHeader != null ? getProcessOutputType(myPrevMessageHeader.myLogLevel) : ProcessOutputTypes.STDOUT;
+      key = getProcessOutputType(myPrevHeader.getLogLevel());
 
-    boolean isApplicable = myFullMessageApplicable && myFullMessageApplicableByCustomFilter;
-    if (isApplicable && myRejectBeforeDate != null && myPrevMessageHeader != null) {
-      isApplicable = myPrevMessageHeader.getTimeAsDate().after(myRejectBeforeDate);
+      isApplicable = myFullMessageApplicable && myFullMessageApplicableByCustomFilter;
+      if (isApplicable && myRejectBeforeDate != null && myPrevHeader != null) {
+        isApplicable = myPrevHeader.getTimeAsDate().after(myRejectBeforeDate);
+      }
     }
 
-    return new MyProcessingResult(key, isApplicable, messagePrefix);
+    return new MyProcessingResult(key, isApplicable, null);
   }
 }
