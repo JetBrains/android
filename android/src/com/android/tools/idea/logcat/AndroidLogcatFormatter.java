@@ -17,8 +17,8 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log;
-import com.android.tools.idea.logcat.AndroidLogcatReceiver.LogMessageHeader;
-import com.google.common.primitives.Ints;
+import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.intellij.diagnostic.logging.DefaultLogFormatter;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +60,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
    * further processed if {@link AndroidLogcatPreferences#LOGCAT_FORMAT_STRING} is set.)
    */
   @NotNull
-  public static String formatMessageFull(@NotNull LogMessageHeader header, @NotNull String message) {
+  public static String formatMessageFull(@NotNull LogCatHeader header, @NotNull String message) {
     return formatMessage(FULL_FORMAT, header, message);
   }
 
@@ -100,24 +100,26 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
       return msg;
     }
 
-    Message message = parseMessage(msg);
-    if (message.getHeader() == null) {
-      return message.getMessage();
-    }
 
+    LogCatMessage message = parseMessage(msg);
     return formatMessage(format, message.getHeader(), message.getMessage());
   }
 
 
   @NotNull
-  private static String formatMessage(@NotNull String format, @NotNull LogMessageHeader header, @NotNull String message) {
-    String ids = String.format(Locale.US, "%d-%s", header.myPid, header.myTid);
+  private static String formatMessage(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
+    String ids = String.format(Locale.US, "%s-%s", header.getPid(), header.getTid());
+
+    // For parsing later, tags should not have spaces in them. Replace spaces with
+    // "no break" spaces, which looks like whitespace but doesn't act like it.
+    String tag = header.getTag().replace(' ', '\u00A0');
+
     return String.format(Locale.US, format,
-                         header.myTime,
+                         header.getTime(),
                          ids,
-                         header.myAppPackage.isEmpty() ? "?" : header.myAppPackage,
-                         header.myLogLevel.getPriorityLetter(),
-                         header.myTag,
+                         header.getAppName(),
+                         header.getLogLevel().getPriorityLetter(),
+                         tag,
                          message);
   }
 
@@ -125,63 +127,50 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
    * Construct a fake logcat message at the specified level.
    */
   public static String formatMessage(@NotNull Log.LogLevel level, @NotNull String message) {
-    LogMessageHeader header = new LogMessageHeader();
-    header.myTime = "00-00 00:00:00.0";
-    header.myLogLevel = level;
-    header.myPid = 0;
-    header.myTid = "0";
-    header.myAppPackage = "?";
-    header.myTag = "Internal";
-    return formatMessageFull(header, message);
+    LogCatHeader fakeHeader = new LogCatHeader(level, "0", "0", "?", "Internal", "00-00 00:00:00.000");
+    return formatMessageFull(fakeHeader, message);
   }
 
   /**
-   * Parse a message that was encoded using {@link #formatMessageFull(LogMessageHeader, String)}
+   * Parse a message that was encoded using {@link #formatMessageFull(LogCatHeader, String)}
    */
-  public static Message parseMessage(@NotNull String msg) {
-    final Matcher matcher = LOGMESSAGE_PATTERN.matcher(msg);
-    if (!matcher.matches()) {
-      return new Message(null, msg);
+  @NotNull
+  public static LogCatMessage parseMessage(@NotNull String msg) {
+    LogCatMessage result = tryParseMessage(msg);
+    if (result == null) {
+      throw new IllegalArgumentException("Invalid message doesn't match expected logcat pattern: " + msg);
     }
 
-    LogMessageHeader header = new LogMessageHeader();
-    header.myTime = matcher.group(1);
-    Integer pid = Ints.tryParse(matcher.group(2));
-    header.myPid = pid == null ? 0 : pid;
-    header.myTid = matcher.group(3);
-    header.myAppPackage = matcher.group(4);
-    header.myLogLevel = Log.LogLevel.getByLetter(matcher.group(5).charAt(0));
-    header.myTag = matcher.group(6);
+    return result;
+  }
+
+  /**
+   * Returns the result of {@link #parseMessage(String)} or {@code null} if the format of the input
+   * text doesn't match.
+   */
+  @Nullable
+  public static LogCatMessage tryParseMessage(@NotNull String msg) {
+    final Matcher matcher = LOGMESSAGE_PATTERN.matcher(msg);
+    if (!matcher.matches()) {
+      return null;
+    }
+
+    @SuppressWarnings("ConstantConditions") // matcher.matches verifies all groups below are non-null
+    LogCatHeader header = new LogCatHeader(
+      Log.LogLevel.getByLetter(matcher.group(5).charAt(0)),
+      matcher.group(2),
+      matcher.group(3),
+      matcher.group(4),
+      matcher.group(6),
+      matcher.group(1));
+
     String message = matcher.group(7);
 
-    return new Message(header, message);
+    return new LogCatMessage(header, message);
   }
 
   @Override
   public String formatMessage(String msg) {
     return formatMessage(myPreferences.LOGCAT_FORMAT_STRING, msg);
-  }
-
-  /**
-   * Wrapped message data returned by {@link #parseMessage(String)}.
-   */
-  public static final class Message {
-    @Nullable LogMessageHeader myHeader;
-    @NotNull String myMessage;
-
-    public Message(@Nullable LogMessageHeader logHeader, @NotNull String message) {
-      myHeader = logHeader;
-      myMessage = message;
-    }
-
-    @Nullable
-    public LogMessageHeader getHeader() {
-      return myHeader;
-    }
-
-    @NotNull
-    public String getMessage() {
-      return myMessage;
-    }
   }
 }
