@@ -647,6 +647,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintValidRestrictionsInspection extends AndroidLintInspectionBase {
+    public AndroidLintValidRestrictionsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.valid.restrictions"), RestrictionsDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintVectorRasterInspection extends AndroidLintInspectionBase {
     public AndroidLintVectorRasterInspection() {
       super(AndroidBundle.message("android.lint.inspections.vector.raster"), VectorDetector.ISSUE);
