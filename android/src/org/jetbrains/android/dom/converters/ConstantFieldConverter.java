@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.sdklib.IAndroidTarget;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
@@ -68,15 +69,21 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
 
     final Module module = context.getModule();
     final GlobalSearchScope scope = module != null ? GlobalSearchScope.allScope(module.getProject()) : domElement.getResolveScope();
-    final PsiClass psiClass = JavaPsiFacade.getInstance(context.getPsiManager().
-      getProject()).findClass(lookupClass.value(), scope);
+    final JavaPsiFacade javaFacade = JavaPsiFacade.getInstance(context.getPsiManager().
+      getProject());
 
-    if (psiClass == null) {
-      return PsiReference.EMPTY_ARRAY;
+    final String[] classNames = lookupClass.value();
+    final List<PsiReference> result = Lists.newArrayListWithCapacity(classNames.length);
+    final Set<String> filteringSet = getFilteringSet(context);
+    for (String className : classNames) {
+      final PsiClass psiClass = javaFacade.findClass(className, scope);
+
+      if (psiClass != null) {
+        result.add(new MyReference(element, psiClass, lookupPrefix.value(), filteringSet));
+      }
     }
 
-    final Set<String> filteringSet = getFilteringSet(context);
-    return new PsiReference[]{new MyReference(element, psiClass, lookupPrefix.value(), filteringSet)};
+    return result.toArray(new PsiReference[result.size()]);
   }
 
   @Nullable
