@@ -66,7 +66,7 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
   protected void init() {
     TemplateParameterStep2 parameterStep =
       new TemplateParameterStep2(FormFactorUtils.FormFactor.MOBILE, ImmutableMap.<String, Object>of(), myDisposable, PACKAGE_NAME,
-                                 new SourceProvider[]{}) {
+                                 new SourceProvider[]{}, JAVA_LIBRARY) {
         @Override
         public boolean isStepVisible() {
           return true;
