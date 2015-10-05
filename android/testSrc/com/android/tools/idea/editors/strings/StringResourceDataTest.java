@@ -115,6 +115,13 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertTrue(data.isTranslationMissing("key7", Locale.create("fr")));
   }
 
+  public void testRegionQualifier() {
+    Locale en_rGB = Locale.create("en-rGB");
+    assertTrue(data.isTranslationMissing("key4", en_rGB));
+    assertFalse(data.isTranslationMissing("key3", en_rGB));
+    assertFalse(data.isTranslationMissing("key8", en_rGB));
+  }
+
   public void testEditingDoNotTranslate() {
     VirtualFile stringsFile = resourceDirectory.findFileByRelativePath("values/strings.xml");
     assertNotNull(stringsFile);
