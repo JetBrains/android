@@ -23,6 +23,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -35,11 +36,13 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AvdsNotSupportedException;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AvdManagerLog;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 
 public class EmulatorTargetChooser implements TargetChooser {
   private static final Logger LOG = Logger.getInstance(TargetChooser.class);
@@ -166,5 +169,28 @@ public class EmulatorTargetChooser implements TargetChooser {
         return null;
       }
     });
+  }
+
+  @NotNull
+  @Override
+  public List<ValidationError> validate() {
+    if (myAvd == null) {
+      return ImmutableList.of();
+    }
+    AvdManager avdManager = myFacet.getAvdManagerSilently();
+    if (avdManager == null) {
+      return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("avd.cannot.be.loaded.error")));
+    }
+    AvdInfo avdInfo = avdManager.getAvd(myAvd, false);
+    if (avdInfo == null) {
+      return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("avd.not.found.error", myAvd)));
+    }
+    if (avdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
+      String message = avdInfo.getErrorMessage();
+      message = AndroidBundle.message("avd.not.valid.error", myAvd) +
+                (message != null ? ": " + message: "") + ". Try to repair it through AVD manager";
+      return ImmutableList.of(ValidationError.fatal(message));
+    }
+    return ImmutableList.of();
   }
 }
