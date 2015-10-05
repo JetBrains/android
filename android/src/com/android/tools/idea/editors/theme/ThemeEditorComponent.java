@@ -59,7 +59,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.PanelUI;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
@@ -153,12 +152,20 @@ public class ThemeEditorComponent extends Splitter {
 
   private final ResourceChangeListener myResourceChangeListener;
   private boolean myIsSubscribedResourceNotification;
+
+  private final ThemeSelectionPanel.ThemeChangedListener myThemeChangedListener = new ThemeSelectionPanel.ThemeChangedListener() {
+    @Override
+    public void themeChanged(@NotNull String name) {
+      refreshPreviewPanel(name);
+    }
+  };
+
   private MutableCollectionComboBoxModel<Module> myModuleComboModel;
 
   /** Next pending search. The {@link ScheduledFuture} allows us to cancel the next search before it runs. */
   private ScheduledFuture<?> myScheduledSearch;
 
-  private String myHoverPreviewTheme;
+  private String myPreviewThemeName;
   private final JPanel myToolbar;
   private final JComponent myActionToolbarComponent;
   private final SearchTextField myTextField;
@@ -224,7 +231,6 @@ public class ThemeEditorComponent extends Splitter {
             LOG.error("Unable to resolve " + value.getValue());
             return;
           }
-
           mySubStyleName = ResolutionUtils.getQualifiedValue(resourceValue);
         }
         else {
@@ -275,16 +281,7 @@ public class ThemeEditorComponent extends Splitter {
     });
 
     myPanel.getThemeCombo()
-      .setRenderer(new StyleListPaletteCellRenderer(myThemeEditorContext, new StyleListPaletteCellRenderer.ItemHoverListener() {
-        @Override
-        public void itemHovered(@NotNull String name) {
-          if (!name.equals(myHoverPreviewTheme)) {
-            mySubStyleName = null;
-            mySubStyleSourceAttribute = null;
-            refreshPreviewPanel(name);
-          }
-        }
-      }, myPanel.getThemeCombo()));
+      .setRenderer(new StyleListPaletteCellRenderer(myThemeEditorContext, myThemeChangedListener, myPanel.getThemeCombo()));
 
     myPanel.getThemeCombo().addActionListener(new ActionListener() {
       @Override
@@ -292,7 +289,7 @@ public class ThemeEditorComponent extends Splitter {
         String selectedItem = (String)myPanel.getThemeCombo().getSelectedItem();
         if (!ThemesListModel.isSpecialOption(selectedItem)) {
           myThemeName = selectedItem;
-          myHoverPreviewTheme = null;
+          myPreviewThemeName = null;
           mySubStyleName = null;
           mySubStyleSourceAttribute = null;
 
@@ -315,29 +312,10 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    myPanel.getThemeCombo().addPopupMenuListener(new PopupMenuListener() {
-
-      @Override
-      public void popupMenuWillBecomeVisible(PopupMenuEvent popupMenuEvent) {
-      }
-
+    myPanel.getThemeCombo().addPopupMenuListener(new PopupMenuListenerAdapter() {
       @Override
       public void popupMenuWillBecomeInvisible(PopupMenuEvent popupMenuEvent) {
-        String currentHoverTheme = myHoverPreviewTheme;
-
-        mySubStyleName = null;
-        mySubStyleSourceAttribute = null;
-        myHoverPreviewTheme = null;
-
-        ThemeEditorStyle selectedTheme = getSelectedTheme();
-        if (selectedTheme == null || !selectedTheme.getQualifiedName().equals(currentHoverTheme)) {
-          // Only refresh if we are previewing a different theme
-          loadStyleAttributes();
-        }
-      }
-
-      @Override
-      public void popupMenuCanceled(PopupMenuEvent popupMenuEvent) {
+        refreshPreviewPanel(myThemeName);
       }
     });
 
@@ -532,13 +510,17 @@ public class ThemeEditorComponent extends Splitter {
    */
   private void selectNewTheme() {
     ThemeSelectionDialog dialog = new ThemeSelectionDialog(myThemeEditorContext.getConfiguration());
-    if (dialog.showAndGet()) {
+    dialog.setThemeChangedListener(myThemeChangedListener);
+    boolean themeSelected = dialog.showAndGet();
+
+    if (themeSelected) {
       String newThemeName = dialog.getTheme();
       if (newThemeName != null) {
         // TODO: call loadStyleProperties instead
         reload(newThemeName);
       }
     }
+    refreshPreviewPanel(myThemeName);
   }
 
   /**
@@ -584,9 +566,9 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   @Nullable
-  ThemeEditorStyle getHoveredTheme() {
-    if (myHoverPreviewTheme != null) {
-      return myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
+  ThemeEditorStyle getPreviewTheme() {
+    if (myPreviewThemeName != null) {
+      return myThemeEditorContext.getThemeResolver().getTheme(myPreviewThemeName);
     }
     return null;
   }
@@ -731,7 +713,9 @@ public class ThemeEditorComponent extends Splitter {
     reload(defaultThemeName, defaultSubStyleName, getSelectedModule().getName());
   }
 
-  public void reload(@Nullable final String defaultThemeName, @Nullable final String defaultSubStyleName, @Nullable final String defaultModuleName) {
+  public void reload(@Nullable final String defaultThemeName,
+                     @Nullable final String defaultSubStyleName,
+                     @Nullable final String defaultModuleName) {
     // Unsubscribing from ResourceNotificationManager, because Module might be changed
     unsubscribeResourceNotification();
 
@@ -739,8 +723,8 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
-    // Need to clean myHoverPreviewTheme, because we are no longer "hovering".
-    myHoverPreviewTheme = null;
+    // Need to clean myPreviewTheme, because we now want to display the theme selected in the attributes panel
+    myPreviewThemeName = null;
 
     initializeModulesCombo(defaultModuleName);
     myThemeEditorContext.setCurrentContextModule(getSelectedModule());
@@ -762,7 +746,7 @@ public class ThemeEditorComponent extends Splitter {
    * Loads the theme attributes table for the current selected theme or substyle.
    */
   private void loadStyleAttributes() {
-    ThemeEditorStyle selectedTheme = getHoveredTheme();
+    ThemeEditorStyle selectedTheme = getPreviewTheme();
     ThemeEditorStyle selectedStyle = null;
 
     if (selectedTheme == null) {
@@ -876,21 +860,21 @@ public class ThemeEditorComponent extends Splitter {
   /**
    * Refreshes the preview panel for theme previews
    */
-  private void refreshPreviewPanel(@NotNull String hoveredPreviewTheme) {
-    if (!hoveredPreviewTheme.equals(myHoverPreviewTheme)) {
-      myHoverPreviewTheme = hoveredPreviewTheme;
+  private void refreshPreviewPanel(@NotNull String previewThemeName) {
+    if (!previewThemeName.equals(myPreviewThemeName)) {
+      myPreviewThemeName = previewThemeName;
       // Only refresh when we select a different theme
-      ThemeEditorStyle hoveredTheme = myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
+      ThemeEditorStyle previewTheme = getPreviewTheme();
 
-      assert hoveredTheme != null;
+      assert previewTheme != null;
 
-      myThemeEditorContext.setCurrentTheme(hoveredTheme);
+      myThemeEditorContext.setCurrentTheme(previewTheme);
       final Configuration configuration = myThemeEditorContext.getConfiguration();
-      configuration.setTheme(hoveredTheme.getStyleResourceUrl());
+      configuration.setTheme(previewTheme.getStyleResourceUrl());
 
       ResourceResolver resourceResolver = myThemeEditorContext.getResourceResolver();
       assert resourceResolver != null;
-      setPreviewBackground(getGoodContrastPreviewBackground(hoveredTheme, resourceResolver));
+      setPreviewBackground(getGoodContrastPreviewBackground(previewTheme, resourceResolver));
 
       myPreviewPanel.invalidateGraphicsRenderer();
       myPreviewPanel.revalidate();
