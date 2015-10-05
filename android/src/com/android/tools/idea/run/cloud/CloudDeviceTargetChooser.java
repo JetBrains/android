@@ -16,22 +16,26 @@
 package com.android.tools.idea.run.cloud;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.DeployTarget;
-import com.android.tools.idea.run.DeviceCount;
-import com.android.tools.idea.run.TargetChooser;
+import com.android.tools.idea.run.*;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * A target chooser for selecting and launching a cloud device.
  */
 public class CloudDeviceTargetChooser implements TargetChooser {
 
+  @NotNull private final AndroidFacet myFacet;
   private final int myCloudDeviceConfigurationId;
   @NotNull private final String myCloudDeviceProjectId;
 
-  public CloudDeviceTargetChooser(int cloudDeviceConfigurationId, @NotNull String cloudDeviceProjectId) {
+  public CloudDeviceTargetChooser(@NotNull AndroidFacet facet,
+                                  int cloudDeviceConfigurationId,
+                                  @NotNull String cloudDeviceProjectId) {
+    myFacet = facet;
     myCloudDeviceConfigurationId = cloudDeviceConfigurationId;
     myCloudDeviceProjectId = cloudDeviceProjectId;
   }
@@ -46,5 +50,12 @@ public class CloudDeviceTargetChooser implements TargetChooser {
   @Override
   public boolean matchesDevice(@NotNull IDevice device) {
     return false;
+  }
+
+  @NotNull
+  @Override
+  public List<ValidationError> validate() {
+    return CloudTargetChooserUtil.validate(
+      myFacet, CloudConfiguration.Kind.SINGLE_DEVICE, myCloudDeviceProjectId, myCloudDeviceConfigurationId);
   }
 }
