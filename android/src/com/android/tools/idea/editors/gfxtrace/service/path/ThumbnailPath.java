@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.any.Box;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
@@ -84,11 +85,17 @@ public final class ThumbnailPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {121, -102, 46, -13, -46, -107, -20, 11, -118, -15, 117, 25, 34, 101, 50, -9, -103, 84, 33, 49, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","Thumbnail","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Object", new Interface("Path")),
+      new Field("DesiredMaxWidth", new Primitive("uint32", Method.Uint32)),
+      new Field("DesiredMaxHeight", new Primitive("uint32", Method.Uint32)),
+      new Field("DesiredFormat", new AnyType()),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -97,7 +104,7 @@ public final class ThumbnailPath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new ThumbnailPath(); }

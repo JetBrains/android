@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.memory;
 
+import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
@@ -58,11 +59,15 @@ public final class MemoryPointer implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-86, 71, 47, -27, -57, 21, -66, -8, -13, 99, 90, 92, 86, -57, 35, 102, -73, -123, -124, 89, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("memory","Pointer","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Address", new Primitive("uint64", Method.Uint64)),
+      new Field("Pool", new Primitive("PoolID", Method.Uint32)),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -71,7 +76,7 @@ public final class MemoryPointer implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new MemoryPointer(); }
