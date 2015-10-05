@@ -141,7 +141,7 @@
         library="appcompat-v7"
         tag="android.support.v7.widget.Toolbar">
 
-    <palette title="Toolbar" icon="AndroidIcons.Views.Button"
+    <palette title="Toolbar" icon="AndroidIcons.Views.Toolbar"
              tooltip="A toolbar on a page."/>
 
     <creation>
@@ -990,7 +990,7 @@
         fill="both">
 
     <palette title="NestedScrollView"
-             icon="AndroidIcons.Views.ScrollView"
+             icon="AndroidIcons.Views.NestedScrollView"
              tooltip="Vertical scroll container that supports nested scrolling in connection with CoordinatorLayout."/>
 
     <morphing to="ScrollView"/>
@@ -1415,7 +1415,7 @@
         library="design"
         tag="android.support.design.widget.FloatingActionButton">
 
-    <palette title="Floating Action Button" icon="AndroidIcons.Views.ToggleButton"/>
+    <palette title="Floating Action Button" icon="AndroidIcons.Views.FloatingActionButton"/>
 
     <properties important="fabSize clickable"/>
 
@@ -1455,7 +1455,7 @@
         library="play-services"
         tag="com.google.android.gms.maps.MapFragment">
 
-    <palette title="MapFragment" icon="AndroidIcons.Views.ToggleButton"/>
+    <palette title="MapFragment" icon="AndroidIcons.Views.MapFragment"/>
 
     <creation>
       <![CDATA[
@@ -1472,7 +1472,7 @@
         library="play-services"
         tag="com.google.android.gms.maps.MapView">
 
-    <palette title="MapView" icon="AndroidIcons.Views.ToggleButton"/>
+    <palette title="MapView" icon="AndroidIcons.Views.MapView"/>
 
     <creation>
       <![CDATA[
@@ -1520,7 +1520,7 @@
         library="cardview-v7"
         tag="android.support.v7.widget.CardView">
 
-    <palette title="CardView" icon="AndroidIcons.Views.ToggleButton"/>
+    <palette title="CardView" icon="AndroidIcons.Views.CardView"/>
 
     <creation>
       <![CDATA[
@@ -1536,7 +1536,7 @@
         library="leanback-v17"
         tag="BrowseFragment">
 
-    <palette title="BrowseFragment" icon="AndroidIcons.Views.ToggleButton"/>
+    <palette title="BrowseFragment" icon="AndroidIcons.Views.BrowseFragment"/>
 
     <creation>
       <![CDATA[
@@ -1554,7 +1554,7 @@
         library="leanback-v17"
         tag="DetailsFragment">
 
-    <palette title="DetailsFragment" icon="AndroidIcons.Views.ToggleButton"/>
+    <palette title="DetailsFragment" icon="AndroidIcons.Views.DetailsFragment"/>
 
     <creation>
       <![CDATA[
@@ -1572,7 +1572,7 @@
         library="leanback-v17"
         tag="PlaybackOverlayFragment">
 
-    <palette title="PlaybackOverlayFragment" icon="AndroidIcons.Views.ToggleButton"/>
+    <palette title="PlaybackOverlayFragment" icon="AndroidIcons.Views.PlaybackOverlayFragment"/>
 
     <creation>
       <![CDATA[
@@ -1667,7 +1667,7 @@
         library="design"
         tag="android.support.design.widget.CoordinatorLayout">
 
-    <palette title="CoordinatorLayout" icon="AndroidIcons.Views.AbsoluteLayout"
+    <palette title="CoordinatorLayout" icon="AndroidIcons.Views.CoordinatorLayout"
              tooltip="CoordinatorLayout is a super-powered FrameLayout."/>
 
     <morphing to="FrameLayout"/>
@@ -1688,7 +1688,7 @@
         library="design"
         tag="android.support.design.widget.TextInputLayout">
 
-    <palette title="TextInputLayout" icon="AndroidIcons.Views.LinearLayout"
+    <palette title="TextInputLayout" icon="AndroidIcons.Views.TextInputLayout"
              tooltip="TextInputLayout shows a hint of what the user is typing."/>
 
     <morphing to="LinearLayout"/>
@@ -1728,7 +1728,7 @@
         library="design"
         tag="android.support.design.widget.AppBarLayout">
 
-    <palette title="AppBarLayout" icon="AndroidIcons.Views.FrameLayout"
+    <palette title="AppBarLayout" icon="AndroidIcons.Views.AppBarLayout"
              tooltip="AppBarLayout is a super-powered FrameLayout."/>
 
     <morphing to="FrameLayout"/>
