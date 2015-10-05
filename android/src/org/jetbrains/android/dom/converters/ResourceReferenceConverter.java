@@ -75,6 +75,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     myAllowLiterals = allowLiterals;
   }
 
+  /**
+   * @param resourceType the resource type to be used in the resolution (e.g. "style")
+   * @param withPrefix if true, this will force all the resolved references to contain the reference prefix @
+   * @param withExplicitResourceType if true, this will force the resourceType to be part of the resolved name (e.g. "@style/")
+   */
   public ResourceReferenceConverter(@NotNull String resourceType, boolean withPrefix, boolean withExplicitResourceType) {
     myResourceTypes = Collections.singletonList(resourceType);
     myWithPrefix = withPrefix;
@@ -95,9 +100,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @NotNull
-  private String getPackagePrefix(@Nullable String resourcePackage) {
-    String prefix = myWithPrefix ? "@" : "";
-    if (resourcePackage == null) return prefix;
+  private static String getPackagePrefix(@Nullable String resourcePackage, boolean withPrefix) {
+    String prefix = withPrefix ? "@" : "";
+    if (resourcePackage == null) {
+      return prefix;
+    }
     return prefix + resourcePackage + ':';
   }
 
@@ -133,16 +140,18 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     String value = getValue(element);
     assert value != null;
 
-    if (!myQuiet || StringUtil.startsWithChar(value, '@')) {
+    boolean startsWithRefChar = StringUtil.startsWithChar(value, '@');
+    if (!myQuiet || startsWithRefChar) {
       String resourcePackage = null;
-      String systemPrefix = getPackagePrefix(SYSTEM_RESOURCE_PACKAGE);
+      // Retrieve the system prefix depending on the prefix settings ("@android:" or "android:")
+      String systemPrefix = getPackagePrefix(SYSTEM_RESOURCE_PACKAGE, myWithPrefix || startsWithRefChar);
       if (value.startsWith(systemPrefix)) {
         resourcePackage = SYSTEM_RESOURCE_PACKAGE;
       }
       else {
         result.add(ResourceValue.literal(systemPrefix));
       }
-      final char prefix = myWithPrefix ? '@' : 0;
+      final char prefix = myWithPrefix || startsWithRefChar ? '@' : 0;
 
       if (value.startsWith(SdkConstants.NEW_ID_PREFIX)) {
         addVariantsForIdDeclaration(result, facet, prefix, value);
@@ -150,7 +159,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
       if (recommendedTypes.size() == 1) {
         String type = recommendedTypes.iterator().next();
-        boolean explicitResourceType = value.startsWith(getTypePrefix(resourcePackage, type)) || myWithExplicitResourceType;
+        // We will add the resource type (e.g. @style/) if the current value starts like a reference using @
+        boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
         addResourceReferenceValues(facet, prefix, type, resourcePackage, result, explicitResourceType);
       }
       else {
@@ -232,9 +242,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @NotNull
-  private String getTypePrefix(String resourcePackage, String type) {
+  private static String getTypePrefix(String resourcePackage, String type) {
     String typePart = type + '/';
-    return getPackagePrefix(resourcePackage) + typePart;
+    return getPackagePrefix(resourcePackage, true) + typePart;
   }
 
   private Set<String> getResourceTypes(ConvertContext context) {

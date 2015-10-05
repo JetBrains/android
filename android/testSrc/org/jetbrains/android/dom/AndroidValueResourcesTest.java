@@ -74,6 +74,25 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     doTestCompletionVariants("htmlTags.xml", "b", "i", "u");
   }
 
+  public void testParentStylesCompletion() throws Throwable {
+    doTestCompletionVariants("styles_parent.xml", "Parent", "Parent2", "AppTheme");
+  }
+
+  public void testParentStyleReferenceCompletion() throws Throwable {
+    doTestCompletionVariants("styles_parent_reference.xml", "@style/Parent", "@style/Parent2", "@style/AppTheme", "@style/NoXxxx",
+                             "@style/style1");
+  }
+
+  /** Checks the completion of parent styles when the attribute is empty */
+  public void testParentStylesEmptyCompletion() throws Throwable {
+    doTestCompletionVariants("styles_parent_empty.xml", "android:", "Parent", "AppTheme", "style1");
+  }
+
+  /** Checks the completion of parent styles when the attribute is only "@" */
+  public void testParentStylesEmptyReferenceCompletion() throws Throwable {
+    doTestCompletionVariants("styles_parent_empty_reference.xml", "@android:", "@style/Parent", "@style/AppTheme", "@style/style1");
+  }
+
   public void testStyles1() throws Throwable {
     doTestCompletionVariants("styles1.xml", "@drawable/picture1", "@drawable/picture2", "@drawable/picture3");
   }
