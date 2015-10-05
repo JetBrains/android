@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
