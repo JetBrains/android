@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -32,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
+import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_6;
 
 /**
@@ -50,22 +49,9 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaP
     LanguageLevel languageLevel = javaProject.getJavaLanguageLevel();
 
     if (languageLevel == null) {
-      try {
-        List<Module> dependents = getAllDependentModules(module);
-        languageLevel = getMinimumLanguageLevelForAndroidModules(dependents.toArray(new Module[dependents.size()]));
-      }
-      catch (RuntimeException e) {
-        Logger logger = Logger.getInstance(JavaLanguageLevelModuleCustomizer.class);
-        // TODO find out this is happening in IDEA 15
-        logger.info("Failed to obtain dependent modules for '" + module.getName() + "'", e);
-      }
-    }
-
-    if (languageLevel == null) {
       // Java language is still not correct. Most likely this module does not have dependents.
       // Get minimum language level from all Android modules.
-      Module[] modules = modelsProvider.getModules();
-      languageLevel = getMinimumLanguageLevelForAndroidModules(modules);
+      languageLevel = getMinimumLanguageLevelForAndroidModules(modelsProvider);
     }
 
     if (languageLevel == null) {
@@ -78,7 +64,8 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaP
   }
 
   @Nullable
-  private static LanguageLevel getMinimumLanguageLevelForAndroidModules(@NotNull Module[] modules) {
+  private static LanguageLevel getMinimumLanguageLevelForAndroidModules(@NotNull IdeModifiableModelsProvider modelsProvider) {
+    Module[] modules = modelsProvider.getModules();
     if (modules.length == 0) {
       return null;
     }
@@ -87,7 +74,7 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaP
 
     List<LanguageLevel> languageLevels = Lists.newArrayList();
     for (Module dependency : modules) {
-      LanguageLevel dependencyLanguageLevel = getLanguageLevelForAndroidModule(dependency);
+      LanguageLevel dependencyLanguageLevel = getLanguageLevelForAndroidModule(dependency, modelsProvider);
       if (dependencyLanguageLevel != null) {
         languageLevels.add(dependencyLanguageLevel);
       }
@@ -103,8 +90,9 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaP
   }
 
   @Nullable
-  private static LanguageLevel getLanguageLevelForAndroidModule(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
+  private static LanguageLevel getLanguageLevelForAndroidModule(@NotNull Module module,
+                                                                @NotNull IdeModifiableModelsProvider modelsProvider) {
+    AndroidFacet facet = findFacet(module, modelsProvider, AndroidFacet.ID);
     if (facet != null) {
       AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
       if (androidModel != null) {

@@ -23,11 +23,8 @@ import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
-import com.google.common.collect.Lists;
-import com.intellij.ProjectTopics;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
@@ -44,9 +41,7 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.Function;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,6 +53,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.Projects.enforceExternalBuild;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.util.text.StringUtil.join;
@@ -160,9 +156,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     // Prevent IDEA from refreshing project. We will do it ourselves in AndroidGradleProjectStartupActivity.
     myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
 
-    listenForProjectChanges(myProject, myDisposable);
-
-    Projects.enforceExternalBuild(myProject);
+    enforceExternalBuild(myProject);
 
     // Make sure the gradle test configurations are ignored in this project, since they don't work in Android gradle projects. This
     // will modify .idea/runConfigurations.xml
@@ -170,17 +164,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     runConfigurationProducerManager.addIgnoredProducer(AllInPackageGradleConfigurationProducer.class);
     runConfigurationProducerManager.addIgnoredProducer(TestMethodGradleConfigurationProducer.class);
     runConfigurationProducerManager.addIgnoredProducer(TestClassGradleConfigurationProducer.class);
-  }
-
-  private static void listenForProjectChanges(@NotNull Project project, @NotNull Disposable disposable) {
-    GradleBuildFileUpdater buildFileUpdater = new GradleBuildFileUpdater(project);
-
-    GradleModuleListener moduleListener = new GradleModuleListener();
-    moduleListener.addModuleListener(buildFileUpdater);
-
-    MessageBusConnection connection = project.getMessageBus().connect(disposable);
-    connection.subscribe(ProjectTopics.MODULES, moduleListener);
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, buildFileUpdater);
   }
 
   @Override
@@ -229,48 +212,5 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       "Compilation is not supported for following modules: " + s +
       ". Unfortunately you can't have non-Gradle Java modules and Android-Gradle modules in one project.",
       NotificationType.ERROR);
-  }
-
-  private static class GradleModuleListener implements ModuleListener {
-    @NotNull private final List<ModuleListener> additionalListeners = Lists.newArrayList();
-
-    @Override
-    public void moduleAdded(@NotNull Project project, @NotNull Module module) {
-      updateBuildVariantView(project);
-      for (ModuleListener listener : additionalListeners) {
-        listener.moduleAdded(project, module);
-      }
-    }
-
-    @Override
-    public void beforeModuleRemoved(@NotNull Project project, @NotNull Module module) {
-      for (ModuleListener listener : additionalListeners) {
-        listener.beforeModuleRemoved(project, module);
-      }
-    }
-
-    @Override
-    public void modulesRenamed(@NotNull Project project, @NotNull List<Module> modules, @NotNull Function<Module, String> oldNameProvider) {
-      updateBuildVariantView(project);
-      for (ModuleListener listener : additionalListeners) {
-        listener.modulesRenamed(project, modules, oldNameProvider);
-      }
-    }
-
-    @Override
-    public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
-      updateBuildVariantView(project);
-      for (ModuleListener listener : additionalListeners) {
-        listener.moduleRemoved(project, module);
-      }
-    }
-
-    private static void updateBuildVariantView(@NotNull Project project) {
-      BuildVariantView.getInstance(project).updateContents();
-    }
-
-    void addModuleListener(@NotNull ModuleListener listener) {
-      additionalListeners.add(listener);
-    }
   }
 }
