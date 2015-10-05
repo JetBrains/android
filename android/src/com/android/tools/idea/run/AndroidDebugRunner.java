@@ -21,7 +21,6 @@ import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RemoteConnection;
 import com.intellij.execution.configurations.RunProfile;
@@ -34,27 +33,18 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.execution.ui.RunContentManager;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiClass;
-import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.event.HyperlinkEvent;
 
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
@@ -66,10 +56,9 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   public static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidDebugRunner");
 
-  private static NotificationGroup ourNotificationGroup; // created and accessed only in EDT
-
   @Override
-  protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment environment) throws ExecutionException {
+  protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment environment)
+    throws ExecutionException {
     if (!(state instanceof AndroidRunningState)) {
       return doExecSimple(state, environment);
     }
@@ -83,25 +72,37 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           @Override
           public void run() {
             if (descriptor[0] != null) {
-              showNotification(environment.getProject(), environment.getExecutor(), descriptor[0], "error", false, NotificationType.ERROR);
+              LaunchUtils
+                .showNotification(environment.getProject(), environment.getExecutor(), descriptor[0], "Error", NotificationType.ERROR);
             }
           }
         });
+      }
+
+      @Override
+      public void executionStarted(@NotNull IDevice device) {
+        Executor executor = environment.getExecutor();
+        // no need to show for debug executor: debug launches open the tool window, and even if not, the debug runner will show
+        // the notification when it attaches to the debugger, we don't want the notification to show up when the activity is launched
+        if (executor instanceof DefaultRunExecutor) {
+          LaunchUtils.showNotification(environment.getProject(), executor, descriptor[0], "Launched on " + device.getName(),
+                                       NotificationType.INFORMATION);
+        }
       }
     });
     descriptor[0] = doExec(runningState, environment);
     return descriptor[0];
   }
 
-  /** Executes states that do not require Android debugging. May set Android tool window to open on launch. */
-  private RunContentDescriptor doExecSimple(
-    @NotNull final RunProfileState state,
-    @NotNull final ExecutionEnvironment environment
-  ) throws ExecutionException {
+  /**
+   * Executes states that do not require Android debugging. May set Android tool window to open on launch.
+   */
+  private RunContentDescriptor doExecSimple(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment environment)
+    throws ExecutionException {
     final RunContentDescriptor descriptor = super.doExecute(state, environment);
     if (descriptor != null) {
-        // suppress the run tool window because it takes focus away
-        deactivateToolWindowWhenAddedProperty(environment.getProject(), environment.getExecutor(), descriptor, "running");
+      // suppress the run tool window because it takes focus away
+      descriptor.setActivateToolWindowWhenAdded(false);
     }
     return descriptor;
   }
@@ -142,24 +143,14 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     AndroidSessionManager.tryToCloseOldSessions(environment.getExecutor(), environment.getProject());
     final ProcessHandler handler = state.getProcessHandler();
     handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, runDescriptor, state, environment.getExecutor().getId()));
-    deactivateToolWindowWhenAddedProperty(environment.getProject(), environment.getExecutor(), runDescriptor, "running");
+    runDescriptor.setActivateToolWindowWhenAdded(false);
     return runDescriptor;
   }
 
-  private static void deactivateToolWindowWhenAddedProperty(Project project,
-                                                            Executor executor,
-                                                            RunContentDescriptor descriptor,
-                                                            String status) {
-    // don't pop up the tool window (AndroidRunningState.execute takes care of popping up the tool window if there are errors)
-    descriptor.setActivateToolWindowWhenAdded(false);
-    // but show a notification that a launch took place
-    showNotification(project, executor, descriptor, status, false, NotificationType.INFORMATION);
-  }
-
   @Nullable
-  protected static RunContentDescriptor embedToExistingSession(final Project project,
-                                                               final Executor executor,
-                                                               final AndroidRunningState state) {
+  protected static RunContentDescriptor embedToExistingSession(@NotNull final Project project,
+                                                               @NotNull final Executor executor,
+                                                               @NotNull final AndroidRunningState state) {
     final AndroidSessionInfo oldSessionInfo = AndroidSessionManager.findOldSession(project, executor, state.getConfiguration());
 
     if (oldSessionInfo == null || !oldSessionInfo.isEmbeddable()) {
@@ -188,16 +179,19 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     AndroidProcessText.attach(newProcessHandler);
     newProcessHandler.notifyTextAvailable("The session was restarted\n", STDOUT);
 
-    showNotification(project, executor, oldDescriptor, "running", false, NotificationType.INFORMATION);
     state.addListener(new AndroidRunningStateListener() {
       @Override
       public void executionFailed() {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            showNotification(project, executor, oldDescriptor, "error", false, NotificationType.ERROR);
-          }
-        });
+        LaunchUtils.showNotification(project, executor, oldDescriptor, "Error", NotificationType.ERROR);
+      }
+
+      @Override
+      public void executionStarted(@NotNull IDevice device) {
+        // no need to show for debug executor: debug launches open the tool window, and even if not, the debug runner will show
+        // the notification when it attaches to the debugger, we don't want the notification to show up when the activity is launched
+        if (executor instanceof DefaultRunExecutor) {
+          LaunchUtils.showNotification(project, executor, oldDescriptor, "Running", NotificationType.INFORMATION);
+        }
       }
     });
 
@@ -208,58 +202,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       }
     });
     return oldDescriptor;
-  }
-
-  private static void showNotification(final Project project,
-                                       final Executor executor,
-                                       final RunContentDescriptor descriptor,
-                                       final String status,
-                                       final boolean notifySelectedContent,
-                                       final NotificationType type) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        if (project.isDisposed()) {
-          return;
-        }
-        final String sessionName = descriptor.getDisplayName();
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(executor.getToolWindowId());
-        final Content content = descriptor.getAttachedContent();
-        final String notificationMessage;
-        if (content != null && content.isSelected() && toolWindow.isVisible()) {
-          if (!notifySelectedContent) {
-            return;
-          }
-          notificationMessage = "Session '" + sessionName + "': " + status;
-        }
-        else {
-          notificationMessage = "Session <a href=''>'" + sessionName + "'</a>: " + status;
-        }
-
-        if (ourNotificationGroup == null) {
-          ourNotificationGroup = NotificationGroup.toolWindowGroup("Android Session Restarted", executor.getToolWindowId());
-        }
-
-        ourNotificationGroup
-          .createNotification("", notificationMessage, type, new NotificationListener() {
-            @Override
-            public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-              if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                final RunContentManager contentManager = ExecutionManager.getInstance(project).getContentManager();
-
-                for (RunContentDescriptor d : contentManager.getAllDescriptors()) {
-                  if (sessionName.equals(d.getDisplayName())) {
-                    final Content content = d.getAttachedContent();
-                    content.getManager().setSelectedContent(content);
-                    toolWindow.activate(null, true, true);
-                    break;
-                  }
-                }
-              }
-            }
-          }).notify(project);
-      }
-    });
   }
 
   @Nullable
@@ -360,7 +302,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
           ProcessHandler handler = myRunningState.getProcessHandler();
           handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, debugDescriptor, st, myExecutor.getId()));
-          deactivateToolWindowWhenAddedProperty(myProject, myExecutor, debugDescriptor, "debugger connected");
+          debugDescriptor.setActivateToolWindowWhenAdded(false);
         }
       });
     }

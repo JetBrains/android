@@ -321,6 +321,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
       getProcessHandler().destroyProcess();
       return;
     }
+
     final AtomicInteger startedCount = new AtomicInteger();
     for (ListenableFuture<IDevice> targetDevice : myDeviceTarget.getDeviceFutures()) {
       Futures.addCallback(targetDevice, new FutureCallback<IDevice>() {
@@ -346,6 +347,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
               myStopped.set(true);
               getProcessHandler().destroyProcess();
             }
+            fireExecutionStarted(device);
           } else {
             fireExecutionFailed();
             // todo: check: it may be we don't need to assign it directly
@@ -377,6 +379,12 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   private void fireExecutionFailed() {
     for (AndroidRunningStateListener listener : myListeners) {
       listener.executionFailed();
+    }
+  }
+
+  private void fireExecutionStarted(@NotNull IDevice device) {
+    for (AndroidRunningStateListener listener : myListeners) {
+      listener.executionStarted(device);
     }
   }
 
@@ -495,7 +503,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     }
     catch (AdbCommandRejectedException e) {
       LOG.info(e);
-      myPrinter.stderr("Error: Adb refused a command");
+      myPrinter.stderr("Error: adb rejected command: " + e);
       return false;
     }
     catch (IOException e) {
