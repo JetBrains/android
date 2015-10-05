@@ -26,7 +26,12 @@ import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
+import com.google.common.primitives.Ints;
 import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.history.LocalHistory;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,6 +44,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -58,6 +64,8 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceElement;
+import org.jetbrains.android.dom.resources.ResourceNameConverter;
+import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -83,6 +91,15 @@ import static org.jetbrains.android.util.AndroidBundle.message;
  * @author Eugene.Kudelevsky
  */
 public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProcessor {
+  private static final Ordering<String> ORDER_BY_LENGTH = new Ordering<String>() {
+    @Override
+    public int compare(String left, String right) {
+      int lengthCompare = Ints.compare(left.length(), right.length());
+
+      return lengthCompare != 0 ? lengthCompare : StringUtil.compare(left, right, true);
+    }
+  };
+
   // for tests
   public static volatile boolean ASK = true;
 
@@ -315,7 +332,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   private static void prepareValueResourceRenaming(PsiElement element,
                                                    String newName,
                                                    Map<PsiElement, String> allRenames,
-                                                   AndroidFacet facet) {
+                                                   final AndroidFacet facet) {
     ResourceManager manager = facet.getLocalResourceManager();
     XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
     assert tag != null;
@@ -334,6 +351,53 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
         allRenames.put(xmlElement, newName);
       }
     }
+
+    if (getResourceType(element) == ResourceType.STYLE) {
+      // For styles, try also to find child styles defined by name (i.e. "ParentName.StyleName") and add them
+      // to the rename list. This will allow the rename processor to also handle the references to those. For example,
+      // If you rename "MyTheme" and your manifest theme is "MyTheme.NoActionBar", this will make sure that
+      // the reference from the manifest is also updated by adding "MyTheme.NoActionBar" to the rename list.
+      // We iterate the styles in order to cascade any changes to children down the hierarchy.
+
+      // List of styles that will be renamed.
+      HashSet<String> renamedStyles = Sets.newHashSet();
+      renamedStyles.add(name);
+
+      final String stylePrefix = name + ".";
+      Collection<String> renameCandidates = Collections2.filter(manager.getResourceNames(type),
+        new Predicate<String>() {
+          @Override
+          public boolean apply(String input) {
+            return input.startsWith(stylePrefix);
+          }
+        });
+
+      for (String resourceName : ORDER_BY_LENGTH.sortedCopy(renameCandidates)) {
+        // resourceName.lastIndexOf will never return -1 because we've filtered all names that
+        // do not contain stylePrefix
+        String parentName = resourceName.substring(0, resourceName.lastIndexOf('.'));
+        if (!renamedStyles.contains(parentName)) {
+          // This resource's parent wasn't affected by the rename
+          continue;
+        }
+
+        for (ResourceElement resource : manager.findValueResources(type, resourceName)) {
+          if (!(resource instanceof Style) || ((Style)resource).getParentStyle().getXmlAttributeValue() != null) {
+            // This element is not a style or does have an explicit parent so we do not rename it.
+            continue;
+          }
+
+          XmlAttributeValue xmlElement = resource.getName().getXmlAttributeValue();
+
+          if (xmlElement != null) {
+            String newStyleName = newName + StringUtil.trimStart(resourceName, name);
+            allRenames.put(new ValueResourceElementWrapper(xmlElement), newStyleName);
+            renamedStyles.add(resourceName);
+          }
+        }
+      }
+    }
+
     PsiField[] resFields = AndroidResourceUtil.findResourceFieldsForValueResource(tag, false);
     for (PsiField resField : resFields) {
       String escaped = AndroidResourceUtil.getFieldNameByResourceName(newName);
