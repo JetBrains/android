@@ -25,6 +25,7 @@ import com.android.tools.idea.editors.theme.*;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
@@ -295,7 +296,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     doValidate();
   }
 
-  public void setContrastParameters(@NotNull Map<String, Color> contrastColorsWithWarning, boolean isBackground) {
+  public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithWarning, boolean isBackground) {
     if (myColorPicker != null) {
       myColorPicker.setContrastParameters(contrastColorsWithWarning, isBackground);
     }
