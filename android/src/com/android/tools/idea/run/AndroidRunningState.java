@@ -126,6 +126,12 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myLaunchOptions = launchOptions;
   }
 
+  // Used by downstream plugins.
+  @Nullable
+  public DebugLauncher getDebugLauncher() {
+    return myDebugLauncher;
+  }
+
   public void setDebugLauncher(@NotNull DebugLauncher debugLauncher) {
     myDebugLauncher = debugLauncher;
   }
