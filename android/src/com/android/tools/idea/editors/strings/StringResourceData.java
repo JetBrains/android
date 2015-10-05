@@ -248,18 +248,17 @@ public class StringResourceData {
 
   @VisibleForTesting
   boolean isTranslationMissing(@NotNull String key, @NotNull Locale locale) {
-    if (locale.hasRegion()) {
-      locale = Locale.create(locale.qualifier.getLanguage());
-    }
-
     ResourceItem item = myTranslations.get(key, locale);
+    if (isTranslationMissing(item) && locale.hasRegion()) {
+      locale = Locale.create(locale.qualifier.getLanguage());
+      item = myTranslations.get(key, locale);
+    }
 
-    if (item == null || resourceToString(item).isEmpty()) {
-      return true;
-    }
-    else {
-      return false;
-    }
+    return isTranslationMissing(item);
+  }
+
+  private static boolean isTranslationMissing(@Nullable ResourceItem item) {
+    return item == null || resourceToString(item).isEmpty();
   }
 
   @VisibleForTesting
