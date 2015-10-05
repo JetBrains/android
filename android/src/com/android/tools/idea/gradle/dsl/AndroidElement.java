@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.android;
+package com.android.tools.idea.gradle.dsl;
 
-import com.android.tools.idea.gradle.dsl.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.GradleDslPropertiesElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
 
-public class AndroidElement extends GradleDslPropertiesElement {
+public final class AndroidElement extends GradleDslPropertiesElement {
   public static final String NAME = "android";
 
   private static final String BUILD_TOOLS_VERSION = "buildToolsVersion";
@@ -36,7 +34,7 @@ public class AndroidElement extends GradleDslPropertiesElement {
   private static final String RESOURCE_PREFIX = "resourcePrefix";
   // TODO: Add support for useLibrary
 
-  public AndroidElement(@Nullable GradleDslElement parent) {
+  AndroidElement(@Nullable GradleDslElement parent) {
     super(parent);
   }
 

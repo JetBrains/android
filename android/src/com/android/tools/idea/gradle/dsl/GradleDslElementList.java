@@ -25,34 +25,34 @@ import java.util.List;
 /**
  * Represents a list of {@link GradleDslElement}s.
  */
-public class GradleDslElementList extends GradleDslElement {
+class GradleDslElementList extends GradleDslElement {
   @NotNull private final String myName;
   @NotNull private final List<GradleDslElement> myElements = Lists.newArrayList();
   @NotNull private final List<GradleDslElement> myToBeAddedElements = Lists.newArrayList();
   @NotNull private final List<GradleDslElement> myToBeRemovedElements = Lists.newArrayList();
 
-  public GradleDslElementList(@Nullable GradleDslElement parent, @NotNull String name) {
+  GradleDslElementList(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent);
     myName = name;
   }
 
   @NotNull
-  public String getName() {
+  String getName() {
     return myName;
   }
 
   @NotNull
-  public void addParsedElement(@NotNull GradleDslElement element) {
+  void addParsedElement(@NotNull GradleDslElement element) {
     // TODO: Add assertion statement to allow only elements with valid PsiElement.
     myElements.add(element);
   }
 
-  public void addNewElement(@NotNull GradleDslElement element) {
+  void addNewElement(@NotNull GradleDslElement element) {
     myToBeAddedElements.add(element);
     setModified(true);
   }
 
-  public void removeElement(@NotNull GradleDslElement element) {
+  void removeElement(@NotNull GradleDslElement element) {
     if (myElements.contains(element)) {
       myToBeRemovedElements.add(element);
       setModified(true);
@@ -60,7 +60,7 @@ public class GradleDslElementList extends GradleDslElement {
   }
 
   @NotNull
-  public List<GradleDslElement> getElements() {
+  List<GradleDslElement> getElements() {
     if (myToBeAddedElements.isEmpty() && myToBeRemovedElements.isEmpty()) {
       return ImmutableList.copyOf(myElements);
     }
@@ -75,7 +75,7 @@ public class GradleDslElementList extends GradleDslElement {
   }
 
   @NotNull
-  public <E extends GradleDslElement> List<E> getElements(Class<E> clazz) {
+  <E extends GradleDslElement> List<E> getElements(Class<E> clazz) {
     List<E> result = Lists.newArrayList();
     for (GradleDslElement element : getElements()) {
       if (clazz.isInstance(element)) {
