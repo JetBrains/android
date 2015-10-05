@@ -18,7 +18,10 @@ package com.android.tools.idea.run.cloud;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.*;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class CloudDebuggingTargetChooser implements TargetChooser {
   @NotNull
@@ -40,5 +43,11 @@ public class CloudDebuggingTargetChooser implements TargetChooser {
     // TODO: Prompt the user to launch a cloud device if none found.
     // TODO: Assert that we don't get multiple devices out here?
     return DeviceTarget.forDevices(DeviceSelectionUtils.getAllCompatibleDevices(new TargetDeviceFilter(this)));
+  }
+
+  @NotNull
+  @Override
+  public List<ValidationError> validate() {
+    return ImmutableList.of();
   }
 }
