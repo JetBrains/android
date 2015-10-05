@@ -26,5 +26,5 @@ import java.lang.annotation.ElementType;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 public @interface LookupClass {
-    String value();
+    String[] value();
 }
