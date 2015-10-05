@@ -17,13 +17,13 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.*;
+import com.android.tools.idea.run.LoggingReceiver;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
-import com.android.tools.idea.run.LoggingReceiver;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.android.util.AndroidUtils;

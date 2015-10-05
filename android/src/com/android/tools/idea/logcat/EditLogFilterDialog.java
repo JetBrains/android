@@ -296,7 +296,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     final String[] lines = StringUtil.splitByLines(document.toString());
     for (String line : lines) {
       LogCatMessage message = AndroidLogcatFormatter.parseMessage(line);
-      pidSet.add(message.getPid());
+      pidSet.add(Integer.toString(message.getPid()));
     }
 
     myUsedPids = Lists.newArrayList(pidSet);
