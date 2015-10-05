@@ -51,7 +51,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testSetShowingOnlyKeysNeedingTranslations() {
-    assertEquals(7, table.getRowCount());
+    assertEquals(8, table.getRowCount());
     assertEquals("key1", table.getValueAt(0, 0));
     assertEquals("key2", table.getValueAt(1, 0));
     assertEquals("key3", table.getValueAt(2, 0));
@@ -59,14 +59,16 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertEquals("key5", table.getValueAt(4, 0));
     assertEquals("key6", table.getValueAt(5, 0));
     assertEquals("key7", table.getValueAt(6, 0));
+    assertEquals("key8", table.getValueAt(7, 0));
 
     panel.setShowingOnlyKeysNeedingTranslations(true);
 
-    assertEquals(4, table.getRowCount());
+    assertEquals(5, table.getRowCount());
     assertEquals("key1", table.getValueAt(0, 0));
     assertEquals("key3", table.getValueAt(1, 0));
     assertEquals("key4", table.getValueAt(2, 0));
     assertEquals("key7", table.getValueAt(3, 0));
+    assertEquals("key8", table.getValueAt(4, 0));
   }
 
   public void testOnTextFieldUpdate() {
@@ -83,10 +85,11 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     panel.setShowingOnlyKeysNeedingTranslations(true);
     editCellAt(true, 0, 2);
 
-    assertEquals(3, table.getRowCount());
+    assertEquals(4, table.getRowCount());
     assertEquals("key3", table.getValueAt(0, 0));
     assertEquals("key4", table.getValueAt(1, 0));
     assertEquals("key7", table.getValueAt(2, 0));
+    assertEquals("key8", table.getValueAt(3, 0));
   }
 
   public void testRefilteringAfterEditingTranslationCells() {
@@ -94,10 +97,11 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     editCellAt("Key 3 en-rGB", 1, 4);
     editCellAt("Key 3 en-rIN", 1, 5);
 
-    assertEquals(3, table.getRowCount());
+    assertEquals(4, table.getRowCount());
     assertEquals("key1", table.getValueAt(0, 0));
     assertEquals("key4", table.getValueAt(1, 0));
     assertEquals("key7", table.getValueAt(2, 0));
+    assertEquals("key8", table.getValueAt(3, 0));
   }
 
   public void testSelectingCell() {
