@@ -59,7 +59,7 @@ public final class Resource implements BinaryObject {
   static {
     Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
-      new Field("ID", new Primitive("binary.ID", Method.ID)),
+      new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
       new Field("Data", new Slice("", new Primitive("byte", Method.Uint8))),
     });
   }
@@ -78,7 +78,8 @@ public final class Resource implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Resource o = (Resource)obj;
-      e.id(o.myID);
+      o.myID.write(e);
+
       e.uint32(o.myData.length);
       e.write(o.myData, o.myData.length);
 
@@ -87,7 +88,8 @@ public final class Resource implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       Resource o = (Resource)obj;
-      o.myID = d.id();
+      o.myID = new BinaryID(d);
+
       o.myData = new byte[d.uint32()];
       d.read(o.myData, o.myData.length);
 
