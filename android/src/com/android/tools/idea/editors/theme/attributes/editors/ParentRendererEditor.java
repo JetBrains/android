@@ -18,10 +18,8 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
-import com.android.tools.idea.editors.theme.ParentThemesListModel;
-import com.android.tools.idea.editors.theme.ThemeEditorConstants;
-import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.configurations.ThemeSelectionPanel;
+import com.android.tools.idea.editors.theme.*;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantItemListener;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantsComboItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
@@ -66,10 +64,19 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorSty
   private @Nullable String myResultValue;
   private final ThemeEditorContext myContext;
   private final JPanel myPanel;
+  private final ThemeParentChangedListener myThemeParentChangedListener;
   private ThemeEditorStyle myItem;
 
-  public ParentRendererEditor(@NotNull ThemeEditorContext context) {
+  public interface ThemeParentChangedListener extends ThemeSelectionPanel.ThemeChangedListener {
+    /**
+     * Returns the theme editor to its state before the theme parent was changed
+     */
+    void reset();
+  }
+
+  public ParentRendererEditor(@NotNull ThemeEditorContext context, @NotNull ThemeParentChangedListener themeParentChangedListener) {
     myContext = context;
+    myThemeParentChangedListener = themeParentChangedListener;
     myParentComboBox = new JComboBox();
     // Override isShowing because of the use of a {@link CellRendererPane}
     myPanel = new JPanel(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP)) {
@@ -241,8 +248,10 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorSty
 
         final ThemeSelectionDialog dialog =
           new ThemeSelectionDialog(myContext.getConfiguration(), Collections.singleton(currentTheme.getQualifiedName()));
-
+        dialog.setThemeChangedListener(myThemeParentChangedListener);
         dialog.show();
+
+        myThemeParentChangedListener.reset();
 
         if (dialog.isOK()) {
           String theme = dialog.getTheme();

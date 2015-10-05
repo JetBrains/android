@@ -17,12 +17,15 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
 import com.android.tools.idea.editors.theme.attributes.AttributesModelColorPaletteModel;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
+import com.android.tools.idea.editors.theme.attributes.editors.ParentRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.StyleListPaletteCellRenderer;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -31,10 +34,7 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -243,7 +243,72 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     };
 
     myAttributesTable = myPanel.getAttributesTable();
-    myAttributesTable.customizeTable(myThemeEditorContext, myPreviewPanel);
+    ParentRendererEditor.ThemeParentChangedListener themeParentChangedListener = new ParentRendererEditor.ThemeParentChangedListener() {
+      /** Stores all the {@link ItemResourceValue} items of a theme
+       *  so that it can be restored to its original state after having been modified */
+      private List<ItemResourceValue> myOriginalItems = Lists.newArrayList();
+      private String myModifiedParent;
+
+      /**
+       * Restores a modified theme with its original content
+       */
+      private void restoreOriginalTheme(@NotNull ThemeEditorStyle modifiedTheme, @NotNull List<ItemResourceValue> originalItems) {
+        StyleResourceValue modifiedResourceValue = modifiedTheme.getStyleResourceValue();
+        StyleResourceValue restoredResourceValue =
+          new StyleResourceValue(ResourceType.STYLE, modifiedResourceValue.getName(), modifiedResourceValue.getParentStyle(),
+                                 modifiedResourceValue.isFramework());
+        for (ItemResourceValue item : originalItems) {
+          restoredResourceValue.addItem(item);
+        }
+        modifiedResourceValue.replaceWith(restoredResourceValue);
+      }
+
+      @Override
+      public void themeChanged(@NotNull final String name) {
+        ThemeResolver themeResolver = myThemeEditorContext.getThemeResolver();
+        if (myModifiedParent != null) {
+          ThemeEditorStyle modifiedTheme = themeResolver.getTheme(myModifiedParent);
+          assert modifiedTheme != null;
+          restoreOriginalTheme(modifiedTheme, myOriginalItems);
+        }
+
+        myModifiedParent = name;
+        ThemeEditorStyle newParent = themeResolver.getTheme(name);
+        assert newParent != null;
+        StyleResourceValue newParentStyleResourceValue = newParent.getStyleResourceValue();
+
+        // Store the content of the theme newParent so that it can be restored later
+        myOriginalItems.clear();
+        myOriginalItems.addAll(newParentStyleResourceValue.getValues());
+
+        ThemeEditorStyle myCurrentTheme = themeResolver.getTheme(myThemeName);
+        assert myCurrentTheme != null;
+        // Add myCurrentTheme attributes to newParent, so that newParent becomes equivalent to having changed the parent of myCurrentTheme
+        for (ItemResourceValue item : myCurrentTheme.getStyleResourceValue().getValues()) {
+          newParentStyleResourceValue.addItem(item);
+        }
+
+        myPreviewThemeName = null;
+        refreshPreviewPanel(name);
+      }
+
+      /**
+       * Restores the last modified theme to its original content, and reloads the preview with the currently selected theme
+       */
+      @Override
+      public void reset() {
+        ThemeResolver themeResolver = myThemeEditorContext.getThemeResolver();
+        if (myModifiedParent != null) {
+          ThemeEditorStyle modifiedTheme = themeResolver.getTheme(myModifiedParent);
+          assert modifiedTheme != null;
+          restoreOriginalTheme(modifiedTheme, myOriginalItems);
+        }
+        myModifiedParent = null;
+        myOriginalItems.clear();
+        refreshPreviewPanel(myThemeName);
+      }
+    };
+    myAttributesTable.customizeTable(myThemeEditorContext, myPreviewPanel, themeParentChangedListener);
     myAttributesTable.setGoToListener(goToListener);
 
     updateUiParameters();
