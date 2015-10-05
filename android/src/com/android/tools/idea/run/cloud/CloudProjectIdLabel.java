@@ -49,6 +49,11 @@ public class CloudProjectIdLabel extends JBLabel {
     updateCloudProjectId(CLOUD_PROJECT_PROMPT);
   }
 
+  @NotNull
+  public String getProjectId() {
+    return isProjectSpecified() ? getText() : "";
+  }
+
   public boolean isProjectSpecified() {
     return !getText().isEmpty() && !getText().equals(CLOUD_PROJECT_PROMPT);
   }

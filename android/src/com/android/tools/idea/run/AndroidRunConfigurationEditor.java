@@ -332,25 +332,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     return selection.getId();
   }
 
-  private boolean isValidCloudSelection(Kind configurationKind) {
-    CloudConfiguration selection = getCloudConfigurationComboSelection(configurationKind);
-    return selection != null && selection.getDeviceConfigurationCount() > 0 && isCloudProjectSpecified(configurationKind);
-  }
-
-  private String getInvalidSelectionErrorMessage(Kind configurationKind) {
-    CloudConfiguration selection = getCloudConfigurationComboSelection(configurationKind);
-    if (selection == null) {
-      return "Cloud configuration not specified";
-    }
-    if (selection.getDeviceConfigurationCount() < 1) {
-      return "Selected cloud configuration is empty";
-    }
-    if (!isCloudProjectSpecified(configurationKind)) {
-      return "Cloud project not specified";
-    }
-    return "";
-  }
-
   @Nullable
   private String getAvdCompatibilityWarning() {
     IdDisplay selectedItem = (IdDisplay)myAvdCombo.getComboBox().getSelectedItem();
@@ -515,14 +496,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
 
     configuration.SELECTED_CLOUD_MATRIX_CONFIGURATION_ID = getSelectedCloudConfigurationId(MATRIX);
-    configuration.SELECTED_CLOUD_MATRIX_PROJECT_ID = myCloudMatrixProjectIdLabel.getText();
-    configuration.IS_VALID_CLOUD_MATRIX_SELECTION = isValidCloudSelection(MATRIX);
-    configuration.INVALID_CLOUD_MATRIX_SELECTION_ERROR = getInvalidSelectionErrorMessage(MATRIX);
+    configuration.SELECTED_CLOUD_MATRIX_PROJECT_ID = myCloudMatrixProjectIdLabel.getProjectId();
 
     configuration.SELECTED_CLOUD_DEVICE_CONFIGURATION_ID = getSelectedCloudConfigurationId(SINGLE_DEVICE);
     configuration.SELECTED_CLOUD_DEVICE_PROJECT_ID = myCloudDeviceProjectIdLabel.getText();
-    configuration.IS_VALID_CLOUD_DEVICE_SELECTION = isValidCloudSelection(SINGLE_DEVICE);
-    configuration.INVALID_CLOUD_DEVICE_SELECTION_ERROR = getInvalidSelectionErrorMessage(SINGLE_DEVICE);
 
     configuration.USE_LAST_SELECTED_DEVICE = myUseLastSelectedDeviceCheckBox.isSelected();
     configuration.PREFERRED_AVD = "";
