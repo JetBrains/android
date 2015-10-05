@@ -34,6 +34,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.ArrayUtil;
@@ -932,16 +933,23 @@ public class LombokPsiParser extends JavaParser {
 
     @Override
     public boolean isSubclassOf(@NonNull String name, boolean strict) {
-      if (myClass != null) {
-        PsiClass cls = myClass;
+      return isInheritingFrom(name, strict);
+    }
+
+    @Override
+    public boolean isImplementing(@NonNull String name, boolean strict) {
+      return isInheritingFrom(name, strict);
+    }
+
+    @Override
+    public boolean isInheritingFrom(@NonNull String name, boolean strict) {
+      PsiClass cls = myClass;
+      if (cls != null) {
         if (strict) {
           cls = cls.getSuperClass();
         }
-        while (cls != null) {
-          if (name.equals(cls.getQualifiedName())) {
-            return true;
-          }
-          cls = cls.getSuperClass();
+        if (cls != null) {
+          return InheritanceUtil.isInheritor(cls, name);
         }
       }
       return false;
