@@ -102,7 +102,7 @@ public class AtomController extends TreeController {
       this.indexOfLastLeaf = indexOfLastLeaf;
     }
 
-    public ListenableFuture<FetchedImage> getThumbnail(ServiceClient client, DevicePath devicePath, AtomsPath atomsPath) {
+    public ListenableFuture<FetchedImage> getThumbnail(ServiceClient client, @NotNull DevicePath devicePath, @NotNull AtomsPath atomsPath) {
       synchronized (this) {
         if (thumbnail == null || !Objects.equal(lastDevicePath, devicePath)) {
           lastDevicePath = devicePath;
@@ -316,7 +316,7 @@ public class AtomController extends TreeController {
           @NotNull final JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
         Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
-        if (userObject instanceof Group) {
+        if (userObject instanceof Group && myRenderDevice != null) {
           Group group = (Group)userObject;
           if (shouldShowPreview(group)) {
             ListenableFuture<FetchedImage> iconFuture =
