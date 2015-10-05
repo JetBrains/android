@@ -139,12 +139,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
     List<ValidationError> errors = Lists.newArrayList();
-    if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_MATRIX_TEST && !IS_VALID_CLOUD_MATRIX_SELECTION) {
-      errors.add(ValidationError.fatal(INVALID_CLOUD_MATRIX_SELECTION_ERROR));
-    }
-    if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_DEVICE_LAUNCH && !IS_VALID_CLOUD_DEVICE_SELECTION) {
-      errors.add(ValidationError.fatal(INVALID_CLOUD_DEVICE_SELECTION_ERROR));
-    }
 
     Module module = facet.getModule();
     JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());

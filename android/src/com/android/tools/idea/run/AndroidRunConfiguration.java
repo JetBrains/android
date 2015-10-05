@@ -18,7 +18,6 @@ package com.android.tools.idea.run;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.activity.*;
 import com.google.common.base.Predicates;
-import com.google.common.collect.Lists;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -65,12 +64,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @NotNull
   @Override
   protected List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-    List<ValidationError> errors = Lists.newArrayList();
-    if (getTargetSelectionMode() == TargetSelectionMode.CLOUD_DEVICE_LAUNCH && !IS_VALID_CLOUD_DEVICE_SELECTION) {
-      errors.add(ValidationError.fatal(INVALID_CLOUD_DEVICE_SELECTION_ERROR));
-    }
-    errors.addAll(getApplicationLauncher(facet).checkConfiguration());
-    return errors;
+    return getApplicationLauncher(facet).checkConfiguration();
   }
 
   @NotNull
