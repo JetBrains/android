@@ -16,6 +16,10 @@
 
 package com.android.tools.idea.run;
 
-public interface AndroidRunningStateListener {
-  void executionFailed();
+import com.android.ddmlib.IDevice;
+import org.jetbrains.annotations.NotNull;
+
+public abstract class AndroidRunningStateListener {
+  public void executionFailed() {}
+  public void executionStarted(@NotNull IDevice device) {}
 }
