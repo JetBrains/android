@@ -17,9 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
-import com.android.tools.rpclib.schema.Entity;
-import com.android.tools.rpclib.schema.Field;
-import com.android.tools.rpclib.schema.Struct;
+import com.android.tools.rpclib.schema.*;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,8 +56,8 @@ public final class AtomMetadata implements BinaryObject {
         myResultIndex = index;
       }
       if (field.getType() instanceof Struct) {
-        BinaryID id = ((Struct)field.getType()).getEntity().getTypeID();
-        if (id.equals(Observations.ID)) {
+        Entity entity = ((Struct)field.getType()).getEntity();
+        if (entity.equals(Observations.Klass.INSTANCE.entity())) {
           myObservationsIndex = index;
         }
       }
@@ -125,11 +123,18 @@ public final class AtomMetadata implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {19, 125, 65, -49, -11, 97, 15, 37, -111, -36, -30, 79, -13, 35, -46, -27, -58, -3, -89, -91, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("atom","Metadata","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("API", new Primitive("gfxapi.ID", Method.ID)),
+      new Field("DisplayName", new Primitive("string", Method.String)),
+      new Field("EndOfFrame", new Primitive("bool", Method.Bool)),
+      new Field("DrawCall", new Primitive("bool", Method.Bool)),
+      new Field("DocumentationUrl", new Primitive("string", Method.String)),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -138,7 +143,7 @@ public final class AtomMetadata implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new AtomMetadata(); }

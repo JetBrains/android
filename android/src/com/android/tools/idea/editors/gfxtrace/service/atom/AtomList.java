@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,11 +55,14 @@ public final class AtomList implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-65, 95, 79, 108, 82, 112, -115, 69, 63, 38, -16, -47, -73, -38, -64, 33, 93, -83, 52, 46, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("atom","List","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Atoms", new Slice("", new Variant("Atom"))),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -67,7 +71,7 @@ public final class AtomList implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new AtomList(); }

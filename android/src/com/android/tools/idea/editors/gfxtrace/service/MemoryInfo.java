@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
@@ -73,11 +74,17 @@ public final class MemoryInfo implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {55, 126, 85, 57, -49, 123, 112, 32, 9, -64, -53, 64, -5, -34, -42, -50, -27, -2, -103, 118, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","MemoryInfo","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Data", new Slice("", new Primitive("uint8", Method.Uint8))),
+      new Field("Reads", new Slice("memory.RangeList", new Struct(MemoryRange.Klass.INSTANCE.entity()))),
+      new Field("Writes", new Slice("memory.RangeList", new Struct(MemoryRange.Klass.INSTANCE.entity()))),
+      new Field("Observed", new Slice("memory.RangeList", new Struct(MemoryRange.Klass.INSTANCE.entity()))),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -86,7 +93,7 @@ public final class MemoryInfo implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new MemoryInfo(); }

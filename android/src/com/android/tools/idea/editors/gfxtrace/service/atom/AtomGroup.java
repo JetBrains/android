@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
@@ -87,11 +88,16 @@ public final class AtomGroup implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {5, 106, 51, -17, 50, -42, -75, 125, 41, 92, -77, -96, 100, -34, 41, 8, -95, -122, 86, -25, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("atom","Group","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Name", new Primitive("string", Method.String)),
+      new Field("Range", new Struct(Range.Klass.INSTANCE.entity())),
+      new Field("SubGroups", new Slice("GroupList", new Struct(AtomGroup.Klass.INSTANCE.entity()))),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -100,7 +106,7 @@ public final class AtomGroup implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new AtomGroup(); }

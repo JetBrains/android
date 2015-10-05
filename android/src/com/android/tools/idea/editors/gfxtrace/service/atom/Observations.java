@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,11 +53,15 @@ public final class Observations implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-26, -4, -69, 71, -2, -84, -122, -85, 14, 2, -118, -53, 8, -49, -122, 48, -16, 30, 58, -96, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("atom","Observations","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Reads", new Slice("", new Struct(Observation.Klass.INSTANCE.entity()))),
+      new Field("Writes", new Slice("", new Struct(Observation.Klass.INSTANCE.entity()))),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -65,7 +70,7 @@ public final class Observations implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new Observations(); }

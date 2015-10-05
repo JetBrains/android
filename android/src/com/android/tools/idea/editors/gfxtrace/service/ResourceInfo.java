@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
@@ -72,11 +73,16 @@ public final class ResourceInfo implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {71, 125, -92, 88, -28, -6, -77, 40, 49, -59, -115, 115, 78, 19, -57, -32, -52, 31, -62, 21, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","ResourceInfo","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("ID", new Primitive("path.ResourceID", Method.ID)),
+      new Field("Name", new Primitive("string", Method.String)),
+      new Field("Accesses", new Slice("", new Primitive("uint64", Method.Uint64))),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -85,7 +91,7 @@ public final class ResourceInfo implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new ResourceInfo(); }
