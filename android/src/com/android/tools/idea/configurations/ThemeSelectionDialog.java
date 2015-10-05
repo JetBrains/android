@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.Collections;
 import java.util.Set;
 
@@ -39,6 +38,10 @@ public class ThemeSelectionDialog extends DialogWrapper {
     myPanel = new ThemeSelectionPanel(this, configuration, excludedThemes);
     setTitle("Select Theme");
     init();
+  }
+
+  public void setThemeChangedListener(@NotNull ThemeSelectionPanel.ThemeChangedListener themeChangedListener) {
+    myPanel.setThemeChangedListener(themeChangedListener);
   }
 
   @Nullable

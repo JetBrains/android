@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ThemeSelectionPanel;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
@@ -36,20 +37,16 @@ public class StyleListPaletteCellRenderer extends StyleListCellRenderer {
   private static final String ACCENT_MATERIAL = "colorAccent";
 
   private ColorPaletteComponent myColorPaletteComponent = null;
-  private final @NotNull ItemHoverListener myItemHoverListener;
+  private final @NotNull ThemeSelectionPanel.ThemeChangedListener myThemeChangedListener;
   private final @NotNull ThemeEditorContext myContext;
 
-  public interface ItemHoverListener {
-    void itemHovered(@NotNull String name);
-  }
-
   public StyleListPaletteCellRenderer(@NotNull ThemeEditorContext context,
-                                      @NotNull ItemHoverListener itemHoverListener,
+                                      @NotNull ThemeSelectionPanel.ThemeChangedListener themeChangedListener,
                                       @Nullable JComboBox comboBox) {
     super(context, comboBox);
     myContext = context;
     myColorPaletteComponent = new ColorPaletteComponent();
-    myItemHoverListener = itemHoverListener;
+    myThemeChangedListener = themeChangedListener;
   }
 
   @Override
@@ -97,7 +94,7 @@ public class StyleListPaletteCellRenderer extends StyleListCellRenderer {
     }
 
     if (selected) {
-      myItemHoverListener.itemHovered(theme.getQualifiedName());
+      myThemeChangedListener.themeChanged(theme.getQualifiedName());
     }
   }
 }
