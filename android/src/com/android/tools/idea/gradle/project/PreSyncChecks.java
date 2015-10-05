@@ -39,6 +39,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
@@ -71,6 +72,15 @@ final class PreSyncChecks {
     }
 
     if (isAndroidStudio()) {
+      try {
+        syncIdeAndProjectAndroidSdks(project);
+      }
+      catch (IOException e) {
+        String msg = "Failed to sync SDKs";
+        LOG.info(msg, e);
+        return PreSyncCheckResult.failure(msg + ": " + e.getMessage());
+      }
+
       // We only check jdk for Studio, because only Studio uses the same JDK for all modules and all Gradle invocations.
       // See https://code.google.com/p/android/issues/detail?id=172714
       Sdk jdk = IdeSdks.getJdk();
