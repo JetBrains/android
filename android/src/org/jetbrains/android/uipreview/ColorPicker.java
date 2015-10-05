@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.android.tools.swing.ui.ClickableLabel;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.icons.AllIcons;
@@ -59,7 +60,6 @@ import java.awt.image.MemoryImageSource;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Color picker with support for Material suggestions and ARGB.
@@ -258,7 +258,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     return myColor;
   }
 
-  public void setContrastParameters(@NotNull Map<String, Color> contrastColorsWithWarning, boolean isBackground) {
+  public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithWarning, boolean isBackground) {
     myPreviewComponent.setContrastParameters(contrastColorsWithWarning, isBackground);
   }
 
@@ -777,7 +777,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private ImmutableSet<Color> myContrastColorSet;
     private boolean myIsBackgroundColor;
     private String myErrorString;
-    private Map<String, Color> myContrastColorsWithWarning;
+    private ImmutableMap<String, Color> myContrastColorsWithWarning;
 
     private ColorPreviewComponent() {
       setBorder(JBUI.Borders.empty(0, 2));
@@ -795,7 +795,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
      *                                  If the user is editing a state list, this might be more than 1.
      * @param isBackgroundColor true if it's a background color, of false if it's a text color
      */
-    public void setContrastParameters(@NotNull Map<String, Color> contrastColorsWithWarning, boolean isBackgroundColor) {
+    public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithWarning, boolean isBackgroundColor) {
       myIsContrastPreview = true;
       myContrastColorsWithWarning = contrastColorsWithWarning;
       myContrastColorSet = ImmutableSet.copyOf(contrastColorsWithWarning.values());

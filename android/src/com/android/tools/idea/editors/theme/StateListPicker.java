@@ -32,6 +32,7 @@ import com.android.tools.swing.ui.SwatchComponent;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -89,7 +90,7 @@ public class StateListPicker extends JPanel {
   private boolean myIsBackgroundStateList;
   /** If not null, it contains colors to compare with the state list items colors to find out any possible contrast problems,
    *  and warnings to use in case there is a problem. */
-  private Map<String, Color> myContrastColorsWithWarning;
+  private @NotNull ImmutableMap<String, Color> myContrastColorsWithWarning = ImmutableMap.of();
 
   public StateListPicker(@NotNull ResourceHelper.StateList stateList,
                          @NotNull Module module,
@@ -293,7 +294,7 @@ public class StateListPicker extends JPanel {
     return url != null && url.framework && !targetData.isResourcePublic(url.type.getName(), url.name);
   }
 
-  public void setContrastParameters(@NotNull Map<String, Color> contrastColorsWithWarning, boolean isBackgroundStateList) {
+  public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithWarning, boolean isBackgroundStateList) {
     myContrastColorsWithWarning = contrastColorsWithWarning;
     myIsBackgroundStateList = isBackgroundStateList;
   }
