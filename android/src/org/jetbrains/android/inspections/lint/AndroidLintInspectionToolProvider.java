@@ -1426,6 +1426,13 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.mangled.crlf"), DosLineEndingDetector.ISSUE);
     }
   }
+
+  public static class AndroidLintManifestResourceInspection extends AndroidLintInspectionBase {
+    public AndroidLintManifestResourceInspection() {
+      super(AndroidBundle.message("android.lint.inspections.manifest.resource"), ManifestResourceDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintMenuTitleInspection extends AndroidLintInspectionBase {
     public AndroidLintMenuTitleInspection() {
       super(AndroidBundle.message("android.lint.inspections.menu.title"), TitleDetector.ISSUE);
