@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,11 +63,16 @@ public final class AtomRangeTimer implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-73, -66, -78, 20, 67, -101, -127, -89, 47, 110, -63, 59, -93, 27, -99, -34, 123, -18, 73, -90, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","AtomRangeTimer","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    Namespace.register(Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("FromAtomIndex", new Primitive("uint64", Method.Uint64)),
+      new Field("ToAtomIndex", new Primitive("uint64", Method.Uint64)),
+      new Field("Nanoseconds", new Primitive("uint64", Method.Uint64)),
+    });
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -75,7 +81,7 @@ public final class AtomRangeTimer implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new AtomRangeTimer(); }
