@@ -7,6 +7,6 @@
         android:showAsAction="never" />
 
     <item android:id="@+id/action_upgrade"
-        android:actionProviderClass="My<caret>"
+        android:actionProviderClass="Sh<caret>"
     />
 </menu>
