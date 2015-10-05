@@ -181,6 +181,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintUnprotectedSMSBroadcastReceiverInspection extends AndroidLintInspectionBase {
+    public AndroidLintUnprotectedSMSBroadcastReceiverInspection() {
+      super(AndroidBundle.message("android.lint.inspections.unprotected.smsbroadcast.receiver"), UnsafeBroadcastReceiverDetector.BROADCAST_SMS);
+    }
+  }
+
   public static class AndroidLintUnusedAttributeInspection extends AndroidLintInspectionBase {
     public AndroidLintUnusedAttributeInspection() {
       super(AndroidBundle.message("android.lint.inspections.unused.attribute"), ApiDetector.UNUSED);
