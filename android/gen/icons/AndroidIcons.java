@@ -287,13 +287,13 @@ public class AndroidIcons {
   }
 
   public static class GfxTrace {
-    public static final Icon TraceFile = load("/icons/ddms/screen_capture.png"); // 16x16
-    public static final Icon ListenForTrace = load("/icons/ddms/start_method_profiling.png"); // 16x16
-    public static final Icon InjectSpy = load("/icons/ddms/threads.png"); // 16x16
-    public static final Icon DepthBuffer = load("/debugger/stackFrame.png"); // 16x16
-    public static final Icon ColorBuffer = load("/icons/views/SurfaceView.png"); // 16x16
-    public static final Icon WireframeNone = load("/ide/macro/recording_2.png"); // 16x16
-    public static final Icon WireframeOverlay = load("/icons/views/Space.png"); // 16x16
-    public static final Icon WireframeAll = load("/graph/grid.png"); // 16x16
+    public static final Icon TraceFile = load("/icons/gfxtrace/trace_file.png"); // 16x16
+    public static final Icon ListenForTrace = load("/icons/gfxtrace/listen_for_trace.png"); // 16x16
+    public static final Icon InjectSpy = load("/icons/gfxtrace/inject_spy.png"); // 16x16
+    public static final Icon DepthBuffer = load("/icons/gfxtrace/depth_buffer.png"); // 16x16
+    public static final Icon ColorBuffer = load("/icons/gfxtrace/color_buffer.png"); // 16x16
+    public static final Icon WireframeNone = load("/icons/gfxtrace/wireframe_none.png"); // 16x16
+    public static final Icon WireframeOverlay = load("/icons/gfxtrace/wireframe_overlay.png"); // 16x16
+    public static final Icon WireframeAll = load("/icons/gfxtrace/wireframe_all.png"); // 16x16
   }
 }
