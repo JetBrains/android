@@ -285,4 +285,15 @@ public class AndroidIcons {
     public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.png"); // 13x13
     public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.png"); // 13x13
   }
+
+  public static class GfxTrace {
+    public static final Icon TraceFile = load("/icons/ddms/screen_capture.png"); // 16x16
+    public static final Icon ListenForTrace = load("/icons/ddms/start_method_profiling.png"); // 16x16
+    public static final Icon InjectSpy = load("/icons/ddms/threads.png"); // 16x16
+    public static final Icon DepthBuffer = load("/debugger/stackFrame.png"); // 16x16
+    public static final Icon ColorBuffer = load("/icons/views/SurfaceView.png"); // 16x16
+    public static final Icon WireframeNone = load("/ide/macro/recording_2.png"); // 16x16
+    public static final Icon WireframeOverlay = load("/icons/views/Space.png"); // 16x16
+    public static final Icon WireframeAll = load("/graph/grid.png"); // 16x16
+  }
 }

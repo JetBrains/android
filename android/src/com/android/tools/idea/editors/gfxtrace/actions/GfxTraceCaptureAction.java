@@ -44,7 +44,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
 
   public static class Listen extends GfxTraceCaptureAction {
     public Listen(@NotNull GpuMonitorView view) {
-      super(view, "Listen", "Listen for GFX traces", AndroidIcons.Ddms.StartMethodProfiling);
+      super(view, "Listen", "Listen for GFX traces", AndroidIcons.GfxTrace.ListenForTrace);
     }
 
     @Override
@@ -72,7 +72,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
       "To trace your own application on a non-rooted device, build your application with the GPU tracing library.";
 
     public Launch(@NotNull GpuMonitorView view) {
-      super(view, "Launch", "Launch in GFX trace mode", AndroidIcons.Ddms.Threads);
+      super(view, "Launch", "Launch in GFX trace mode", AndroidIcons.GfxTrace.InjectSpy);
     }
 
     @Override
