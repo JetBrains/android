@@ -175,7 +175,7 @@ public class AndroidIcons {
     public static final Icon AdapterViewFlipper = load("/icons/views/AdapterViewFlipper.png"); // 16x16
     public static final Icon AdView = load("/icons/views/AdView.png"); // 16x16
     public static final Icon AnalogClock = load("/icons/views/AnalogClock.png"); // 16x16
-    public static final Icon AppbarLayout = load("/icons/views/AppbarLayout.png"); // 16x16
+    public static final Icon AppbarLayout = load("/icons/views/AppBarLayout.png"); // 16x16
     public static final Icon AutoCompleteTextView = load("/icons/views/AutoCompleteTextView.png"); // 16x16
     public static final Icon BrowseFragment = load("/icons/views/BrowseFragment.png"); // 16x16
     public static final Icon Button = load("/icons/views/Button.png"); // 16x16
