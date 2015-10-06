@@ -59,11 +59,11 @@ final class CallGetFramebufferDepth implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","callGetFramebufferDepth","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("device", new Pointer(new Struct(DevicePath.Klass.INSTANCE.entity()))),
       new Field("after", new Pointer(new Struct(AtomPath.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

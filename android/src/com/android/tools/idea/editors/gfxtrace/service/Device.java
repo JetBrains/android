@@ -137,7 +137,6 @@ public final class Device implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","Device","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Name", new Primitive("string", Method.String)),
       new Field("Model", new Primitive("string", Method.String)),
@@ -150,6 +149,7 @@ public final class Device implements BinaryObject {
       new Field("Vendor", new Primitive("string", Method.String)),
       new Field("Version", new Primitive("string", Method.String)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

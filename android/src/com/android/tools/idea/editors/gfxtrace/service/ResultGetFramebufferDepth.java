@@ -48,10 +48,10 @@ final class ResultGetFramebufferDepth implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","resultGetFramebufferDepth","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("value", new Pointer(new Struct(ImageInfoPath.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

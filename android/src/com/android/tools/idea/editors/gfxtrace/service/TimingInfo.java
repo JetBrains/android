@@ -67,12 +67,12 @@ public final class TimingInfo implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","TimingInfo","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("PerCommand", new Slice("", new Struct(AtomTimer.Klass.INSTANCE.entity()))),
       new Field("PerDrawCall", new Slice("", new Struct(AtomRangeTimer.Klass.INSTANCE.entity()))),
       new Field("PerFrame", new Slice("", new Struct(AtomRangeTimer.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

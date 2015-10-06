@@ -37,9 +37,9 @@ final public class FmtATCRGBAEXPLICITALPHAAMD extends Format {
   private static final Entity ENTITY = new Entity("image","fmtATC_RGBA_EXPLICIT_ALPHA_AMD","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

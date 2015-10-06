@@ -74,11 +74,11 @@ public final class ResourcePath extends Path {
   private static final Entity ENTITY = new Entity("path","Resource","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("ID", new Array("ResourceID", new Primitive("byte", Method.Uint8), 20)),
       new Field("After", new Pointer(new Struct(AtomPath.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

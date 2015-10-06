@@ -57,11 +57,11 @@ public final class Observations implements BinaryObject {
   private static final Entity ENTITY = new Entity("atom","Observations","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Reads", new Slice("", new Struct(Observation.Klass.INSTANCE.entity()))),
       new Field("Writes", new Slice("", new Struct(Observation.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

@@ -57,11 +57,11 @@ final class CallImportCapture implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","callImportCapture","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("name", new Primitive("string", Method.String)),
       new Field("Data", new Slice("", new Primitive("uint8", Method.Uint8))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

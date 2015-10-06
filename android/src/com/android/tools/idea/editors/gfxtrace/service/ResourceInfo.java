@@ -78,12 +78,12 @@ public final class ResourceInfo implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","ResourceInfo","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("ID", new Array("path.ResourceID", new Primitive("byte", Method.Uint8), 20)),
       new Field("Name", new Primitive("string", Method.String)),
       new Field("Accesses", new Slice("", new Primitive("uint64", Method.Uint64))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

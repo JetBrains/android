@@ -67,11 +67,11 @@ public final class FieldPath extends Path {
   private static final Entity ENTITY = new Entity("path","Field","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Struct", new Interface("Path")),
       new Field("Name", new Primitive("string", Method.String)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

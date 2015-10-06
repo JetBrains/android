@@ -37,9 +37,9 @@ final public class FmtFloat32 extends Format {
   private static final Entity ENTITY = new Entity("image","fmtFloat32","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
