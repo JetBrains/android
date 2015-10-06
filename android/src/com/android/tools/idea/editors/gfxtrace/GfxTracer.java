@@ -310,7 +310,6 @@ public class GfxTracer {
     b[5] = 0;
     b[6] = 0;
     b[7] = 0;
-    out.write(b);
     // mObserveFramebufferOnEOF, mObserveFramebufferOnDrawcall
     b[8] = options.myObserveFramebufferOnEOF ? (byte)1 : (byte)0;
     b[9] = options.myObserveFramebufferOnDrawCall ? (byte)1 : (byte)0;
