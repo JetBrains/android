@@ -83,6 +83,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Set<Key<?>> IMPLICIT_PARAMETERS = ImmutableSet.<Key<?>>of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME);
 
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
+  public static final String CUSTOMIZE_ACTIVITY_TITLE = "Customize the Activity";
 
   private TemplateParameterStep2 myParameterStep;
   private final boolean myIsNewModule;
@@ -340,7 +341,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     SourceProvider[] sourceProviders = getSourceProviders(module, myTargetFolder);
     myParameterStep =
       new TemplateParameterStep2(getFormFactor(myTargetFolder), myPredefinedParameterValues, myParentDisposable, KEY_PACKAGE_NAME,
-                                 sourceProviders);
+                                 sourceProviders, CUSTOMIZE_ACTIVITY_TITLE);
     myAssetStudioStep = new IconStep(KEY_SELECTED_TEMPLATE, KEY_SOURCE_PROVIDER, myParentDisposable);
 
     addStep(myParameterStep);
