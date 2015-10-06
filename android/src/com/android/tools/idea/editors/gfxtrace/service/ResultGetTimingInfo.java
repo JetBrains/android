@@ -48,10 +48,10 @@ final class ResultGetTimingInfo implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","resultGetTimingInfo","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("value", new Pointer(new Struct(TimingInfoPath.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

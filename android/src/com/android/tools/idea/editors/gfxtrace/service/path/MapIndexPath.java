@@ -68,11 +68,11 @@ public final class MapIndexPath extends Path {
   private static final Entity ENTITY = new Entity("path","MapIndex","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Map", new Interface("Path")),
       new Field("Key", new AnyType()),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

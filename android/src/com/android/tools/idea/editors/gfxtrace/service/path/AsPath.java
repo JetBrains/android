@@ -74,11 +74,11 @@ public final class AsPath extends Path {
   private static final Entity ENTITY = new Entity("path","As","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Object", new Interface("Path")),
       new Field("Type", new AnyType()),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

@@ -47,10 +47,10 @@ public final class Report implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","Report","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Items", new Slice("", new Struct(ReportItem.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

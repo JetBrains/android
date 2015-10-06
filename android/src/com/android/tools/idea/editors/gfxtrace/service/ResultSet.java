@@ -48,10 +48,10 @@ final class ResultSet implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","resultSet","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("value", new Interface("path.Path")),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
