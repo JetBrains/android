@@ -30,7 +30,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
@@ -209,6 +208,11 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
+  protected IdeFrameFixture importMultiModule() throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish("MultiModule");
+  }
+
+  @NotNull
   protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
     File projectPath = setUpProject(projectDirName, false, true, null);
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
@@ -248,41 +252,6 @@ public abstract class GuiTestCase {
         GradleProjectImporter.getInstance().importProject(projectDir);
       }
     });
-  }
-
-  @NotNull
-  private IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
-    File projectPath = setUpProject(projectDirName, true, true, null);
-    return openProject(projectPath);
-  }
-
-  @NotNull
-  private IdeFrameFixture openProject(@NotNull final File projectPath) {
-    VirtualFile toSelect = findFileByIoFile(projectPath, true);
-    assertNotNull(toSelect);
-
-    GuiTestSuiteState state = getGuiTestSuiteState();
-    if (!state.isOpenProjectWizardAlreadyTested()) {
-      state.setOpenProjectWizardAlreadyTested(true);
-
-      findWelcomeFrame().clickOpenProjectButton();
-
-      FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
-      return openProjectAndWaitUntilOpened(toSelect, openProjectDialog);
-    }
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-        projectManager.loadAndOpenProject(projectPath.getPath());
-      }
-    });
-
-    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
-    projectFrame.waitForGradleProjectSyncToFinish();
-
-    return projectFrame;
   }
 
   /**
@@ -366,8 +335,12 @@ public abstract class GuiTestCase {
     File masterProjectPath = getMasterProjectDirPath(projectDirName);
 
     File projectPath = getTestProjectDirPath(projectDirName);
-    delete(projectPath);
+    if (projectPath.isDirectory()) {
+      delete(projectPath);
+      System.out.println(String.format("Deleted project path '%1$s'", projectPath.getPath()));
+    }
     copyDir(masterProjectPath, projectPath);
+    System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, projectPath.getPath()));
     return projectPath;
   }
 
