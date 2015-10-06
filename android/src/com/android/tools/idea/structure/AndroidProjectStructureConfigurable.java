@@ -764,12 +764,12 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
       String question;
       if (mySidePanel.getModuleCount() == 1) {
-        question = ProjectBundle.message("module.remove.last.confirmation");
+        question = ProjectBundle.message("module.remove.last.confirmation", 1);
       }
       else {
-        question = ProjectBundle.message("module.remove.confirmation", configurable.getDisplayName());
+        question = ProjectBundle.message("module.remove.confirmation", configurable.getDisplayName(), 1);
       }
-      if (Messages.showYesNoDialog(myProject, question, ProjectBundle.message("module.remove.confirmation.title"),
+      if (Messages.showYesNoDialog(myProject, question, ProjectBundle.message("module.remove.confirmation.title", 1),
                                    Messages.getQuestionIcon()) != Messages.YES) {
         return;
       }
