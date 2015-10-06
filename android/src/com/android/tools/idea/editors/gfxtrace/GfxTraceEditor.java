@@ -106,6 +106,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
+        if (!isEnabled()) {
+          setLoadingErrorTextOnEdt("GFX Trace System not enabled on this host");
+          return;
+        }
+
         if (!connectToServer()) {
           setLoadingErrorTextOnEdt("Unable to connect to server");
           return;
@@ -192,7 +197,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myView;
+    return myLoadingDecorator.getComponent();
   }
 
   @Nullable
@@ -319,6 +324,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
       @Override
       public void run() {
         myLoadingDecorator.setLoadingText(error);
+        myLoadingDecorator.startLoading(false);
       }
     });
   }
