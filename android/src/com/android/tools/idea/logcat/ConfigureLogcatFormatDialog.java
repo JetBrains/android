@@ -38,7 +38,7 @@ public class ConfigureLogcatFormatDialog extends DialogWrapper {
 
   static {
     LogCatHeader sampleHeader =
-      new LogCatHeader(LogLevel.INFO, 123, 456, "com.android.sample", "SampleTag", LogCatTimestamp.fromString("12-34 12:34:56.789"));
+      new LogCatHeader(LogLevel.INFO, 123, 456, "com.android.sample", "SampleTag", LogCatTimestamp.fromString("01-23 12:34:56.789"));
     SAMPLE_OUTPUT = AndroidLogcatFormatter.formatMessageFull(sampleHeader, "This is a sample message");
   }
 
