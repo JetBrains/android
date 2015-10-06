@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.idea.editors.gfxtrace.service.ApiID;
 import com.android.tools.rpclib.schema.*;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +66,7 @@ public final class AtomMetadata implements BinaryObject {
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  private BinaryID myAPI;
+  private ApiID myAPI;
   private String myDisplayName;
   private boolean myEndOfFrame;
   private boolean myDrawCall;
@@ -75,11 +76,11 @@ public final class AtomMetadata implements BinaryObject {
   public AtomMetadata() {}
 
 
-  public BinaryID getAPI() {
+  public ApiID getAPI() {
     return myAPI;
   }
 
-  public AtomMetadata setAPI(BinaryID v) {
+  public AtomMetadata setAPI(ApiID v) {
     myAPI = v;
     return this;
   }
@@ -129,7 +130,7 @@ public final class AtomMetadata implements BinaryObject {
   static {
     Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
-      new Field("API", new Primitive("gfxapi.ID", Method.ID)),
+      new Field("API", new Array("gfxapi.ID", new Primitive("byte", Method.Uint8), 20)),
       new Field("DisplayName", new Primitive("string", Method.String)),
       new Field("EndOfFrame", new Primitive("bool", Method.Bool)),
       new Field("DrawCall", new Primitive("bool", Method.Bool)),
@@ -151,7 +152,8 @@ public final class AtomMetadata implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       AtomMetadata o = (AtomMetadata)obj;
-      e.id(o.myAPI);
+      o.myAPI.write(e);
+
       e.string(o.myDisplayName);
       e.bool(o.myEndOfFrame);
       e.bool(o.myDrawCall);
@@ -161,7 +163,8 @@ public final class AtomMetadata implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       AtomMetadata o = (AtomMetadata)obj;
-      o.myAPI = d.id();
+      o.myAPI = new ApiID(d);
+
       o.myDisplayName = d.string();
       o.myEndOfFrame = d.bool();
       o.myDrawCall = d.bool();
