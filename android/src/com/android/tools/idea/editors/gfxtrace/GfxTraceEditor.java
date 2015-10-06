@@ -82,7 +82,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private PathStore<Path> myLastActivatadPath = new PathStore<Path>();
 
   public static boolean isEnabled() {
-    return GapiPaths.get().isValid();
+    return GapiPaths.isValid();
   }
 
   public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
