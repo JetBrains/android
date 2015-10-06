@@ -35,6 +35,7 @@ import com.intellij.openapi.vfs.VirtualFileVisitor;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,14 +46,13 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.TemplateUtils.*;
-import static com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing;
 
 /**
  * Executor support for recipe instructions.
  */
 final class DefaultRecipeExecutor implements RecipeExecutor {
 
-  private static final Logger LOG = Logger.getInstance(DefaultRecipeExecutor.class);
+  private static final Logger LOG = Logger.getInstance(RecipeExecutor.class);
 
   /**
    * The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories
@@ -61,11 +61,13 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
   private final FindReferencesRecipeExecutor myReferences;
   private final RenderingContext myContext;
+  private final RecipeIO myIO;
   private boolean myNeedsGradleSync;
 
-  public DefaultRecipeExecutor(@NotNull RenderingContext context) {
+  public DefaultRecipeExecutor(@NotNull RenderingContext context, boolean dryRun) {
     myReferences = new FindReferencesRecipeExecutor(context);
     myContext = context;
+    myIO = dryRun ? new DryRunRecipeIO() : new RecipeIO();
   }
 
   /**
@@ -128,9 +130,8 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       }
       else {
         File targetFile = getTargetFile(to);
-
-        VfsUtil.createDirectories(targetFile.getParentFile().getAbsolutePath());
-        writeFile(this, processFreemarkerTemplate(myContext, from, null), targetFile);
+        String content = processFreemarkerTemplate(myContext, from, null);
+        myIO.writeFile(this, content, targetFile);
       }
     }
     catch (IOException e) {
@@ -161,10 +162,6 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
       if (to.exists()) {
         targetText = Files.toString(to, Charsets.UTF_8);
-      }
-      else if (to.getParentFile() != null) {
-        //noinspection ResultOfMethodCallIgnored
-        checkedCreateDirectoryIfMissing(to.getParentFile());
       }
 
       if (targetText == null) {
@@ -209,7 +206,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
         throw new RuntimeException("Only XML or Gradle settings files can be merged at this point: " + to);
       }
 
-      writeFile(this, contents, to);
+      myIO.writeFile(this, contents, to);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -229,7 +226,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   @Override
   public void mkDir(@NotNull File at) {
     try {
-      checkedCreateDirectoryIfMissing(getTargetFile(at));
+      myIO.mkDir(getTargetFile(at));
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -268,7 +265,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
         myContext.performGradleSync() &&
         !project.isDefault() &&
         isBuildWithGradle(project)) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      myIO.requestGradleSync(project);
     }
   }
 
@@ -276,7 +273,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    * Returns the absolute path to the file which will get written to.
    */
   @NotNull
-  public File getTargetFile(@NotNull File file) throws IOException {
+  private File getTargetFile(@NotNull File file) throws IOException {
     if (file.isAbsolute()) {
       return file;
     }
@@ -304,7 +301,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     }
     String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
     String result = GradleFileMerger.mergeGradleFiles(contents, destinationContents, myContext.getProject(), compileSdkVersion);
-    writeFile(this, result, gradleBuildFile);
+    myIO.writeFile(this, result, gradleBuildFile);
     myNeedsGradleSync = true;
   }
 
@@ -313,13 +310,12 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    * create a directory even if it already exists. This is an undo-friendly
    * replacement.
    */
-  private void copyDirectory(@NotNull final VirtualFile src, @NotNull final VirtualFile dest) throws IOException {
-    final File destinationFile = VfsUtilCore.virtualToIoFile(dest);
+  private void copyDirectory(@NotNull final VirtualFile src, @NotNull final File dest) throws IOException {
     VfsUtilCore.visitChildrenRecursively(src, new VirtualFileVisitor() {
       @Override
       public boolean visitFile(@NotNull VirtualFile file) {
         try {
-          return copyFile(file, src, destinationFile, dest);
+          return copyFile(file, src, dest);
         }
         catch (IOException e) {
           throw new VisitorException(e);
@@ -336,45 +332,93 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     assert sourceFile != null : from;
     sourceFile.refresh(false, false);
     File destPath = (from.isDirectory() ? to : to.getParentFile());
-    VirtualFile destFolder = checkedCreateDirectoryIfMissing(destPath);
     if (from.isDirectory()) {
-      copyDirectory(sourceFile, destFolder);
+      copyDirectory(sourceFile, destPath);
     }
     else {
       Document document = FileDocumentManager.getInstance().getDocument(sourceFile);
       if (document != null) {
-        writeFile(this, document.getText(), to);
+        myIO.writeFile(this, document.getText(), to);
       }
       else {
-        VfsUtilCore.copyFile(this, sourceFile, destFolder, to.getName());
+        myIO.copyFile(this, sourceFile, destPath, to.getName());
       }
     }
   }
 
-  private boolean copyFile(VirtualFile file, VirtualFile src, File destinationFile, VirtualFile dest) throws IOException {
+  private boolean copyFile(VirtualFile file, VirtualFile src, File destinationFile) throws IOException {
     String relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar);
     if (relativePath == null) {
       LOG.error(file.getPath() + " is not a child of " + src, new Exception());
       return false;
     }
     if (file.isDirectory()) {
-      checkedCreateDirectoryIfMissing(new File(destinationFile, relativePath));
+      myIO.mkDir(new File(destinationFile, relativePath));
     }
     else {
-      VirtualFile targetDir = dest;
-      if (relativePath.indexOf(File.separatorChar) > 0) {
-        String directories = relativePath.substring(0, relativePath.lastIndexOf(File.separatorChar));
-        File newParent = new File(destinationFile, directories);
-        targetDir = checkedCreateDirectoryIfMissing(newParent);
-      }
       File target = new File(destinationFile, relativePath);
       if (target.exists()) {
-        LOG.warn("Target file already exists, skipping the copy of: " + target.getPath());
+        if (!compareFile(myContext.getProject(), file, target)) {
+          throw new IOException(String.format("A different version of %1$s already exists", target.getCanonicalPath()));
+        }
       }
       else {
-        VfsUtilCore.copyFile(this, file, targetDir);
+        myIO.copyFile(this, file, target);
       }
     }
     return true;
+  }
+
+  private static class RecipeIO {
+    public void writeFile(@NotNull Object requestor, @Nullable String contents, @NotNull File to) throws IOException {
+      checkedCreateDirectoryIfMissing(to.getParentFile());
+      writeTextFile(this, contents, to);
+    }
+
+    public void copyFile(Object requestor, @NotNull VirtualFile file, @NotNull File toFile) throws IOException {
+      VirtualFile toDir = checkedCreateDirectoryIfMissing(toFile.getParentFile());
+      VfsUtilCore.copyFile(this, file, toDir);
+    }
+
+    public void copyFile(Object requestor, @NotNull VirtualFile file, @NotNull File toFileDir, @NotNull String newName)
+      throws IOException {
+      VirtualFile toDir = checkedCreateDirectoryIfMissing(toFileDir);
+      VfsUtilCore.copyFile(requestor, file, toDir, newName);
+    }
+
+    public void mkDir(@NotNull File directory) throws IOException {
+      checkedCreateDirectoryIfMissing(directory);
+    }
+
+    public void requestGradleSync(@NotNull Project project) {
+      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    }
+  }
+
+  private static class DryRunRecipeIO extends RecipeIO {
+    @Override
+    public void writeFile(@NotNull Object requestor, @Nullable String contents, @NotNull File to) throws IOException {
+      checkDirectoryIsWriteable(to.getParentFile());
+    }
+
+    @Override
+    public void copyFile(Object requestor, @NotNull VirtualFile file, @NotNull File toFile) throws IOException {
+      checkDirectoryIsWriteable(toFile.getParentFile());
+    }
+
+    @Override
+    public void copyFile(Object requestor, @NotNull VirtualFile file, @NotNull File toFileDir, @Nullable String newName)
+      throws IOException {
+      checkDirectoryIsWriteable(toFileDir);
+    }
+
+    @Override
+    public void mkDir(@NotNull File directory) throws IOException {
+      checkDirectoryIsWriteable(directory);
+    }
+
+    @Override
+    public void requestGradleSync(@NotNull Project project) {
+    }
   }
 }
