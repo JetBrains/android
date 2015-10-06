@@ -48,8 +48,7 @@ public class GfxTraceFileType implements FileType {
   @NotNull
   @Override
   public Icon getIcon() {
-    // TODO replace with proper icon
-    return AndroidIcons.Ddms.ScreenCapture;
+    return AndroidIcons.GfxTrace.TraceFile;
   }
 
   @Override
