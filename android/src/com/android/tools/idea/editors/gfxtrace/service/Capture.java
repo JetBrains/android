@@ -26,8 +26,8 @@ import java.io.IOException;
 public final class Capture implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
   private String myName;
-  private BinaryID myAtoms;
-  private BinaryID[] myApis;
+  private AtomsID myAtoms;
+  private ApiID[] myApis;
 
   // Constructs a default-initialized {@link Capture}.
   public Capture() {}
@@ -42,20 +42,20 @@ public final class Capture implements BinaryObject {
     return this;
   }
 
-  public BinaryID getAtoms() {
+  public AtomsID getAtoms() {
     return myAtoms;
   }
 
-  public Capture setAtoms(BinaryID v) {
+  public Capture setAtoms(AtomsID v) {
     myAtoms = v;
     return this;
   }
 
-  public BinaryID[] getApis() {
+  public ApiID[] getApis() {
     return myApis;
   }
 
-  public Capture setApis(BinaryID[] v) {
+  public Capture setApis(ApiID[] v) {
     myApis = v;
     return this;
   }
@@ -70,8 +70,8 @@ public final class Capture implements BinaryObject {
     Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Name", new Primitive("string", Method.String)),
-      new Field("Atoms", new Primitive("AtomsID", Method.ID)),
-      new Field("Apis", new Slice("", new Primitive("ApiID", Method.ID))),
+      new Field("Atoms", new Array("AtomsID", new Primitive("byte", Method.Uint8), 20)),
+      new Field("Apis", new Slice("", new Array("ApiID", new Primitive("byte", Method.Uint8), 20))),
     });
   }
   public static void register() {}
@@ -90,10 +90,12 @@ public final class Capture implements BinaryObject {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Capture o = (Capture)obj;
       e.string(o.myName);
-      e.id(o.myAtoms);
+      o.myAtoms.write(e);
+
       e.uint32(o.myApis.length);
       for (int i = 0; i < o.myApis.length; i++) {
-        e.id(o.myApis[i]);
+        o.myApis[i].write(e);
+
       }
     }
 
@@ -101,10 +103,12 @@ public final class Capture implements BinaryObject {
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       Capture o = (Capture)obj;
       o.myName = d.string();
-      o.myAtoms = d.id();
-      o.myApis = new BinaryID[d.uint32()];
+      o.myAtoms = new AtomsID(d);
+
+      o.myApis = new ApiID[d.uint32()];
       for (int i = 0; i <o.myApis.length; i++) {
-        o.myApis[i] = d.id();
+        o.myApis[i] = new ApiID(d);
+
       }
     }
     //<<<End:Java.KlassBody:2>>>

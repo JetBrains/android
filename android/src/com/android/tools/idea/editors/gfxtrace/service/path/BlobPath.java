@@ -59,7 +59,7 @@ public final class BlobPath extends Path {
   static {
     Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
-      new Field("ID", new Primitive("binary.ID", Method.ID)),
+      new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
     });
   }
   public static void register() {}
@@ -77,13 +77,15 @@ public final class BlobPath extends Path {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       BlobPath o = (BlobPath)obj;
-      e.id(o.myID);
+      o.myID.write(e);
+
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       BlobPath o = (BlobPath)obj;
-      o.myID = d.id();
+      o.myID = new BinaryID(d);
+
     }
     //<<<End:Java.KlassBody:2>>>
   }
