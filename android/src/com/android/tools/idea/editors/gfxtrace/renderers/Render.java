@@ -278,9 +278,6 @@ public final class Render {
       }
     }
     switch (type.getMethod().value) {
-      case Method.ID:
-        component.append(value.toString(), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
-        return;
       case Method.Bool:
         component.append(String.format("%b", (Boolean)value), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
         return;
