@@ -18,8 +18,9 @@ package com.android.tools.idea.templates.recipe;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplatePostProcessor;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
@@ -44,65 +45,53 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.TemplateUtils.*;
+import static com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing;
 
 /**
- * Context for a recipe that contains and accumulates state while executing its instructions and
- * modifying the project.
+ * Executor support for recipe instructions.
  */
-public final class RecipeContext {
+final class DefaultRecipeExecutor implements RecipeExecutor {
 
-  private static final Logger LOG = Logger.getInstance(RecipeContext.class);
+  private static final Logger LOG = Logger.getInstance(DefaultRecipeExecutor.class);
 
   /**
    * The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories
    */
   private static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
 
-  @NotNull private final Project myProject;
-
-  @NotNull private final Map<String, Object> myParamMap;
-  @NotNull private final Configuration myFreemarker;
-  @NotNull private final StudioTemplateLoader myLoader;
-  private final boolean mySyncGradleIfNeeded; // User can disable gradle syncing if they know they're going to sync themselves anyway
-  @NotNull private final File myOutputRoot;
-  @NotNull private final File myModuleRoot;
-
+  private final FindReferencesRecipeExecutor myReferences;
+  private final RenderingContext myContext;
   private boolean myNeedsGradleSync;
 
-  public RecipeContext(@NotNull Project project,
-                       @NotNull Map<String, Object> paramMap,
-                       @NotNull Configuration freemarker,
-                       @NotNull StudioTemplateLoader loader,
-                       boolean syncGradleIfNeeded,
-                       @NotNull File outputRoot,
-                       @NotNull File moduleRoot) {
-    myProject = project;
-
-    myParamMap = paramMap;
-    myFreemarker = freemarker;
-    myLoader = loader;
-    mySyncGradleIfNeeded = syncGradleIfNeeded;
-    myOutputRoot = outputRoot;
-    myModuleRoot = moduleRoot;
+  public DefaultRecipeExecutor(@NotNull RenderingContext context) {
+    myReferences = new FindReferencesRecipeExecutor(context);
+    myContext = context;
   }
 
   /**
    * Add a library dependency into the project.
    */
+  @Override
   public void addDependency(@NotNull String mavenUrl) {
+    myReferences.addDependency(mavenUrl);
     //noinspection unchecked
-    List<String> dependencyList = (List<String>)myParamMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+    List<String> dependencyList = (List<String>)getParamMap().get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
     dependencyList.add(mavenUrl);
   }
 
+  @Override
+  public void addFilesToOpen(@NotNull File file) {
+    myReferences.addFilesToOpen(file);
+  }
+
   @NotNull
-  Map<String, Object> getParamMap() {
-    return myParamMap;
+  private Map<String, Object> getParamMap() {
+    return myContext.getParamMap();
   }
 
   @NotNull
   Configuration getFreemarker() {
-    return myFreemarker;
+    return myContext.getFreemarkerConfiguration();
   }
 
   /**
@@ -110,8 +99,10 @@ public final class RecipeContext {
    * source is allowed to be a directory, in which case the whole directory is
    * copied recursively)
    */
+  @Override
   public void copy(@NotNull File from, @NotNull File to) {
     try {
+      myReferences.copy(from, to);
       copyTemplateResource(from, to);
     }
     catch (IOException e) {
@@ -123,8 +114,11 @@ public final class RecipeContext {
    * Instantiates the given template file into the given output file (running the freemarker
    * engine over it)
    */
+  @Override
   public void instantiate(@NotNull File from, @NotNull File to) {
     try {
+      myReferences.instantiate(from, to);
+
       // For now, treat extension-less files as directories... this isn't quite right
       // so I should refine this! Maybe with a unique attribute in the template file?
       boolean isDirectory = from.getName().indexOf('.') == -1;
@@ -136,7 +130,7 @@ public final class RecipeContext {
         File targetFile = getTargetFile(to);
 
         VfsUtil.createDirectories(targetFile.getParentFile().getAbsolutePath());
-        writeFile(this, processFreemarkerTemplate(myFreemarker, myParamMap, from, null), targetFile);
+        writeFile(this, processFreemarkerTemplate(myContext, from, null), targetFile);
       }
     }
     catch (IOException e) {
@@ -153,8 +147,11 @@ public final class RecipeContext {
    * <p/>
    * Only XML and Gradle files are currently supported.
    */
+  @Override
   public void merge(@NotNull File from, @NotNull File to) {
     try {
+      myReferences.merge(from, to);
+
       String targetText = null;
 
       to = getTargetFile(to);
@@ -185,10 +182,10 @@ public final class RecipeContext {
       String sourceText;
       if (hasExtension(from, DOT_FTL)) {
         // Perform template substitution of the template prior to merging
-        sourceText = processFreemarkerTemplate(myFreemarker, myParamMap, from, null);
+        sourceText = processFreemarkerTemplate(myContext, from, null);
       }
       else {
-        from = myLoader.getSourceFile(from);
+        from = myContext.getLoader().getSourceFile(from);
         sourceText = readTextFile(from);
         if (sourceText == null) {
           return;
@@ -201,12 +198,12 @@ public final class RecipeContext {
         myNeedsGradleSync = true;
       }
       else if (to.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
-        String compileSdkVersion = (String)myParamMap.get(TemplateMetadata.ATTR_BUILD_API_STRING);
-        contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myProject, compileSdkVersion);
+        String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
+        contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myContext.getProject(), compileSdkVersion);
         myNeedsGradleSync = true;
       }
       else if (hasExtension(to, DOT_XML)) {
-        contents = RecipeMergeUtils.mergeXml(myProject, sourceText, targetText, to);
+        contents = RecipeMergeUtils.mergeXml(myContext.getProject(), sourceText, targetText, to);
       }
       else {
         throw new RuntimeException("Only XML or Gradle settings files can be merged at this point: " + to);
@@ -229,6 +226,7 @@ public final class RecipeContext {
    * Create a directory at the specified location (if not already present). This will also create
    * any parent directories that don't exist, as well.
    */
+  @Override
   public void mkDir(@NotNull File at) {
     try {
       checkedCreateDirectoryIfMissing(getTargetFile(at));
@@ -238,14 +236,20 @@ public final class RecipeContext {
     }
   }
 
+  @Override
+  public String processTemplate(@NotNull File recipe, @NotNull TemplatePostProcessor processor) throws TemplateProcessingException {
+    return FreemarkerUtils.processFreemarkerTemplate(myContext, recipe, processor);
+  }
+
   /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.
    */
+  @Override
   public void updateAndSyncGradle() {
     // Handle dependencies
-    if (myParamMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
-      Object maybeDependencyList = myParamMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+    if (getParamMap().containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
+      Object maybeDependencyList = getParamMap().get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
       if (maybeDependencyList instanceof List) {
         //noinspection unchecked
         List<String> dependencyList = (List<String>)maybeDependencyList;
@@ -259,11 +263,12 @@ public final class RecipeContext {
         }
       }
     }
+    Project project = myContext.getProject();
     if (myNeedsGradleSync &&
-        mySyncGradleIfNeeded &&
-        !myProject.isDefault() &&
-        isBuildWithGradle(myProject)) {
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+        myContext.performGradleSync() &&
+        !project.isDefault() &&
+        isBuildWithGradle(project)) {
+      GradleProjectImporter.getInstance().requestProjectSync(project, null);
     }
   }
 
@@ -275,21 +280,21 @@ public final class RecipeContext {
     if (file.isAbsolute()) {
       return file;
     }
-    return new File(myOutputRoot, file.getPath());
+    return new File(myContext.getOutputRoot(), file.getPath());
   }
 
   /**
    * Merge the URLs from our gradle template into the target module's build.gradle file
    */
   private void mergeDependenciesIntoGradle() throws Exception {
-    File gradleBuildFile = GradleUtil.getGradleBuildFilePath(myModuleRoot);
+    File gradleBuildFile = GradleUtil.getGradleBuildFilePath(myContext.getModuleRoot());
 
     File templateRootFolder = TemplateManager.getTemplateRootFolder();
     assert templateRootFolder != null;
 
     String templateRoot = templateRootFolder.getPath();
     File gradleTemplate = new File(templateRoot, FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
-    String contents = processFreemarkerTemplate(myFreemarker, myParamMap, gradleTemplate, null);
+    String contents = processFreemarkerTemplate(myContext, gradleTemplate, null);
     String destinationContents = null;
     if (gradleBuildFile.exists()) {
       destinationContents = readTextFile(gradleBuildFile);
@@ -297,8 +302,8 @@ public final class RecipeContext {
     if (destinationContents == null) {
       destinationContents = "";
     }
-    String compileSdkVersion = (String)myParamMap.get(TemplateMetadata.ATTR_BUILD_API_STRING);
-    String result = GradleFileMerger.mergeGradleFiles(contents, destinationContents, myProject, compileSdkVersion);
+    String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
+    String result = GradleFileMerger.mergeGradleFiles(contents, destinationContents, myContext.getProject(), compileSdkVersion);
     writeFile(this, result, gradleBuildFile);
     myNeedsGradleSync = true;
   }
@@ -324,7 +329,7 @@ public final class RecipeContext {
   }
 
   private void copyTemplateResource(@NotNull File from, @NotNull File to) throws IOException {
-    from = myLoader.getSourceFile(from);
+    from = myContext.getLoader().getSourceFile(from);
     to = getTargetFile(to);
 
     VirtualFile sourceFile = VfsUtil.findFileByIoFile(from, true);

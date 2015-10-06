@@ -21,6 +21,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.base.Joiner;
@@ -410,16 +411,18 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     }
     Map<String, Object> parameterMap = getTemplateParameterMap(templateEntry.getMetadata());
     saveRecentValues(project, parameterMap);
-    template.render(VfsUtilCore.virtualToIoFile(project.getBaseDir()), moduleRoot, parameterMap, project);
+    final RenderingContext context =
+      RenderingContext.Builder.newContext(template, project).withModule(module).withParams(parameterMap).build();
+    template.render(context);
     myAssetStudioStep.createAssets();
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        TemplateUtils.reformatAndRearrange(project, template.getTargetFiles());
+        TemplateUtils.reformatAndRearrange(project, context.getTargetFiles());
 
         if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
-          TemplateUtils.openEditors(project, template.getFilesToOpen(), true);
+          TemplateUtils.openEditors(project, context.getFilesToOpen(), true);
         }
       }
     });

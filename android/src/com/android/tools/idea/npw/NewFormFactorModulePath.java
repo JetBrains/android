@@ -16,10 +16,8 @@
 package com.android.tools.idea.npw;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.*;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.template.TemplateWizard;
@@ -290,12 +288,14 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
       Template template = Template.createFromPath(myTemplateFile);
       Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-      template.render(projectRoot, moduleRoot, templateState, myWizard.getProject(), myGradleSyncIfNecessary);
+      RenderingContext context = RenderingContext.Builder.newContext(template, myWizard.getProject())
+        .withOutputRoot(projectRoot).withModuleRoot(moduleRoot).withParams(templateState).withGradleSync(myGradleSyncIfNecessary).build();
+      template.render(context);
 
       Collection<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
       assert targetFiles != null;
 
-      targetFiles.addAll(template.getTargetFiles());
+      targetFiles.addAll(context.getTargetFiles());
 
       TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
       if (templateEntry == null) {
@@ -305,14 +305,16 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       for (Parameter parameter : templateEntry.getMetadata().getParameters()) {
         templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
       }
-      activityTemplate.render(projectRoot, moduleRoot, templateState, myWizard.getProject(), myGradleSyncIfNecessary);
+      RenderingContext activityContext = RenderingContext.Builder.newContext(activityTemplate, myWizard.getProject())
+        .withOutputRoot(projectRoot).withModuleRoot(moduleRoot).withParams(templateState).withGradleSync(myGradleSyncIfNecessary).build();
+      activityTemplate.render(activityContext);
 
-      targetFiles.addAll(activityTemplate.getTargetFiles());
+      targetFiles.addAll(activityContext.getTargetFiles());
 
       // If the parent wizard supports opening files in the editor upon completion, do that
       List<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
       if (filesToOpen != null) {
-        filesToOpen.addAll(activityTemplate.getFilesToOpen());
+        filesToOpen.addAll(activityContext.getFilesToOpen());
       }
 
       return true;
