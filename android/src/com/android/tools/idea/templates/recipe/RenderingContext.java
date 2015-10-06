@@ -55,6 +55,7 @@ public class RenderingContext {
   private final List<File> myFilesToOpen;
   private final List<String> myDependencies;
   private final List<File> mySourceFiles;
+  private final boolean myDryRun;
 
   private RenderingContext(@Nullable Project project,
                            @NotNull File templateRootPath,
@@ -62,13 +63,15 @@ public class RenderingContext {
                            @NotNull File outputRoot,
                            @NotNull File moduleRoot,
                            boolean gradleSyncIfNeeded,
-                           boolean findOnlyReferences) {
+                           boolean findOnlyReferences,
+                           boolean dryRun) {
     myProject = useDefaultProjectIfNeeded(project);
     myParamMap = Template.createParameterMap(paramMap);
     myOutputRoot = outputRoot;
     myModuleRoot = moduleRoot;
     myGradleSync = gradleSyncIfNeeded;
     myFindOnlyReferences = findOnlyReferences;
+    myDryRun = dryRun;
     myLoader = new StudioTemplateLoader(templateRootPath);
     myFreemarker = new Configuration();
     myFreemarker.setTemplateLoader(myLoader);
@@ -150,7 +153,7 @@ public class RenderingContext {
       return new FindReferencesRecipeExecutor(this);
     }
     else {
-      return new DefaultRecipeExecutor(this);
+      return new DefaultRecipeExecutor(this, myDryRun);
     }
   }
 
@@ -168,6 +171,7 @@ public class RenderingContext {
     private File myModuleRoot;
     private boolean myGradleSync;
     private boolean myFindOnlyReferences;
+    private boolean myDryRun;
 
     private Builder(@NotNull File templateRootPath, @NotNull Project project) {
       myTemplateRootPath = templateRootPath;
@@ -177,6 +181,7 @@ public class RenderingContext {
       myModuleRoot = myOutputRoot;
       myGradleSync = true;
       myFindOnlyReferences = false;
+      myDryRun = false;
     }
 
     public static Builder newContext(@NotNull File templateRootPath, @NotNull Project project) {
@@ -219,8 +224,14 @@ public class RenderingContext {
       return this;
     }
 
+    public Builder withDryRun(boolean dryRun) {
+      myDryRun = dryRun;
+      return this;
+    }
+
     public RenderingContext build() {
-      return new RenderingContext(myProject, myTemplateRootPath, myParams, myOutputRoot, myModuleRoot, myGradleSync, myFindOnlyReferences);
+      return new RenderingContext(myProject, myTemplateRootPath, myParams, myOutputRoot, myModuleRoot, myGradleSync, myFindOnlyReferences,
+                                  myDryRun);
     }
   }
 }
