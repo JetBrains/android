@@ -57,11 +57,11 @@ public final class Resource implements BinaryObject {
   private static final Entity ENTITY = new Entity("atom","Resource","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
       new Field("Data", new Slice("", new Primitive("byte", Method.Uint8))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

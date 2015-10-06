@@ -63,11 +63,11 @@ public final class MemoryPointer implements BinaryObject {
   private static final Entity ENTITY = new Entity("memory","Pointer","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Address", new Primitive("uint64", Method.Uint64)),
       new Field("Pool", new Primitive("PoolID", Method.Uint32)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

@@ -67,11 +67,11 @@ public final class ReportPath extends Path {
   private static final Entity ENTITY = new Entity("path","Report","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Capture", new Pointer(new Struct(CapturePath.Klass.INSTANCE.entity()))),
       new Field("Device", new Pointer(new Struct(DevicePath.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

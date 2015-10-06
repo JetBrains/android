@@ -67,12 +67,12 @@ public final class RenderSettings implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","RenderSettings","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("MaxWidth", new Primitive("uint32", Method.Uint32)),
       new Field("MaxHeight", new Primitive("uint32", Method.Uint32)),
       new Field("WireframeMode", new Primitive("WireframeMode", Method.Int32)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
