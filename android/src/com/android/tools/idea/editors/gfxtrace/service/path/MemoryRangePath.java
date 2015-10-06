@@ -92,13 +92,13 @@ public final class MemoryRangePath extends Path {
   private static final Entity ENTITY = new Entity("path","MemoryRange","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("After", new Pointer(new Struct(AtomPath.Klass.INSTANCE.entity()))),
       new Field("Pool", new Primitive("uint64", Method.Uint64)),
       new Field("Address", new Primitive("uint64", Method.Uint64)),
       new Field("Size", new Primitive("uint64", Method.Uint64)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

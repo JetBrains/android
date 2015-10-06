@@ -67,12 +67,12 @@ public final class Capture implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","Capture","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Name", new Primitive("string", Method.String)),
       new Field("Atoms", new Array("AtomsID", new Primitive("byte", Method.Uint8), 20)),
       new Field("Apis", new Slice("", new Array("ApiID", new Primitive("byte", Method.Uint8), 20))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

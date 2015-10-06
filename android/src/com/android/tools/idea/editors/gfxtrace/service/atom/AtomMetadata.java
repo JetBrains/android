@@ -57,8 +57,7 @@ public final class AtomMetadata implements BinaryObject {
         myResultIndex = index;
       }
       if (field.getType() instanceof Struct) {
-        Entity entity = ((Struct)field.getType()).getEntity();
-        if (entity.equals(Observations.Klass.INSTANCE.entity())) {
+        if (((Struct)field.getType()).is(Observations.Klass.INSTANCE)) {
           myObservationsIndex = index;
         }
       }
@@ -128,7 +127,6 @@ public final class AtomMetadata implements BinaryObject {
   private static final Entity ENTITY = new Entity("atom","Metadata","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("API", new Array("gfxapi.ID", new Primitive("byte", Method.Uint8), 20)),
       new Field("DisplayName", new Primitive("string", Method.String)),
@@ -136,6 +134,7 @@ public final class AtomMetadata implements BinaryObject {
       new Field("DrawCall", new Primitive("bool", Method.Bool)),
       new Field("DocumentationUrl", new Primitive("string", Method.String)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

@@ -48,10 +48,10 @@ final class CallFollow implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","callFollow","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("p", new Interface("path.Path")),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

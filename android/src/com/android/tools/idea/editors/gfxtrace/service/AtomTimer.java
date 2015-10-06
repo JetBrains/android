@@ -57,11 +57,11 @@ public final class AtomTimer implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","AtomTimer","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("AtomIndex", new Primitive("uint64", Method.Uint64)),
       new Field("Nanoseconds", new Primitive("uint64", Method.Uint64)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

@@ -48,10 +48,10 @@ final class ResultImportCapture implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","resultImportCapture","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("value", new Pointer(new Struct(CapturePath.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

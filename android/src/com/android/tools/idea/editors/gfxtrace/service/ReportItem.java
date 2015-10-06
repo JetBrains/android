@@ -68,12 +68,12 @@ public final class ReportItem implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","ReportItem","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Severity", new Primitive("log.Severity", Method.Int32)),
       new Field("Message", new Primitive("string", Method.String)),
       new Field("Atom", new Primitive("uint64", Method.Uint64)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

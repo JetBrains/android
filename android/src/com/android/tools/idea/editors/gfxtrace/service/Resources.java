@@ -83,13 +83,13 @@ public final class Resources implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","Resources","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Textures1D", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
       new Field("Textures2D", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
       new Field("Textures3D", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
       new Field("Cubemaps", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
