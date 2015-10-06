@@ -78,13 +78,13 @@ public final class MemoryInfo implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","MemoryInfo","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Data", new Slice("", new Primitive("uint8", Method.Uint8))),
       new Field("Reads", new Slice("memory.RangeList", new Struct(MemoryRange.Klass.INSTANCE.entity()))),
       new Field("Writes", new Slice("memory.RangeList", new Struct(MemoryRange.Klass.INSTANCE.entity()))),
       new Field("Observed", new Slice("memory.RangeList", new Struct(MemoryRange.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

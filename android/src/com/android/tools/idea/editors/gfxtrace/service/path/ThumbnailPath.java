@@ -89,13 +89,13 @@ public final class ThumbnailPath extends Path {
   private static final Entity ENTITY = new Entity("path","Thumbnail","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Object", new Interface("Path")),
       new Field("DesiredMaxWidth", new Primitive("uint32", Method.Uint32)),
       new Field("DesiredMaxHeight", new Primitive("uint32", Method.Uint32)),
       new Field("DesiredFormat", new AnyType()),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
