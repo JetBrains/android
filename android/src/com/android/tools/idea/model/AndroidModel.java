@@ -17,6 +17,7 @@ package com.android.tools.idea.model;
 
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,7 +79,7 @@ public interface AndroidModel {
   Set<String> getAllApplicationIds();
 
   /**
-   * @return whether the manifest package is overriden.
+   * @return whether the manifest package is overridden.
    * TODO: Potentially dedupe with computePackageName.
    */
   boolean overridesManifestPackage();
@@ -145,4 +146,17 @@ public interface AndroidModel {
    * @return Whether data binding is enabled for this model.
    */
   boolean getDataBindingEnabled();
+
+  /**
+   * @return A provider for finding .class output files and external .jars.
+   */
+  @NotNull
+  ClassJarProvider getClassJarProvider();
+
+  /**
+   * @return The timestamp of the latest project build, in milliseconds.
+   * Returns a null value if unknown.
+   */
+  @Nullable
+  Long getLastBuildTimestamp(@NotNull Project project);
 }
