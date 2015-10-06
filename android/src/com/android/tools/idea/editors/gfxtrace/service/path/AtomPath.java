@@ -85,11 +85,11 @@ public final class AtomPath extends Path {
   private static final Entity ENTITY = new Entity("path","Atom","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Atoms", new Pointer(new Struct(AtomsPath.Klass.INSTANCE.entity()))),
       new Field("Index", new Primitive("uint64", Method.Uint64)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

@@ -92,12 +92,12 @@ public final class AtomGroup implements BinaryObject {
   private static final Entity ENTITY = new Entity("atom","Group","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Name", new Primitive("string", Method.String)),
       new Field("Range", new Struct(Range.Klass.INSTANCE.entity())),
       new Field("SubGroups", new Slice("GroupList", new Struct(AtomGroup.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

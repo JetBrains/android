@@ -69,12 +69,12 @@ final class CallGetFramebufferColor implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","callGetFramebufferColor","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("device", new Pointer(new Struct(DevicePath.Klass.INSTANCE.entity()))),
       new Field("after", new Pointer(new Struct(AtomPath.Klass.INSTANCE.entity()))),
       new Field("settings", new Struct(RenderSettings.Klass.INSTANCE.entity())),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

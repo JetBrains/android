@@ -69,12 +69,12 @@ final class CallGetTimingInfo implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","callGetTimingInfo","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("device", new Pointer(new Struct(DevicePath.Klass.INSTANCE.entity()))),
       new Field("capture", new Pointer(new Struct(CapturePath.Klass.INSTANCE.entity()))),
       new Field("flags", new Primitive("TimingFlags", Method.Int32)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

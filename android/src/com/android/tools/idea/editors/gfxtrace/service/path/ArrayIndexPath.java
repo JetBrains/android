@@ -67,11 +67,11 @@ public final class ArrayIndexPath extends Path {
   private static final Entity ENTITY = new Entity("path","ArrayIndex","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Array", new Interface("Path")),
       new Field("Index", new Primitive("uint64", Method.Uint64)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

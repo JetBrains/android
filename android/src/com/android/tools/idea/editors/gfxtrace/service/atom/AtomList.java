@@ -59,10 +59,10 @@ public final class AtomList implements BinaryObject {
   private static final Entity ENTITY = new Entity("atom","List","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Atoms", new Slice("", new Variant("Atom"))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

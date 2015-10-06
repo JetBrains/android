@@ -48,10 +48,10 @@ final class ResultGet implements BinaryObject {
   private static final Entity ENTITY = new Entity("service","resultGet","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("value", new AnyType()),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

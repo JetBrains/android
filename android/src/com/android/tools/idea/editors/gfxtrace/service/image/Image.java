@@ -83,13 +83,13 @@ public final class Image implements BinaryObject {
   private static final Entity ENTITY = new Entity("image","Image","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("Format", new Interface("Format")),
       new Field("Width", new Primitive("uint32", Method.Uint32)),
       new Field("Height", new Primitive("uint32", Method.Uint32)),
       new Field("Data", new Slice("", new Primitive("byte", Method.Uint8))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

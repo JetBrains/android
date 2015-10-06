@@ -57,10 +57,10 @@ public final class BlobPath extends Path {
   private static final Entity ENTITY = new Entity("path","Blob","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>

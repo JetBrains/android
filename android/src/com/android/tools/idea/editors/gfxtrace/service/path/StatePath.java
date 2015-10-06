@@ -57,10 +57,10 @@ public final class StatePath extends Path {
   private static final Entity ENTITY = new Entity("path","State","","");
 
   static {
-    Namespace.register(Klass.INSTANCE);
     ENTITY.setFields(new Field[]{
       new Field("After", new Pointer(new Struct(AtomPath.Klass.INSTANCE.entity()))),
     });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
