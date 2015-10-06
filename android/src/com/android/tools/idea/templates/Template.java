@@ -28,6 +28,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import freemarker.template.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -300,7 +301,17 @@ public class Template {
     WriteCommandAction.runWriteCommandAction(project, new Runnable() {
       @Override
       public void run() {
-        doRender(outputRootPath, moduleRootPath, args, project, gradleSyncIfNeeded);
+        if (project.isInitialized()) {
+          doRender(outputRootPath, moduleRootPath, args, project, gradleSyncIfNeeded);
+        }
+        else {
+          PostprocessReformattingAspect.getInstance(project).disablePostprocessFormattingInside(new Runnable() {
+            @Override
+            public void run() {
+              doRender(outputRootPath, moduleRootPath, args, project, gradleSyncIfNeeded);
+            }
+          });
+        }
       }
     });
 
