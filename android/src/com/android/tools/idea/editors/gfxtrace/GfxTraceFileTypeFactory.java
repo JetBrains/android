@@ -24,7 +24,7 @@ import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EX
 public class GfxTraceFileTypeFactory extends FileTypeFactory {
   @Override
   public void createFileTypes(@NotNull FileTypeConsumer consumer) {
-    if (GfxTraceEditor.isEnabled()) {
+    if (!GfxTraceEditor.isEnabled()) {
       return;
     }
     consumer.consume(GfxTraceFileType.INSTANCE, GfxTraceFileType.INSTANCE.getDefaultExtension());
