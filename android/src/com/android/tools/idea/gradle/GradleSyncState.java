@@ -23,6 +23,7 @@ import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPoint;
@@ -89,7 +90,11 @@ public class GradleSyncState {
   private boolean mySyncInProgress;
 
   public static void subscribe(@NotNull Project project, @NotNull GradleSyncListener listener) {
-    MessageBusConnection connection = project.getMessageBus().connect(project);
+    subscribe(project, listener, project);
+  }
+
+  public static void subscribe(@NotNull Project project, @NotNull GradleSyncListener listener, @NotNull Disposable parentDisposable) {
+    MessageBusConnection connection = project.getMessageBus().connect(parentDisposable);
     connection.subscribe(GRADLE_SYNC_TOPIC, listener);
   }
 

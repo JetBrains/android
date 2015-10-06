@@ -159,7 +159,7 @@ public final class GradleUtil {
   public static void clearStoredGradleJvmArgs(@NotNull final Project project) {
     GradleSettings settings = GradleSettings.getInstance(project);
     final String existingJvmArgs = settings.getGradleVmOptions();
-    settings.setGradleVmOptions("");
+    settings.setGradleVmOptions(null);
     if (!isEmptyOrSpaces(existingJvmArgs)) {
       invokeAndWaitIfNeeded(new Runnable() {
         @Override
