@@ -498,7 +498,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     configuration.SELECTED_CLOUD_MATRIX_PROJECT_ID = myCloudMatrixProjectIdLabel.getProjectId();
 
     configuration.SELECTED_CLOUD_DEVICE_CONFIGURATION_ID = getSelectedCloudConfigurationId(SINGLE_DEVICE);
-    configuration.SELECTED_CLOUD_DEVICE_PROJECT_ID = myCloudDeviceProjectIdLabel.getText();
+    configuration.SELECTED_CLOUD_DEVICE_PROJECT_ID = myCloudDeviceProjectIdLabel.getProjectId();
 
     configuration.USE_LAST_SELECTED_DEVICE = myUseLastSelectedDeviceCheckBox.isSelected();
     configuration.PREFERRED_AVD = "";
