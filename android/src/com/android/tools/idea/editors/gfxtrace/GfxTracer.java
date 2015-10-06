@@ -27,7 +27,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -35,26 +34,16 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.Collections;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 public class GfxTracer {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTracer.class);
-  @NotNull private static final String GAPII_LIBRARY_FLAVOUR = "release";
-  @NotNull private static final String GAPII_LIBRARY_NAME = "libgapii.so";
   @NotNull private static final String PRELOAD_LIB = "/data/local/tmp/libgapii.so";
   @NotNull private static final int GAPII_PORT = 9286;
   @NotNull private static final String GAPII_ABSTRACT_PORT = "gapii";
 
   @NotNull private static final Pattern ENFORCING_PATTERN = Pattern.compile("^Enforcing$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
   @NotNull private static final Pattern PERMISSIVE_PATTERN = Pattern.compile("^Permissive$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-
-  private static final Map<String, String> ABI_TO_LIB = Collections.unmodifiableMap(new HashMap<String, String>() {{
-    put("armeabi", "android-arm");
-    put("armeabi-v7a", "android-arm");
-    put("arm64-v8a", "android-arm64");
-  }});
 
   @NotNull private final IDevice myDevice;
   @NotNull final CaptureService myCaptureService;
@@ -126,7 +115,7 @@ public class GfxTracer {
         // Package has no preferential ABI. Use device ABI instead.
         abi = myDevice.getAbis().get(0);
       }
-      final File myGapii = findTraceLibrary(abi);
+      final File myGapii = GapiPaths.findTraceLibrary(abi);
       String component = pkg.myName + "/" + act.myName;
       // Switch adb to root mode, if not already
       myDevice.root();
@@ -324,20 +313,5 @@ public class GfxTracer {
     CollectingOutputReceiver receiver = new CollectingOutputReceiver();
     device.executeShellCommand(command, receiver);
     return receiver.getOutput();
-  }
-
-  @NotNull
-  static File findTraceLibrary(@NotNull String abi) throws IOException {
-    File binaryPath = GapiPaths.getBinaryPath();
-    if (binaryPath == null) {
-      throw new IOException("No gapii libraries available");
-    }
-    String lib = ABI_TO_LIB.get(abi);
-    if (lib == null) {
-      throw new IOException("Unsupported gapii abi '" + abi + "'");
-    }
-    File architecturePath = new File(binaryPath, lib);
-    File flavourPath = new File(architecturePath, GAPII_LIBRARY_FLAVOUR);
-    return new File(flavourPath, GAPII_LIBRARY_NAME);
   }
 }
