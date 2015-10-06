@@ -60,7 +60,7 @@ final class ConfiguredFilter {
       return false;
     }
 
-    if (myPid != null && myPid.length() > 0 && !myPid.equals(pid)) {
+    if (myPid != null && myPid.length() > 0 && !myPid.equals(Integer.toString(pid))) {
       return false;
     }
 
