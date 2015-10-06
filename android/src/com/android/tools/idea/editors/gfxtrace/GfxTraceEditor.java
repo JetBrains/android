@@ -39,6 +39,7 @@ import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.PluginPathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -489,6 +490,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           result.add(gapis.getAbsolutePath());
           result.add("-shutdown_on_disconnect");
           result.add("-rpc"); result.add(SERVER_HOST + ":" + myPort);
+          result.add("-logs"); result.add(PathManager.getLogPath());
           return result;
         }
       };
