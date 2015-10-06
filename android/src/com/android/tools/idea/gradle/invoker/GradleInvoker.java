@@ -190,6 +190,13 @@ public class GradleInvoker {
     executeTasks(gradleTasks, Collections.<String>emptyList());
   }
 
+  public void executeTasks(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments) {
+    if (buildMode != null) {
+      setProjectBuildMode(buildMode);
+    }
+    executeTasks(tasks, commandLineArguments);
+  }
+
   public void executeTasks(@NotNull final List<String> gradleTasks, @NotNull final List<String> commandLineArguments) {
     ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, EXECUTE_TASK, myProject);
     executeTasks(gradleTasks, Collections.<String>emptyList(), commandLineArguments, id, null, false);
