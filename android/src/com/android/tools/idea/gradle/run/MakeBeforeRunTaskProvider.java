@@ -22,25 +22,19 @@ import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.DeployTarget;
-import com.android.tools.idea.run.DeviceTarget;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
-import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.compiler.CompileScope;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -55,8 +49,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -138,7 +130,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     return runConfiguration instanceof AndroidRunConfigurationBase || isUnitTestConfiguration(runConfiguration);
   }
 
-  private static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
+  public static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
     return runConfiguration instanceof JUnitConfiguration ||
            // Avoid direct dependency on the TestNG plugin:
            runConfiguration.getClass().getSimpleName().equals("TestNGConfiguration");
@@ -223,6 +215,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         return false;
       }
 
+      if (myProject.isDisposed()) {
+        return false;
+      }
+
       final GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
 
       final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
@@ -234,101 +230,27 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         }
       };
 
-      Collection<IDevice> devices = getTargetDevices(env);
-      final List<String> properties = getGradleArgumentsToTarget(devices);
-
-      final Module[] modules;
-      if (configuration instanceof ModuleRunProfile) {
-        // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
-        // which is AbstractRerunFailedTestsAction.MyRunProfile.
-        modules = ((ModuleRunProfile)configuration).getModules();
-      }
-      else {
-        modules = Projects.getModulesToBuildFromSelection(myProject, context);
-      }
-
-      if (devices.size() == 1 &&
-          env.getExecutor() instanceof DefaultRunExecutor &&
-          canUpdateIncrementally(ContainerUtil.getFirstItem(devices), modules)) {
-        // Currently fast deploy relies on extracting timestamps for arsc files before and after the build
-        // So we don't perform a build here, and let the
+      final GradleInvokerOptions options = GradleInvokerOptions.create(myProject, context, configuration, env, task.getGoal());
+      if (options.tasks.isEmpty()) {
+        // TODO: for fast deploy, we don't want to do any Gradle tasks here and leave it to performUpdate
         return true;
       }
 
-      if (myProject.isDisposed()) {
-        done.up();
-      }
-      else {
-        // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
-        // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
-        SwingUtilities.invokeAndWait(new Runnable() {
-          @Override
-          public void run() {
-            gradleInvoker.addAfterGradleInvocationTask(afterTask);
-            String goal = task.getGoal();
-            if (StringUtil.isEmpty(goal)) {
-              if (isUnitTestConfiguration(configuration)) {
-                // Make sure all "intermediates/classes" directories are up-to-date.
-                Module[] affectedModules = getAffectedModules(modules);
-                gradleInvoker.compileJava(affectedModules, TestCompileType.JAVA_TESTS);
-              } else {
-                TestCompileType testCompileType = getTestCompileType(configuration);
-                gradleInvoker.assemble(modules, testCompileType, properties);
-              }
-            } else {
-              gradleInvoker.executeTasks(Lists.newArrayList(goal), properties);
-            }
-          }
-        });
-        done.waitFor();
-      }
+      // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
+      // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
+      SwingUtilities.invokeAndWait(new Runnable() {
+        @Override
+        public void run() {
+          gradleInvoker.addAfterGradleInvocationTask(afterTask);
+          gradleInvoker.executeTasks(options.tasks, options.buildMode, options.commandLineArguments);
+        }
+      });
+      done.waitFor();
     }
     catch (Throwable t) {
       LOG.info("Unable to launch '" + TASK_NAME + "' task", t);
       return false;
     }
     return success.get();
-  }
-
-  private static boolean canUpdateIncrementally(@Nullable IDevice device, @NotNull Module[] modules) {
-    if (modules.length != 1) {
-      return false;
-    }
-
-    if (device == null) {
-      return false;
-    }
-
-    Module module = modules[0];
-    return PatchRunningAppAction.isPatchableApp(module) && PatchRunningAppAction.isAppRunning(device, module);
-  }
-
-  @NotNull
-  private static List<String> getGradleArgumentsToTarget(Collection<IDevice> devices) {
-    // TODO: fix this once we know exactly what properties are required by Gradle
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  private static Collection<IDevice> getTargetDevices(@NotNull ExecutionEnvironment env) {
-    DeployTarget deployTarget = env.getCopyableUserData(AndroidRunConfigurationBase.DEPLOY_TARGET_KEY);
-    Collection<IDevice> readyDevices = null;
-    if (deployTarget instanceof DeviceTarget) {
-      readyDevices = ((DeviceTarget)deployTarget).getDevicesIfReady();
-    }
-    return readyDevices == null ? Collections.<IDevice>emptyList() : readyDevices;
-  }
-
-  @NotNull
-  private Module[] getAffectedModules(@NotNull Module[] modules) {
-    final CompilerManager compilerManager = CompilerManager.getInstance(myProject);
-    CompileScope scope = compilerManager.createModulesCompileScope(modules, true, true);
-    return scope.getAffectedModules();
-  }
-
-  @NotNull
-  private static TestCompileType getTestCompileType(@Nullable RunConfiguration runConfiguration) {
-    String id = runConfiguration != null ? runConfiguration.getType().getId() : null;
-    return GradleInvoker.getTestCompileType(id);
   }
 }
