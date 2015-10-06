@@ -112,6 +112,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   private final StringEvaluator myEvaluator = new StringEvaluator();
   private Map<String, WizardParameterFactory> myExternalWizardParameterFactoryMap = null;
   private Map<JComponent, Parameter> myDataComponentParameters = new WeakHashMap<JComponent, Parameter>();
+  private final String myStepTitle;
 
   /**
    * Creates a new template parameters wizard step.
@@ -121,7 +122,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
    */
   public TemplateParameterStep2(@NotNull FormFactorUtils.FormFactor formFactor, Map<String, Object> presetParameters,
                                 @Nullable Disposable disposable, @NotNull Key<String> packageNameKey,
-                                SourceProvider[] sourceProviders) {
+                                SourceProvider[] sourceProviders, String stepTitle) {
     super(disposable);
     myFormFactor = formFactor;
     mySourceProviders = sourceProviders;
@@ -131,6 +132,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     myRootPanel.setBorder(createBodyBorder());
     myTemplateDescription.setBorder(BorderFactory.createEmptyBorder(0, 0, myTemplateDescription.getFont().getSize(), 0));
     setBodyComponent(myRootPanel);
+    myStepTitle = stepTitle;
   }
 
   private static JComponent createTextFieldWithBrowse(Parameter parameter) {
@@ -881,7 +883,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   @NotNull
   @Override
   protected String getStepTitle() {
-    return "Customize the Activity";
+    return myStepTitle;
   }
 
   @Nullable
