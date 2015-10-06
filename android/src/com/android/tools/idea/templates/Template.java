@@ -20,16 +20,13 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.recipe.Recipe;
-import com.android.tools.idea.templates.recipe.RecipeContext;
+import com.android.tools.idea.templates.recipe.RecipeExecutor;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.psi.impl.source.PostprocessReformattingAspect;
-import freemarker.template.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
@@ -43,7 +40,6 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -129,30 +125,10 @@ public class Template {
    */
   private final File myTemplateRoot;
 
-  /**
-   * The list of template outputs.
-   */
-  private final Collection<File> myTargetFiles;
-
-  /**
-   * List of files to open after the wizard has been created (these are
-   * identified by TAG_OPEN elements in the recipe file)
-   */
-  private final List<File> myFilesToOpen = Lists.newArrayList();
-
-  /**
-   * The template loader which is responsible for finding (and sharing) template files
-   */
-  private final StudioTemplateLoader myLoader;
-
   private TemplateMetadata myMetadata;
-  private Project myProject;
 
   private Template(@NotNull File templateRoot) {
     myTemplateRoot = templateRoot;
-
-    myTargetFiles = Lists.newArrayList();
-    myLoader = new StudioTemplateLoader(templateRoot);
   }
 
   /**
@@ -252,63 +228,20 @@ public class Template {
   }
 
   /**
-   * Executes the template, rendering it to output files under the given module root directory.
-   * Note: This method might cause the creation of a new project to perform certain PSI based operations (Gradle file merging).
-   * Not only is creating a project expensive, but it performing PSI operations right after a project creation could lead to
-   * IndexNotReadyException. If you have a project available at call time, use {@link #render(File, File, Map, Project)} instead.
-   *
-   * @param outputRootPath the root directory where the template will be expanded.
-   * @param moduleRootPath the root of the IDE project module for the template being expanded.
-   * @param args           the key/value pairs that are fed into the input parameters for the template.
+   * Executes the template, rendering it to output files under the directory context.getModuleRoot()
    */
-  @Deprecated
-  public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args) {
-    render(outputRootPath, moduleRootPath, args, null);
-  }
-
-  /**
-   * Executes the template, rendering it to output files under the given module root directory. This method will sync the project with
-   * Gradle if needed.
-   *
-   * @param outputRootPath the the root directory where the template will be expanded.
-   * @param moduleRootPath the the root of the IDE project module for the template being expanded.
-   * @param args           the key/value pairs that are fed into the input parameters for the template.
-   * @param project        the target project of this template.
-   * @see #render(File, File, Map, Project, boolean)
-   */
-  public void render(@NotNull File outputRootPath,
-                     @NotNull File moduleRootPath,
-                     @NotNull Map<String, Object> args,
-                     @Nullable Project project) {
-    render(outputRootPath, moduleRootPath, args, project, true);
-  }
-
-  /**
-   * Executes the template, rendering it to output files under the given module root directory.
-   *
-   * @param outputRootPath     the root directory where the template will be expanded.
-   * @param moduleRootPath     the root of the IDE project module for the template being expanded.
-   * @param args               the key/value pairs that are fed into the input parameters for the template.
-   * @param project            the target project of this template.
-   * @param gradleSyncIfNeeded indicates whether a Gradle sync should be performed if needed.
-   */
-  public void render(@NotNull final File outputRootPath,
-                     @NotNull final File moduleRootPath,
-                     @NotNull final Map<String, Object> args,
-                     @Nullable final Project project,
-                     final boolean gradleSyncIfNeeded) {
-    assert outputRootPath.isDirectory() : outputRootPath;
-    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+  public void render(@NotNull final RenderingContext context) {
+    WriteCommandAction.runWriteCommandAction(context.getProject(), new Runnable() {
       @Override
       public void run() {
-        if (project.isInitialized()) {
-          doRender(outputRootPath, moduleRootPath, args, project, gradleSyncIfNeeded);
+        if (context.getProject().isInitialized()) {
+          doRender(context);
         }
         else {
-          PostprocessReformattingAspect.getInstance(project).disablePostprocessFormattingInside(new Runnable() {
+          PostprocessReformattingAspect.getInstance(context.getProject()).disablePostprocessFormattingInside(new Runnable() {
             @Override
             public void run() {
-              doRender(outputRootPath, moduleRootPath, args, project, gradleSyncIfNeeded);
+              doRender(context);
             }
           });
         }
@@ -321,30 +254,13 @@ public class Template {
     }
   }
 
-  private void doRender(@NotNull File outputRootPath,
-                        @NotNull File moduleRootPath,
-                        @NotNull Map<String, Object> args,
-                        @Nullable Project project,
-                        boolean gradleSyncIfNeeded) {
-    myTargetFiles.clear();
-    myFilesToOpen.clear();
-
-    if (project == null) {
-      // Project creation: no current project to read code style settings from yet, so use defaults
-      project = ProjectManagerEx.getInstanceEx().getDefaultProject();
-    }
-    myProject = project;
-
-    Map<String, Object> paramMap = createParameterMap(args);
-
+  private void doRender(@NotNull RenderingContext context) {
     TemplateMetadata metadata = getMetadata();
     assert metadata != null;
 
-    enforceParameterTypes(metadata, args);
-    Configuration freemarker = new FreemarkerConfiguration();
-    freemarker.setTemplateLoader(myLoader);
+    enforceParameterTypes(metadata, context.getParamMap());
 
-    processFile(freemarker, new File(TEMPLATE_XML_NAME), paramMap, outputRootPath, moduleRootPath, gradleSyncIfNeeded);
+    processFile(context, new File(TEMPLATE_XML_NAME));
   }
 
   @NotNull
@@ -361,26 +277,11 @@ public class Template {
     return myMetadata;
   }
 
-  @NotNull
-  public Collection<File> getTargetFiles() {
-    return myTargetFiles;
-  }
-
-  @NotNull
-  public List<File> getFilesToOpen() {
-    return myFilesToOpen;
-  }
-
   /**
    * Read the given xml file and, if it uses freemarker syntax (indicated by its file extension),
    * process the variable definitions
    */
-  private void processFile(@NotNull final Configuration freemarker,
-                           @NotNull File file,
-                           @NotNull final Map<String, Object> paramMap,
-                           @NotNull final File outputRoot,
-                           @NotNull final File moduleRoot,
-                           final boolean gradleSyncIfNeeded) {
+  private void processFile(@NotNull final RenderingContext context, @NotNull File file) {
     try {
       String xml;
       if (hasExtension(file, DOT_XML)) {
@@ -389,13 +290,13 @@ public class Template {
         if (xml == null) {
           return;
         }
-        processXml(xml, freemarker, paramMap, outputRoot, moduleRoot, gradleSyncIfNeeded);
+        processXml(context, xml);
       }
       else {
-        processFreemarkerTemplate(freemarker, paramMap, file, new FreemarkerUtils.TemplatePostProcessor() {
+        processFreemarkerTemplate(context, file, new FreemarkerUtils.TemplatePostProcessor() {
           @Override
           public void process(@NotNull String xml) throws TemplateProcessingException {
-            processXml(xml, freemarker, paramMap, outputRoot, moduleRoot, gradleSyncIfNeeded);
+            processXml(context, xml);
           }
         });
       }
@@ -407,18 +308,14 @@ public class Template {
     }
   }
 
-  private void processXml(@NotNull String xml,
-                          @NotNull final Configuration freemarker,
-                          @NotNull final Map<String, Object> paramMap,
-                          @NotNull final File outputRoot,
-                          @NotNull final File moduleRoot,
-                          final boolean gradleSyncIfNeeded) throws TemplateProcessingException {
+  private void processXml(@NotNull final RenderingContext context, @NotNull String xml) throws TemplateProcessingException {
     try {
       xml = XmlUtils.stripBom(xml);
       InputSource inputSource = new InputSource(new StringReader(xml));
       SAXParserFactory.newInstance().newSAXParser().parse(inputSource, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
+          Map<String, Object> paramMap = context.getParamMap();
           if (TAG_PARAMETER.equals(name)) {
             String id = attributes.getValue(ATTR_ID);
             if (!paramMap.containsKey(id)) {
@@ -443,13 +340,13 @@ public class Template {
             // Handle evaluation of variables
             File globalsFile = getPath(attributes, ATTR_FILE);
             if (globalsFile != null) {
-              processFile(freemarker, globalsFile, paramMap, outputRoot, moduleRoot, gradleSyncIfNeeded);
+              processFile(context, globalsFile);
             } // else: <globals> root element
           }
           else if (TAG_EXECUTE.equals(name)) {
             File recipeFile = getPath(attributes, ATTR_FILE);
             if (recipeFile != null) {
-              executeRecipeFile(freemarker, recipeFile, paramMap, outputRoot, moduleRoot, gradleSyncIfNeeded);
+              executeRecipeFile(context, recipeFile);
             }
           }
           else if (!name.equals("template") &&
@@ -479,32 +376,22 @@ public class Template {
   /**
    * Executes the given recipe file: copying, merging, instantiating, opening files etc
    */
-  private void executeRecipeFile(@NotNull final Configuration freemarker,
-                                 @NotNull File fileRecipe,
-                                 @NotNull final Map<String, Object> paramMap,
-                                 @NotNull final File outputRoot,
-                                 @NotNull final File moduleRoot,
-                                 final boolean gradleSyncIfNeeded) {
+  private void executeRecipeFile(@NotNull final RenderingContext context, @NotNull File fileRecipe) {
     try {
-      processFreemarkerTemplate(freemarker, paramMap, fileRecipe, new FreemarkerUtils.TemplatePostProcessor() {
+      processFreemarkerTemplate(context, fileRecipe, new FreemarkerUtils.TemplatePostProcessor() {
         @Override
         public void process(@NotNull String xml) throws TemplateProcessingException {
           try {
             xml = XmlUtils.stripBom(xml);
 
             Recipe recipe = Recipe.parse(new StringReader(xml));
-
-            RecipeContext recipeContext =
-              new RecipeContext(myProject, paramMap, freemarker, myLoader, gradleSyncIfNeeded, outputRoot, moduleRoot);
-
-            if (getMetadata().useImplicitRootFolder()) {
-              myLoader.setTemplateFolder(new File(myLoader.getTemplateFolder(), "root"));
+            RecipeExecutor recipeExecutor = context.getRecipeExecutor();
+            TemplateMetadata metadata = getMetadata();
+            assert metadata != null;
+            if (metadata.useImplicitRootFolder()) {
+              context.getLoader().setTemplateFolder(new File(context.getLoader().getTemplateFolder(), "root"));
             }
-
-            recipe.execute(recipeContext);
-
-            myTargetFiles.addAll(recipe.getTargetFiles());
-            myFilesToOpen.addAll(recipe.getFilesToOpen());
+            recipe.execute(recipeExecutor);
           }
           catch (JAXBException ex) {
             throw new TemplateProcessingException(ex);

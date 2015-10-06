@@ -22,6 +22,7 @@ import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.sdk.wizard.SmwOldApiDirectInstall;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -120,12 +121,13 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
       File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
 
       Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
-      projectTemplate.render(projectRoot, projectRoot, myState.flatten(), project);
+      final RenderingContext context = RenderingContext.Builder.newContext(projectTemplate, project).withParams(myState.flatten()).build();
+      projectTemplate.render(context);
 
       Collection<File> files = myState.get(WizardConstants.TARGET_FILES_KEY);
       assert files != null;
 
-      files.addAll(projectTemplate.getTargetFiles());
+      files.addAll(context.getTargetFiles());
 
       setGradleWrapperExecutable(projectRoot);
       return true;

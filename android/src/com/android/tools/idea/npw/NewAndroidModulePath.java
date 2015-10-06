@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -125,7 +126,15 @@ public final class NewAndroidModulePath implements WizardPath {
         projectRoot.mkdirs();
         myWizardState.updateParameters();
         Template template = myWizardState.myTemplate;
-        template.render(projectRoot, moduleRoot, myWizardState.myParameters, myProject);
+        // @formatter:off
+        final RenderingContext context = RenderingContext.Builder.newContext(template, myProject)
+          .withOutputRoot(projectRoot)
+          .withModuleRoot(moduleRoot)
+          .withParams(myWizardState.myParameters)
+          .build();
+        // @formatter:on
+        template.render(context);
+
         if (NewModuleWizardState.isAndroidTemplate(template.getMetadata())) {
           if (myAssetSetStep.isStepVisible() && myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
             AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
@@ -136,7 +145,14 @@ public final class NewAndroidModulePath implements WizardPath {
             activityTemplateState.populateRelativePackage(null);
             Template activityTemplate = activityTemplateState.getTemplate();
             assert activityTemplate != null;
-            activityTemplate.render(moduleRoot, moduleRoot, activityTemplateState.myParameters, myProject);
+            // @formatter:off
+            final RenderingContext activityContext = RenderingContext.Builder.newContext(activityTemplate, myProject)
+              .withOutputRoot(moduleRoot)
+              .withModuleRoot(moduleRoot)
+              .withParams(activityTemplateState.myParameters)
+              .build();
+            // @formatter:on
+            activityTemplate.render(activityContext);
           }
         }
       }
