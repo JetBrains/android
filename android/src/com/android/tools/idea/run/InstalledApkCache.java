@@ -34,33 +34,22 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class InstalledApkCache implements AndroidDebugBridge.IDeviceChangeListener, Disposable {
-  /**
-   * A map from device serial -> package name -> install state.
-   * The install state provides the hash of the apk that was installed, and the last update time as obtained from the device.
-   */
-  private final Map<String, Map<String, InstallState>> myCache = Maps.newHashMap();
+public class InstalledApkCache implements Disposable {
+  private final DeviceStateCache<InstallState> myCache;
 
   /** Diagnostic output set by {@link #getLastUpdateTime(com.android.ddmlib.IDevice, String)} */
   private String myDiagnosticOutput;
 
   public InstalledApkCache() {
-    AndroidDebugBridge.addDeviceChangeListener(this);
+    myCache = new DeviceStateCache<InstallState>(this);
   }
 
   @Override
   public void dispose() {
-    AndroidDebugBridge.removeDeviceChangeListener(this);
   }
 
   public boolean isInstalled(@NotNull IDevice device, @NotNull File apk, @NotNull String pkgName) throws IOException {
-    String serial = device.getSerialNumber();
-    Map<String, InstallState> cache = myCache.get(serial);
-    if (cache == null) {
-      return false;
-    }
-
-    InstallState state = cache.get(pkgName);
+    InstallState state = myCache.get(device, pkgName);
     if (state == null) {
       return false;
     }
@@ -70,13 +59,6 @@ public class InstalledApkCache implements AndroidDebugBridge.IDeviceChangeListen
   }
 
   public void setInstalled(@NotNull IDevice device, @NotNull File apk, @NotNull String pkgName) throws IOException {
-    String serial = device.getSerialNumber();
-    Map<String, InstallState> cache = myCache.get(serial);
-    if (cache == null) {
-      cache = Maps.newHashMap();
-      myCache.put(serial, cache);
-    }
-
     String lastUpdateTime = getLastUpdateTime(device, pkgName);
     if (lastUpdateTime == null) {
       // set installed should be called only after the package has been installed
@@ -90,7 +72,8 @@ public class InstalledApkCache implements AndroidDebugBridge.IDeviceChangeListen
       Logger.getInstance(InstalledApkCache.class).warn(msg);
       return;
     }
-    cache.put(pkgName, new InstallState(hash(apk), lastUpdateTime));
+
+    myCache.put(device, pkgName, new InstallState(hash(apk), lastUpdateTime));
   }
 
   @NotNull
@@ -98,17 +81,9 @@ public class InstalledApkCache implements AndroidDebugBridge.IDeviceChangeListen
     return Files.hash(apk, Hashing.goodFastHash(32));
   }
 
-  @Override
-  public void deviceConnected(IDevice device) {
-  }
-
-  @Override
-  public void deviceDisconnected(IDevice device) {
-    myCache.remove(device.getSerialNumber());
-  }
-
-  @Override
-  public void deviceChanged(IDevice device, int changeMask) {
+  @VisibleForTesting
+  void deviceDisconnected(IDevice device) {
+    myCache.deviceDisconnected(device);
   }
 
   /**
