@@ -957,7 +957,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public void addListener(@NotNull GradleSyncListener listener) {
     Module module = getModule();
-    GradleSyncState.subscribe(module.getProject(), listener);
+    GradleSyncState.subscribe(module.getProject(), listener, module);
   }
 
   @NotNull
