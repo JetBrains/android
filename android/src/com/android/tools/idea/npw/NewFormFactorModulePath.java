@@ -136,7 +136,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
     Map<String, Object> presetsMap = ImmutableMap
       .of(PACKAGE_NAME_KEY.name, packageName, TemplateMetadata.ATTR_IS_LAUNCHER, true, TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS, "");
-    myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, myDisposable, PACKAGE_NAME_KEY, new SourceProvider[0]);
+    myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, myDisposable, PACKAGE_NAME_KEY, new SourceProvider[0], AddAndroidActivityPath.CUSTOMIZE_ACTIVITY_TITLE);
     addStep(myParameterStep);
   }
 
