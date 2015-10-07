@@ -63,6 +63,8 @@ public class CapturesTreeStructure extends SimpleTreeStructure {
         CaptureNode captureNode = myCaptureNodes.get(capture);
         if (captureNode == null) {
           captureNode = new CaptureNode(myProject, capture);
+        } else {
+          captureNode.update();
         }
         captures.put(capture, captureNode);
         typeNode.addCapture(captureNode);
