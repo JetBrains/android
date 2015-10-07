@@ -133,7 +133,7 @@ public final class Recipe {
     private File to;
 
     @Override
-    void execute(@NotNull RecipeExecutor executor) {
+    void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
       assert to != null; // Will be non-null after afterUnmarshal is called
       executor.instantiate(from, to);
     }
@@ -158,7 +158,7 @@ public final class Recipe {
     private File to;
 
     @Override
-    void execute(@NotNull RecipeExecutor executor) {
+    void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
       assert to != null; // Will be non-null after afterUnmarshal is called
       executor.merge(from, to);
     }

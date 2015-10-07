@@ -44,6 +44,7 @@ import java.util.Map;
  */
 public class RenderingContext {
   private final Project myProject;
+  private final String myTitle;
   private final Map<String, Object> myParamMap;
   private final File myOutputRoot;
   private final File myModuleRoot;
@@ -55,23 +56,29 @@ public class RenderingContext {
   private final List<File> myFilesToOpen;
   private final List<String> myDependencies;
   private final List<File> mySourceFiles;
+  private final List<String> myWarnings;
   private final boolean myDryRun;
+  private final boolean myShowErrors;
 
   private RenderingContext(@Nullable Project project,
                            @NotNull File templateRootPath,
+                           @NotNull String commandName,
                            @NotNull Map<String, Object> paramMap,
                            @NotNull File outputRoot,
                            @NotNull File moduleRoot,
                            boolean gradleSyncIfNeeded,
                            boolean findOnlyReferences,
-                           boolean dryRun) {
+                           boolean dryRun,
+                           boolean showErrors) {
     myProject = useDefaultProjectIfNeeded(project);
+    myTitle = commandName;
     myParamMap = Template.createParameterMap(paramMap);
     myOutputRoot = outputRoot;
     myModuleRoot = moduleRoot;
     myGradleSync = gradleSyncIfNeeded;
     myFindOnlyReferences = findOnlyReferences;
     myDryRun = dryRun;
+    myShowErrors = showErrors;
     myLoader = new StudioTemplateLoader(templateRootPath);
     myFreemarker = new Configuration();
     myFreemarker.setTemplateLoader(myLoader);
@@ -79,6 +86,7 @@ public class RenderingContext {
     myFilesToOpen = Lists.newArrayList();
     myDependencies = Lists.newArrayList();
     mySourceFiles = Lists.newArrayList();
+    myWarnings = Lists.newArrayList();
   }
 
   @NotNull
@@ -86,30 +94,68 @@ public class RenderingContext {
     return myProject;
   }
 
+  /**
+   * The title of the operation.
+   * This title is used in error dialogs and in the name of the Undo operation created.
+   */
+  @NotNull
+  public String getCommandName() {
+    return myTitle;
+  }
+
+  /**
+   * Key/Value pairs that are fed into the input parameters for the template.
+   */
   @NotNull
   public Map<String, Object> getParamMap() {
     return myParamMap;
   }
 
+  /**
+   * The root directory where the template will be expanded.
+   */
   @NotNull
   public File getOutputRoot() {
     return myOutputRoot;
   }
 
+  /**
+   * The root of the IDE project module for the template being expanded.
+   * This can be useful for finding build files.
+   */
   @NotNull
   public File getModuleRoot() {
     return myModuleRoot;
   }
 
+  /**
+   * If true perform a Gradle sync at the end of the template execution.
+   * A false means do NOT perform a Gradle sync since we plan to do this later.
+   */
   public boolean performGradleSync() {
     return myGradleSync;
   }
 
+  /**
+   * If true show errors and warnings.
+   * A false means errors are thrown as a {@link RuntimeException} for the IDE to handle,
+   * and warnings will be ignored.
+   */
+  public boolean showErrors() {
+    return myShowErrors;
+  }
+
+  /**
+   * Used internally.
+   */
   @NotNull
   public StudioTemplateLoader getLoader() {
     return myLoader;
   }
 
+  /**
+   * Used internally.
+   */
   @NotNull
   public Configuration getFreemarkerConfiguration() {
     return myFreemarker;
@@ -148,6 +194,17 @@ public class RenderingContext {
     return mySourceFiles;
   }
 
+  /**
+   * List of warnings that were issued during a dry run.
+   */
+  @NotNull
+  public List<String> getWarnings() {
+    return myWarnings;
+  }
+
+  /**
+   * Used internally.
+   */
   public RecipeExecutor getRecipeExecutor() {
     if (myFindOnlyReferences) {
       return new FindReferencesRecipeExecutor(this);
@@ -155,6 +212,13 @@ public class RenderingContext {
     else {
       return new DefaultRecipeExecutor(this, myDryRun);
     }
+  }
+
+  /**
+   * If there is an error, can it cause a project that is partially rendered?
+   */
+  public boolean canCausePartialRendering() {
+    return !myDryRun;
   }
 
   @NotNull
@@ -166,22 +230,26 @@ public class RenderingContext {
   public static final class Builder {
     private final File myTemplateRootPath;
     private final Project myProject;
+    private String myCommandName;
     private Map<String, Object> myParams;
     private File myOutputRoot;
     private File myModuleRoot;
     private boolean myGradleSync;
     private boolean myFindOnlyReferences;
     private boolean myDryRun;
+    private boolean myShowErrors;
 
     private Builder(@NotNull File templateRootPath, @NotNull Project project) {
       myTemplateRootPath = templateRootPath;
       myProject = project;
+      myCommandName = "Instantiate Template";
       myParams = Collections.emptyMap();
       myOutputRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
       myModuleRoot = myOutputRoot;
       myGradleSync = true;
       myFindOnlyReferences = false;
       myDryRun = false;
+      myShowErrors = false;
     }
 
     public static Builder newContext(@NotNull File templateRootPath, @NotNull Project project) {
@@ -190,6 +258,11 @@ public class RenderingContext {
 
     public static Builder newContext(@NotNull Template template, @NotNull Project project) {
       return new Builder(template.getRootPath(), project);
+    }
+
+    public Builder withCommandName(@NotNull String commandName) {
+      myCommandName = commandName;
+      return this;
     }
 
     public Builder withModule(@NotNull Module module) {
@@ -229,9 +302,14 @@ public class RenderingContext {
       return this;
     }
 
+    public Builder withShowErrors(boolean showErrors) {
+      myShowErrors = showErrors;
+      return this;
+    }
+
     public RenderingContext build() {
-      return new RenderingContext(myProject, myTemplateRootPath, myParams, myOutputRoot, myModuleRoot, myGradleSync, myFindOnlyReferences,
-                                  myDryRun);
+      return new RenderingContext(myProject, myTemplateRootPath, myCommandName, myParams, myOutputRoot, myModuleRoot, myGradleSync,
+                                  myFindOnlyReferences, myDryRun, myShowErrors);
     }
   }
 }
