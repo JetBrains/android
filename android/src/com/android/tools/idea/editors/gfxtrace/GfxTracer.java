@@ -36,7 +36,6 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GfxTracer {
@@ -49,12 +48,11 @@ public class GfxTracer {
 
   @NotNull private static final Pattern ENFORCING_PATTERN = Pattern.compile("^Enforcing$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
   @NotNull private static final Pattern PERMISSIVE_PATTERN = Pattern.compile("^Permissive$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-  @NotNull private static final Pattern ACTIVITY_PATTERN =
-    Pattern.compile("^\\s*ACTIVITY\\s*(\\S+)/(\\S+).*pid=(\\d+)\\s*$", Pattern.MULTILINE);
 
   private static final Map<String, String> ABI_TO_LIB = Collections.unmodifiableMap(new HashMap<String, String>() {{
-    put("32-bit (arm)", "android-arm");
-    put("64-bit (arm)", "android-arm64");
+    put("armeabi", "android-arm");
+    put("armeabi-v7a", "android-arm");
+    put("arm64-v8a", "android-arm64");
   }});
 
   @NotNull private final IDevice myDevice;
@@ -78,18 +76,16 @@ public class GfxTracer {
   }
 
   public static GfxTracer launch(@NotNull final Project project,
-                                 @NotNull final Client client,
+                                 @NotNull final IDevice device,
+                                 @NotNull final DeviceInfo.Package pkg,
+                                 @NotNull final DeviceInfo.Activity act,
                                  @NotNull final Options options,
                                  @NotNull EventData events) {
-    final GfxTracer tracer = new GfxTracer(project, client.getDevice(), events);
-    final String pkg = client.getClientData().getClientDescription();
-    final String pid = Integer.toString(client.getClientData().getPid());
-    final String abi = client.getClientData().getAbi();
-
+    final GfxTracer tracer = new GfxTracer(project, device, events);
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        tracer.relaunchAndCapture(pkg, pid, abi, options);
+        tracer.launchAndCapture(pkg, act, options);
       }
     });
     return tracer;
@@ -121,29 +117,16 @@ public class GfxTracer {
     }
   }
 
-  private void relaunchAndCapture(String pkg, String pid, String abi, @NotNull Options options) {
+  private void launchAndCapture(@NotNull final DeviceInfo.Package pkg, @NotNull final DeviceInfo.Activity act, @NotNull Options options) {
     EventData.Event event = myEvents.start(System.currentTimeMillis(), GpuMonitorView.EVENT_LAUNCH);
     try {
+      String abi = pkg.myABI;
+      if (abi == null) {
+        // Package has no preferential ABI. Use device ABI instead.
+        abi = myDevice.getAbis().get(0);
+      }
       final File myGapii = findTraceLibrary(abi);
-      // Find out the full activity name from the package name
-      String activityInfo = captureAdbShell(myDevice, "dumpsys activity top -p " + pkg);
-      Matcher match = ACTIVITY_PATTERN.matcher(activityInfo);
-      String component;
-      if (match.find()) {
-        String foundPkg = match.group(1);
-        String activity = match.group(2);
-        String foundPid = match.group(3);
-        if (!foundPkg.equals(pkg)) {
-          throw new IOException("Bad package match " + foundPkg);
-        }
-        if (!foundPid.equals(pid)) {
-          throw new IOException("Activity pid does not match " + foundPid);
-        }
-        component = pkg + "/" + activity;
-      }
-      else {
-        throw new IOException("Could not determine activity for " + pkg);
-      }
+      String component = pkg.myName + "/" + act.myName;
       // Switch adb to root mode, if not already
       myDevice.root();
       // turn off selinux enforce if it is on, and remember the state so we can reset it when we are done
@@ -166,16 +149,16 @@ public class GfxTracer {
         // push the spy down to the device
         myDevice.pushFile(myGapii.getAbsolutePath(), PRELOAD_LIB);
         // Put gapii in the library preload
-        captureAdbShell(myDevice, "setprop wrap." + pkg + " LD_PRELOAD=" + PRELOAD_LIB);
+        captureAdbShell(myDevice, "setprop wrap." + pkg.myName + " LD_PRELOAD=" + PRELOAD_LIB);
         try {
-          // Relaunch the app with the spy enabled
+          // Launch the app with the spy enabled
           captureAdbShell(myDevice, "am start -S -W -n " + component);
           event.stop(System.currentTimeMillis());
           capture(options);
         }
         finally {
           // Undo the preload wrapping
-          captureAdbShell(myDevice, "setprop wrap." + pkg + " \"\"");
+          captureAdbShell(myDevice, "setprop wrap." + pkg.myName + " \"\"");
         }
       }
       finally {
@@ -356,5 +339,4 @@ public class GfxTracer {
     File flavourPath = new File(architecturePath, GAPII_LIBRARY_FLAVOUR);
     return new File(flavourPath, GAPII_LIBRARY_NAME);
   }
-
 }
