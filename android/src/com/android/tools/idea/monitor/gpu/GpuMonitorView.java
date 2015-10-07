@@ -86,7 +86,7 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
     if (GfxTraceEditor.isEnabled()) {
       group.add(new Separator());
       group.add(new GfxTraceCaptureAction.Listen(this));
-      group.add(new GfxTraceCaptureAction.Relaunch(this));
+      group.add(new GfxTraceCaptureAction.Launch(this));
     }
     return group;
   }
