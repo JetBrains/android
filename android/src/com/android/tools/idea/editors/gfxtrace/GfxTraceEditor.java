@@ -21,10 +21,7 @@ import com.android.tools.idea.editors.gfxtrace.gapi.GapisProcess;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
-import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.ConstantSet;
 import com.android.tools.rpclib.schema.Dynamic;
@@ -174,6 +171,17 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
             myLoadingDecorator.stopLoading();
           }
         });
+      }
+    });
+  }
+
+  public void loadReplayDevice() {
+    Futures.addCallback(getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG) {
+      @Override
+      public void onSuccess(@Nullable DevicePath[] devices) {
+        if (devices != null && devices.length >= 1) {
+          activatePath(devices[0], GfxTraceEditor.this);
+        }
       }
     });
   }
