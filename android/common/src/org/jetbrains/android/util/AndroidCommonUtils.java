@@ -163,7 +163,7 @@ public class AndroidCommonUtils {
 
   public static void handleDexCompilationResult(@NotNull Process process,
                                                 @NotNull String outputFilePath,
-                                                @NotNull final Map<AndroidCompilerMessageKind, List<String>> messages) {
+                                                @NotNull final Map<AndroidCompilerMessageKind, List<String>> messages, boolean multiDex) {
     final BaseOSProcessHandler handler = new BaseOSProcessHandler(process, null, null);
     handler.addProcessListener(new ProcessAdapter() {
       private AndroidCompilerMessageKind myCategory = null;
@@ -204,7 +204,7 @@ public class AndroidCommonUtils {
       messages.get(AndroidCompilerMessageKind.WARNING).addAll(errors);
       errors.clear();
     }
-    else if (errors.size() == 0) {
+    else if (errors.size() == 0 && !multiDex) {
       errors.add("Cannot create classes.dex file");
     }
   }
