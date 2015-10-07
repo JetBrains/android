@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.ConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutWidgetFixture;
@@ -69,9 +68,9 @@ public class LayoutPreviewTest extends GuiTestCase {
     // orientation to landscape, create a landscape variation file, ensure
     // it's in the right folder, toggle orientation back, ensure file switched
     // back to the portrait/original file
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    myProjectFrame = importSimpleApplication();
 
-    EditorFixture editor = projectFrame.getEditor();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     editor.requireFolderName("layout");
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
@@ -133,9 +132,9 @@ public class LayoutPreviewTest extends GuiTestCase {
   @Test @IdeGuiTest
   @Ignore  // TODO: Remove when issue 76009 is fixed.
   public void testPreviewConfigurationTweaks() throws Exception {
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    myProjectFrame = importSimpleApplication();
 
-    EditorFixture editor = projectFrame.getEditor();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     editor.requireFolderName("layout");
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
@@ -164,10 +163,10 @@ public class LayoutPreviewTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testEdits() throws Exception {
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    myProjectFrame = importSimpleApplication();
 
     // Load layout, wait for render to be shown in the preview window
-    EditorFixture editor = projectFrame.getEditor();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
@@ -214,8 +213,8 @@ public class LayoutPreviewTest extends GuiTestCase {
     // applies the suggested fix to build the project, and finally asserts that the
     // build is now successful.
 
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
@@ -269,8 +268,8 @@ public class LayoutPreviewTest extends GuiTestCase {
     // Opens a number of layouts in the layout test project and checks that the rendering looks roughly
     // correct.
 
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/src/main/res/layout/widgets.xml", EditorFixture.Tab.EDITOR);
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
@@ -307,7 +306,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     System.out.println("Not checking menu rendering: re-enable when issue 174236 is fixed");
 
     // Make sure the project is built: we need custom views for the porter duff test
-    GradleInvocationResult result = projectFrame.invokeProjectMake();
+    GradleInvocationResult result = myProjectFrame.invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
 
     // PorterDuff
@@ -337,15 +336,15 @@ public class LayoutPreviewTest extends GuiTestCase {
     // applies the suggested fix to build the project, and finally asserts that the
     // build is now successful.
 
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
     preview.waitForNextRenderToFinish();
 
     String viewClassFile = "app/build/intermediates/classes/debug/com/android/tools/tests/layout/MyButton.class";
-    if (projectFrame.findFileByRelativePath(viewClassFile, false) != null) {
+    if (myProjectFrame.findFileByRelativePath(viewClassFile, false) != null) {
       fail("Project should be clean at the start of this test; when that is not the case it's probably " +
            "some caching of loaded projects in '" + getProjectCreationDirPath().getPath() + "' which " +
            "we will soon get rid of.");
@@ -356,7 +355,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     renderErrors.requireHaveRenderError("com.android.tools.tests.layout.MyButton");
     renderErrors.requireHaveRenderError("Change to android.widget.Button");
 
-    GradleInvocationResult result = projectFrame.invokeProjectMake();
+    GradleInvocationResult result = myProjectFrame.invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
 
     // Build completion should trigger re-render
@@ -402,10 +401,9 @@ public class LayoutPreviewTest extends GuiTestCase {
     // matches the expected overlay semantics); also edits these in the Gradle file and
     // checks that the layout rendering is updated after a Gradle sync.
 
-    @SuppressWarnings("ConstantConditions")
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
-    AndroidGradleModel androidModel = projectFrame.getAndroidModel("app");
+    AndroidGradleModel androidModel = myProjectFrame.getAndroidModel("app");
     String modelVersion = androidModel.getAndroidProject().getModelVersion();
     assertNotNull(modelVersion);
     FullRevision version = FullRevision.parseRevision(modelVersion);
@@ -415,7 +413,7 @@ public class LayoutPreviewTest extends GuiTestCase {
       return;
     }
 
-    EditorFixture editor = projectFrame.getEditor();
+    EditorFixture editor = myProjectFrame.getEditor();
     String layoutFilePath = "app/src/main/res/layout/dynamic_layout.xml";
     editor.open(layoutFilePath, EditorFixture.Tab.EDITOR);
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
@@ -445,15 +443,15 @@ public class LayoutPreviewTest extends GuiTestCase {
     string5.requireActualText("String 5 defined by build type debug");
 
     // Ensure that all the references are properly resolved
-    FileFixture file = projectFrame.findExistingFileByRelativePath(layoutFilePath);
+    FileFixture file = myProjectFrame.findExistingFileByRelativePath(layoutFilePath);
     file.requireCodeAnalysisHighlightCount(ERROR, 0);
 
     String buildGradlePath = "app/build.gradle";
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("String 1 defined only by |defaultConfig"));
     editor.enterText("edited ");
-    projectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
-    projectFrame.waitForGradleProjectSyncToFinish();
+    myProjectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
+    myProjectFrame.waitForGradleProjectSyncToFinish();
 
     editor.open(layoutFilePath, EditorFixture.Tab.EDITOR);
     preview.waitForNextRenderToFinish();

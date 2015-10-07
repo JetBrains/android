@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Test;
 
@@ -37,9 +36,9 @@ import static org.fest.assertions.Assertions.assertThat;
 public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testParseExternalDependenciesWithCompactNotation() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    myProjectFrame = importSimpleApplication();
 
-    GradleBuildModelFixture buildModel = projectFrame.parseBuildFileForModule("app", true);
+    GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
 
     List<ExternalDependency> dependencies = buildModel.getTarget().dependencies().external();
     assertThat(dependencies).hasSize(2);
@@ -53,8 +52,8 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testSetVersionOnExternalDependencyWithCompactNotation() throws IOException {
-    final IdeFrameFixture projectFrame = importSimpleApplication();
-    final GradleBuildModelFixture buildModel = projectFrame.parseBuildFileForModule("app", true);
+    myProjectFrame = importSimpleApplication();
+    final GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
 
     List<ExternalDependency> dependencies = buildModel.getTarget().dependencies().external();
     assertThat(dependencies).hasSize(2);

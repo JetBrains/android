@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
 import org.junit.Test;
 
@@ -32,11 +31,10 @@ import static org.fest.assertions.Assertions.assertThat;
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class IdeSettingsTest extends GuiTestCase {
-
   @Test @IdeGuiTest
   public void testSettingsRemovalForGradleProjects() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    IdeSettingsDialogFixture settingsDialog = projectFrame.openIdeSettings();
+    myProjectFrame = importSimpleApplication();
+    IdeSettingsDialogFixture settingsDialog = myProjectFrame.openIdeSettings();
     List<String> settingsNames = settingsDialog.getProjectSettingsNames();
     assertThat(settingsNames).excludes("Gant", "GUI Designer");
   }
