@@ -24,6 +24,7 @@ import com.android.tools.perflib.analyzer.AnalyzerTask;
 import com.android.tools.perflib.analyzer.CaptureGroup;
 import com.android.tools.perflib.captures.MemoryMappedFileBuffer;
 import com.android.tools.perflib.heap.Snapshot;
+import com.android.tools.perflib.heap.analysis.ComputationProgress;
 import com.android.tools.perflib.heap.memoryanalyzer.DuplicatedStringsAnalyzerTask;
 import com.android.tools.perflib.heap.memoryanalyzer.LeakedActivityAnalyzerTask;
 import com.android.tools.perflib.heap.memoryanalyzer.MemoryAnalyzer;
@@ -47,6 +48,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.Set;
@@ -66,13 +69,25 @@ public class HprofEditor extends CaptureEditor {
       @Override
       public void run() {
         final File hprofFile = VfsUtilCore.virtualToIoFile(file);
-        InlineProgressIndicator indicator = myPanel.getProgressIndicator();
+        final InlineProgressIndicator indicator = myPanel.getProgressIndicator();
         assert indicator != null;
+        Timer timer = null;
+
         try {
-          updateIndicator(indicator, 0.0, "Parsing hprof file...");
+          updateIndicator(indicator, 0.01, "Parsing hprof file...");
           mySnapshot = Snapshot.createSnapshot(new MemoryMappedFileBuffer(hprofFile));
 
-          updateIndicator(indicator, 0.5, "Computing dominators...");
+          // Refresh the timer at 30fps (33ms/frame).
+          timer = new Timer(1000 / 30, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+              Snapshot.DominatorComputationStage stage = mySnapshot.getDominatorComputationStage();
+              ComputationProgress progress = mySnapshot.getComputationProgress();
+              updateIndicator(indicator, Snapshot.DominatorComputationStage.toAbsoluteProgressPercentage(stage, progress),
+                              progress.getMessage());
+            }
+          });
+          timer.start();
           mySnapshot.computeDominators();
         }
         catch (Throwable throwable) {
@@ -88,6 +103,9 @@ public class HprofEditor extends CaptureEditor {
           });
         }
         finally {
+          if (timer != null) {
+            timer.stop();
+          }
           if (mySnapshot != null) {
             myView = new HprofView(project, HprofEditor.this, mySnapshot);
             HprofAnalysisContentsDelegate delegate = new HprofAnalysisContentsDelegate(HprofEditor.this);
