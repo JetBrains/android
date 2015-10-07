@@ -109,6 +109,7 @@ public abstract class GuiTestCase {
     myRobot.settings().delayBetweenEvents(30);
 
     setIdeSettings();
+    setUpSdks();
 
     LocalFileSystem.getInstance().refresh(false /* synchronous */);
   }
@@ -133,6 +134,7 @@ public abstract class GuiTestCase {
   public void tearDown() {
     if (myProjectFrame != null) {
       myProjectFrame.waitForBackgroundTasksToFinish();
+      myProjectFrame.closeProject();
     }
     if (myRobot != null) {
       myRobot.cleanUpWithoutDisposingWindows();
