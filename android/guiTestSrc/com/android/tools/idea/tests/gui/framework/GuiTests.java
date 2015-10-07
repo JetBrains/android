@@ -63,8 +63,7 @@ import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.createTempDir;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -142,6 +141,10 @@ public final class GuiTests {
     GeneralSettings.getInstance().setShowTipsOnStartup(false);
     setUpDefaultProjectCreationLocationPath();
 
+    setUpSdks();
+  }
+
+  public static void setUpSdks() {
     final File androidSdkPath = getAndroidSdkPath();
 
     String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
@@ -150,18 +153,25 @@ public final class GuiTests {
     }
     final File jdkPath = new File(jdkHome);
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            IdeSdks.setAndroidSdkPath(androidSdkPath, null);
-            IdeSdks.setJdkPath(jdkPath);
-          }
-        });
-      }
-    });
+    File currentAndroidSdkPath = IdeSdks.getAndroidSdkPath();
+    File currentJdkPath = IdeSdks.getJdkPath();
+    if (!filesEqual(androidSdkPath, currentAndroidSdkPath) || !filesEqual(jdkPath, currentJdkPath)) {
+      execute(new GuiTask() {
+        @Override
+        protected void executeInEDT() throws Throwable {
+          ApplicationManager.getApplication().runWriteAction(new Runnable() {
+            @Override
+            public void run() {
+              System.out.println(String.format("Setting Android SDK: '%1$s'", androidSdkPath.getPath()));
+              IdeSdks.setAndroidSdkPath(androidSdkPath, null);
+
+              System.out.println(String.format("Setting JDK: '%1$s'", jdkPath.getPath()));
+              IdeSdks.setJdkPath(jdkPath);
+            }
+          });
+        }
+      });
+    }
   }
 
   @Nullable
