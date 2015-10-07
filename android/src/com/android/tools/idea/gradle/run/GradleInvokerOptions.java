@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.fd.PatchRunningAppAction;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
@@ -32,6 +35,7 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,9 +67,12 @@ public class GradleInvokerOptions {
     }
 
     final Module[] modules = getModules(project, context, configuration);
-    if (canUpdateIncrementally(devices, modules)) {
-      // TODO: for now we just let performUpdate do the gradle build, so we return an empty list of tasks
-      return new GradleInvokerOptions(Collections.<String>emptyList(), null, Collections.<String>emptyList());
+    if (modules.length == 1 && canUpdateIncrementally(devices, modules)) {
+      AndroidGradleModel model = AndroidGradleModel.get(modules[0]);
+      if (model != null) {
+        String dexTask = FastDeployManager.getIncrementalDexTask(model);
+        return new GradleInvokerOptions(Collections.singletonList(dexTask), null, Collections.<String>emptyList());
+      }
     }
 
     if (MakeBeforeRunTaskProvider.isUnitTestConfiguration(configuration)) {

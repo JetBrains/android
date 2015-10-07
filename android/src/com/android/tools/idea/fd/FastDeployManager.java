@@ -18,7 +18,6 @@ package com.android.tools.idea.fd;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
-import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -27,9 +26,11 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.AndroidRunningState;
 import com.android.tools.idea.run.ApkProviderUtil;
 import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.InstalledPatchCache;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -45,7 +46,6 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.awt.RelativePoint;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +63,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 /**
  * TODO: Handle edits in assets
@@ -185,7 +184,7 @@ public class FastDeployManager implements ProjectComponent {
     return buildConfiguration.RESTART_ACTIVITY;
   }
 
-  public void performUpdate(@Nullable IDevice device, @NotNull UpdateMode updateMode, @Nullable Module module) {
+  public void performUpdate(@NotNull IDevice device, @NotNull UpdateMode updateMode, @Nullable Module module) {
     AndroidFacet facet = findAppModule(module);
     if (facet != null) {
       AndroidGradleModel model = AndroidGradleModel.get(facet);
@@ -195,11 +194,18 @@ public class FastDeployManager implements ProjectComponent {
     }
   }
 
-  private void runGradle(@Nullable final IDevice device,
+  public void pushChanges(@NotNull IDevice device, @NotNull UpdateMode updateMode, @NotNull AndroidFacet facet, long deviceArscTimestamp) {
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    if (model != null) {
+      afterBuild(device, model, facet, updateMode, deviceArscTimestamp);
+    }
+  }
+
+  private void runGradle(@NotNull final IDevice device,
                          @NotNull final AndroidGradleModel model,
                          @NotNull final AndroidFacet facet,
                          @NotNull final UpdateMode updateMode) {
-    File arsc = findResourceArscFolder(facet);
+    File arsc = findResourceArsc(facet);
     final long arscBefore = arsc != null ? arsc.lastModified() : 0L;
 
     // Clean out *old* patch files (e.g. from a previous build such that if you for example
@@ -276,7 +282,7 @@ public class FastDeployManager implements ProjectComponent {
   }
 
   @Nullable
-  private static File findResourceArscFolder(@NotNull AndroidFacet facet) {
+  public static File findResourceArsc(@NotNull AndroidFacet facet) {
     File intermediates = findIntermediatesFolder(facet);
     if (intermediates != null) {
       String variantName = getVariantName(facet);
@@ -291,7 +297,7 @@ public class FastDeployManager implements ProjectComponent {
 
   // TODO: This should be provided as part of the model!
   @NotNull
-  static String getIncrementalDexTask(@NotNull AndroidGradleModel model) {
+  public static String getIncrementalDexTask(@NotNull AndroidGradleModel model) {
     final String variantName = getVariantName(model);
 
     // TODO: Add in task for resources too!
@@ -322,7 +328,7 @@ public class FastDeployManager implements ProjectComponent {
     return null;
   }
 
-  private void afterBuild(@Nullable IDevice device,
+  private void afterBuild(@NotNull IDevice device,
                           @NotNull AndroidGradleModel model,
                           @NotNull AndroidFacet facet,
                           @NotNull UpdateMode updateMode,
@@ -333,16 +339,30 @@ public class FastDeployManager implements ProjectComponent {
     updateMode = gatherGradleResourceChanges(model, facet, changes, arscBefore, updateMode);
 
     push(device, facet.getModule(), changes, updateMode);
+
+    String pkgName;
+    try {
+      pkgName = ApkProviderUtil.computePackageName(facet);
+    }
+    catch (ApkProvisionException e) {
+      LOG.error(e);
+      return;
+    }
+    File resourceArsc = findResourceArsc(facet);
+    if (resourceArsc != null) {
+      long timestamp = resourceArsc.lastModified();
+      ServiceManager.getService(InstalledPatchCache.class).setInstalledArscTimestamp(device, pkgName, timestamp);
+    }
   }
 
   @SuppressWarnings({"MethodMayBeStatic", "UnusedParameters"}) // won't be as soon as it really calls Gradle
   @NotNull
-  private UpdateMode gatherGradleResourceChanges(AndroidGradleModel model,
+  private static UpdateMode gatherGradleResourceChanges(AndroidGradleModel model,
                                                  AndroidFacet facet,
                                                  List<ApplicationPatch> changes,
                                                  long arscBefore,
                                                  @NotNull UpdateMode updateMode) {
-    File arsc = findResourceArscFolder(facet);
+    File arsc = findResourceArsc(facet);
     if (arsc != null && arsc.lastModified() > arscBefore) {
       String path = RESOURCE_FILE_NAME;
       try {
@@ -384,6 +404,18 @@ public class FastDeployManager implements ProjectComponent {
       }
     }
     return updateMode;
+  }
+
+  public static void removeOldPatches(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return;
+    }
+
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    if (model != null) {
+      removeOldPatches(model);
+    }
   }
 
   private static void removeOldPatches(AndroidGradleModel model) {

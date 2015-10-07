@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.*;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.fd.PatchRunningAppAction;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
@@ -66,6 +67,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -402,17 +404,17 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     }
 
     Module module = myFacet.getModule();
-    if (!isDebugMode() && PatchRunningAppAction.isPatchableApp(module) && PatchRunningAppAction.isAppRunning(device, module)) {
-      myPrinter.stdout("Incrementally updating running app.");
-      PatchRunningAppAction.perform(device, module, false);
-
-      // TODO: returning here means debugging won't work
-      return true;
-    }
 
     myPrinter.stdout("Target device: " + device.getName());
     try {
-      if (myLaunchOptions.isDeploy()) {
+      if (!isDebugMode() && PatchRunningAppAction.isPatchableApp(module) && PatchRunningAppAction.isAppRunning(device, module)) {
+        myPrinter.stdout("Incrementally updating running app.");
+        PatchRunningAppAction.pushChanges(device, myFacet);
+
+        // TODO: returning true means that debug action won't connect..
+        return true;
+      }
+      else if (myLaunchOptions.isDeploy()) {
         if (!installApks(device)) {
           return false;
         }
@@ -477,6 +479,9 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
       return false;
     }
 
+    File arsc = FastDeployManager.findResourceArsc(myFacet);
+    long arscTimestamp = arsc == null ? 0 : arsc.lastModified();
+
     ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), myPrinter);
     for (ApkInfo apk : apks) {
       if (!apk.getFile().exists()) {
@@ -489,7 +494,10 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
       if (!installer.uploadAndInstallApk(device, apk.getApplicationId(), apk.getFile(), myStopped)) {
         return false;
       }
+
+      ServiceManager.getService(InstalledPatchCache.class).setInstalledArscTimestamp(device, apk.getApplicationId(), arscTimestamp);
     }
+
     return true;
   }
 
