@@ -16,9 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.*;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.fd.PatchRunningAppAction;
 import com.android.tools.idea.logcat.AndroidLogcatView;
@@ -49,7 +47,6 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -72,7 +69,6 @@ import javax.swing.*;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -417,51 +413,14 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myPrinter.stdout("Target device: " + device.getName());
     try {
       if (myLaunchOptions.isDeploy()) {
-        Collection<ApkInfo> apks;
-        try {
-          apks = myApkProvider.getApks(device);
-        } catch (ApkProvisionException e) {
-          myPrinter.stderr(e.getMessage());
-          LOG.warn(e);
+        if (!installApks(device)) {
           return false;
-        }
-
-        ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), myPrinter);
-        for (ApkInfo apk : apks) {
-          if (!apk.getFile().exists()) {
-            String message = "The APK file " + apk.getFile().getPath() + " does not exist on disk.";
-            myPrinter.stderr(message);
-            LOG.error(message);
-            return false;
-          }
-
-          if (!installer.uploadAndInstallApk(device, apk.getApplicationId(), apk.getFile(), myStopped)) {
-            return false;
-          }
         }
         trackInstallation(device);
         myApplicationDeployed = true;
       }
 
-      // From Version 23 onwards (in the emulator, possibly later on devices), we can dismiss the keyguard
-      // with "adb shell wm dismiss-keyguard". This allows the application to show up without the user having
-      // to manually dismiss the keyguard.
-      final AndroidVersion canDismissKeyguard = new AndroidVersion(23, null);
-      if (canDismissKeyguard.compareTo(DevicePropertyUtil.getDeviceVersion(device)) <= 0) {
-        // It is not necessary to wait for the keyguard to be dismissed. On a slow emulator, this seems
-        // to take a while (6s on my machine)
-        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              device.executeShellCommand("wm dismiss-keyguard", new NullOutputReceiver(), 10, TimeUnit.SECONDS);
-            }
-            catch (Exception e) {
-              LOG.warn("Unable to dismiss keyguard before launching activity");
-            }
-          }
-        });
-      }
+      LaunchUtils.initiateDismissKeyguard(device);
 
       final AndroidApplicationLauncher.LaunchResult launchResult = myApplicationLauncher.launch(this, device);
       if (launchResult == AndroidApplicationLauncher.LaunchResult.STOP) {
@@ -484,31 +443,9 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
           }
         }
       }
-      if (!isDebugMode() && myLaunchOptions.isOpenLogcatAutomatically()) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            final ToolWindow androidToolWindow = ToolWindowManager.getInstance(myEnv.getProject()).
-              getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
 
-            // Activate the tool window, and once activated, make sure the right device is selected
-            androidToolWindow.activate(new Runnable() {
-              @Override
-              public void run() {
-                int count = androidToolWindow.getContentManager().getContentCount();
-                for (int i = 0; i < count; i++) {
-                  Content content = androidToolWindow.getContentManager().getContent(i);
-                  DevicePanel devicePanel = content == null ? null : content.getUserData(AndroidToolWindowFactory.DEVICES_PANEL_KEY);
-                  if (devicePanel != null) {
-                    devicePanel.selectDevice(device);
-                    devicePanel.selectClient(client);
-                    break;
-                  }
-                }
-              }
-            }, false);
-          }
-        });
+      if (!isDebugMode() && myLaunchOptions.isOpenLogcatAutomatically()) {
+        showLogcatConsole(device, client);
       }
       return true;
     }
@@ -528,6 +465,32 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
       myPrinter.stderr("I/O Error" + (message != null ? ": " + message : ""));
       return false;
     }
+  }
+
+  private boolean installApks(@NotNull IDevice device) {
+    Collection<ApkInfo> apks;
+    try {
+      apks = myApkProvider.getApks(device);
+    } catch (ApkProvisionException e) {
+      myPrinter.stderr(e.getMessage());
+      LOG.warn(e);
+      return false;
+    }
+
+    ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), myPrinter);
+    for (ApkInfo apk : apks) {
+      if (!apk.getFile().exists()) {
+        String message = "The APK file " + apk.getFile().getPath() + " does not exist on disk.";
+        myPrinter.stderr(message);
+        LOG.error(message);
+        return false;
+      }
+
+      if (!installer.uploadAndInstallApk(device, apk.getApplicationId(), apk.getFile(), myStopped)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private static int ourInstallationCount = 0;
@@ -564,7 +527,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   }
 
   protected static void clearLogcatAndConsole(@NotNull final Project project, @NotNull final IDevice device) {
-    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
@@ -580,7 +543,34 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
           }
         }
       }
-    }, ModalityState.defaultModalityState());
+    });
+  }
+
+  private void showLogcatConsole(@NotNull final IDevice device, @Nullable final Client client) {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        final ToolWindow androidToolWindow = ToolWindowManager.getInstance(myEnv.getProject()).
+          getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
+
+        // Activate the tool window, and once activated, make sure the right device is selected
+        androidToolWindow.activate(new Runnable() {
+          @Override
+          public void run() {
+            int count = androidToolWindow.getContentManager().getContentCount();
+            for (int i = 0; i < count; i++) {
+              Content content = androidToolWindow.getContentManager().getContent(i);
+              DevicePanel devicePanel = content == null ? null : content.getUserData(AndroidToolWindowFactory.DEVICES_PANEL_KEY);
+              if (devicePanel != null) {
+                devicePanel.selectDevice(device);
+                devicePanel.selectClient(client);
+                break;
+              }
+            }
+          }
+        }, false);
+      }
+    });
   }
 
   private boolean checkDdms() {
