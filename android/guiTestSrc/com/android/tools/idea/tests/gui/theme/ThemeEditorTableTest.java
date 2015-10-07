@@ -54,8 +54,8 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testParentValueCell() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     // Cell (0,0) should be the parent editor
@@ -99,10 +99,10 @@ public class ThemeEditorTableTest extends GuiTestCase {
     parentComboBox.selectItem(newParent);
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+    myProjectFrame.invokeMenuPathRegex("Edit", "Undo.*");
     assertEquals("android:Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    projectFrame.invokeMenuPathRegex("Edit", "Redo.*");
+    myProjectFrame.invokeMenuPathRegex("Edit", "Redo.*");
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     pause(new Condition("Wait for potential tooltips to disappear") {
@@ -113,8 +113,8 @@ public class ThemeEditorTableTest extends GuiTestCase {
     });
     testParentPopup(themeEditorTable.cell(parentCell), newParent, themeEditor);
 
-    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.moveTo(editor.findOffset(null, "AppTheme", true));
     assertEquals("<style name=\"^AppTheme\" parent=\"Theme.AppCompat.NoActionBar\">",
                         editor.getCurrentLineContents(true, true, 0));
@@ -142,8 +142,8 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testResourcePickerNameError() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
     JTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
@@ -176,8 +176,8 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testSettingColorAttribute() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
@@ -203,7 +203,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
     assertEquals("@color/holo_light_primary", themeEditorTable.valueAt(cell));
 
-    EditorFixture editor = projectFrame.getEditor();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/src/main/res/values/colors.xml");
     editor.moveTo(editor.findOffset(null, "holo", true));
     assertEquals("<color name=\"^holo_light_primary\">" + ResourceHelper.colorToString(color) + "</color>",
@@ -215,8 +215,8 @@ public class ThemeEditorTableTest extends GuiTestCase {
    */
   @Test @IdeGuiTest
   public void testColorPickerAlpha() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
@@ -248,8 +248,8 @@ public class ThemeEditorTableTest extends GuiTestCase {
    */
   @Test @IdeGuiTest
   public void testStateListPicker() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell parentCell = row(0).column(0);

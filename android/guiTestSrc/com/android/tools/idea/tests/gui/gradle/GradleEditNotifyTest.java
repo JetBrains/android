@@ -19,12 +19,12 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.junit.Test;
 
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.BACK_SPACE;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class GradleEditNotifyTest extends GuiTestCase {
@@ -34,23 +34,23 @@ public class GradleEditNotifyTest extends GuiTestCase {
     // the build.gradle model is out of date
     // Regression test for https://code.google.com/p/android/issues/detail?id=75983
 
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame = importSimpleApplication();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/build.gradle").waitUntilErrorAnalysisFinishes();
 
     // When done and a successful gradle sync there should not be any messages
-    projectFrame.requireNoEditorNotification();
+    myProjectFrame.requireNoEditorNotification();
 
     // Insert:
     editor.moveTo(editor.findOffset("versionCode ", null, true))
           .enterText("1");
 
     // Sync:
-    projectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
-    projectFrame.waitForGradleProjectSyncToFinish()
-                .requireNoEditorNotification();
+    myProjectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
+    myProjectFrame.waitForGradleProjectSyncToFinish()
+                  .requireNoEditorNotification();
 
-    editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
-    projectFrame.requireEditorNotification("Gradle files have changed since last project sync");
+    editor.invokeAction(BACK_SPACE);
+    myProjectFrame.requireEditorNotification("Gradle files have changed since last project sync");
   }
 }
