@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Test;
 
@@ -37,9 +36,9 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testParsingProjectDependencies() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
-    GradleBuildModelFixture buildModel = projectFrame.parseBuildFileForModule("app", true);
+    GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
 
     List<ModuleDependency> dependencies = buildModel.getTarget().dependencies().toModules();
     assertThat(dependencies).hasSize(4);
@@ -72,9 +71,9 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testRenameProjectDependency() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
-    GradleBuildModelFixture buildModel = projectFrame.parseBuildFileForModule("app", true);
+    GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
 
     List<ModuleDependency> dependencies = buildModel.getTarget().dependencies().toModules();
     ModuleDependency dependency = dependencies.get(0);

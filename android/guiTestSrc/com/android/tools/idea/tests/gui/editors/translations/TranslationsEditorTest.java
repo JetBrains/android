@@ -19,16 +19,12 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.TranslationsEditorFixture;
-import com.intellij.ui.components.JBLoadingPanel;
-import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -40,22 +36,21 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 public class TranslationsEditorTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testBasics() throws IOException {
-    IdeFrameFixture ideFrame = importSimpleApplication();
+    myProjectFrame = importSimpleApplication();
 
     // open editor on a strings file
     String stringsXmlPath = "app/src/main/res/values/strings.xml";
-    EditorFixture editor = ideFrame.getEditor();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open(stringsXmlPath, EDITOR);
 
     // make sure the notification is visible, and click on Open Editor to open the translations editor
     EditorNotificationPanelFixture notificationPanel =
-      ideFrame.requireEditorNotification("Edit translations for all locales in the translations editor.");
+      myProjectFrame.requireEditorNotification("Edit translations for all locales in the translations editor.");
     notificationPanel.performAction("Open editor");
 
     // Wait for the translations editor table to show up, and the table to be initialized

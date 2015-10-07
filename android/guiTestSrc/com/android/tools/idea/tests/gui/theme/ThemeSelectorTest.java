@@ -43,7 +43,6 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Index.atIndex;
 import static org.fest.swing.data.TableCell.row;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 /**
@@ -62,8 +61,8 @@ public class ThemeSelectorTest extends GuiTestCase {
    */
   @Test @IdeGuiTest
   public void testRenameTheme() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     themesComboBox.selectItem("Rename AppTheme");
@@ -92,17 +91,17 @@ public class ThemeSelectorTest extends GuiTestCase {
       .contains("Show all themes", atIndex(4))
       .contains("Create New Theme", atIndex(6));
 
-    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    EditorFixture editor = myProjectFrame.getEditor();
     assertEquals(-1, editor.findOffset(null, "name=\"AppTheme", true));
     editor.moveTo(editor.findOffset(null, "name=\"NewAppTheme", true));
     assertEquals("<style ^name=\"NewAppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
                  editor.getCurrentLineContents(true, true, 0));
 
     // Testing Undo
-    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
+    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
     themesComboBox.selectItem("NewAppTheme");
-    projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+    myProjectFrame.invokeMenuPathRegex("Edit", "Undo.*");
     DialogFixture message = new DialogFixture(myRobot, myRobot.finder().findByType(Dialog.class));
     message.focus();
     JButton OkButton = GuiTests.waitUntilFound(myRobot, message.target(), new GenericTypeMatcher<JButton>(JButton.class) {
@@ -118,7 +117,7 @@ public class ThemeSelectorTest extends GuiTestCase {
     JButtonFixture OkFixture = new JButtonFixture(myRobot, OkButton);
     OkFixture.click();
     themeEditor.waitForThemeSelection("AppTheme");
-    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertEquals(-1, editor.findOffset(null, "name=\"NewAppTheme", true));
     editor.moveTo(editor.findOffset(null, "name=\"AppTheme", true));
     assertEquals("<style ^name=\"AppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
@@ -130,8 +129,8 @@ public class ThemeSelectorTest extends GuiTestCase {
    */
   @Test @IdeGuiTest
   public void testShowAllThemes() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     String selectedTheme = themesComboBox.selectedItem();
@@ -172,8 +171,8 @@ public class ThemeSelectorTest extends GuiTestCase {
    */
   @Test @IdeGuiTest
   public void testCreateNewTheme() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     String selectedTheme = themesComboBox.selectedItem();
@@ -229,18 +228,18 @@ public class ThemeSelectorTest extends GuiTestCase {
     TableCell parentCell = row(0).column(0);
     assertEquals("android:Theme.Holo", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    EditorFixture editor = myProjectFrame.getEditor();
     assertNotEquals(-1, editor.findOffset(null, "name=\"AppTheme", true));
     editor.moveTo(editor.findOffset(null, "name=\"NewTheme", true));
     assertEquals("<style ^name=\"NewTheme\" parent=\"android:Theme.Holo\" />",
                  editor.getCurrentLineContents(true, true, 0));
 
     // Tests Undo
-    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
-    projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
+    myProjectFrame.invokeMenuPathRegex("Edit", "Undo.*");
     themeEditor.waitForThemeSelection("AppTheme");
-    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertEquals(-1, editor.findOffset(null, "name=\"NewTheme", true));
   }
 
