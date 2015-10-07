@@ -108,6 +108,7 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
     group.add(new CollapseAllAction(myTree));
     group.addSeparator();
     group.add(new RevealFileAction());
+    group.add(new RenameCaptureFileAction(myTree));
     group.add(new DeleteAction());
     group.addSeparator();
     group.add(new RunHprofConvAndSaveAsAction());
