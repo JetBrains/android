@@ -17,25 +17,18 @@ package com.android.tools.idea.editors.gfxtrace.gapi;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.service.Factory;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.Charset;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class GapisProcess {
+public class GapisProcess extends ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   public static final GapisProcess INSTANCE = new GapisProcess();
   private static final GapisConnection NOT_CONNECTED = new GapisConnection(INSTANCE, null);
@@ -45,11 +38,37 @@ public class GapisProcess {
   private static final String SERVER_HOST = "localhost";
 
   private final Set<GapisConnection> myConnections = Sets.newIdentityHashSet();
-  private Thread myServerThread;
-  private int myPort;
 
   private GapisProcess() {
+    super("gapis");
     Factory.register();
+  }
+
+  @Override
+  protected boolean prepare(ProcessBuilder pb) {
+    if (!GapiPaths.isValid()) {
+      LOG.warn("Could not find gapis, but needed to start the server.");
+      return false;
+    }
+    pb.command(GapiPaths.gapis().getAbsolutePath(), "-shutdown_on_disconnect", "-rpc", SERVER_HOST + ":" + port(), "-logs",
+               PathManager.getLogPath());
+    // Add the server's directory to the path.  This allows the server to find and launch the gapir.
+    // TODO: not needed when android studio starts gapir instead
+    Map<String, String> env = pb.environment();
+    String path = env.get("PATH");
+    path = GapiPaths.gapis().getParentFile().getAbsolutePath() + File.pathSeparator + path;
+    env.put("PATH", path);
+    return true;
+  }
+
+  @Override
+  protected void onExit(int code) {
+    if (code != 0) {
+      LOG.warn("The gapis process exited with a non-zero exit value: " + code);
+    }
+    else {
+      LOG.info("gapis exited cleanly");
+    }
   }
 
   /**
@@ -62,8 +81,8 @@ public class GapisProcess {
    */
   public GapisConnection connect() {
     synchronized (this) {
-      if (!isServerRunning()) {
-        if (!launchServer()) {
+      if (!isRunning()) {
+        if (!start()) {
           return NOT_CONNECTED;
         }
       }
@@ -75,7 +94,7 @@ public class GapisProcess {
     try {
       for (int waitTime = 0; waitTime < SERVER_LAUNCH_TIMEOUT_MS; waitTime += SERVER_LAUNCH_SLEEP_INCREMENT_MS) {
         if ((connection = attemptToConnect()).isConnected()) {
-          LOG.info("Established a new client connection to " + myPort);
+          LOG.info("Established a new client connection to " + port());
           break;
         }
         Thread.sleep(SERVER_LAUNCH_SLEEP_INCREMENT_MS);
@@ -92,14 +111,14 @@ public class GapisProcess {
       myConnections.remove(gapisConnection);
       if (myConnections.isEmpty()) {
         LOG.info("Interrupting server thread on last connection close");
-        myServerThread.interrupt();
+        shutdown();
       }
     }
   }
 
   private GapisConnection attemptToConnect() {
     try {
-      GapisConnection connection = new GapisConnection(this, new Socket(SERVER_HOST, myPort));
+      GapisConnection connection = new GapisConnection(this, new Socket(SERVER_HOST, port()));
       synchronized (myConnections) {
         myConnections.add(connection);
       }
@@ -108,104 +127,5 @@ public class GapisProcess {
     catch (IOException ignored) {
     }
     return NOT_CONNECTED;
-  }
-
-  private boolean isServerRunning() {
-    return myServerThread != null && myServerThread.isAlive();
-  }
-
-  private boolean launchServer() {
-    myPort = findFreePort();
-    // The connection failed, so try to start a new instance of the server.
-    if (!GapiPaths.isValid()) {
-      LOG.warn("Could not find gapis, but needed to start the server.");
-      return false;
-    }
-    myServerThread = new Thread() {
-      @Override
-      public void run() {
-        LOG.info("Launching gapis: \"" + GapiPaths.gapis().getAbsolutePath() + "\" on port " + myPort);
-        ProcessBuilder pb = new ProcessBuilder(getCommandAndArgs(GapiPaths.gapis()));
-
-        // Add the server's directory to the path.  This allows the server to find and launch the gapir.
-        // TODO: not needed when android studio starts gapir instead
-        Map<String, String> env = pb.environment();
-        String path = env.get("PATH");
-        path = GapiPaths.gapis().getParentFile().getAbsolutePath() + File.pathSeparator + path;
-        env.put("PATH", path);
-
-        // Use the base directory as the working directory for the server.
-        pb.directory(GapiPaths.base());
-        pb.redirectErrorStream(true);
-
-        Process serverProcess = null;
-        try {
-          // This will throw IOException if the server executable is not found.
-          serverProcess = pb.start();
-          final BufferedReader stdout =
-            new BufferedReader(new InputStreamReader(serverProcess.getInputStream(), Charset.forName("UTF-8")));
-          new Thread() {
-            @Override
-            public void run() {
-              try {
-                for (String line; (line = stdout.readLine()) != null; ) {
-                  LOG.info("gapis: " + line);
-                }
-              }
-              catch (IOException ignored) {
-              }
-            }
-          }.start();
-
-          int exitValue = serverProcess.waitFor();
-          if (exitValue != 0) {
-            LOG.warn("The gapis process exited with a non-zero exit value: " + exitValue);
-          }
-          else {
-            LOG.info("gapis exited cleanly");
-          }
-        }
-        catch (IOException e) {
-          LOG.warn(e);
-        }
-        catch (InterruptedException e) {
-          if (serverProcess != null) {
-            LOG.info("Killing server process");
-            serverProcess.destroy();
-          }
-        }
-      }
-
-      private List<String> getCommandAndArgs(File gapis) {
-        List<String> result = Lists.newArrayList();
-        result.add(gapis.getAbsolutePath());
-        result.add("-shutdown_on_disconnect");
-        result.add("-rpc"); result.add(SERVER_HOST + ":" + myPort);
-        result.add("-logs"); result.add(PathManager.getLogPath());
-        return result;
-      }
-    };
-    myServerThread.start();
-    return true;
-  }
-
-  private static int findFreePort() {
-    ServerSocket socket = null;
-    try {
-      socket = new ServerSocket(0);
-      return socket.getLocalPort();
-    }
-    catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
-    finally {
-      if (socket != null) {
-        try {
-          socket.close();
-        }
-        catch (IOException ignored) {
-        }
-      }
-    }
   }
 }
