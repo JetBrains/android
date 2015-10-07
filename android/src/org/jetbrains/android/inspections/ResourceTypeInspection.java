@@ -1196,13 +1196,37 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           PsiField field = (PsiField)resolved;
           PsiExpression initializer = field.getInitializer();
           if (initializer != null) {
-            return guessSize(initializer);
+            Number number = guessSize(initializer);
+            if (number != null) {
+              // If we're surrounded by an if check involving the variable, then don't validate
+              // based on the initial value since it might be clipped to a valid range
+              PsiIfStatement ifStatement = PsiTreeUtil.getParentOfType(argument, PsiIfStatement.class, true);
+              if (ifStatement != null) {
+                PsiExpression condition = ifStatement.getCondition();
+                if (comparesReference(resolved, condition)) {
+                  return null;
+                }
+              }
+            }
+            return number;
           }
         } else if (resolved instanceof PsiLocalVariable) {
           PsiLocalVariable variable = (PsiLocalVariable) resolved;
           PsiExpression initializer = variable.getInitializer();
           if (initializer != null) {
-            return guessSize(initializer);
+            Number number = guessSize(initializer);
+            if (number != null) {
+              // If we're surrounded by an if check involving the variable, then don't validate
+              // based on the initial value since it might be clipped to a valid range
+              PsiIfStatement ifStatement = PsiTreeUtil.getParentOfType(argument, PsiIfStatement.class, true);
+              if (ifStatement != null) {
+                PsiExpression condition = ifStatement.getCondition();
+                if (comparesReference(resolved, condition)) {
+                  return null;
+                }
+              }
+            }
+            return number;
           }
         }
       } else if (argument instanceof PsiPrefixExpression) {
@@ -2061,7 +2085,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                    @NotNull final RangeAllowedValues allowedValues,
                                    @NotNull final PsiManager manager,
                                    @Nullable final Set<PsiExpression> visited) {
-    int result = isValidRangeExpression(argument, allowedValues, scope, manager, visited);
+    int result = isValidRangeExpression(argument, argument, allowedValues, scope, manager, visited);
     if (result == VALID) {
       return true;
     } else if (result == INVALID) {
@@ -2073,7 +2097,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
       @Override
       public boolean process(PsiExpression expression) {
-        int goodExpression = isValidRangeExpression(expression, allowedValues, scope, manager, visited);
+        int goodExpression = isValidRangeExpression(expression, argument, allowedValues, scope, manager, visited);
         b.set(goodExpression);
         return goodExpression == UNCERTAIN;
       }
@@ -2084,7 +2108,33 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return result != INVALID;
   }
 
+  private static boolean comparesReference(@NotNull PsiElement reference, @Nullable PsiExpression expression) {
+    if (expression instanceof PsiBinaryExpression) {
+      PsiBinaryExpression binary = (PsiBinaryExpression)expression;
+      IElementType tokenType = binary.getOperationTokenType();
+      if (tokenType == JavaTokenType.GE ||
+          tokenType == JavaTokenType.GT ||
+          tokenType == JavaTokenType.LT ||
+          tokenType == JavaTokenType.LE ||
+          tokenType == JavaTokenType.EQ) {
+        PsiExpression lOperand = binary.getLOperand();
+        PsiExpression rOperand = binary.getROperand();
+        if (lOperand instanceof PsiReferenceExpression) {
+          return reference.equals(((PsiReferenceExpression)lOperand).resolve());
+        }
+        if (rOperand instanceof PsiReferenceExpression) {
+          return reference.equals(((PsiReferenceExpression)rOperand).resolve());
+        }
+      } else if (tokenType == JavaTokenType.ANDAND || tokenType == JavaTokenType.OROR) {
+        return comparesReference(reference, binary.getLOperand()) || comparesReference(reference, binary.getROperand());
+      }
+    }
+
+    return false;
+  }
+
   private static int isValidRangeExpression(@NotNull PsiExpression e,
+                                            @Nullable PsiExpression argument,
                                             @NotNull RangeAllowedValues allowedValues,
                                             @NotNull PsiElement scope,
                                             @NotNull PsiManager manager,
@@ -2101,6 +2151,19 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited) ? VALID : UNCERTAIN;
     }
 
+    if (e != argument && argument instanceof PsiReferenceExpression) {
+      PsiIfStatement ifStatement = PsiTreeUtil.getParentOfType(argument, PsiIfStatement.class, true);
+      if (ifStatement != null) {
+        PsiElement resolved = ((PsiReferenceExpression)argument).resolve();
+        if (resolved != null) {
+          PsiExpression condition = ifStatement.getCondition();
+          if (comparesReference(resolved, condition)) {
+            return UNCERTAIN;
+          }
+        }
+      }
+    }
+
     // Range check
     int valid = allowedValues.isValid(expression);
     if (valid != UNCERTAIN) {
@@ -2115,6 +2178,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (field.getInitializer() != null) {
           int fieldValid = allowedValues.isValid(field.getInitializer());
           if (fieldValid != UNCERTAIN) {
+            if (fieldValid == INVALID && argument != null) {
+              PsiIfStatement ifStatement = PsiTreeUtil.getParentOfType(argument, PsiIfStatement.class, true);
+              if (ifStatement != null) {
+                PsiExpression condition = ifStatement.getCondition();
+                if (comparesReference(resolved, condition)) {
+                  return UNCERTAIN;
+                }
+              }
+            }
             return fieldValid;
           }
         }
