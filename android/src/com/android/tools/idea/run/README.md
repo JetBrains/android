@@ -25,8 +25,10 @@ The following steps are taken to actually perform a launch:
 
 1. User first selects a particular configuration. This would be an instance of `AndroidRunConfiguration` (which implements `RunProfile`).
 2. She then clicks on Run/Debug or Profile, each of which corresponds to a different `Executor`.
-3. A `ProgramRunner` is selected based on the above two (configuration + executor). Currently, we have a single `AndroidDebugRunner` that is
-   used for all the supported executors (run and debug).
+3. A `ProgramRunner` is selected based on the above two (configuration + executor). Currently, we have
+     1. An `AndroidDebugRunner` that is used for running and debugging Android Java apps
+     2. An `AndroidNativeDebugRunner` that is used for NDK launches
+   The infrastructure chooses the first runner that `canRun` the given configuration and executor.
 4. An `ExecutionEnvironment` is created, and the `ProgramRunner.execute()` is called.
      1. This results in a call to `RunProfile.getState()`, which maps to `AndroidRunConfiguration.getState()`:
      2. We do a bunch of checks, then pick a device to deploy to, extract other necessary parameters and return an `AndroidRunningState`.
