@@ -83,7 +83,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -1431,7 +1430,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     // Make sure the library was added.
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    final String libraryName = "android-23.org.apache.http.legacy";
+    final String libraryName = "org.apache.http.legacy-android-23";
     final Library library = libraryTable.getLibraryByName(libraryName);
     assertNotNull(library);
 
