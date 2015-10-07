@@ -85,7 +85,7 @@ public class AndroidLogcatFormatterTest {
 
   @Test
   public void emptyFormatMessageLeavesTheSame(){
-    String message = "01-23 45:67:89.000      1234-56/com.dummy.test D/test: Test message";
+    String message = "01-23 12:34:56.789      1234-56/com.dummy.test D/test: Test message";
 
     AndroidLogcatPreferences preferences = new AndroidLogcatPreferences();
     AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(preferences);
