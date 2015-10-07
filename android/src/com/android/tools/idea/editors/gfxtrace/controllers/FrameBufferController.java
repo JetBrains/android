@@ -29,6 +29,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -62,15 +63,15 @@ public class FrameBufferController extends ImagePanelController {
 
   private DefaultActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new FramebufferTypeAction(this, BufferType.Color, "Color", "Display the color framebuffer", AllIcons.Gutter.Colors));
-    group.add(new FramebufferTypeAction(this, BufferType.Depth, "Depth", "Display the depth framebuffer", AllIcons.Gutter.OverridenMethod));
+    group.add(new FramebufferTypeAction(this, BufferType.Color, "Color", "Display the color framebuffer", AndroidIcons.GfxTrace.ColorBuffer));
+    group.add(new FramebufferTypeAction(this, BufferType.Depth, "Depth", "Display the depth framebuffer", AndroidIcons.GfxTrace.DepthBuffer));
     group.add(new Separator());
     group.add(new FramebufferWireframeAction(this, WireframeMode.noWireframe(), "None", "Display the frambuffer without wireframing",
-                                             AllIcons.Ide.Macro.Recording_1));
+                                             AndroidIcons.GfxTrace.WireframeNone));
     group.add(new FramebufferWireframeAction(this, WireframeMode.wireframeOverlay(), "Overlay", "Wireframe the last draw call only",
-                                             AllIcons.Gutter.Unique));
+                                             AndroidIcons.GfxTrace.WireframeOverlay));
     group.add(new FramebufferWireframeAction(this, WireframeMode.allWireframe(), "All", "Draw the framebuffer with full wireframing",
-                                             AllIcons.Graph.Grid));
+                                             AndroidIcons.GfxTrace.WireframeAll));
     group.add(new Separator());
     return group;
   }
