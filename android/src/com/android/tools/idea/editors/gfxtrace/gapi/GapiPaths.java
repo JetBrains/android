@@ -44,6 +44,7 @@ public final class GapiPaths {
   @NotNull private static final String HOST_DIR;
   @NotNull private static final String SERVER_EXECUTABLE_NAME;
   @NotNull private static final String GAPII_LIBRARY_NAME;
+  @NotNull private static final String PKG_INFO_NAME = "pkginfo.apk";
 
   static {
     HOST_OS = System.getProperty("os.name");
@@ -75,6 +76,11 @@ public final class GapiPaths {
   @NotNull
   static public File findTraceLibrary(@NotNull String abi) throws IOException {
     return handler().findTraceLibrary(abi);
+  }
+
+  @NotNull
+  static public File findPkgInfoApk() {
+    return handler().findPkgInfoApk();
   }
 
   @NotNull
@@ -148,6 +154,9 @@ public final class GapiPaths {
 
     @NotNull
     public abstract File findTraceLibrary(@NotNull String abi) throws IOException;
+
+    @NotNull
+    public abstract File  findPkgInfoApk();
   }
 
   private static class PluginHandler extends Handler {
@@ -164,6 +173,12 @@ public final class GapiPaths {
         throw new IOException("Unsupported gapii abi '" + abi + "'");
       }
       return new File(abiPath, GAPII_LIBRARY_NAME);
+    }
+
+    @Override
+    @NotNull
+    public File findPkgInfoApk() {
+      return new File(new File(base(), "android"), PKG_INFO_NAME);
     }
   }
 
@@ -186,6 +201,12 @@ public final class GapiPaths {
       }
       File flavourPath = new File(abiPath, GAPII_LIBRARY_FLAVOUR);
       return new File(flavourPath, GAPII_LIBRARY_NAME);
+    }
+
+    @Override
+    @NotNull
+    public File findPkgInfoApk() {
+      return new File(new File(base(), SERVER_RELATIVE_PATH), PKG_INFO_NAME);
     }
   }
 }
