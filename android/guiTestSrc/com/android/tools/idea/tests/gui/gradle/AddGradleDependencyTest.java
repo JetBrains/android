@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
@@ -41,8 +40,6 @@ import static org.fest.assertions.Assertions.assertThat;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class AddGradleDependencyTest extends GuiTestCase {
-  private IdeFrameFixture myProjectFrame;
-
   @Test @IdeGuiTest
   public void testAddProdModuleDependency() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");

@@ -18,13 +18,11 @@ package com.android.tools.idea.tests.gui.theme;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import org.fest.assertions.Index;
-import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -50,9 +48,9 @@ public class ThemeEditorTest extends GuiTestCase {
   /**
    * Checks that no errors are present in the event log
    */
-  private static void checkNoErrors(@NotNull IdeFrameFixture projectFrame) {
-    projectFrame.robot().waitForIdle();
-    for(Notification notification : EventLog.getLogModel(projectFrame.getProject()).getNotifications()) {
+  private void checkNoErrors() {
+    myProjectFrame.robot().waitForIdle();
+    for(Notification notification : EventLog.getLogModel(myProjectFrame.getProject()).getNotifications()) {
       assertThat(notification.getType()).isNotEqualTo(NotificationType.ERROR);
     }
   }
@@ -60,8 +58,8 @@ public class ThemeEditorTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testOpenProject() throws IOException {
     // Test that we can open the simple application and the theme editor opens correctly
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
     // Search is empty
     themeEditor.getThemePreviewPanel().getSearchTextField().requireText("");
@@ -92,14 +90,14 @@ public class ThemeEditorTest extends GuiTestCase {
     // Check the attributes table is populated
     assertThat(themeEditor.getPropertiesTable().rowCount()).isGreaterThan(0);
 
-    projectFrame.getEditor().close();
-    checkNoErrors(projectFrame);
+    myProjectFrame.getEditor().close();
+    checkNoErrors();
   }
 
   @Test @IdeGuiTest
   public void testConfigurationToolbar() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
     JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
     myRobot.click(apiButton);

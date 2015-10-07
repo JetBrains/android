@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityS
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.ContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import org.intellij.lang.annotations.Language;
@@ -60,12 +59,12 @@ public class ComponentVersionCheckTest extends GuiTestCase {
                       "  </check>\n" +
                       "</compatibility>";
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    myProjectFrame = importSimpleApplication();
 
-    projectFrame.updateAndroidModelVersion("1.0.0")
-                .requestProjectSync().waitForGradleProjectSyncToFinish();
+    myProjectFrame.updateAndroidModelVersion("1.0.0")
+                  .requestProjectSync().waitForGradleProjectSyncToFinish();
 
-    ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.2.0"));
 
     String text = message.getText();
@@ -92,9 +91,9 @@ public class ComponentVersionCheckTest extends GuiTestCase {
                       "  </check>\n" +
                       "</compatiblity>\n";
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    myProjectFrame = importSimpleApplication();
 
-    ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message = syncMessages.findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' 19.1.0 requires Android Gradle plugin 1.3.0"));
 
     String text = message.getText();
