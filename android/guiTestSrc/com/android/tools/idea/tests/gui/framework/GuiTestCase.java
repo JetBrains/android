@@ -31,6 +31,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.WindowManagerImpl;
@@ -83,6 +84,8 @@ public abstract class GuiTestCase {
   @SuppressWarnings("UnusedDeclaration") // This field is set via reflection.
   private String myTestName;
 
+  protected IdeFrameFixture myProjectFrame;
+
   /**
    * @return the name of the test method being executed.
    */
@@ -106,6 +109,8 @@ public abstract class GuiTestCase {
     myRobot.settings().delayBetweenEvents(30);
 
     setIdeSettings();
+
+    LocalFileSystem.getInstance().refresh(false /* synchronous */);
   }
 
   private static void setIdeSettings() {
@@ -126,6 +131,9 @@ public abstract class GuiTestCase {
 
   @After
   public void tearDown() {
+    if (myProjectFrame != null) {
+      myProjectFrame.waitForBackgroundTasksToFinish();
+    }
     if (myRobot != null) {
       myRobot.cleanUpWithoutDisposingWindows();
     }

@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture.ContentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.UnitTestTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -28,9 +27,8 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@BelongsToTestGroups({TestGroup.UNIT_TESTING, TestGroup.PROJECT_SUPPORT})
+@BelongsToTestGroups({TestGroup.TEST_SUPPORT, TestGroup.PROJECT_SUPPORT})
 public class UnitTestingSupportTest extends GuiTestCase {
-  protected IdeFrameFixture myProjectFrame;
   private EditorFixture myEditor;
 
   @Test @IdeGuiTest

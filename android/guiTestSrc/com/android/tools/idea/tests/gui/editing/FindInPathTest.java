@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FindDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FindToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.junit.Test;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
@@ -30,15 +29,15 @@ public class FindInPathTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testResultsOnlyInGeneratedCode() throws Exception {
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    myProjectFrame = importSimpleApplication();
 
-    FindDialogFixture findDialog = projectFrame.invokeFindInPathDialog();
+    FindDialogFixture findDialog = myProjectFrame.invokeFindInPathDialog();
     findDialog.setTextToFind("ActionBarDivider")
               .clickFind();
 
-    projectFrame.waitForBackgroundTasksToFinish();
+    myProjectFrame.waitForBackgroundTasksToFinish();
 
-    FindToolWindowFixture findToolWindow = projectFrame.getFindToolWindow();
+    FindToolWindowFixture findToolWindow = myProjectFrame.getFindToolWindow();
     FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
 
     selectedContext.findUsagesInGeneratedCodeGroup();
@@ -46,15 +45,15 @@ public class FindInPathTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    myProjectFrame = importSimpleApplication();
 
-    FindDialogFixture findDialog = projectFrame.invokeFindInPathDialog();
+    FindDialogFixture findDialog = myProjectFrame.invokeFindInPathDialog();
     findDialog.setTextToFind("DarkActionBar")
               .clickFind();
 
-    projectFrame.waitForBackgroundTasksToFinish();
+    myProjectFrame.waitForBackgroundTasksToFinish();
 
-    FindToolWindowFixture findToolWindow = projectFrame.getFindToolWindow();
+    FindToolWindowFixture findToolWindow = myProjectFrame.getFindToolWindow();
     FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
 
     selectedContext.findUsagesInGeneratedCodeGroup();

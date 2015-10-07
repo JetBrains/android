@@ -143,7 +143,6 @@ public class GradleSyncTest extends GuiTestCase {
   private static final String GRADLE_SETTINGS_DIALOG_TITLE = "Gradle Settings";
   private static final String GRADLE_SYNC_DIALOG_TITLE = "Gradle Sync";
 
-  private IdeFrameFixture myProjectFrame;
   private File myAndroidRepoPath;
   private File myAndroidRepoTempPath;
 
@@ -155,18 +154,6 @@ public class GradleSyncTest extends GuiTestCase {
 
     if (!myAndroidRepoPath.isDirectory() && myAndroidRepoTempPath.isDirectory()) {
       rename(myAndroidRepoTempPath, myAndroidRepoPath);
-    }
-  }
-
-  @Before
-  public void refreshFileSystem() {
-    LocalFileSystem.getInstance().refresh(false /* synchronous */);
-  }
-
-  @After
-  public void closeProject() {
-    if (myProjectFrame != null) {
-      myProjectFrame.waitForBackgroundTasksToFinish();
     }
   }
 
