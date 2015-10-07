@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.theme;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.LogModel;
@@ -48,8 +47,8 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
   @Test
   @IdeGuiTest
   public void testMultipleModules() throws IOException {
-    final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
-    final ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
+    final ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
     assertThat(themeEditor.getModulesList(), containsInAnyOrder("app", "library", "library2", "library3", "nothemeslibrary"));
     final JComboBoxFixture modulesComboBox = themeEditor.getModulesComboBox();
@@ -79,8 +78,8 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
   @Test
   @IdeGuiTest
   public void testModuleWithoutThemes() throws IOException {
-    final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
-    final ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
+    final ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
     final JComboBoxFixture modulesComboBox = themeEditor.getModulesComboBox();
 
@@ -91,7 +90,7 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
     modulesComboBox.selectItem("nothemeslibrary");
     myRobot.waitForIdle();
 
-    final LogModel logModel = EventLog.getLogModel(projectFrame.getProject());
+    final LogModel logModel = EventLog.getLogModel(myProjectFrame.getProject());
     assertThat(logModel.getNotifications(), everyItem(new BaseMatcher<Notification>() {
       @Override
       public void describeTo(Description description) {

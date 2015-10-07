@@ -25,7 +25,6 @@ import org.junit.Test;
 import static junit.framework.Assert.assertNull;
 
 public class GuiTestRunnerTest extends GuiTestCase {
-
   Robot originalRobot;
 
   @Before
