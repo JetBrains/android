@@ -21,7 +21,6 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryPointer;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
-import com.android.tools.rpclib.schema.AnyType;
 import com.android.tools.rpclib.schema.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.SimpleColoredComponent;
