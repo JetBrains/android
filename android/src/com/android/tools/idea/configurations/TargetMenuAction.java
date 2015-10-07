@@ -42,6 +42,9 @@ import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.android.tools.idea.configurations.Configuration.PREFERENCES_MIN_API;
 
 public class TargetMenuAction extends FlatComboAction {
+  // We don't show ancient rendering targets, they're pretty broken
+  private static final int SHOW_FROM_API_LEVEL = 7;
+
   private final RenderContext myRenderContext;
   private final boolean myUseCompatibilityTarget;
 
@@ -87,32 +90,47 @@ public class TargetMenuAction extends FlatComboAction {
     }
   }
 
-  @Override
-  @NotNull
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
-    DefaultActionGroup group = new DefaultActionGroup(null, true);
+  /**
+   * @return Minimum Sdk Version if defined in the module, otherwise -1
+   */
+  private int getMinSdkVersion() {
+    Module module = myRenderContext.getModule();
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        return facet.getAndroidModuleInfo().getMinSdkVersion().getFeatureLevel();
+      }
+    }
+    return -1;
+  }
+
+  private void addCompatibilityTargets(@NotNull DefaultActionGroup group) {
+    Configuration configuration = myRenderContext.getConfiguration();
+    assert configuration != null;
+
+    IAndroidTarget currentTarget = configuration.getTarget();
+    IAndroidTarget highestTarget = configuration.getConfigurationManager().getHighestApiTarget();
+    assert highestTarget != null;
+
+    int highestApiLevel = highestTarget.getVersion().getFeatureLevel();
+    int minApi = Math.max(getMinSdkVersion(), SHOW_FROM_API_LEVEL);
+    for (int apiLevel = highestApiLevel; apiLevel >= minApi; apiLevel--) {
+      IAndroidTarget target = new CompatibilityRenderTarget(highestTarget, apiLevel, null);
+      boolean isSelected = target.getVersion().equals(currentTarget.getVersion());
+      group.add(new SetTargetAction(myRenderContext, target.getVersionName(), target, isSelected));
+    }
+  }
+
+  private void addRealTargets(@NotNull DefaultActionGroup group) {
 
     Configuration configuration = myRenderContext.getConfiguration();
-    if (configuration == null) {
-      return group;
-    }
-
-    group.add(new TogglePickBestAction(configuration.getConfigurationManager()));
-    group.addSeparator();
+    assert configuration != null;
 
     IAndroidTarget current = configuration.getTarget();
     IAndroidTarget[] targets = configuration.getConfigurationManager().getTargets();
 
     boolean haveRecent = false;
-
-    Module module = myRenderContext.getModule();
-    int minSdk = -1;
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        minSdk = facet.getAndroidModuleInfo().getMinSdkVersion().getFeatureLevel();
-      }
-    }
+    int minSdk = getMinSdkVersion();
 
     for (int i = targets.length - 1; i >= 0; i--) {
       IAndroidTarget target = targets[i];
@@ -128,7 +146,7 @@ public class TargetMenuAction extends FlatComboAction {
       if (version.getFeatureLevel() < minSdk) {
         continue;
       }
-      if (version.getApiLevel() >= 7) {
+      if (version.getApiLevel() >= SHOW_FROM_API_LEVEL) {
         haveRecent = true;
       }
       else if (haveRecent) {
@@ -139,13 +157,27 @@ public class TargetMenuAction extends FlatComboAction {
 
       String title = getRenderingTargetLabel(target, false);
       boolean select = current == target;
-
-      if (myUseCompatibilityTarget && configuration.getConfigurationManager().getHighestApiTarget() != null) {
-        target = new CompatibilityRenderTarget(configuration.getConfigurationManager().getHighestApiTarget(),
-                                               target.getVersion().getFeatureLevel(),
-                                               target);
-      }
       group.add(new SetTargetAction(myRenderContext, title, target, select));
+    }
+
+  }
+
+  @Override
+  @NotNull
+  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+    DefaultActionGroup group = new DefaultActionGroup(null, true);
+    Configuration configuration = myRenderContext.getConfiguration();
+    if (configuration == null) {
+      return group;
+    }
+
+    group.add(new TogglePickBestAction(configuration.getConfigurationManager()));
+    group.addSeparator();
+
+    if (myUseCompatibilityTarget && configuration.getConfigurationManager().getHighestApiTarget() != null) {
+      addCompatibilityTargets(group);
+    } else {
+      addRealTargets(group);
     }
 
     group.addSeparator();
