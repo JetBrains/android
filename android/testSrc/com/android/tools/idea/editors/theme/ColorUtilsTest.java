@@ -16,14 +16,17 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.awt.*;
 import java.util.Collection;
+import java.util.HashMap;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+@SuppressWarnings("InspectionUsingGrayColors")
 public class ColorUtilsTest extends AndroidTestCase {
   public void testCalculateContrastRatio() {
     assertEquals(21.0, ColorUtils.calculateContrastRatio(Color.BLACK, Color.WHITE), 0.01);
@@ -42,25 +45,46 @@ public class ColorUtilsTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_low_contrast.xml", "res/values/styles.xml");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
     ThemeEditorContext context = new ThemeEditorContext(configuration);
-    context.setCurrentTheme(context.getThemeResolver().getTheme("Theme.MyTheme"));
+    context.setCurrentTheme(context.getThemeResolver().getTheme("MyTheme"));
+
+    ImmutableMap<String, Color> textColorContrastColors = ColorUtils.getContrastColorsWithWarning(context, "textColor");
+    ImmutableMap<String, Color> colorPrimaryContrastColors = ColorUtils.getContrastColorsWithWarning(context, "colorPrimary");
 
     assertEquals("<html>Not enough contrast with <b>colorPrimary</b>", ColorUtils
-      .getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "textColor"), Color.WHITE));
-    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "textColor"), Color.BLACK));
+      .getContrastWarningMessage(textColorContrastColors, Color.WHITE, ColorUtils.isBackgroundAttribute("textColor")));
+    assertEquals("", ColorUtils.getContrastWarningMessage(textColorContrastColors, Color.BLACK, ColorUtils.isBackgroundAttribute("textColor")));
     assertEquals("<html>Not enough contrast with <b>textColor</b> and <b>textColorPrimary</b>",
-                 ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "colorPrimary"), Color.WHITE));
-    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "colorPrimary"), Color.BLACK));
+                 ColorUtils.getContrastWarningMessage(colorPrimaryContrastColors, Color.WHITE, ColorUtils.isBackgroundAttribute("colorPrimary")));
+    assertEquals("", ColorUtils.getContrastWarningMessage(colorPrimaryContrastColors, Color.BLACK, ColorUtils.isBackgroundAttribute("colorPrimary")));
 
     // Test non existing attribute names
-    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, ""), Color.WHITE));
-    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "invented"), Color.WHITE));
+    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, ""), Color.WHITE, false));
+    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "invented"), Color.WHITE, true));
+
+    // Test transparent colors
+    assertEquals("<html>Not enough contrast with <b>colorPrimary</b>", ColorUtils
+      .getContrastWarningMessage(textColorContrastColors, new Color(0, 0, 0, 50), ColorUtils.isBackgroundAttribute("textColor")));
+    assertEquals("", ColorUtils
+      .getContrastWarningMessage(textColorContrastColors, new Color(0, 0, 0, 250), ColorUtils.isBackgroundAttribute("textColor")));
+
+    HashMap<String, Color> colorsWithWarning = new HashMap<String, Color>();
+    colorsWithWarning.put("color very transparent", new Color(0, 0, 0, 50));
+    colorsWithWarning.put("color a little transparent", new Color(0, 0, 0, 200));
+    assertEquals("<html>Not enough contrast with color very transparent",
+                 ColorUtils.getContrastWarningMessage(colorsWithWarning, new Color(255, 255, 255, 200), false));
+    assertEquals("<html>Not enough contrast with color very transparent and color a little transparent",
+                 ColorUtils.getContrastWarningMessage(colorsWithWarning, new Color(255, 0, 0, 200), false));
+    assertEquals("<html>Not enough contrast with color very transparent",
+                 ColorUtils.getContrastWarningMessage(colorsWithWarning, new Color(255, 0, 0), false));
+    assertEquals("<html>Not enough contrast with color very transparent",
+                 ColorUtils.getContrastWarningMessage(colorsWithWarning, new Color(0, 255, 0, 200), false));
   }
 
   public void testContrastColors() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_low_contrast.xml", "res/values/styles.xml");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
     ThemeEditorContext context = new ThemeEditorContext(configuration);
-    context.setCurrentTheme(context.getThemeResolver().getTheme("Theme.MyTheme"));
+    context.setCurrentTheme(context.getThemeResolver().getTheme("MyTheme"));
 
     Collection<Color>
       color = ColorUtils.getContrastColorsWithWarning(context, "colorPrimary").values();
@@ -74,5 +98,21 @@ public class ColorUtilsTest extends AndroidTestCase {
     assertThat(color).isEmpty();
     color = ColorUtils.getContrastColorsWithWarning(context, "notExistent").values();
     assertThat(color).isEmpty();
+  }
+
+  public void testWorstContrastColor() {
+    assertEquals(new Color(48, 78, 241), ColorUtils.worstContrastColor(new Color(48, 78, 241, 15), new Color(120, 46, 97, 0)));
+    assertEquals(new Color(0, 0, 0), ColorUtils.worstContrastColor(new Color(48, 78, 241, 15), new Color(120, 46, 97, 255)));
+    assertEquals(new Color(0, 255, 177), ColorUtils.worstContrastColor(new Color(10, 150, 100, 15), new Color(100, 10, 50, 155)));
+    assertEquals(new Color(0, 255, 177), ColorUtils.worstContrastColor(new Color(10, 150, 100, 200), new Color(100, 10, 50, 155)));
+  }
+
+  public void testAlphaBlending() {
+    assertEquals(new Color(48, 78, 241, 15), ColorUtils.alphaBlending(new Color(48, 78, 241, 15), new Color(120, 46, 97, 0)));
+    assertEquals(new Color(255, 255, 255, 0), ColorUtils.alphaBlending(new Color(48, 78, 241, 0), new Color(120, 46, 97, 0)));
+    assertEquals(new Color(120, 46, 97, 24), ColorUtils.alphaBlending(new Color(48, 78, 241, 0), new Color(120, 46, 97, 24)));
+    assertEquals(new Color(48, 78, 241, 255), ColorUtils.alphaBlending(new Color(48, 78, 241, 255), new Color(120, 46, 97, 24)));
+    assertEquals(new Color(116, 48, 105, 255), ColorUtils.alphaBlending(new Color(48, 78, 241, 15), new Color(120, 46, 97, 255)));
+    assertEquals(new Color(91, 59, 154, 38), ColorUtils.alphaBlending(new Color(48, 78, 241, 15), new Color(120, 46, 97, 24)));
   }
 }
