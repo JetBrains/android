@@ -28,7 +28,6 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.AsyncProcessIcon;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,7 +38,6 @@ import java.util.Set;
 
 import static com.android.tools.idea.npw.FormFactorApiComboBox.AndroidTargetComboBoxItem;
 import static com.android.tools.idea.npw.FormFactorUtils.*;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
@@ -50,7 +48,6 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
  * parameters.
  */
 public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescription {
-  public static final String MIN_SDK_STRING = "Minimum SDK";
   public static final Key<Integer> NUM_ENABLED_FORM_FACTORS_KEY = createKey("NumberOfEnabledFormFactors", WIZARD, Integer.class);
 
   private JPanel myPanel;
@@ -59,7 +56,6 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private final List<FormFactorSdkControls> myControls = Lists.newArrayList();
 
   private Map<FormFactor, Integer> myFormFactors = Maps.newTreeMap();
-  private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private Disposable myDisposable;
   private Map<FormFactor, FormFactorSdkControls> myFormFactorApiSelectors = Maps.newHashMap();
 
@@ -208,24 +204,6 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   @Override
   public String getStepName() {
     return "Configure Form Factors";
-  }
-
-  @Nullable
-  public String getHelpText(@NotNull String param) {
-    if (param.equals(ATTR_MIN_API)) {
-      return "Choose the lowest version of Android that your application will support. Lower API levels target more devices, " +
-             "but means fewer features are available. By targeting API 10 and later, you reach approximately 99% of the market.";
-    } else if (param.equals(ATTR_TARGET_API)) {
-      return "Choose the highest API level that the application is known to work with. This attribute informs the system that you have " +
-             "tested against the target version and the system should not enable any compatibility behaviors to maintain your app's " +
-             "forward-compatibility with the target version. The application is still able to run on older versions (down to " +
-             "minSdkVersion). Your application may look dated if you are not targeting the current version.";
-    } else if (param.equals(ATTR_BUILD_API)) {
-      return "Choose a target API to compile your code against, from your installed SDKs. This is typically the most recent version, " +
-             "or the first version that supports all the APIs you want to directly access without reflection.";
-    } else {
-      return null;
-    }
   }
 
   @Override
