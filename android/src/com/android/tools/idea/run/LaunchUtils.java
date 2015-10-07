@@ -16,6 +16,9 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.NullOutputReceiver;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.execution.ExecutionManager;
@@ -27,6 +30,7 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.wm.ToolWindow;
@@ -44,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class LaunchUtils {
   /** Returns whether the given application can be debugged on the given device. */
@@ -174,5 +179,27 @@ public class LaunchUtils {
         return group;
       }
     });
+  }
+
+  public static void initiateDismissKeyguard(@NotNull final IDevice device) {
+    // From Version 23 onwards (in the emulator, possibly later on devices), we can dismiss the keyguard
+    // with "adb shell wm dismiss-keyguard". This allows the application to show up without the user having
+    // to manually dismiss the keyguard.
+    final AndroidVersion canDismissKeyguard = new AndroidVersion(23, null);
+    if (canDismissKeyguard.compareTo(DevicePropertyUtil.getDeviceVersion(device)) <= 0) {
+      // It is not necessary to wait for the keyguard to be dismissed. On a slow emulator, this seems
+      // to take a while (6s on my machine)
+      ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            device.executeShellCommand("wm dismiss-keyguard", new NullOutputReceiver(), 10, TimeUnit.SECONDS);
+          }
+          catch (Exception e) {
+            Logger.getInstance(LaunchUtils.class).warn("Unable to dismiss keyguard before launching activity");
+          }
+        }
+      });
+    }
   }
 }
