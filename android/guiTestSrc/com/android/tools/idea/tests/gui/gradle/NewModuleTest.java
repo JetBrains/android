@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
+import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.ui.ASGallery;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.matcher.DialogMatcher;
@@ -36,17 +38,17 @@ import static org.junit.Assert.*;
 /**
  * Tests, that newly generated modules work, even with older gradle plugin versions.
  */
-@BelongsToTestGroups({TestGroup.UNIT_TESTING})
+@BelongsToTestGroups({TestGroup.TEST_SUPPORT})
 public class NewModuleTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testNewModuleOldGradle() throws Exception {
-    final IdeFrameFixture ideFrameFixture = importSimpleApplication();
-    ideFrameFixture.updateAndroidModelVersion("1.0.0");
+    myProjectFrame = importSimpleApplication();
+    myProjectFrame.updateAndroidModelVersion("1.0.0");
 
-    ideFrameFixture.requestProjectSync();
-    ideFrameFixture.waitForGradleProjectSyncToFinish();
+    myProjectFrame.requestProjectSync();
+    myProjectFrame.waitForGradleProjectSyncToFinish();
 
-    ideFrameFixture.invokeMenuPath("File", "New", "New Module...");
+    myProjectFrame.invokeMenuPath("File", "New", "New Module...");
     Dialog dialog = myRobot.finder().find(DialogMatcher.withTitle("Create New Module"));
     DialogFixture dialogFixture = new DialogFixture(myRobot, dialog);
 
@@ -54,17 +56,17 @@ public class NewModuleTest extends GuiTestCase {
     findAndClickButton(dialogFixture, "Next");
     findAndClickButton(dialogFixture, "Next");
     selectItemInGallery(dialog, 0);
-    ideFrameFixture.waitForBackgroundTasksToFinish();
+    myProjectFrame.waitForBackgroundTasksToFinish();
     findAndClickButtonWhenEnabled(dialogFixture, "Finish");
 
-    ideFrameFixture.waitForGradleProjectSyncToFinish();
+    myProjectFrame.waitForGradleProjectSyncToFinish();
 
     // Sync worked, so that's good. Just make sure we didn't generate "testCompile" in build.gradle
-    EditorFixture editor = ideFrameFixture.getEditor();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("mylibrary/build.gradle");
     assertEquals(-1, editor.findOffset("test", "Compile", true));
 
-    VirtualFile projectDir = ideFrameFixture.getProject().getBaseDir();
+    VirtualFile projectDir = myProjectFrame.getProject().getBaseDir();
     assertNotNull(projectDir.findFileByRelativePath("mylibrary/src/main"));
     assertNull(projectDir.findFileByRelativePath("mylibrary/src/test"));
   }

@@ -21,14 +21,14 @@ import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Test;
 
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
@@ -36,17 +36,16 @@ public class HprofEditorTest extends GuiTestCase {
   private static final String SAMPLE_SNAPSHOT_NAME = "snapshot.hprof";
   private static final String CAPTURES_APPLICATION = "CapturesApplication";
 
-  private IdeFrameFixture myIdeFrameFixture;
   private CapturesToolWindowFixture myCapturesToolWindowFixture;
   private HprofEditorFixture myDefaultEditor;
 
   // TODO: Change this method to use the @Before annotation when it is fixed to work with GUI tests.
   public void init() throws IOException {
-    myIdeFrameFixture = importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
 
-    myCapturesToolWindowFixture = myIdeFrameFixture.getCapturesToolWindow();
+    myCapturesToolWindowFixture = myProjectFrame.getCapturesToolWindow();
     myCapturesToolWindowFixture.openFile(SAMPLE_SNAPSHOT_NAME);
-    myDefaultEditor = HprofEditorFixture.findByFileName(myRobot, myIdeFrameFixture, SAMPLE_SNAPSHOT_NAME);
+    myDefaultEditor = HprofEditorFixture.findByFileName(myRobot, myProjectFrame, SAMPLE_SNAPSHOT_NAME);
   }
 
   @Test

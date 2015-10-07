@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.pom.java.LanguageLevel;
 import org.fest.swing.edt.GuiTask;
@@ -32,17 +31,15 @@ import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class GradleDslJavaProjectParsingTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSetSourceCompatibility() throws IOException {
-    final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    final GradleBuildModel buildModel = projectFrame.parseBuildFileForModule("library2", true).getTarget();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    final GradleBuildModel buildModel = myProjectFrame.parseBuildFileForModule("library2", true).getTarget();
 
     final JavaProjectElement javaProject = buildModel.getExtendedDslElement(JavaProjectElement.class);
     assertNotNull(javaProject);
@@ -55,7 +52,7 @@ public class GradleDslJavaProjectParsingTest extends GuiTestCase {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        WriteCommandAction.runWriteCommandAction(projectFrame.getProject(), new Runnable() {
+        WriteCommandAction.runWriteCommandAction(myProjectFrame.getProject(), new Runnable() {
           @Override
           public void run() {
             sourceCompatibility.setVersion(LanguageLevel.JDK_1_7);
@@ -79,8 +76,8 @@ public class GradleDslJavaProjectParsingTest extends GuiTestCase {
    */
   @Test @IdeGuiTest
   public void testAddNonExistedTargetCompatibility() throws IOException {
-    final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    final GradleBuildModel buildModel = projectFrame.parseBuildFileForModule("library2", true).getTarget();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    final GradleBuildModel buildModel = myProjectFrame.parseBuildFileForModule("library2", true).getTarget();
 
     final JavaProjectElement javaProject = buildModel.getExtendedDslElement(JavaProjectElement.class);
     assertNotNull(javaProject);
@@ -95,7 +92,7 @@ public class GradleDslJavaProjectParsingTest extends GuiTestCase {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        WriteCommandAction.runWriteCommandAction(projectFrame.getProject(), new Runnable() {
+        WriteCommandAction.runWriteCommandAction(myProjectFrame.getProject(), new Runnable() {
           @Override
           public void run() {
             javaProject.addTargetCompatibility();
