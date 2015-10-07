@@ -252,11 +252,15 @@ public class AtomController extends TreeController {
                 if (lastShownBalloon != null) {
                   lastShownBalloon.hide();
                 }
-                lastShownBalloon = JBPopupFactory.getInstance().createBalloonBuilder(new PreviewPanel(
-                    group.getThumbnail(myEditor.getClient(), myRenderDevice.getPath(), myAtomsPath.getPath())))
-                  .setAnimationCycle(100)
-                  .createBalloon();
-                lastShownBalloon.show(new RelativePoint(myTree, new Point(x, y)), Balloon.Position.atRight);
+                DevicePath device = myRenderDevice.getPath();
+                AtomsPath atoms = myAtomsPath.getPath();
+                if (device != null && atoms != null) {
+                  lastShownBalloon = JBPopupFactory.getInstance().createBalloonBuilder(new PreviewPanel(
+                      group.getThumbnail(myEditor.getClient(), device, atoms)))
+                    .setAnimationCycle(100)
+                    .createBalloon();
+                  lastShownBalloon.show(new RelativePoint(myTree, new Point(x, y)), Balloon.Position.atRight);
+                }
               }
             }
           }
@@ -316,11 +320,13 @@ public class AtomController extends TreeController {
           @NotNull final JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
         Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
-        if (userObject instanceof Group && myRenderDevice != null) {
+        DevicePath device = myRenderDevice.getPath();
+        AtomsPath atoms = myAtomsPath.getPath();
+        if (userObject instanceof Group && device != null && atoms != null) {
           Group group = (Group)userObject;
           if (shouldShowPreview(group)) {
             ListenableFuture<FetchedImage> iconFuture =
-              group.getThumbnail(myEditor.getClient(), myRenderDevice.getPath(), myAtomsPath.getPath());
+              group.getThumbnail(myEditor.getClient(), device, atoms);
             final FetchedImage image;
             if (iconFuture.isDone()) {
               image = Futures.getUnchecked(iconFuture);
