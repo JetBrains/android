@@ -17,10 +17,13 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.gfxapi;
 
+import com.android.tools.rpclib.schema.Entity;
+import com.android.tools.rpclib.schema.Field;
+import com.android.tools.rpclib.schema.Slice;
+import com.android.tools.rpclib.schema.Struct;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
