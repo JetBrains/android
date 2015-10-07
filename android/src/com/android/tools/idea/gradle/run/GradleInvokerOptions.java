@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.fd.PatchRunningAppAction;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -35,7 +37,6 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -114,9 +115,29 @@ public class GradleInvokerOptions {
     return GradleInvoker.getTestCompileType(id);
   }
 
+  // These are defined in AndroidProject in the builder model for 1.5+; remove and reference directly
+  // when Studio is updated to use the new model
+  private static final String PROPERTY_BUILD_API = "android.injected.build.api";
+
   @NotNull
   private static List<String> getGradleArgumentsToTarget(Collection<IDevice> devices) {
-    // TODO: fix this once we know exactly what properties are required by Gradle
+    if (!devices.isEmpty()) {
+      // Find the minimum value o the build API level and pass it to Gradle as a property
+      AndroidVersion min = null;
+
+      for (IDevice device : devices) {
+        AndroidVersion version = DevicePropertyUtil.getDeviceVersion(device);
+        if (version != AndroidVersion.DEFAULT && (min == null || version.getFeatureLevel() < min.getFeatureLevel())) {
+          min = version;
+        }
+      }
+
+      if (min != null) {
+        String property = AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, min.getApiString());
+        return Collections.singletonList(property);
+      }
+    }
+
     return Collections.emptyList();
   }
 
