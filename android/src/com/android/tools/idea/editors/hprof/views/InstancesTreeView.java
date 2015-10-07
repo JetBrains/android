@@ -76,6 +76,7 @@ public final class InstancesTreeView implements DataProvider, Disposable {
   @Nullable private ClassObj myClassObj;
   @Nullable private Comparator<DebuggerTreeNodeImpl> myComparator;
   @NotNull private SortOrder mySortOrder = SortOrder.UNSORTED;
+  @NotNull private GoToInstanceAction myGoToInstanceAction;
 
   public InstancesTreeView(@NotNull Project project, @NotNull SelectionModel selectionModel) {
     myProject = project;
@@ -162,6 +163,7 @@ public final class InstancesTreeView implements DataProvider, Disposable {
     myDebuggerTree.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this);
     JBList contextActionList = new JBList(new EditMultipleSourcesAction());
     JBPopupFactory.getInstance().createListPopupBuilder(contextActionList);
+    myGoToInstanceAction = new GoToInstanceAction(myDebuggerTree);
     myDebuggerTree.addMouseListener(new PopupHandler() {
       @Override
       public void invokePopup(Component comp, int x, int y) {
@@ -170,6 +172,7 @@ public final class InstancesTreeView implements DataProvider, Disposable {
         if (selectedInstance instanceof ClassInstance && HprofBitmapProvider.canGetBitmapFromInstance(selectedInstance)) {
           popupGroup.add(new ViewBitmapAction());
         }
+        popupGroup.add(myGoToInstanceAction);
 
         ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, popupGroup).getComponent().show(comp, x, y);
       }
@@ -487,9 +490,17 @@ public final class InstancesTreeView implements DataProvider, Disposable {
     myColumnTree = builder.build();
   }
 
+  public void addGoToInstanceListener(@NotNull GoToInstanceListener listener) {
+    myGoToInstanceAction.addListener(listener);
+  }
+
   @NotNull
   public JComponent getComponent() {
     return myColumnTree;
+  }
+
+  public void requestFocus() {
+    myDebuggerTree.requestFocus();
   }
 
   private void sortTree(@NotNull DebuggerTreeNodeImpl node) {
@@ -698,6 +709,11 @@ public final class InstancesTreeView implements DataProvider, Disposable {
     else if (SELECTED_CLASS_INSTANCE.is(dataId)){
       Instance instance = mySelectionModel.getInstance();
       return instance instanceof ClassInstance ? (ClassInstance)instance : null;
+    }
+    else if (InstanceReferenceTreeView.NAVIGATABLE_INSTANCE.is(dataId)) {
+      Object node = myDebuggerTree.getSelectionPath().getLastPathComponent();
+      NodeDescriptorImpl nodeDescriptor = node instanceof DebuggerTreeNodeImpl ? ((DebuggerTreeNodeImpl) node).getDescriptor() : null;
+      return nodeDescriptor instanceof InstanceFieldDescriptorImpl ? ((InstanceFieldDescriptorImpl) nodeDescriptor).getInstance() : null;
     }
     return null;
   }

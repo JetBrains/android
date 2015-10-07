@@ -16,11 +16,11 @@
 package com.android.tools.idea.editors.hprof;
 
 import com.android.tools.idea.editors.hprof.views.ClassesTreeView;
+import com.android.tools.idea.editors.hprof.views.GoToInstanceListener;
 import com.android.tools.idea.editors.hprof.views.InstanceReferenceTreeView;
 import com.android.tools.idea.editors.hprof.views.InstancesTreeView;
 import com.android.tools.idea.editors.hprof.views.SelectionModel;
-import com.android.tools.perflib.heap.Heap;
-import com.android.tools.perflib.heap.Snapshot;
+import com.android.tools.perflib.heap.*;
 import com.intellij.designer.LightFillLayout;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -108,6 +108,22 @@ public class HprofView implements Disposable {
     final ClassesTreeView classesTreeView = new ClassesTreeView(project, group, mySelectionModel);
     JBSplitter splitter = createNavigationSplitter(classesTreeView.getComponent(), instancesTreeView.getComponent());
     Disposer.register(this, classesTreeView);
+
+    GoToInstanceListener goToInstanceListener = new GoToInstanceListener() {
+      @Override
+      public void goToInstance(@NotNull Instance instance) {
+        ClassObj classObj = instance instanceof ClassObj ? (ClassObj)instance : instance.getClassObj();
+        mySelectionModel.setHeap(instance.getHeap());
+        mySelectionModel.setClassObj(classObj);
+        classesTreeView.requestFocus();
+        if (instance instanceof ClassInstance || instance instanceof ArrayInstance) {
+          mySelectionModel.setInstance(instance);
+          instancesTreeView.requestFocus();
+        }
+      }
+    };
+    referenceTree.addGoToInstanceListener(goToInstanceListener);
+    instancesTreeView.addGoToInstanceListener(goToInstanceListener);
 
     JBPanel classPanel = new JBPanel(new BorderLayout());
     classPanel.add(splitter, BorderLayout.CENTER);
