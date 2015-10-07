@@ -979,6 +979,43 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testConstrainedIntRanges() {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=188351
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    public int forcedMeasureHeight = -1;\n" +
+            "\n" +
+            "    public void testVariable() {\n" +
+            "        int parameter = -1;\n" +
+            "        if (parameter >= 0) {\n" +
+            "            method(parameter); // OK\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public void testOk1(boolean ok) {\n" +
+            "        if (forcedMeasureHeight >= 0) {\n" +
+            "            method(forcedMeasureHeight); // OK\n" +
+            "        }\n" +
+            "        if (ok && forcedMeasureHeight >= 0) {\n" +
+            "            method(forcedMeasureHeight); // OK\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public void testError(boolean ok, int unrelated) {\n" +
+            "        method(/*Value must be ≥ 0 (was -1)*/forcedMeasureHeight/**/); // ERROR\n" +
+            "        if (ok && unrelated >= 0) {\n" +
+            "            method(/*Value must be ≥ 0 (was -1)*/forcedMeasureHeight/**/); // ERROR\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public void method(@IntRange(from=0) int parameter) {\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testStringDefOnEquals() {
     // Regression test for https://code.google.com/p/android/issues/detail?id=186598
     doCheck("package test.pkg;\n" +
