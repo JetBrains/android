@@ -21,17 +21,14 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplatePostProcessor;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileVisitor;
+import com.intellij.openapi.vfs.*;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
@@ -52,8 +49,6 @@ import static com.android.tools.idea.templates.TemplateUtils.*;
  */
 final class DefaultRecipeExecutor implements RecipeExecutor {
 
-  private static final Logger LOG = Logger.getInstance(RecipeExecutor.class);
-
   /**
    * The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories
    */
@@ -62,12 +57,14 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   private final FindReferencesRecipeExecutor myReferences;
   private final RenderingContext myContext;
   private final RecipeIO myIO;
+  private final ReadonlyStatusHandler myReadonlyStatusHandler;
   private boolean myNeedsGradleSync;
 
   public DefaultRecipeExecutor(@NotNull RenderingContext context, boolean dryRun) {
     myReferences = new FindReferencesRecipeExecutor(context);
     myContext = context;
     myIO = dryRun ? new DryRunRecipeIO() : new RecipeIO();
+    myReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(context.getProject());
   }
 
   /**
@@ -84,6 +81,10 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   @Override
   public void addFilesToOpen(@NotNull File file) {
     myReferences.addFilesToOpen(file);
+  }
+
+  private void addWarning(@NotNull String warning) {
+    myContext.getWarnings().add(warning);
   }
 
   @NotNull
@@ -117,7 +118,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    * engine over it)
    */
   @Override
-  public void instantiate(@NotNull File from, @NotNull File to) {
+  public void instantiate(@NotNull File from, @NotNull File to) throws TemplateProcessingException {
     try {
       myReferences.instantiate(from, to);
 
@@ -131,13 +132,17 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       else {
         File targetFile = getTargetFile(to);
         String content = processFreemarkerTemplate(myContext, from, null);
-        myIO.writeFile(this, content, targetFile);
+        if (targetFile.exists()) {
+          if (!compareTextFile(myContext.getProject(), targetFile, content)) {
+            addFileAlreadyExistWarning(targetFile);
+          }
+        }
+        else {
+          myIO.writeFile(this, content, targetFile);
+        }
       }
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    catch (TemplateProcessingException e) {
       throw new RuntimeException(e);
     }
   }
@@ -149,7 +154,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    * Only XML and Gradle files are currently supported.
    */
   @Override
-  public void merge(@NotNull File from, @NotNull File to) {
+  public void merge(@NotNull File from, @NotNull File to) throws TemplateProcessingException {
     try {
       myReferences.merge(from, to);
 
@@ -161,6 +166,14 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       }
 
       if (to.exists()) {
+        if (myContext.getProject().isInitialized()) {
+          VirtualFile toFile = VfsUtil.findFileByIoFile(to, true);
+          final ReadonlyStatusHandler.OperationStatus status = myReadonlyStatusHandler.ensureFilesWritable(toFile);
+          if (status.hasReadonlyFiles()) {
+            myContext.getTargetFiles().remove(to);
+            throw new TemplateUserVisibleException(String.format("Attempt to update file that is readonly: %1$s", to.getAbsolutePath()));
+          }
+        }
         targetText = Files.toString(to, Charsets.UTF_8);
       }
 
@@ -200,7 +213,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
         myNeedsGradleSync = true;
       }
       else if (hasExtension(to, DOT_XML)) {
-        contents = RecipeMergeUtils.mergeXml(myContext.getProject(), sourceText, targetText, to);
+        contents = RecipeMergeUtils.mergeXml(myContext, sourceText, targetText, to);
       }
       else {
         throw new RuntimeException("Only XML or Gradle settings files can be merged at this point: " + to);
@@ -212,9 +225,6 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       throw new RuntimeException(e);
     }
     catch (TemplateException e) {
-      throw new RuntimeException(e);
-    }
-    catch (TemplateProcessingException e) {
       throw new RuntimeException(e);
     }
   }
@@ -349,8 +359,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   private boolean copyFile(VirtualFile file, VirtualFile src, File destinationFile) throws IOException {
     String relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar);
     if (relativePath == null) {
-      LOG.error(file.getPath() + " is not a child of " + src, new Exception());
-      return false;
+      throw new RuntimeException(String.format("%1$s is not a child of %2$s", file.getPath(), src));
     }
     if (file.isDirectory()) {
       myIO.mkDir(new File(destinationFile, relativePath));
@@ -359,7 +368,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       File target = new File(destinationFile, relativePath);
       if (target.exists()) {
         if (!compareFile(myContext.getProject(), file, target)) {
-          throw new IOException(String.format("A different version of %1$s already exists", target.getCanonicalPath()));
+          addFileAlreadyExistWarning(target);
         }
       }
       else {
@@ -367,6 +376,10 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       }
     }
     return true;
+  }
+
+  private void addFileAlreadyExistWarning(@NotNull File targetFile) {
+    addWarning(String.format("The following file could not be created since it already exists: %1$s", targetFile.getName()));
   }
 
   private static class RecipeIO {

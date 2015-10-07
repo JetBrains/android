@@ -879,9 +879,6 @@ public class TemplateTest extends AndroidGradleTestCase {
             RenderingContext context = RenderingContext.Builder.newContext(template, project).withOutputRoot(moduleRoot)
               .withModuleRoot(moduleRoot).withParams(templateValues.getParameters()).build();
             template.render(context);
-            if (Template.ourMostRecentException != null) {
-              fail(Template.ourMostRecentException.getMessage());
-            }
             // Add in icons if necessary
             if (templateValues.getTemplateMetadata() != null  && templateValues.getTemplateMetadata().getIconName() != null) {
               File drawableFolder = new File(FileUtil.join(templateValues.getString(ATTR_RES_OUT)),

@@ -29,9 +29,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.diff.DiffContent;
-import com.intellij.openapi.diff.FileContent;
-import com.intellij.openapi.diff.impl.processing.DiffPolicy;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -506,9 +503,15 @@ public class TemplateUtils {
     return Files.getFileExtension(file.getName()).equalsIgnoreCase(noDotExtension);
   }
 
+  /**
+   * Return true if the content of {@code targetFile} is the same as the content of {@code sourceVFile}.
+   */
   public static boolean compareFile(@NotNull Project project, @NotNull VirtualFile sourceVFile, @NotNull File targetFile)
     throws IOException {
     VirtualFile targetVFile = VfsUtil.findFileByIoFile(targetFile, true);
+    if (targetVFile == null) {
+      return false;
+    }
     if (sourceVFile.getFileType().isBinary()) {
       byte[] source = sourceVFile.contentsToByteArray();
       byte[] target = targetVFile.contentsToByteArray();
@@ -520,5 +523,15 @@ public class TemplateUtils {
       ComparisonManager comparisonManager = ComparisonManager.getInstance();
       return comparisonManager.isEquals(source, target, ComparisonPolicy.IGNORE_WHITESPACES);
     }
+  }
+
+  /**
+   * Return true if the content of {@code targetFile} is the same as {@code content}.
+   */
+  public static boolean compareTextFile(@NotNull Project project, @NotNull File targetFile, @NotNull String content) {
+    VirtualFile targetVFile = VfsUtil.findFileByIoFile(targetFile, true);
+    String target = readTextFile(project, targetVFile);
+    ComparisonManager comparisonManager = ComparisonManager.getInstance();
+    return comparisonManager.isEquals(content, target, ComparisonPolicy.IGNORE_WHITESPACES);
   }
 }

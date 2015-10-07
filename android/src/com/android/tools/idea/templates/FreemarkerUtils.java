@@ -119,8 +119,17 @@ public final class FreemarkerUtils {
   }
 
   public static class TemplateProcessingException extends Exception {
-    public TemplateProcessingException(Exception inner) {
+    public TemplateProcessingException(@NotNull String message, @Nullable Exception inner) {
+      super(message, inner);
+    }
+    public TemplateProcessingException(@NotNull Exception inner) {
       super(inner);
+    }
+  }
+
+  public static class TemplateUserVisibleException extends TemplateProcessingException {
+    public TemplateUserVisibleException(@NotNull String message) {
+      super(message, null);
     }
   }
 }

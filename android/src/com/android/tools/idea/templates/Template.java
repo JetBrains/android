@@ -15,17 +15,25 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.tools.idea.templates.recipe.RecipeExecutor;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.utils.XmlUtils;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -112,13 +120,9 @@ public class Template {
    */
   static final int RELATIVE_FILES_FORMAT = 5;
 
+  private static final int MAX_WARNINGS = 10;
+
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Template");
-  /**
-   * Most recent thrown exception during template instantiation. This should
-   * basically always be null. Used by unit tests to see if any template
-   * instantiation recorded a failure.
-   */
-  @VisibleForTesting public static Exception ourMostRecentException;
 
   /**
    * Path to the directory containing the templates
@@ -229,21 +233,23 @@ public class Template {
 
   /**
    * Executes the template, rendering it to output files under the directory context.getModuleRoot()
+   * @return true if the template was rendered without finding any errors and there are no warnings
+   *         or the user selected to proceed with warnings.
    */
-  public void render(@NotNull final RenderingContext context) {
-    WriteCommandAction.runWriteCommandAction(context.getProject(), new Runnable() {
+  public boolean render(@NotNull final RenderingContext context) {
+    boolean success = runWriteCommandAction(context.getProject(), context.getCommandName(), new Computable<Boolean>() {
       @Override
-      public void run() {
+      public Boolean compute() {
         if (context.getProject().isInitialized()) {
-          doRender(context);
+          return doRender(context);
         }
         else {
-          PostprocessReformattingAspect.getInstance(context.getProject()).disablePostprocessFormattingInside(new Runnable() {
-            @Override
-            public void run() {
-              doRender(context);
-            }
-          });
+          return PostprocessReformattingAspect.getInstance(context.getProject()).disablePostprocessFormattingInside(new Computable<Boolean>() {
+              @Override
+              public Boolean compute() {
+                return doRender(context);
+              }
+            });
         }
       }
     });
@@ -252,15 +258,95 @@ public class Template {
     if (title != null) {
       UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_TEMPLATE, UsageTracker.ACTION_TEMPLATE_RENDER, title, null);
     }
+    return success;
   }
 
-  private void doRender(@NotNull RenderingContext context) {
+  /**
+   * Version of runWriteCommandAction missing in {@link WriteCommandAction}.
+   */
+  private static <T> T runWriteCommandAction(@NotNull Project project, @NotNull String commandName, @NotNull final Computable<T> computable) {
+    RunResult<T> result = new WriteCommandAction<T>(project, commandName) {
+      @Override
+      protected void run(@NotNull Result<T> result) throws Throwable {
+        result.setResult(computable.compute());
+      }
+    }.execute();
+    return result.throwException().getResultObject();
+  }
+
+  /**
+   * Render the template.
+   * Warnings are only generated during a dry run i.e. no files are changed yet.
+   * The user may select to proceed anyway in which case we expect another call
+   * to render with dry run set to false.
+   * Errors may be shown regardless of the dry run flag.
+   */
+  private boolean doRender(@NotNull RenderingContext context) {
     TemplateMetadata metadata = getMetadata();
     assert metadata != null;
 
     enforceParameterTypes(metadata, context.getParamMap());
 
-    processFile(context, new File(TEMPLATE_XML_NAME));
+    try {
+      processFile(context, new File(TEMPLATE_XML_NAME));
+      if (!context.showErrors() || context.getWarnings().isEmpty()) {
+        return true;
+      }
+      // @formatter:off
+      int result = Messages.showOkCancelDialog(
+        context.getProject(),
+        formatWarningMessage(context),
+        String.format("%1$s %2$s", context.getCommandName(), StringUtil.pluralize("Warning")),
+        "Proceed Anyway", "Cancel", Messages.getWarningIcon());
+      // @formatter:on
+      return result == Messages.OK;
+    }
+    catch (TemplateUserVisibleException e) {
+      if (context.showErrors()) {
+        // @formatter:off
+        Messages.showErrorDialog(
+          context.getProject(),
+          formatErrorMessage(context, e),
+          String.format("%1$s Failed", context.getCommandName()));
+        // @formatter:on
+      }
+      else {
+        throw new RuntimeException(e);
+      }
+      return false;
+    }
+    catch (TemplateProcessingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static String formatWarningMessage(@NotNull RenderingContext context) {
+    int warningCount = context.getWarnings().size();
+    List<String> messages = Lists.newArrayList(context.getWarnings());
+    if (warningCount > MAX_WARNINGS + 1) {  // +1 such that the message can say "warnings" in plural...
+      // Guard against too many warnings (the dialog may become larger than the screen size)
+      messages = messages.subList(0, MAX_WARNINGS);
+      messages.add(String.format("And %1$d more warnings...", warningCount - MAX_WARNINGS));
+    }
+    messages.add("\nIf you proceed the resulting project may not compile or not work as intended.");
+    return Joiner.on("\n\n").join(messages);
+  }
+
+  /**
+   * If this is not a dry run, we may have created/changed some files and the project
+   * may no longer compile. Let the user know about undo.
+   */
+  private static String formatErrorMessage(@NotNull RenderingContext context, @NotNull TemplateUserVisibleException ex) {
+    if (!context.canCausePartialRendering()) {
+      return ex.getMessage();
+    }
+    //noinspection StringBufferReplaceableByString
+    return new StringBuilder()
+      .append(ex.getMessage())
+      .append(String.format("\n\n%1$s was only partially completed.", context.getCommandName()))
+      .append("\nYour project may not compile.")
+      .append("\nYou may want to Undo to get back to the original state.")
+      .toString();
   }
 
   @NotNull
@@ -281,30 +367,23 @@ public class Template {
    * Read the given xml file and, if it uses freemarker syntax (indicated by its file extension),
    * process the variable definitions
    */
-  private void processFile(@NotNull final RenderingContext context, @NotNull File file) {
-    try {
-      String xml;
-      if (hasExtension(file, DOT_XML)) {
-        // Just read the file
-        xml = readTextFile(getTemplateFile(file));
-        if (xml == null) {
-          return;
-        }
-        processXml(context, xml);
+  private void processFile(@NotNull final RenderingContext context, @NotNull File file) throws TemplateProcessingException {
+    String xml;
+    if (hasExtension(file, DOT_XML)) {
+      // Just read the file
+      xml = readTextFile(getTemplateFile(file));
+      if (xml == null) {
+        return;
       }
-      else {
-        processFreemarkerTemplate(context, file, new FreemarkerUtils.TemplatePostProcessor() {
-          @Override
-          public void process(@NotNull String xml) throws TemplateProcessingException {
-            processXml(context, xml);
-          }
-        });
-      }
+      processXml(context, xml);
     }
-    catch (Exception e) {
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourMostRecentException = e;
-      LOG.warn(e);
+    else {
+      processFreemarkerTemplate(context, file, new FreemarkerUtils.TemplatePostProcessor() {
+        @Override
+        public void process(@NotNull String xml) throws TemplateProcessingException {
+          processXml(context, xml);
+        }
+      });
     }
   }
 
@@ -315,54 +394,62 @@ public class Template {
       SAXParserFactory.newInstance().newSAXParser().parse(inputSource, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
-          Map<String, Object> paramMap = context.getParamMap();
-          if (TAG_PARAMETER.equals(name)) {
-            String id = attributes.getValue(ATTR_ID);
-            if (!paramMap.containsKey(id)) {
-              String value = attributes.getValue(ATTR_DEFAULT);
-              Object mapValue = value;
-              if (value != null && !value.isEmpty()) {
-                String type = attributes.getValue(ATTR_TYPE);
-                if ("boolean".equals(type)) {
-                  mapValue = Boolean.valueOf(value);
+          try {
+            Map<String, Object> paramMap = context.getParamMap();
+            if (TAG_PARAMETER.equals(name)) {
+              String id = attributes.getValue(ATTR_ID);
+              if (!paramMap.containsKey(id)) {
+                String value = attributes.getValue(ATTR_DEFAULT);
+                Object mapValue = value;
+                if (value != null && !value.isEmpty()) {
+                  String type = attributes.getValue(ATTR_TYPE);
+                  if ("boolean".equals(type)) {
+                    mapValue = Boolean.valueOf(value);
+                  }
                 }
+                paramMap.put(id, mapValue);
               }
-              paramMap.put(id, mapValue);
+            }
+            else if (TAG_GLOBAL.equals(name)) {
+              String id = attributes.getValue(ATTR_ID);
+              if (!paramMap.containsKey(id)) {
+                paramMap.put(id, TypedVariable.parseGlobal(attributes));
+              }
+            }
+            else if (TAG_GLOBALS.equals(name)) {
+              // Handle evaluation of variables
+              File globalsFile = getPath(attributes, ATTR_FILE);
+              if (globalsFile != null) {
+                processFile(context, globalsFile);
+              } // else: <globals> root element
+            }
+            else if (TAG_EXECUTE.equals(name)) {
+              File recipeFile = getPath(attributes, ATTR_FILE);
+              if (recipeFile != null) {
+                executeRecipeFile(context, recipeFile);
+              }
+            }
+            else if (!name.equals("template") &&
+                     !name.equals("category") &&
+                     !name.equals("option") &&
+                     !name.equals(TAG_THUMBS) &&
+                     !name.equals(TAG_THUMB) &&
+                     !name.equals(TAG_ICONS) &&
+                     !name.equals(TAG_DEPENDENCY) &&
+                     !name.equals(TAG_FORMFACTOR)) {
+              LOG.error("WARNING: Unknown template directive " + name);
             }
           }
-          else if (TAG_GLOBAL.equals(name)) {
-            String id = attributes.getValue(ATTR_ID);
-            if (!paramMap.containsKey(id)) {
-              paramMap.put(id, TypedVariable.parseGlobal(attributes));
-            }
-          }
-          else if (TAG_GLOBALS.equals(name)) {
-            // Handle evaluation of variables
-            File globalsFile = getPath(attributes, ATTR_FILE);
-            if (globalsFile != null) {
-              processFile(context, globalsFile);
-            } // else: <globals> root element
-          }
-          else if (TAG_EXECUTE.equals(name)) {
-            File recipeFile = getPath(attributes, ATTR_FILE);
-            if (recipeFile != null) {
-              executeRecipeFile(context, recipeFile);
-            }
-          }
-          else if (!name.equals("template") &&
-                   !name.equals("category") &&
-                   !name.equals("option") &&
-                   !name.equals(TAG_THUMBS) &&
-                   !name.equals(TAG_THUMB) &&
-                   !name.equals(TAG_ICONS) &&
-                   !name.equals(TAG_DEPENDENCY) &&
-                   !name.equals(TAG_FORMFACTOR)) {
-            LOG.error("WARNING: Unknown template directive " + name);
+          catch (TemplateProcessingException e) {
+            throw new SAXException(e);
           }
         }
       });
     }
     catch (SAXException ex) {
+      if (ex.getCause() instanceof TemplateProcessingException) {
+        throw (TemplateProcessingException) ex.getCause();
+      }
       throw new TemplateProcessingException(ex);
     }
     catch (ParserConfigurationException ex) {
@@ -376,38 +463,31 @@ public class Template {
   /**
    * Executes the given recipe file: copying, merging, instantiating, opening files etc
    */
-  private void executeRecipeFile(@NotNull final RenderingContext context, @NotNull File fileRecipe) {
-    try {
-      processFreemarkerTemplate(context, fileRecipe, new FreemarkerUtils.TemplatePostProcessor() {
-        @Override
-        public void process(@NotNull String xml) throws TemplateProcessingException {
-          try {
-            xml = XmlUtils.stripBom(xml);
+  private void executeRecipeFile(@NotNull final RenderingContext context, @NotNull File fileRecipe) throws TemplateProcessingException {
+    processFreemarkerTemplate(context, fileRecipe, new FreemarkerUtils.TemplatePostProcessor() {
+      @Override
+      public void process(@NotNull String xml) throws TemplateProcessingException {
+        try {
+          xml = XmlUtils.stripBom(xml);
 
-            Recipe recipe = Recipe.parse(new StringReader(xml));
-            RecipeExecutor recipeExecutor = context.getRecipeExecutor();
-            TemplateMetadata metadata = getMetadata();
-            assert metadata != null;
-            if (metadata.useImplicitRootFolder()) {
-              context.getLoader().setTemplateFolder(new File(context.getLoader().getTemplateFolder(), "root"));
-            }
-            recipe.execute(recipeExecutor);
+          Recipe recipe = Recipe.parse(new StringReader(xml));
+          RecipeExecutor recipeExecutor = context.getRecipeExecutor();
+          TemplateMetadata metadata = getMetadata();
+          assert metadata != null;
+          if (metadata.useImplicitRootFolder()) {
+            context.getLoader().setTemplateFolder(new File(context.getLoader().getTemplateFolder(), "root"));
           }
-          catch (JAXBException ex) {
-            throw new TemplateProcessingException(ex);
-          }
+          recipe.execute(recipeExecutor);
         }
-      });
-    }
-    catch (Exception e) {
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourMostRecentException = e;
-      LOG.warn(e);
-    }
+        catch (JAXBException ex) {
+          throw new TemplateProcessingException(ex);
+        }
+      }
+    });
   }
 
   @NotNull
-  private File getTemplateFile(@NotNull File relativeFile) throws IOException {
+  private File getTemplateFile(@NotNull File relativeFile) {
     return new File(myTemplateRoot, relativeFile.getPath());
   }
 }

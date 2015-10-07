@@ -65,7 +65,7 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
   }
 
   @Override
-  public String processTemplate(@NotNull File recipe, @NotNull TemplatePostProcessor processor) throws TemplateProcessingException {
+  public String processTemplate(@NotNull File recipe, @NotNull TemplatePostProcessor processor) {
     return null;
   }
 

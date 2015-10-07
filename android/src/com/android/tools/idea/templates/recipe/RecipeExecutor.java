@@ -37,7 +37,7 @@ public interface RecipeExecutor {
    * Instantiates the given template file into the given output file (running the freemarker
    * engine over it)
    */
-  void instantiate(@NotNull File from, @NotNull File to);
+  void instantiate(@NotNull File from, @NotNull File to) throws TemplateProcessingException;
 
   /**
    * Merges the given source file into the given destination file (or it just copies it over if
@@ -45,7 +45,7 @@ public interface RecipeExecutor {
    * <p/>
    * Only XML and Gradle files are currently supported.
    */
-  void merge(@NotNull File from, @NotNull File to);
+  void merge(@NotNull File from, @NotNull File to) throws TemplateProcessingException;
 
   /**
    * Create a directory at the specified location (if not already present). This will also create
