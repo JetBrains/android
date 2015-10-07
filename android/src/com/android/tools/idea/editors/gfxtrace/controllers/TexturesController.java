@@ -52,7 +52,7 @@ public class TexturesController extends ImagePanelController {
       @Override
       public void selected(Data item) {
         setEmptyText(myList.isEmpty() ? GfxTraceEditor.NO_TEXTURES : GfxTraceEditor.SELECT_TEXTURE);
-        setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path.thumbnail(DISPLAY_SIZE, FmtRGBA.INSTANCE)));
+        setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path.as(FmtRGBA.INSTANCE)));
       }
     }.myList, BorderLayout.NORTH);
     initToolbar(new DefaultActionGroup());
