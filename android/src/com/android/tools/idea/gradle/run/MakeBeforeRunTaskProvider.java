@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.fd.PatchRunningAppAction;
+import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -30,8 +29,8 @@ import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -43,7 +42,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.Semaphore;
-import com.intellij.util.containers.ContainerUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -230,10 +228,22 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         }
       };
 
+      // Clean out *old* patch files (e.g. from a previous build such that if you for example
+      // only change a resource, we don't redeploy the same .dex file over and over!
+      // This should be performed by the Gradle plugin; this is a temporary workaround.
+      if (configuration instanceof ModuleBasedConfiguration) {
+        Module module = ((ModuleBasedConfiguration)configuration).getConfigurationModule().getModule();
+        if (module != null) {
+          FastDeployManager.removeOldPatches(module);
+        }
+      }
+
       final GradleInvokerOptions options = GradleInvokerOptions.create(myProject, context, configuration, env, task.getGoal());
       if (options.tasks.isEmpty()) {
-        // TODO: for fast deploy, we don't want to do any Gradle tasks here and leave it to performUpdate
-        return true;
+        // should not happen, but if it does happen, then GradleInvoker with an empty list of tasks seems to hang forever
+        // So we error out earlier.
+        LOG.error("Unable to determine gradle tasks to execute for run configuration: " + configuration.getName());
+        return false;
       }
 
       // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried

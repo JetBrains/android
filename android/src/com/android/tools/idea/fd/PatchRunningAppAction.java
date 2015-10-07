@@ -18,10 +18,15 @@ package com.android.tools.idea.fd;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.run.ApkProviderUtil;
+import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.InstalledPatchCache;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
@@ -109,6 +114,24 @@ public class PatchRunningAppAction extends AnAction {
     UpdateMode updateMode = forceRestart ? UpdateMode.COLD_SWAP : UpdateMode.HOT_SWAP;
     FastDeployManager manager = FastDeployManager.get(project);
     manager.performUpdate(device, updateMode, module);
+  }
+
+  public static boolean pushChanges(@NotNull final IDevice device, @NotNull final AndroidFacet facet) {
+    FastDeployManager manager = FastDeployManager.get(facet.getModule().getProject());
+    manager.pushChanges(device, UpdateMode.HOT_SWAP, facet, getLastInstalledArscTimestamp(device, facet));
+    return true;
+  }
+
+  private static long getLastInstalledArscTimestamp(@NotNull IDevice device, @NotNull AndroidFacet facet) {
+    String pkgName;
+    try {
+      pkgName = ApkProviderUtil.computePackageName(facet);
+    }
+    catch (ApkProvisionException e) {
+      return 0;
+    }
+
+    return ServiceManager.getService(InstalledPatchCache.class).getInstalledArscTimestamp(device, pkgName);
   }
 
   @Override

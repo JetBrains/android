@@ -17,6 +17,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.run.cloud.*;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -247,6 +248,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     LaunchOptions launchOptions = getLaunchOptions()
       .setDebug(debug)
       .build();
+
+    if (FastDeployManager.DISPLAY_STATISTICS) {
+      FastDeployManager.notifyBegin();
+    }
 
     return new AndroidRunningState(env, facet, getApkProvider(facet), deviceTarget, printer, getApplicationLauncher(facet),
                                    launchOptions, this);
