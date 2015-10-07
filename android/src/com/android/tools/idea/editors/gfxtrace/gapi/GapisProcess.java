@@ -149,7 +149,7 @@ public class GapisProcess {
             public void run() {
               try {
                 for (String line; (line = stdout.readLine()) != null; ) {
-                  LOG.warn("gapis: " + line);
+                  LOG.info("gapis: " + line);
                 }
               }
               catch (IOException ignored) {
