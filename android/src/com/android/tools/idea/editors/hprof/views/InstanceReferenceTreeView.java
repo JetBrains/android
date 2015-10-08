@@ -49,6 +49,7 @@ import java.util.List;
 
 public final class InstanceReferenceTreeView implements DataProvider {
   public static final String TREE_NAME = "HprofInstanceReferenceTree";
+  public static final DataKey<Instance> NAVIGATABLE_INSTANCE = DataKey.create("HprofInstanceReferenceTreeView.NavigatableInstance");
 
   private static final int MAX_AUTO_EXPANSION_DEPTH = 5;
   private static final SimpleTextAttributes SOFT_REFERENCE_TEXT_ATTRIBUTE =
@@ -63,6 +64,7 @@ public final class InstanceReferenceTreeView implements DataProvider {
   @NotNull private Project myProject;
   @NotNull private Tree myTree;
   @NotNull private JComponent myColumnTree;
+  @NotNull private GoToInstanceAction myGoToInstanceAction;
 
   private Instance myInstance;
 
@@ -148,6 +150,8 @@ public final class InstanceReferenceTreeView implements DataProvider {
     JBList contextActionList = new JBList(new EditMultipleSourcesAction());
     JBPopupFactory.getInstance().createListPopupBuilder(contextActionList);
     final DefaultActionGroup popupGroup = new DefaultActionGroup(new EditMultipleSourcesAction());
+    myGoToInstanceAction = new GoToInstanceAction(myTree);
+    popupGroup.add(myGoToInstanceAction);
     myTree.addMouseListener(new PopupHandler() {
       @Override
       public void invokePopup(Component comp, int x, int y) {
@@ -418,6 +422,10 @@ public final class InstanceReferenceTreeView implements DataProvider {
     if (CommonDataKeys.NAVIGATABLE_ARRAY.is(dataId)) {
       return getTargetFiles();
     }
+    else if (NAVIGATABLE_INSTANCE.is(dataId)) {
+      Object node = myTree.getSelectionPath().getLastPathComponent();
+      return node instanceof InstanceNode ? ((InstanceNode) node).getInstance() : null;
+    }
     else if (CommonDataKeys.PROJECT.is(dataId)) {
       return myProject;
     }
@@ -443,6 +451,10 @@ public final class InstanceReferenceTreeView implements DataProvider {
     }
 
     return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, 0);
+  }
+
+  public void addGoToInstanceListener(@NotNull GoToInstanceListener listener) {
+    myGoToInstanceAction.addListener(listener);
   }
 
   private static class InstanceNode extends TreeBuilderNode {
