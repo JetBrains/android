@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.io.FileSystemUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashMap;
@@ -31,14 +32,14 @@ public class AndroidFileSetState implements ValidityState {
           @Override
           public boolean process(File file) {
             if (filter.value(file)) {
-              myTimestamps.put(FileUtil.toSystemIndependentName(file.getPath()), file.lastModified());
+              myTimestamps.put(FileUtil.toSystemIndependentName(file.getPath()), FileSystemUtil.lastModified(file));
             }
             return true;
           }
         });
       }
       else if (filter.value(root)) {
-        myTimestamps.put(FileUtil.toSystemIndependentName(root.getPath()), root.lastModified());
+        myTimestamps.put(FileUtil.toSystemIndependentName(root.getPath()), FileSystemUtil.lastModified(root));
       }
     }
   }
