@@ -104,6 +104,78 @@ public class AndroidLogFilterModelTest {
     assertThat(result.isApplicable()).isFalse();
   }
 
+  @Test
+  public void filterCanMatchAgainstAnyLineInAMultiLineLog() throws Exception {
+    AndroidConfiguredLogFilters.FilterEntry customfilter = new AndroidConfiguredLogFilters.FilterEntry();
+
+    String[] lines = "01-23 12:34:56.789 1234-5678/? I/DummyTag: line 1\n+ line 2\n+ line 3".split("\n");
+    LogFilterModel.MyProcessingResult result;
+
+    // Test multiline log against first line
+    customfilter.setLogMessagePattern("line 1");
+    myFilterModel.setConfiguredFilter(ConfiguredFilter.compile(customfilter, "(Unused Name)"));
+
+    result = myFilterModel.processLine(lines[0]);
+    assertThat(result.isApplicable()).isTrue();
+    assert(result.getMessagePrefix() != null);
+    assertThat(result.getMessagePrefix().isEmpty());
+
+    result = myFilterModel.processLine(lines[1]);
+    assertThat(result.isApplicable()).isTrue();
+    assert(result.getMessagePrefix() != null);
+    assertThat(result.getMessagePrefix().isEmpty());
+
+    result = myFilterModel.processLine(lines[2]);
+    assertThat(result.isApplicable()).isTrue();
+    assert(result.getMessagePrefix() != null);
+    assertThat(result.getMessagePrefix().isEmpty());
+
+    // Test multiline log against second line
+    customfilter.setLogMessagePattern("line 2");
+    myFilterModel.setConfiguredFilter(ConfiguredFilter.compile(customfilter, "(Unused Name)"));
+
+    result = myFilterModel.processLine(lines[0]);
+    assertThat(result.isApplicable()).isFalse();
+
+    result = myFilterModel.processLine(lines[1]);
+    assertThat(result.isApplicable()).isTrue();
+    assert(result.getMessagePrefix() != null);
+    assertThat(result.getMessagePrefix()).isEqualTo("01-23 12:34:56.789 1234-5678/? I/DummyTag: line 1\n");
+
+    result = myFilterModel.processLine(lines[2]);
+    assertThat(result.isApplicable()).isTrue();
+    assert(result.getMessagePrefix() != null);
+    assertThat(result.getMessagePrefix().isEmpty());
+
+    // Test multiline log against third line
+    customfilter.setLogMessagePattern("line 3");
+    myFilterModel.setConfiguredFilter(ConfiguredFilter.compile(customfilter, "(Unused Name)"));
+
+    result = myFilterModel.processLine(lines[0]);
+    assertThat(result.isApplicable()).isFalse();
+
+    result = myFilterModel.processLine(lines[1]);
+    assertThat(result.isApplicable()).isFalse();
+
+    result = myFilterModel.processLine(lines[2]);
+    assertThat(result.isApplicable()).isTrue();
+    assert(result.getMessagePrefix() != null);
+    assertThat(result.getMessagePrefix()).isEqualTo("01-23 12:34:56.789 1234-5678/? I/DummyTag: line 1\n+ line 2\n");
+
+    // Test multiline log against non-existent line
+    customfilter.setLogMessagePattern("line x");
+    myFilterModel.setConfiguredFilter(ConfiguredFilter.compile(customfilter, "(Unused Name)"));
+
+    result = myFilterModel.processLine(lines[0]);
+    assertThat(result.isApplicable()).isFalse();
+
+    result = myFilterModel.processLine(lines[1]);
+    assertThat(result.isApplicable()).isFalse();
+
+    result = myFilterModel.processLine(lines[2]);
+    assertThat(result.isApplicable()).isFalse();
+  }
+
   private static class TestFilterModel extends AndroidLogFilterModel {
 
     @NotNull private LogLevel myMinimumLevel = LogLevel.VERBOSE; // Allow all messages by default
