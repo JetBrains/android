@@ -16,21 +16,22 @@
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.ServerSocket;
 import java.nio.charset.Charset;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
+  @NotNull private static final Pattern PORT_PATTERN = Pattern.compile("^Bound on port '(\\d+)'$", 0);
   private final String myName;
   private Thread myServerThread;
-  private int myPort;
 
   ChildProcess(String name) {
     myName = name;
@@ -40,83 +41,89 @@ public abstract class ChildProcess {
 
   protected abstract void onExit(int code);
 
-  public int port() {
-    return myPort;
-  }
-
   public boolean isRunning() {
     return myServerThread != null && myServerThread.isAlive();
   }
 
-  public boolean start() {
-    myPort = findFreePort();
+  public SettableFuture<Integer> start() {
     final ProcessBuilder pb = new ProcessBuilder();
     pb.directory(GapiPaths.base());
     pb.redirectErrorStream(true);
     if (!prepare(pb)) {
-      return false;
+      return null;
     }
+    final SettableFuture<Integer> portF = SettableFuture.create();
     myServerThread = new Thread() {
       @Override
       public void run() {
-        // Use the base directory as the working directory for the server.
-        Process process = null;
-        try {
-          // This will throw IOException if the executable is not found.
-          LOG.info("Starting " + myName + " as " + pb.toString());
-          process = pb.start();
-          final BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("UTF-8")));
-          try {
-            new Thread() {
-              @Override
-              public void run() {
-                try {
-                  for (String line; (line = stdout.readLine()) != null; ) {
-                    LOG.info(myName + ": " + line);
-                  }
-                }
-                catch (IOException ignored) {
-                }
-              }
-            }.start();
-            onExit(process.waitFor());
-          }
-          finally {
-            stdout.close();
-          }
-        }
-        catch (IOException e) {
-          LOG.warn(e);
-        }
-        catch (InterruptedException e) {
-          if (process != null) {
-            LOG.info("Killing " + myName);
-            process.destroy();
-          }
-        }
+        runProcess(portF, pb);
       }
     };
     myServerThread.start();
-    return true;
+    return portF;
+  }
+
+  private void runProcess(final SettableFuture<Integer> portF, final ProcessBuilder pb) {
+    // Use the base directory as the working directory for the server.
+    Process process = null;
+    try {
+      // This will throw IOException if the executable is not found.
+      LOG.info("Starting " + myName + " as " + pb.toString());
+      process = pb.start();
+    }
+    catch (IOException e) {
+      LOG.warn(e);
+      portF.setException(e);
+      return;
+    }
+    final BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("UTF-8")));
+    try {
+      new Thread() {
+        @Override
+        public void run() {
+          processOutput(portF, stdout);
+        }
+      }.start();
+      try {
+        onExit(process.waitFor());
+      }
+      catch (InterruptedException e) {
+        LOG.info("Killing " + myName);
+        portF.setException(e);
+        process.destroy();
+      }
+    }
+    finally {
+      try {
+        stdout.close();
+      }
+      catch (IOException ignored) {
+      }
+    }
+  }
+
+  private void processOutput(final SettableFuture<Integer> portF, final BufferedReader stdout) {
+    try {
+      boolean seenPort = false;
+      for (String line; (line = stdout.readLine()) != null; ) {
+        if (!seenPort) {
+          Matcher matcher = PORT_PATTERN.matcher(line);
+          if (matcher.matches()) {
+            int port = Integer.parseInt(matcher.group(1));
+            seenPort = true;
+            portF.set(port);
+            LOG.warn("Detected server " + myName + " startup on port " + port);
+          }
+        }
+        LOG.info(myName + ": " + line);
+      }
+    }
+    catch (IOException ignored) {
+    }
   }
 
   public void shutdown() {
     LOG.info("Shutting down " + myName);
     myServerThread.interrupt();
-  }
-
-  private static int findFreePort() {
-    try {
-      ServerSocket socket = new ServerSocket(0);
-      try {
-        return socket.getLocalPort();
-      }
-      finally {
-        socket.close();
-      }
-    }
-    catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
   }
 }

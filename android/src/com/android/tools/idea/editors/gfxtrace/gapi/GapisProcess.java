@@ -18,6 +18,9 @@ package com.android.tools.idea.editors.gfxtrace.gapi;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.service.Factory;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -25,8 +28,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 public class GapisProcess extends ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
@@ -38,6 +43,8 @@ public class GapisProcess extends ChildProcess {
   private static final String SERVER_HOST = "localhost";
 
   private final Set<GapisConnection> myConnections = Sets.newIdentityHashSet();
+  private final Object myPortLock = new Object();
+  private SettableFuture<Integer> myPortF = null;
 
   private GapisProcess() {
     super("gapis");
@@ -50,7 +57,7 @@ public class GapisProcess extends ChildProcess {
       LOG.warn("Could not find gapis, but needed to start the server.");
       return false;
     }
-    pb.command(GapiPaths.gapis().getAbsolutePath(), "-shutdown_on_disconnect", "-rpc", SERVER_HOST + ":" + port(), "-logs",
+    pb.command(GapiPaths.gapis().getAbsolutePath(), "-shutdown_on_disconnect", "-rpc", SERVER_HOST + ":0", "-logs",
                PathManager.getLogPath());
     // Add the server's directory to the path.  This allows the server to find and launch the gapir.
     // TODO: not needed when android studio starts gapir instead
@@ -76,34 +83,42 @@ public class GapisProcess extends ChildProcess {
    * <p/>
    * Will launch a new server process if none has been started.
    * <p/>
-   * TODO: Implement more robust process management.  For example:
-   * TODO: - Better way to detect when server has started in order to avoid polling for the socket.
    */
   public GapisConnection connect() {
-    synchronized (this) {
-      if (!isRunning()) {
-        if (!start()) {
-          return NOT_CONNECTED;
-        }
+    SettableFuture<Integer> portF;
+    synchronized (myPortLock) {
+      if (myPortF == null) {
+        myPortF = start();
       }
+      portF = myPortF;
     }
-
-    // After starting, the server requires a little time before it will be ready to accept connections.
-    // This loop polls the server to establish a connection.
-    GapisConnection connection = NOT_CONNECTED;
+    if (portF == null) {
+      return NOT_CONNECTED;
+    }
     try {
-      for (int waitTime = 0; waitTime < SERVER_LAUNCH_TIMEOUT_MS; waitTime += SERVER_LAUNCH_SLEEP_INCREMENT_MS) {
-        if ((connection = attemptToConnect()).isConnected()) {
-          LOG.info("Established a new client connection to " + port());
-          break;
-        }
-        Thread.sleep(SERVER_LAUNCH_SLEEP_INCREMENT_MS);
+      int port = portF.get();
+      GapisConnection connection = new GapisConnection(this, new Socket(SERVER_HOST, port));
+      LOG.info("Established a new client connection to " + port);
+      synchronized (myConnections) {
+        myConnections.add(connection);
       }
+      return connection;
     }
     catch (InterruptedException e) {
-      Thread.interrupted(); // reset interrupted status
+      LOG.info("Interrupted while waiting for port: " + e);
+      return NOT_CONNECTED;
     }
-    return connection;
+    catch (ExecutionException e) {
+      LOG.info("Failed while waiting for port: " + e);
+      return NOT_CONNECTED;
+    }
+    catch (UnknownHostException e) {
+      LOG.info("Unknown host: " + e);
+    }
+    catch (IOException e) {
+      LOG.info("Failed socket: " + e);
+    }
+    return NOT_CONNECTED;
   }
 
   public void onClose(GapisConnection gapisConnection) {
@@ -114,18 +129,5 @@ public class GapisProcess extends ChildProcess {
         shutdown();
       }
     }
-  }
-
-  private GapisConnection attemptToConnect() {
-    try {
-      GapisConnection connection = new GapisConnection(this, new Socket(SERVER_HOST, port()));
-      synchronized (myConnections) {
-        myConnections.add(connection);
-      }
-      return connection;
-    }
-    catch (IOException ignored) {
-    }
-    return NOT_CONNECTED;
   }
 }
