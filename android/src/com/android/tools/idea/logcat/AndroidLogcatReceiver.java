@@ -49,6 +49,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
 
   private final StackTraceExpander myStackTraceExpander;
   @Nullable private LogCatHeader myActiveHeader;
+  private int myLineIndex;
 
   public AndroidLogcatReceiver(@NotNull IDevice device, @NotNull AndroidConsoleWriter writer) {
     myDevice = device;
@@ -67,12 +68,19 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
     LogCatHeader header = myParser.processLogHeader(line, myDevice);
     if (header != null) {
       myActiveHeader = header;
+      myLineIndex = 0;
     }
     else if (myActiveHeader != null) {
       myStackTraceExpander.process(line);
       for (String processedLine : myStackTraceExpander.getProcessedLines()) {
-        processedLine = getFullMessage(myActiveHeader, processedLine);
+        if (myLineIndex == 0) {
+          processedLine = AndroidLogcatFormatter.formatMessageFull(myActiveHeader, processedLine);
+        }
+        else {
+          processedLine = AndroidLogcatFormatter.formatContinuation(processedLine);
+        }
         myWriter.addMessage(processedLine);
+        myLineIndex++;
       }
     }
   }
@@ -85,10 +93,6 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   @Override
   public void dispose() {
     cancel();
-  }
-
-  private static String getFullMessage(LogCatHeader header, String message) {
-    return AndroidLogcatFormatter.formatMessageFull(header, message);
   }
 
   public void cancel() {
