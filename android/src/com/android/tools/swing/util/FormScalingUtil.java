@@ -161,6 +161,14 @@ public class FormScalingUtil {
         table.setPreferredScrollableViewportSize(scale(size, "preferredScrollableViewportSize"));
       }
     }
+    if (c instanceof JSlider) {
+      JSlider slider = (JSlider)c;
+      // Sliders have default width/height that need to be scaled. By calling getPreferredSize, we
+      // force the default size to be computed. It will then be scaled in this method below.
+      if (!slider.isPreferredSizeSet()) {
+        slider.setPreferredSize(slider.getPreferredSize());
+      }
+    }
     if (c instanceof JBLabel) {
       JBLabel label = (JBLabel)c;
       label.setIconTextGap(scale(label.getIconTextGap(), "IconTextGap"));
