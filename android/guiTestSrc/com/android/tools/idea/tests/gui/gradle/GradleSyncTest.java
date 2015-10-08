@@ -264,7 +264,7 @@ public class GradleSyncTest extends GuiTestCase {
       }
     });
 
-    myProjectFrame.requestProjectSync().waitForBackgroundTasksToFinish();
+    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     libraryTable = ProjectLibraryTable.getInstance(project);
     library = libraryTable.getLibraryByName(libraryName);
