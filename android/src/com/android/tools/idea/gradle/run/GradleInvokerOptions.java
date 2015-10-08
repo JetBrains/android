@@ -34,6 +34,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -45,6 +46,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class GradleInvokerOptions {
+  private static final Logger LOG = Logger.getInstance(GradleInvokerOptions.class);
+
   @NotNull public final List<String> tasks;
   @Nullable public final BuildMode buildMode;
   @NotNull public final List<String> commandLineArguments;
@@ -69,6 +72,7 @@ public class GradleInvokerOptions {
 
     final Module[] modules = getModules(project, context, configuration);
     if (modules.length == 1 && canUpdateIncrementally(devices, modules)) {
+      LOG.info(String.format("Module %1$s can be updated incrementally.", modules[0].getName()));
       AndroidGradleModel model = AndroidGradleModel.get(modules[0]);
       if (model != null) {
         String dexTask = FastDeployManager.getIncrementalDexTask(model);
@@ -152,17 +156,20 @@ public class GradleInvokerOptions {
   }
 
   private static boolean canUpdateIncrementally(@NotNull Collection<IDevice> devices, @NotNull Module[] modules) {
-    if (modules.length != 1) {
+    if (modules.length != 1
+        || devices.isEmpty()) { // happens if the emulator is still being launched..
       return false;
     }
 
     Module module = modules[0];
     if (!PatchRunningAppAction.isPatchableApp(module)) {
+      LOG.info(String.format("Patching disabled, or module %1$s does not use the required Gradle version", module.getName()));
       return false;
     }
 
     for (IDevice device : devices) {
       if (!PatchRunningAppAction.isAppRunning(device, module)) {
+        LOG.info(String.format("App from module %1$s not running on device %2$s.", module.getName(), device.getName()));
         return false;
       }
     }
