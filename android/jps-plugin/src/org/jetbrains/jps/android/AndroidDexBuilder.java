@@ -270,6 +270,15 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       return false;
     }
 
+    boolean multiDex = false;
+    if (module != null) {
+      JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
+      if (extension != null && extension.isMultiDexEnabled()) {
+        outFilePath = new File(outFilePath).getParent();
+        multiDex = true;
+      }
+    }
+
     final List<String> programParamList = new ArrayList<String>();
     programParamList.add(dxJarPath);
     programParamList.add(outFilePath);
@@ -298,12 +307,10 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     else {
       vmOptions = Collections.singletonList("-Xmx1024M");
     }
-    if (module != null) {
+    if (multiDex) {
       JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
       if (extension != null) {
-        if (extension.isMultiDexEnabled()) {
-          programParamList.add("--multi-dex");
-        }
+        programParamList.add("--multi-dex");
         if (!StringUtil.isEmpty(extension.getMainDexList())) {
           programParamList.add("--main-dex-list");
           programParamList.add(extension.getMainDexList());
@@ -321,7 +328,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     classPath.add(ClasspathBootstrap.getResourcePath(FileUtilRt.class));
 
     final File outFile = new File(outFilePath);
-    if (outFile.exists() && !outFile.delete()) {
+    if (outFile.exists() && !outFile.isDirectory() && !outFile.delete()) {
       context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.WARNING,
                                                  AndroidJpsBundle.message("android.jps.cannot.delete.file", outFilePath)));
     }
@@ -351,7 +358,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     messages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<String>());
     messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<String>());
 
-    AndroidCommonUtils.handleDexCompilationResult(process, outFilePath, messages);
+    AndroidCommonUtils.handleDexCompilationResult(process, outFilePath, messages, multiDex);
 
     AndroidJpsUtil.addMessages(context, messages, builderName, srcTargetName);
     final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).size() == 0;
