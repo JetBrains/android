@@ -408,7 +408,9 @@ public abstract class AndroidLogcatView implements Disposable {
     @Override
     public void actionPerformed(AnActionEvent e) {
       ConfigureLogcatFormatDialog dialog = new ConfigureLogcatFormatDialog(myProject);
-      dialog.show();
+      if (dialog.showAndGet()) {
+        myLogConsole.refresh();
+      }
     }
   }
 
@@ -456,6 +458,16 @@ public abstract class AndroidLogcatView implements Disposable {
     @Override
     public synchronized void addMessage(@NotNull String text) {
       super.addMessage(text);
+    }
+
+    /**
+     * Clear the current logs and replay all old messages. This is useful to do if the display
+     * format of the logs have changed, for example.
+     */
+    public void refresh() {
+      // Even if we haven't changed any filter, calling this method quickly refreshes the log as a
+      // side effect.
+      onTextFilterChange();
     }
   }
 }
