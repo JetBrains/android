@@ -29,6 +29,7 @@ import com.android.tools.idea.run.DeployTarget;
 import com.android.tools.idea.run.DeviceTarget;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.compiler.CompileScope;
@@ -70,7 +71,9 @@ public class GradleInvokerOptions {
     }
 
     final Module[] modules = getModules(project, context, configuration);
-    if (modules.length == 1 && canUpdateIncrementally(devices, modules)) {
+    if (modules.length == 1 &&
+        canUpdateIncrementally(devices, modules) &&
+        !(env.getExecutor() instanceof DefaultDebugExecutor)) { // temporary: currently attaching a debugger requires full build
       LOG.info(String.format("Module %1$s can be updated incrementally.", modules[0].getName()));
       AndroidGradleModel model = AndroidGradleModel.get(modules[0]);
       if (model != null) {
