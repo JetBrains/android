@@ -52,7 +52,6 @@ public class PatchRunningAppAction extends AnAction {
    *               the infrastructure will look for other app modules
    * @return true if the app is already running and is listening for incremental updates
    */
-  @SuppressWarnings("unused") // Pending integration with Run configuration infrastructure
   public static boolean isAppRunning(@NotNull IDevice device, @NotNull Module module) {
     FastDeployManager manager = FastDeployManager.get(module.getProject());
     return manager.ping(device, module);

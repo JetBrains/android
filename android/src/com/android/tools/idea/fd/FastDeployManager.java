@@ -621,6 +621,7 @@ public class FastDeployManager implements ProjectComponent {
     }
 
     if (device.getClient(packageName) == null) {
+      LOG.info(String.format("Package %1$s not running on device %2$s", packageName, device.getName()));
       return false;
     }
 
@@ -635,6 +636,7 @@ public class FastDeployManager implements ProjectComponent {
             output.writeLong(PROTOCOL_IDENTIFIER);
             output.writeInt(PROTOCOL_VERSION);
             output.writeInt(MESSAGE_PING);
+            LOG.info("Ping message sent successfully, application seems to be running..");
             return true;
           } finally {
             output.close();
