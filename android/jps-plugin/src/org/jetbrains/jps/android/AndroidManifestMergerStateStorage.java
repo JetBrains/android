@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileSystemUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import gnu.trove.TObjectLongHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -93,12 +94,12 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
     private final boolean myToMerge;
 
     public MyState(@NotNull File manifestFile, @NotNull Collection<File> libManifestFiles, boolean toMerge) {
-      myManifestFileTimestamp = manifestFile.lastModified();
+      myManifestFileTimestamp = FileSystemUtil.lastModified(manifestFile);
       myLibManifestsTimestamps = new TObjectLongHashMap<String>(libManifestFiles.size());
 
       for (File libManifestFile : libManifestFiles) {
         myLibManifestsTimestamps.put(FileUtil.toCanonicalPath(libManifestFile.getPath()),
-                                     libManifestFile.lastModified());
+                                     FileSystemUtil.lastModified(libManifestFile));
       }
       myToMerge = toMerge;
     }
