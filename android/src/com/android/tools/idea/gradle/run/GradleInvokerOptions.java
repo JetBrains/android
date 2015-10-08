@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.fd.FastDeployManager;
-import com.android.tools.idea.fd.PatchRunningAppAction;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -162,13 +161,13 @@ public class GradleInvokerOptions {
     }
 
     Module module = modules[0];
-    if (!PatchRunningAppAction.isPatchableApp(module)) {
+    if (!FastDeployManager.isPatchableApp(module)) {
       LOG.info(String.format("Patching disabled, or module %1$s does not use the required Gradle version", module.getName()));
       return false;
     }
 
     for (IDevice device : devices) {
-      if (!PatchRunningAppAction.isAppRunning(device, module)) {
+      if (!FastDeployManager.isAppRunning(device, module)) {
         LOG.info(String.format("App from module %1$s not running on device %2$s.", module.getName(), device.getName()));
         return false;
       }

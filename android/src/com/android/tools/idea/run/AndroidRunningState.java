@@ -19,7 +19,6 @@ import com.android.ddmlib.*;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.fd.FastDeployManager;
-import com.android.tools.idea.fd.PatchRunningAppAction;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.stats.UsageTracker;
@@ -407,9 +406,9 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
     myPrinter.stdout("Target device: " + device.getName());
     try {
-      if (!isDebugMode() && PatchRunningAppAction.isPatchableApp(module) && PatchRunningAppAction.isAppRunning(device, module)) {
+      if (!isDebugMode() && FastDeployManager.isPatchableApp(module) && FastDeployManager.isAppRunning(device, module)) {
         myPrinter.stdout("Incrementally updating running app.");
-        PatchRunningAppAction.pushChanges(device, myFacet);
+        FastDeployManager.pushChanges(device, myFacet);
 
         // TODO: returning true means that debug action won't connect..
         return true;
