@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.dependencies;
 
+import com.android.tools.idea.gradle.dsl.GradleDslElement;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +27,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArg
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -165,5 +168,11 @@ public class ModuleDependency extends Dependency {
   @Override
   protected void reset() {
     myNewName = null;
+  }
+
+  @Override
+  @NotNull
+  protected Collection<GradleDslElement> getChildren() {
+    return ImmutableList.of();
   }
 }

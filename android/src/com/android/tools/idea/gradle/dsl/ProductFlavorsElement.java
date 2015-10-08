@@ -16,15 +16,19 @@
 package com.android.tools.idea.gradle.dsl;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
 final class ProductFlavorsElement extends GradleDslElementMap {
   public static final String NAME = "productFlavors";
 
-  ProductFlavorsElement(@Nullable GradleDslElement parent) {
+  ProductFlavorsElement(@NotNull GradleDslElement parent) {
     super(parent, NAME);
+  }
+
+  @Override
+  protected boolean isBlockElement() {
+    return true;
   }
 
   @NotNull

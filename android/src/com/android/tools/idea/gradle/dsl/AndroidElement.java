@@ -34,8 +34,13 @@ public final class AndroidElement extends GradleDslPropertiesElement {
   private static final String RESOURCE_PREFIX = "resourcePrefix";
   // TODO: Add support for useLibrary
 
-  AndroidElement(@Nullable GradleDslElement parent) {
-    super(parent);
+  AndroidElement(@NotNull GradleDslElement parent) {
+    super(parent, null, NAME);
+  }
+
+  @Override
+  protected boolean isBlockElement() {
+    return true;
   }
 
   @Nullable
@@ -76,8 +81,10 @@ public final class AndroidElement extends GradleDslPropertiesElement {
   }
 
   @NotNull
-  public AndroidElement createDefaultConfig() {
-    assert defaultConfig() == null;
+  public AndroidElement addDefaultConfig() {
+    if (defaultConfig() != null) {
+      return this;
+    }
     ProductFlavorElement defaultConfig = new ProductFlavorElement(this, DEFAULT_CONFIG);
     return (AndroidElement)setNewElement(DEFAULT_CONFIG, defaultConfig);
   }
@@ -138,7 +145,7 @@ public final class AndroidElement extends GradleDslPropertiesElement {
 
     ProductFlavorElement flavorElement = productFlavors.getProperty(flavor, ProductFlavorElement.class);
     if (flavorElement == null) {
-      flavorElement = new ProductFlavorElement(this, flavor);
+      flavorElement = new ProductFlavorElement(productFlavors, flavor);
       productFlavors.setNewElement(flavor, flavorElement);
     }
     return this;
@@ -171,5 +178,14 @@ public final class AndroidElement extends GradleDslPropertiesElement {
   @NotNull
   public AndroidElement setResourcePrefix(@NotNull String resourcePrefix) {
     return (AndroidElement)setLiteralProperty(RESOURCE_PREFIX, resourcePrefix);
+  }
+
+  @Override
+  void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+    if (property.equals(FLAVOR_DIMENSIONS) && element instanceof LiteralElement) {
+      addAsParsedLiteralListElement(property, (LiteralElement)element);
+      return;
+    }
+    super.addParsedElement(property, element);
   }
 }
