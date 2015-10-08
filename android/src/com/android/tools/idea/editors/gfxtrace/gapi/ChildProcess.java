@@ -68,7 +68,7 @@ public abstract class ChildProcess {
     Process process = null;
     try {
       // This will throw IOException if the executable is not found.
-      LOG.info("Starting " + myName + " as " + pb.toString());
+      LOG.info("Starting " + myName + " as " + pb.command());
       process = pb.start();
     }
     catch (IOException e) {

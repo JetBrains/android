@@ -18,8 +18,6 @@ package com.android.tools.idea.editors.gfxtrace.gapi;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.service.Factory;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -29,59 +27,53 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class GapisProcess extends ChildProcess {
+public class GapirProcess extends ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
-  public static final GapisProcess INSTANCE = new GapisProcess();
-  private static final GapisConnection NOT_CONNECTED = new GapisConnection(INSTANCE, null);
+  public static final GapirProcess INSTANCE = new GapirProcess();
 
   private static final int SERVER_LAUNCH_TIMEOUT_MS = 10000;
   private static final String SERVER_HOST = "localhost";
 
-  private final Set<GapisConnection> myConnections = Sets.newIdentityHashSet();
   private final Object myPortLock = new Object();
-  private int myGapirPort;
   private SettableFuture<Integer> myPortF = null;
 
-  private GapisProcess() {
-    super("gapis");
-    Factory.register();
+  private GapirProcess() {
+    super("gapir");
   }
 
   @Override
   protected boolean prepare(ProcessBuilder pb) {
-    if (!GapiPaths.isValid()) {
-      LOG.warn("Could not find gapis, but needed to start the server.");
+    if (!GapiPaths.gapir().exists()) {
+      LOG.warn("Could not find gapir.");
       return false;
     }
-    pb.command(GapiPaths.gapis().getAbsolutePath(), "-shutdown_on_disconnect", "-rpc", SERVER_HOST + ":0", "-logs", PathManager.getLogPath(),
-               "--no_gapir", "--local_gapir_port", Integer.toString(myGapirPort));
+    pb.command(GapiPaths.gapir().getAbsolutePath(), "--port", "0", "--nocache",
+               "--log", new File(PathManager.getLogPath(), "gapir.log").getAbsolutePath());
     return true;
   }
 
   @Override
   protected void onExit(int code) {
     if (code != 0) {
-      LOG.warn("The gapis process exited with a non-zero exit value: " + code);
+      LOG.warn("The gapir process exited with a non-zero exit value: " + code);
     }
     else {
-      LOG.info("gapis exited cleanly");
+      LOG.info("gapir exited cleanly");
     }
   }
 
   /**
-   * Attempts to connect to a gapis server.
+   * Finds out the port gapir is running on.
    * <p/>
-   * Will launch a new server process if none has been started.
+   * Will launch a new gapir process if none has been started.
    * <p/>
    */
-  public GapisConnection connect() {
-    myGapirPort = GapirProcess.INSTANCE.getPort();
+  public int getPort() {
     SettableFuture<Integer> portF;
     synchronized (myPortLock) {
       if (myPortF == null) {
@@ -90,42 +82,20 @@ public class GapisProcess extends ChildProcess {
       portF = myPortF;
     }
     if (portF == null) {
-      return NOT_CONNECTED;
+      return -1;
     }
     try {
-      int port = portF.get(SERVER_LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-      GapisConnection connection = new GapisConnection(this, new Socket(SERVER_HOST, port));
-      LOG.info("Established a new client connection to " + port);
-      synchronized (myConnections) {
-        myConnections.add(connection);
-      }
-      return connection;
+      return portF.get(SERVER_LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
     catch (InterruptedException e) {
-      LOG.warn("Interrupted while waiting for gapis: " + e);
+      LOG.warn("Interrupted while waiting for gapir: " + e);
     }
     catch (ExecutionException e) {
-      LOG.warn("Failed while waiting for gapis: " + e);
-    }
-    catch (UnknownHostException e) {
-      LOG.warn("Unknown host starting gapis: " + e);
-    }
-    catch (IOException e) {
-      LOG.warn("Failed read from gapis: " + e);
+      LOG.warn("Failed while waiting for gapir: " + e);
     }
     catch (TimeoutException e) {
-      LOG.warn("Timed out waiting for gapis: " + e);
+      LOG.warn("Timed out waiting for gapir: " + e);
     }
-    return NOT_CONNECTED;
-  }
-
-  public void onClose(GapisConnection gapisConnection) {
-    synchronized (myConnections) {
-      myConnections.remove(gapisConnection);
-      if (myConnections.isEmpty()) {
-        LOG.info("Interrupting server thread on last connection close");
-        shutdown();
-      }
-    }
+    return -1;
   }
 }
