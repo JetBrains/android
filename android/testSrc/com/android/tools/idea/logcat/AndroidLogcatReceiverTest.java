@@ -87,6 +87,25 @@ public class AndroidLogcatReceiverTest {
   }
 
   @Test
+  public void processNewLineHandlesMultilineLogs() {
+    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("Line 1");
+    myReceiver.processNewLine("Line 2");
+    myReceiver.processNewLine("Line 3");
+    myReceiver.processNewLine("");
+    myReceiver.processNewLine("[ 01-23 13:00:00.000 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("Line 1");
+
+    String expected = "01-23 12:34:56.789 99-99/? V/UnknownClient: Line 1\n" +
+                      "+ Line 2\n" +
+                      "+ Line 3\n" +
+                      "01-23 13:00:00.000 99-99/? V/UnknownClient: Line 1\n";
+
+
+    assertThat(myWriter.toString()).isEqualTo(expected);
+  }
+
+  @Test
   public void processNewLineHandlesException() {
     myReceiver.processNewLine("[ 08-18 18:59:48.771 11698:11811 E/AndroidRuntime ]");
 
@@ -98,10 +117,10 @@ public class AndroidLogcatReceiverTest {
 
 
     String expected = "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: FATAL EXCEPTION: Timer-0\n" +
-                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: Process: com.android.chattylogger, PID: 11698\n" +
-                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: java.lang.RuntimeException: Bad response\n" +
-                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime:     at com.android.chattylogger.MainActivity$1.run(MainActivity.java:64)\n" +
-                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime:     at java.util.Timer$TimerImpl.run(Timer.java:284)\n";
+                      "+ Process: com.android.chattylogger, PID: 11698\n" +
+                      "+ java.lang.RuntimeException: Bad response\n" +
+                      "+     at com.android.chattylogger.MainActivity$1.run(MainActivity.java:64)\n" +
+                      "+     at java.util.Timer$TimerImpl.run(Timer.java:284)\n";
 
     assertThat(myWriter.toString()).isEqualTo(expected);
   }
