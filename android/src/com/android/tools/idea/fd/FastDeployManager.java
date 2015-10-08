@@ -18,6 +18,7 @@ package com.android.tools.idea.fd;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -148,6 +149,94 @@ public class FastDeployManager implements ProjectComponent {
   @NotNull
   public static FastDeployManager get(@NotNull Project project) {
     return project.getComponent(FastDeployManager.class);
+  }
+
+  /**
+   * Checks whether the app associated with the given module is already running on the given device
+   *
+   * @param device the device to check
+   * @param module a module context, normally the main app module (but if it's a library module
+   *               the infrastructure will look for other app modules
+   * @return true if the app is already running and is listening for incremental updates
+   */
+  public static boolean isAppRunning(@NotNull IDevice device, @NotNull Module module) {
+    FastDeployManager manager = get(module.getProject());
+    return manager.ping(device, module);
+  }
+
+  /**
+   * Checks whether the app associated with the given module is capable of being run time patched
+   * (whether or not it's running). This checks whether we have a Gradle project, and if that
+   * Gradle project is using a recent enough Gradle plugin with incremental support, etc. It
+   * also checks whether the user has disabled instant run.
+   *
+   * @param module a module context, normally the main app module (but if it's a library module
+   *               the infrastructure will look for other app modules
+   * @return true if the app is using an incremental support enabled Gradle plugin
+   */
+  public static boolean isPatchableApp(@NotNull Module module) {
+    if (!isInstantRunEnabled(module.getProject())) {
+      return false;
+    }
+
+    FastDeployManager manager = get(module.getProject());
+    AndroidFacet facet = manager.findAppModule(module);
+    if (facet == null) {
+      return false;
+    }
+
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    if (model == null) {
+      return false;
+    }
+
+    String version = model.getAndroidProject().getModelVersion();
+    try {
+      // Sigh, would be nice to have integer versions to avoid having to do this here
+      FullRevision revision = FullRevision.parseRevision(version);
+
+      // Supported in version 1.6 of the Gradle plugin and up
+      return revision.getMajor() > 1 || revision.getMinor() >= 6;
+    } catch (NumberFormatException ignore) {
+      return false;
+    }
+  }
+
+  /**
+   * Performs an incremental update of the app associated with the given module on the given device
+   *
+   * @param device the device to apply the update to
+   * @param module a module context, normally the main app module (but if it's a library module
+   *               the infrastructure will look for other app modules
+   * @param forceRestart if true, force a full restart of the given app (normally false)
+   */
+  public static void perform(@NotNull final IDevice device, @NotNull final Module module, final boolean forceRestart) {
+    if (DISPLAY_STATISTICS) {
+      notifyBegin();
+    }
+
+    Project project = module.getProject();
+    UpdateMode updateMode = forceRestart ? UpdateMode.COLD_SWAP : UpdateMode.HOT_SWAP;
+    FastDeployManager manager = get(project);
+    manager.performUpdate(device, updateMode, module);
+  }
+
+  public static boolean pushChanges(@NotNull final IDevice device, @NotNull final AndroidFacet facet) {
+    FastDeployManager manager = get(facet.getModule().getProject());
+    manager.pushChanges(device, UpdateMode.HOT_SWAP, facet, getLastInstalledArscTimestamp(device, facet));
+    return true;
+  }
+
+  private static long getLastInstalledArscTimestamp(@NotNull IDevice device, @NotNull AndroidFacet facet) {
+    String pkgName;
+    try {
+      pkgName = ApkProviderUtil.computePackageName(facet);
+    }
+    catch (ApkProvisionException e) {
+      return 0;
+    }
+
+    return ServiceManager.getService(InstalledPatchCache.class).getInstalledArscTimestamp(device, pkgName);
   }
 
   @NotNull
