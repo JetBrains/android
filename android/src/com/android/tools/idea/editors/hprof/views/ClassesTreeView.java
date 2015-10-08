@@ -411,6 +411,10 @@ public final class ClassesTreeView implements DataProvider, Disposable {
     return myColumnTree;
   }
 
+  public void requestFocus() {
+    myTree.requestFocus();
+  }
+
   private void installTreeSpeedSearch() {
     new TreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
       @Override
