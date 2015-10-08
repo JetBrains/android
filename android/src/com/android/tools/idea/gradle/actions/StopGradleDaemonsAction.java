@@ -23,6 +23,8 @@ import com.intellij.openapi.ui.Messages;
 
 import java.io.IOException;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemonsAndRestart;
+
 /**
  * Internal action that stops all running Gradle daemons.
  */
@@ -35,13 +37,6 @@ public class StopGradleDaemonsAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    try {
-      GradleUtil.stopAllGradleDaemonsAndRestart();
-    }
-    catch (IOException error) {
-      Messages.showErrorDialog("Failed to stop Gradle daemons. Please run 'gradle --stop' from the command line.\n\n" +
-                               "Cause:\n" + error.getMessage(), TITLE
-      );
-    }
+    stopAllGradleDaemonsAndRestart();
   }
 }
