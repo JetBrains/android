@@ -75,8 +75,7 @@ public class ManualTargetChooser implements TargetChooser {
       if (selectedAvd == null) {
         return null;
       }
-      EmulatorTargetChooser emulatorChooser =
-        new EmulatorTargetChooser(myFacet, myEmulatorLaunchOptions, selectedAvd);
+      EmulatorTargetChooser emulatorChooser = new EmulatorTargetChooser(myFacet, myEmulatorLaunchOptions, selectedAvd);
       return emulatorChooser.getTarget(printer, deviceCount, debug);
     }
     else if (chooser.isCloudTestOptionSelected()) {
@@ -87,13 +86,8 @@ public class ManualTargetChooser implements TargetChooser {
       if (selectedDevices.length == 0) {
         return null;
       }
-      if (chooser.useSameDevicesAgain()) {
-        myConfiguration.USE_LAST_SELECTED_DEVICE = true;
-        myConfiguration.setDevicesUsedInLaunch(Sets.newHashSet(selectedDevices), getOnlineDevices());
-      } else {
-        myConfiguration.USE_LAST_SELECTED_DEVICE = false;
-        myConfiguration.setDevicesUsedInLaunch(Collections.<IDevice>emptySet(), Collections.<IDevice>emptySet());
-      }
+      myConfiguration.setDevicesUsedInLaunch(Sets.newHashSet(selectedDevices), getOnlineDevices());
+      myConfiguration.USE_LAST_SELECTED_DEVICE = chooser.useSameDevicesAgain();
       return DeviceTarget.forDevices(Arrays.asList(selectedDevices));
     }
   }
