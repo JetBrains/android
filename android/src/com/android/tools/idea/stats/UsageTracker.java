@@ -97,6 +97,11 @@ public abstract class UsageTracker {
 
   public static final String CATEGORY_THEME_EDITOR = "themeEditor";
   public static final String ACTION_THEME_EDITOR_OPEN = "themeEditorOpened";
+  /**
+   * Tracking AppIndexing feature usage
+   */
+  public static final String CATEGORY_APP_INDEXING = "appIndexing";
+  public static final String ACTION_TRIGGER_QUICKFIX = "triggerQuickfix";
 
 
   /**
