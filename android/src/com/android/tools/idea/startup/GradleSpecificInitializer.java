@@ -51,6 +51,7 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.TimeoutUtil;
 import com.intellij.util.messages.MessageBusConnection;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -65,8 +66,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemonsAndRestart
-    ;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
@@ -138,7 +137,7 @@ public class GradleSpecificInitializer implements Runnable {
   /**
    * Gradle has an issue when the studio path contains ! (http://b.android.com/184588)
    */
-  private void checkInstallPath() {
+  private static void checkInstallPath() {
     if (PathManager.getHomePath().contains("!")) {
       final Application app = ApplicationManager.getApplication();
 
@@ -428,10 +427,10 @@ public class GradleSpecificInitializer implements Runnable {
       @Override
       public void appClosing() {
         try {
-          stopAllGradleDaemonsAndRestart();
+          DefaultGradleConnector.close();
         }
-        catch (IOException e) {
-          LOG.info("Failed to stop Gradle daemons", e);
+        catch (RuntimeException e) {
+          LOG.info("Failed to stop Gradle daemons during IDE shutdown", e);
         }
       }
     });
