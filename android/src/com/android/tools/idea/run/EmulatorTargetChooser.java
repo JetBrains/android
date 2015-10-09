@@ -51,11 +51,7 @@ public class EmulatorTargetChooser implements TargetChooser {
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final EmulatorLaunchOptions myEmulatorLaunchOptions;
 
-  public EmulatorTargetChooser(
-    @NotNull AndroidFacet facet,
-    @NotNull EmulatorLaunchOptions emulatorLaunchOptions,
-    @Nullable String avd
-  ) {
+  public EmulatorTargetChooser(@NotNull AndroidFacet facet, @NotNull EmulatorLaunchOptions emulatorLaunchOptions, @Nullable String avd) {
     myFacet = facet;
     myEmulatorLaunchOptions = emulatorLaunchOptions;
     assert avd == null || avd.length() > 0;
@@ -87,8 +83,7 @@ public class EmulatorTargetChooser implements TargetChooser {
   @Nullable
   @Override
   public DeployTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
-    Collection<IDevice> runningDevices = DeviceSelectionUtils
-      .chooseRunningDevice(myFacet, new TargetDeviceFilter(this), deviceCount);
+    Collection<IDevice> runningDevices = DeviceSelectionUtils.chooseRunningDevice(myFacet, new TargetDeviceFilter(this), deviceCount);
     if (runningDevices == null) {
       // The user canceled.
       return null;
