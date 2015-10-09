@@ -16,9 +16,11 @@
 
 package com.android.tools.idea.run;
 
+import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.run.cloud.*;
+import com.android.tools.idea.run.fd.PatchDeployState;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -59,6 +61,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   /** The key used to store the selected deploy target as copyable user data on each execution environment. */
   public static final Key<DeployTarget> DEPLOY_TARGET_KEY = Key.create("android.deploy.target");
+  public static final Key<Collection<IDevice>> DEPLOY_DEVICES = Key.create("android.deploy.devices");
+  public static final Key<Boolean> FAST_DEPLOY = Key.create("android.fast.deploy");
 
   public String TARGET_SELECTION_MODE = TargetSelectionMode.EMULATOR.name();
   public boolean USE_LAST_SELECTED_DEVICE = false;
@@ -214,7 +218,21 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       debug = true;
     }
 
-    if (AndroidSdkUtils.getDebugBridge(getProject()) == null) return null;
+    if (AndroidSdkUtils.getDebugBridge(getProject()) == null) {
+      return null;
+    }
+
+    // For incremental run, we don't want to show any dialogs and just redeploy directly to the last used devices
+    Collection<IDevice> fastDeployDevices = getFastDeployDevices(module);
+    if (!(executor instanceof DefaultDebugExecutor) && !fastDeployDevices.isEmpty()) {
+      if (FastDeployManager.DISPLAY_STATISTICS) {
+        FastDeployManager.notifyBegin();
+      }
+
+      env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
+      env.putCopyableUserData(DEPLOY_DEVICES, fastDeployDevices);
+      return new PatchDeployState(facet, fastDeployDevices);
+    }
 
     ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
     TargetChooser targetChooser = getTargetChooser(facet);
@@ -249,12 +267,45 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       .setDebug(debug)
       .build();
 
-    if (FastDeployManager.DISPLAY_STATISTICS) {
-      FastDeployManager.notifyBegin();
-    }
-
     return new AndroidRunningState(env, facet, getApkProvider(facet), deviceTarget, printer, getApplicationLauncher(facet),
                                    launchOptions, this);
+  }
+
+  private Collection<IDevice> getFastDeployDevices(@NotNull Module module) {
+    if (!FastDeployManager.isPatchableApp(module)) {
+      return Collections.emptyList();
+    }
+
+    // TODO: this may not be set properly the first time an emulator is launched
+    // TODO: eventually, this should look at the currently active configurations, and determine the devices from there
+    DeviceStateAtLaunch deviceStateAtLaunch = getDevicesUsedInLastLaunch();
+    if (deviceStateAtLaunch == null) {
+      LOG.info("Cannot patch update since we don't know the devices used in last launch");
+      return Collections.emptyList();
+    }
+
+    // Note: we assume adb has been properly setup since this can only happen after a launch has taken place
+    List<IDevice> devices = Lists.newArrayList(AndroidDebugBridge.getBridge().getDevices());
+    if (!deviceStateAtLaunch.matchesCurrentAvailableDevices(devices)) {
+      LOG.info("Cannot patch update since the list of devices has changed since the last launch");
+      return Collections.emptyList();
+    }
+
+    Collection<IDevice> usedDevices = deviceStateAtLaunch.filterByUsed(devices);
+    if (usedDevices.isEmpty()) {
+      LOG.info("Cannot patch update since the none of the devices from previous launch are online");
+      return Collections.emptyList();
+    }
+
+    for (IDevice device : usedDevices) {
+      // TODO: we may eventually support a push to device even if the app isn't running
+      if (!FastDeployManager.isAppRunning(device, module)) {
+        LOG.info("Cannot patch update since the app is not running on device: " + device.getName());
+        return Collections.emptyList();
+      }
+    }
+
+    return usedDevices;
   }
 
   @Nullable
