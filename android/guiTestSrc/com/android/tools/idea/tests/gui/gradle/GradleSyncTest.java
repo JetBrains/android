@@ -764,28 +764,6 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSyncWithUnresolvedDependencies() throws IOException {
     myProjectFrame = importSimpleApplication();
-    testSyncWithUnresolvedAppCompat();
-  }
-
-  @Test @IdeGuiTest
-  public void testSyncWithUnresolvedDependenciesWithAndroidGradlePluginOneDotZero() throws IOException {
-    myProjectFrame = importSimpleApplication();
-
-    VirtualFile projectBuildFile = myProjectFrame.findFileByRelativePath("build.gradle", true);
-    Document document = getDocument(projectBuildFile);
-    assertNotNull(document);
-
-    updateGradleDependencyVersion(myProjectFrame.getProject(), document, GRADLE_PLUGIN_NAME, new Computable<String>() {
-      @Override
-      public String compute() {
-        return "1.0.0";
-      }
-    });
-
-    testSyncWithUnresolvedAppCompat();
-  }
-
-  private void testSyncWithUnresolvedAppCompat() {
     VirtualFile appBuildFile = myProjectFrame.findFileByRelativePath("app/build.gradle", true);
     Document document = getDocument(appBuildFile);
     assertNotNull(document);
@@ -933,16 +911,19 @@ public class GradleSyncTest extends GuiTestCase {
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(appModule);
 
     // Verify that the module "app" depends on module "library"
-    ModuleOrderEntry moduleDependency = null;
+    ModuleOrderEntry found = null;
     for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
       if (orderEntry instanceof ModuleOrderEntry) {
-        moduleDependency = (ModuleOrderEntry)orderEntry;
-        break;
+        ModuleOrderEntry dependency = (ModuleOrderEntry)orderEntry;
+        if (dependency.getModuleName().equals("library")) {
+          found = dependency;
+          break;
+        }
       }
     }
 
-    assertNotNull(moduleDependency);
-    assertThat(moduleDependency.getModuleName()).isEqualTo("library");
+    assertNotNull(found);
+    assertThat(found.getModuleName()).isEqualTo("library");
   }
 
   @Test @IdeGuiTest
