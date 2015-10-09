@@ -34,6 +34,11 @@ public final class GapiPaths {
     put("armeabi", "armeabi-v7a");// We currently (incorrectly) remap this abi because we don't have the correct .so
   }});
 
+  private static final Map<String, String> ARCH_REMAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
+    put("i386", "x86");
+    put("amd64", "x86_64");
+  }});
+
   private static final Map<String, String> ABI_TARGET = Collections.unmodifiableMap(new HashMap<String, String>() {{
     put("armeabi-v7a", "android-arm");
     put("arm64-v8a", "android-arm64");
@@ -45,15 +50,22 @@ public final class GapiPaths {
   @NotNull private static final String SERVER_EXECUTABLE_NAME;
   @NotNull private static final String GAPII_LIBRARY_NAME;
   @NotNull private static final String PKG_INFO_NAME = "pkginfo.apk";
+  @NotNull private static final String EXE_EXTENSION;
 
   static {
-    HOST_OS = System.getProperty("os.name");
-    HOST_ARCH = System.getProperty("os.arch");
-    if (HOST_OS.startsWith("Windows")) {
-      SERVER_EXECUTABLE_NAME = "gapis.exe";
+    String os = System.getProperty("os.name");
+    if (os.startsWith("Windows")) {
+      HOST_OS = "windows";
+      EXE_EXTENSION = ".exe";
+    } else if (os.startsWith("Mac OS X")) {
+      HOST_OS = "osx";
+      EXE_EXTENSION = "";
     } else {
-      SERVER_EXECUTABLE_NAME = "gapis";
+      HOST_OS = os;
+      EXE_EXTENSION = "";
     }
+    HOST_ARCH = remap(ARCH_REMAP, System.getProperty("os.arch"));
+    SERVER_EXECUTABLE_NAME = "gapis" + EXE_EXTENSION;
     HOST_DIR = abiName(HOST_OS, HOST_ARCH);
     GAPII_LIBRARY_NAME = "libgapii.so";
   }
