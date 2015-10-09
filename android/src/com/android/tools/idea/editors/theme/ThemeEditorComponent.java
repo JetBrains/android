@@ -866,7 +866,10 @@ public class ThemeEditorComponent extends Splitter {
       // Only refresh when we select a different theme
       ThemeEditorStyle previewTheme = getPreviewTheme();
 
-      assert previewTheme != null;
+      if (previewTheme == null) {
+        // previewTheme is not a valid theme in the current configuration
+        return;
+      }
 
       myThemeEditorContext.setCurrentTheme(previewTheme);
       final Configuration configuration = myThemeEditorContext.getConfiguration();
