@@ -71,15 +71,12 @@ public class GradleInvokerOptions {
     }
 
     final Module[] modules = getModules(project, context, configuration);
-    if (modules.length == 1 &&
-        canUpdateIncrementally(devices, modules) &&
-        !(env.getExecutor() instanceof DefaultDebugExecutor)) { // temporary: currently attaching a debugger requires full build
+    if (Boolean.TRUE.equals(env.getCopyableUserData(AndroidRunConfigurationBase.FAST_DEPLOY))) {
       LOG.info(String.format("Module %1$s can be updated incrementally.", modules[0].getName()));
       AndroidGradleModel model = AndroidGradleModel.get(modules[0]);
-      if (model != null) {
-        String dexTask = FastDeployManager.getIncrementalDexTask(model);
-        return new GradleInvokerOptions(Collections.singletonList(dexTask), null, Collections.<String>emptyList());
-      }
+      assert model != null : "Module selected for fast deploy, but doesn't seem to have the right gradle model";
+      String dexTask = FastDeployManager.getIncrementalDexTask(model);
+      return new GradleInvokerOptions(Collections.singletonList(dexTask), null, Collections.<String>emptyList());
     }
 
     if (MakeBeforeRunTaskProvider.isUnitTestConfiguration(configuration)) {
@@ -149,33 +146,16 @@ public class GradleInvokerOptions {
 
   @NotNull
   private static Collection<IDevice> getTargetDevices(@NotNull ExecutionEnvironment env) {
+    Collection<IDevice> devices = env.getCopyableUserData(AndroidRunConfigurationBase.DEPLOY_DEVICES);
+    if (devices != null) {
+      return devices;
+    }
+
     DeployTarget deployTarget = env.getCopyableUserData(AndroidRunConfigurationBase.DEPLOY_TARGET_KEY);
     Collection<IDevice> readyDevices = null;
     if (deployTarget instanceof DeviceTarget) {
       readyDevices = ((DeviceTarget)deployTarget).getDevicesIfReady();
     }
     return readyDevices == null ? Collections.<IDevice>emptyList() : readyDevices;
-  }
-
-  private static boolean canUpdateIncrementally(@NotNull Collection<IDevice> devices, @NotNull Module[] modules) {
-    if (modules.length != 1
-        || devices.isEmpty()) { // happens if the emulator is still being launched..
-      return false;
-    }
-
-    Module module = modules[0];
-    if (!FastDeployManager.isPatchableApp(module)) {
-      LOG.info(String.format("Patching disabled, or module %1$s does not use the required Gradle version", module.getName()));
-      return false;
-    }
-
-    for (IDevice device : devices) {
-      if (!FastDeployManager.isAppRunning(device, module)) {
-        LOG.info(String.format("App from module %1$s not running on device %2$s.", module.getName(), device.getName()));
-        return false;
-      }
-    }
-
-    return true;
   }
 }

@@ -1,12 +1,11 @@
 # TODO
 
 ## Android Studio
-  - Current infrastructure works only for a single device, run supports multiple devices
-  - Currently we exit early in AndroidRunningState if we do a fast deploy.
-    This means that debug action won't work.
+  - Patch runner config needs to be updated to support incremental launch for debug
+  - Incremental update for tests doesn't work since the test process isn't actually running once tests are complete
+  - need a stop button to force terminate FDR?
   - If Gradle build for fast deploy fails, FDR detects that there are no changes.
   - logcat spam from fd (shows up in the app's logcat)
-  - need a stop button to force terminate FDR?
   - When the app is running in the background, instant run detects no changes, but
     doesn't bring it to the foreground..
 
