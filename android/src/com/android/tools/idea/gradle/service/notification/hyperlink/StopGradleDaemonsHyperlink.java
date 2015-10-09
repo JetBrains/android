@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemonsAndRestart;
+
 public class StopGradleDaemonsHyperlink extends NotificationHyperlink {
   @NotNull
   public static NotificationHyperlink createStopGradleDaemonsHyperlink() {
@@ -45,13 +47,7 @@ public class StopGradleDaemonsHyperlink extends NotificationHyperlink {
                      "Do you want to continue?";
     int answer = Messages.showYesNoDialog(project, message, title, Messages.getQuestionIcon());
     if (answer == Messages.YES) {
-      try {
-        GradleUtil.stopAllGradleDaemonsAndRestart();
-      }
-      catch (IOException error) {
-        Messages.showErrorDialog("Failed to stop Gradle daemons. Please run 'gradle --stop' from the command line.\n\n" +
-                                 "Cause:\n" + error.getMessage(), title);
-      }
+      stopAllGradleDaemonsAndRestart();
     }
   }
 }
