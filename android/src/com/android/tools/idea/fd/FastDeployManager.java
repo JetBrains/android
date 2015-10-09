@@ -217,10 +217,6 @@ public class FastDeployManager implements ProjectComponent {
    * @param forceRestart if true, force a full restart of the given app (normally false)
    */
   public static void perform(@NotNull final IDevice device, @NotNull final Module module, final boolean forceRestart) {
-    if (DISPLAY_STATISTICS) {
-      notifyBegin();
-    }
-
     Project project = module.getProject();
     UpdateMode updateMode = forceRestart ? UpdateMode.COLD_SWAP : UpdateMode.HOT_SWAP;
     FastDeployManager manager = get(project);
