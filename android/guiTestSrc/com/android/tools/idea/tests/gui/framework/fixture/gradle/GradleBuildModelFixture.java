@@ -69,6 +69,14 @@ public class GradleBuildModelFixture {
         });
       }
     });
+  }
 
+  public void reparse() {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        myTarget.reparse();
+      }
+    });
   }
 }
