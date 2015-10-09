@@ -242,12 +242,8 @@ public class GradleInvoker {
       new GradleTaskExecutionContext(this, myProject, gradleTasks, jvmArguments, commandLineArguments, myCancellationMap, taskId,
                                      taskListener);
     final GradleTasksExecutor executor = new GradleTasksExecutor(context);
-    invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        FileDocumentManager.getInstance().saveAllDocuments();
-      }
-    });
+
+    saveAllFilesSafely();
 
     if (ApplicationManager.getApplication().isDispatchThread()) {
       executor.queue();
@@ -263,6 +259,18 @@ public class GradleInvoker {
         }
       });
     }
+  }
+
+  /**
+   * Saves all edited documents. This method can be called from any thread.
+   */
+  public static void saveAllFilesSafely() {
+    invokeAndWaitIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        FileDocumentManager.getInstance().saveAllDocuments();
+      }
+    });
   }
 
   public void clearConsoleAndBuildMessages() {

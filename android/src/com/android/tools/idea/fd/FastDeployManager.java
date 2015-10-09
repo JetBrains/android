@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.SourceProvider;
 import com.android.builder.model.Variant;
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.AndroidRunningState;
 import com.android.tools.idea.run.ApkProviderUtil;
@@ -239,6 +245,73 @@ public class FastDeployManager implements ProjectComponent {
     return ServiceManager.getService(InstalledPatchCache.class).getInstalledArscTimestamp(device, pkgName);
   }
 
+  /** Returns true if any of the devices in the given list require a rebuild */
+    public static boolean isRebuildRequired(@NotNull Collection<IDevice> devices, @NotNull Module module) {
+    for (IDevice device : devices) {
+      if (isRebuildRequired(device, module)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns true if a full rebuild is required for the app. Currently, this is the
+   * case if something in the manifest has changed (at the moment, we're only looking
+   * at manifest file edits, not diffing the contents or disregarding "irrelevant"
+   * edits such as whitespace or comments.
+   */
+  public static boolean isRebuildRequired(@NotNull IDevice device, @NotNull Module module) {
+    FastDeployManager manager = get(module.getProject());
+    AndroidFacet facet = manager.findAppModule(module);
+    if (facet == null) {
+      return false;
+    }
+
+    String pkgName;
+    try {
+      pkgName = ApkProviderUtil.computePackageName(facet);
+    }
+    catch (ApkProvisionException e) {
+      return true;
+    }
+
+    InstalledPatchCache cache = ServiceManager.getService(InstalledPatchCache.class);
+
+    long currentTimeStamp = getManifestLastModified(facet);
+    long installedTimeStamp = cache.getInstalledManifestTimestamp(device, pkgName);
+
+    if (currentTimeStamp <= installedTimeStamp) {
+      return false;
+    }
+
+    // TODO: File has been edited: here we can actually *update* the merged manifest and then compute hash
+    // codes to see if the contents are equivalent.
+
+    return true;
+  }
+
+  /**
+   * Returns the timestamp of the most recently modified manifest file applicable for the given facet
+   */
+  public static long getManifestLastModified(@NotNull AndroidFacet facet) {
+    long maxLastModified = 0L;
+    AndroidModel androidModel = facet.getAndroidModel();
+    if (androidModel != null) {
+      // Suppress deprecation: the recommended replacement is not suitable
+      // (that's an API for VirtualFiles; we need the java.io.File instances)
+      //noinspection deprecation
+      for (SourceProvider provider : androidModel.getActiveSourceProviders()) {
+        File manifest = provider.getManifestFile();
+        long lastModified = manifest.lastModified();
+        maxLastModified = Math.max(maxLastModified, lastModified);
+      }
+    }
+
+    return maxLastModified;
+  }
+
   @NotNull
   @Override
   public String getComponentName() {
@@ -356,6 +429,25 @@ public class FastDeployManager implements ProjectComponent {
     return null;
   }
 
+  /** Looks up the merged manifest file for a given facet */
+  @Nullable
+  public static File findMergedManifestFile(@NotNull AndroidFacet facet) {
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    if (model != null) {
+      AndroidArtifact mainArtifact = model.getSelectedVariant().getMainArtifact();
+      Collection<AndroidArtifactOutput> outputs = mainArtifact.getOutputs();
+      for (AndroidArtifactOutput output : outputs) {
+        // For now, use first manifest file that exists
+        File manifest = output.getGeneratedManifest();
+        if (manifest.exists()) {
+          return manifest;
+        }
+      }
+    }
+
+    return null;
+  }
+
   // TODO: Get the intermediates folder from the model itself!
   @Nullable
   private static File findIntermediatesFolder(@NotNull AndroidFacet facet) {
@@ -440,8 +532,13 @@ public class FastDeployManager implements ProjectComponent {
     File resourceArsc = findResourceArsc(facet);
     if (resourceArsc != null) {
       long timestamp = resourceArsc.lastModified();
-      ServiceManager.getService(InstalledPatchCache.class).setInstalledArscTimestamp(device, pkgName, timestamp);
+      InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
+      patchCache.setInstalledArscTimestamp(device, pkgName, timestamp);
     }
+
+    // Note that while we update the patch cache with the resource file timestamp here,
+    // we *don't* do that for the manifest file: the resource timestamp is updated because
+    // the resource files will be pushed to the app, but the manifest changes can't be.
   }
 
   @SuppressWarnings({"MethodMayBeStatic", "UnusedParameters"}) // won't be as soon as it really calls Gradle
@@ -706,11 +803,6 @@ public class FastDeployManager implements ProjectComponent {
     }
     catch (ApkProvisionException e) {
       LOG.warn("Unable to identify package name for app in module: " + module.getName());
-      return false;
-    }
-
-    if (device.getClient(packageName) == null) {
-      LOG.info(String.format("Package %1$s not running on device %2$s", packageName, device.getName()));
       return false;
     }
 

@@ -17,25 +17,52 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.Disposable;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class InstalledPatchCache implements Disposable {
-  private final DeviceStateCache<Long> myCache;
+  private final DeviceStateCache<PatchState> myCache;
 
   public InstalledPatchCache() {
-    myCache = new DeviceStateCache<Long>(this);
+    myCache = new DeviceStateCache<PatchState>(this);
   }
 
   public long getInstalledArscTimestamp(@NotNull IDevice device, @NotNull String pkgName) {
-    Long ts = myCache.get(device, pkgName);
-    return ts == null ? 0 : ts;
+    PatchState state = getState(device, pkgName, false);
+    return state == null ? 0 : state.resourcesModified;
   }
 
   public void setInstalledArscTimestamp(@NotNull IDevice device, @NotNull String pkgName, long timestamp) {
-    myCache.put(device, pkgName, timestamp);
+    getState(device, pkgName, true).resourcesModified = timestamp;
+  }
+
+  public long getInstalledManifestTimestamp(@NotNull IDevice device, @NotNull String pkgName) {
+    PatchState state = getState(device, pkgName, false);
+    return state == null ? 0 : state.manifestModified;
+  }
+
+  public void setInstalledManifestTimestamp(@NotNull IDevice device, @NotNull String pkgName, long timestamp) {
+    getState(device, pkgName, true).manifestModified = timestamp;
+  }
+
+  @Contract("!null, !null, true -> !null")
+  @Nullable
+  private PatchState getState(@NotNull IDevice device, @NotNull String pkgName, boolean create) {
+    PatchState state = myCache.get(device, pkgName);
+    if (state == null && create) {
+      state = new PatchState();
+      myCache.put(device, pkgName, state);
+    }
+    return state;
   }
 
   @Override
   public void dispose() {
+  }
+
+  private static class PatchState {
+    public long resourcesModified;
+    public long manifestModified;
   }
 }
