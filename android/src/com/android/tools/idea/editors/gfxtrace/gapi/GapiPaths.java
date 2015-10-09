@@ -16,14 +16,29 @@
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
 import com.intellij.openapi.application.PluginPathManager;
+import com.intellij.util.containers.hash.HashMap;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 
-public class GapiPaths {
-  private static final String SERVER_EXECUTABLE_NAME = "gapis";
-  private static final String SERVER_RELATIVE_PATH = "bin";
+public final class GapiPaths {
+  @NotNull private static final String SERVER_EXECUTABLE_NAME = "gapis";
+  @NotNull private static final String SERVER_RELATIVE_PATH = "bin";
+  @NotNull private static final String GAPII_LIBRARY_FLAVOUR = "release";
+  @NotNull private static final String GAPII_LIBRARY_NAME = "libgapii.so";
+
+  private static final Map<String, String> ABI_TO_LIB = Collections.unmodifiableMap(new HashMap<String, String>() {{
+    put("32-bit (arm)", "android-arm"); // Not a valid abi, but returned anyway by ClientData.getAbi
+    put("64-bit (arm)", "android-arm64"); // Not a valid abi, but returned anyway by ClientData.getAbi
+    put("armeabi", "android-arm");
+    put("armeabi-v7a", "android-arm");
+    put("arm64-v8a", "android-arm64");
+  }});
 
   private static final Object myPathLock = new Object();
   private static GapiPaths myPaths;
@@ -32,14 +47,33 @@ public class GapiPaths {
   public final File myServerDirectory;
   public final File myGapisPath;
 
+  public static boolean isValid() {
+    return gapis().exists();
+  }
+
+  public static File gapis() {
+    return get().myGapisPath;
+  }
+
+  @NotNull
+  static public File findTraceLibrary(@NotNull String abi) throws IOException {
+    File binaryPath = get().myServerDirectory;
+    if (binaryPath == null) {
+      throw new IOException("No gapii libraries available");
+    }
+    String lib = ABI_TO_LIB.get(abi);
+    if (lib == null) {
+      throw new IOException("Unsupported gapii abi '" + abi + "'");
+    }
+    File architecturePath = new File(binaryPath, lib);
+    File flavourPath = new File(architecturePath, GAPII_LIBRARY_FLAVOUR);
+    return new File(flavourPath, GAPII_LIBRARY_NAME);
+  }
+
   public GapiPaths(File gapisRoot, File serverDirectory, File gapisPath) {
     myGapisRoot = gapisRoot;
     myServerDirectory = serverDirectory;
     myGapisPath = gapisPath;
-  }
-
-  public boolean isValid() {
-    return myGapisPath.exists();
   }
 
   private static GapiPaths create(File root) {
@@ -54,7 +88,7 @@ public class GapiPaths {
     if (Boolean.getBoolean(IDEA_IS_INTERNAL_PROPERTY)) {
       // Check the default build location for a standard repo checkout
       GapiPaths internal = create(new File(androidPlugin.getParentFile().getParentFile().getParentFile(), "gpu"));
-      if (!internal.isValid()) {
+      if (!internal.myGapisPath.exists()) {
         // Check the GOPATH in case it is non standard
         String gopath = System.getenv("GOPATH");
         if (gopath != null && gopath.length() > 0) {
@@ -62,21 +96,16 @@ public class GapiPaths {
         }
       }
       // TODO: Check the prebuilts location
-      if (internal.isValid()) {
+      if (internal.myGapisPath.exists()) {
         result = internal;
       }
     }
     return result;
   }
 
-
-  public static File getBinaryPath() {
-    return get().myServerDirectory;
-  }
-
   public static GapiPaths get() {
     synchronized (myPathLock) {
-      if (myPaths == null || !myPaths.isValid()) {
+      if (myPaths == null || !myPaths.myGapisPath.exists()) {
         myPaths = find();
       }
       return myPaths;
