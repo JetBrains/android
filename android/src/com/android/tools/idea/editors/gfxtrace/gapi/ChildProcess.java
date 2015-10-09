@@ -32,6 +32,7 @@ public abstract class ChildProcess {
   @NotNull private static final Pattern PORT_PATTERN = Pattern.compile("^Bound on port '(\\d+)'$", 0);
   private final String myName;
   private Thread myServerThread;
+  protected Process myProcess;
 
   ChildProcess(String name) {
     myName = name;
@@ -65,18 +66,17 @@ public abstract class ChildProcess {
 
   private void runProcess(final SettableFuture<Integer> portF, final ProcessBuilder pb) {
     // Use the base directory as the working directory for the server.
-    Process process = null;
     try {
       // This will throw IOException if the executable is not found.
       LOG.info("Starting " + myName + " as " + pb.command());
-      process = pb.start();
+      myProcess = pb.start();
     }
     catch (IOException e) {
       LOG.warn(e);
       portF.setException(e);
       return;
     }
-    final BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("UTF-8")));
+    final BufferedReader stdout = new BufferedReader(new InputStreamReader(myProcess.getInputStream(), Charset.forName("UTF-8")));
     try {
       new Thread() {
         @Override
@@ -85,12 +85,12 @@ public abstract class ChildProcess {
         }
       }.start();
       try {
-        onExit(process.waitFor());
+        onExit(myProcess.waitFor());
       }
       catch (InterruptedException e) {
         LOG.info("Killing " + myName);
         portF.setException(e);
-        process.destroy();
+        myProcess.destroy();
       }
     }
     finally {

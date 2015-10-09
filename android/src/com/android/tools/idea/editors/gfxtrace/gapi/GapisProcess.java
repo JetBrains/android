@@ -35,22 +35,27 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class GapisProcess extends ChildProcess {
+public final class GapisProcess extends ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
-  public static final GapisProcess INSTANCE = new GapisProcess();
-  private static final GapisConnection NOT_CONNECTED = new GapisConnection(INSTANCE, null);
+  private static final Object myInstanceLock = new Object();
+  private static GapisProcess myInstance;
+  private static final GapisConnection NOT_CONNECTED = new GapisConnection(null, null);
 
   private static final int SERVER_LAUNCH_TIMEOUT_MS = 10000;
   private static final String SERVER_HOST = "localhost";
 
   private final Set<GapisConnection> myConnections = Sets.newIdentityHashSet();
-  private final Object myPortLock = new Object();
-  private int myGapirPort;
-  private SettableFuture<Integer> myPortF = null;
+  private final GapirProcess myGapir;
+  private final SettableFuture<Integer> myPortF;
+
+  static {
+    Factory.register();
+  }
 
   private GapisProcess() {
     super("gapis");
-    Factory.register();
+    myGapir = GapirProcess.get();
+    myPortF = start();
   }
 
   @Override
@@ -60,7 +65,7 @@ public class GapisProcess extends ChildProcess {
       return false;
     }
     pb.command(GapiPaths.gapis().getAbsolutePath(), "-shutdown_on_disconnect", "-rpc", SERVER_HOST + ":0", "-logs", PathManager.getLogPath(),
-               "--no_gapir", "--local_gapir_port", Integer.toString(myGapirPort));
+               "--no_gapir", "--local_gapir_port", Integer.toString(myGapir.getPort()));
     return true;
   }
 
@@ -72,6 +77,7 @@ public class GapisProcess extends ChildProcess {
     else {
       LOG.info("gapis exited cleanly");
     }
+    shutdown();
   }
 
   /**
@@ -80,20 +86,23 @@ public class GapisProcess extends ChildProcess {
    * Will launch a new server process if none has been started.
    * <p/>
    */
-  public GapisConnection connect() {
-    myGapirPort = GapirProcess.INSTANCE.getPort();
-    SettableFuture<Integer> portF;
-    synchronized (myPortLock) {
-      if (myPortF == null) {
-        myPortF = start();
+  public static GapisConnection connect() {
+    GapisProcess gapis;
+    synchronized (myInstanceLock) {
+      if (myInstance == null) {
+        myInstance = new GapisProcess();
       }
-      portF = myPortF;
+      gapis = myInstance;
     }
-    if (portF == null) {
+    return gapis.doConnect();
+  }
+
+  private GapisConnection doConnect() {
+    if (myPortF == null) {
       return NOT_CONNECTED;
     }
     try {
-      int port = portF.get(SERVER_LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      int port = myPortF.get(SERVER_LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
       GapisConnection connection = new GapisConnection(this, new Socket(SERVER_HOST, port));
       LOG.info("Established a new client connection to " + port);
       synchronized (myConnections) {
@@ -128,4 +137,16 @@ public class GapisProcess extends ChildProcess {
       }
     }
   }
+
+  @Override
+  public void shutdown() {
+    synchronized (myInstanceLock) {
+      if (myInstance == this) {
+        myInstance = null;
+        myGapir.shutdown();
+        super.shutdown();
+      }
+    }
+  }
+
 }
