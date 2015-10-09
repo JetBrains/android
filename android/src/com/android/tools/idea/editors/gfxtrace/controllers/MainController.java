@@ -47,8 +47,6 @@ public class MainController extends Controller {
     myPanel.add(threePanes, BorderLayout.CENTER);
     threePanes.setDividerWidth(5);
 
-    editor.loadReplayDevice();
-
     // Add the scrubber view to the top panel.
     threePanes.setFirstComponent(ScrubberController.createUI(editor));
     threePanes.setFirstSize(150);

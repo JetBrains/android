@@ -32,6 +32,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
+import com.intellij.concurrency.JobScheduler;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -56,7 +57,9 @@ import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String LOADING_CAPTURE = "Loading capture...";
@@ -109,6 +112,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           setLoadingErrorTextOnEdt("Unable to talk to server");
           return;
         }
+
+        loadReplayDevice();
 
         // Prefetch the schema
         final ListenableFuture<Message> schemaF = myClient.getSchema();
@@ -181,6 +186,14 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
       public void onSuccess(@Nullable DevicePath[] devices) {
         if (devices != null && devices.length >= 1) {
           activatePath(devices[0], GfxTraceEditor.this);
+        }
+        else {
+          JobScheduler.getScheduler().schedule(new Runnable() {
+            @Override
+            public void run() {
+              loadReplayDevice();
+            }
+          }, 500, TimeUnit.MILLISECONDS);
         }
       }
     });
