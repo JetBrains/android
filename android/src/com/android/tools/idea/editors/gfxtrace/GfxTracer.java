@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.ddmlib.*;
 import com.android.tools.chartlib.EventData;
+import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureHandle;
@@ -327,7 +328,7 @@ public class GfxTracer {
 
   @NotNull
   static File findTraceLibrary(@NotNull String abi) throws IOException {
-    File binaryPath = GfxTraceEditor.getBinaryPath();
+    File binaryPath = GapiPaths.getBinaryPath();
     if (binaryPath == null) {
       throw new IOException("No gapii libraries available");
     }
