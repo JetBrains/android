@@ -35,6 +35,8 @@ import com.android.tools.idea.run.ApkProviderUtil;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.google.common.io.Files;
+import com.intellij.debugger.DebuggerManagerEx;
+import com.intellij.debugger.ui.breakpoints.Breakpoint;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
@@ -535,6 +537,26 @@ public class FastDeployManager implements ProjectComponent {
     // Note that while we update the patch cache with the resource file timestamp here,
     // we *don't* do that for the manifest file: the resource timestamp is updated because
     // the resource files will be pushed to the app, but the manifest changes can't be.
+
+    adjustBreakpoints();
+  }
+
+  private void adjustBreakpoints() {
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
+      public void run() {
+        DebuggerManagerEx debugger = DebuggerManagerEx.getInstanceEx(myProject);
+        if (!debugger.getSessions().isEmpty()) {
+          List<Breakpoint> breakpoints = debugger.getBreakpointManager().getBreakpoints();
+          for (Breakpoint breakpoint : breakpoints) {
+            if (breakpoint.isEnabled()) {
+              breakpoint.setEnabled(false);
+              breakpoint.setEnabled(true);
+            }
+          }
+        }
+      }
+    });
   }
 
   @SuppressWarnings({"MethodMayBeStatic", "UnusedParameters"}) // won't be as soon as it really calls Gradle
