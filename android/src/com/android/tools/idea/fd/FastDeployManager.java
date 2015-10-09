@@ -817,7 +817,15 @@ public class FastDeployManager implements ProjectComponent {
             output.writeLong(PROTOCOL_IDENTIFIER);
             output.writeInt(PROTOCOL_VERSION);
             output.writeInt(MESSAGE_PING);
-            LOG.info("Ping message sent successfully, application seems to be running..");
+            // Wait for "pong"
+            DataInputStream input = new DataInputStream(socket.getInputStream());
+            try {
+              input.readBoolean();
+            }
+            finally {
+              input.close();
+            }
+            LOG.info("Ping sent and replied successfully, application seems to be running..");
             return true;
           } finally {
             output.close();
