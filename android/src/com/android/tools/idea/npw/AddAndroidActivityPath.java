@@ -26,10 +26,7 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import com.intellij.ide.projectView.impl.ProjectRootsUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -398,7 +395,37 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   }
 
   @Override
+  public boolean canPerformFinishingActions() {
+    return performFinishingOperation(true, null, null);
+  }
+
+  @Override
   public boolean performFinishingActions() {
+    final Project project = getProject();
+    assert project != null;
+
+    final List<File> filesToOpen = Lists.newArrayList();
+    final List<File> filesToReformat = Lists.newArrayList();
+    if (!performFinishingOperation(false, filesToOpen, filesToReformat)) {
+      return false;
+    }
+
+    myAssetStudioStep.createAssets();
+
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        TemplateUtils.reformatAndRearrange(project, filesToReformat);
+
+        if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
+          TemplateUtils.openEditors(project, filesToOpen, true);
+        }
+      }
+    });
+    return true;
+  }
+
+  private boolean performFinishingOperation(boolean dryRun, @Nullable List<File> filesToOpen, @Nullable List<File> filesToReformat) {
     TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
     final Project project = getProject();
     Module module = getModule();
@@ -411,23 +438,18 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     }
     Map<String, Object> parameterMap = getTemplateParameterMap(templateEntry.getMetadata());
     saveRecentValues(project, parameterMap);
-    final RenderingContext context =
-      RenderingContext.Builder.newContext(template, project).withModule(module).withParams(parameterMap).build();
-    template.render(context);
-    myAssetStudioStep.createAssets();
-
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        TemplateUtils.reformatAndRearrange(project, context.getTargetFiles());
-
-        if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
-          TemplateUtils.openEditors(project, context.getFilesToOpen(), true);
-        }
-      }
-    });
-
-    return true;
+    // @formatter:off
+    final RenderingContext context = RenderingContext.Builder.newContext(template, project)
+      .withCommandName("New Activity")
+      .withDryRun(dryRun)
+      .withShowErrors(true)
+      .withModule(module)
+      .withParams(parameterMap)
+      .intoOpenFiles(filesToOpen)
+      .intoTargetFiles(filesToReformat)
+      .build();
+    // @formatter:on
+    return template.render(context);
   }
 
   @NotNull

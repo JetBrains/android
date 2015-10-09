@@ -265,7 +265,16 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   }
 
   @Override
+  public boolean canPerformFinishingActions() {
+    return performFinishingOperation(true);
+  }
+
+  @Override
   public boolean performFinishingActions() {
+    return performFinishingOperation(false);
+  }
+
+  private boolean performFinishingOperation(boolean dryRun) {
     ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
     if (progress != null) {
       progress.setText("Initializing " + myFormFactor.toString());
@@ -288,14 +297,23 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
       Template template = Template.createFromPath(myTemplateFile);
       Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
+      // @formatter:off
       RenderingContext context = RenderingContext.Builder.newContext(template, myWizard.getProject())
-        .withOutputRoot(projectRoot).withModuleRoot(moduleRoot).withParams(templateState).withGradleSync(myGradleSyncIfNecessary).build();
-      template.render(context);
-
-      Collection<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
-      assert targetFiles != null;
-
-      targetFiles.addAll(context.getTargetFiles());
+        .withCommandName("New Module")
+        .withDryRun(dryRun)
+        .withShowErrors(true)
+        .withOutputRoot(projectRoot)
+        .withModuleRoot(moduleRoot)
+        .withParams(templateState)
+        .withGradleSync(myGradleSyncIfNecessary)
+        .intoTargetFiles(myState.get(WizardConstants.TARGET_FILES_KEY))
+        .intoOpenFiles(myState.get(FILES_TO_OPEN_KEY))
+        .intoDependencies(myState.get(DEPENDENCIES_KEY))
+        .build();
+      // @formatter:on
+      if (!template.render(context)) {
+        return false;
+      }
 
       TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
       if (templateEntry == null) {
@@ -305,16 +323,22 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       for (Parameter parameter : templateEntry.getMetadata().getParameters()) {
         templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
       }
+      // @formatter:off
       RenderingContext activityContext = RenderingContext.Builder.newContext(activityTemplate, myWizard.getProject())
-        .withOutputRoot(projectRoot).withModuleRoot(moduleRoot).withParams(templateState).withGradleSync(myGradleSyncIfNecessary).build();
-      activityTemplate.render(activityContext);
-
-      targetFiles.addAll(activityContext.getTargetFiles());
-
-      // If the parent wizard supports opening files in the editor upon completion, do that
-      List<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
-      if (filesToOpen != null) {
-        filesToOpen.addAll(activityContext.getFilesToOpen());
+        .withCommandName("New Module")
+        .withDryRun(dryRun)
+        .withShowErrors(true)
+        .withOutputRoot(projectRoot)
+        .withModuleRoot(moduleRoot)
+        .withParams(templateState)
+        .withGradleSync(myGradleSyncIfNecessary)
+        .intoTargetFiles(myState.get(WizardConstants.TARGET_FILES_KEY))
+        .intoOpenFiles(myState.get(FILES_TO_OPEN_KEY))
+        .intoDependencies(myState.get(DEPENDENCIES_KEY))
+        .build();
+      // @formatter:on
+      if (!activityTemplate.render(activityContext)) {
+        return false;
       }
 
       return true;

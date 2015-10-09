@@ -99,7 +99,16 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
   }
 
   @Override
+  public boolean canPerformFinishingActions() {
+    return performFinishingOperation(true);
+  }
+
+  @Override
   public boolean performFinishingActions() {
+    return performFinishingOperation(false);
+  }
+
+  private boolean performFinishingOperation(boolean dryRun) {
     Project project = getProject();
     assert project != null;
     Map<String, Object> parameterValueMap = Maps.newHashMap();
@@ -125,13 +134,15 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
 
     // @formatter:off
     RenderingContext context = RenderingContext.Builder.newContext(myTemplate, project)
+      .withCommandName("New Java Library")
+      .withDryRun(dryRun)
+      .withShowErrors(true)
       .withModuleRoot(new File(FileUtil.toSystemDependentName(modulePath)))
       .withParams(parameterValueMap)
       .withGradleSync(false)
       .build();
     // @formatter:on
-    myTemplate.render(context);
-    return true;
+    return myTemplate.render(context);
   }
 
   @NotNull

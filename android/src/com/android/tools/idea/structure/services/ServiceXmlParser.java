@@ -36,6 +36,7 @@ import com.android.tools.idea.ui.properties.swing.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -54,11 +55,12 @@ import javax.xml.parsers.SAXParserFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -193,8 +195,31 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     myTagStack.pop();
   }
 
+  public void install() {
+    List<File> sourceFiles = Lists.newArrayList();
+    analyzeRecipe(false, null, sourceFiles, null);
+
+    // Convert relative paths to absolute paths, so TemplateUtils.openEditors can find them
+    List<File> absFilesToOpen = Lists.newArrayListWithCapacity(sourceFiles.size());
+    for (File file : sourceFiles) {
+      absFilesToOpen.add(getTargetFile(file));
+    }
+    TemplateUtils.openEditors(myModule.getProject(), absFilesToOpen, true);
+  }
+
   @NotNull
-  public RenderingContext analyzeRecipe(boolean findOnlyReferences) {
+  private File getTargetFile(@NotNull File file) {
+    if (file.isAbsolute()) {
+      return file;
+    }
+    File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
+    return new File(moduleRoot, file.getPath());
+  }
+
+  private void analyzeRecipe(boolean findOnlyReferences,
+                            @Nullable Collection<String> dependencies,
+                            @Nullable Collection<File> sourceFiles,
+                            @Nullable Collection<File> targetFiles) {
     try {
       File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
       // @formatter:off
@@ -204,23 +229,15 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
         .withOutputRoot(moduleRoot)
         .withModuleRoot(moduleRoot)
         .withFindOnlyReferences(findOnlyReferences)
+        .intoDependencies(dependencies)
+        .intoSourceFiles(sourceFiles)
+        .intoTargetFiles(targetFiles)
         .build();
       // @formatter:on
       String xml = FreemarkerUtils.processFreemarkerTemplate(context, myRecipeFile, null);
       Recipe recipe = Recipe.parse(new StringReader(xml));
       RecipeExecutor recipeExecutor = context.getRecipeExecutor();
       recipe.execute(recipeExecutor);
-
-      if (!findOnlyReferences) {
-        // Convert relative paths to absolute paths, so TemplateUtils.openEditors can find them
-        List<File> relFilesToOpen = context.getFilesToOpen();
-        List<File> absFilesToOpen = Lists.newArrayListWithCapacity(relFilesToOpen.size());
-        for (File file : relFilesToOpen) {
-          absFilesToOpen.add(getTargetFile(file));
-        }
-        TemplateUtils.openEditors(myModule.getProject(), absFilesToOpen, true);
-      }
-      return context;
     }
     catch (TemplateProcessingException e) {
       throw new RuntimeException(e);
@@ -228,18 +245,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     catch (JAXBException e) {
       throw new RuntimeException(e);
     }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @NotNull
-  private File getTargetFile(@NotNull File file) throws IOException {
-    if (file.isAbsolute()) {
-      return file;
-    }
-    File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
-    return new File(moduleRoot, file.getPath());
   }
 
   private void parseServiceTag(@NotNull Attributes attributes) {
@@ -292,17 +297,20 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   }
 
   private void closeServiceTag() {
-    RenderingContext context = analyzeRecipe(false);
+    HashSet<String> dependencies = Sets.newHashSet();
+    List<File> sourceFiles = Lists.newArrayList();
+    List<File> targetFiles = Lists.newArrayList();
+    analyzeRecipe(false, dependencies, sourceFiles, targetFiles);
 
-    for (String d : context.getDependencies()) {
+    for (String d : dependencies) {
       myDeveloperServiceMetadata.addDependency(d);
     }
-    for (File f : context.getSourceFiles()) {
+    for (File f : sourceFiles) {
       if (f.getName().equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
         parseManifestForPermissions(new File(myRootPath, f.toString()));
       }
     }
-    for (File f : context.getTargetFiles()) {
+    for (File f : targetFiles) {
       myDeveloperServiceMetadata.addModifiedFile(f);
     }
 
