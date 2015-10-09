@@ -22,94 +22,170 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 
 public final class GapiPaths {
-  @NotNull private static final String SERVER_EXECUTABLE_NAME = "gapis";
-  @NotNull private static final String SERVER_RELATIVE_PATH = "bin";
-  @NotNull private static final String GAPII_LIBRARY_FLAVOUR = "release";
-  @NotNull private static final String GAPII_LIBRARY_NAME = "libgapii.so";
+  private static final Map<String, String> ABI_REMAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
+    put("32-bit (arm)", "armeabi-v7a"); // Not a valid abi, but returned anyway by ClientData.getAbi
+    put("64-bit (arm)", "arm64-v8a"); // Not a valid abi, but returned anyway by ClientData.getAbi
+    put("armeabi", "armeabi-v7a");// We currently (incorrectly) remap this abi because we don't have the correct .so
+  }});
 
-  private static final Map<String, String> ABI_TO_LIB = Collections.unmodifiableMap(new HashMap<String, String>() {{
-    put("32-bit (arm)", "android-arm"); // Not a valid abi, but returned anyway by ClientData.getAbi
-    put("64-bit (arm)", "android-arm64"); // Not a valid abi, but returned anyway by ClientData.getAbi
-    put("armeabi", "android-arm");
+  private static final Map<String, String> ABI_TARGET = Collections.unmodifiableMap(new HashMap<String, String>() {{
     put("armeabi-v7a", "android-arm");
     put("arm64-v8a", "android-arm64");
   }});
 
-  private static final Object myPathLock = new Object();
-  private static GapiPaths myPaths;
+  @NotNull private static final String HOST_OS;
+  @NotNull private static final String HOST_ARCH;
+  @NotNull private static final String HOST_DIR;
+  @NotNull private static final String SERVER_EXECUTABLE_NAME;
+  @NotNull private static final String GAPII_LIBRARY_NAME;
 
-  public final File myGapisRoot;
-  public final File myServerDirectory;
-  public final File myGapisPath;
+  static {
+    HOST_OS = System.getProperty("os.name");
+    HOST_ARCH = System.getProperty("os.arch");
+    if (HOST_OS.startsWith("Windows")) {
+      SERVER_EXECUTABLE_NAME = "gapis.exe";
+    } else {
+      SERVER_EXECUTABLE_NAME = "gapis";
+    }
+    HOST_DIR = abiName(HOST_OS, HOST_ARCH);
+    GAPII_LIBRARY_NAME = "libgapii.so";
+  }
+
+  @NotNull private static final Object myPathLock = new Object();
+  private static Handler myHandler;
 
   public static boolean isValid() {
-    return gapis().exists();
+    return handler().isValid();
+  }
+
+  public static File base() {
+    return handler().base();
   }
 
   public static File gapis() {
-    return get().myGapisPath;
+    return handler().gapis();
   }
 
   @NotNull
   static public File findTraceLibrary(@NotNull String abi) throws IOException {
-    File binaryPath = get().myServerDirectory;
-    if (binaryPath == null) {
-      throw new IOException("No gapii libraries available");
+    return handler().findTraceLibrary(abi);
+  }
+
+  @NotNull
+  private static String abiName(String os, String arch) {
+    return (os + '-' + arch).replace(' ', '-').toLowerCase(Locale.ENGLISH);
+  }
+
+  private static String remap(Map<String, String> map, String key) {
+    String value = map.get(key);
+    if (value == null) {
+      value = key;
     }
-    String lib = ABI_TO_LIB.get(abi);
-    if (lib == null) {
-      throw new IOException("Unsupported gapii abi '" + abi + "'");
-    }
-    File architecturePath = new File(binaryPath, lib);
-    File flavourPath = new File(architecturePath, GAPII_LIBRARY_FLAVOUR);
-    return new File(flavourPath, GAPII_LIBRARY_NAME);
+    return value;
   }
 
-  public GapiPaths(File gapisRoot, File serverDirectory, File gapisPath) {
-    myGapisRoot = gapisRoot;
-    myServerDirectory = serverDirectory;
-    myGapisPath = gapisPath;
-  }
-
-  private static GapiPaths create(File root) {
-    File bin = new File(root, SERVER_RELATIVE_PATH);
-    File gapis = new File(bin, SERVER_EXECUTABLE_NAME);
-    return new GapiPaths(root, bin, gapis);
-  }
-
-  private static GapiPaths find() {
-    File androidPlugin = PluginPathManager.getPluginHome("android");
-    GapiPaths result = create(androidPlugin);
-    if (Boolean.getBoolean(IDEA_IS_INTERNAL_PROPERTY)) {
-      // Check the default build location for a standard repo checkout
-      GapiPaths internal = create(new File(androidPlugin.getParentFile().getParentFile().getParentFile(), "gpu"));
-      if (!internal.myGapisPath.exists()) {
-        // Check the GOPATH in case it is non standard
+  private static Handler handler() {
+    synchronized (myPathLock) {
+      if (myHandler != null) {
+        return myHandler;
+      }
+      File androidPlugin = PluginPathManager.getPluginHome("android");
+      File tools = androidPlugin.getParentFile().getParentFile().getParentFile();
+      if (Boolean.getBoolean(IDEA_IS_INTERNAL_PROPERTY)) {
+        // Check the default build location for a standard repo checkout
+        myHandler = new InternalHandler(new File(tools, "gpu"));
+        if (myHandler.isValid()) {
+          return myHandler;
+        }
+        // Check the system GOPATH for the binaries
         String gopath = System.getenv("GOPATH");
         if (gopath != null && gopath.length() > 0) {
-          internal = create(new File(gopath));
+          myHandler = new InternalHandler(new File(gopath));
+          if (myHandler.isValid()) {
+            return myHandler;
+          }
+        }
+        // Check the standard prebuilts checkout for the binaries
+        myHandler = new PluginHandler(new File(tools, "adt/idea/android/gapi"));
+        if (myHandler.isValid()) {
+          return myHandler;
         }
       }
-      // TODO: Check the prebuilts location
-      if (internal.myGapisPath.exists()) {
-        result = internal;
-      }
+      // check the android plugin directory
+      myHandler = new PluginHandler(new File(androidPlugin, "gapi"));
     }
-    return result;
+    return myHandler;
   }
 
-  public static GapiPaths get() {
-    synchronized (myPathLock) {
-      if (myPaths == null || !myPaths.myGapisPath.exists()) {
-        myPaths = find();
+  private static abstract class Handler {
+    private final File myBaseDirectory;
+    private final File myGapisPath;
+
+    Handler(File baseDir, File gapisPath) {
+      myBaseDirectory = baseDir;
+      myGapisPath = gapisPath;
+    }
+
+    public boolean isValid() {
+      return myGapisPath.exists();
+    }
+
+    @NotNull
+    public File base() {
+      return myBaseDirectory;
+    }
+
+    @NotNull
+    public File gapis() {
+      return myGapisPath;
+    }
+
+    @NotNull
+    public abstract File findTraceLibrary(@NotNull String abi) throws IOException;
+  }
+
+  private static class PluginHandler extends Handler {
+    PluginHandler(File baseDir) {
+      super(baseDir, new File(new File(baseDir, HOST_DIR), SERVER_EXECUTABLE_NAME));
+    }
+
+    @Override
+    @NotNull
+    public File findTraceLibrary(@NotNull String abi) throws IOException {
+      abi = remap(ABI_REMAP, abi);
+      File abiPath = new File(base(), abiName("android", abi));
+      if (!abiPath.exists()) {
+        throw new IOException("Unsupported gapii abi '" + abi + "'");
       }
-      return myPaths;
+      return new File(abiPath, GAPII_LIBRARY_NAME);
     }
   }
 
+  private static class InternalHandler extends Handler {
+    @NotNull private static final String SERVER_RELATIVE_PATH = "bin";
+    @NotNull private static final String GAPII_LIBRARY_FLAVOUR = "release";
+
+    InternalHandler(File baseDir) {
+      super(baseDir, new File(new File(baseDir, SERVER_RELATIVE_PATH), SERVER_EXECUTABLE_NAME));
+    }
+
+    @Override
+    @NotNull
+    public File findTraceLibrary(@NotNull String abi) throws IOException {
+      abi = remap(ABI_REMAP, abi);
+      String lib = remap(ABI_TARGET, abi);
+      File abiPath = new File(gapis().getParentFile(), lib);
+      if (!abiPath.exists()) {
+        throw new IOException("Unsupported gapii abi '" + abi + "'");
+      }
+      File flavourPath = new File(abiPath, GAPII_LIBRARY_FLAVOUR);
+      return new File(flavourPath, GAPII_LIBRARY_NAME);
+    }
+  }
 }
