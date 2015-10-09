@@ -388,18 +388,9 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
       clearLogcatAndConsole(getModule().getProject(), device);
     }
 
-    Module module = myFacet.getModule();
-
     myPrinter.stdout("Target device: " + device.getName());
     try {
-      if (!isDebugMode() && FastDeployManager.isPatchableApp(module) && FastDeployManager.isAppRunning(device, module)) {
-        myPrinter.stdout("Incrementally updating running app.");
-        FastDeployManager.pushChanges(device, myFacet);
-
-        // TODO: returning true means that debug action won't connect..
-        return true;
-      }
-      else if (myLaunchOptions.isDeploy()) {
+      if (myLaunchOptions.isDeploy()) {
         if (!installApks(device)) {
           return false;
         }
