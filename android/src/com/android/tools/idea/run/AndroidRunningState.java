@@ -32,8 +32,6 @@ import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.filters.HyperlinkInfo;
-import com.intellij.execution.filters.TextConsoleBuilder;
-import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
@@ -41,8 +39,10 @@ import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.execution.runners.RunContentBuilder;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.execution.ui.ObservableConsoleView;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
@@ -258,17 +258,10 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   @Override
   public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
-    Project project = myFacet.getModule().getProject();
     myProcessHandler = new DefaultDebugProcessHandler();
     AndroidProcessText.attach(myProcessHandler);
-    ConsoleView console = null;
-    if (isDebugMode()) {
-      final TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
-      console = builder.getConsole();
-      if (console != null) {
-        console.attachToProcess(myProcessHandler);
-      }
-    }
+    myConsole = myConfiguration.attachConsole(this, executor);
+    myPrinter.setProcessHandler(myProcessHandler);
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
@@ -276,11 +269,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
         start();
       }
     });
-
-    if (console == null) { //Will not be null in debug mode or if additional option was chosen.
-      console = myConfiguration.attachConsole(this, executor);
-    }
-    myPrinter.setProcessHandler(myProcessHandler);
 
     getProcessHandler().addProcessListener(new ProcessAdapter() {
       @Override
@@ -309,9 +297,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
       }
     });
 
-    myConsole = console;
-
-    return new DefaultExecutionResult(console, myProcessHandler);
+    return new DefaultExecutionResult(myConsole, myProcessHandler);
   }
 
   void start() {
