@@ -18,11 +18,9 @@ package com.android.tools.idea.tests.gui.theme;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,11 +30,6 @@ import static junit.framework.Assert.assertEquals;
 
 @BelongsToTestGroups({THEME})
 public class NewStyleDialogGuiTest extends GuiTestCase {
-  @BeforeClass
-  public static void runBeforeClass() {
-    ThemeEditorTestUtils.enableThemeEditor();
-  }
-
   /**
    * When "Create New Theme" is selected, opened dialog contains theme that was edited
    * as a parent.

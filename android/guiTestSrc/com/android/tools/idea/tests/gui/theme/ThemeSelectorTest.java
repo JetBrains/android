@@ -31,7 +31,6 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.jetbrains.annotations.NotNull;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -50,11 +49,6 @@ import static org.junit.Assert.*;
  */
 @BelongsToTestGroups({THEME})
 public class ThemeSelectorTest extends GuiTestCase {
-  @BeforeClass
-  public static void runBeforeClass() {
-    ThemeEditorTestUtils.enableThemeEditor();
-  }
-
   /**
    * Tests the theme renaming functionality of the theme selector
    * and that IntelliJ's Undo works can revert this action
