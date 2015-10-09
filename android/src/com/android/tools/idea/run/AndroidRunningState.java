@@ -40,10 +40,8 @@ import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.runners.ProgramRunner;
-import com.intellij.execution.runners.RunContentBuilder;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.execution.ui.ObservableConsoleView;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
@@ -457,6 +455,8 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
     File arsc = FastDeployManager.findResourceArsc(myFacet);
     long arscTimestamp = arsc == null ? 0 : arsc.lastModified();
+    File manifest = FastDeployManager.findMergedManifestFile(myFacet);
+    long manifestTimeStamp = manifest == null ? 0L : manifest.lastModified();
 
     ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), myPrinter);
     for (ApkInfo apk : apks) {
@@ -467,11 +467,14 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
         return false;
       }
 
-      if (!installer.uploadAndInstallApk(device, apk.getApplicationId(), apk.getFile(), myStopped)) {
+      String pkgName = apk.getApplicationId();
+      if (!installer.uploadAndInstallApk(device, pkgName, apk.getFile(), myStopped)) {
         return false;
       }
 
-      ServiceManager.getService(InstalledPatchCache.class).setInstalledArscTimestamp(device, apk.getApplicationId(), arscTimestamp);
+      InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
+      patchCache.setInstalledArscTimestamp(device, pkgName, arscTimestamp);
+      patchCache.setInstalledManifestTimestamp(device, pkgName, manifestTimeStamp);
     }
 
     return true;

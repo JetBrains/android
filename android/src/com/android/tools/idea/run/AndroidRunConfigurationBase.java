@@ -19,6 +19,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.run.cloud.*;
 import com.android.tools.idea.run.fd.PatchDeployState;
 import com.google.common.base.Strings;
@@ -222,16 +223,28 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    // For incremental run, we don't want to show any dialogs and just redeploy directly to the last used devices
-    Collection<IDevice> fastDeployDevices = getFastDeployDevices(module);
-    if (!(executor instanceof DefaultDebugExecutor) && !fastDeployDevices.isEmpty()) {
-      if (FastDeployManager.DISPLAY_STATISTICS) {
-        FastDeployManager.notifyBegin();
-      }
+    if (FastDeployManager.isPatchableApp(module)) {
+      // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
+      // we need to save the files a bit earlier than that here (turning the Gradle file save into
+      // a no-op) because we need to check whether the manifest file has been edited since an
+      // edited manifest changes what the incremental run build has to do.
+      GradleInvoker.saveAllFilesSafely();
 
-      env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
-      env.putCopyableUserData(DEPLOY_DEVICES, fastDeployDevices);
-      return new PatchDeployState(facet, fastDeployDevices);
+      // For incremental run, we don't want to show any dialogs and just redeploy directly to the last used devices
+      Collection<IDevice> fastDeployDevices = getFastDeployDevices(module);
+      if (!(executor instanceof DefaultDebugExecutor) && !fastDeployDevices.isEmpty()) {
+        if (FastDeployManager.isRebuildRequired(fastDeployDevices, module)) {
+          LOG.info("Cannot patch update since a full rebuild is required (typically because the manifest has changed)");
+        } else {
+          if (FastDeployManager.DISPLAY_STATISTICS) {
+            FastDeployManager.notifyBegin();
+          }
+
+          env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
+          env.putCopyableUserData(DEPLOY_DEVICES, fastDeployDevices);
+          return new PatchDeployState(facet, fastDeployDevices);
+        }
+      }
     }
 
     ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
@@ -272,10 +285,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   private Collection<IDevice> getFastDeployDevices(@NotNull Module module) {
-    if (!FastDeployManager.isPatchableApp(module)) {
-      return Collections.emptyList();
-    }
-
     // TODO: this may not be set properly the first time an emulator is launched
     // TODO: eventually, this should look at the currently active configurations, and determine the devices from there
     DeviceStateAtLaunch deviceStateAtLaunch = getDevicesUsedInLastLaunch();
