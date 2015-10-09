@@ -32,18 +32,30 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class GapirProcess extends ChildProcess {
+public final class GapirProcess extends ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
-  public static final GapirProcess INSTANCE = new GapirProcess();
+  private static final Object myInstanceLock = new Object();
+  private static GapirProcess myInstance;
 
   private static final int SERVER_LAUNCH_TIMEOUT_MS = 10000;
-  private static final String SERVER_HOST = "localhost";
 
-  private final Object myPortLock = new Object();
-  private SettableFuture<Integer> myPortF = null;
+  private final SettableFuture<Integer> myPortF;
 
   private GapirProcess() {
     super("gapir");
+    myPortF = start();
+  }
+
+
+  @Override
+  public void shutdown() {
+    synchronized (myInstanceLock) {
+      if (myInstance == this) {
+        myInstance = null;
+        super.shutdown();
+        this.myProcess.destroy();
+      }
+    }
   }
 
   @Override
@@ -52,8 +64,8 @@ public class GapirProcess extends ChildProcess {
       LOG.warn("Could not find gapir.");
       return false;
     }
-    pb.command(GapiPaths.gapir().getAbsolutePath(), "--port", "0", "--nocache",
-               "--log", new File(PathManager.getLogPath(), "gapir.log").getAbsolutePath());
+    pb.command(GapiPaths.gapir().getAbsolutePath(), "--port", "0", "--nocache", "--log",
+               new File(PathManager.getLogPath(), "gapir.log").getAbsolutePath());
     return true;
   }
 
@@ -68,24 +80,30 @@ public class GapirProcess extends ChildProcess {
   }
 
   /**
-   * Finds out the port gapir is running on.
+   * Get a gapir instance.
    * <p/>
    * Will launch a new gapir process if none has been started.
    * <p/>
    */
-  public int getPort() {
-    SettableFuture<Integer> portF;
-    synchronized (myPortLock) {
-      if (myPortF == null) {
-        myPortF = start();
+  public static GapirProcess get() {
+    synchronized (myInstanceLock) {
+      if (myInstance == null) {
+        myInstance = new GapirProcess();
       }
-      portF = myPortF;
+      return myInstance;
     }
-    if (portF == null) {
+  }
+
+
+  /**
+   * Finds out the port gapir is running on.
+   */
+  public int getPort() {
+    if (myPortF == null) {
       return -1;
     }
     try {
-      return portF.get(SERVER_LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      return myPortF.get(SERVER_LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
     catch (InterruptedException e) {
       LOG.warn("Interrupted while waiting for gapir: " + e);
