@@ -116,26 +116,26 @@ public class GapisProcess {
 
   private boolean launchServer() {
     myPort = findFreePort();
-    final GapiPaths paths = GapiPaths.get();
     // The connection failed, so try to start a new instance of the server.
-    if (paths.myGapisPath == null) {
+    if (!GapiPaths.isValid()) {
       LOG.warn("Could not find gapis, but needed to start the server.");
       return false;
     }
     myServerThread = new Thread() {
       @Override
       public void run() {
-        LOG.info("Launching gapis: \"" + paths.myGapisPath.getAbsolutePath() + "\" on port " + myPort);
-        ProcessBuilder pb = new ProcessBuilder(getCommandAndArgs(paths.myGapisPath));
+        LOG.info("Launching gapis: \"" + GapiPaths.gapis().getAbsolutePath() + "\" on port " + myPort);
+        ProcessBuilder pb = new ProcessBuilder(getCommandAndArgs(GapiPaths.gapis()));
 
-        // Add the server's directory to the path.  This allows the server to find and launch the replayd.
+        // Add the server's directory to the path.  This allows the server to find and launch the gapir.
+        // TODO: not needed when android studio starts gapir instead
         Map<String, String> env = pb.environment();
         String path = env.get("PATH");
-        path = paths.myServerDirectory.getAbsolutePath() + File.pathSeparator + path;
+        path = GapiPaths.gapis().getParentFile().getAbsolutePath() + File.pathSeparator + path;
         env.put("PATH", path);
 
-        // Use the plugin directory as the working directory for the server.
-        pb.directory(paths.myGapisRoot);
+        // Use the base directory as the working directory for the server.
+        pb.directory(GapiPaths.base());
         pb.redirectErrorStream(true);
 
         Process serverProcess = null;
