@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
+import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
@@ -192,7 +193,6 @@ public class DeviceInfo {
    * PkgInfoProvider implements the Provider interface using the PkgInfo helper APK.
    */
   public static class PkgInfoProvider implements Provider {
-    private static final String APK_NAME = "pkginfo.apk";
     private static final int LATCH_TIMEOUT_MS = 3000;
     private static final int LOCAL_PORT = 3333;
     private static final String REMOTE_SOCKET = "pkginfo";
@@ -258,8 +258,7 @@ public class DeviceInfo {
       }
 
       private void installApk() throws Exception {
-        File binPath = GfxTraceEditor.getBinaryPath();
-        File apk = new File(binPath, APK_NAME);
+        File apk = GapiPaths.findPkgInfoApk();
         if (!apk.exists()) {
           throw new RuntimeException("pkginfo.apk not found at " + apk.getAbsolutePath());
         }
