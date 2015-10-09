@@ -121,6 +121,7 @@ public class Template {
   static final int RELATIVE_FILES_FORMAT = 5;
 
   private static final int MAX_WARNINGS = 10;
+  private static final String GOOGLE_GLASS_PATH_19 = "/addon-google_gdk-google-19/";
 
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Template");
 
@@ -290,6 +291,12 @@ public class Template {
     try {
       processFile(context, new File(TEMPLATE_XML_NAME));
       if (!context.showErrors() || context.getWarnings().isEmpty()) {
+        return true;
+      }
+      if (!context.getProject().isInitialized() && myTemplateRoot.getPath().contains(GOOGLE_GLASS_PATH_19)) {
+        // TODO: Fix the Google Glass templates to NOT issue warnings here.
+        // For now: Ignore project creations for Google glass templates since
+        // there are files that are overwritten during project creation by the Glass activity templates.
         return true;
       }
       // @formatter:off

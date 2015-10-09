@@ -71,7 +71,7 @@ public final class DeveloperService {
     new WriteCommandAction.Simple(project, "Install " + getMetadata().getName()) {
       @Override
       protected void run() throws Throwable {
-        myServiceParser.analyzeRecipe(true);
+        myServiceParser.install();
       }
     }.execute();
     getContext().snapshot();

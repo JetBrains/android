@@ -29,16 +29,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 /**
  * Use the {@link Builder} class for creating a {@link RenderingContext} instance.
+ * See the documentation for each option below.
  * e.g.
  *
  * <code>
- *   RenderingContext rc = RenderingContext.Builder.newContext(template, project).build();
+ *   RenderingContext rc = RenderingContext.Builder.newContext(template, project)
+ *     .withCommandName("My Action")
+ *     .withShowErrors(true)
+ *     .withDryRun(true)
  *   template.render(rc);
  * </code>
  */
@@ -52,11 +56,11 @@ public class RenderingContext {
   private final boolean myFindOnlyReferences;
   private final StudioTemplateLoader myLoader;
   private final Configuration myFreemarker;
-  private final List<File> myTargetFiles;
-  private final List<File> myFilesToOpen;
-  private final List<String> myDependencies;
-  private final List<File> mySourceFiles;
-  private final List<String> myWarnings;
+  private final Collection<File> mySourceFiles;
+  private final Collection<File> myTargetFiles;
+  private final Collection<File> myFilesToOpen;
+  private final Collection<String> myDependencies;
+  private final Collection<String> myWarnings;
   private final boolean myDryRun;
   private final boolean myShowErrors;
 
@@ -69,7 +73,11 @@ public class RenderingContext {
                            boolean gradleSyncIfNeeded,
                            boolean findOnlyReferences,
                            boolean dryRun,
-                           boolean showErrors) {
+                           boolean showErrors,
+                           @Nullable Collection<File> outSourceFiles,
+                           @Nullable Collection<File> outTargetFiles,
+                           @Nullable Collection<File> outOpenFiles,
+                           @Nullable Collection<String> outDependencies) {
     myProject = useDefaultProjectIfNeeded(project);
     myTitle = commandName;
     myParamMap = Template.createParameterMap(paramMap);
@@ -82,10 +90,10 @@ public class RenderingContext {
     myLoader = new StudioTemplateLoader(templateRootPath);
     myFreemarker = new Configuration();
     myFreemarker.setTemplateLoader(myLoader);
-    myTargetFiles = Lists.newArrayList();
-    myFilesToOpen = Lists.newArrayList();
-    myDependencies = Lists.newArrayList();
-    mySourceFiles = Lists.newArrayList();
+    mySourceFiles = outSourceFiles != null ? outSourceFiles : Lists.<File>newArrayList();
+    myTargetFiles = outTargetFiles != null ? outTargetFiles : Lists.<File>newArrayList();
+    myFilesToOpen = outOpenFiles != null ? outOpenFiles : Lists.<File>newArrayList();
+    myDependencies = outDependencies != null ? outDependencies : Lists.<String>newArrayList();
     myWarnings = Lists.newArrayList();
   }
 
@@ -165,7 +173,7 @@ public class RenderingContext {
    * The list of template outputs.
    */
   @NotNull
-  public List<File> getTargetFiles() {
+  public Collection<File> getTargetFiles() {
     return myTargetFiles;
   }
 
@@ -174,7 +182,7 @@ public class RenderingContext {
    * identified by TAG_OPEN elements in the recipe file)
    */
   @NotNull
-  public List<File> getFilesToOpen() {
+  public Collection<File> getFilesToOpen() {
     return myFilesToOpen;
   }
 
@@ -182,7 +190,7 @@ public class RenderingContext {
    * List of dependencies added by a previous template rendering.
    */
   @NotNull
-  public List<String> getDependencies() {
+  public Collection<String> getDependencies() {
     return myDependencies;
   }
 
@@ -190,7 +198,7 @@ public class RenderingContext {
    * List of source files that was/would be used by a previous template rendering.
    */
   @NotNull
-  public List<File> getSourceFiles() {
+  public Collection<File> getSourceFiles() {
     return mySourceFiles;
   }
 
@@ -198,7 +206,7 @@ public class RenderingContext {
    * List of warnings that were issued during a dry run.
    */
   @NotNull
-  public List<String> getWarnings() {
+  public Collection<String> getWarnings() {
     return myWarnings;
   }
 
@@ -238,6 +246,10 @@ public class RenderingContext {
     private boolean myFindOnlyReferences;
     private boolean myDryRun;
     private boolean myShowErrors;
+    private Collection<File> mySourceFiles;
+    private Collection<File> myTargetFiles;
+    private Collection<File> myOpenFiles;
+    private Collection<String> myDependencies;
 
     private Builder(@NotNull File templateRootPath, @NotNull Project project) {
       myTemplateRootPath = templateRootPath;
@@ -252,19 +264,34 @@ public class RenderingContext {
       myShowErrors = false;
     }
 
-    public static Builder newContext(@NotNull File templateRootPath, @NotNull Project project) {
-      return new Builder(templateRootPath, project);
-    }
-
+    /**
+     * Create a {@link Builder} that uses the project base dir as the template output and module dir.
+     * Recommended version.
+     */
     public static Builder newContext(@NotNull Template template, @NotNull Project project) {
       return new Builder(template.getRootPath(), project);
     }
 
+    /**
+     * Create a {@link Builder} that uses the project base dir as the template output and module dir.
+     * Use this version if there is no {@link Template} instance available.
+     */
+    public static Builder newContext(@NotNull File templateRootPath, @NotNull Project project) {
+      return new Builder(templateRootPath, project);
+    }
+
+    /**
+     * Specify the command name used in an undo event and in error and warning dialogs.
+     */
     public Builder withCommandName(@NotNull String commandName) {
       myCommandName = commandName;
       return this;
     }
 
+    /**
+     * Specify the module.
+     * This can be useful for finding build files.
+     */
     public Builder withModule(@NotNull Module module) {
       VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
       assert roots.length > 0;
@@ -272,44 +299,119 @@ public class RenderingContext {
       return this;
     }
 
+    /**
+     * Specify the output folder.
+     * This is where the generated files are placed.
+     */
     public Builder withOutputRoot(@NotNull File outputRoot) {
       myOutputRoot = outputRoot;
       return this;
     }
 
+    /**
+     * Specify the module root folder.
+     * This can be useful for finding build files.
+     */
     public Builder withModuleRoot(@NotNull File moduleRoot) {
       myModuleRoot = moduleRoot;
       return this;
     }
 
+    /**
+     * Specify the parameters that are passed to the Freemarker template engine.
+     */
     public Builder withParams(@NotNull Map<String, Object> params) {
       myParams = params;
       return this;
     }
 
+    /**
+     * Specify if a Gradle sync should be performed at the end of the template execution.
+     * A false means do NOT perform a Gradle sync since we plan to do this later.
+     * Default: true.
+     */
     public Builder withGradleSync(boolean gradleSync) {
       myGradleSync = gradleSync;
       return this;
     }
 
+    /**
+     * With this option the template rendering will not create files but only gather
+     * references.
+     * Default: false
+     */
     public Builder withFindOnlyReferences(boolean findOnlyReferences) {
       myFindOnlyReferences = findOnlyReferences;
       return this;
     }
 
+    /**
+     * With this option the template rendering will not create files, but all templates
+     * are executed and all input files are checked.
+     * Use this option to find errors and warnings without modifying the project into a
+     * state where it may not compile.
+     * Default: false
+     */
     public Builder withDryRun(boolean dryRun) {
       myDryRun = dryRun;
       return this;
     }
 
+    /**
+     * Display user errors found. And in a dry run display warnings.
+     * Default: false
+     */
     public Builder withShowErrors(boolean showErrors) {
       myShowErrors = showErrors;
       return this;
     }
 
+    /**
+     * Collect all source files into the specified collection.
+     */
+    public Builder intoSourceFiles(@Nullable Collection<File> sourceFiles) {
+      mySourceFiles = sourceFiles;
+      return this;
+    }
+
+    /**
+     * Collect all generated target files into the specified collection.
+     */
+    public Builder intoTargetFiles(@Nullable Collection<File> targetFiles) {
+      myTargetFiles = targetFiles;
+      return this;
+    }
+
+    /**
+     * Collect all the generated files that should be opened after the template rendering into
+     * the specified collection.
+     */
+    public Builder intoOpenFiles(@Nullable Collection<File> openFiles) {
+      myOpenFiles = openFiles;
+      return this;
+    }
+
+    /**
+     * Collect all dependencies required for the template in the specified collection.
+     */
+    public Builder intoDependencies(@Nullable Collection<String> dependencies) {
+      myDependencies = dependencies;
+      return this;
+    }
+
+    /**
+     * Create a {@link RenderingContext} based on the options given.
+     */
     public RenderingContext build() {
+      if (myDryRun) {
+        // Ignore outputs if this is a dry run:
+        mySourceFiles = null;
+        myTargetFiles = null;
+        myOpenFiles = null;
+        myDependencies = null;
+      }
       return new RenderingContext(myProject, myTemplateRootPath, myCommandName, myParams, myOutputRoot, myModuleRoot, myGradleSync,
-                                  myFindOnlyReferences, myDryRun, myShowErrors);
+                                  myFindOnlyReferences, myDryRun, myShowErrors, mySourceFiles, myTargetFiles, myOpenFiles, myDependencies);
     }
   }
 }

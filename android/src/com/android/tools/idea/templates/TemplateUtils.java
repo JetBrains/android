@@ -425,6 +425,11 @@ public class TemplateUtils {
       @Nullable
       @Override
       public String compute() {
+        if (!project.isInitialized()) {
+          // When the project is not initialized (we are creating a project) we cannot
+          // read from PSI files.
+          return readTextFile(VfsUtil.virtualToIoFile(file));
+        }
         final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
         if (psiFile == null) {
           return null;

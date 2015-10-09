@@ -368,6 +368,15 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   }
 
   /**
+   * Do the checks needed before performing the finishing actions.
+   * @return false to abort, true to do the finishing actions.
+   */
+  @Override
+  public boolean canPerformFinishingActions() {
+    return true;
+  }
+
+  /**
    * This string is used by the wizard framework to uniquely identify this path
    * and will not be shown to the user.
    * @return the name of this path.

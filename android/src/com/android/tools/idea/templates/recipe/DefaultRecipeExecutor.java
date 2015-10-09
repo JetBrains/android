@@ -255,19 +255,12 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   @Override
   public void updateAndSyncGradle() {
     // Handle dependencies
-    if (getParamMap().containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
-      Object maybeDependencyList = getParamMap().get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
-      if (maybeDependencyList instanceof List) {
-        //noinspection unchecked
-        List<String> dependencyList = (List<String>)maybeDependencyList;
-        if (!dependencyList.isEmpty()) {
-          try {
-            mergeDependenciesIntoGradle();
-          }
-          catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }
+    if (!myContext.getDependencies().isEmpty()) {
+      try {
+        mergeDependenciesIntoGradle();
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }
     Project project = myContext.getProject();
@@ -301,6 +294,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
     String templateRoot = templateRootFolder.getPath();
     File gradleTemplate = new File(templateRoot, FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
+    myContext.getParamMap().put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, myContext.getDependencies());
     String contents = processFreemarkerTemplate(myContext, gradleTemplate, null);
     String destinationContents = null;
     if (gradleBuildFile.exists()) {
