@@ -9,7 +9,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.android.databinding:dataBinder:${config.version}"
+        //classpath "com.android.databinding:dataBinder:${config.version}"
+        classpath "com.android.databinding:dataBinder:1.0-rc3"
         classpath 'com.android.tools.build:gradle:1.4.0-beta3'
     }
 }
