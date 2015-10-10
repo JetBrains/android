@@ -19,6 +19,7 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
@@ -68,6 +69,12 @@ public class InstalledApkCacheTest extends TestCase {
     };
 
     EasyMock.replay(myDevice1, myDevice2);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    Disposer.dispose(myService);
+    super.tearDown();
   }
 
   public void testCacheHit() throws Exception {
