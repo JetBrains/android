@@ -339,15 +339,10 @@ public class LocalResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  public Collection<String> getResourceNames(@NotNull String type) {
-    return getResourceNames(type, true);
-  }
-
-  @NotNull
   public Collection<String> getResourceNames(@NotNull String type, boolean publicOnly) {
-    final Set<String> result = new HashSet<String>();
     ResourceType t = ResourceType.getEnum(type);
     if (publicOnly && t != null) {
+      Set<String> result = new HashSet<String>();
       AppResourceRepository appResources = AppResourceRepository.getAppResources(myFacet, true);
       for (String name : getValueResourceNames(type)) {
         if (!appResources.isPrivate(t, name)) {
@@ -366,10 +361,9 @@ public class LocalResourceManager extends ResourceManager {
           }
         }
       }
+      return result;
     } else {
-      super.getResourceNames(type);
+      return super.getResourceNames(type, publicOnly);
     }
-    return result;
   }
-
 }
