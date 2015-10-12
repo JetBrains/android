@@ -156,8 +156,8 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     }
 
     @NotNull
-    public static WizardStepHeaderSettings createTitleAndDescriptionHeader(@NotNull String title, @NotNull String description) {
-      return new WizardStepHeaderSettings(title, description, null, null);
+    public static WizardStepHeaderSettings createTitleAndIconHeader(@NotNull String title, @NotNull Icon icon) {
+      return new WizardStepHeaderSettings(title, null, icon, null);
     }
   }
 }
