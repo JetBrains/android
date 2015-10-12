@@ -17,17 +17,21 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.module.Module;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ComboboxSpeedSearch;
+import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
 public class AttributesPanel {
   private static final boolean ENABLE_ADVANCED_MODE = false;
@@ -103,6 +107,13 @@ public class AttributesPanel {
     myThemeCombo.setName(THEME_SELECTOR_NAME);
     myModuleCombo.setName(MODULE_SELECTOR_NAME);
 
+    myModuleCombo.setRenderer(new ListCellRendererWrapper<Module>() {
+      @Override
+      public void customize(JList list, Module value, int index, boolean selected, boolean hasFocus) {
+        setText(value.getName());
+      }
+    });
+
     myAttributesScrollPane = new JBScrollPane(myRightPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                               ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
@@ -140,11 +151,18 @@ public class AttributesPanel {
     }
   }
 
-  // Raw getters ahead
-
-  public JComboBox getModuleCombo() {
-    return myModuleCombo;
+  public void setModuleModel(@NotNull ComboBoxModel model) {
+    myModuleCombo.setModel(model);
+    boolean isVisible = model.getSize() > 1;
+    myModuleCombo.setVisible(isVisible);
+    myModuleLabel.setVisible(isVisible);
   }
+
+  public void addModuleChangedActionListener(@NotNull ActionListener listener) {
+    myModuleCombo.addActionListener(listener);
+  }
+
+  // Raw getters ahead
 
   public JComboBox getThemeCombo() {
     return myThemeCombo;
