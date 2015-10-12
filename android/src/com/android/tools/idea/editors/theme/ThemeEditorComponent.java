@@ -183,17 +183,10 @@ public class ThemeEditorComponent extends Splitter {
 
     initializeModulesCombo(null);
 
-    final JComboBox moduleCombo = myPanel.getModuleCombo();
-    moduleCombo.addActionListener(new ActionListener() {
+    myPanel.addModuleChangedActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         reload(myThemeName, mySubStyleName, getSelectedModule().getName());
-      }
-    });
-    moduleCombo.setRenderer(new ListCellRendererWrapper<Module>() {
-      @Override
-      public void customize(JList list, Module value, int index, boolean selected, boolean hasFocus) {
-        setText(value.getName());
       }
     });
 
@@ -431,9 +424,7 @@ public class ThemeEditorComponent extends Splitter {
     else {
       myModuleComboModel = new MutableCollectionComboBoxModel<Module>(modules, defaultModule);
     }
-
-    final JComboBox moduleCombo = myPanel.getModuleCombo();
-    moduleCombo.setModel(myModuleComboModel);
+    myPanel.setModuleModel(myModuleComboModel);
   }
 
   /**
