@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
@@ -61,16 +60,12 @@ final class GradleDslParser implements GradleDslElementParser {
       return false;
     }
 
-    GrArgumentList argumentList = getNextSiblingOfType(referenceExpression, GrArgumentList.class);
-    if (argumentList == null || argumentList.getAllArguments().length > 0) {
+    GrClosableBlock[] closureArguments = expression.getClosureArguments();
+    if (closureArguments.length == 0) {
       return false;
     }
 
-    GrClosableBlock closableBlock = getNextSiblingOfType(argumentList, GrClosableBlock.class);
-    if (closableBlock == null) {
-      return false;
-    }
-
+    GrClosableBlock closableBlock = closureArguments[0];
     String blockName = referenceExpression.getText();
     if (isEmpty(blockName) ) {
       return false;
@@ -82,7 +77,7 @@ final class GradleDslParser implements GradleDslElementParser {
       return false;
     }
 
-    blockElement.setBlockElement(closableBlock);
+    blockElement.setPsiElement(closableBlock);
     parse(closableBlock, blockElement);
     return true;
   }
@@ -143,11 +138,11 @@ final class GradleDslParser implements GradleDslElementParser {
     if (arguments.length == 1) {
       GroovyPsiElement element = arguments[0];
       if (element instanceof GrLiteral) { // ex: compileSdkVersion 23
-        propertyElement = new LiteralElement(blockElement, propertyName, (GrLiteral)element);
+        propertyElement = new LiteralElement(blockElement, argumentList, propertyName, (GrLiteral)element);
       }
       else if (element instanceof GrNamedArgument) { // ex: manifestPlaceholders activityLabel:"defaultName"
         GrNamedArgument namedArgument = (GrNamedArgument)element;
-        propertyElement = new LiteralMapElement(blockElement, propertyName, namedArgument);
+        propertyElement = new LiteralMapElement(blockElement, argumentList, propertyName, namedArgument);
       }
     }
     else {
@@ -156,7 +151,7 @@ final class GradleDslParser implements GradleDslElementParser {
         for (int i = 0; i < arguments.length; i++) {
           literals[i] = (GrLiteral)arguments[i];
         }
-        propertyElement = new LiteralListElement(blockElement, propertyName, literals);
+        propertyElement = new LiteralListElement(blockElement, argumentList, propertyName, literals);
       }
       else if (arguments[0] instanceof GrNamedArgument) {
         // ex: manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
@@ -164,7 +159,7 @@ final class GradleDslParser implements GradleDslElementParser {
         for (int i = 0; i < arguments.length; i++) {
           namedArguments[i] = (GrNamedArgument)arguments[i];
         }
-        propertyElement = new LiteralMapElement(blockElement, propertyName, namedArguments);
+        propertyElement = new LiteralMapElement(blockElement, argumentList, propertyName, namedArguments);
       }
     }
     if (propertyElement == null) {
@@ -201,7 +196,7 @@ final class GradleDslParser implements GradleDslElementParser {
     GradleDslElement propertyElement = null;
     GrExpression right = assignment.getRValue();
     if (right instanceof GrLiteral) { // ex: compileSdkVersion = "android-23"
-      propertyElement = new LiteralElement(blockElement, propertyName, (GrLiteral)right);
+      propertyElement = new LiteralElement(blockElement, assignment, propertyName, (GrLiteral)right);
     }
     else if (right instanceof GrListOrMap) {
       GrListOrMap listOrMap = (GrListOrMap)right;

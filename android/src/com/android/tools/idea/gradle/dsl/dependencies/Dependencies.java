@@ -35,6 +35,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +54,13 @@ public class Dependencies extends GradleDslElement {
   @NotNull private final Multimap<String, ExternalDependencySpec> myNewExternal = HashMultimap.create();
 
   public Dependencies(@NotNull GradleDslElement parent) {
-    super(parent);
+    super(parent, null, "dependencies"); // TODO: Pass the correct psiElement when moved to using the new parser API.
+  }
+
+  @Override
+  @NotNull
+  protected Collection<GradleDslElement> getChildren() {
+    return ImmutableList.of();
   }
 
   @Override
