@@ -23,7 +23,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.avdmanager.EmulatorRunner;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.RunAvdAction;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.gradle.GradleSyncState;
@@ -33,7 +34,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.run.LaunchCompatibility;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
@@ -41,9 +41,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.configurations.ParametersList;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -88,13 +85,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
-import static com.android.SdkConstants.FN_EMULATOR;
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -103,7 +99,6 @@ import static org.jetbrains.android.compiler.AndroidCompileUtil.generate;
 import static org.jetbrains.android.facet.AndroidRootUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
-import static org.jetbrains.android.util.AndroidCommonUtils.toolPath;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
@@ -426,48 +421,20 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return sdkData != null ? sdkData.getLocalSdk().getTargetFromHashString(hash) : null;
   }
 
-  public void launchEmulator(@Nullable String avdName, @NotNull String commands) {
-    File sdkLocation = null;
-    if (Projects.requiresAndroidModel(getModule().getProject()) && isAndroidStudio()) {
-      sdkLocation = IdeSdks.getAndroidSdkPath();
-    }
-    else {
-      AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-      if (platform != null) {
-        sdkLocation = platform.getSdkData().getLocation();
-      }
+  public void launchEmulator(@Nullable String avdName) {
+    AvdManager manager = getAvdManagerSilently();
+    if (manager == null) {
+      LOG.warn("Could not obtain AVD Manager.");
+      return;
     }
 
-    if (sdkLocation != null) {
-      File emulatorPath = new File(sdkLocation, toolPath(FN_EMULATOR));
-      GeneralCommandLine commandLine = new GeneralCommandLine();
-      commandLine.setExePath(emulatorPath.getPath());
-      if (avdName != null) {
-        commandLine.addParameter("-avd");
-        commandLine.addParameter(avdName);
-      }
-      String[] params = ParametersList.parse(commands);
-      for (String s : params) {
-        if (!s.isEmpty()) {
-          commandLine.addParameter(s);
-        }
-      }
-      AvdManager manager = getAvdManagerSilently();
-      AvdInfo info = manager == null ? null : manager.getAvd(avdName, true);
-      final EmulatorRunner runner = new EmulatorRunner(getModule().getProject(), "AVD: " + avdName, commandLine, info);
-
-      ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            runner.start();
-          }
-          catch (ExecutionException e) {
-            Logger.getInstance(this.getClass()).error("Unexpected error while launching AVD", e);
-          }
-        }
-      });
+    AvdInfo avdInfo = manager.getAvd(avdName, true);
+    if (avdInfo == null) {
+      LOG.warn("Unable to obtain info for AVD: " + avdName);
+      return;
     }
+
+    AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(getModule().getProject(), avdInfo);
   }
 
   public static void createDynamicTemplateMenu() {
