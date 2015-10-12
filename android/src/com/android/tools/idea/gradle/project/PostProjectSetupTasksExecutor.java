@@ -57,9 +57,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
@@ -153,8 +151,16 @@ public class PostProjectSetupTasksExecutor {
     executeProjectChanges(myProject, new Runnable() {
       @Override
       public void run() {
-        attachSourcesToLibraries();
-        adjustModuleStructures();
+        IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
+        try {
+          attachSourcesToLibraries(modelsProvider);
+          adjustModuleStructures(modelsProvider);
+          modelsProvider.commit();
+        }
+        catch (Throwable t) {
+          modelsProvider.dispose();
+          rethrowAllAsUnchecked(t);
+        }
         ensureValidSdks();
       }
     });
@@ -199,32 +205,23 @@ public class PostProjectSetupTasksExecutor {
     myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
   }
 
-  private void adjustModuleStructures() {
-    final IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
+  private void adjustModuleStructures(@NotNull IdeModifiableModelsProvider modelsProvider) {
     Set<Sdk> androidSdks = Sets.newHashSet();
 
-    try {
-      for (Module module : modelsProvider.getModules()) {
-        ModifiableRootModel model = modelsProvider.getModifiableRootModel(module);
-        adjustInterModuleDependencies(module, modelsProvider);
+    for (Module module : modelsProvider.getModules()) {
+      ModifiableRootModel model = modelsProvider.getModifiableRootModel(module);
+      adjustInterModuleDependencies(module, modelsProvider);
 
-        Sdk sdk = model.getSdk();
-        if (sdk != null) {
-          if (isAndroidSdk(sdk)) {
-            androidSdks.add(sdk);
-          }
-          continue;
+      Sdk sdk = model.getSdk();
+      if (sdk != null) {
+        if (isAndroidSdk(sdk)) {
+          androidSdks.add(sdk);
         }
-
-        Sdk jdk = IdeSdks.getJdk();
-        model.setSdk(jdk);
+        continue;
       }
 
-      modelsProvider.commit();
-    }
-    catch (Throwable t) {
-      modelsProvider.dispose();
-      rethrowAllAsUnchecked(t);
+      Sdk jdk = IdeSdks.getJdk();
+      model.setSdk(jdk);
     }
 
     for (Sdk sdk: androidSdks) {
@@ -275,18 +272,17 @@ public class PostProjectSetupTasksExecutor {
     sdkModificator.commitChanges();
   }
 
-  private void attachSourcesToLibraries() {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProject);
+  private void attachSourcesToLibraries(@NotNull IdeModifiableModelsProvider modelsProvider) {
     LibraryAttachments storedLibraryAttachments = getStoredLibraryAttachments(myProject);
 
-    for (Library library : libraryTable.getLibraries()) {
+    for (Library library : modelsProvider.getAllLibraries()) {
       Set<String> sourcePaths = Sets.newHashSet();
 
       for (VirtualFile file : library.getFiles(SOURCES)) {
         sourcePaths.add(file.getUrl());
       }
 
-      Library.ModifiableModel libraryModel = library.getModifiableModel();
+      Library.ModifiableModel libraryModel = modelsProvider.getModifiableLibraryModel(library);
 
       // Find the source attachment based on the location of the library jar file.
       for (VirtualFile classFile : library.getFiles(CLASSES)) {
@@ -303,7 +299,6 @@ public class PostProjectSetupTasksExecutor {
       if (storedLibraryAttachments != null) {
         storedLibraryAttachments.addUrlsTo(libraryModel);
       }
-      libraryModel.commit();
     }
     if (storedLibraryAttachments != null) {
       storedLibraryAttachments.removeFromProject();
