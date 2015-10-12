@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.dsl;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,18 +33,12 @@ import java.util.Set;
  * data as key value pairs and convenient methods to access the data.
  */
 abstract class GradleDslPropertiesElement extends GradleDslElement {
-  @Nullable private GrClosableBlock myPsiElement;
+  @NotNull protected Map<String, GradleDslElement> myProperties = Maps.newHashMap();
+  @NotNull protected Map<String, GradleDslElement> myToBeAddedProperties = Maps.newHashMap();
+  @NotNull protected Set<String> myToBeRemovedProperties = Sets.newHashSet();
 
-  @NotNull private Map<String, GradleDslElement> myProperties = Maps.newHashMap();
-  @NotNull private Map<String, GradleDslElement> myToBeAddedProperties = Maps.newHashMap();
-  @NotNull private Set<String> myToBeRemovedProperties = Sets.newHashSet();
-
-  protected GradleDslPropertiesElement(@Nullable GradleDslElement parent) {
-    super(parent);
-  }
-
-  void setBlockElement(@NotNull GrClosableBlock psiElement) {
-    myPsiElement = psiElement;
+  protected GradleDslPropertiesElement(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement psiElement, @NotNull String name) {
+    super(parent, psiElement, name);
   }
 
   /**
@@ -52,7 +47,6 @@ abstract class GradleDslPropertiesElement extends GradleDslElement {
    * <p>This method should be used when the given {@code property} is defined using an assigned statement.
    */
   void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    // TODO: Add assertion statement to allow only elements with valid PsiElement.
     myProperties.put(property, element);
   }
 
@@ -64,8 +58,16 @@ abstract class GradleDslPropertiesElement extends GradleDslElement {
    * for any given property.
    */
   void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    // TODO: Add assertion statement to allow only elements with valid PsiElement.
     myProperties.put(property, element);
+  }
+
+  protected void addAsParsedLiteralListElement(@NotNull String property, LiteralElement parsedLiteralElement) {
+    GroovyPsiElement psiElement = parsedLiteralElement.getPsiElement();
+    if (psiElement == null) {
+      return;
+    }
+    LiteralListElement listElement = new LiteralListElement(this, psiElement, property, parsedLiteralElement.getLiteral());
+    addParsedElement(property, listElement);
   }
 
   /**
@@ -288,8 +290,42 @@ abstract class GradleDslPropertiesElement extends GradleDslElement {
   }
 
   @Override
+  @NotNull
+  protected Collection<GradleDslElement> getChildren() {
+    List<GradleDslElement> children = Lists.newArrayList();
+    for (String property : getProperties()) {
+      GradleDslElement element = getPropertyElement(property);
+      if (element != null) {
+        children.add(element);
+      }
+    }
+    return children;
+  }
+
+  @Override
   protected void apply() {
-    // TODO: implement.
+    for (Map.Entry<String, GradleDslElement> entry : myToBeAddedProperties.entrySet()) {
+      String property = entry.getKey();
+      GradleDslElement element = entry.getValue();
+      if (element.create() != null) {
+        setParsedElement(property, element);
+      }
+    }
+    myToBeAddedProperties.clear();
+
+    for (String property : myToBeRemovedProperties) {
+      GradleDslElement element = myProperties.remove(property);
+      if (element != null) {
+        element.delete();
+      }
+    }
+    myToBeRemovedProperties.clear();
+
+    for (GradleDslElement element : myProperties.values()) {
+      if (element.isModified()) {
+        element.applyChanges();
+      }
+    }
   }
 
   @Override
@@ -301,5 +337,11 @@ abstract class GradleDslPropertiesElement extends GradleDslElement {
         element.resetState();
       }
     }
+  }
+
+  protected void clear() {
+    myToBeRemovedProperties.clear();
+    myToBeAddedProperties.clear();
+    myProperties.clear();
   }
 }

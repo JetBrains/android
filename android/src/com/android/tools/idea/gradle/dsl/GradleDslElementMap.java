@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,11 +25,8 @@ import java.util.List;
  * Represents a map of {@link GradleDslElement}s from their names.
  */
 class GradleDslElementMap extends GradleDslPropertiesElement {
-  @NotNull private final String myName;
-
-  GradleDslElementMap(@Nullable GradleDslElement parent, @NotNull String name) {
-    super(parent);
-    myName = name;
+  GradleDslElementMap(@NotNull GradleDslElement parent, @NotNull String name) {
+    super(parent, null, name);
   }
 
   @NotNull

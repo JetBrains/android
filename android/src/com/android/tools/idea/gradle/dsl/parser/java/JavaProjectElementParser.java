@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser.java;
 import com.android.tools.idea.gradle.dsl.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslElementParser;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
@@ -29,11 +28,11 @@ public class JavaProjectElementParser implements GradleDslElementParser {
     JavaProjectElement element = buildModel.getExtendedDslElement(JavaProjectElement.class);
     if (element == null) {
       // TODO: only create element when it sees apply plugin "java"
-      GroovyFile psiFile = buildModel.getPsiFile();
-      if (psiFile == null) {
+      GroovyPsiElement psiElement = buildModel.getPsiElement();
+      if (psiElement == null) {
         return false;
       }
-      element = new JavaProjectElement(psiFile);
+      element = new JavaProjectElement(psiElement);
       buildModel.addExtendedDslElement(element);
     }
     if (psi instanceof GrAssignmentExpression) {

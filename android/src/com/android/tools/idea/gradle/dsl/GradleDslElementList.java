@@ -19,21 +19,21 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
  * Represents a list of {@link GradleDslElement}s.
  */
 class GradleDslElementList extends GradleDslElement {
-  @NotNull private final String myName;
   @NotNull private final List<GradleDslElement> myElements = Lists.newArrayList();
   @NotNull private final List<GradleDslElement> myToBeAddedElements = Lists.newArrayList();
   @NotNull private final List<GradleDslElement> myToBeRemovedElements = Lists.newArrayList();
 
-  GradleDslElementList(@Nullable GradleDslElement parent, @NotNull String name) {
-    super(parent);
-    myName = name;
+  GradleDslElementList(@NotNull GradleDslElement parent, @NotNull String name) {
+    super(parent, null, name);
   }
 
   @NotNull
@@ -41,9 +41,7 @@ class GradleDslElementList extends GradleDslElement {
     return myName;
   }
 
-  @NotNull
   void addParsedElement(@NotNull GradleDslElement element) {
-    // TODO: Add assertion statement to allow only elements with valid PsiElement.
     myElements.add(element);
   }
 
@@ -86,7 +84,48 @@ class GradleDslElementList extends GradleDslElement {
   }
 
   @Override
+  @Nullable
+  public GroovyPsiElement getPsiElement() {
+    return null; // This class just act as a group of elements and doesn't represent any real elements on the file.
+  }
+
+  @Override
+  @Nullable
+  protected GroovyPsiElement create() {
+    return myParent == null ? null : myParent.create();
+  }
+
+  @Override
+  protected void setPsiElement(@Nullable GroovyPsiElement psiElement) {
+  }
+
+  @Override
+  @NotNull
+  protected Collection<GradleDslElement> getChildren() {
+    return ImmutableList.copyOf(getElements());
+  }
+
+  @Override
   protected void apply() {
+    for (GradleDslElement element : myToBeAddedElements) {
+      if (element.create() != null) {
+        myElements.add(element);
+      }
+    }
+    myToBeAddedElements.clear();
+
+    for (GradleDslElement element : myToBeRemovedElements) {
+      if (myElements.remove(element)) {
+        element.delete();
+      }
+    }
+    myToBeRemovedElements.clear();
+
+    for (GradleDslElement element : myElements) {
+      if (element.isModified()) {
+        element.applyChanges();
+      }
+    }
   }
 
   @Override
