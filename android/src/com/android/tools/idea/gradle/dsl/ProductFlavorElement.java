@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.List;
@@ -45,12 +46,13 @@ public final class ProductFlavorElement extends GradleDslPropertiesElement {
   private static final String VERSION_CODE = "versionCode";
   private static final String VERSION_NAME = "versionName";
 
-  @NotNull
-  private final String myName;
+  ProductFlavorElement(@NotNull GradleDslElement parent, @NotNull String name) {
+    super(parent, null, name);
+  }
 
-  ProductFlavorElement(@Nullable GradleDslElement parent, @NotNull String name) {
-    super(parent);
-    myName = name;
+  @Override
+  protected boolean isBlockElement() {
+    return true;
   }
 
   @NotNull
@@ -368,12 +370,17 @@ public final class ProductFlavorElement extends GradleDslPropertiesElement {
   }
 
   @NotNull
-  public ProductFlavorElement setversionName(@NotNull String versionName) {
+  public ProductFlavorElement setVersionName(@NotNull String versionName) {
     return (ProductFlavorElement)setLiteralProperty(VERSION_NAME, versionName);
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+    if (property.equals(CONSUMER_PROGUARD_FILES) && element instanceof LiteralElement) {
+      addAsParsedLiteralListElement(property, (LiteralElement)element);
+      return;
+    }
+
     if (property.equals(PROGUARD_FILES) || property.equals("proguardFile")) {
       addToListElement(PROGUARD_FILES, element);
       return;
@@ -448,6 +455,11 @@ public final class ProductFlavorElement extends GradleDslPropertiesElement {
   }
 
   private void addToListElement(@NotNull String property, @NotNull GradleDslElement element) {
+    GroovyPsiElement psiElement = element.getPsiElement();
+    if (psiElement == null) {
+      return;
+    }
+
     GrLiteral[] literalsToAdd =  null;
     if (element instanceof LiteralElement) {
       literalsToAdd = new GrLiteral[]{((LiteralElement)element).getLiteral()};
@@ -464,11 +476,11 @@ public final class ProductFlavorElement extends GradleDslPropertiesElement {
 
     LiteralListElement literalListElement = getProperty(property, LiteralListElement.class);
     if (literalListElement != null) {
-      literalListElement.add(property, literalsToAdd);
+      literalListElement.add(psiElement, property,literalsToAdd);
       return;
     }
 
-    literalListElement = new LiteralListElement(this, property, literalsToAdd);
+    literalListElement = new LiteralListElement(this, psiElement, property, literalsToAdd);
     super.addParsedElement(property, literalListElement);
   }
 
@@ -527,7 +539,7 @@ public final class ProductFlavorElement extends GradleDslPropertiesElement {
     }
 
     @NotNull
-    private LiteralListElement toLiteralListElement(@Nullable GradleDslElement parent) {
+    private LiteralListElement toLiteralListElement(@NotNull GradleDslElement parent) {
       LiteralElement typeElement = new LiteralElement(parent, NAME);
       typeElement.setValue(myType);
       LiteralElement nameElement = new LiteralElement(parent, NAME);

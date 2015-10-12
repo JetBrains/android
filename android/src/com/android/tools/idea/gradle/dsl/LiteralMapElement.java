@@ -16,10 +16,15 @@
 package com.android.tools.idea.gradle.dsl;
 
 import com.google.common.collect.Maps;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.Map;
@@ -30,37 +35,32 @@ import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
  * Represents an element which consists of a map from properties of type {@link String} and values of type {@link LiteralElement}.
  */
 final class LiteralMapElement extends GradleDslPropertiesElement {
-  @NotNull private final String myName;
-
   LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name) {
-    super(parent);
-    myName = name;
+    super(parent, null, name);
   }
 
-  LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap map) {
-    super(parent);
+  LiteralMapElement(@NotNull GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap map) {
+    super(parent, map, name);
     assert map.isMap();
-    myName = name;
     for (GrNamedArgument argument : map.getNamedArguments()) {
       GrLiteral literal = getChildOfType(argument, GrLiteral.class);
       if (literal != null) {
         String argName = argument.getLabelName();
         if (argName != null) {
-          setParsedElement(argName, new LiteralElement(this, name, literal));
+          setParsedElement(argName, new LiteralElement(this, map, name, literal));
         }
       }
     }
   }
 
-  LiteralMapElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull GrNamedArgument... namedArguments) {
-    super(parent);
-    myName = name;
+  LiteralMapElement(@Nullable GradleDslElement parent, @NotNull GroovyPsiElement psiElement, @NotNull String name, @NotNull GrNamedArgument... namedArguments) {
+    super(parent, psiElement, name);
     for (GrNamedArgument argument : namedArguments) {
       GrLiteral literal = getChildOfType(argument, GrLiteral.class);
       if (literal != null) {
         String argName = argument.getLabelName();
         if (argName != null) {
-          setParsedElement(argName, new LiteralElement(this, name, literal));
+          setParsedElement(argName, new LiteralElement(this, psiElement, name, literal));
         }
       }
     }
@@ -109,6 +109,33 @@ final class LiteralMapElement extends GradleDslPropertiesElement {
     if (propertyElement instanceof LiteralElement) {
       return ((LiteralElement)propertyElement).getValue(clazz);
     }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  protected GroovyPsiElement create() {
+    GroovyPsiElement psiElement = super.create();
+    if (psiElement == null) {
+      return null;
+    }
+
+    if (psiElement instanceof GrListOrMap || psiElement instanceof GrArgumentList) {
+      return psiElement;
+    }
+
+    if (psiElement instanceof GrReferenceExpression) {
+      GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(psiElement.getProject());
+      GrArgumentList argumentList = factory.createArgumentListFromText("xyz");
+      argumentList.getFirstChild().delete(); // Workaround to get an empty argument list.
+      PsiElement added = psiElement.addAfter(argumentList, psiElement.getLastChild());
+      if (added instanceof GrArgumentList) {
+        GrArgumentList addedArgumentList = (GrArgumentList)added;
+        setPsiElement(addedArgumentList);
+        return addedArgumentList;
+      }
+    }
+
     return null;
   }
 }
