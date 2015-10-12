@@ -49,11 +49,9 @@ public class EmulatorTargetChooser implements TargetChooser {
 
   private final String myAvd;
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final EmulatorLaunchOptions myEmulatorLaunchOptions;
 
-  public EmulatorTargetChooser(@NotNull AndroidFacet facet, @NotNull EmulatorLaunchOptions emulatorLaunchOptions, @Nullable String avd) {
+  public EmulatorTargetChooser(@NotNull AndroidFacet facet, @Nullable String avd) {
     myFacet = facet;
-    myEmulatorLaunchOptions = emulatorLaunchOptions;
     assert avd == null || avd.length() > 0;
     myAvd = avd;
   }
@@ -98,7 +96,7 @@ public class EmulatorTargetChooser implements TargetChooser {
       // The user canceled.
       return null;
     }
-    myFacet.launchEmulator(avd, myEmulatorLaunchOptions.getCommandLine());
+    myFacet.launchEmulator(avd);
 
     // Wait for an AVD to come up with name matching the one we just launched.
     Predicate<IDevice> avdNameFilter = new Predicate<IDevice>() {

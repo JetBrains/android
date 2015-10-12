@@ -76,8 +76,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public String SELECTED_CLOUD_DEVICE_PROJECT_ID = "";
   public String CLOUD_DEVICE_SERIAL_NUMBER = "";
 
-  @NotNull private final EmulatorLaunchOptions myEmulatorLaunchOptions = new EmulatorLaunchOptions();
-
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory) {
     super(new JavaRunConfigurationModule(project, false), factory);
   }
@@ -270,23 +268,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  public EmulatorLaunchOptions getEmulatorLaunchOptions() {
-    return myEmulatorLaunchOptions;
-  }
-
-  @NotNull
   protected TargetChooser getTargetChooser(@NotNull AndroidFacet facet) {
     switch (getTargetSelectionMode()) {
       case SHOW_DIALOG:
-        return new ManualTargetChooser(this, facet, myEmulatorLaunchOptions);
+        return new ManualTargetChooser(this, facet);
       case EMULATOR:
-        return new EmulatorTargetChooser(facet, myEmulatorLaunchOptions, Strings.emptyToNull(PREFERRED_AVD));
+        return new EmulatorTargetChooser(facet, Strings.emptyToNull(PREFERRED_AVD));
       case USB_DEVICE:
         return new UsbDeviceTargetChooser(facet);
       case CLOUD_DEVICE_DEBUGGING:
         return new CloudDebuggingTargetChooser(CLOUD_DEVICE_SERIAL_NUMBER);
       case CLOUD_MATRIX_TEST:
-        ManualTargetChooser fallback = new ManualTargetChooser(this, facet, myEmulatorLaunchOptions);
+        ManualTargetChooser fallback = new ManualTargetChooser(this, facet);
         return new CloudMatrixTargetChooser(facet, SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID, fallback);
       case CLOUD_DEVICE_LAUNCH:
         return new CloudDeviceTargetChooser(facet, SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
@@ -317,7 +310,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     super.readExternal(element);
     readModule(element);
     DefaultJDOMExternalizer.readExternal(this, element);
-    DefaultJDOMExternalizer.readExternal(myEmulatorLaunchOptions, element);
   }
 
   @Override
@@ -325,7 +317,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     super.writeExternal(element);
     writeModule(element);
     DefaultJDOMExternalizer.writeExternal(this, element);
-    DefaultJDOMExternalizer.writeExternal(myEmulatorLaunchOptions, element);
   }
 
   public boolean usesSimpleLauncher() {
