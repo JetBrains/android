@@ -276,7 +276,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                                  boolean explicitResourceType) {
     final ResourceManager manager = facet.getResourceManager(resPackage);
     if (manager != null) {
-      for (String name : manager.getResourceNames(type)) {
+      for (String name : manager.getResourceNames(type, true)) {
         result.add(referenceTo(prefix, type, resPackage, name, explicitResourceType));
       }
     }
