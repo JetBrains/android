@@ -330,6 +330,11 @@ public abstract class ResourceManager {
 
   @NotNull
   public Collection<String> getResourceNames(@NotNull String type) {
+    return getResourceNames(type, false);
+  }
+
+  @NotNull
+  public Collection<String> getResourceNames(@NotNull String type, boolean publicOnly) {
     final Set<String> result = new HashSet<String>();
     result.addAll(getValueResourceNames(type));
     result.addAll(getFileResourcesNames(type));
