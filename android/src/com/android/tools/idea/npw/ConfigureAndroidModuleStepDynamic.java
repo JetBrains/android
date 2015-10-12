@@ -40,16 +40,20 @@ import static com.android.tools.idea.wizard.WizardConstants.*;
 public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHeaderAndDescription {
   private static final Logger LOG = Logger.getInstance(ConfigureAndroidModuleStepDynamic.class);
 
+  private static final String TITLE = "Configure your new module";
+
   private CreateModuleTemplate myModuleType;
   private FormFactorApiComboBox mySdkControls;
   private JTextField myModuleName;
   private JPanel myPanel;
   private JTextField myAppName;
   private LabelWithEditLink myPackageName;
+  private final @Nullable FormFactorUtils.FormFactor myFormFactor;
 
-  public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable) {
-    super("Configure your new module", null, parentDisposable);
+  public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable, @Nullable FormFactorUtils.FormFactor formFactor) {
+    super(TITLE, null, parentDisposable);
     setBodyComponent(myPanel);
+    myFormFactor = formFactor;
   }
 
   @Override
@@ -87,6 +91,10 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     if (template != null && template.getFormFactor() != null && template.getMetadata() != null) {
       myModuleType = template;
       registerValueDeriver(FormFactorUtils.getModuleNameKey(template.getFormFactor()), ourModuleNameDeriver);
+
+      // As we are re-using the SAME Step object (this) and the SAME Path object (NewFormFactorModulePath) for both
+      // new "phone and tablet module" and "android lib module" we have to update the title here.
+      myHeader.setTitle(myModuleType.getName());
     } else {
       LOG.error("init() Called on ConfigureAndroidModuleStepDynamic with an incorrect selected ModuleType");
     }
@@ -220,9 +228,12 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   @NotNull
   @Override
   protected WizardStepHeaderSettings getStepHeader() {
+    // this creates the initial setting, we will later update the title in {@link #onEnterStep()}
     return getFormfactorModuleTemplate() == null
            ? NewModuleWizardDynamic.buildHeader()
-           : WizardStepHeaderSettings.createTitleAndDescriptionHeader(getFormfactorModuleTemplate().getName(), "Configure your new module");
+           : myFormFactor == null
+             ? WizardStepHeaderSettings.createTitleOnlyHeader(getFormfactorModuleTemplate().getName())
+             : WizardStepHeaderSettings.createTitleAndIconHeader(getFormfactorModuleTemplate().getName(), myFormFactor.getIcon());
   }
 
   @Override
