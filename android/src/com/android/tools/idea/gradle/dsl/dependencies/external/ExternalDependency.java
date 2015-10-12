@@ -16,10 +16,12 @@
 package com.android.tools.idea.gradle.dsl.dependencies.external;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.dsl.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependency;
 import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -35,6 +37,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrRefere
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -278,5 +281,11 @@ public abstract class ExternalDependency extends Dependency {
   @Override
   public String toString() {
     return mySpec.toString();
+  }
+
+  @Override
+  @NotNull
+  protected Collection<GradleDslElement> getChildren() {
+    return ImmutableList.of();
   }
 }

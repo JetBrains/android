@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+
 /**
  * Tests for {@link ProductFlavorElement}.
  *
@@ -543,7 +545,7 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
       .setTestInstrumentationRunner("efgh")
       .setUseJack(true)
       .setVersionCode("2")
-      .setversionName("2.0");
+      .setVersionName("2.0");
 
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
     assertEquals("dimension", "efgh", defaultConfig.dimension());
@@ -632,7 +634,7 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
       .setTestInstrumentationRunner("efgh")
       .setUseJack(true)
       .setVersionCode("2")
-      .setversionName("2.0");
+      .setVersionName("2.0");
 
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
     assertEquals("dimension", "efgh", defaultConfig.dimension());
@@ -857,7 +859,7 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
                  defaultConfig.resValues());
   }
 
-  public void testSetAndResentMapElements() throws Exception {
+  public void testSetAndResetMapElements() throws Exception {
     String text = "android {\n" +
                   "  defaultConfig {\n" +
                   "    manifestPlaceholders key1:\"value1\", key2:\"value2\"\n" +
@@ -894,7 +896,7 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
                  defaultConfig.testInstrumentationRunnerArguments());
   }
 
-  public void testAddAndResentMapElements() throws Exception {
+  public void testAddAndResetMapElements() throws Exception {
     String text = "android {\n" +
                   "  defaultConfig {\n" +
                   "  }\n" +
@@ -927,7 +929,7 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
     assertNull("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments());
   }
 
-  public void testRemoveAndResentMapElements() throws Exception {
+  public void testRemoveAndResetMapElements() throws Exception {
     String text = "android {\n" +
                   "  defaultConfig {\n" +
                   "    manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
@@ -961,6 +963,837 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
                  defaultConfig.manifestPlaceholders());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+  }
+
+  public void testRemoveAndApplyElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    applicationId \"com.example.myapplication\"\n" +
+                  "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
+                  "    dimension \"abcd\"\n" +
+                  "    manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
+                  "    maxSdkVersion 23\n" +
+                  "    minSdkVersion 15\n" +
+                  "    multiDexEnabled true\n" +
+                  "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
+                  "    resConfigs \"abcd\", \"efgh\"\n" +
+                  "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
+                  "    targetSdkVersion 22 \n" +
+                  "    testApplicationId \"com.example.myapplication.test\"\n" +
+                  "    testFunctionalTest false\n" +
+                  "    testHandleProfiling true\n" +
+                  "    testInstrumentationRunner \"abcd\"\n" +
+                  "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
+                  "    useJack false\n" +
+                  "    versionCode 1\n" +
+                  "    versionName \"1.0\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 defaultConfig.consumerProguardFiles());
+    assertEquals("dimension", "abcd", defaultConfig.dimension());
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.TRUE, defaultConfig.multiDexEnabled());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
+    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.FALSE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.TRUE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "abcd", defaultConfig.testInstrumentationRunner());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+    assertEquals("useJack", Boolean.FALSE, defaultConfig.useJack());
+    assertEquals("versionCode", "1", defaultConfig.versionCode());
+    assertEquals("versionName", "1.0", defaultConfig.versionName());
+
+    defaultConfig.removeProperty("applicationId");
+    defaultConfig.removeProperty("consumerProguardFiles");
+    defaultConfig.removeProperty("dimension");
+    defaultConfig.removeProperty("maxSdkVersion");
+    defaultConfig.removeProperty("minSdkVersion");
+    defaultConfig.removeProperty("multiDexEnabled");
+    defaultConfig.removeProperty("proguardFiles");
+    defaultConfig.removeProperty("resConfigs");
+    defaultConfig.removeProperty("resValues");
+    defaultConfig.removeProperty("targetSdkVersion");
+    defaultConfig.removeProperty("testApplicationId");
+    defaultConfig.removeProperty("testFunctionalTest");
+    defaultConfig.removeProperty("testHandleProfiling");
+    defaultConfig.removeProperty("testInstrumentationRunner");
+    defaultConfig.removeProperty("useJack");
+    defaultConfig.removeProperty("versionCode");
+    defaultConfig.removeProperty("versionName");
+
+    assertNull("applicationId", defaultConfig.applicationId());
+    assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
+    assertNull("dimension", defaultConfig.dimension());
+    assertNull("maxSdkVersion", defaultConfig.maxSdkVersion());
+    assertNull("minSdkVersion", defaultConfig.minSdkVersion());
+    assertNull("multiDexEnabled", defaultConfig.multiDexEnabled());
+    assertNull("proguardFiles", defaultConfig.proguardFiles());
+    assertNull("resConfigs", defaultConfig.resConfigs());
+    assertNull("resValues", defaultConfig.resValues());
+    assertNull("targetSdkVersion", defaultConfig.targetSdkVersion());
+    assertNull("testApplicationId", defaultConfig.testApplicationId());
+    assertNull("testFunctionalTest", defaultConfig.testFunctionalTest());
+    assertNull("testHandleProfiling", defaultConfig.testHandleProfiling());
+    assertNull("testInstrumentationRunner", defaultConfig.testInstrumentationRunner());
+    assertNull("useJack", defaultConfig.useJack());
+    assertNull("versionCode", defaultConfig.versionCode());
+    assertNull("versionName", defaultConfig.versionName());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertNull("applicationId", defaultConfig.applicationId());
+    assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
+    assertNull("dimension", defaultConfig.dimension());
+    assertNull("maxSdkVersion", defaultConfig.maxSdkVersion());
+    assertNull("minSdkVersion", defaultConfig.minSdkVersion());
+    assertNull("multiDexEnabled", defaultConfig.multiDexEnabled());
+    assertNull("proguardFiles", defaultConfig.proguardFiles());
+    assertNull("resConfigs", defaultConfig.resConfigs());
+    assertNull("resValues", defaultConfig.resValues());
+    assertNull("targetSdkVersion", defaultConfig.targetSdkVersion());
+    assertNull("testApplicationId", defaultConfig.testApplicationId());
+    assertNull("testFunctionalTest", defaultConfig.testFunctionalTest());
+    assertNull("testHandleProfiling", defaultConfig.testHandleProfiling());
+    assertNull("testInstrumentationRunner", defaultConfig.testInstrumentationRunner());
+    assertNull("useJack", defaultConfig.useJack());
+    assertNull("versionCode", defaultConfig.versionCode());
+    assertNull("versionName", defaultConfig.versionName());
+  }
+
+  public void testEditAndApplyLiteralElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    applicationId \"com.example.myapplication\"\n" +
+                  "    dimension \"abcd\"\n" +
+                  "    maxSdkVersion 23\n" +
+                  "    minSdkVersion \"15\"\n" +
+                  "    multiDexEnabled true\n" +
+                  "    targetSdkVersion \"22\" \n" +
+                  "    testApplicationId \"com.example.myapplication.test\"\n" +
+                  "    testFunctionalTest false\n" +
+                  "    testHandleProfiling true\n" +
+                  "    testInstrumentationRunner \"abcd\"\n" +
+                  "    useJack false\n" +
+                  "    versionCode 1\n" +
+                  "    versionName \"1.0\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
+    assertEquals("dimension", "abcd", defaultConfig.dimension());
+    assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.TRUE, defaultConfig.multiDexEnabled());
+    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.FALSE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.TRUE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "abcd", defaultConfig.testInstrumentationRunner());
+    assertEquals("useJack", Boolean.FALSE, defaultConfig.useJack());
+    assertEquals("versionCode", "1", defaultConfig.versionCode());
+    assertEquals("versionName", "1.0", defaultConfig.versionName());
+
+    defaultConfig
+      .setApplicationId("com.example.myapplication-1")
+      .setDimension("efgh")
+      .setMaxSdkVersion(24)
+      .setMinSdkVersion("16")
+      .setMultiDexEnabled(false)
+      .setTargetSdkVersion("23")
+      .setTestApplicationId("com.example.myapplication-1.test")
+      .setTestFunctionalTest(true)
+      .setTestHandleProfiling(false)
+      .setTestInstrumentationRunner("efgh")
+      .setUseJack(true)
+      .setVersionCode("2")
+      .setVersionName("2.0");
+
+    assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
+    assertEquals("dimension", "efgh", defaultConfig.dimension());
+    assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.FALSE, defaultConfig.multiDexEnabled());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.TRUE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.FALSE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner());
+    assertEquals("useJack", Boolean.TRUE, defaultConfig.useJack());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+    assertEquals("versionName", "2.0", defaultConfig.versionName());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
+    assertEquals("dimension", "efgh", defaultConfig.dimension());
+    assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.FALSE, defaultConfig.multiDexEnabled());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.TRUE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.FALSE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner());
+    assertEquals("useJack", Boolean.TRUE, defaultConfig.useJack());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+    assertEquals("versionName", "2.0", defaultConfig.versionName());
+  }
+
+  public void testEditAndApplyIntegerLiteralElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    minSdkVersion \"15\"\n" +
+                  "    targetSdkVersion \"22\" \n" +
+                  "    versionCode 1\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion());
+    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion());
+    assertEquals("versionCode", "1", defaultConfig.versionCode());
+
+    defaultConfig.setMinSdkVersion(16)
+      .setTargetSdkVersion(23)
+      .setVersionCode(2);
+
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+  }
+
+  public void testAddAndApplyLiteralElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertNull("applicationId", defaultConfig.applicationId());
+    assertNull("dimension", defaultConfig.dimension());
+    assertNull("maxSdkVersion", defaultConfig.maxSdkVersion());
+    assertNull("minSdkVersion", defaultConfig.minSdkVersion());
+    assertNull("multiDexEnabled", defaultConfig.multiDexEnabled());
+    assertNull("targetSdkVersion", defaultConfig.targetSdkVersion());
+    assertNull("testApplicationId", defaultConfig.testApplicationId());
+    assertNull("testFunctionalTest", defaultConfig.testFunctionalTest());
+    assertNull("testHandleProfiling", defaultConfig.testHandleProfiling());
+    assertNull("testInstrumentationRunner", defaultConfig.testInstrumentationRunner());
+    assertNull("useJack", defaultConfig.useJack());
+    assertNull("versionCode", defaultConfig.versionCode());
+    assertNull("versionName", defaultConfig.versionName());
+
+    defaultConfig
+      .setApplicationId("com.example.myapplication-1")
+      .setDimension("efgh")
+      .setMaxSdkVersion(24)
+      .setMinSdkVersion("16")
+      .setMultiDexEnabled(false)
+      .setTargetSdkVersion("23")
+      .setTestApplicationId("com.example.myapplication-1.test")
+      .setTestFunctionalTest(true)
+      .setTestHandleProfiling(false)
+      .setTestInstrumentationRunner("efgh")
+      .setUseJack(true)
+      .setVersionCode("2")
+      .setVersionName("2.0");
+
+    assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
+    assertEquals("dimension", "efgh", defaultConfig.dimension());
+    assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.FALSE, defaultConfig.multiDexEnabled());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.TRUE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.FALSE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner());
+    assertEquals("useJack", Boolean.TRUE, defaultConfig.useJack());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+    assertEquals("versionName", "2.0", defaultConfig.versionName());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
+    assertEquals("dimension", "efgh", defaultConfig.dimension());
+    assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion());
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("multiDexEnabled", Boolean.FALSE, defaultConfig.multiDexEnabled());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId());
+    assertEquals("testFunctionalTest", Boolean.TRUE, defaultConfig.testFunctionalTest());
+    assertEquals("testHandleProfiling", Boolean.FALSE, defaultConfig.testHandleProfiling());
+    assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner());
+    assertEquals("useJack", Boolean.TRUE, defaultConfig.useJack());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+    assertEquals("versionName", "2.0", defaultConfig.versionName());
+  }
+
+  public void testAddAndApplyIntegerLiteralElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertNull("applicationId", defaultConfig.applicationId());
+    assertNull("targetSdkVersion", defaultConfig.targetSdkVersion());
+    assertNull("versionCode", defaultConfig.versionCode());
+
+    defaultConfig.setMinSdkVersion(16)
+      .setTargetSdkVersion(23)
+      .setVersionCode(2);
+
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+    assertEquals("versionCode", "2", defaultConfig.versionCode());
+  }
+
+  public void testReplaceAndApplyListElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
+                  "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
+                  "    resConfigs \"abcd\", \"efgh\"\n" +
+                  "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
+
+    defaultConfig
+      .replaceConsumerProguardFile("proguard-android.txt", "proguard-android-1.txt")
+      .replaceProguardFile("proguard-android.txt", "proguard-android-1.txt")
+      .replaceResConfig("abcd", "xyz")
+      .replaceResValue(new ResValue("abcd", "efgh", "ijkl"), new ResValue("abcd", "mnop", "qrst"));
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
+                 defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("xyz", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "mnop", "qrst")), defaultConfig.resValues());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
+                 defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("xyz", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "mnop", "qrst")), defaultConfig.resValues());
+  }
+
+  public void testAddAndApplyListElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
+    assertNull("proguardFiles", defaultConfig.proguardFiles());
+    assertNull("resConfigs", defaultConfig.resConfigs());
+    assertNull("resValues", defaultConfig.resValues());
+
+    defaultConfig
+      .addConsumerProguardFile("proguard-android.txt")
+      .addProguardFile("proguard-android.txt")
+      .addResConfig("abcd")
+      .addResValue(new ResValue("mnop", "qrst", "uvwx"));
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("mnop", "qrst", "uvwx")), defaultConfig.resValues());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("mnop", "qrst", "uvwx")), defaultConfig.resValues());
+  }
+
+  public void testAddToAndApplyListElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
+                  "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
+                  "    resConfigs \"abcd\", \"efgh\"\n" +
+                  "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
+
+    defaultConfig
+      .addConsumerProguardFile("proguard-android-1.txt")
+      .addProguardFile("proguard-android-1.txt")
+      .addResConfig("xyz")
+      .addResValue(new ResValue("mnop", "qrst", "uvwx"));
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("abcd", "efgh", "xyz"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl"), new ResValue("mnop", "qrst", "uvwx")),
+                 defaultConfig.resValues());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("abcd", "efgh", "xyz"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl"), new ResValue("mnop", "qrst", "uvwx")),
+                 defaultConfig.resValues());
+  }
+
+  public void testRemoveFromAndApplyListElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
+                  "    proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
+                  "    resConfigs \"abcd\", \"efgh\"\n" +
+                  "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
+                  "    resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl"), new ResValue("mnop", "qrst", "uvwx")),
+                 defaultConfig.resValues());
+
+    defaultConfig
+      .removeConsumerProguardFile("proguard-rules.pro")
+      .removeProguardFile("proguard-rules.pro")
+      .removeResConfig("efgh")
+      .removeResValue(new ResValue("mnop", "qrst", "uvwx"));
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.proguardFiles());
+    assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
+    assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
+  }
+
+  public void testRemoveFromAndApplyListElementsWithSingleElement() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    consumerProguardFiles 'proguard-android.txt'\n" +
+                  "    proguardFiles = ['proguard-rules.pro']\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-rules.pro"), defaultConfig.proguardFiles());
+
+    defaultConfig
+      .removeConsumerProguardFile("proguard-android.txt")
+      .removeProguardFile("proguard-rules.pro");
+
+    assertEquals("consumerProguardFiles", ImmutableList.of(), defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of(), defaultConfig.proguardFiles());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("consumerProguardFiles", null, defaultConfig.consumerProguardFiles());
+    assertEquals("proguardFiles", null, defaultConfig.proguardFiles());
+  }
+
+  public void testSetAndApplyMapElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    manifestPlaceholders key1:\"value1\", key2:\"value2\"\n" +
+                  "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("key1", "value1", "key2", "value2"), defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+
+    defaultConfig.setManifestPlaceholder("key1", 12345);
+    defaultConfig.setManifestPlaceholder("key3", true);
+    defaultConfig.setTestInstrumentationRunnerArgument("size", "small");
+    defaultConfig.setTestInstrumentationRunnerArgument("key", "value");
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("key1", 12345, "key2", "value2", "key3", true),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "foo", "bar", "key", "value"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("key1", 12345, "key2", "value2", "key3", true),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "foo", "bar", "key", "value"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+  }
+
+  public void testAddAndApplyMapElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertNull("manifestPlaceholders", defaultConfig.manifestPlaceholders());
+    assertNull("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments());
+
+    defaultConfig.setManifestPlaceholder("activityLabel1", "newName1");
+    defaultConfig.setManifestPlaceholder("activityLabel2", "newName2");
+    defaultConfig.setTestInstrumentationRunnerArgument("size", "small");
+    defaultConfig.setTestInstrumentationRunnerArgument("key", "value");
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "key", "value"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "key", "value"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+  }
+
+  public void testRemoveAndApplyMapElements() throws Exception {
+    String text = "android {\n" +
+                  "  defaultConfig {\n" +
+                  "    manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
+                  "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidElement android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorElement defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+
+    defaultConfig.removeManifestPlaceholder("activityLabel1");
+    defaultConfig.removeTestInstrumentationRunnerArgument("size");
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel2", "defaultName2"),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("foo", "bar"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+
+    final AndroidElement finalAndroid = android;
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        finalAndroid.applyChanges();
+      }
+    });
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
+    assertNotNull(defaultConfig);
+
+    assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel2", "defaultName2"),
+                 defaultConfig.manifestPlaceholders());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("foo", "bar"),
                  defaultConfig.testInstrumentationRunnerArguments());
   }
 }

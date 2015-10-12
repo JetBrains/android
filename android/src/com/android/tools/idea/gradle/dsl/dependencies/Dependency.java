@@ -45,7 +45,7 @@ public abstract class Dependency extends GradleDslElement {
   @NotNull private final String myConfigurationName;
 
   protected Dependency(@NotNull Dependencies parent, @NotNull GrMethodCall methodCall, @NotNull String configurationName) {
-    super(parent);
+    super(parent, null, configurationName); // TODO: Pass the correct psiElement when moved to using the new parser API.
     myParent = parent;
     myMethodCall = methodCall;
     myConfigurationName = configurationName;
