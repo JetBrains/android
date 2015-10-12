@@ -53,27 +53,21 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
    */
   private final List<OldGradleDslElement> myExtendedDslElements = Lists.newArrayList();
 
-  @Nullable private GroovyFile myPsiFile;
-
   @Nullable
   public static GradleBuildModel get(@NotNull Module module) {
     VirtualFile file = getGradleBuildFile(module);
-    return file != null ? parseBuildFile(file, module.getProject()) : null;
+    return file != null ? parseBuildFile(file, module.getProject(), module.getName()) : null;
   }
 
   @NotNull
-  public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
-    GradleBuildModel buildFile = new GradleBuildModel(file, project);
+  public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
+    GradleBuildModel buildFile = new GradleBuildModel(file, project, moduleName);
     buildFile.parse();
     return buildFile;
   }
 
-  private GradleBuildModel(@NotNull VirtualFile file, @NotNull Project project) {
-    this(null, file, project);
-  }
-
-  private GradleBuildModel(@Nullable GradleDslElement parent, @NotNull VirtualFile file, @NotNull Project project) {
-    super(parent);
+  private GradleBuildModel(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
+    super(null, null, moduleName);
     myFile = file;
     myProject = project;
   }
@@ -84,6 +78,7 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
    */
   public void reparse() {
     myDependencies = new Dependencies(this);
+    clear();
     parse();
   }
 
@@ -91,7 +86,7 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     PsiFile psiFile = PsiManager.getInstance(myProject).findFile(myFile);
 
-    myPsiFile = null;
+    GroovyFile myPsiFile = null;
     if (psiFile instanceof GroovyFile) {
       myPsiFile = (GroovyFile)psiFile;
     }
@@ -100,6 +95,7 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
     if (myPsiFile == null) {
       return;
     }
+    setPsiElement(myPsiFile);
 
     myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
       @Override
@@ -143,28 +139,32 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
     return getProperty(AndroidElement.NAME, AndroidElement.class);
   }
 
+  @NotNull
+  public GradleBuildModel addAndroidElement() {
+    if (android() != null) {
+      return this;
+    }
+    AndroidElement androidElement = new AndroidElement(this);
+    return (GradleBuildModel)setNewElement(AndroidElement.NAME, androidElement);
+  }
+
   @Nullable
   public ExtModel ext() {
     return getProperty(ExtModel.NAME, ExtModel.class);
   }
 
   @NotNull
+  public GradleBuildModel addExtModel() {
+    if (ext() != null) {
+      return this;
+    }
+    ExtModel extModel = new ExtModel(this);
+    return (GradleBuildModel)setNewElement(ExtModel.NAME, extModel);
+  }
+
+  @NotNull
   public Dependencies dependencies() {
     return myDependencies;
-  }
-
-  /**
-   * Indicates whether this {@code GradleBuildModel} has an underlying {@link PsiFile}. A {@code PsiFile} is necessary to update the contents
-   * of the build.gradle file.
-   * @return {@code true} if this {@code GradleBuildModel} has a {@code PsiFile}; {@code false} otherwise.
-   */
-  public boolean hasPsiFile() {
-    return myPsiFile != null;
-  }
-
-  @Nullable
-  public GroovyFile getPsiFile() {
-    return myPsiFile;
   }
 
   /**
