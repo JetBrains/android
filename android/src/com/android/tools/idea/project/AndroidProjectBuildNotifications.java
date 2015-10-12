@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.project;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
@@ -35,7 +36,15 @@ public class AndroidProjectBuildNotifications {
   @NotNull private final MessageBus myMessageBus;
 
   public static void subscribe(@NotNull Project project, @NotNull AndroidProjectBuildListener listener) {
-    MessageBusConnection connection = project.getMessageBus().connect(project);
+    subscribe(project, project, listener);
+  }
+
+  /**
+   * Adds a subscription to the project build notifications topic. The subscription will be valid as long as the passed {@link Disposable}
+   * is not disposed.
+   */
+  public static void subscribe(@NotNull Project project, @NotNull Disposable disposable, @NotNull AndroidProjectBuildListener listener) {
+    MessageBusConnection connection = project.getMessageBus().connect(disposable);
     connection.subscribe(PROJECT_BUILD_LISTENER_TOPIC, listener);
   }
 
