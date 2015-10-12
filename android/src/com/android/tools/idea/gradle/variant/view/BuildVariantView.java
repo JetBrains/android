@@ -661,9 +661,7 @@ public class BuildVariantView {
         public void actionPerformed(ActionEvent e) {
           if (myValue instanceof Module) {
             Module module = (Module)myValue;
-            AndroidGradleModel androidModel = AndroidGradleModel.get(module);
-            assert androidModel != null;
-            ModuleVariantsInfoDialog dialog = new ModuleVariantsInfoDialog(module, androidModel);
+            ModuleVariantsInfoGraph dialog = new ModuleVariantsInfoGraph(module);
             dialog.show();
           }
         }
