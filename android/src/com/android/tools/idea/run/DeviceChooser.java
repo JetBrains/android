@@ -293,6 +293,10 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
 
   @Nullable
   public ValidationInfo doValidate() {
+    if (!myDeviceTable.isEnabled()) {
+      return null;
+    }
+
     int[] rows = mySelectedRows != null ? mySelectedRows : myDeviceTable.getSelectedRows();
     boolean hasIncompatible = false;
     boolean hasCompatible = false;
