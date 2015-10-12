@@ -24,8 +24,8 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.Arrays;
@@ -159,7 +159,7 @@ final class LiteralListElement extends GradleDslElement {
       }
     }
 
-    if (psiElement instanceof GrReferenceExpression) {
+    if (psiElement instanceof GrApplicationStatement) {
       GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(psiElement.getProject());
       GrArgumentList argumentList = factory.createArgumentListFromText("xyz");
       argumentList.getFirstChild().delete(); // Workaround to get an empty argument list.

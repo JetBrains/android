@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.Collection;
 import java.util.List;
@@ -67,7 +68,37 @@ abstract class GradleDslPropertiesElement extends GradleDslElement {
       return;
     }
     LiteralListElement listElement = new LiteralListElement(this, psiElement, property, parsedLiteralElement.getLiteral());
-    addParsedElement(property, listElement);
+    myProperties.put(property, listElement);
+  }
+
+  protected void addToParsedLiteralListElement(@NotNull String property, @NotNull GradleDslElement element) {
+    GroovyPsiElement psiElement = element.getPsiElement();
+    if (psiElement == null) {
+      return;
+    }
+
+    GrLiteral[] literalsToAdd =  null;
+    if (element instanceof LiteralElement) {
+      literalsToAdd = new GrLiteral[]{((LiteralElement)element).getLiteral()};
+    } else if (element instanceof LiteralListElement) {
+      List<LiteralElement> literalElements = ((LiteralListElement)element).getElements();
+      literalsToAdd = new GrLiteral[literalElements.size()];
+      for (int i = 0; i < literalElements.size(); i++) {
+        literalsToAdd[i] = literalElements.get(i).getLiteral();
+      }
+    }
+    if (literalsToAdd == null) {
+      return;
+    }
+
+    LiteralListElement literalListElement = getProperty(property, LiteralListElement.class);
+    if (literalListElement != null) {
+      literalListElement.add(psiElement, property,literalsToAdd);
+      return;
+    }
+
+    literalListElement = new LiteralListElement(this, psiElement, property, literalsToAdd);
+    myProperties.put(property, literalListElement);
   }
 
   /**
