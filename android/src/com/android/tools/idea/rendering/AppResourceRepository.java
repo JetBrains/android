@@ -131,7 +131,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     // TODO: When https://code.google.com/p/android/issues/detail?id=76744 is implemented we can
     // optimize this to only check changes in AAR files
     Project project = facet.getModule().getProject();
-    AndroidProjectBuildNotifications.subscribe(project, new AndroidProjectBuildNotifications.AndroidProjectBuildListener() {
+    AndroidProjectBuildNotifications.subscribe(project, facet, new AndroidProjectBuildNotifications.AndroidProjectBuildListener() {
       @Override
       public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
         repository.updateRoots();
