@@ -997,7 +997,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     new ReadAction() {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject()));
+        buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject(), ""));
       }
     }.execute();
     GradleBuildModel buildModel = buildModelRef.get();

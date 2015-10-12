@@ -28,6 +28,11 @@ public final class ExtModel extends GradleDslPropertiesElement {
   public static final String NAME = "ext";
 
   ExtModel(@Nullable GradleDslElement parent) {
-    super(parent);
+    super(parent, null, NAME);
+  }
+
+  @Override
+  protected boolean isBlockElement() {
+    return true;
   }
 }
