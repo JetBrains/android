@@ -16,7 +16,6 @@
 package com.android.tools.idea.templates.recipe;
 
 import com.android.tools.idea.templates.FreemarkerUtils;
-import com.android.tools.idea.templates.FreemarkerUtils.TemplatePostProcessor;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.parse.StringFileAdapter;
@@ -58,35 +57,10 @@ public final class Recipe {
   private List<RecipeInstruction> instructions = Lists.newArrayList();
   // @formatter:on
 
-  @NotNull private final List<String> myDependencies = Lists.newArrayList();
-  @NotNull private final List<File> mySourceFiles = Lists.newArrayList();
-  @NotNull private final List<File> myTargetFiles = Lists.newArrayList();
-  @NotNull private final List<File> myFilesToOpen = Lists.newArrayList();
-
-  @NotNull
-  public List<String> getDependencies() {
-    return myDependencies;
-  }
-
-  @NotNull
-  public List<File> getSourceFiles() {
-    return mySourceFiles;
-  }
-
-  @NotNull
-  public List<File> getTargetFiles() {
-    return myTargetFiles;
-  }
-
-  @NotNull
-  public List<File> getFilesToOpen() {
-    return myFilesToOpen;
-  }
-
   /**
    * Handles parsing a recipe.xml file. A recipe file specifies a bunch of file-related actions
    * to take after a template is processed, such as copying files over, merging them, or opening them
-   * in the main editor. Once parsed, you should remember to {@link #execute(RecipeContext)} it.
+   * in the main editor. Once parsed, you should remember to {@link #execute(RecipeExecutor)} it.
    */
   public static Recipe parse(@NotNull Reader xmlReader) throws JAXBException {
     Recipe recipe = unmarshal(xmlReader);
@@ -100,7 +74,7 @@ public final class Recipe {
   }
 
   @NotNull
-  private static File cloneWithourFreemarkerSuffix(@NotNull File file) {
+  private static File cloneWithoutFreemarkerSuffix(@NotNull File file) {
     File clone = new File(file.getPath());
     return TemplateUtils.stripSuffix(clone, DOT_FTL);
   }
@@ -108,19 +82,9 @@ public final class Recipe {
   /**
    * Execute this recipe's instructions.
    */
-  public void execute(@NotNull RecipeContext recipeContext) {
+  public void execute(@NotNull RecipeExecutor recipeExecutor) throws TemplateProcessingException {
     for (RecipeInstruction instruction : instructions) {
-      instruction.execute(this, recipeContext);
-    }
-  }
-
-  @SuppressWarnings("unused") // Called by JAXB via reflection
-  private void afterUnmarshal(Unmarshaller u, Object parent) {
-    for (RecipeInstruction instruction : instructions) {
-      instruction.addDependenciesInto(myDependencies);
-      instruction.addSourceFilesInto(mySourceFiles);
-      instruction.addTargetFilesInto(myTargetFiles);
-      instruction.addFilesToOpenInto(myFilesToOpen);
+      instruction.execute(recipeExecutor);
     }
   }
 
@@ -128,19 +92,7 @@ public final class Recipe {
    * A single instruction in a recipe. Each implementation corresponds to a tag in recipe.xml
    */
   private static abstract class RecipeInstruction {
-    abstract void execute(@NotNull Recipe recipe, @NotNull RecipeContext context);
-
-    public void addDependenciesInto(@NotNull List<String> dependencies) {
-    }
-
-    public void addSourceFilesInto(@NotNull List<File> files) {
-    }
-
-    public void addTargetFilesInto(@NotNull List<File> files) {
-    }
-
-    public void addFilesToOpenInto(@NotNull List<File> files) {
-    }
+    abstract void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException;
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
@@ -156,24 +108,14 @@ public final class Recipe {
     private File to;
 
     @Override
-    void execute(@NotNull Recipe recipe, @NotNull RecipeContext context) {
+    void execute(@NotNull RecipeExecutor executor) {
       assert to != null; // Will be non-null after afterUnmarshal is called
-      context.copy(from, to);
-    }
-
-    @Override
-    public void addSourceFilesInto(@NotNull List<File> files) {
-      files.add(from);
-    }
-
-    @Override
-    public void addTargetFilesInto(@NotNull List<File> files) {
-      files.add(to);
+      executor.copy(from, to);
     }
 
     private void afterUnmarshal(Unmarshaller u, Object parent) {
       if (to == null || to.getPath().isEmpty()) {
-        to = cloneWithourFreemarkerSuffix(from);
+        to = cloneWithoutFreemarkerSuffix(from);
       }
     }
   }
@@ -191,27 +133,16 @@ public final class Recipe {
     private File to;
 
     @Override
-    void execute(@NotNull Recipe recipe, @NotNull RecipeContext context) {
+    void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
       assert to != null; // Will be non-null after afterUnmarshal is called
-      context.instantiate(from, to);
-    }
-
-    @Override
-    public void addSourceFilesInto(@NotNull List<File> files) {
-      files.add(from);
-    }
-
-    @Override
-    public void addTargetFilesInto(@NotNull List<File> files) {
-      files.add(to);
+      executor.instantiate(from, to);
     }
 
     private void afterUnmarshal(Unmarshaller u, Object parent) {
       if (to == null || to.getPath().isEmpty()) {
-        to = cloneWithourFreemarkerSuffix(from);
+        to = cloneWithoutFreemarkerSuffix(from);
       }
     }
-
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
@@ -227,27 +158,16 @@ public final class Recipe {
     private File to;
 
     @Override
-    void execute(@NotNull Recipe recipe, @NotNull RecipeContext context) {
+    void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
       assert to != null; // Will be non-null after afterUnmarshal is called
-      context.merge(from, to);
-    }
-
-    @Override
-    public void addSourceFilesInto(@NotNull List<File> files) {
-      files.add(from);
-    }
-
-    @Override
-    public void addTargetFilesInto(@NotNull List<File> files) {
-      files.add(to);
+      executor.merge(from, to);
     }
 
     private void afterUnmarshal(Unmarshaller u, Object parent) {
       if (to == null || to.getPath().isEmpty()) {
-        to = cloneWithourFreemarkerSuffix(from);
+        to = cloneWithoutFreemarkerSuffix(from);
       }
     }
-
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
@@ -258,10 +178,9 @@ public final class Recipe {
     private File at;
 
     @Override
-    void execute(@NotNull Recipe recipe, @NotNull RecipeContext context) {
-      context.mkDir(at);
+    void execute(@NotNull RecipeExecutor executor) {
+      executor.mkDir(at);
     }
-
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
@@ -272,12 +191,8 @@ public final class Recipe {
     private File file;
 
     @Override
-    void execute(@NotNull Recipe recipe, @NotNull RecipeContext context) {
-    }
-
-    @Override
-    public void addFilesToOpenInto(@NotNull List<File> files) {
-      files.add(file);
+    void execute(@NotNull RecipeExecutor executor) {
+      executor.addFilesToOpen(file);
     }
   }
 
@@ -288,13 +203,8 @@ public final class Recipe {
     private String mavenUrl;
 
     @Override
-    void execute(@NotNull Recipe recipe, @NotNull RecipeContext context) {
-      context.addDependency(mavenUrl);
-    }
-
-    @Override
-    public void addDependenciesInto(@NotNull List<String> dependencies) {
-      dependencies.add(mavenUrl);
+    void execute(@NotNull RecipeExecutor executor) {
+      executor.addDependency(mavenUrl);
     }
   }
 
@@ -303,35 +213,22 @@ public final class Recipe {
    */
   @SuppressWarnings({"NullableProblems", "unused"})
   private static final class ExecuteInstruction extends RecipeInstruction {
-    @XmlJavaTypeAdapter(StringFileAdapter.class)
-    @XmlAttribute(required = true)
-    @NotNull
-    private File file;
+    @XmlJavaTypeAdapter(StringFileAdapter.class) @XmlAttribute(required = true) @NotNull private File file;
 
     @Override
-    void execute(@NotNull final Recipe parent, @NotNull final RecipeContext context) {
-      try {
-        FreemarkerUtils.processFreemarkerTemplate(context.getFreemarker(), context.getParamMap(), file, new TemplatePostProcessor() {
-          @Override
-          public void process(@NotNull String content) throws TemplateProcessingException {
-            try {
-              Recipe child = unmarshal(new StringReader(XmlUtils.stripBom(content)));
-              child.execute(context);
-
-              parent.myDependencies.addAll(child.myDependencies);
-              parent.mySourceFiles.addAll(child.mySourceFiles);
-              parent.myTargetFiles.addAll(child.myTargetFiles);
-              parent.myFilesToOpen.addAll(child.myFilesToOpen);
-            }
-            catch (JAXBException exception) {
-              throw new TemplateProcessingException(exception);
-            }
+    void execute(@NotNull final RecipeExecutor executor) throws TemplateProcessingException {
+      executor.processTemplate(file, new FreemarkerUtils.TemplatePostProcessor() {
+        @Override
+        public void process(@NotNull String content) throws TemplateProcessingException {
+          try {
+            Recipe child = unmarshal(new StringReader(XmlUtils.stripBom(content)));
+            child.execute(executor);
           }
-        });
-      }
-      catch (TemplateProcessingException exception) {
-        throw new RuntimeException(exception);
-      }
+          catch (JAXBException e) {
+            throw new TemplateProcessingException(e);
+          }
+        }
+      });
     }
   }
 
@@ -340,8 +237,8 @@ public final class Recipe {
    */
   private static final class UpdateAndSyncGradleInstruction extends RecipeInstruction {
     @Override
-    void execute(@NotNull Recipe recipe, @NotNull RecipeContext context) {
-      context.updateAndSyncGradle();
+    void execute(@NotNull RecipeExecutor executor) {
+      executor.updateAndSyncGradle();
     }
   }
 }

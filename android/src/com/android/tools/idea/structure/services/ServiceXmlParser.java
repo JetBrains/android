@@ -16,11 +16,14 @@
 package com.android.tools.idea.structure.services;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.FreemarkerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
+import com.android.tools.idea.templates.recipe.RenderingContext;
+import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.templates.TypedVariable;
 import com.android.tools.idea.templates.parse.SaxUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
-import com.android.tools.idea.templates.recipe.RecipeContext;
+import com.android.tools.idea.templates.recipe.RecipeExecutor;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.collections.ObservableList;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
@@ -33,12 +36,12 @@ import com.android.tools.idea.ui.properties.swing.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.containers.Stack;
-import freemarker.template.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
@@ -52,13 +55,13 @@ import javax.xml.parsers.SAXParserFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -192,41 +195,54 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     myTagStack.pop();
   }
 
+  public void install() {
+    List<File> sourceFiles = Lists.newArrayList();
+    analyzeRecipe(false, null, sourceFiles, null);
+
+    // Convert relative paths to absolute paths, so TemplateUtils.openEditors can find them
+    List<File> absFilesToOpen = Lists.newArrayListWithCapacity(sourceFiles.size());
+    for (File file : sourceFiles) {
+      absFilesToOpen.add(getTargetFile(file));
+    }
+    TemplateUtils.openEditors(myModule.getProject(), absFilesToOpen, true);
+  }
+
   @NotNull
-  public Recipe createRecipe(boolean executeRecipe) {
-    Configuration freemarker = new FreemarkerConfiguration();
-    StudioTemplateLoader loader = new StudioTemplateLoader(myRootPath);
-    Map<String, Object> paramMap = FreemarkerUtils.createParameterMap(myContext.toValueMap());
+  private File getTargetFile(@NotNull File file) {
+    if (file.isAbsolute()) {
+      return file;
+    }
+    File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
+    return new File(moduleRoot, file.getPath());
+  }
 
+  private void analyzeRecipe(boolean findOnlyReferences,
+                            @Nullable Collection<String> dependencies,
+                            @Nullable Collection<File> sourceFiles,
+                            @Nullable Collection<File> targetFiles) {
     try {
-      freemarker.setTemplateLoader(loader);
-      String xml = FreemarkerUtils.processFreemarkerTemplate(freemarker, paramMap, myRecipeFile, null);
+      File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
+      // @formatter:off
+      RenderingContext context = RenderingContext.Builder
+        .newContext(myRootPath, myModule.getProject())
+        .withParams(myContext.toValueMap())
+        .withOutputRoot(moduleRoot)
+        .withModuleRoot(moduleRoot)
+        .withFindOnlyReferences(findOnlyReferences)
+        .intoDependencies(dependencies)
+        .intoSourceFiles(sourceFiles)
+        .intoTargetFiles(targetFiles)
+        .build();
+      // @formatter:on
+      String xml = FreemarkerUtils.processFreemarkerTemplate(context, myRecipeFile, null);
       Recipe recipe = Recipe.parse(new StringReader(xml));
-
-      if (executeRecipe) {
-        File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
-        RecipeContext recipeContext = new RecipeContext(myModule.getProject(), paramMap, freemarker, loader, false, moduleRoot, moduleRoot);
-
-        recipe.execute(recipeContext);
-
-        // Convert relative paths to absolute paths, so TemplateUtils.openEditors can find them
-        List<File> relFilesToOpen = recipe.getFilesToOpen();
-        List<File> absFilesToOpen = Lists.newArrayListWithCapacity(relFilesToOpen.size());
-        for (File file : relFilesToOpen) {
-          absFilesToOpen.add(recipeContext.getTargetFile(file));
-        }
-        TemplateUtils.openEditors(myModule.getProject(), absFilesToOpen, true);
-      }
-
-      return recipe;
+      RecipeExecutor recipeExecutor = context.getRecipeExecutor();
+      recipe.execute(recipeExecutor);
     }
     catch (TemplateProcessingException e) {
       throw new RuntimeException(e);
     }
     catch (JAXBException e) {
-      throw new RuntimeException(e);
-    }
-    catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -281,17 +297,20 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   }
 
   private void closeServiceTag() {
-    Recipe recipe = createRecipe(false);
+    HashSet<String> dependencies = Sets.newHashSet();
+    List<File> sourceFiles = Lists.newArrayList();
+    List<File> targetFiles = Lists.newArrayList();
+    analyzeRecipe(false, dependencies, sourceFiles, targetFiles);
 
-    for (String d : recipe.getDependencies()) {
+    for (String d : dependencies) {
       myDeveloperServiceMetadata.addDependency(d);
     }
-    for (File f : recipe.getSourceFiles()) {
+    for (File f : sourceFiles) {
       if (f.getName().equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
         parseManifestForPermissions(new File(myRootPath, f.toString()));
       }
     }
-    for (File f : recipe.getTargetFiles()) {
+    for (File f : targetFiles) {
       myDeveloperServiceMetadata.addModifiedFile(f);
     }
 
