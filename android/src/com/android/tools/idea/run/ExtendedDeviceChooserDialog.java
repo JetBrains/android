@@ -87,8 +87,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
                                      boolean multipleSelection,
                                      boolean showReuseDevicesCheckbox,
                                      boolean selectReuseDevicesCheckbox,
-                                     boolean showCloudTarget,
-                                     @NotNull final String emulatorOptions) {
+                                     boolean showCloudTarget) {
     super(facet.getModule().getProject(), true, IdeModalityType.PROJECT);
 
     myCloudConfigurationProvider = CloudConfigurationProvider.getCloudConfigurationProvider();
@@ -211,7 +210,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     }
 
     myLaunchEmulatorButton.setIcon(AllIcons.General.Add);
-    myLaunchEmulatorButton.addActionListener(new LaunchDeviceActionListener(facet, emulatorOptions));
+    myLaunchEmulatorButton.addActionListener(new LaunchDeviceActionListener(facet));
 
     myReuseSelectionCheckbox.setVisible(showReuseDevicesCheckbox);
     myReuseSelectionCheckbox.setSelected(selectReuseDevicesCheckbox);
@@ -232,11 +231,9 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     private static final String CLOUD_DEVICE = "Cloud Device";
 
     private final AndroidFacet myFacet;
-    private final String myEmulatorOptions;
 
-    public LaunchDeviceActionListener(@NotNull AndroidFacet facet, String emulatorOptions) {
+    public LaunchDeviceActionListener(@NotNull AndroidFacet facet) {
       myFacet = facet;
-      myEmulatorOptions = emulatorOptions;
     }
 
     @Override
@@ -282,7 +279,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
           ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
             @Override
             public void run() {
-              myFacet.launchEmulator(avdName, myEmulatorOptions);
+              myFacet.launchEmulator(avdName);
             }
           });
         }
