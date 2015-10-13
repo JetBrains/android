@@ -24,6 +24,7 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.util.Collection;
@@ -78,8 +79,12 @@ public abstract class GradleDslElement {
     Project project = parentPsiElement.getProject();
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
-    String statementText = isBlockElement() ? myName + " {\n}\n" : myName;
+    String statementText = isBlockElement() ? myName + " {\n}\n" : myName + " \"abc\", \"xyz\"";
     GrStatement statement = factory.createStatementFromText(statementText);
+    if (statement instanceof GrApplicationStatement) {
+      // Workaround to create an application statement.
+      ((GrApplicationStatement)statement).getArgumentList().delete();
+    }
     PsiElement addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
     if (isBlockElement()) {
       GrClosableBlock closableBlock = getClosableBlock(addedElement);
@@ -87,8 +92,8 @@ public abstract class GradleDslElement {
         setPsiElement(closableBlock);
       }
     } else {
-      if (addedElement instanceof GrStatement) {
-        setPsiElement((GrStatement)addedElement);
+      if (addedElement instanceof GrApplicationStatement) {
+        setPsiElement((GrApplicationStatement)addedElement);
       }
     }
     PsiElement lineTerminator = factory.createLineTerminator(1);
