@@ -17,12 +17,14 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.FullRevision;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -52,6 +54,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
@@ -124,6 +127,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.*;
 import static com.intellij.util.SystemProperties.getLineSeparator;
+import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
@@ -1540,5 +1544,38 @@ public class GradleSyncTest extends GuiTestCase {
 
     // By checking that there are no additional libraries in the SDK, we are verifying that an additional SDK was not created for add-ons.
     assertThat(buildTarget.getAdditionalLibraries()).hasSize(0);
+  }
+
+  @Test @IdeGuiTest
+  public void testGradleModelCache() throws IOException {
+    myProjectFrame = importSimpleApplication();
+    final File projectPath = myProjectFrame.getProjectPath();
+    myProjectFrame.closeProject();
+
+    final AtomicBoolean syncSkipped = new AtomicBoolean(false);
+
+    // Reopen project and verify that sync was skipped (i.e. model loaded from cache)
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+        Project project = projectManager.convertAndLoadProject(projectPath.getPath());
+        assertNotNull(project);
+        GradleSyncState.subscribe(project, new GradleSyncListener.Adapter() {
+          @Override
+          public void syncSkipped(@NotNull Project project) {
+            syncSkipped.set(true);
+          }
+        });
+        projectManager.openProject(project);
+      }
+    });
+
+    pause(new Condition("Sync to be skipped") {
+      @Override
+      public boolean test() {
+        return syncSkipped.get();
+      }
+    }, SHORT_TIMEOUT);
   }
 }
