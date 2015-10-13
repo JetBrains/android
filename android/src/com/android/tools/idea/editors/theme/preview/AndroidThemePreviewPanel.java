@@ -50,7 +50,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.Query;
-import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -97,8 +96,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
   private static final String ERROR = "Error";
   private static final String PROGRESS = "Progress";
   private static final String PREVIEW = "Preview";
-
-  private final MessageBusConnection myConnection;
 
   private final JPanel myMainPanel;
   private Box myErrorPanel;
@@ -194,8 +191,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
     setMinimumSize(JBUI.size(200, 0));
 
     myContext = context;
-    myConnection = myContext.getProject().getMessageBus().connect();
-    myConnection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
+    myContext.getProject().getMessageBus().connect(this).subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
       @Override
       public void enteredDumbMode() {
         updateMainPanel();
@@ -483,6 +479,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
 
   private void createProgressPanel() {
     myProgressIcon = new AsyncProcessIcon("Indexing");
+    Disposer.register(this, myProgressIcon);
     JLabel progressMessage = new JLabel("Waiting for indexing...");
     JPanel progressBlock = new JPanel() {
       @Override
@@ -554,8 +551,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
 
   @Override
   public void dispose() {
-    Disposer.dispose(myProgressIcon);
-    myConnection.disconnect();
   }
 
   // Implements RenderContext
