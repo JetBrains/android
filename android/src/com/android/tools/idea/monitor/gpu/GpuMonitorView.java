@@ -178,6 +178,8 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
       .configureEvent(EVENT_LAUNCH, 0, AndroidIcons.Ddms.Threads, new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF), false);
     myTimelineComponent.configureEvent(EVENT_TRACING, 0, AndroidIcons.Ddms.StartMethodProfiling, new JBColor(0x92ADC6, 0x718493),
                                        new JBColor(0x2B4E8C, 0xC7E5FF), true);
+    myTimelineComponent.addReference(16.6f, JBColor.GREEN);
+    myTimelineComponent.addReference(33.3f, JBColor.RED);
   }
 
   @Override
