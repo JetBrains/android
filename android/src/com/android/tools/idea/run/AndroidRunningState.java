@@ -235,7 +235,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   }
 
   private boolean isToLaunchDebug(@NotNull ClientData data) {
-    if (data.getDebuggerConnectionStatus() == ClientData.DebuggerStatus.WAITING) {
+    if (myApplicationLauncher.isReadyForDebugging(data, getProcessHandler())) {
       // early exit without checking package name in case the debug package doesn't match
       // our target package name. This happens for instance when debugging a test that doesn't launch an application
       return true;
@@ -244,7 +244,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     if (description == null) {
       return false;
     }
-    return description.equals(myTargetPackageName) && myApplicationLauncher.isReadyForDebugging(data, getProcessHandler());
+    return description.equals(myTargetPackageName);
   }
 
   private void launchDebug(@NotNull Client client) {
