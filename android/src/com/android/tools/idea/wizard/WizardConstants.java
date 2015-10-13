@@ -86,6 +86,9 @@ public class WizardConstants {
   @SuppressWarnings("unchecked") public static final Key<Collection<File>> TARGET_FILES_KEY =
     createKey("target.files", Scope.WIZARD, (Class<Collection<File>>)(Object)Collection.class);
 
+  @SuppressWarnings("unchecked") public static final Key<List<String>> DEPENDENCIES_KEY =
+    createKey(ATTR_DEPENDENCIES_LIST, Scope.WIZARD, (Class<List<String>>)(Class)String.class);
+
   // Patterns
   public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>!;]";
   public static final Set<String> INVALID_WINDOWS_FILENAMES = ImmutableSet

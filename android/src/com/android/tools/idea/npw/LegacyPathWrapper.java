@@ -225,6 +225,11 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
   }
 
   @Override
+  public boolean canPerformFinishingActions() {
+    return true;
+  }
+
+  @Override
   public boolean performFinishingActions() {
     myWizardPath.createModule();
     return true;

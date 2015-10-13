@@ -177,6 +177,14 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   /**
+   * Do the checks needed before performing the finishing actions.
+   * @return false to abort, true to do the finishing actions.
+   */
+  public boolean canPerformFinishingActions() {
+    return true;
+  }
+
+  /**
    * Declare any finishing actions that will take place at the completion of the wizard. This will
    * be executed by a worker thread, under progress.
    */
@@ -660,6 +668,14 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   protected void doFinish() throws IOException {
+    for (AndroidStudioWizardPath path : myPaths) {
+      if (path.isPathVisible() && !path.canPerformFinishingActions()) {
+        return;
+      }
+    }
+    if (!canPerformFinishingActions()) {
+      return;
+    }
     for (AndroidStudioWizardPath path : myPaths) {
       if (path.isPathVisible()) {
         path.performFinishingActions();
