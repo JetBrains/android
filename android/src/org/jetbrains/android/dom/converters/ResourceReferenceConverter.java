@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -32,6 +33,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
@@ -62,6 +64,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   private boolean myQuiet = false;
   private boolean myAllowAttributeReferences = true;
   private boolean myAllowLiterals = true;
+  private @Nullable AttributeDefinition myAttributeDefinition = null;
 
   public ResourceReferenceConverter() {
     this(new ArrayList<String>());
@@ -69,6 +72,13 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   public ResourceReferenceConverter(@NotNull Collection<String> resourceTypes) {
     myResourceTypes = new ArrayList<String>(resourceTypes);
+  }
+
+  // TODO: it should be possible to get rid of AttributeDefinition dependency and use ResourceManager
+  // to acquire AttributeDefinition when needed.
+  public ResourceReferenceConverter(@NotNull Collection<String> resourceTypes, @Nullable AttributeDefinition attributeDefinition) {
+    myResourceTypes = new ArrayList<String>(resourceTypes);
+    myAttributeDefinition = attributeDefinition;
   }
 
   public void setAllowLiterals(boolean allowLiterals) {
@@ -310,16 +320,61 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return super.getErrorMessage(s, context);
   }
 
+  /**
+   * Data class that contains all required information to show on-completion documentation.
+   */
+  public static class DocumentationHolder {
+    /**
+     * Value being completed
+     */
+    private final @NotNull String myValue;
+
+    /**
+     * Documentation associated with that value
+     */
+    private final @NotNull String myDocumentation;
+
+    public DocumentationHolder(@NotNull String value, @NotNull String documentation) {
+      myValue = value;
+      myDocumentation = documentation;
+    }
+
+    public @NotNull String getValue() {
+      return myValue;
+    }
+
+    public @NotNull String getDocumentation() {
+      return myDocumentation;
+    }
+  }
+
   @Nullable
   @Override
   public LookupElement createLookupElement(ResourceValue resourceValue) {
-    LookupElementBuilder builder = LookupElementBuilder.create(resourceValue.toString()).withCaseSensitivity(true);
+    final String value = resourceValue.toString();
+
+    boolean deprecated = false;
+    String doc = null;
+    if (myAttributeDefinition != null) {
+      doc = myAttributeDefinition.getValueDoc(value);
+      deprecated = myAttributeDefinition.isValueDeprecated(value);
+    }
+
+    LookupElementBuilder builder;
+    if (doc == null) {
+      builder = LookupElementBuilder.create(value);
+    } else {
+      builder = LookupElementBuilder.create(new DocumentationHolder(value, doc.trim()), value);
+    }
+
+    builder = builder.withCaseSensitivity(true).withStrikeoutness(deprecated);
     final String resourceName = resourceValue.getResourceName();
     if (resourceName != null) {
       builder = builder.withLookupString(resourceName);
     }
 
-    return builder;
+    // Show deprecated values in the end of the autocompletion list
+    return PrioritizedLookupElement.withPriority(builder, deprecated ? 0 : 1);
   }
 
   @Override
