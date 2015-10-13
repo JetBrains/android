@@ -22,6 +22,8 @@ import com.android.tools.idea.npw.WizardUtils;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.intellij.diff.comparison.ComparisonManager;
+import com.intellij.diff.comparison.ComparisonPolicy;
 import com.intellij.ide.impl.ProjectPaneSelectInTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -54,10 +56,7 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Static utility methods pertaining to templates for projects, modules, and activities.
@@ -426,6 +425,11 @@ public class TemplateUtils {
       @Nullable
       @Override
       public String compute() {
+        if (!project.isInitialized()) {
+          // When the project is not initialized (we are creating a project) we cannot
+          // read from PSI files.
+          return readTextFile(VfsUtil.virtualToIoFile(file));
+        }
         final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
         if (psiFile == null) {
           return null;
@@ -442,7 +446,7 @@ public class TemplateUtils {
    * text in UTF-8 character encoding. The file is created if it does not
    * already exist.
    */
-  public static void writeFile(@NotNull Object requestor, @Nullable String contents, @NotNull File to) throws IOException {
+  public static void writeTextFile(@NotNull Object requestor, @Nullable String contents, @NotNull File to) throws IOException {
     if (contents == null) {
       return;
     }
@@ -484,6 +488,19 @@ public class TemplateUtils {
   }
 
   /**
+   * Find the first parent directory that exists and check if this directory is writeable.
+   * @throws IOException if the directory is not writable.
+   */
+  public static void checkDirectoryIsWriteable(@NotNull File directory) throws IOException {
+    while (!directory.exists() || !directory.isDirectory()) {
+      directory = directory.getParentFile();
+    }
+    if (!directory.canWrite()) {
+      throw new IOException("Cannot write to folder: " + directory.getAbsolutePath());
+    }
+  }
+
+  /**
    * Returns true iff the given file has the given extension (with or without .)
    */
   public static boolean hasExtension(File file, String extension) {
@@ -491,4 +508,35 @@ public class TemplateUtils {
     return Files.getFileExtension(file.getName()).equalsIgnoreCase(noDotExtension);
   }
 
+  /**
+   * Return true if the content of {@code targetFile} is the same as the content of {@code sourceVFile}.
+   */
+  public static boolean compareFile(@NotNull Project project, @NotNull VirtualFile sourceVFile, @NotNull File targetFile)
+    throws IOException {
+    VirtualFile targetVFile = VfsUtil.findFileByIoFile(targetFile, true);
+    if (targetVFile == null) {
+      return false;
+    }
+    if (sourceVFile.getFileType().isBinary()) {
+      byte[] source = sourceVFile.contentsToByteArray();
+      byte[] target = targetVFile.contentsToByteArray();
+      return Arrays.equals(source, target);
+    }
+    else {
+      String source = readTextFile(project, sourceVFile);
+      String target = readTextFile(project, targetVFile);
+      ComparisonManager comparisonManager = ComparisonManager.getInstance();
+      return comparisonManager.isEquals(source, target, ComparisonPolicy.IGNORE_WHITESPACES);
+    }
+  }
+
+  /**
+   * Return true if the content of {@code targetFile} is the same as {@code content}.
+   */
+  public static boolean compareTextFile(@NotNull Project project, @NotNull File targetFile, @NotNull String content) {
+    VirtualFile targetVFile = VfsUtil.findFileByIoFile(targetFile, true);
+    String target = readTextFile(project, targetVFile);
+    ComparisonManager comparisonManager = ComparisonManager.getInstance();
+    return comparisonManager.isEquals(content, target, ComparisonPolicy.IGNORE_WHITESPACES);
+  }
 }

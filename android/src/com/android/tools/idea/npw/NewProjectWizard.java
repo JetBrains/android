@@ -19,10 +19,8 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
@@ -167,18 +165,34 @@ public class NewProjectWizard extends TemplateWizard implements TemplateWizardSt
 
         // If this is a new project, instantiate the project-level files
         if (wizardState instanceof NewProjectWizardState) {
-          ((NewProjectWizardState)wizardState).myProjectTemplate.render(projectRoot, moduleRoot, wizardState.myParameters, project);
-          ConfigureAndroidProjectPath.setGradleWrapperExecutable(projectRoot);
+          Template projectTemplate = ((NewProjectWizardState)wizardState).myProjectTemplate;
+          // @formatter:off
+          final RenderingContext projectContext = RenderingContext.Builder.newContext(projectTemplate, project)
+            .withOutputRoot(projectRoot)
+            .withModuleRoot(moduleRoot)
+            .withParams(wizardState.myParameters)
+            .build();
+          // @formatter:on
+          projectTemplate.render(projectContext);
         }
 
-        wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters, project);
+        final RenderingContext context = RenderingContext.Builder.newContext(wizardState.myTemplate, project)
+          .withOutputRoot(projectRoot).withModuleRoot(moduleRoot).withParams(wizardState.myParameters).build();
+        wizardState.myTemplate.render(context);
         if (wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
           TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
           activityTemplateState.populateRelativePackage(null);
           Template template = activityTemplateState.getTemplate();
           assert template != null;
-          template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters, project);
-          wizardState.myTemplate.getFilesToOpen().addAll(template.getFilesToOpen());
+          // @formatter:off
+          final RenderingContext activityContext = RenderingContext.Builder.newContext(template, project)
+            .withOutputRoot(moduleRoot)
+            .withModuleRoot(moduleRoot)
+            .withParams(activityTemplateState.myParameters)
+            .build();
+          // @formatter:on
+          template.render(activityContext);
+          context.getFilesToOpen().addAll(activityContext.getFilesToOpen());
         }
         if (ApplicationManager.getApplication().isUnitTestMode()) {
           return;
@@ -210,7 +224,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateWizardSt
           }
 
           private boolean openTemplateFiles(Project project) {
-            return TemplateUtils.openEditors(project, wizardState.myTemplate.getFilesToOpen(), true);
+            return TemplateUtils.openEditors(project, context.getFilesToOpen(), true);
           }
         }, project, initialLanguageLevel);
       } else {

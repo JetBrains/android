@@ -22,6 +22,7 @@ import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.sdk.wizard.SmwOldApiDirectInstall;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -40,7 +41,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 
 /**
  * A path to configure global details of a new Android project
@@ -113,20 +113,21 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
   }
 
   @Override
+  public boolean canPerformFinishingActions() {
+    return performFinishingOperation(true);
+  }
+
+  @Override
   public boolean performFinishingActions() {
     try {
+      if (!performFinishingOperation(false)) {
+        return false;
+      }
+
       Project project = getProject();
       assert project != null;
+
       File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
-
-      Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
-      projectTemplate.render(projectRoot, projectRoot, myState.flatten(), project);
-
-      Collection<File> files = myState.get(WizardConstants.TARGET_FILES_KEY);
-      assert files != null;
-
-      files.addAll(projectTemplate.getTargetFiles());
-
       setGradleWrapperExecutable(projectRoot);
       return true;
     }
@@ -134,6 +135,23 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
       LOG.error(e);
       return false;
     }
+  }
+
+  private boolean performFinishingOperation(boolean dryRun) {
+    Project project = getProject();
+    assert project != null;
+
+    Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
+    // @formatter:off
+      final RenderingContext context = RenderingContext.Builder.newContext(projectTemplate, project)
+        .withCommandName("New Project")
+        .withDryRun(dryRun)
+        .withShowErrors(true)
+        .withParams(myState.flatten())
+        .intoTargetFiles(myState.get(WizardConstants.TARGET_FILES_KEY))
+        .build();
+      // @formatter:on
+    return projectTemplate.render(context);
   }
 
   /**

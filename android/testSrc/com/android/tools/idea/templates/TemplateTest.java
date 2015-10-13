@@ -23,6 +23,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.npw.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.NewProjectWizardState;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.Severity;
@@ -452,8 +453,9 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   public void testTemplateFormatting() throws Exception {
     Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")));
-    template.render(new File(myFixture.getTempDirPath()), new File("dummy"),
-                    Maps.<String, Object>newHashMap(), myFixture.getProject());
+    RenderingContext context = RenderingContext.Builder.newContext(template, myFixture.getProject())
+      .withOutputRoot(new File(myFixture.getTempDirPath())).withModuleRoot(new File("dummy")).build();
+    template.render(context);
     FileDocumentManager.getInstance().saveAllDocuments();
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
     VirtualFile desired = fileSystem.findFileByIoFile(new File(getTestDataPath(),
@@ -874,10 +876,9 @@ public class TemplateTest extends AndroidGradleTestCase {
             File moduleRoot = new File(projectRoot, modifiedProjectName);
             templateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
             templateValues.populateDirectoryParameters();
-            template.render(moduleRoot, moduleRoot, templateValues.getParameters());
-            if (Template.ourMostRecentException != null) {
-              fail(Template.ourMostRecentException.getMessage());
-            }
+            RenderingContext context = RenderingContext.Builder.newContext(template, project).withOutputRoot(moduleRoot)
+              .withModuleRoot(moduleRoot).withParams(templateValues.getParameters()).build();
+            template.render(context);
             // Add in icons if necessary
             if (templateValues.getTemplateMetadata() != null  && templateValues.getTemplateMetadata().getIconName() != null) {
               File drawableFolder = new File(FileUtil.join(templateValues.getString(ATTR_RES_OUT)),
