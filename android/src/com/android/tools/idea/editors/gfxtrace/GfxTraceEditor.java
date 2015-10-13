@@ -325,7 +325,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private boolean connectToServer() {
     assert !ApplicationManager.getApplication().isDispatchThread();
 
-    myGapisConnection = GapisProcess.INSTANCE.connect();
+    myGapisConnection = GapisProcess.connect();
     return myGapisConnection.isConnected();
   }
 
