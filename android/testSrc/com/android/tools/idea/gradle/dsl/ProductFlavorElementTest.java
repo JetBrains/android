@@ -1455,11 +1455,12 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
     defaultConfig
       .addConsumerProguardFile("proguard-android.txt")
       .addProguardFile("proguard-android.txt")
+      .addProguardFile("proguard-rules.pro")
       .addResConfig("abcd")
       .addResValue(new ResValue("mnop", "qrst", "uvwx"));
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
-    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.proguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
     assertEquals("resValues", ImmutableList.of(new ResValue("mnop", "qrst", "uvwx")), defaultConfig.resValues());
 
@@ -1478,7 +1479,7 @@ public class ProductFlavorElementTest extends GradleBuildModelParserTestCase {
     assertNotNull(defaultConfig);
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
-    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.proguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
     assertEquals("resValues", ImmutableList.of(new ResValue("mnop", "qrst", "uvwx")), defaultConfig.resValues());
   }

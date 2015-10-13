@@ -19,8 +19,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.List;
 import java.util.Map;
@@ -382,12 +380,12 @@ public final class ProductFlavorElement extends GradleDslPropertiesElement {
     }
 
     if (property.equals(PROGUARD_FILES) || property.equals("proguardFile")) {
-      addToListElement(PROGUARD_FILES, element);
+      addToParsedLiteralListElement(PROGUARD_FILES, element);
       return;
     }
 
     if (property.equals(RES_CONFIGS) || property.equals("resConfig")) {
-      addToListElement(RES_CONFIGS, element);
+      addToParsedLiteralListElement(RES_CONFIGS, element);
       return;
     }
 
@@ -452,36 +450,6 @@ public final class ProductFlavorElement extends GradleDslPropertiesElement {
     }
 
     super.addParsedElement(property, element);
-  }
-
-  private void addToListElement(@NotNull String property, @NotNull GradleDslElement element) {
-    GroovyPsiElement psiElement = element.getPsiElement();
-    if (psiElement == null) {
-      return;
-    }
-
-    GrLiteral[] literalsToAdd =  null;
-    if (element instanceof LiteralElement) {
-      literalsToAdd = new GrLiteral[]{((LiteralElement)element).getLiteral()};
-    } else if (element instanceof LiteralListElement) {
-      List<LiteralElement> literalElements = ((LiteralListElement)element).getElements();
-      literalsToAdd = new GrLiteral[literalElements.size()];
-      for (int i = 0; i < literalElements.size(); i++) {
-        literalsToAdd[i] = literalElements.get(i).getLiteral();
-      }
-    }
-    if (literalsToAdd == null) {
-      return;
-    }
-
-    LiteralListElement literalListElement = getProperty(property, LiteralListElement.class);
-    if (literalListElement != null) {
-      literalListElement.add(psiElement, property,literalsToAdd);
-      return;
-    }
-
-    literalListElement = new LiteralListElement(this, psiElement, property, literalsToAdd);
-    super.addParsedElement(property, literalListElement);
   }
 
   /**
