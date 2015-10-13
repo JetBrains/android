@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.dsl;
 
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
-import com.android.tools.idea.gradle.dsl.parser.*;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaProjectElementParser;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslElementParser;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -35,8 +33,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
-import java.util.List;
-
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 public class GradleBuildModel extends GradleDslPropertiesElement {
@@ -46,12 +42,7 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
   @NotNull private Dependencies myDependencies = new Dependencies(this);
 
   // TODO Get the parsers from an extension point.
-  private final GradleDslElementParser[] myParsers = {new GradleDslParser(), new JavaProjectElementParser()};
-
-  /**
-   * Extra DSL elements in addition to dependencies provided by extension, e.g. Java extension and Android extension.
-   */
-  private final List<OldGradleDslElement> myExtendedDslElements = Lists.newArrayList();
+  private final GradleDslElementParser[] myParsers = {new JavaProjectElementParser(), new GradleDslParser()};
 
   @Nullable
   public static GradleBuildModel get(@NotNull Module module) {
@@ -131,7 +122,20 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
   protected void reset() {
     super.reset();
     myDependencies.resetState();
-    myExtendedDslElements.clear();
+  }
+
+  @Nullable
+  public JavaElement java() {
+    return getProperty(JavaElement.NAME, JavaElement.class);
+  }
+
+  @NotNull
+  public GradleBuildModel addJavaElement() {
+    if (java() != null) {
+      return this;
+    }
+    JavaElement javaElement = new JavaElement(this);
+    return (GradleBuildModel)setNewElement(JavaElement.NAME, javaElement);
   }
 
   @Nullable
@@ -165,28 +169,6 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
   @NotNull
   public Dependencies dependencies() {
     return myDependencies;
-  }
-
-  /**
-   * Get the DSL element provided by extension parsers (e.g. Java parser, android parser)
-   *
-   * @param clazz the type of the DSL element
-   * @return the extension data
-   */
-  @Nullable
-  public <T extends OldGradleDslElement> T getExtendedDslElement(@NotNull Class<T> clazz) {
-    for (OldGradleDslElement element : myExtendedDslElements) {
-      if (element.getClass().equals(clazz)) {
-        @SuppressWarnings("unchecked")
-        T result = (T)element;
-        return result;
-      }
-    }
-    return null;
-  }
-
-  public void addExtendedDslElement(@NotNull OldGradleDslElement element) {
-    myExtendedDslElements.add(element);
   }
 
   @Override
