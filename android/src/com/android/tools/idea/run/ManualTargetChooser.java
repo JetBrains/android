@@ -25,16 +25,10 @@ public class ManualTargetChooser implements TargetChooser {
 
   @NotNull private final AndroidRunConfigurationBase myConfiguration;
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final EmulatorLaunchOptions myEmulatorLaunchOptions;
 
-  public ManualTargetChooser(
-    @NotNull AndroidRunConfigurationBase configuration,
-    @NotNull AndroidFacet facet,
-    @NotNull EmulatorLaunchOptions emulatorLaunchOptions
-  ) {
+  public ManualTargetChooser(@NotNull AndroidRunConfigurationBase configuration, @NotNull AndroidFacet facet) {
     myConfiguration = configuration;
     myFacet = facet;
-    myEmulatorLaunchOptions = emulatorLaunchOptions;
   }
 
   @Override
@@ -63,7 +57,7 @@ public class ManualTargetChooser implements TargetChooser {
     boolean showCloudTarget = myConfiguration instanceof AndroidTestRunConfiguration && !debug;
     final ExtendedDeviceChooserDialog chooser =
       new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), deviceCount.isMultiple(), true,
-                                      myConfiguration.USE_LAST_SELECTED_DEVICE, showCloudTarget, myEmulatorLaunchOptions.getCommandLine());
+                                      myConfiguration.USE_LAST_SELECTED_DEVICE, showCloudTarget);
     chooser.show();
     if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
       // The user canceled.
@@ -75,7 +69,7 @@ public class ManualTargetChooser implements TargetChooser {
       if (selectedAvd == null) {
         return null;
       }
-      EmulatorTargetChooser emulatorChooser = new EmulatorTargetChooser(myFacet, myEmulatorLaunchOptions, selectedAvd);
+      EmulatorTargetChooser emulatorChooser = new EmulatorTargetChooser(myFacet, selectedAvd);
       return emulatorChooser.getTarget(printer, deviceCount, debug);
     }
     else if (chooser.isCloudTestOptionSelected()) {
