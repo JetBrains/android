@@ -22,11 +22,14 @@ import com.google.common.io.Files;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.io.*;
 import java.util.Properties;
 
+import static com.android.SdkConstants.NDK_DIR_PROPERTY;
+import static com.android.SdkConstants.SDK_DIR_PROPERTY;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.easymock.EasyMock.*;
@@ -43,12 +46,16 @@ public class LocalPropertiesTest extends IdeaTestCase {
     myLocalProperties = new LocalProperties(myProject);
   }
 
+  @Override
+  protected CompositeException checkForSettingsDamage() throws Exception {
+    return new CompositeException();
+  }
+
   // See https://code.google.com/p/android/issues/detail?id=82184
   public void testGetAndroidSdkPathWithSeparatorDifferentThanPlatformOne() throws IOException {
     if (!SystemInfo.isWindows) {
       String path = Joiner.on('\\').join("C:", "dir", "file");
-      myLocalProperties.doSetAndroidSdkPath(path);
-      myLocalProperties.save();
+      myLocalProperties.properties().setProperty(SDK_DIR_PROPERTY, path);
 
       File actual = myLocalProperties.getAndroidSdkPath();
       assertNotNull(actual);
@@ -59,7 +66,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
   public void testGetAndroidNdkPathWithSeparatorDifferentThanPlatformOne() throws IOException {
     if (!SystemInfo.isWindows) {
       String path = Joiner.on('\\').join("C:", "dir", "file");
-      myLocalProperties.doSetAndroidNdkPath(path);
+      myLocalProperties.properties().setProperty(NDK_DIR_PROPERTY, path);
       myLocalProperties.save();
 
       File actual = myLocalProperties.getAndroidNdkPath();
@@ -69,6 +76,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
   }
 
   public void testCreateFileOnSave() throws Exception {
+    myLocalProperties.setAndroidSdkPath("~/sdk");
     myLocalProperties.save();
     File localPropertiesFile = new File(myProject.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
     assertTrue(localPropertiesFile.isFile());
@@ -98,12 +106,10 @@ public class LocalPropertiesTest extends IdeaTestCase {
     String androidSdkPath = toSystemDependentName("/home/sdk2");
 
     Sdk sdk = createMock(Sdk.class);
-    expect(sdk.getHomePath()).andReturn(androidSdkPath);
-
+    expect(sdk.getHomePath()).andStubReturn(androidSdkPath);
     replay(sdk);
 
     myLocalProperties.setAndroidSdkPath(sdk);
-
     verify(sdk);
 
     myLocalProperties.save();
@@ -141,7 +147,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
     sdk.mkdirs();
 
     Properties outProperties = new Properties();
-    outProperties.setProperty(SdkConstants.SDK_DIR_PROPERTY, sdk.getPath());
+    outProperties.setProperty(SDK_DIR_PROPERTY, sdk.getPath());
 
     // First write properties using the default encoding (which will \\u escape all non-iso-8859 chars)
     PropertiesUtil.savePropertiesToFile(outProperties, localPropertiesFile, null);
@@ -167,5 +173,19 @@ public class LocalPropertiesTest extends IdeaTestCase {
 
     sdk.delete();
     tempDir.delete();
+  }
+
+
+  public void testOnlyChangesAreSavedToFile() throws IOException {
+    myLocalProperties.setAndroidSdkPath("~/sdk");
+    myLocalProperties.save();
+    File localPropertiesFile = new File(myProject.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
+    long lastModified = localPropertiesFile.lastModified();
+
+    // Set the value again. The "lastModified" value should not change.
+    myLocalProperties.setAndroidSdkPath("~/sdk");
+    myLocalProperties.save();
+
+    assertEquals(lastModified, localPropertiesFile.lastModified());
   }
 }
