@@ -47,7 +47,8 @@ public final class GapiPaths {
   @NotNull private static final String HOST_OS;
   @NotNull private static final String HOST_ARCH;
   @NotNull private static final String HOST_DIR;
-  @NotNull private static final String SERVER_EXECUTABLE_NAME;
+  @NotNull private static final String GAPIS_EXECUTABLE_NAME;
+  @NotNull private static final String GAPIR_EXECUTABLE_NAME;
   @NotNull private static final String GAPII_LIBRARY_NAME;
   @NotNull private static final String PKG_INFO_NAME = "pkginfo.apk";
   @NotNull private static final String EXE_EXTENSION;
@@ -65,7 +66,8 @@ public final class GapiPaths {
       EXE_EXTENSION = "";
     }
     HOST_ARCH = remap(ARCH_REMAP, System.getProperty("os.arch"));
-    SERVER_EXECUTABLE_NAME = "gapis" + EXE_EXTENSION;
+    GAPIS_EXECUTABLE_NAME = "gapis" + EXE_EXTENSION;
+    GAPIR_EXECUTABLE_NAME = "gapir" + EXE_EXTENSION;
     HOST_DIR = abiName(HOST_OS, HOST_ARCH);
     GAPII_LIBRARY_NAME = "libgapii.so";
   }
@@ -83,6 +85,10 @@ public final class GapiPaths {
 
   public static File gapis() {
     return handler().gapis();
+  }
+
+  public static File gapir() {
+    return handler().gapir();
   }
 
   @NotNull
@@ -144,10 +150,12 @@ public final class GapiPaths {
   private static abstract class Handler {
     private final File myBaseDirectory;
     private final File myGapisPath;
+    private final File myGapirPath;
 
     Handler(File baseDir, File gapisPath) {
       myBaseDirectory = baseDir;
       myGapisPath = gapisPath;
+      myGapirPath = new File(gapisPath.getParentFile(), GAPIR_EXECUTABLE_NAME);
     }
 
     public boolean isValid() {
@@ -165,6 +173,11 @@ public final class GapiPaths {
     }
 
     @NotNull
+    public File gapir() {
+      return myGapirPath;
+    }
+
+    @NotNull
     public abstract File findTraceLibrary(@NotNull String abi) throws IOException;
 
     @NotNull
@@ -173,7 +186,7 @@ public final class GapiPaths {
 
   private static class PluginHandler extends Handler {
     PluginHandler(File baseDir) {
-      super(baseDir, new File(new File(baseDir, HOST_DIR), SERVER_EXECUTABLE_NAME));
+      super(baseDir, new File(new File(baseDir, HOST_DIR), GAPIS_EXECUTABLE_NAME));
     }
 
     @Override
@@ -199,7 +212,7 @@ public final class GapiPaths {
     @NotNull private static final String GAPII_LIBRARY_FLAVOUR = "release";
 
     InternalHandler(File baseDir) {
-      super(baseDir, new File(new File(baseDir, SERVER_RELATIVE_PATH), SERVER_EXECUTABLE_NAME));
+      super(baseDir, new File(new File(baseDir, SERVER_RELATIVE_PATH), GAPIS_EXECUTABLE_NAME));
     }
 
     @Override
