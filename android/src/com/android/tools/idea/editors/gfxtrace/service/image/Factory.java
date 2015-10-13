@@ -34,6 +34,7 @@ public final class Factory {
     FmtRGB.register();
     FmtRGB565.register();
     FmtRGBA.register();
+    FmtRGBA4444.register();
     FmtRGBA5551.register();
     FmtRGBAF32.register();
     //<<<End:Java.FactoryBody:2>>>
