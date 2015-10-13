@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +45,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     myVirtualFile = (ThemeEditorVirtualFile)file;
 
     myComponent = new ThemeEditorComponent(project);
+    Disposer.register(this, myComponent);
 
     // If project roots change, reload the themes. This happens for example once the libraries have finished loading.
     project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
@@ -156,13 +158,12 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     return null;
   }
 
-  @Override
-  public void dispose() {
-    myComponent.dispose();
-  }
-
   @NotNull
   public ThemeEditorVirtualFile getVirtualFile() {
     return myVirtualFile;
+  }
+
+  @Override
+  public void dispose() {
   }
 }
