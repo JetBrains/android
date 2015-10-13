@@ -19,12 +19,15 @@ import com.android.SdkConstants;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.io.FileUtil;
+import org.mockito.ArgumentCaptor;
 
 import java.io.File;
+import java.util.Map;
 
 import static com.android.tools.idea.npw.NewProjectWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.npw.NewProjectWizardState.ATTR_PROJECT_LOCATION;
@@ -221,7 +224,9 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     myWizard.myAssetGenerator = launcherIconStateMock;
 
     TemplateWizardState activityStateMock = spy(myWizardState.getActivityTemplateState());
+    File templateRootMock = mock(File.class);
     Template activityTemplateMock = mock(Template.class);
+    when(activityTemplateMock.getRootPath()).thenReturn(templateRootMock);
     when(activityStateMock.getTemplate()).thenReturn(activityTemplateMock);
     when(spyState.getActivityTemplateState()).thenReturn(activityStateMock);
 
@@ -229,8 +234,14 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     File moduleRoot = runCommonCreateProjectTest();
 
     verify(launcherIconStateMock).outputImagesIntoDefaultVariant(eq(moduleRoot));
-    verify(activityTemplateMock).render(eq(moduleRoot), eq(moduleRoot), eq(myWizardState.myActivityTemplateState.myParameters),
-                                        eq(myFixture.getProject()));
+    ArgumentCaptor<RenderingContext> context = ArgumentCaptor.forClass(RenderingContext.class);
+    verify(activityTemplateMock).render(context.capture());
+    assertEquals(myFixture.getProject(), context.getValue().getProject());
+    assertEquals(moduleRoot, context.getValue().getOutputRoot());
+    assertEquals(moduleRoot, context.getValue().getModuleRoot());
+    assertEquals(moduleRoot, context.getValue().getOutputRoot());
+    assertEquals(moduleRoot, context.getValue().getOutputRoot());
+    assertIsSubMap(context.getValue().getParamMap(), myWizardState.myActivityTemplateState.myParameters);
   }
 
   public void testCreateProjectNoActivityNoIcons() throws Exception {
@@ -317,5 +328,11 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     File baseDir = new File(getProject().getBasePath(), "test" + problemText + "orama");
     myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
     runCommonCreateProjectTest();
+  }
+
+  private void assertIsSubMap(Map<?,?> map, Map<?,?> subMap) {
+    for (Object key : subMap.keySet()) {
+      assertEquals("Value is different for the key: " + key, subMap.get(key), map.get(key));
+    }
   }
 }

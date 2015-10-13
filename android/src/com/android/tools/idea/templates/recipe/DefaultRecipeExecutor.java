@@ -18,22 +18,21 @@ package com.android.tools.idea.templates.recipe;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplatePostProcessor;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
+import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileVisitor;
+import com.intellij.openapi.vfs.*;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,63 +45,56 @@ import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarker
 import static com.android.tools.idea.templates.TemplateUtils.*;
 
 /**
- * Context for a recipe that contains and accumulates state while executing its instructions and
- * modifying the project.
+ * Executor support for recipe instructions.
  */
-public final class RecipeContext {
-
-  private static final Logger LOG = Logger.getInstance(RecipeContext.class);
+final class DefaultRecipeExecutor implements RecipeExecutor {
 
   /**
    * The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories
    */
   private static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
 
-  @NotNull private final Project myProject;
-
-  @NotNull private final Map<String, Object> myParamMap;
-  @NotNull private final Configuration myFreemarker;
-  @NotNull private final StudioTemplateLoader myLoader;
-  private final boolean mySyncGradleIfNeeded; // User can disable gradle syncing if they know they're going to sync themselves anyway
-  @NotNull private final File myOutputRoot;
-  @NotNull private final File myModuleRoot;
-
+  private final FindReferencesRecipeExecutor myReferences;
+  private final RenderingContext myContext;
+  private final RecipeIO myIO;
+  private final ReadonlyStatusHandler myReadonlyStatusHandler;
   private boolean myNeedsGradleSync;
 
-  public RecipeContext(@NotNull Project project,
-                       @NotNull Map<String, Object> paramMap,
-                       @NotNull Configuration freemarker,
-                       @NotNull StudioTemplateLoader loader,
-                       boolean syncGradleIfNeeded,
-                       @NotNull File outputRoot,
-                       @NotNull File moduleRoot) {
-    myProject = project;
-
-    myParamMap = paramMap;
-    myFreemarker = freemarker;
-    myLoader = loader;
-    mySyncGradleIfNeeded = syncGradleIfNeeded;
-    myOutputRoot = outputRoot;
-    myModuleRoot = moduleRoot;
+  public DefaultRecipeExecutor(@NotNull RenderingContext context, boolean dryRun) {
+    myReferences = new FindReferencesRecipeExecutor(context);
+    myContext = context;
+    myIO = dryRun ? new DryRunRecipeIO() : new RecipeIO();
+    myReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(context.getProject());
   }
 
   /**
    * Add a library dependency into the project.
    */
+  @Override
   public void addDependency(@NotNull String mavenUrl) {
+    myReferences.addDependency(mavenUrl);
     //noinspection unchecked
-    List<String> dependencyList = (List<String>)myParamMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+    List<String> dependencyList = (List<String>)getParamMap().get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
     dependencyList.add(mavenUrl);
   }
 
+  @Override
+  public void addFilesToOpen(@NotNull File file) {
+    myReferences.addFilesToOpen(file);
+  }
+
+  private void addWarning(@NotNull String warning) {
+    myContext.getWarnings().add(warning);
+  }
+
   @NotNull
-  Map<String, Object> getParamMap() {
-    return myParamMap;
+  private Map<String, Object> getParamMap() {
+    return myContext.getParamMap();
   }
 
   @NotNull
   Configuration getFreemarker() {
-    return myFreemarker;
+    return myContext.getFreemarkerConfiguration();
   }
 
   /**
@@ -110,8 +102,10 @@ public final class RecipeContext {
    * source is allowed to be a directory, in which case the whole directory is
    * copied recursively)
    */
+  @Override
   public void copy(@NotNull File from, @NotNull File to) {
     try {
+      myReferences.copy(from, to);
       copyTemplateResource(from, to);
     }
     catch (IOException e) {
@@ -123,8 +117,11 @@ public final class RecipeContext {
    * Instantiates the given template file into the given output file (running the freemarker
    * engine over it)
    */
-  public void instantiate(@NotNull File from, @NotNull File to) {
+  @Override
+  public void instantiate(@NotNull File from, @NotNull File to) throws TemplateProcessingException {
     try {
+      myReferences.instantiate(from, to);
+
       // For now, treat extension-less files as directories... this isn't quite right
       // so I should refine this! Maybe with a unique attribute in the template file?
       boolean isDirectory = from.getName().indexOf('.') == -1;
@@ -134,15 +131,18 @@ public final class RecipeContext {
       }
       else {
         File targetFile = getTargetFile(to);
-
-        VfsUtil.createDirectories(targetFile.getParentFile().getAbsolutePath());
-        writeFile(this, processFreemarkerTemplate(myFreemarker, myParamMap, from, null), targetFile);
+        String content = processFreemarkerTemplate(myContext, from, null);
+        if (targetFile.exists()) {
+          if (!compareTextFile(myContext.getProject(), targetFile, content)) {
+            addFileAlreadyExistWarning(targetFile);
+          }
+        }
+        else {
+          myIO.writeFile(this, content, targetFile);
+        }
       }
     }
     catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    catch (TemplateProcessingException e) {
       throw new RuntimeException(e);
     }
   }
@@ -153,8 +153,11 @@ public final class RecipeContext {
    * <p/>
    * Only XML and Gradle files are currently supported.
    */
-  public void merge(@NotNull File from, @NotNull File to) {
+  @Override
+  public void merge(@NotNull File from, @NotNull File to) throws TemplateProcessingException {
     try {
+      myReferences.merge(from, to);
+
       String targetText = null;
 
       to = getTargetFile(to);
@@ -163,11 +166,15 @@ public final class RecipeContext {
       }
 
       if (to.exists()) {
+        if (myContext.getProject().isInitialized()) {
+          VirtualFile toFile = VfsUtil.findFileByIoFile(to, true);
+          final ReadonlyStatusHandler.OperationStatus status = myReadonlyStatusHandler.ensureFilesWritable(toFile);
+          if (status.hasReadonlyFiles()) {
+            myContext.getTargetFiles().remove(to);
+            throw new TemplateUserVisibleException(String.format("Attempt to update file that is readonly: %1$s", to.getAbsolutePath()));
+          }
+        }
         targetText = Files.toString(to, Charsets.UTF_8);
-      }
-      else if (to.getParentFile() != null) {
-        //noinspection ResultOfMethodCallIgnored
-        checkedCreateDirectoryIfMissing(to.getParentFile());
       }
 
       if (targetText == null) {
@@ -185,10 +192,10 @@ public final class RecipeContext {
       String sourceText;
       if (hasExtension(from, DOT_FTL)) {
         // Perform template substitution of the template prior to merging
-        sourceText = processFreemarkerTemplate(myFreemarker, myParamMap, from, null);
+        sourceText = processFreemarkerTemplate(myContext, from, null);
       }
       else {
-        from = myLoader.getSourceFile(from);
+        from = myContext.getLoader().getSourceFile(from);
         sourceText = readTextFile(from);
         if (sourceText == null) {
           return;
@@ -201,26 +208,23 @@ public final class RecipeContext {
         myNeedsGradleSync = true;
       }
       else if (to.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
-        String compileSdkVersion = (String)myParamMap.get(TemplateMetadata.ATTR_BUILD_API_STRING);
-        contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myProject, compileSdkVersion);
+        String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
+        contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myContext.getProject(), compileSdkVersion);
         myNeedsGradleSync = true;
       }
       else if (hasExtension(to, DOT_XML)) {
-        contents = RecipeMergeUtils.mergeXml(myProject, sourceText, targetText, to);
+        contents = RecipeMergeUtils.mergeXml(myContext, sourceText, targetText, to);
       }
       else {
         throw new RuntimeException("Only XML or Gradle settings files can be merged at this point: " + to);
       }
 
-      writeFile(this, contents, to);
+      myIO.writeFile(this, contents, to);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
     }
     catch (TemplateException e) {
-      throw new RuntimeException(e);
-    }
-    catch (TemplateProcessingException e) {
       throw new RuntimeException(e);
     }
   }
@@ -229,41 +233,42 @@ public final class RecipeContext {
    * Create a directory at the specified location (if not already present). This will also create
    * any parent directories that don't exist, as well.
    */
+  @Override
   public void mkDir(@NotNull File at) {
     try {
-      checkedCreateDirectoryIfMissing(getTargetFile(at));
+      myIO.mkDir(getTargetFile(at));
     }
     catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
+  @Override
+  public String processTemplate(@NotNull File recipe, @NotNull TemplatePostProcessor processor) throws TemplateProcessingException {
+    return FreemarkerUtils.processFreemarkerTemplate(myContext, recipe, processor);
+  }
+
   /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.
    */
+  @Override
   public void updateAndSyncGradle() {
     // Handle dependencies
-    if (myParamMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
-      Object maybeDependencyList = myParamMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
-      if (maybeDependencyList instanceof List) {
-        //noinspection unchecked
-        List<String> dependencyList = (List<String>)maybeDependencyList;
-        if (!dependencyList.isEmpty()) {
-          try {
-            mergeDependenciesIntoGradle();
-          }
-          catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }
+    if (!myContext.getDependencies().isEmpty()) {
+      try {
+        mergeDependenciesIntoGradle();
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }
+    Project project = myContext.getProject();
     if (myNeedsGradleSync &&
-        mySyncGradleIfNeeded &&
-        !myProject.isDefault() &&
-        isBuildWithGradle(myProject)) {
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+        myContext.performGradleSync() &&
+        !project.isDefault() &&
+        isBuildWithGradle(project)) {
+      myIO.requestGradleSync(project);
     }
   }
 
@@ -271,25 +276,26 @@ public final class RecipeContext {
    * Returns the absolute path to the file which will get written to.
    */
   @NotNull
-  public File getTargetFile(@NotNull File file) throws IOException {
+  private File getTargetFile(@NotNull File file) throws IOException {
     if (file.isAbsolute()) {
       return file;
     }
-    return new File(myOutputRoot, file.getPath());
+    return new File(myContext.getOutputRoot(), file.getPath());
   }
 
   /**
    * Merge the URLs from our gradle template into the target module's build.gradle file
    */
   private void mergeDependenciesIntoGradle() throws Exception {
-    File gradleBuildFile = GradleUtil.getGradleBuildFilePath(myModuleRoot);
+    File gradleBuildFile = GradleUtil.getGradleBuildFilePath(myContext.getModuleRoot());
 
     File templateRootFolder = TemplateManager.getTemplateRootFolder();
     assert templateRootFolder != null;
 
     String templateRoot = templateRootFolder.getPath();
     File gradleTemplate = new File(templateRoot, FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
-    String contents = processFreemarkerTemplate(myFreemarker, myParamMap, gradleTemplate, null);
+    myContext.getParamMap().put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, myContext.getDependencies());
+    String contents = processFreemarkerTemplate(myContext, gradleTemplate, null);
     String destinationContents = null;
     if (gradleBuildFile.exists()) {
       destinationContents = readTextFile(gradleBuildFile);
@@ -297,9 +303,9 @@ public final class RecipeContext {
     if (destinationContents == null) {
       destinationContents = "";
     }
-    String compileSdkVersion = (String)myParamMap.get(TemplateMetadata.ATTR_BUILD_API_STRING);
-    String result = GradleFileMerger.mergeGradleFiles(contents, destinationContents, myProject, compileSdkVersion);
-    writeFile(this, result, gradleBuildFile);
+    String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
+    String result = GradleFileMerger.mergeGradleFiles(contents, destinationContents, myContext.getProject(), compileSdkVersion);
+    myIO.writeFile(this, result, gradleBuildFile);
     myNeedsGradleSync = true;
   }
 
@@ -308,13 +314,12 @@ public final class RecipeContext {
    * create a directory even if it already exists. This is an undo-friendly
    * replacement.
    */
-  private void copyDirectory(@NotNull final VirtualFile src, @NotNull final VirtualFile dest) throws IOException {
-    final File destinationFile = VfsUtilCore.virtualToIoFile(dest);
+  private void copyDirectory(@NotNull final VirtualFile src, @NotNull final File dest) throws IOException {
     VfsUtilCore.visitChildrenRecursively(src, new VirtualFileVisitor() {
       @Override
       public boolean visitFile(@NotNull VirtualFile file) {
         try {
-          return copyFile(file, src, destinationFile, dest);
+          return copyFile(file, src, dest);
         }
         catch (IOException e) {
           throw new VisitorException(e);
@@ -324,52 +329,103 @@ public final class RecipeContext {
   }
 
   private void copyTemplateResource(@NotNull File from, @NotNull File to) throws IOException {
-    from = myLoader.getSourceFile(from);
+    from = myContext.getLoader().getSourceFile(from);
     to = getTargetFile(to);
 
     VirtualFile sourceFile = VfsUtil.findFileByIoFile(from, true);
     assert sourceFile != null : from;
     sourceFile.refresh(false, false);
     File destPath = (from.isDirectory() ? to : to.getParentFile());
-    VirtualFile destFolder = checkedCreateDirectoryIfMissing(destPath);
     if (from.isDirectory()) {
-      copyDirectory(sourceFile, destFolder);
+      copyDirectory(sourceFile, destPath);
     }
     else {
       Document document = FileDocumentManager.getInstance().getDocument(sourceFile);
       if (document != null) {
-        writeFile(this, document.getText(), to);
+        myIO.writeFile(this, document.getText(), to);
       }
       else {
-        VfsUtilCore.copyFile(this, sourceFile, destFolder, to.getName());
+        myIO.copyFile(this, sourceFile, destPath, to.getName());
       }
     }
   }
 
-  private boolean copyFile(VirtualFile file, VirtualFile src, File destinationFile, VirtualFile dest) throws IOException {
+  private boolean copyFile(VirtualFile file, VirtualFile src, File destinationFile) throws IOException {
     String relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar);
     if (relativePath == null) {
-      LOG.error(file.getPath() + " is not a child of " + src, new Exception());
-      return false;
+      throw new RuntimeException(String.format("%1$s is not a child of %2$s", file.getPath(), src));
     }
     if (file.isDirectory()) {
-      checkedCreateDirectoryIfMissing(new File(destinationFile, relativePath));
+      myIO.mkDir(new File(destinationFile, relativePath));
     }
     else {
-      VirtualFile targetDir = dest;
-      if (relativePath.indexOf(File.separatorChar) > 0) {
-        String directories = relativePath.substring(0, relativePath.lastIndexOf(File.separatorChar));
-        File newParent = new File(destinationFile, directories);
-        targetDir = checkedCreateDirectoryIfMissing(newParent);
-      }
       File target = new File(destinationFile, relativePath);
       if (target.exists()) {
-        LOG.warn("Target file already exists, skipping the copy of: " + target.getPath());
+        if (!compareFile(myContext.getProject(), file, target)) {
+          addFileAlreadyExistWarning(target);
+        }
       }
       else {
-        VfsUtilCore.copyFile(this, file, targetDir);
+        myIO.copyFile(this, file, target);
       }
     }
     return true;
+  }
+
+  private void addFileAlreadyExistWarning(@NotNull File targetFile) {
+    addWarning(String.format("The following file could not be created since it already exists: %1$s", targetFile.getName()));
+  }
+
+  private static class RecipeIO {
+    public void writeFile(@NotNull Object requestor, @Nullable String contents, @NotNull File to) throws IOException {
+      checkedCreateDirectoryIfMissing(to.getParentFile());
+      writeTextFile(this, contents, to);
+    }
+
+    public void copyFile(Object requestor, @NotNull VirtualFile file, @NotNull File toFile) throws IOException {
+      VirtualFile toDir = checkedCreateDirectoryIfMissing(toFile.getParentFile());
+      VfsUtilCore.copyFile(this, file, toDir);
+    }
+
+    public void copyFile(Object requestor, @NotNull VirtualFile file, @NotNull File toFileDir, @NotNull String newName)
+      throws IOException {
+      VirtualFile toDir = checkedCreateDirectoryIfMissing(toFileDir);
+      VfsUtilCore.copyFile(requestor, file, toDir, newName);
+    }
+
+    public void mkDir(@NotNull File directory) throws IOException {
+      checkedCreateDirectoryIfMissing(directory);
+    }
+
+    public void requestGradleSync(@NotNull Project project) {
+      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    }
+  }
+
+  private static class DryRunRecipeIO extends RecipeIO {
+    @Override
+    public void writeFile(@NotNull Object requestor, @Nullable String contents, @NotNull File to) throws IOException {
+      checkDirectoryIsWriteable(to.getParentFile());
+    }
+
+    @Override
+    public void copyFile(Object requestor, @NotNull VirtualFile file, @NotNull File toFile) throws IOException {
+      checkDirectoryIsWriteable(toFile.getParentFile());
+    }
+
+    @Override
+    public void copyFile(Object requestor, @NotNull VirtualFile file, @NotNull File toFileDir, @Nullable String newName)
+      throws IOException {
+      checkDirectoryIsWriteable(toFileDir);
+    }
+
+    @Override
+    public void mkDir(@NotNull File directory) throws IOException {
+      checkDirectoryIsWriteable(directory);
+    }
+
+    @Override
+    public void requestGradleSync(@NotNull Project project) {
+    }
   }
 }
