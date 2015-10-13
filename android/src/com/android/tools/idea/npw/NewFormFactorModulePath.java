@@ -66,7 +66,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final Key<String> MANIFEST_OUT_KEY = createKey(ATTR_MANIFEST_OUT, PATH, String.class);
   private static final Key<String> TEST_OUT_KEY = createKey(ATTR_TEST_OUT, PATH, String.class);
 
-  private static final Key<String> RELATIVE_PACKAGE_KEY = createKey(ATTR_RELATIVE_PACKAGE, PATH, String.class);
   private static final String RELATIVE_SRC_ROOT = FileUtil.join(TemplateWizard.MAIN_FLAVOR_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
   private static final String RELATIVE_TEST_ROOT = FileUtil.join(TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
 
@@ -123,7 +122,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(MANIFEST_DIR_KEY, "src/main");
     myState.put(TEST_DIR_KEY, "src/androidTest");
     myState.put(CREATE_ACTIVITY_KEY, false);
-    myState.put(RELATIVE_PACKAGE_KEY, "");
 
     addStep(new ConfigureAndroidModuleStepDynamic(myDisposable, myFormFactor));
     addStep(new ActivityGalleryStep(myFormFactor, true, KEY_SELECTED_TEMPLATE, null, myDisposable));
