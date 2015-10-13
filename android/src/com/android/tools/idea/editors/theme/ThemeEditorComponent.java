@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -75,7 +76,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 
-public class ThemeEditorComponent extends Splitter {
+public class ThemeEditorComponent extends Splitter implements Disposable {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
   private static final DefaultTableModel EMPTY_TABLE_MODEL = new DefaultTableModel();
 
@@ -196,6 +197,7 @@ public class ThemeEditorComponent extends Splitter {
     final Configuration configuration = ThemeEditorUtils.getConfigurationForModule(selectedModule);
 
     myThemeEditorContext = new ThemeEditorContext(configuration);
+    Disposer.register(this, myThemeEditorContext);
     myThemeEditorContext.addConfigurationListener(new ConfigurationListener() {
       @Override
       public boolean changed(int flags) {
@@ -210,6 +212,7 @@ public class ThemeEditorComponent extends Splitter {
     });
 
     myPreviewPanel = new AndroidThemePreviewPanel(myThemeEditorContext, PREVIEW_BACKGROUND);
+    Disposer.register(this, myPreviewPanel);
     myPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
     GoToListener goToListener = new GoToListener() {
@@ -877,8 +880,6 @@ public class ThemeEditorComponent extends Splitter {
     // First remove the table editor so that it won't be called after
     // objects it relies on, like the module, have themselves been disposed
     myAttributesTable.removeEditor();
-    Disposer.dispose(myPreviewPanel);
-    Disposer.dispose(myThemeEditorContext);
     super.dispose();
   }
 
