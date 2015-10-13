@@ -132,7 +132,6 @@ public abstract class GuiTestCase {
   public void tearDown() {
     if (myProjectFrame != null) {
       myProjectFrame.waitForBackgroundTasksToFinish();
-      myProjectFrame.closeProject();
     }
     if (myRobot != null) {
       myRobot.cleanUpWithoutDisposingWindows();
