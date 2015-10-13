@@ -144,8 +144,7 @@ public final class SdkSync {
     }
   }
 
-  @VisibleForTesting
-  static void syncIdeAndProjectAndroidNdk(@NotNull final LocalProperties localProperties) {
+  private static void syncIdeAndProjectAndroidNdk(@NotNull final LocalProperties localProperties) {
     File projectAndroidNdkPath = localProperties.getAndroidNdkPath();
     File ideAndroidNdkPath = IdeSdks.getAndroidNdkPath();
 
@@ -175,7 +174,7 @@ public final class SdkSync {
       localProperties.save();
     }
     catch (IOException e) {
-      String msg = String.format("Unable to save '%1$s'", localProperties.getFilePath().getPath());
+      String msg = String.format("Unable to save '%1$s'", localProperties.getPropertiesFilePath().getPath());
       throw new ExternalSystemException(msg, e);
     }
   }
@@ -210,7 +209,7 @@ public final class SdkSync {
       localProperties.save();
     }
     catch (IOException e) {
-      String msg = String.format("Unable to save '%1$s'", localProperties.getFilePath().getPath());
+      String msg = String.format("Unable to save '%1$s'", localProperties.getPropertiesFilePath().getPath());
       throw new ExternalSystemException(msg, e);
     }
   }
