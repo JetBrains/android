@@ -39,9 +39,13 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  * Utility methods related to a Gradle project's local.properties file.
  */
 public final class LocalProperties {
-  @NotNull private final File myFilePath;
+  @NotNull private final File myPropertiesFilePath;
   @NotNull private final File myProjectDirPath;
   @NotNull private final Properties myProperties;
+
+  private File myNewAndroidSdkPath;
+  private File myNewAndroidNdkPath;
+  private boolean myAndroidNdkPathModified;
 
   /**
    * Creates a new {@link LocalProperties}. If a local.properties file does not exist, a new one will be created when the method
@@ -65,8 +69,8 @@ public final class LocalProperties {
    */
   public LocalProperties(@NotNull File projectDirPath) throws IOException {
     myProjectDirPath = projectDirPath;
-    myFilePath = new File(projectDirPath, FN_LOCAL_PROPERTIES);
-    myProperties = getProperties(myFilePath);
+    myPropertiesFilePath = new File(projectDirPath, FN_LOCAL_PROPERTIES);
+    myProperties = getProperties(myPropertiesFilePath);
   }
 
   /**
@@ -74,19 +78,100 @@ public final class LocalProperties {
    */
   @Nullable
   public File getAndroidSdkPath() {
-    return getPath(SDK_DIR_PROPERTY);
+    if (myNewAndroidSdkPath != null) {
+      return myNewAndroidSdkPath;
+    }
+    return getAndroidSdkPathFromFile();
   }
+
 
   /**
    * @return the path of the Android NDK specified in this local.properties file; or {@code null} if such property is not specified.
    */
   @Nullable
   public File getAndroidNdkPath() {
+    if (myAndroidNdkPathModified) {
+      return myNewAndroidNdkPath;
+    }
+    return getAndroidNdkPathFromFile();
+  }
+
+  public void setAndroidSdkPath(@NotNull Sdk androidSdk) {
+    String androidSdkPath = androidSdk.getHomePath();
+    assert androidSdkPath != null;
+    setAndroidSdkPath(androidSdkPath);
+  }
+
+  public void setAndroidSdkPath(@NotNull String androidSdkPath) {
+    setAndroidSdkPath(new File(toSystemDependentName(androidSdkPath)));
+  }
+
+  public void setAndroidSdkPath(@NotNull File androidSdkPath) {
+    myNewAndroidSdkPath = androidSdkPath;
+  }
+
+  public void setAndroidNdkPath(@NotNull String androidNdkPath) {
+    setAndroidNdkPath(new File(toSystemDependentName(androidNdkPath)));
+  }
+
+  public void setAndroidNdkPath(@Nullable File androidNdkPath) {
+    myNewAndroidNdkPath = androidNdkPath;
+    myAndroidNdkPathModified = true;
+  }
+
+  public boolean hasAndroidDirProperty() {
+    String property = getProperty("android.dir");
+    return !isNullOrEmpty(property);
+  }
+
+  @Nullable
+  public String getProperty(@NotNull String key) {
+    return myProperties.getProperty(key);
+  }
+
+  /**
+   * Saves any changes to the underlying local.properties file.
+   */
+  public void save() throws IOException {
+    boolean changed = false;
+    File currentAndroidSdkPath = getAndroidSdkPathFromFile();
+    if (!filesEqual(currentAndroidSdkPath, myNewAndroidSdkPath)) {
+      myProperties.setProperty(SDK_DIR_PROPERTY, myNewAndroidSdkPath.getPath());
+      changed = true;
+    }
+    if (!changed && myAndroidNdkPathModified) {
+      File currentAndroidNdkPath = getAndroidNdkPathFromFile();
+      changed = !filesEqual(currentAndroidNdkPath, myNewAndroidNdkPath);
+      if (changed) {
+        String newPath = myNewAndroidNdkPath != null ? myNewAndroidNdkPath.getPath() : null;
+        if (isNotEmpty(newPath)) {
+          myProperties.setProperty(NDK_DIR_PROPERTY, newPath);
+        }
+        else {
+          myProperties.remove(NDK_DIR_PROPERTY);
+        }
+      }
+    }
+    if (changed) {
+      savePropertiesToFile(myProperties, myPropertiesFilePath, getHeaderComment());
+    }
+    // reset "modified" state.
+    myNewAndroidSdkPath = myNewAndroidNdkPath = null;
+    myAndroidNdkPathModified = false;
+  }
+
+  @Nullable
+  private File getAndroidSdkPathFromFile() {
+    return getPath(SDK_DIR_PROPERTY);
+  }
+
+  @Nullable
+  private File getAndroidNdkPathFromFile() {
     return getPath(NDK_DIR_PROPERTY);
   }
 
   /**
-   * @return the path for the given propery name specified in this local.properties file; or {@code null} if such property is not specified.
+   * @return the path for the given property name specified in this local.properties file; or {@code null} if such property is not specified.
    */
   @Nullable
   private File getPath(String property) {
@@ -108,63 +193,6 @@ public final class LocalProperties {
     return null;
   }
 
-  public void setAndroidSdkPath(@NotNull Sdk androidSdk) {
-    String androidSdkPath = androidSdk.getHomePath();
-    assert androidSdkPath != null;
-    setAndroidSdkPath(androidSdkPath);
-  }
-
-  public void setAndroidSdkPath(@NotNull String androidSdkPath) {
-    doSetAndroidSdkPath(toSystemDependentName(androidSdkPath));
-  }
-
-  public void setAndroidSdkPath(@NotNull File androidSdkPath) {
-    doSetAndroidSdkPath(androidSdkPath.getPath());
-  }
-
-  // Sets the path as it is given. When invoked from production code, the path is assumed to be "system dependent".
-  @VisibleForTesting
-  void doSetAndroidSdkPath(@NotNull String path) {
-    myProperties.setProperty(SDK_DIR_PROPERTY, path);
-  }
-
-  public void setAndroidNdkPath(@NotNull String androidNdkPath) {
-    doSetAndroidNdkPath(toSystemDependentName(androidNdkPath));
-  }
-
-  public void setAndroidNdkPath(@Nullable File androidNdkPath) {
-    String path = androidNdkPath != null ? androidNdkPath.getPath() : null;
-    doSetAndroidNdkPath(path);
-  }
-
-  // Sets the path as it is given. When invoked from production code, the path is assumed to be "system dependent".
-  @VisibleForTesting
-  void doSetAndroidNdkPath(@Nullable String path) {
-    if (isNotEmpty(path)) {
-      myProperties.setProperty(NDK_DIR_PROPERTY, path);
-    }
-    else {
-      myProperties.remove(NDK_DIR_PROPERTY);
-    }
-  }
-
-  public boolean hasAndroidDirProperty() {
-    String property = getProperty("android.dir");
-    return !isNullOrEmpty(property);
-  }
-
-  @Nullable
-  public String getProperty(@NotNull String key) {
-    return myProperties.getProperty(key);
-  }
-
-  /**
-   * Saves any changes to the underlying local.properties file.
-   */
-  public void save() throws IOException {
-    savePropertiesToFile(myProperties, myFilePath, getHeaderComment());
-  }
-
   @NotNull
   private static String getHeaderComment() {
     String[] lines = {
@@ -182,7 +210,13 @@ public final class LocalProperties {
   }
 
   @NotNull
-  public File getFilePath() {
-    return myFilePath;
+  public File getPropertiesFilePath() {
+    return myPropertiesFilePath;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  Properties properties() {
+    return myProperties;
   }
 }
