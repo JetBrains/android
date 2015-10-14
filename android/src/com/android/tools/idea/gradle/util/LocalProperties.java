@@ -43,8 +43,10 @@ public final class LocalProperties {
   @NotNull private final File myProjectDirPath;
   @NotNull private final Properties myProperties;
 
-  private File myNewAndroidSdkPath;
-  private File myNewAndroidNdkPath;
+  @Nullable private File myNewAndroidSdkPath;
+  private boolean myAndroidSdkPathModified;
+
+  @Nullable private File myNewAndroidNdkPath;
   private boolean myAndroidNdkPathModified;
 
   /**
@@ -78,12 +80,11 @@ public final class LocalProperties {
    */
   @Nullable
   public File getAndroidSdkPath() {
-    if (myNewAndroidSdkPath != null) {
+    if (myAndroidSdkPathModified) {
       return myNewAndroidSdkPath;
     }
     return getAndroidSdkPathFromFile();
   }
-
 
   /**
    * @return the path of the Android NDK specified in this local.properties file; or {@code null} if such property is not specified.
@@ -108,6 +109,7 @@ public final class LocalProperties {
 
   public void setAndroidSdkPath(@NotNull File androidSdkPath) {
     myNewAndroidSdkPath = androidSdkPath;
+    myAndroidSdkPathModified = true;
   }
 
   public void setAndroidNdkPath(@NotNull String androidNdkPath) {
@@ -133,31 +135,27 @@ public final class LocalProperties {
    * Saves any changes to the underlying local.properties file.
    */
   public void save() throws IOException {
-    boolean changed = false;
-    File currentAndroidSdkPath = getAndroidSdkPathFromFile();
-    if (!filesEqual(currentAndroidSdkPath, myNewAndroidSdkPath)) {
-      myProperties.setProperty(SDK_DIR_PROPERTY, myNewAndroidSdkPath.getPath());
-      changed = true;
-    }
-    if (!changed && myAndroidNdkPathModified) {
-      File currentAndroidNdkPath = getAndroidNdkPathFromFile();
-      changed = !filesEqual(currentAndroidNdkPath, myNewAndroidNdkPath);
-      if (changed) {
-        String newPath = myNewAndroidNdkPath != null ? myNewAndroidNdkPath.getPath() : null;
-        if (isNotEmpty(newPath)) {
-          myProperties.setProperty(NDK_DIR_PROPERTY, newPath);
-        }
-        else {
-          myProperties.remove(NDK_DIR_PROPERTY);
-        }
-      }
-    }
-    if (changed) {
+    setPathIfApplicable(myAndroidSdkPathModified, SDK_DIR_PROPERTY, getAndroidSdkPathFromFile(), myNewAndroidSdkPath);
+    setPathIfApplicable(myAndroidNdkPathModified, NDK_DIR_PROPERTY, getAndroidNdkPathFromFile(), myNewAndroidNdkPath);
+
+    if (myAndroidSdkPathModified || myAndroidNdkPathModified) {
       savePropertiesToFile(myProperties, myPropertiesFilePath, getHeaderComment());
     }
     // reset "modified" state.
     myNewAndroidSdkPath = myNewAndroidNdkPath = null;
-    myAndroidNdkPathModified = false;
+    myAndroidSdkPathModified = myAndroidNdkPathModified = false;
+  }
+
+  private void setPathIfApplicable(boolean pathModified, @NotNull String propertyName, @Nullable File currentPath, @Nullable File newPath) {
+    if (pathModified && !filesEqual(currentPath, newPath)) {
+      String path = newPath != null ? newPath.getPath() : null;
+      if (isNotEmpty(path)) {
+        myProperties.setProperty(propertyName, path);
+      }
+      else {
+        myProperties.remove(propertyName);
+      }
+    }
   }
 
   @Nullable
