@@ -199,21 +199,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     List<File> sourceFiles = Lists.newArrayList();
     analyzeRecipe(false, null, sourceFiles, null);
 
-    // Convert relative paths to absolute paths, so TemplateUtils.openEditors can find them
-    List<File> absFilesToOpen = Lists.newArrayListWithCapacity(sourceFiles.size());
-    for (File file : sourceFiles) {
-      absFilesToOpen.add(getTargetFile(file));
-    }
-    TemplateUtils.openEditors(myModule.getProject(), absFilesToOpen, true);
-  }
-
-  @NotNull
-  private File getTargetFile(@NotNull File file) {
-    if (file.isAbsolute()) {
-      return file;
-    }
-    File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
-    return new File(moduleRoot, file.getPath());
+    TemplateUtils.openEditors(myModule.getProject(), sourceFiles, true);
   }
 
   private void analyzeRecipe(boolean findOnlyReferences,
@@ -307,7 +293,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     }
     for (File f : sourceFiles) {
       if (f.getName().equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
-        parseManifestForPermissions(new File(myRootPath, f.toString()));
+        parseManifestForPermissions(f);
       }
     }
     for (File f : targetFiles) {
