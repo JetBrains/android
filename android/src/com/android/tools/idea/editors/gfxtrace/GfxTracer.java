@@ -54,15 +54,10 @@ public class GfxTracer {
 
   // Options holds the flags used to control the capture mode.
   public static class Options {
-    public Options(boolean observeFramebufferOnEOF, boolean observeFramebufferOnDrawCall) {
-      myObserveFramebufferOnEOF = observeFramebufferOnEOF;
-      myObserveFramebufferOnDrawCall = observeFramebufferOnDrawCall;
-    }
-
     // If true, then a framebuffer-observation will be made after every end-of-frame.
-    public final boolean myObserveFramebufferOnEOF;
+    public int myObserveFrameFrequency = 0;
     // If true, then a framebuffer-observation will be made after every draw call.
-    public final boolean myObserveFramebufferOnDrawCall;
+    public int myObserveDrawFrequency = 0;
   }
 
   public static GfxTracer launch(@NotNull final Project project,
@@ -263,29 +258,36 @@ public class GfxTracer {
     //
     // struct ConnectionHeader {
     //   uint8_t  mMagic[4];                     // 's', 'p', 'y', '0'
-    //   uint32_t mVersion;                      // 1
-    //   uint8_t  mObserveFramebufferOnEOF;      // non-zero == enabled
-    //   uint8_t  mObserveFramebufferOnDrawCall; // non-zero == enabled
+    //   uint32_t mVersion;                      // 2
+    //   uint32_t  mObserveFrameFrequency;      // non-zero == enabled
+    //   uint32_t  mObserveDrawFrequency; // non-zero == enabled
     // };
     //
     // All fields are encoded little-endian with no compression, regardless of
     // architecture. All changes must be kept in sync with:
     //   platform/tools/gpu/cc/gapii/connection_header.h
     OutputStream out = socket.getOutputStream();
-    byte[] b = new byte[10];
+    byte[] b = new byte[16];
     // magic
     b[0] = 's';
     b[1] = 'p';
     b[2] = 'y';
     b[3] = '0';
     // version
-    b[4] = 1;
+    b[4] = 2;
     b[5] = 0;
     b[6] = 0;
     b[7] = 0;
-    // mObserveFramebufferOnEOF, mObserveFramebufferOnDrawcall
-    b[8] = options.myObserveFramebufferOnEOF ? (byte)1 : (byte)0;
-    b[9] = options.myObserveFramebufferOnDrawCall ? (byte)1 : (byte)0;
+    // mObserveFrameFrequency
+    b[8] = (byte)(options.myObserveFrameFrequency >> 0);
+    b[9] = (byte)(options.myObserveFrameFrequency >> 8);
+    b[10] = (byte)(options.myObserveFrameFrequency >> 16);
+    b[11] = (byte)(options.myObserveFrameFrequency >> 24);
+    // mObserveDrawFrequency
+    b[12] = (byte)(options.myObserveDrawFrequency >> 0);
+    b[13] = (byte)(options.myObserveDrawFrequency >> 8);
+    b[14] = (byte)(options.myObserveDrawFrequency >> 16);
+    b[15] = (byte)(options.myObserveDrawFrequency >> 24);
     out.write(b);
     out.flush();
   }
