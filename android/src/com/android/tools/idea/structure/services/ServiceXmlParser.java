@@ -196,16 +196,16 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   }
 
   public void install() {
-    List<File> sourceFiles = Lists.newArrayList();
-    analyzeRecipe(false, null, sourceFiles, null);
-
-    TemplateUtils.openEditors(myModule.getProject(), sourceFiles, true);
+    List<File> filesToOpen = Lists.newArrayList();
+    analyzeRecipe(false, filesToOpen, null, null, null);
+    TemplateUtils.openEditors(myModule.getProject(), filesToOpen, true);
   }
 
   private void analyzeRecipe(boolean findOnlyReferences,
-                            @Nullable Collection<String> dependencies,
-                            @Nullable Collection<File> sourceFiles,
-                            @Nullable Collection<File> targetFiles) {
+                             @Nullable Collection<File> openFiles,
+                             @Nullable Collection<String> dependencies,
+                             @Nullable Collection<File> sourceFiles,
+                             @Nullable Collection<File> targetFiles) {
     try {
       File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
       // @formatter:off
@@ -215,6 +215,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
         .withOutputRoot(moduleRoot)
         .withModuleRoot(moduleRoot)
         .withFindOnlyReferences(findOnlyReferences)
+        .intoOpenFiles(openFiles)
         .intoDependencies(dependencies)
         .intoSourceFiles(sourceFiles)
         .intoTargetFiles(targetFiles)
@@ -286,7 +287,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     HashSet<String> dependencies = Sets.newHashSet();
     List<File> sourceFiles = Lists.newArrayList();
     List<File> targetFiles = Lists.newArrayList();
-    analyzeRecipe(true, dependencies, sourceFiles, targetFiles);
+    analyzeRecipe(true, null, dependencies, sourceFiles, targetFiles);
 
     for (String d : dependencies) {
       myDeveloperServiceMetadata.addDependency(d);
