@@ -17,12 +17,9 @@ package com.android.tools.idea.gradle.dsl;
 
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslElementParser;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
@@ -35,14 +32,10 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
-public class GradleBuildModel extends GradleDslPropertiesElement {
-  @NotNull private final VirtualFile myFile;
-  @NotNull private final Project myProject;
-
+public class GradleBuildModel extends GradleDslModel {
   @NotNull private Dependencies myDependencies = new Dependencies(this);
 
-  // TODO Get the parsers from an extension point.
-  private final GradleDslElementParser[] myParsers = {new JavaProjectElementParser(), new GradleDslParser()};
+  private final GradleDslElementParser[] myParsers = {new JavaProjectElementParser()};
 
   @Nullable
   public static GradleBuildModel get(@NotNull Module module) {
@@ -58,37 +51,19 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
   }
 
   private GradleBuildModel(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    super(null, null, moduleName);
-    myFile = file;
-    myProject = project;
+    super(file, project, moduleName);
   }
 
-  /**
-   * Parses the build.gradle file again. This is a convenience method to avoid calling {@link #parseBuildFile(VirtualFile, Project)} if
-   * an already parsed build.gradle file needs to be parsed again (for example, after making changes to the PSI elements.)
-   */
+  @Override
   public void reparse() {
     myDependencies = new Dependencies(this);
-    clear();
-    parse();
+    super.reparse();
   }
 
-  private void parse() {
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(myFile);
-
-    GroovyFile myPsiFile = null;
-    if (psiFile instanceof GroovyFile) {
-      myPsiFile = (GroovyFile)psiFile;
-    }
-
+  @Override
+  protected void parse(@NotNull GroovyFile psiFile) {
     myDependencies.setPsiFile(psiFile);
-    if (myPsiFile == null) {
-      return;
-    }
-    setPsiElement(myPsiFile);
-
-    myPsiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
+    psiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
       @Override
       public void visitMethodCallExpression(GrMethodCallExpression e) {
         if (myDependencies.parse(e)) {
@@ -108,20 +83,19 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
       }
 
       void process(GroovyPsiElement e) {
+        boolean parsed = false;
         for (GradleDslElementParser parser : myParsers) {
           // If a parser was able to parse the given PSI element, stop. Otherwise give another parser the chance to parse the PSI element.
           if (parser.parse(e, GradleBuildModel.this)) {
+            parsed = true;
             break;
           }
         }
+        if (!parsed) {
+          GradleDslParser.parse(e, GradleBuildModel.this);
+        }
       }
     }));
-  }
-
-  @Override
-  protected void reset() {
-    super.reset();
-    myDependencies.resetState();
   }
 
   @Nullable
@@ -137,7 +111,6 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
     JavaElement javaElement = new JavaElement(this);
     return (GradleBuildModel)setNewElement(JavaElement.NAME, javaElement);
   }
-
   @Nullable
   public AndroidElement android() {
     return getProperty(AndroidElement.NAME, AndroidElement.class);
@@ -172,13 +145,14 @@ public class GradleBuildModel extends GradleDslPropertiesElement {
   }
 
   @Override
+  protected void reset() {
+    super.reset();
+    myDependencies.resetState();
+  }
+
+  @Override
   protected void apply() {
     super.apply();
     myDependencies.applyChanges();
-  }
-
-  @NotNull
-  public Project getProject() {
-    return myProject;
   }
 }
