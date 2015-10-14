@@ -290,7 +290,7 @@ public class Template {
 
     try {
       processFile(context, new File(TEMPLATE_XML_NAME));
-      if (!context.showErrors() || context.getWarnings().isEmpty()) {
+      if (!context.showWarnings() || context.getWarnings().isEmpty()) {
         return true;
       }
       if (!context.getProject().isInitialized() && myTemplateRoot.getPath().contains(GOOGLE_GLASS_PATH_19)) {
