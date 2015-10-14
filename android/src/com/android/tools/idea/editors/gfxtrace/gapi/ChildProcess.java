@@ -77,7 +77,21 @@ public abstract class ChildProcess {
       return;
     }
     final BufferedReader stdout = new BufferedReader(new InputStreamReader(myProcess.getInputStream(), Charset.forName("UTF-8")));
+    final BufferedReader stderr = new BufferedReader(new InputStreamReader(myProcess.getErrorStream(), Charset.forName("UTF-8")));
     try {
+      // stderr handler thread
+      new Thread() {
+        @Override
+        public void run() {
+          try {
+            for (String line; (line = stderr.readLine()) != null; ) {
+              LOG.error(myName + ": " + line);
+            }
+          }
+          catch (IOException e) { /* ignore */ }
+        }
+      }.start();
+      // stdout handler thread
       new Thread() {
         @Override
         public void run() {
@@ -96,6 +110,7 @@ public abstract class ChildProcess {
     finally {
       try {
         stdout.close();
+        stderr.close();
       }
       catch (IOException ignored) {
       }
