@@ -17,24 +17,30 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.image;
 
-import com.android.tools.rpclib.schema.*;
-import com.android.tools.rpclib.binary.*;
+import com.android.tools.rpclib.schema.Entity;
+import com.android.tools.rpclib.schema.Field;
 import org.jetbrains.annotations.NotNull;
+
+import com.android.tools.rpclib.binary.BinaryClass;
+import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.rpclib.binary.Decoder;
+import com.android.tools.rpclib.binary.Encoder;
+import com.android.tools.rpclib.binary.Namespace;
 
 import java.io.IOException;
 
-final public class FmtETC1RGB8OES extends Format {
+final class FmtETC2RGB8 extends Format {
   //<<<Start:Java.ClassBody:1>>>
 
-  // Constructs a default-initialized {@link FmtETC1RGB8OES}.
-  public FmtETC1RGB8OES() {}
+  // Constructs a default-initialized {@link FmtETC2RGB8}.
+  public FmtETC2RGB8() {}
 
 
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtETC1_RGB8_OES","","");
+  private static final Entity ENTITY = new Entity("image","fmtETC2_RGB8","","");
 
   static {
     ENTITY.setFields(new Field[]{
@@ -51,16 +57,16 @@ final public class FmtETC1RGB8OES extends Format {
     public Entity entity() { return ENTITY; }
 
     @Override @NotNull
-    public BinaryObject create() { return new FmtETC1RGB8OES(); }
+    public BinaryObject create() { return new FmtETC2RGB8(); }
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtETC1RGB8OES o = (FmtETC1RGB8OES)obj;
+      FmtETC2RGB8 o = (FmtETC2RGB8)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtETC1RGB8OES o = (FmtETC1RGB8OES)obj;
+      FmtETC2RGB8 o = (FmtETC2RGB8)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }
