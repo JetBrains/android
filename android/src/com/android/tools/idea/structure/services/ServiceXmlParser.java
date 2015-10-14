@@ -300,7 +300,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     HashSet<String> dependencies = Sets.newHashSet();
     List<File> sourceFiles = Lists.newArrayList();
     List<File> targetFiles = Lists.newArrayList();
-    analyzeRecipe(false, dependencies, sourceFiles, targetFiles);
+    analyzeRecipe(true, dependencies, sourceFiles, targetFiles);
 
     for (String d : dependencies) {
       myDeveloperServiceMetadata.addDependency(d);
