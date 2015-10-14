@@ -257,6 +257,8 @@
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
     <projectConfigurable groupId="build" id="gradle.compiler" parentId="project.propCompiler"
                          provider="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurableProvider"/>
+    <projectConfigurable groupId="build" id="instant.run" parentId="project.propCompiler"
+                         provider="com.android.tools.idea.fd.InstantRunConfigurableProvider"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.compiler.HideCompilerOptions" />
 
     <projectConfigurable instance="com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable"
