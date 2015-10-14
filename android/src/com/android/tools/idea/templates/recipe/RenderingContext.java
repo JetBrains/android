@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -146,12 +147,19 @@ public class RenderingContext {
   }
 
   /**
-   * If true show errors and warnings.
-   * A false means errors are thrown as a {@link RuntimeException} for the IDE to handle,
-   * and warnings will be ignored.
+   * If true show errors.
+   * A false means errors are thrown as a {@link RuntimeException} for the IDE to handle.
    */
   public boolean showErrors() {
     return myShowErrors;
+  }
+
+  /**
+   * If true show warnings.
+   * A false means warnings will be ignored.
+   */
+  public boolean showWarnings() {
+    return myShowErrors && myDryRun;
   }
 
   /**
