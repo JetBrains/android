@@ -106,7 +106,8 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     try {
       ProjectData project = myProjectResolver.createProject();
-      myProjectResolver.createModule(myAndroidModule, project);
+      DataNode<ProjectData> projectDataNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
+      myProjectResolver.createModule(myAndroidModule, projectDataNode);
       fail();
     } catch (IllegalStateException e) {
     }
@@ -117,8 +118,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
   public void testPopulateModuleContentRootsWithAndroidProject() {
     ProjectData project = myProjectResolver.createProject();
     DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
-    ModuleData module = myProjectResolver.createModule(myAndroidModule, project);
-    DataNode<ModuleData> moduleDataNode = projectNode.createChild(ProjectKeys.MODULE, module);
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModule, projectNode);
 
     myProjectResolver.populateModuleContentRoots(myAndroidModule, moduleDataNode);
 
@@ -142,8 +142,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
   public void testPopulateModuleContentRootsWithJavaProject() {
     ProjectData project = myProjectResolver.createProject();
     DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
-    ModuleData module = myProjectResolver.createModule(myUtilModule, project);
-    DataNode<ModuleData> moduleDataNode = projectNode.createChild(ProjectKeys.MODULE, module);
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myUtilModule, projectNode);
 
     myProjectResolver.populateModuleContentRoots(myUtilModule, moduleDataNode);
 

@@ -30,8 +30,8 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.IdeModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -66,7 +66,7 @@ public class Ide2GradleModuleDependencyService extends AbstractIde2GradleProject
   @Override
   protected boolean processEntityAddition(@NotNull EntityAdded<ModuleDependencyData> change, @NotNull Project ideProject) {
     ModuleDependencyData data = change.getAddedEntity().getData();
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(ideProject);
+    IdeModelsProvider modelsProvider = new IdeModelsProviderImpl(ideProject);
     Module ownerIdeModule = modelsProvider.findIdeModule(data.getOwnerModule());
     if (ownerIdeModule == null) {
       if (LOG.isDebugEnabled()) {
