@@ -108,21 +108,21 @@ public class ProxySettingsDialog extends DialogWrapper {
     myEnableHTTPSProxyCheckBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        enableHttpsProxy(myEnableHTTPSProxyCheckBox.isSelected());
+        enableHttpsProxy(((JCheckBox) e.getSource()).isSelected());
       }
     });
 
     myHttpProxyAuthCheckBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        enableHttpProxyAuth(myHttpProxyAuthCheckBox.isSelected());
+        enableHttpProxyAuth(((JCheckBox) e.getSource()).isSelected());
       }
     });
 
     myHttpsProxyAuthCheckBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        enableHttpsProxyAuth(myHttpsProxyAuthCheckBox.isSelected());
+        enableHttpsProxyAuth(((JCheckBox) e.getSource()).isSelected());
       }
     });
   }
