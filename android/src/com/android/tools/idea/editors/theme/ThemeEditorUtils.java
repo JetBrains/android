@@ -32,6 +32,7 @@ import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
+import com.android.tools.idea.configurations.ThemeSelectionPanel;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -485,7 +486,8 @@ public class ThemeEditorUtils {
   public static String showCreateNewStyleDialog(@Nullable ThemeEditorStyle defaultParentStyle,
                                                 @NotNull final ThemeEditorContext themeEditorContext,
                                                 boolean isTheme,
-                                                @Nullable final String message) {
+                                                @Nullable final String message,
+                                                @Nullable ThemeSelectionPanel.ThemeChangedListener themeChangedListener) {
     // if isTheme is true, defaultParentStyle shouldn't be null
     String defaultParentStyleName = null;
     if (isTheme && defaultParentStyle == null) {
@@ -496,7 +498,10 @@ public class ThemeEditorUtils {
     }
 
     final NewStyleDialog dialog = new NewStyleDialog(isTheme, themeEditorContext, defaultParentStyleName,
-                         (defaultParentStyle == null) ? null : defaultParentStyle.getName(), message);
+                                                     (defaultParentStyle == null) ? null : defaultParentStyle.getName(), message);
+    if (themeChangedListener != null) {
+      dialog.setThemeChangedListener(themeChangedListener);
+    }
 
     boolean createStyle = dialog.showAndGet();
     if (!createStyle) {

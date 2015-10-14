@@ -491,11 +491,16 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
    * Launches dialog to create a new theme based on selected one.
    */
   private void createNewTheme() {
-    String newThemeName = ThemeEditorUtils.showCreateNewStyleDialog(getSelectedTheme(), myThemeEditorContext, !isSubStyleSelected(), null);
+    String newThemeName = ThemeEditorUtils
+      .showCreateNewStyleDialog(getSelectedTheme(), myThemeEditorContext, !isSubStyleSelected(), null, myThemeChangedListener);
     if (newThemeName != null) {
       // We don't need to call reload here, because myResourceChangeListener will take care of it
       myThemeName = newThemeName;
       mySubStyleName = null;
+    }
+    else {
+      // No new theme was created, we restore the preview to its original state
+      refreshPreviewPanel(myThemeName);
     }
   }
 
@@ -624,7 +629,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       .format("<html>The %1$s '<code>%2$s</code>' is Read-Only.<br/>A new %1$s will be created to modify '<code>%3$s</code>'.<br/></html>",
               isSubStyleSelected() ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getName());
 
-    final String newStyleName = ThemeEditorUtils.showCreateNewStyleDialog(selectedStyle, myThemeEditorContext, !isSubStyleSelected(), message);
+    final String newStyleName =
+      ThemeEditorUtils.showCreateNewStyleDialog(selectedStyle, myThemeEditorContext, !isSubStyleSelected(), message, null);
 
     if (newStyleName == null) {
       return;
@@ -670,7 +676,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
                               "A new theme will be created to point to the modified style '%3$s'.<br/></html>",
                               selectedTheme.getQualifiedName(), rv.getName(), newStyleName);
 
-      final String newThemeName = ThemeEditorUtils.showCreateNewStyleDialog(selectedTheme, myThemeEditorContext, true, message);
+      final String newThemeName = ThemeEditorUtils.showCreateNewStyleDialog(selectedTheme, myThemeEditorContext, true, message, null);
       if (newThemeName != null) {
         // We don't need to call reload, because myResourceChangeListener will take care of it
         myThemeName = newThemeName;
