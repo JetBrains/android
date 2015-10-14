@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates.recipe;
 
+import com.android.tools.idea.templates.FreemarkerConfiguration;
 import com.android.tools.idea.templates.StudioTemplateLoader;
 import com.android.tools.idea.templates.Template;
 import com.google.common.collect.Lists;
@@ -88,7 +89,7 @@ public class RenderingContext {
     myDryRun = dryRun;
     myShowErrors = showErrors;
     myLoader = new StudioTemplateLoader(templateRootPath);
-    myFreemarker = new Configuration();
+    myFreemarker = new FreemarkerConfiguration();
     myFreemarker.setTemplateLoader(myLoader);
     mySourceFiles = outSourceFiles != null ? outSourceFiles : Lists.<File>newArrayList();
     myTargetFiles = outTargetFiles != null ? outTargetFiles : Lists.<File>newArrayList();
