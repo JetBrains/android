@@ -58,7 +58,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
       if (device == null) {
         return null;
       }
-      GfxTracer.Options options = new GfxTracer.Options(false, false);
+      GfxTracer.Options options = new GfxTracer.Options();
       GfxTracer tracer = GfxTracer.listen(myView.getProject(), device, options, myView.getEvents());
       return Futures.immediateFuture(tracer);
     }
@@ -121,7 +121,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
       ActivitySelector.Listener listener = new ActivitySelector.Listener() {
         @Override
         public void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity act) {
-          GfxTracer.Options options = new GfxTracer.Options(false, false);
+          GfxTracer.Options options = new GfxTracer.Options();
           future.set(GfxTracer.launch(myView.getProject(), device, pkg, act, options, myView.getEvents()));
         }
 
