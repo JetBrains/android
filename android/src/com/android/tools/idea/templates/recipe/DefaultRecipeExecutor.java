@@ -337,6 +337,11 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     if (from.isDirectory()) {
       copyDirectory(sourceFile, destPath);
     }
+    else if (to.exists()) {
+      if (!compareFile(myContext.getProject(), sourceFile, to)) {
+        addFileAlreadyExistWarning(to);
+      }
+    }
     else {
       Document document = FileDocumentManager.getInstance().getDocument(sourceFile);
       if (document != null) {
