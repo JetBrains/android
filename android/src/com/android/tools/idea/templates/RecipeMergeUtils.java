@@ -212,7 +212,7 @@ public class RecipeMergeUtils {
               // No explicit directive given, preserve the original value by default.
               context.getWarnings().add(String.format(
                 "Ignoring conflict for the value: %1$s wanted: \"%2$s\" but it already is: \"%3$s\" in the file: %4$s", name,
-                replace.getText(), child.getText(), fileName));
+                child.getText(), replace.getText(), fileName));
             }
           }
           else {
