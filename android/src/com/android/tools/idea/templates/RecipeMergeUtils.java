@@ -123,6 +123,9 @@ public class RecipeMergeUtils {
       // syntax that many tools and editors recognize.
 
       contents = wrapWithMergeConflict(targetXml, sourceXml);
+
+      // Report the conflict as a warning:
+      context.getWarnings().add(String.format("Merge conflict for: %1$s this file must be fixed by hand", targetFile.getName()));
     }
     return contents;
   }
@@ -244,20 +247,19 @@ public class RecipeMergeUtils {
    * Merges the given manifest fragment into the given manifest file
    */
   @Nullable
-  private static String mergeManifest(@NotNull File targetManifest, @NotNull final String targetXml, @NotNull String mergeText) {
-    File tempFile = null;
+  private static String mergeManifest(@NotNull final File targetManifest, @NotNull final String targetXml, @NotNull final String mergeText) {
     try {
       //noinspection SpellCheckingInspection
-      tempFile = FileUtil.createTempFile("manifmerge", DOT_XML);
-      FileUtil.writeToFile(tempFile, mergeText);
+      final File tempFile2 = new File(targetManifest.getParentFile(), "nevercreated.xml");
       StdLogger logger = new StdLogger(StdLogger.Level.INFO);
       MergingReport mergeReport = ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
         .withFeatures(ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS, ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)
-        .addLibraryManifest(tempFile)
+        .addLibraryManifest(tempFile2)
         .withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
           @Override
           protected InputStream getInputStream(@NotNull File file) throws FileNotFoundException {
-            return new ByteArrayInputStream(targetXml.getBytes(Charsets.UTF_8));
+            String text = FileUtil.filesEqual(file, targetManifest) ? targetXml : mergeText;
+            return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
           }
         })
         .merge();
@@ -268,24 +270,10 @@ public class RecipeMergeUtils {
       }
       return null;
     }
-    catch (IOException e) {
-      LOG.error(e);
-    }
     catch (ManifestMerger2.MergeFailureException e) {
-      LOG.error(e);
-      try {
-        FileUtil.appendToFile(tempFile, String.format("<!--%s-->", e.getMessage()));
-      }
-      catch (IOException e1) {
-        LOG.error(e1);
-      }
+      LOG.warn(e);
+      return null;
     }
-    finally {
-      if (tempFile != null) {
-        tempFile.delete();
-      }
-    }
-    return null;
   }
 
 
