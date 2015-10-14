@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
+import com.android.tools.idea.configurations.ThemeSelectionPanel;
 import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRenderer;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceNameValidator;
@@ -43,6 +44,7 @@ public class NewStyleDialog extends DialogWrapper {
   private JComboBox myParentStyleComboBox;
   /** Message displayed when the style name is empty */
   private final String myEmptyStyleValidationText;
+  private @Nullable ThemeSelectionPanel.ThemeChangedListener myThemeChangedListener;
 
   /**
    * Creates a new style dialog. This dialog it's used both to create new themes and new styles.
@@ -92,6 +94,10 @@ public class NewStyleDialog extends DialogWrapper {
           myParentStyleComboBox.hidePopup();
           final ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
 
+          if (myThemeChangedListener != null) {
+            dialog.setThemeChangedListener(myThemeChangedListener);
+          }
+
           dialog.show();
           selectedValue = dialog.isOK() ? dialog.getTheme() : null;
         }
@@ -104,6 +110,9 @@ public class NewStyleDialog extends DialogWrapper {
         }
         myParentStyleComboBox.setSelectedItem(selectedValue);
         myStyleNameTextField.setText(getNewStyleNameSuggestion(selectedValue, currentThemeName));
+        if (myThemeChangedListener != null) {
+          myThemeChangedListener.themeChanged(selectedValue);
+        }
       }
     });
 
@@ -178,5 +187,9 @@ public class NewStyleDialog extends DialogWrapper {
     }
 
     return parentStyleName + '.' + currentThemeName;
+  }
+
+  public void setThemeChangedListener(@NotNull ThemeSelectionPanel.ThemeChangedListener themeChangedListener) {
+    myThemeChangedListener = themeChangedListener;
   }
 }
