@@ -22,8 +22,6 @@ import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplatePostProcessor;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -174,7 +172,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
             throw new TemplateUserVisibleException(String.format("Attempt to update file that is readonly: %1$s", to.getAbsolutePath()));
           }
         }
-        targetText = Files.toString(to, Charsets.UTF_8);
+        targetText = TemplateUtils.readTextFile(myContext.getProject(), to);
       }
 
       if (targetText == null) {
