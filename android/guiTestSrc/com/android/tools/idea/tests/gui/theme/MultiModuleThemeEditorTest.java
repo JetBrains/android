@@ -26,7 +26,6 @@ import com.intellij.notification.NotificationType;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -39,11 +38,6 @@ import static org.junit.Assert.assertThat;
 
 @BelongsToTestGroups({THEME})
 public class MultiModuleThemeEditorTest extends GuiTestCase {
-  @BeforeClass
-  public static void runBeforeClass() {
-    ThemeEditorTestUtils.enableThemeEditor();
-  }
-
   @Test
   @IdeGuiTest
   public void testMultipleModules() throws IOException {
