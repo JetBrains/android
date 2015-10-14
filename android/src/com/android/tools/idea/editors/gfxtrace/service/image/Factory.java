@@ -25,7 +25,8 @@ public final class Factory {
     FmtATCRGBAEXPLICITALPHAAMD.register();
     FmtATCRGBAMD.register();
     FmtAlpha.register();
-    FmtETC1RGB8OES.register();
+    FmtETC1RGB8.register();
+    FmtETC2RGB8.register();
     FmtFloat32.register();
     FmtLuminance.register();
     FmtLuminanceAlpha.register();
@@ -33,6 +34,7 @@ public final class Factory {
     FmtRGB.register();
     FmtRGB565.register();
     FmtRGBA.register();
+    FmtRGBA4444.register();
     FmtRGBA5551.register();
     FmtRGBAF32.register();
     //<<<End:Java.FactoryBody:2>>>
