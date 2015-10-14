@@ -102,13 +102,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull
   @Override
-  public ModuleData createModule(@NotNull IdeaModule gradleModule, @NotNull ProjectData projectData) {
+  public DataNode<ModuleData> createModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !isSupportedVersion(androidProject)) {
       String msg = getUnsupportedModelVersionErrorMsg(GradleModelVersionCheck.getModelVersion(androidProject));
       throw new IllegalStateException(msg);
     }
-    return nextResolver.createModule(gradleModule, projectData);
+    return nextResolver.createModule(gradleModule, projectDataNode);
   }
 
   @Override
