@@ -51,24 +51,28 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testSetShowingOnlyKeysNeedingTranslations() {
-    assertEquals(8, table.getRowCount());
+    assertEquals(10, table.getRowCount());
     assertEquals("key1", table.getValueAt(0, 0));
-    assertEquals("key2", table.getValueAt(1, 0));
-    assertEquals("key3", table.getValueAt(2, 0));
-    assertEquals("key4", table.getValueAt(3, 0));
-    assertEquals("key5", table.getValueAt(4, 0));
-    assertEquals("key6", table.getValueAt(5, 0));
-    assertEquals("key7", table.getValueAt(6, 0));
-    assertEquals("key8", table.getValueAt(7, 0));
+    assertEquals("key10", table.getValueAt(1, 0));
+    assertEquals("key2", table.getValueAt(2, 0));
+    assertEquals("key3", table.getValueAt(3, 0));
+    assertEquals("key4", table.getValueAt(4, 0));
+    assertEquals("key5", table.getValueAt(5, 0));
+    assertEquals("key6", table.getValueAt(6, 0));
+    assertEquals("key7", table.getValueAt(7, 0));
+    assertEquals("key8", table.getValueAt(8, 0));
+    assertEquals("key9", table.getValueAt(9, 0));
 
     panel.setShowingOnlyKeysNeedingTranslations(true);
 
-    assertEquals(5, table.getRowCount());
+    assertEquals(7, table.getRowCount());
     assertEquals("key1", table.getValueAt(0, 0));
-    assertEquals("key3", table.getValueAt(1, 0));
-    assertEquals("key4", table.getValueAt(2, 0));
-    assertEquals("key7", table.getValueAt(3, 0));
-    assertEquals("key8", table.getValueAt(4, 0));
+    assertEquals("key10", table.getValueAt(1, 0));
+    assertEquals("key3", table.getValueAt(2, 0));
+    assertEquals("key4", table.getValueAt(3, 0));
+    assertEquals("key7", table.getValueAt(4, 0));
+    assertEquals("key8", table.getValueAt(5, 0));
+    assertEquals("key9", table.getValueAt(6, 0));
   }
 
   public void testOnTextFieldUpdate() {
@@ -85,28 +89,31 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     panel.setShowingOnlyKeysNeedingTranslations(true);
     editCellAt(true, 0, 2);
 
-    assertEquals(4, table.getRowCount());
-    assertEquals("key3", table.getValueAt(0, 0));
-    assertEquals("key4", table.getValueAt(1, 0));
-    assertEquals("key7", table.getValueAt(2, 0));
-    assertEquals("key8", table.getValueAt(3, 0));
+    assertEquals(6, table.getRowCount());
+    assertEquals("key10", table.getValueAt(0, 0));
+    assertEquals("key3", table.getValueAt(1, 0));
+    assertEquals("key4", table.getValueAt(2, 0));
+    assertEquals("key7", table.getValueAt(3, 0));
+    assertEquals("key8", table.getValueAt(4, 0));
+    assertEquals("key9", table.getValueAt(5, 0));
   }
 
   public void testRefilteringAfterEditingTranslationCells() {
     panel.setShowingOnlyKeysNeedingTranslations(true);
-    editCellAt("Key 3 en-rGB", 1, 4);
-    editCellAt("Key 3 en-rIN", 1, 5);
+    editCellAt("Key 3 en-rGB", 2, 4);
 
-    assertEquals(4, table.getRowCount());
+    assertEquals(6, table.getRowCount());
     assertEquals("key1", table.getValueAt(0, 0));
-    assertEquals("key4", table.getValueAt(1, 0));
-    assertEquals("key7", table.getValueAt(2, 0));
-    assertEquals("key8", table.getValueAt(3, 0));
+    assertEquals("key10", table.getValueAt(1, 0));
+    assertEquals("key4", table.getValueAt(2, 0));
+    assertEquals("key7", table.getValueAt(3, 0));
+    assertEquals("key8", table.getValueAt(4, 0));
+    assertEquals("key9", table.getValueAt(5, 0));
   }
 
   public void testSelectingCell() {
     panel.setShowingOnlyKeysNeedingTranslations(true);
-    selectCellAt(1, 1);
+    selectCellAt(2, 1);
 
     assertEquals("Key 3 default", panel.myDefaultValue.getText());
   }
