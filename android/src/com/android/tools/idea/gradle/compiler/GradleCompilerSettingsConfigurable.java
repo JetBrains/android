@@ -58,8 +58,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myConfigureOnDemandDocHyperlinkLabel;
   private JBLabel myUseInProcessBuildSpacing;
-  private JCheckBox myInstantRunCheckBox;
-  private JCheckBox myRestartActivityCheckBox;
 
   private final String myDisplayName;
 
@@ -111,10 +109,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
            myCompilerConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
            myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD != isExperimentalBuildEnabled() ||
            myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND != isConfigurationOnDemandEnabled() ||
-           myBuildConfiguration.INSTANT_RUN != isInstantRunEnabled() ||
-           !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS) ||
-           myBuildConfiguration.RESTART_ACTIVITY != isRestartActivity();
-
+           !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS);
   }
 
   @Override
@@ -124,8 +119,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = isExperimentalBuildEnabled();
     myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
     myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND = isConfigurationOnDemandEnabled();
-    myBuildConfiguration.INSTANT_RUN = isInstantRunEnabled();
-    myBuildConfiguration.RESTART_ACTIVITY = isRestartActivity();
   }
 
   private boolean isParallelBuildsEnabled() {
@@ -142,14 +135,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   private boolean isConfigurationOnDemandEnabled() {
     return myConfigureOnDemandCheckBox.isSelected();
-  }
-
-  private boolean isInstantRunEnabled() {
-    return myInstantRunCheckBox.isSelected();
-  }
-
-  private boolean isRestartActivity() {
-    return myRestartActivityCheckBox.isSelected();
   }
 
   @NotNull
@@ -169,8 +154,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     String commandLineOptions = nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
     myCommandLineOptionsEditor.setText(commandLineOptions);
     myConfigureOnDemandCheckBox.setSelected(myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND);
-    myInstantRunCheckBox.setSelected(myBuildConfiguration.INSTANT_RUN);
-    myRestartActivityCheckBox.setSelected(myBuildConfiguration.RESTART_ACTIVITY);
   }
 
   @Override
