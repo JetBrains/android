@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.GradleSettingsModel;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,21 +25,29 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.fest.assertions.Assertions.assertThat;
 
 public abstract class GradleBuildModelParserTestCase extends PlatformTestCase {
+  protected File mySettingsFile;
   protected File myBuildFile;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
 
+    String basePath = myProject.getBasePath();
+    assertNotNull(basePath);
+    File projectBasePath = new File(basePath);
+    assertThat(projectBasePath).isDirectory();
+    mySettingsFile = new File(projectBasePath, FN_SETTINGS_GRADLE);
+    assertThat(ensureCanCreateFile(mySettingsFile));
+
     File moduleFilePath = new File(myModule.getModuleFilePath());
     File moduleDirPath = moduleFilePath.getParentFile();
     assertThat(moduleDirPath).isDirectory();
-
     myBuildFile = new File(moduleDirPath, FN_BUILD_GRADLE);
     assertTrue(ensureCanCreateFile(myBuildFile));
   }
@@ -48,8 +57,19 @@ public abstract class GradleBuildModelParserTestCase extends PlatformTestCase {
     // for this test we don't care for this check
   }
 
+  protected void writeToSettingsFile(@NotNull String text) throws IOException {
+    writeToFile(mySettingsFile, text);
+  }
+
   protected void writeToBuildFile(@NotNull String text) throws IOException {
     writeToFile(myBuildFile, text);
+  }
+
+  @NotNull
+  protected GradleSettingsModel getGradleSettingsModel() {
+    GradleSettingsModel settingsModel = GradleSettingsModel.get(myProject);
+    assertNotNull(settingsModel);
+    return settingsModel;
   }
 
   @NotNull
