@@ -37,7 +37,7 @@ public class ProxySettingsDialogFixture extends IdeaDialogFixture<DialogWrapper>
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);
-        if (wrapper != null && wrapper.getClass() == ProxySettingsDialog.class) {
+        if (wrapper != null && wrapper.getClass() == ProxySettingsDialog.class && dialog.isShowing()) {
           wrapperRef.set(wrapper);
           return true;
         }
