@@ -22,7 +22,6 @@ import com.google.common.io.Files;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.io.*;
@@ -44,11 +43,6 @@ public class LocalPropertiesTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myLocalProperties = new LocalProperties(myProject);
-  }
-
-  @Override
-  protected CompositeException checkForSettingsDamage() throws Exception {
-    return new CompositeException();
   }
 
   // See https://code.google.com/p/android/issues/detail?id=82184
@@ -179,7 +173,6 @@ public class LocalPropertiesTest extends IdeaTestCase {
     sdk.delete();
     tempDir.delete();
   }
-
 
   public void testOnlyChangesAreSavedToFile() throws IOException {
     myLocalProperties.setAndroidSdkPath("~/sdk");
