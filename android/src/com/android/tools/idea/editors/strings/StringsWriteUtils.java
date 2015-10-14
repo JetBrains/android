@@ -48,9 +48,10 @@ import java.util.Set;
 public class StringsWriteUtils {
   /**
    * Sets the value of an attribute for resource items.  If SdkConstants.ATTR_NAME is set to null or "", the items are deleted.
+   *
    * @param attribute The attribute whose value we wish to change
-   * @param value The desired attribute value
-   * @param items The resource items
+   * @param value     The desired attribute value
+   * @param items     The resource items
    * @return True if the value was successfully set, false otherwise
    */
   public static boolean setAttributeForItems(@NotNull Project project,
@@ -77,7 +78,8 @@ public class StringsWriteUtils {
         for (XmlTag tag : tags) {
           if (deleteTag) {
             tag.delete();
-          } else {
+          }
+          else {
             // XmlTagImpl handles a null value by deleting the attribute, which is our desired behavior
             //noinspection ConstantConditions
             tag.setAttribute(attribute, value);
@@ -90,7 +92,8 @@ public class StringsWriteUtils {
 
   /**
    * Sets the text value of a resource item.  If the value is the empty string, the item is deleted.
-   * @param item The resource item
+   *
+   * @param item  The resource item
    * @param value The desired text
    * @return True if the text was successfully set, false otherwise
    */
@@ -110,6 +113,8 @@ public class StringsWriteUtils {
           }
           // Encapsulate the value in a dummy tag (see com.intellij.psi.XmlElementFactoryImpl.createDisplayText()).
           XmlTag text = XmlElementFactory.getInstance(project).createTagFromText("<a>" + value + "</a>");
+          XmlTagUtils.escape(text);
+
           for (PsiElement psiElement : text.getValue().getChildren()) {
             tag.add(psiElement);
           }
@@ -151,13 +156,16 @@ public class StringsWriteUtils {
         // XmlTagImpl handles a null value by deleting the attribute, which is our desired behavior
         //noinspection ConstantConditions
         child.setAttribute(SdkConstants.ATTR_TRANSLATABLE, translatable ? null : SdkConstants.VALUE_FALSE);
+        XmlTagUtils.escape(child);
+
         root.addSubTag(child, false);
       }
     }.execute();
 
     if (ApplicationManager.getApplication().isReadAccessAllowed()) {
       return getStringResourceItem(facet, name, locale);
-    } else {
+    }
+    else {
       return ApplicationManager.getApplication().runReadAction(new Computable<ResourceItem>() {
         @Override
         public ResourceItem compute() {
@@ -209,20 +217,19 @@ public class StringsWriteUtils {
     final String valuesFolderName = configuration.getFolderName(ResourceFolderType.VALUES);
     VirtualFile valuesFolder = resFolder.findChild(valuesFolderName);
     if (valuesFolder == null) {
-      valuesFolder =
-        new WriteCommandAction<VirtualFile>(project, "Creating directory " + valuesFolderName, manager.findFile(resFolder)) {
-          @Override
-          public void run(@NotNull Result<VirtualFile> result) {
-            try {
-              result.setResult(resFolder.createChildDirectory(this, valuesFolderName));
-            }
-            catch (IOException ex) {
-              // Immediately after this, we handle the case where the result is null
-              //noinspection ConstantConditions
-              result.setResult(null);
-            }
+      valuesFolder = new WriteCommandAction<VirtualFile>(project, "Creating directory " + valuesFolderName, manager.findFile(resFolder)) {
+        @Override
+        public void run(@NotNull Result<VirtualFile> result) {
+          try {
+            result.setResult(resFolder.createChildDirectory(this, valuesFolderName));
           }
-        }.execute().getResultObject();
+          catch (IOException ex) {
+            // Immediately after this, we handle the case where the result is null
+            //noinspection ConstantConditions
+            result.setResult(null);
+          }
+        }
+      }.execute().getResultObject();
       if (valuesFolder == null) {
         return null;
       }
@@ -240,15 +247,17 @@ public class StringsWriteUtils {
       }
       try {
         resourceFile = AndroidResourceUtil.createFileResource(resourceFileName, valuesDir, "", ResourceType.STRING.getName(), true);
-      } catch (Exception ex) {
+      }
+      catch (Exception ex) {
         return null;
       }
-    } else {
+    }
+    else {
       PsiFile resourcePsiFile = manager.findFile(resourceVirtualFile);
       if (!(resourcePsiFile instanceof XmlFile)) {
         return null;
       }
-      resourceFile = (XmlFile) resourcePsiFile;
+      resourceFile = (XmlFile)resourcePsiFile;
     }
 
     return resourceFile;
