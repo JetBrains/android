@@ -103,7 +103,6 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   @Override
   public void copy(@NotNull File from, @NotNull File to) {
     try {
-      myReferences.copy(from, to);
       copyTemplateResource(from, to);
     }
     catch (IOException e) {
@@ -118,8 +117,6 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   @Override
   public void instantiate(@NotNull File from, @NotNull File to) throws TemplateProcessingException {
     try {
-      myReferences.instantiate(from, to);
-
       // For now, treat extension-less files as directories... this isn't quite right
       // so I should refine this! Maybe with a unique attribute in the template file?
       boolean isDirectory = from.getName().indexOf('.') == -1;
@@ -128,8 +125,9 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
         copyTemplateResource(from, to);
       }
       else {
+        File sourceFile = myContext.getLoader().getSourceFile(from);
         File targetFile = getTargetFile(to);
-        String content = processFreemarkerTemplate(myContext, from, null);
+        String content = processFreemarkerTemplate(myContext, sourceFile, null);
         if (targetFile.exists()) {
           if (!compareTextFile(myContext.getProject(), targetFile, content)) {
             addFileAlreadyExistWarning(targetFile);
@@ -137,6 +135,8 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
         }
         else {
           myIO.writeFile(this, content, targetFile);
+          myReferences.addSourceFile(sourceFile);
+          myReferences.addTargetFile(targetFile);
         }
       }
     }
@@ -154,35 +154,34 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   @Override
   public void merge(@NotNull File from, @NotNull File to) throws TemplateProcessingException {
     try {
-      myReferences.merge(from, to);
-
       String targetText = null;
 
-      to = getTargetFile(to);
-      if (!(hasExtension(to, DOT_XML) || hasExtension(to, DOT_GRADLE))) {
-        throw new RuntimeException("Only XML or Gradle files can be merged at this point: " + to);
+      File sourceFile = myContext.getLoader().getSourceFile(from);
+      File targetFile = getTargetFile(to);
+      if (!(hasExtension(targetFile, DOT_XML) || hasExtension(targetFile, DOT_GRADLE))) {
+        throw new RuntimeException("Only XML or Gradle files can be merged at this point: " + targetFile);
       }
 
-      if (to.exists()) {
+      if (targetFile.exists()) {
         if (myContext.getProject().isInitialized()) {
-          VirtualFile toFile = VfsUtil.findFileByIoFile(to, true);
+          VirtualFile toFile = VfsUtil.findFileByIoFile(targetFile, true);
           final ReadonlyStatusHandler.OperationStatus status = myReadonlyStatusHandler.ensureFilesWritable(toFile);
           if (status.hasReadonlyFiles()) {
-            myContext.getTargetFiles().remove(to);
-            throw new TemplateUserVisibleException(String.format("Attempt to update file that is readonly: %1$s", to.getAbsolutePath()));
+            throw new TemplateUserVisibleException(
+              String.format("Attempt to update file that is readonly: %1$s", targetFile.getAbsolutePath()));
           }
         }
-        targetText = TemplateUtils.readTextFile(myContext.getProject(), to);
+        targetText = TemplateUtils.readTextFile(myContext.getProject(), targetFile);
       }
 
       if (targetText == null) {
         // The target file doesn't exist: don't merge, just copy
         boolean instantiate = hasExtension(from, DOT_FTL);
         if (instantiate) {
-          instantiate(from, to);
+          instantiate(from, targetFile);
         }
         else {
-          copyTemplateResource(from, to);
+          copyTemplateResource(from, targetFile);
         }
         return;
       }
@@ -193,31 +192,32 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
         sourceText = processFreemarkerTemplate(myContext, from, null);
       }
       else {
-        from = myContext.getLoader().getSourceFile(from);
-        sourceText = readTextFile(from);
+        sourceText = readTextFile(sourceFile);
         if (sourceText == null) {
           return;
         }
       }
 
       String contents;
-      if (to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
+      if (targetFile.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
         contents = RecipeMergeUtils.mergeGradleSettingsFile(sourceText, targetText);
         myNeedsGradleSync = true;
       }
-      else if (to.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
+      else if (targetFile.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
         String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
         contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myContext.getProject(), compileSdkVersion);
         myNeedsGradleSync = true;
       }
-      else if (hasExtension(to, DOT_XML)) {
-        contents = RecipeMergeUtils.mergeXml(myContext, sourceText, targetText, to);
+      else if (hasExtension(targetFile, DOT_XML)) {
+        contents = RecipeMergeUtils.mergeXml(myContext, sourceText, targetText, targetFile);
       }
       else {
-        throw new RuntimeException("Only XML or Gradle settings files can be merged at this point: " + to);
+        throw new RuntimeException("Only XML or Gradle settings files can be merged at this point: " + targetFile);
       }
 
-      myIO.writeFile(this, contents, to);
+      myIO.writeFile(this, contents, targetFile);
+      myReferences.addSourceFile(sourceFile);
+      myReferences.addTargetFile(targetFile);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -327,24 +327,31 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   }
 
   private void copyTemplateResource(@NotNull File from, @NotNull File to) throws IOException {
-    from = myContext.getLoader().getSourceFile(from);
-    to = getTargetFile(to);
+    File source = myContext.getLoader().getSourceFile(from);
+    File target = getTargetFile(to);
 
-    VirtualFile sourceFile = VfsUtil.findFileByIoFile(from, true);
-    assert sourceFile != null : from;
+    VirtualFile sourceFile = VfsUtil.findFileByIoFile(source, true);
+    assert sourceFile != null : source;
     sourceFile.refresh(false, false);
-    File destPath = (from.isDirectory() ? to : to.getParentFile());
-    if (from.isDirectory()) {
+    File destPath = (source.isDirectory() ? target : target.getParentFile());
+    if (source.isDirectory()) {
       copyDirectory(sourceFile, destPath);
+    }
+    else if (target.exists()) {
+      if (!compareFile(myContext.getProject(), sourceFile, target)) {
+        addFileAlreadyExistWarning(target);
+      }
     }
     else {
       Document document = FileDocumentManager.getInstance().getDocument(sourceFile);
       if (document != null) {
-        myIO.writeFile(this, document.getText(), to);
+        myIO.writeFile(this, document.getText(), target);
       }
       else {
-        myIO.copyFile(this, sourceFile, destPath, to.getName());
+        myIO.copyFile(this, sourceFile, destPath, target.getName());
       }
+      myReferences.addSourceFile(source);
+      myReferences.addTargetFile(target);
     }
   }
 
@@ -365,6 +372,8 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       }
       else {
         myIO.copyFile(this, file, target);
+        myReferences.addSourceFile(VfsUtilCore.virtualToIoFile(file));
+        myReferences.addTargetFile(target);
       }
     }
     return true;

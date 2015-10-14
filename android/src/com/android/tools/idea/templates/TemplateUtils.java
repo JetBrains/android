@@ -299,7 +299,10 @@ public class TemplateUtils {
     PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
 
     Document document = FileDocumentManager.getInstance().getDocument(virtualFile);
-    assert document != null;
+    if (document == null) {
+      // The file could be a binary file with no editing support...
+      return;
+    }
 
     psiDocumentManager.commitDocument(document);
 
