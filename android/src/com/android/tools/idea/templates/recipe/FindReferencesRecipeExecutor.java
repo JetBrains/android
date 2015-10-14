@@ -20,6 +20,7 @@ import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingExcept
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * {@link RecipeExecutor} that collects references as a result of
@@ -34,6 +35,9 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
 
   @Override
   public void copy(@NotNull File from, @NotNull File to) {
+    if (from.isDirectory()) {
+      throw new RuntimeException("Directories not supported for Find References");
+    }
     addSourceFile(from);
     addTargetFile(to);
   }
@@ -56,7 +60,7 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
 
   @Override
   public void addFilesToOpen(@NotNull File file) {
-    myContext.getFilesToOpen().add(file);
+    myContext.getFilesToOpen().add(resolveTargetFile(file));
   }
 
   @Override
@@ -73,11 +77,30 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
   public void updateAndSyncGradle() {
   }
 
-  private void addSourceFile(@NotNull File file) {
-    myContext.getSourceFiles().add(file);
+  public void addSourceFile(@NotNull File file) {
+    myContext.getSourceFiles().add(resolveSourceFile(file));
   }
 
-  private void addTargetFile(@NotNull File file) {
-    myContext.getTargetFiles().add(file);
+  public void addTargetFile(@NotNull File file) {
+    myContext.getTargetFiles().add(resolveTargetFile(file));
+  }
+
+  private File resolveSourceFile(@NotNull File file) {
+    if (file.isAbsolute()) {
+      return file;
+    }
+    try {
+      return myContext.getLoader().getSourceFile(file);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private File resolveTargetFile(@NotNull File file) {
+    if (file.isAbsolute()) {
+      return file;
+    }
+    return new File(myContext.getOutputRoot(), file.getPath());
   }
 }
