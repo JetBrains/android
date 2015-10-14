@@ -28,7 +28,6 @@ import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -47,11 +46,6 @@ import static org.junit.Assert.*;
  */
 @BelongsToTestGroups({THEME})
 public class ThemeEditorTableTest extends GuiTestCase {
-  @BeforeClass
-  public static void runBeforeClass() {
-    ThemeEditorTestUtils.enableThemeEditor();
-  }
-
   @Test @IdeGuiTest
   public void testParentValueCell() throws IOException {
     myProjectFrame = importSimpleApplication();
