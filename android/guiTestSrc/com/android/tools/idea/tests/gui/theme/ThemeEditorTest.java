@@ -23,7 +23,6 @@ import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import org.fest.assertions.Index;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -40,11 +39,6 @@ import static org.fest.assertions.Assertions.assertThat;
  */
 @BelongsToTestGroups({THEME})
 public class ThemeEditorTest extends GuiTestCase {
-  @BeforeClass
-  public static void runBeforeClass() {
-    ThemeEditorTestUtils.enableThemeEditor();
-  }
-
   /**
    * Checks that no errors are present in the event log
    */

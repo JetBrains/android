@@ -29,7 +29,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -57,11 +56,6 @@ public class ThemeEditorTestUtils {
     themeEditor.getThemePreviewPanel().getPreviewPanel().waitForRender();
 
     return themeEditor;
-  }
-
-  public static void enableThemeEditor() {
-    // TODO: remove once the theme editor flag has been removed
-    System.setProperty("enable.theme.editor", "true");
   }
 
   /**
