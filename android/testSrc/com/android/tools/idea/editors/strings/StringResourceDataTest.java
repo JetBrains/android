@@ -30,7 +30,10 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class StringResourceDataTest extends AndroidTestCase {
   private VirtualFile resourceDirectory;
@@ -79,6 +82,15 @@ public class StringResourceDataTest extends AndroidTestCase {
     Table<String, Locale, ResourceItem> translations = data.getTranslations();
     assertNull(translations.get("key1", Locale.create("hi")));
     assertEquals("Key 2 hi", StringResourceData.resourceToString(translations.get("key2", Locale.create("hi"))));
+  }
+
+  public void testUnescaping() {
+    Table<String, Locale, ResourceItem> translations = data.getTranslations();
+    Locale locale = Locale.create("fr");
+
+    assertEquals("L'Étranger", StringResourceData.resourceToString(translations.get("key8", locale)));
+    assertEquals("<![CDATA[L'Étranger]]>", StringResourceData.resourceToString(translations.get("key9", locale)));
+    assertEquals("<xliff:g>L'Étranger</xliff:g>", StringResourceData.resourceToString(translations.get("key10", locale)));
   }
 
   public void testValidation() {
@@ -177,22 +189,23 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   public void testEditingXliff() {
-    VirtualFile res = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    ModuleResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res));
-    StringResourceData data = StringResourceParser.parse(myFacet, repository);
-
-    final Locale locale = Locale.create("en-rIN");
     String key = "key3";
-
+    Locale locale = Locale.create("en-rIN");
     String currentData = StringResourceData.resourceToString(data.getTranslations().get(key, locale));
+
     assertEquals("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end", currentData);
     assertTrue(data.setTranslation(key, locale, currentData.replace("%s", "%1$s")));
 
-    final String expected = "start<xliff:g>middle1</xliff:g>%1$s\n" +
-                            "      <xliff:g>middle3</xliff:g>\n" +
-                            "      end";
+    String expected = "start<xliff:g>middle1</xliff:g>%1$s\n" +
+                      "      <xliff:g>middle3</xliff:g>\n" +
+                      "      end";
+
     assertEquals(expected, StringResourceData.resourceToString(data.getTranslations().get(key, locale)));
-    XmlTag tag = getNthXmlTag(res.findFileByRelativePath("values-en-rIN/strings.xml"), "string", 2);
+
+    VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
+    assert file != null;
+
+    XmlTag tag = getNthXmlTag(file, "string", 2);
     assertEquals("key3", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(expected, tag.getValue().getText().trim());
   }
