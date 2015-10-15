@@ -32,6 +32,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   private JCheckBox myEnableModuleSelectionOnImportCheckBox;
   private JSpinner myModuleNumberSpinner;
   private JCheckBox mySkipSourceGenOnSyncCheckbox;
+  private JCheckBox myLoadAllTestArtifactsCheckbox;
 
   public GradleExperimentalSettingsConfigurable() {
     mySettings = GradleExperimentalSettings.getInstance();
@@ -70,7 +71,8 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   @Override
   public boolean isModified() {
     if (mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled() ||
-        mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync()) {
+        mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
+        mySettings.LOAD_ALL_TEST_ARTIFACTS != isLoadAllTestArtifacts()) {
       return true;
     }
     Integer value = getMaxModuleCountForSourceGen();
@@ -81,6 +83,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   public void apply() throws ConfigurationException {
     mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = isModuleSelectionOnImportEnabled();
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = isSkipSourceGenOnSync();
+    mySettings.LOAD_ALL_TEST_ARTIFACTS = isLoadAllTestArtifacts();
     Integer value = getMaxModuleCountForSourceGen();
     if (value != null) {
       mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = value;
@@ -101,11 +104,16 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
     return mySkipSourceGenOnSyncCheckbox.isSelected();
   }
 
+  private boolean isLoadAllTestArtifacts() {
+    return myLoadAllTestArtifactsCheckbox.isSelected();
+  }
+
   @Override
   public void reset() {
     myEnableModuleSelectionOnImportCheckBox.setSelected(mySettings.SELECT_MODULES_ON_PROJECT_IMPORT);
     mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
+    myLoadAllTestArtifactsCheckbox.setSelected(mySettings.LOAD_ALL_TEST_ARTIFACTS);
   }
 
   @Override
