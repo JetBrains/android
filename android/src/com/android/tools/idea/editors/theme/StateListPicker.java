@@ -89,8 +89,8 @@ public class StateListPicker extends JPanel {
 
   private boolean myIsBackgroundStateList;
   /** If not null, it contains colors to compare with the state list items colors to find out any possible contrast problems,
-   *  and warnings to use in case there is a problem. */
-  private @NotNull ImmutableMap<String, Color> myContrastColorsWithWarning = ImmutableMap.of();
+   *  and descriptions to use in case there is a problem. */
+  private @NotNull ImmutableMap<String, Color> myContrastColorsWithDescription = ImmutableMap.of();
 
   public StateListPicker(@NotNull ResourceHelper.StateList stateList,
                          @NotNull Module module,
@@ -294,8 +294,8 @@ public class StateListPicker extends JPanel {
     return url != null && url.framework && !targetData.isResourcePublic(url.type.getName(), url.name);
   }
 
-  public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithWarning, boolean isBackgroundStateList) {
-    myContrastColorsWithWarning = contrastColorsWithWarning;
+  public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription, boolean isBackgroundStateList) {
+    myContrastColorsWithDescription = contrastColorsWithDescription;
     myIsBackgroundStateList = isBackgroundStateList;
   }
 
@@ -329,8 +329,9 @@ public class StateListPicker extends JPanel {
         new ChooseResourceDialog(myModule, myConfiguration, allowedTypes, attributeValue, isFrameworkValue,
                                  ChooseResourceDialog.ResourceNameVisibility.FORCE, nameSuggestion);
 
-      if (!myContrastColorsWithWarning.isEmpty()) {
-        dialog.setContrastParameters(myContrastColorsWithWarning, myIsBackgroundStateList);
+      if (!myContrastColorsWithDescription.isEmpty()) {
+        dialog
+          .setContrastParameters(myContrastColorsWithDescription, myIsBackgroundStateList, !myStateList.getDisabledStates().contains(myState));
       }
 
       dialog.show();

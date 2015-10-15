@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import com.intellij.openapi.project.Project;
 
 import java.awt.*;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.List;
 
 @SuppressWarnings("UseJBColor")
 public class ColorUtils {
@@ -37,6 +37,7 @@ public class ColorUtils {
 
   // Recommended minimum contrast ratio between colors for safe readability
   private static final double THRESHOLD = 4.5;
+  private static final String DISABLED_PREFIX = "Disabled";
 
   static {
     /* Pairs which contrast needs to be checked. Adding more pairs where will automatically add them to the CONTRAST_MAP */
@@ -90,11 +91,11 @@ public class ColorUtils {
 
   /**
    * @param styleAttributeName the name of a style attribute we want to check for contrast issues
-   * @return all the colors the attribute needs to be checked against, each associated with the appropriate string to use in a warning
+   * @return all the colors the attribute needs to be checked against, each associated with the appropriate description
    */
   @NotNull
-  public static ImmutableMap<String, Color> getContrastColorsWithWarning(@NotNull ThemeEditorContext context,
-                                                                         @NotNull String styleAttributeName) {
+  public static ImmutableMap<String, Color> getContrastColorsWithDescription(@NotNull ThemeEditorContext context,
+                                                                             @NotNull String styleAttributeName) {
     ImmutableMap.Builder<String, Color> contrastColorsBuilder = ImmutableMap.builder();
     ResourceResolver styleResourceResolver = context.getResourceResolver();
     assert styleResourceResolver != null;
@@ -104,6 +105,7 @@ public class ColorUtils {
     for (ItemResourceValue contrastItem : contrastItems) {
       ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(styleResourceResolver, contrastItem, project);
       if (stateList != null) {
+        List<ResourceHelper.StateListState> disabledStates = stateList.getDisabledStates();
         for (ResourceHelper.StateListState stateListState : stateList.getStates()) {
           Color stateListColor = ResourceHelper
             .resolveColor(styleResourceResolver, styleResourceResolver.findResValue(stateListState.getValue(), false), project);
@@ -115,9 +117,12 @@ public class ColorUtils {
               // If the alpha value is not valid, Android uses 1.0, so nothing more needs to be done, we can use stateListColor directly
               LOG.warn(String.format(ResourceHelper.ALPHA_FLOATING_ERROR_FORMAT, stateList.getDirName(), stateList.getFileName()));
             }
-            contrastColorsBuilder.put(
-              ThemeEditorUtils.generateWordEnumeration(stateListState.getAttributesNames(false)) + " <b>" + contrastItem.getName() + "</b>",
-              stateListColor);
+            String disabledPrefix = disabledStates.contains(stateListState) ? DISABLED_PREFIX : "";
+            contrastColorsBuilder.put(disabledPrefix +
+                                      ThemeEditorUtils.generateWordEnumeration(stateListState.getAttributesNames(false)) +
+                                      " <b>" +
+                                      contrastItem.getName() +
+                                      "</b>", stateListColor);
           }
         }
       }
@@ -132,17 +137,22 @@ public class ColorUtils {
   }
 
   /**
-   * @param contrastColorsWithWarning all the colors to be tested, and their associated warning if there is a problem
+   * @param contrastColorsWithDescription all the colors to be tested, and their associated description
    * @param color color to be tested against for contrast issues
    * @param isBackground whether color is a background color or not
    * @return the HTML-formatted contrast warning message or an empty string if there are no contrast conflicts
    */
   @NotNull
-  public static String getContrastWarningMessage(@NotNull Map<String, Color> contrastColorsWithWarning,
+  public static String getContrastWarningMessage(@NotNull Map<String, Color> contrastColorsWithDescription,
                                                  @NotNull Color color,
                                                  boolean isBackground) {
     ImmutableSet.Builder<String> lowContrastColorsBuilder = ImmutableSet.builder();
-    for (Map.Entry<String, Color> contrastColor : contrastColorsWithWarning.entrySet()) {
+    for (Map.Entry<String, Color> contrastColor : contrastColorsWithDescription.entrySet()) {
+      String colorDescription = contrastColor.getKey();
+      if (colorDescription.startsWith(DISABLED_PREFIX)) {
+        // this color comes from a disabled state list state, we ignore it for contrast comparisons
+        continue;
+      }
       Color otherColor = contrastColor.getValue();
       if (isBackground) {
         Color backgroundColor = worstContrastColor(otherColor, color);
@@ -155,7 +165,7 @@ public class ColorUtils {
         color = alphaBlending(color, otherColor);
       }
       if (calculateContrastRatio(color, otherColor) < THRESHOLD) {
-        lowContrastColorsBuilder.add(contrastColor.getKey());
+        lowContrastColorsBuilder.add(colorDescription);
       }
     }
 
