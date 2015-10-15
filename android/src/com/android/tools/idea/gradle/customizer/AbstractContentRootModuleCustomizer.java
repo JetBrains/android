@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.google.common.collect.Lists;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -35,22 +37,26 @@ import static com.android.tools.idea.gradle.util.FilePaths.*;
 
 public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCustomizer<T> {
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable T externalProjectModel) {
+  public void customizeModule(@NotNull Project project,
+                              @NotNull Module module,
+                              @NotNull IdeModifiableModelsProvider modelsProvider,
+                              @Nullable T externalProjectModel) {
     if (externalProjectModel == null) {
       return;
     }
 
-    for (ContentEntry contentEntry : moduleModel.getContentEntries()) {
-      moduleModel.removeContentEntry(contentEntry);
+    final ModifiableRootModel ideaModuleModel = modelsProvider.getModifiableRootModel(module);
+    for (ContentEntry contentEntry : ideaModuleModel.getContentEntries()) {
+      ideaModuleModel.removeContentEntry(contentEntry);
     }
 
-    Collection<ContentEntry> contentEntries = findOrCreateContentEntries(moduleModel, externalProjectModel);
+    Collection<ContentEntry> contentEntries = findOrCreateContentEntries(ideaModuleModel, externalProjectModel);
     List<RootSourceFolder> orphans = Lists.newArrayList();
-    setUpContentEntries(moduleModel, contentEntries, externalProjectModel, orphans);
+    setUpContentEntries(ideaModuleModel, contentEntries, externalProjectModel, orphans);
 
     for (RootSourceFolder orphan : orphans) {
       File path = orphan.getPath();
-      ContentEntry contentEntry = moduleModel.addContentEntry(pathToIdeaUrl(path));
+      ContentEntry contentEntry = ideaModuleModel.addContentEntry(pathToIdeaUrl(path));
       addSourceFolder(contentEntry, path, orphan.getType(), orphan.isGenerated());
     }
   }
