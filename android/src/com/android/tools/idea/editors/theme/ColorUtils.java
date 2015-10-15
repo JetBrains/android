@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.utils.Pair;
 import com.google.common.collect.*;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import com.intellij.openapi.project.Project;
 
@@ -28,7 +29,9 @@ import java.awt.*;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings("UseJBColor")
 public class ColorUtils {
+  private static final Logger LOG = Logger.getInstance(ColorUtils.class);
   private static final @NotNull ImmutableSetMultimap<String, String> CONTRAST_MAP;
   private static final @NotNull ImmutableSet<String> BACKGROUND_ATTRIBUTES;
 
@@ -105,9 +108,16 @@ public class ColorUtils {
           Color stateListColor = ResourceHelper
             .resolveColor(styleResourceResolver, styleResourceResolver.findResValue(stateListState.getValue(), false), project);
           if (stateListColor != null) {
-            for (String attributeName : stateListState.getAttributesNames(false)) {
-              contrastColorsBuilder.put(attributeName + " <b>" + contrastItem.getName() + "</b>", stateListColor);
+            try {
+              stateListColor = ResourceHelper.makeColorWithAlpha(styleResourceResolver, stateListColor, stateListState.getAlpha());
             }
+            catch (NumberFormatException e) {
+              // If the alpha value is not valid, Android uses 1.0, so nothing more needs to be done, we can use stateListColor directly
+              LOG.warn(String.format(ResourceHelper.ALPHA_FLOATING_ERROR_FORMAT, stateList.getDirName(), stateList.getFileName()));
+            }
+            contrastColorsBuilder.put(
+              ThemeEditorUtils.generateWordEnumeration(stateListState.getAttributesNames(false)) + " <b>" + contrastItem.getName() + "</b>",
+              stateListColor);
           }
         }
       }
@@ -124,14 +134,27 @@ public class ColorUtils {
   /**
    * @param contrastColorsWithWarning all the colors to be tested, and their associated warning if there is a problem
    * @param color color to be tested against for contrast issues
+   * @param isBackground whether color is a background color or not
    * @return the HTML-formatted contrast warning message or an empty string if there are no contrast conflicts
    */
   @NotNull
   public static String getContrastWarningMessage(@NotNull Map<String, Color> contrastColorsWithWarning,
-                                                 @NotNull Color color) {
+                                                 @NotNull Color color,
+                                                 boolean isBackground) {
     ImmutableSet.Builder<String> lowContrastColorsBuilder = ImmutableSet.builder();
     for (Map.Entry<String, Color> contrastColor : contrastColorsWithWarning.entrySet()) {
-      if (calculateContrastRatio(color, contrastColor.getValue()) < THRESHOLD) {
+      Color otherColor = contrastColor.getValue();
+      if (isBackground) {
+        Color backgroundColor = worstContrastColor(otherColor, color);
+        color = alphaBlending(color, backgroundColor);
+        otherColor = alphaBlending(otherColor, color);
+      }
+      else {
+        Color backgroundColor = worstContrastColor(color, otherColor);
+        otherColor = alphaBlending(otherColor, backgroundColor);
+        color = alphaBlending(color, otherColor);
+      }
+      if (calculateContrastRatio(color, otherColor) < THRESHOLD) {
         lowContrastColorsBuilder.add(contrastColor.getKey());
       }
     }
@@ -144,6 +167,56 @@ public class ColorUtils {
     }
 
     return "";
+  }
+
+  /**
+   * Returns the color that, placed underneath the colors background and foreground, would result in the worst contrast
+   */
+  @NotNull
+  public static Color worstContrastColor(@NotNull Color foreground, @NotNull Color background) {
+    int backgroundAlpha = background.getAlpha();
+    int r = worstContrastComponent(foreground.getRed(), background.getRed(), backgroundAlpha);
+    int g = worstContrastComponent(foreground.getGreen(), background.getGreen(), backgroundAlpha);
+    int b = worstContrastComponent(foreground.getBlue(), background.getBlue(), backgroundAlpha);
+    return new Color(r, g, b);
+  }
+
+  private static int worstContrastComponent(int foregroundComponent, int backgroundComponent, int backgroundAlpha) {
+    if (backgroundAlpha == 255) {
+      // Irrelevant since background is completely opaque in this case
+      return 0;
+    }
+    int component = (255 * foregroundComponent - backgroundAlpha * backgroundComponent) / (255 - backgroundAlpha);
+    return ResourceHelper.clamp(component, 0, 255);
+  }
+
+  /**
+   * Returns the color that is the result of having a foreground color on top of a background color
+   */
+  @NotNull
+  public static Color alphaBlending(@NotNull Color foreground, @NotNull Color background) {
+    float foregroundAlpha = foreground.getAlpha() / 255.0f;
+    float backgroundAlpha = background.getAlpha() / 255.0f;
+    float a = foregroundAlpha + backgroundAlpha * (1 - foregroundAlpha);
+    float r = alphaBlendingComponent(foreground.getRed(), foregroundAlpha, background.getRed(), backgroundAlpha);
+    float g = alphaBlendingComponent(foreground.getGreen(), foregroundAlpha, background.getGreen(), backgroundAlpha);
+    float b = alphaBlendingComponent(foreground.getBlue(), foregroundAlpha, background.getBlue(), backgroundAlpha);
+    return new Color(r, g, b, a);
+  }
+
+  /**
+   * Computes one RGB component for the blending of two colors
+   * @see #alphaBlending(Color, Color)
+   */
+  private static float alphaBlendingComponent(int foregroundComponent,
+                                              float foregroundAlpha,
+                                              int backgroundComponent,
+                                              float backgroundAlpha) {
+    float alpha = foregroundAlpha + backgroundAlpha * (1 - foregroundAlpha);
+    if (Math.abs(alpha) < 0.001) {
+      return 1;
+    }
+    return (foregroundAlpha * foregroundComponent + backgroundAlpha * backgroundComponent * (1 - foregroundAlpha)) / (255.0f * alpha);
   }
 
   /**

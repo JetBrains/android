@@ -1,12 +1,7 @@
 <resources>
-  <style name="Theme.MyTheme">
+  <style name="MyTheme" parent="android:Theme">
     <item name="android:colorPrimary">#FFFFFF</item>
     <item name="android:textColor">#EEEEEE</item>
     <item name="android:textColorPrimary">#DDDDDD</item>
-  </style>
-
-  <style name="Theme.MyChildTheme" parent="Theme.MyTheme">
-    <item name="android:colorPrimary">#AFAFAF</item>
-    <item name="android:textColor">#AEAEAE</item>
   </style>
 </resources>
