@@ -160,6 +160,19 @@ public class FastDeployManager implements ProjectComponent {
   }
 
   /**
+   * The application state on device/emulator: the app is not running (or we cannot find it due to
+   * connection problems etc), or it's in the foreground or background.
+   */
+  public enum AppState {
+    /** The app is not running (or we cannot find it due to connection problems etc) */
+    NOT_RUNNING,
+    /** The app is actively running in the foreground */
+    FOREGROUND,
+    /** The app is running, but is not in the foreground */
+    BACKGROUND
+  }
+
+  /**
    * Checks whether the app associated with the given module is already running on the given device
    *
    * @param device the device to check
@@ -168,8 +181,10 @@ public class FastDeployManager implements ProjectComponent {
    * @return true if the app is already running and is listening for incremental updates
    */
   public static boolean isAppRunning(@NotNull IDevice device, @NotNull Module module) {
-    FastDeployManager manager = get(module.getProject());
-    return manager.ping(device, module);
+    AppState appState = getAppState(device, module);
+    // TODO: Use appState != AppState.NOT_RUNNING instead when we automatically
+    // handle fronting background activities here
+    return appState != AppState.FOREGROUND;
   }
 
   /**
@@ -809,10 +824,11 @@ public class FastDeployManager implements ProjectComponent {
   /**
    * Attempts to connect to a given device and sees if an instant run enabled app is running there.
    */
-  public boolean ping(@NotNull IDevice device, @NotNull Module module) {
+  @NotNull
+  public static AppState getAppState(@NotNull IDevice device, @NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
-      return false;
+      return AppState.NOT_RUNNING;
     }
 
     String packageName;
@@ -820,8 +836,8 @@ public class FastDeployManager implements ProjectComponent {
       packageName = ApkProviderUtil.computePackageName(facet);
     }
     catch (ApkProvisionException e) {
-      LOG.warn("Unable to identify package name for app in module: " + module.getName());
-      return false;
+      LOG.warn("Unable to identify package name for app in module: " + facet.getModule().getName());
+      return AppState.NOT_RUNNING;
     }
 
     try {
@@ -838,13 +854,13 @@ public class FastDeployManager implements ProjectComponent {
             // Wait for "pong"
             DataInputStream input = new DataInputStream(socket.getInputStream());
             try {
-              input.readBoolean();
+              boolean foreground = input.readBoolean();
+              LOG.info("Ping sent and replied successfully, application seems to be running. Foreground=" + foreground);
+              return foreground ? AppState.FOREGROUND : AppState.BACKGROUND;
             }
             finally {
               input.close();
             }
-            LOG.info("Ping sent and replied successfully, application seems to be running..");
-            return true;
           } finally {
             output.close();
           }
@@ -853,14 +869,14 @@ public class FastDeployManager implements ProjectComponent {
         }
       }
       catch (Throwable e) {
-        return false;
+        return AppState.NOT_RUNNING;
       }
       finally {
         device.removeForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
       }
     }
     catch (Throwable e) {
-      return false;
+      return AppState.NOT_RUNNING;
     }
   }
 
