@@ -25,6 +25,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
@@ -39,6 +40,9 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
 import static com.android.tools.lint.checks.PluralsDetector.IMPLIED_QUANTITY;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_REQUIRED;
+import static com.android.xml.AndroidManifest.NODE_USES_FEATURE;
+import static com.android.xml.AndroidManifest.NODE_USES_PERMISSION;
 
 /**
  * Registrations for all the various Lint rules as local IDE inspections, along with quickfixes for many of them
@@ -1819,6 +1823,105 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintWrongFolderInspection extends AndroidLintInspectionBase {
     public AndroidLintWrongFolderInspection() {
       super(AndroidBundle.message("android.lint.inspections.wrong.folder"), WrongLocationDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintMissingLeanbackLauncherInspection extends AndroidLintInspectionBase {
+    public AndroidLintMissingLeanbackLauncherInspection() {
+      super(AndroidBundle.message("android.lint.inspections.missing.leanback.launcher"), AndroidTvDetector.MISSING_LEANBACK_LAUNCHER);
+    }
+  }
+
+  public static class AndroidLintMissingLeanbackSupportInspection extends AndroidLintInspectionBase {
+    public AndroidLintMissingLeanbackSupportInspection() {
+      super(AndroidBundle.message("android.lint.inspections.missing.leanback.support"), AndroidTvDetector.MISSING_LEANBACK_SUPPORT);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[]{new DefaultLintQuickFix("Add uses-feature tag") {
+        @Override
+        public void apply(@NotNull PsiElement startElement,
+                          @NotNull PsiElement endElement,
+                          @NotNull AndroidQuickfixContexts.Context context) {
+          XmlTag parent = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
+          if (parent != null) {
+            XmlTag usesFeatureTag = parent.createChildTag(NODE_USES_FEATURE, null, null, false);
+            usesFeatureTag = parent.addSubTag(usesFeatureTag, true);
+            usesFeatureTag.setAttribute(ATTR_NAME, ANDROID_URI, AndroidTvDetector.SOFTWARE_FEATURE_LEANBACK);
+            usesFeatureTag.setAttribute(ATTRIBUTE_REQUIRED, ANDROID_URI, String.valueOf(false));
+          }
+        }
+      }};
+    }
+  }
+
+  public static class AndroidLintMissingTvBannerInspection extends AndroidLintInspectionBase {
+    public AndroidLintMissingTvBannerInspection() {
+      super(AndroidBundle.message("android.lint.inspections.missing.tvbanner"), AndroidTvDetector.MISSING_BANNER);
+    }
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return new AndroidLintQuickFix[] { new SetAttributeQuickFix("Set banner attribute", "banner", null) };
+    }
+  }
+
+  public static class AndroidLintPermissionImpliesUnsupportedHardwareInspection extends AndroidLintInspectionBase {
+    public AndroidLintPermissionImpliesUnsupportedHardwareInspection() {
+      super(AndroidBundle.message("android.lint.inspections.permission.implies.unsupported.hardware"), AndroidTvDetector.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      final String hardwareFeatureName = AndroidTvDetector.getHardwareFeature(message, RAW);
+      if (hardwareFeatureName != null) {
+        return new AndroidLintQuickFix[] {
+          new DefaultLintQuickFix("Add uses-feature tag") {
+            @Override
+            public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement,
+                              @NotNull AndroidQuickfixContexts.Context context) {
+              XmlTag usesPermissionTag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
+              if (startElement.textMatches(NODE_USES_PERMISSION) && usesPermissionTag != null) {
+                XmlTag parent = (XmlTag)usesPermissionTag.getParent();
+                if (parent != null) {
+                  XmlTag usesFeatureTag = parent.createChildTag(NODE_USES_FEATURE, null, null, false);
+                  usesFeatureTag = parent.addSubTag(usesFeatureTag, true);
+                  usesFeatureTag.setAttribute(ATTR_NAME, ANDROID_URI, hardwareFeatureName);
+                  usesFeatureTag.setAttribute(ATTRIBUTE_REQUIRED, ANDROID_URI, String.valueOf(false));
+                }
+              }
+            }
+          }
+        };
+      } else {
+        return AndroidLintQuickFix.EMPTY_ARRAY;
+      }
+    }
+  }
+
+  public static class AndroidLintUnsupportedTvHardwareInspection extends AndroidLintInspectionBase {
+    public AndroidLintUnsupportedTvHardwareInspection() {
+      super(AndroidBundle.message("android.lint.inspections.unsupported.tvhardware"), AndroidTvDetector.UNSUPPORTED_TV_HARDWARE);
+    }
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      if (startElement.textMatches(PREFIX_ANDROID + ATTRIBUTE_REQUIRED)) {
+        // android:required attribute
+        XmlAttribute attr = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class);
+        assert attr != null;
+        return new AndroidLintQuickFix[] {
+          new ReplaceStringQuickFix("Replace with required=\"false\"",
+                                    null,
+                                    PREFIX_ANDROID + ATTRIBUTE_REQUIRED + "=\"" + false + "\""),
+        };
+      } else if (startElement.textMatches(NODE_USES_FEATURE)) {
+        return new AndroidLintQuickFix[]{new SetAttributeQuickFix("Set required=\"false\"", ATTRIBUTE_REQUIRED, String.valueOf(false)),};
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
     }
   }
 }
