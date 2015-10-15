@@ -800,7 +800,11 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       myContrastColorsWithWarning = contrastColorsWithWarning;
       myContrastColorSet = ImmutableSet.copyOf(contrastColorsWithWarning.values());
       myIsBackgroundColor = isBackgroundColor;
-      myErrorString = ColorUtils.getContrastWarningMessage(contrastColorsWithWarning, myColor);
+      setErrorString(ColorUtils.getContrastWarningMessage(myContrastColorsWithWarning, myColor, myIsBackgroundColor));
+    }
+
+    private void setErrorString(@NotNull String error) {
+      myErrorString = error;
       setToolTipText(myErrorString);
     }
 
@@ -817,8 +821,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     public void setColor(Color c) {
       myColor = c;
       if (myIsContrastPreview) {
-        myErrorString = ColorUtils.getContrastWarningMessage(myContrastColorsWithWarning, c);
-        setToolTipText(myErrorString);
+        setErrorString(ColorUtils.getContrastWarningMessage(myContrastColorsWithWarning, c, myIsBackgroundColor));
       }
       repaint();
     }
@@ -831,6 +834,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       final int width = r.width - i.left - i.right;
       final int height = r.height - i.top - i.bottom;
       com.intellij.util.ui.GraphicsUtil.setupAntialiasing(g);
+
+      GraphicsUtil.paintCheckeredBackground(g, r);
+
       if (!myIsContrastPreview) {
         g.setColor(myColor);
         g.fillRect(i.left, i.top, width, height);
@@ -856,10 +862,6 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       if (!myErrorString.isEmpty()) {
         WARNING_ICON.paintIcon(this, g, width - PADDING, height - PADDING);
       }
-    }
-
-    public interface WarningStringGenerator {
-      String generateWarningString(@NotNull Color color);
     }
   }
 
