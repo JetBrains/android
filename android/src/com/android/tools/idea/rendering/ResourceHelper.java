@@ -61,6 +61,7 @@ import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_IND
 public class ResourceHelper {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ResourceHelper");
   public static final String STATE_NAME_PREFIX = "state_";
+  public static final String ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1$s/%2$s does not resolve to a floating point number";
 
   /**
    * Returns true if the given style represents a project theme
@@ -487,10 +488,9 @@ public class ResourceHelper {
             result.add(makeColorWithAlpha(resources, color, state.getAlpha()));
           }
           catch (NumberFormatException e) {
-            // If the alpha value is not valid, Android uses 1.0
+            // If the alpha value is not valid, Android uses 1.0 so nothing more needs to be done, we simply take color as it is
             result.add(color);
-            LOG.warn(String.format("The alpha attribute in %s/%s does not resolve to a floating point number", stateList.getDirName(),
-                                   stateList.getFileName()));
+            LOG.warn(String.format(ALPHA_FLOATING_ERROR_FORMAT, stateList.getDirName(), stateList.getFileName()));
           }
         }
       }
@@ -518,7 +518,7 @@ public class ResourceHelper {
   }
 
   @NotNull
-  private static Color makeColorWithAlpha(@NotNull RenderResources resources, @NotNull Color color, @Nullable String alphaValue)
+  public static Color makeColorWithAlpha(@NotNull RenderResources resources, @NotNull Color color, @Nullable String alphaValue)
     throws NumberFormatException {
     float alpha = 1.0f;
     if (alphaValue != null) {
@@ -526,13 +526,7 @@ public class ResourceHelper {
     }
 
     int combinedAlpha = (int)(color.getAlpha() * alpha);
-    if (combinedAlpha < 0) {
-      combinedAlpha = 0;
-    }
-    if (combinedAlpha > 255) {
-      combinedAlpha = 255;
-    }
-    return ColorUtil.toAlpha(color, combinedAlpha);
+    return ColorUtil.toAlpha(color, clamp(combinedAlpha, 0, 255));
   }
 
   /**
@@ -779,6 +773,10 @@ public class ResourceHelper {
     }
 
     return name;
+  }
+
+  public static int clamp(int i, int min, int max) {
+    return Math.max(min, Math.min(i, max));
   }
 
   /**
