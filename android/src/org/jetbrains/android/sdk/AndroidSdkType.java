@@ -214,7 +214,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   }
 
   @Override
-  public boolean isRootTypeApplicable(OrderRootType type) {
+  public boolean isRootTypeApplicable(@NotNull OrderRootType type) {
     return type == OrderRootType.CLASSES ||
            type == OrderRootType.SOURCES ||
            type == JavadocOrderRootType.getInstance() ||
