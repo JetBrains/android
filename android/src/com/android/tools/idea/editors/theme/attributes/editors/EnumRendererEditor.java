@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.StyleResolver;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 
@@ -32,11 +32,17 @@ import java.awt.event.ActionListener;
  * Uses a ComboBox for a dropdown list of choices
  * In the case where other values are allowed, makes the ComboBox editable
  */
-public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
+public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   private final ComboBox myComboBox;
 
   public EnumRendererEditor() {
-    myComboBox = new ComboBox();
+    // Override isShowing because of the use of a {@link CellRendererPane}
+    myComboBox = new ComboBox() {
+      @Override
+      public boolean isShowing() {
+        return true;
+      }
+    };
     myComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -65,7 +71,7 @@ public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, Attribu
   @Override
   public Component getEditorComponent(JTable table, EditedStyleItem value, boolean isSelected, int row, int column) {
     AttributeDefinition attrDefinition =
-      StyleResolver.getAttributeDefinition(value.getSourceStyle().getConfiguration(), value.getItemResourceValue());
+      ResolutionUtils.getAttributeDefinition(value.getSourceStyle().getConfiguration(), value.getSelectedValue());
     if (attrDefinition != null) {
       if (attrDefinition.getFormats().size() > 1) {
         myComboBox.setEditable(true); // makes the box editable for items that can take values outside of the choices
@@ -79,7 +85,7 @@ public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, Attribu
   }
 
   @Override
-  public AttributeEditorValue getEditorValue() {
-    return new AttributeEditorValue((String) myComboBox.getSelectedItem(), false);
+  public String getEditorValue() {
+    return (String)myComboBox.getSelectedItem();
   }
 }

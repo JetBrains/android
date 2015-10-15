@@ -854,6 +854,10 @@
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadAbsListView"
+        class="android.support.v7.widget.RecyclerView"
+        tag="android.support.v7.widget.RecyclerView" />
+
+  <meta model="com.intellij.android.designer.model.RadAbsListView"
         class="android.widget.ListView"
         tag="ListView"
         fill="width_in_vertical">

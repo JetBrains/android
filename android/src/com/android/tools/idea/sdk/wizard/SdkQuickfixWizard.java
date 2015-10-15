@@ -18,10 +18,10 @@ package com.android.tools.idea.sdk.wizard;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
-import com.android.tools.idea.wizard.DialogWrapperHost;
-import com.android.tools.idea.wizard.DynamicWizard;
-import com.android.tools.idea.wizard.DynamicWizardPath;
-import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -31,7 +31,9 @@ import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -71,6 +73,7 @@ import static com.android.tools.idea.wizard.WizardConstants.SKIPPED_INSTALL_REQU
  */
 public class SdkQuickfixWizard extends DynamicWizard {
   private final List<IPkgDesc> myRequestedPackages;
+  private boolean myIsExiting = false;
 
   public SdkQuickfixWizard(@Nullable Project project, @Nullable Module module, List<IPkgDesc> requestedPackages) {
     this(project, module, requestedPackages, new DialogWrapperHost(project));
@@ -124,18 +127,37 @@ public class SdkQuickfixWizard extends DynamicWizard {
     }
     if (selectedOption == 0) {
       startSdkManagerAndExit();
+      myIsExiting = true;
+      return;
     }
-    else {
-      for (IPkgDesc desc : myRequestedPackages) {
-        if (selectedOption == 2 && problems.contains(desc)) {
-          state.listPush(SKIPPED_INSTALL_REQUESTS_KEY, desc);
-        }
-        else {
-          state.listPush(INSTALL_REQUESTS_KEY, desc);
-        }
+
+    for (IPkgDesc desc : myRequestedPackages) {
+      if (selectedOption == 2 && problems.contains(desc)) {
+        state.listPush(SKIPPED_INSTALL_REQUESTS_KEY, desc);
+      }
+      else {
+        state.listPush(INSTALL_REQUESTS_KEY, desc);
       }
     }
     super.init();
+  }
+
+  @Override
+  public boolean showAndGet() {
+    if (myIsExiting) {
+      Disposer.dispose(myHost.getDisposable());
+      return false;
+    }
+    return super.showAndGet();
+  }
+
+  @Override
+  public void show() {
+    if (myIsExiting) {
+      Disposer.dispose(myHost.getDisposable());
+      return;
+    }
+    super.show();
   }
 
   private void startSdkManagerAndExit() {
@@ -178,26 +200,30 @@ public class SdkQuickfixWizard extends DynamicWizard {
       }
     }
     return result;
-
   }
 
   @Override
   public void performFinishingActions() {
     List<IPkgDesc> skipped = myState.get(SKIPPED_INSTALL_REQUESTS_KEY);
     if (skipped != null && !skipped.isEmpty()) {
-      StringBuilder warningBuilder = new StringBuilder("The following packages were not installed.\n\n Would you like to exit ");
+      final StringBuilder warningBuilder = new StringBuilder("The following packages were not installed.\n\n Would you like to exit ");
       warningBuilder.append(ApplicationNamesInfo.getInstance().getFullProductName());
       warningBuilder.append(" and install the following packages using the standalone SDK manager?");
       for (IPkgDesc problemPkg : skipped) {
         warningBuilder.append("\n");
         warningBuilder.append(problemPkg.getListDescription());
       }
-      String restartOption = String.format("Exit %s and launch SDK Manager", ApplicationNamesInfo.getInstance().getProductName());
-      int result = Messages.showDialog(getProject(), warningBuilder.toString(), "Warning", new String[]{restartOption, "Skip installation"},
-                                       0, AllIcons.General.Warning);
-      if (result == 0) {
-        startSdkManagerAndExit();
-      }
+      UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          String restartOption = String.format("Exit %s and launch SDK Manager", ApplicationNamesInfo.getInstance().getProductName());
+          int result = Messages
+            .showDialog(getProject(), warningBuilder.toString(), "Warning", new String[]{restartOption, "Skip installation"}, 0, AllIcons.General.Warning);
+          if (result == 0) {
+            startSdkManagerAndExit();
+          }
+        }
+      });
     }
     // We've already installed things, so clearly there's an SDK.
     AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();

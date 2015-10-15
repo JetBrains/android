@@ -15,22 +15,17 @@
  */
 package com.android.tools.idea.sdk;
 
-import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.*;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
@@ -47,15 +42,12 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
-import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.JavaSdk.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
@@ -63,9 +55,6 @@ public final class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
 
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
-  private static final Logger LOG = Logger.getInstance(IdeSdks.class);
-
-  private static final String ERROR_DIALOG_TITLE = "Project SDK Update";
 
   private IdeSdks() {
   }
@@ -277,12 +266,29 @@ public final class IdeSdks {
       // If there are any API targets that we haven't created IntelliJ SDKs for yet, fill those in.
       List<Sdk> sdks = createAndroidSdkPerAndroidTarget(resolved, javaSdk);
 
-      // Update the local.properties files for any open projects.
-      updateLocalPropertiesAndSync(resolved, currentProject);
+      afterAndroidSdkPathUpdate(resolved);
 
       return sdks;
     }
     return Collections.emptyList();
+  }
+
+  private static void afterAndroidSdkPathUpdate(@NotNull File androidSdkPath) {
+    ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
+    Project[] openProjects = projectManager.getOpenProjects();
+    if (openProjects.length == 0) {
+      return;
+    }
+
+    AndroidSdkEventListener[] eventListeners = AndroidSdkEventListener.EP_NAME.getExtensions();
+    for (Project project : openProjects) {
+      if (!requiresAndroidModel(project)) {
+        continue;
+      }
+      for (AndroidSdkEventListener listener : eventListeners) {
+        listener.afterSdkPathChange(androidSdkPath, project);
+      }
+    }
   }
 
   /**
@@ -309,7 +315,7 @@ public final class IdeSdks {
     if (sdkData == null) {
       return Collections.emptyList();
     }
-    IAndroidTarget[] targets = sdkData.getTargets();
+    IAndroidTarget[] targets = sdkData.getTargets(false /* do not include add-ons */);
     if (targets.length == 0) {
       return Collections.emptyList();
     }
@@ -319,7 +325,9 @@ public final class IdeSdks {
       if (target.isPlatform() && !doesIdeAndroidSdkExist(target)) {
         String name = chooseNameForNewLibrary(target);
         Sdk sdk = createNewAndroidPlatform(target, sdkData.getLocation().getPath(), name, ideSdk, true);
-        sdks.add(sdk);
+        if (sdk != null) {
+          sdks.add(sdk);
+        }
       }
     }
     return sdks;
@@ -345,93 +353,6 @@ public final class IdeSdks {
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(sdk);
     assert androidPlatform != null;
     return androidPlatform.getTarget();
-  }
-
-  private static void updateLocalPropertiesAndSync(@NotNull final File sdkHomePath, @Nullable Project currentProject) {
-    ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
-    Project[] openProjects = projectManager.getOpenProjects();
-    if (openProjects.length == 0) {
-      return;
-    }
-    final List<String> projectsToUpdateNames = Lists.newArrayList();
-    List<Pair<Project, LocalProperties>> localPropertiesToUpdate = Lists.newArrayList();
-
-    for (Project project : openProjects) {
-      if (!isGradleProject(project)) {
-        continue;
-      }
-      try {
-        LocalProperties localProperties = new LocalProperties(project);
-        if (!filesEqual(sdkHomePath, localProperties.getAndroidSdkPath())) {
-          localPropertiesToUpdate.add(Pair.create(project, localProperties));
-          if (!project.equals(currentProject)) {
-            projectsToUpdateNames.add("'" + project.getName() + "'");
-          }
-        }
-      }
-      catch (IOException e) {
-        // Exception thrown when local.properties file exists but cannot be read (e.g. no writing permissions.)
-        logAndShowErrorWhenUpdatingLocalProperties(project, e, "read", sdkHomePath);
-      }
-    }
-    if (!localPropertiesToUpdate.isEmpty()) {
-      if (!projectsToUpdateNames.isEmpty() && !ApplicationManager.getApplication().isUnitTestMode()) {
-        invokeAndWaitIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            String msg = "The local.properties file(s) in the project(s)\n " + projectsToUpdateNames +
-                         "\nwill be modified with the path of Android Studio's Android SDK:\n'" + sdkHomePath + "'";
-            Messages.showErrorDialog(String.format(msg, projectsToUpdateNames, sdkHomePath), "Sync Android SDKs");
-          }
-        });
-      }
-      GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
-      for (Pair<Project, LocalProperties> toUpdate : localPropertiesToUpdate) {
-        Project project = toUpdate.getFirst();
-        try {
-          LocalProperties localProperties = toUpdate.getSecond();
-          if (!filesEqual(sdkHomePath, localProperties.getAndroidSdkPath())) {
-            localProperties.setAndroidSdkPath(sdkHomePath);
-            localProperties.save();
-          }
-        }
-        catch (IOException e) {
-          logAndShowErrorWhenUpdatingLocalProperties(project, e, "update", sdkHomePath);
-          // No point in syncing project if local.properties is pointing to the wrong SDK.
-          continue;
-        }
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
-          // Don't sync in tests. For now.
-          continue;
-        }
-        if (isBuildWithGradle(project)) {
-          projectImporter.requestProjectSync(project, null);
-        }
-      }
-    }
-  }
-
-  private static void logAndShowErrorWhenUpdatingLocalProperties(@NotNull Project project,
-                                                                 @NotNull Exception error,
-                                                                 @NotNull String action,
-                                                                 @NotNull File sdkHomePath) {
-    LOG.info(error);
-    String msg = String.format("Unable to %1$s local.properties file in project '%2$s'.\n\n" +
-                               "Cause: %3$s\n\n" +
-                               "Please manually update the file's '%4$s' property value to \n" +
-                               "'%5$s'\n" +
-                               "and sync the project with Gradle files.", action, project.getName(), getMessage(error),
-                               SdkConstants.SDK_DIR_PROPERTY, sdkHomePath.getPath());
-    Messages.showErrorDialog(project, msg, ERROR_DIALOG_TITLE);
-  }
-
-  @NotNull
-  private static String getMessage(@NotNull Exception e) {
-    String cause = e.getMessage();
-    if (isNullOrEmpty(cause)) {
-      cause = "[Unknown]";
-    }
-    return cause;
   }
 
   @NotNull
@@ -549,5 +470,17 @@ public final class IdeSdks {
   @Nullable
   private static Sdk createJdk(@NotNull File homeDirectory) {
     return Jdks.createJdk(homeDirectory.getPath());
+  }
+
+  public interface AndroidSdkEventListener {
+    ExtensionPointName<AndroidSdkEventListener> EP_NAME = ExtensionPointName.create("com.android.ide.sdkEventListener");
+
+    /**
+     * Notification that the path of the IDE's Android SDK path has changed.
+     *
+     * @param sdkPath the new Android SDK path.
+     * @param project one of the projects currently open in the IDE.
+     */
+    void afterSdkPathChange(@NotNull File sdkPath, @NotNull Project project);
   }
 }

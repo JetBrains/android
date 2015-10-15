@@ -2,6 +2,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
@@ -9,18 +10,22 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.lint.checks.*;
+import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -42,6 +47,18 @@ import static com.android.tools.lint.detector.api.TextFormat.RAW;
  * Registrations for all the various Lint rules as local IDE inspections, along with quickfixes for many of them
  */
 public class AndroidLintInspectionToolProvider {
+  public static class AndroidLintCustomErrorInspection extends AndroidLintInspectionBase {
+    public AndroidLintCustomErrorInspection() {
+      super("Error from Custom Lint Check", IntellijLintIssueRegistry.CUSTOM_ERROR);
+    }
+  }
+
+  public static class AndroidLintCustomWarningInspection extends AndroidLintInspectionBase {
+    public AndroidLintCustomWarningInspection() {
+      super("Warning from Custom Lint Check", IntellijLintIssueRegistry.CUSTOM_WARNING);
+    }
+  }
+
   public static class AndroidLintAaptCrashInspection extends AndroidLintInspectionBase {
     public AndroidLintAaptCrashInspection() {
       super(AndroidBundle.message("android.lint.inspections.aapt.crash"), ResourceCycleDetector.CRASH);
@@ -627,6 +644,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintVectorRasterInspection extends AndroidLintInspectionBase {
+    public AndroidLintVectorRasterInspection() {
+      super(AndroidBundle.message("android.lint.inspections.vector.raster"), VectorDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintViewConstructorInspection extends AndroidLintInspectionBase {
     public AndroidLintViewConstructorInspection() {
       super(AndroidBundle.message("android.lint.inspections.view.constructor"), ViewConstructorDetector.ISSUE);
@@ -823,48 +846,14 @@ public class AndroidLintInspectionToolProvider {
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull final PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
       String before = GradleDetector.getOldValue(GradleDetector.PLUS, message, RAW);
-      if (before != null && before.endsWith("+")) {
+      if (before != null && before.contains("+")) {
         final GradleCoordinate plus = GradleCoordinate.parseCoordinateString(before);
         if (plus != null && plus.getArtifactId() != null) {
           return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with specific version", plus.getFullRevision(), "specific version") {
             @Nullable
             @Override
             protected String getNewValue() {
-              String filter = plus.getFullRevision();
-              assert filter.endsWith("+") : filter;
-              filter = filter.substring(0, filter.length() - 1);
-
-              // If this coordinate points to an artifact in one of our repositories, mark it will a comment if they don't
-              // have that repository available.
-              String artifactId = plus.getArtifactId();
-              if (RepositoryUrlManager.supports(plus.getArtifactId())) {
-                // First look for matches, where we don't allow preview versions
-                String libraryCoordinate = RepositoryUrlManager.get().getLibraryCoordinate(artifactId, filter, false);
-                if (libraryCoordinate != null) {
-                  GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
-                  if (available != null) {
-                    return available.getFullRevision();
-                  }
-                }
-                // If that didn't yield any matches, try again, this time allowing preview platforms.
-                // This is necessary if the artifact filter includes enough of a version where there are
-                // only preview matches.
-                libraryCoordinate = RepositoryUrlManager.get().getLibraryCoordinate(artifactId, filter, true);
-                if (libraryCoordinate != null) {
-                  GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
-                  if (available != null) {
-                    return available.toString();
-                  }
-                }
-              }
-
-              // Regular Gradle dependency? Look in Gradle cache
-              GradleCoordinate found = GradleUtil.findLatestVersionInGradleCache(plus, filter, startElement.getProject());
-              if (found != null) {
-                return found.getFullRevision();
-              }
-
-              return null;
+              return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(plus, startElement.getProject());
             }
           }};
         }
@@ -1094,6 +1083,7 @@ public class AndroidLintInspectionToolProvider {
         }
       }
 
+      list.add(new AddTargetVersionCheckQuickFix(api));
       list.add(new AddTargetApiQuickFix(api, startElement));
 
       return list.toArray(new AndroidLintQuickFix[list.size()]);
@@ -1405,7 +1395,7 @@ public class AndroidLintInspectionToolProvider {
   }
   public static class AndroidLintLocalSuppressInspection extends AndroidLintInspectionBase {
     public AndroidLintLocalSuppressInspection() {
-      super(AndroidBundle.message("android.lint.inspections.local.suppress"), AnnotationDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.local.suppress"), AnnotationDetector.INSIDE_METHOD);
     }
   }
 
@@ -1511,7 +1501,7 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       return new AndroidLintQuickFix[] {
         new SetAttributeQuickFix("Set orientation=\"horizontal\" (default)", ATTR_ORIENTATION, VALUE_HORIZONTAL),
-        new SetAttributeQuickFix("Set orientation=\"false\" (changes layout)", ATTR_ORIENTATION, VALUE_VERTICAL)
+        new SetAttributeQuickFix("Set orientation=\"vertical\" (changes layout)", ATTR_ORIENTATION, VALUE_VERTICAL)
       };
     }
   }
@@ -1624,6 +1614,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintSetTextI18nInspection extends AndroidLintInspectionBase {
+    public AndroidLintSetTextI18nInspection() {
+      super(AndroidBundle.message("android.lint.inspections.set.text.i18n"), SetTextDetector.SET_TEXT_I18N);
+    }
+  }
+
+  public static class AndroidLintShiftFlagsInspection extends AndroidLintInspectionBase {
+    public AndroidLintShiftFlagsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.shift.flags"), AnnotationDetector.FLAG_STYLE);
+    }
+  }
+
   public static class AndroidLintShortAlarmInspection extends AndroidLintInspectionBase {
     public AndroidLintShortAlarmInspection() {
       super(AndroidBundle.message("android.lint.inspections.short.alarm"), AlarmDetector.ISSUE);
@@ -1727,6 +1729,12 @@ public class AndroidLintInspectionToolProvider {
       }
 
       return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
+  }
+
+  public static class AndroidLintUniqueConstantsInspection extends AndroidLintInspectionBase {
+    public AndroidLintUniqueConstantsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.unique.constants"), AnnotationDetector.UNIQUE);
     }
   }
 

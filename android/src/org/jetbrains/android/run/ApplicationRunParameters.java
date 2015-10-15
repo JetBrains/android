@@ -73,6 +73,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   public static final Key<ApplicationRunParameters> ACTIVITY_CLASS_TEXT_FIELD_KEY = Key.create("ActivityClassTextField");
 
   private ComponentWithBrowseButton<EditorTextField> myActivityField;
+  private JTextField myActivityExtraFlagsField;
   private JRadioButton myLaunchDefaultButton;
   private JRadioButton myLaunchCustomButton;
   private JPanel myPanel;
@@ -121,6 +122,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
       @Override
       public void actionPerformed(ActionEvent e) {
         myActivityField.setEnabled(myLaunchCustomButton.isSelected());
+        myActivityExtraFlagsField.setEnabled(!myDoNothingButton.isSelected());
       }
     };
     myLaunchCustomButton.addActionListener(listener);
@@ -224,6 +226,9 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myActivityField.setEnabled(launchSpecificActivity);
     myActivityField.getChildComponent().setText(configuration.ACTIVITY_CLASS);
 
+    myActivityExtraFlagsField.setEnabled(!configuration.MODE.equals(AndroidRunConfiguration.DO_NOTHING));
+    myActivityExtraFlagsField.setText(configuration.ACTIVITY_EXTRA_FLAGS);
+
     final ArtifactManager artifactManager = ArtifactManager.getInstance(myProject);
     final Collection<? extends Artifact> artifacts = artifactManager == null
                                                      ? Collections.<Artifact>emptyList()
@@ -298,6 +303,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   @Override
   public void applyTo(AndroidRunConfiguration configuration) {
     configuration.ACTIVITY_CLASS = myActivityField.getChildComponent().getText();
+    configuration.ACTIVITY_EXTRA_FLAGS = myActivityExtraFlagsField.getText();
     if (myLaunchDefaultButton.isSelected()) {
       configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
     }

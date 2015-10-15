@@ -23,6 +23,7 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.AbstractClientAction;
 import com.android.tools.idea.editors.hprof.HprofCaptureType;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;
+import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -36,16 +37,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class DumpHprofAction extends AbstractClientAction {
-  @NotNull
-  private final Project myProject;
-  @NotNull
-  private EventData myEvents;
+  @NotNull private final Project myProject;
+  @NotNull private EventData myEvents;
 
   public DumpHprofAction(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull EventData events) {
-    super(deviceContext,
-          AndroidBundle.message("android.ddms.actions.dump.hprof"),
-          AndroidBundle.message("android.ddms.actions.dump.hprof.description"),
-          AndroidIcons.Ddms.DumpHprof);
+    super(deviceContext, AndroidBundle.message("android.ddms.actions.dump.hprof"),
+          AndroidBundle.message("android.ddms.actions.dump.hprof.description"), AndroidIcons.Ddms.DumpHprof);
     myProject = project;
     myEvents = events;
   }
@@ -74,7 +71,7 @@ public class DumpHprofAction extends AbstractClientAction {
 
       myClient.dumpHprof();
       synchronized (myEvents) {
-         myEvent = myEvents.start(System.currentTimeMillis(), MemoryMonitorView.EVENT_HPROF);
+        myEvent = myEvents.start(System.currentTimeMillis(), MemoryMonitorView.EVENT_HPROF);
       }
       try {
         myResponse.await(1, TimeUnit.MINUTES);
@@ -95,6 +92,8 @@ public class DumpHprofAction extends AbstractClientAction {
     @Override
     public void clientChanged(Client client, int changeMask) {
       if (changeMask == Client.CHANGE_HPROF && client == myClient) {
+        assert !ApplicationManager.getApplication().isDispatchThread();
+
         final ClientData.HprofData data = client.getClientData().getHprofData();
         if (data != null) {
           switch (data.type) {
@@ -108,23 +107,21 @@ public class DumpHprofAction extends AbstractClientAction {
               ApplicationManager.getApplication().invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                  ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                    @Override
-                    public void run() {
-                      try {
-                        CaptureService service = CaptureService.getInstance(myProject);
-                        service.createCapture(HprofCaptureType.class, data.data);
-                      }
-                      catch (IOException e) {
-                        throw new RuntimeException(e);
-                      }
-                    }
-                  });
+                  try {
+                    CaptureService service = CaptureService.getInstance(myProject);
+                    Capture capture = service.createCapture(HprofCaptureType.class, data.data);
+                    service.notifyCaptureReady(capture);
+                  }
+                  catch (IOException e) {
+                    throw new RuntimeException(e);
+                  }
                 }
               });
+
               break;
           }
-        } else {
+        }
+        else {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {

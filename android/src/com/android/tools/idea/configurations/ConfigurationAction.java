@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.RenderService;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -127,6 +128,10 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
           if (editor instanceof TextEditor && editor.getComponent().isShowing()) {
             AndroidLayoutPreviewToolWindowManager previewManager = AndroidLayoutPreviewToolWindowManager.getInstance(project);
             previewManager.notifyFileShown((TextEditor)editor, true);
+            if (RenderService.NELE_ENABLED) {
+              // TODO
+              // Notify nele preview manager instead
+            }
             break;
           }
         }

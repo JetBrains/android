@@ -19,10 +19,10 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.JdkDetection;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
-import com.android.tools.idea.wizard.DynamicWizardPath;
-import com.android.tools.idea.wizard.ScopedStateStore;
-import com.android.tools.idea.wizard.ScopedStateStore.Key;
-import com.android.tools.idea.wizard.ScopedStateStore.Scope;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.text.StringUtil;
@@ -80,7 +80,7 @@ public class SetupJdkPath extends DynamicWizardPath {
       path = result.toString();
     }
 
-    if (StringUtil.isEmpty(path)) {
+    if (StringUtil.isEmpty(path) || JdkDetection.validateJdkLocation(new File(path)) != null) {
       addStep(myJdkLocationStep);
     }
     else {

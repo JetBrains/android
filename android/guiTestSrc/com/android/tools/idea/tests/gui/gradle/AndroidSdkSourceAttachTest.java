@@ -55,7 +55,7 @@ import static org.junit.Assert.assertNotNull;
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class AndroidSdkSourceAttachTest extends GuiTestCase {
-  private static final String ANDROID_PLATFORM = "android-21";
+  private static final String ANDROID_PLATFORM = "android-22";
 
   // Sdk used for the simpleApplication project.
   private Sdk mySdk;

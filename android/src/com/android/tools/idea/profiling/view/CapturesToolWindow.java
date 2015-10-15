@@ -36,6 +36,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.ui.treeStructure.actions.CollapseAllAction;
@@ -55,6 +56,7 @@ import java.util.List;
 
 public class CapturesToolWindow extends BulkFileListener.Adapter
   implements Disposable, HierarchyListener, CaptureService.CaptureListener, DataProvider, DeleteProvider {
+  public static final String TREE_NAME = "CapturesPaneTree";
 
   @NotNull public static final DataKey<Capture[]> CAPTURE_ARRAY = DataKey.create("CaptureArray");
 
@@ -62,6 +64,7 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
   @NotNull private final CapturesTreeStructure myStructure;
   @NotNull private Project myProject;
   @NotNull private SimpleTree myTree;
+  @NotNull private JScrollPane myComponent;
   @Nullable private MessageBusConnection myConnection;
 
   private static final Logger LOG = Logger.getInstance(CapturesToolWindow.class);
@@ -71,7 +74,9 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
     myProject = project;
     DefaultTreeModel model = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new SimpleTree(model);
+    myTree.setName(TREE_NAME);
     myTree.setRootVisible(false);
+    myComponent = ScrollPaneFactory.createScrollPane(myTree);
 
     myStructure = new CapturesTreeStructure(myProject);
     myBuilder = new AbstractTreeBuilder(myTree, model, myStructure, null);
@@ -112,7 +117,7 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
 
   @NotNull
   public JComponent getComponent() {
-    return myTree;
+    return myComponent;
   }
 
   @Override
@@ -172,7 +177,7 @@ public class CapturesToolWindow extends BulkFileListener.Adapter
   }
 
   @Override
-  public void onCreate(final Capture capture) {
+  public void onReady(final Capture capture) {
     myStructure.update();
     myBuilder.updateFromRoot();
     myTree.setSelectedNode(myBuilder, myStructure.getNode(capture), true);

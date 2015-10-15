@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -77,14 +77,14 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     expect(tasks.isEmpty()).andReturn(true);
     replay(project, tasks);
 
-    IdeaGradleProject gradleProject = IdeaGradleProject.newIdeaGradleProject(myModule.getName(), project, myBuildFile, "2.2.1");
+    GradleModel gradleModel = GradleModel.create(myModule.getName(), project, myBuildFile, "2.2.1");
 
     FacetManager facetManager = FacetManager.getInstance(myModule);
     ModifiableFacetModel model = facetManager.createModifiableModel();
     try {
       AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
       model.addFacet(facet);
-      facet.setGradleProject(gradleProject);
+      facet.setGradleModel(gradleModel);
     }
     finally {
       model.commit();

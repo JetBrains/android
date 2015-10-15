@@ -63,37 +63,6 @@ public class SdkPathsTest extends TestCase {
     assertEquals("The path\n'/dummy/path'\ndoes not belong to a directory.", result.message);
   }
 
-  public void testUnReadableSdkDirectory() throws Exception {
-    File mockFile = mock(File.class);
-    when(mockFile.getPath()).thenReturn("/dummy/path");
-    when(mockFile.isDirectory()).thenReturn(true);
-    when(mockFile.canRead()).thenReturn(false);
-
-    ValidationResult result = validateAndroidSdk(mockFile, false);
-    assertFalse(result.success);
-    assertEquals("The path is not readable.", result.message);
-
-    result = validateAndroidSdk(mockFile, true);
-    assertFalse(result.success);
-    assertEquals("The path\n'/dummy/path'\nis not readable.", result.message);
-  }
-
-  public void testUnWritableSdkDirectory() throws Exception {
-    File mockFile = mock(File.class);
-    when(mockFile.getPath()).thenReturn("/dummy/path");
-    when(mockFile.isDirectory()).thenReturn(true);
-    when(mockFile.canRead()).thenReturn(true);
-    when(mockFile.canWrite()).thenReturn(false);
-
-    ValidationResult result = validateAndroidSdk(mockFile, false);
-    assertFalse(result.success);
-    assertEquals("The path is not writable.", result.message);
-
-    result = validateAndroidSdk(mockFile, true);
-    assertFalse(result.success);
-    assertEquals("The path\n'/dummy/path'\nis not writable.", result.message);
-  }
-
   public void testNoPlatformsSdkDirectory() throws Exception {
     tmpDir = createTempDirectory(SdkPathsTest.class.getName(), "testNoPlatformsSdkDirectory");
 
@@ -120,6 +89,7 @@ public class SdkPathsTest extends TestCase {
   public void testInvalidNdkDirectory() throws Exception {
     File mockFile = mock(File.class);
     when(mockFile.getPath()).thenReturn("/dummy/path");
+    when(mockFile.getAbsolutePath()).thenReturn("/dummy/path");
     when(mockFile.isDirectory()).thenReturn(false);
 
     ValidationResult result = validateAndroidNdk(mockFile, false);
@@ -134,6 +104,7 @@ public class SdkPathsTest extends TestCase {
   public void testUnReadableNdkDirectory() throws Exception {
     File mockFile = mock(File.class);
     when(mockFile.getPath()).thenReturn("/dummy/path");
+    when(mockFile.getAbsolutePath()).thenReturn("/dummy/path");
     when(mockFile.isDirectory()).thenReturn(true);
     when(mockFile.canRead()).thenReturn(false);
 

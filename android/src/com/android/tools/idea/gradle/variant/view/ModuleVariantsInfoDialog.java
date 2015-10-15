@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.ui.VariantCheckboxTreeCellRenderer;
@@ -34,6 +34,7 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckedTreeNode;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,24 +54,24 @@ import static com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel.createT
 class ModuleVariantsInfoDialog extends DialogWrapper {
   @NotNull private final JPanel myPanel;
 
-  ModuleVariantsInfoDialog(@NotNull Module module, @NotNull IdeaAndroidProject ideaAndroidProject) {
+  ModuleVariantsInfoDialog(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
     super(module.getProject());
     setTitle(String.format("Dependency Details for Module '%1$s'", module.getName()));
     myPanel = new JPanel(new BorderLayout());
-    myPanel.setPreferredSize(new Dimension(600, 400));
+    myPanel.setPreferredSize(JBUI.size(600, 400));
 
     Splitter splitter = new Splitter(false, 0.5f);
     myPanel.add(splitter, BorderLayout.CENTER);
 
-    splitter.setFirstComponent(createTreePanel("Dependencies", createDependenciesTree(module, ideaAndroidProject)));
-    splitter.setSecondComponent(createTreePanel("Dependents", createDependentsTree(module, ideaAndroidProject)));
+    splitter.setFirstComponent(createTreePanel("Dependencies", createDependenciesTree(module, androidModel)));
+    splitter.setSecondComponent(createTreePanel("Dependents", createDependentsTree(module, androidModel)));
 
     init();
   }
 
   @NotNull
   private static JTree createDependenciesTree(@NotNull Module module,
-                                              @NotNull IdeaAndroidProject ideaAndroidProject) {
+                                              @NotNull AndroidGradleModel androidModel) {
     VariantCheckboxTreeCellRenderer renderer = new VariantCheckboxTreeCellRenderer() {
       @Override
       public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -96,7 +97,7 @@ class ModuleVariantsInfoDialog extends DialogWrapper {
     Multimap<String, DependencyTreeElement> dependenciesByVariant = HashMultimap.create();
 
     for (Variant variant : androidProject.getVariants()) {
-      for (AndroidLibrary library : GradleUtil.getDirectLibraryDependencies(variant, ideaAndroidProject)) {
+      for (AndroidLibrary library : GradleUtil.getDirectLibraryDependencies(variant, androidModel)) {
         String gradlePath = library.getProject();
         if (gradlePath == null) {
           continue;
@@ -164,7 +165,7 @@ class ModuleVariantsInfoDialog extends DialogWrapper {
 
   @NotNull
   private static JTree createDependentsTree(@NotNull Module module,
-                                            @NotNull IdeaAndroidProject ideaAndroidProject) {
+                                            @NotNull AndroidGradleModel androidModel) {
     VariantCheckboxTreeCellRenderer renderer = new VariantCheckboxTreeCellRenderer() {
       @Override
       public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -206,7 +207,7 @@ class ModuleVariantsInfoDialog extends DialogWrapper {
       DependentTreeElement element = new DependentTreeElement(dependent);
 
       for (Variant variant : dependentProject.getVariants()) {
-        for (AndroidLibrary library : GradleUtil.getDirectLibraryDependencies(variant, ideaAndroidProject)) {
+        for (AndroidLibrary library : GradleUtil.getDirectLibraryDependencies(variant, androidModel)) {
           if (gradlePath.equals(library.getProject())) {
             element.addVariant(variant.getName());
             String projectVariant = library.getProjectVariant();

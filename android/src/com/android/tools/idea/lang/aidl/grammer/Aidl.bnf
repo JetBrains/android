@@ -1,0 +1,173 @@
+/*
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// To code from this bnf file, install the grammar-kit plugin first.
+// To generate the parser, right click on file and click "Generate Parser Code".
+// To generate the lexer, first click "Generate JFlex Lexer", put the generated file in aidl/lexer folder,
+// then right click the flex file and click "Run JFlex Generator".
+{
+  parserClass="com.android.tools.idea.lang.aidl.parser.AidlParser"
+  parserUtilClass="com.intellij.lang.parser.GeneratedParserUtilBase"
+  psiImplUtilClass="com.android.tools.idea.lang.aidl.psi.AidlPsiUtil"
+
+  implements="com.android.tools.idea.lang.aidl.psi.AidlPsiCompositeElement"
+  extends="com.android.tools.idea.lang.aidl.psi.impl.AidlPsiCompositeElementImpl"
+
+  psiClassPrefix="Aidl"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.android.tools.idea.lang.aidl.psi"
+  psiImplPackage="com.android.tools.idea.lang.aidl.psi.impl"
+
+  elementTypeHolderClass="com.android.tools.idea.lang.aidl.lexer.AidlTokenTypes"
+  elementTypeClass="com.android.tools.idea.lang.aidl.psi.AidlElementType"
+  tokenTypeClass="com.android.tools.idea.lang.aidl.lexer.AidlTokenType"
+
+  tokens = [
+    Space='regexp:\s+' // this need to be commented out when generating the flex file
+    COMMENT='regexp://[^\r\n]*'
+    BLOCK_COMMENT='regexp:[/][*][^*]*[*]+([^/*][^*]*[*]+)*[/]'
+
+    IDVALUE='regexp:(0|[1-9][0-9]*)'
+    //ARRAY='regexp:(\[([ \t\n\r]+)?\])+'
+
+    IMPORT_KEYWORD='import'
+    PACKAGE_KEYWORD='package'
+    PARCELABLE_KEYWORD='parcelable'
+    INTERFACE_KEYWORD='interface'
+    FLATTENABLE_KEYWORD='flattenable'
+    RPC_KEYWORD="rpc"
+    IN_KEYWORD='in'
+    OUT_KEYWORD='out'
+    INOUT_KEYWORD='inout'
+    ONEWAY_KEYWORD='oneway'
+
+    VOID_KEYWORD="void"
+
+    LCURLY='{'
+    RCURLY='}'
+    LPARENTH='('
+    RPARENTH=')'
+    LBRACKET='['
+    RBRACKET=']'
+    COMMA=','
+    Equals='='
+    SEMICOlON=';'
+    LT='<'
+    GT='>'
+
+    // primitive types
+    BOOLEAN_KEYWORD='boolean'
+    BYTE_KEYWORD='byte'
+    CHAR_KEYWORD='char'
+    SHORT_KEYWORD='short'
+    INT_KEYWORD='int'
+    LONG_KEYWORD='long'
+    FLOAT_KEYWORD='float'
+    DOUBLE_KEYWORD='double'
+
+    IDENTIFIER='regexp:[_a-zA-Z][_a-zA-Z0-9]*'
+  ]
+
+  implements(".*Declaration")="com.android.tools.idea.lang.aidl.psi.AidlDeclaration"
+  mixin(".*Declaration")="com.android.tools.idea.lang.aidl.psi.impl.AbstractAidlDeclarationImpl"
+
+  extends(".*Type")=type
+}
+
+document ::= headers body  { pin=1 }
+
+qualifiedName ::= nameComponent ("." nameComponent)*
+
+nameComponent ::= IDENTIFIER
+{
+  mixin="com.android.tools.idea.lang.aidl.psi.impl.AidlNamedElementImpl"
+  implements="com.android.tools.idea.lang.aidl.psi.AidlNamedElement"
+
+  methods=[
+    getReference
+  ]
+}
+
+headers ::= packageStatement* importStatement*
+
+body ::= declaration*
+
+private declaration ::= parcelableDeclaration | interfaceDeclaration {recoverWhile="declarationRecover"}
+
+private declarationRecover ::= !(INTERFACE_KEYWORD | PARCELABLE_KEYWORD)
+
+packageStatement ::= PACKAGE_KEYWORD qualifiedName ';' {pin=1}
+
+importStatement ::= IMPORT_KEYWORD qualifiedName ';' {pin=1}
+
+parcelableDeclaration ::= PARCELABLE_KEYWORD declarationName ';' |  PARCELABLE_KEYWORD ';' |
+                    FLATTENABLE_KEYWORD declarationName ';'  |   FLATTENABLE_KEYWORD ';'
+
+private interfaceHeader ::= INTERFACE_KEYWORD | ONEWAY INTERFACE_KEYWORD | RPC_KEYWORD
+
+interfaceDeclaration ::= interfaceHeader declarationName '{' methodDeclarations '}' { pin=1 }
+
+private methodDeclarations ::= methodDeclaration* { recoverWhile="interfaceDeclarationRecover" }
+
+private interfaceDeclarationRecover ::= !('}')
+
+methodDeclaration ::= ONEWAY_KEYWORD? type declarationName parameters ('=' IDVALUE)? ';'
+{
+  pin=2
+  recoverWhile = methodDeclarationRecover
+}
+
+private methodDeclarationRecover ::= !(ONEWAY_KEYWORD | IDENTIFIER | primitiveType | VOID_KEYWORD | INTERFACE_KEYWORD | '}' )
+
+declarationName ::= IDENTIFIER
+{
+  mixin="com.android.tools.idea.lang.aidl.psi.impl.AidlNamedElementImpl"
+  implements="com.android.tools.idea.lang.aidl.psi.AidlNamedElement, com.intellij.psi.PsiNameIdentifierOwner"
+  methods=[
+    getNameIdentifier
+  ]
+}
+
+private parameters ::= '(' parameterList? ')' { pin=1 }
+
+private parameterList ::= parameter (',' parameter)*
+{
+  recoverWhile='parameterListRecover'
+}
+
+private parameterListRecover ::= !(')')
+
+parameter ::= direction? type IDENTIFIER { pin=2 }
+
+type ::= VOID_KEYWORD | ((primitiveType | classOrInterfaceType) ('[' ']')*) { recoverWhile="type_recover" }
+
+private type_recover ::= !(qualifiedName | '(' | ',' | '>' | '{')
+
+classOrInterfaceType ::= qualifiedName typeArguments? { pin=1 }
+
+typeArguments ::= '<' type (',' type)* '>' { pin=1 }
+
+primitiveType
+  ::= BOOLEAN_KEYWORD
+  |   BYTE_KEYWORD
+  |   CHAR_KEYWORD
+  |   SHORT_KEYWORD
+  |   INT_KEYWORD
+  |   LONG_KEYWORD
+  |   FLOAT_KEYWORD
+  |   DOUBLE_KEYWORD
+
+direction ::= IN_KEYWORD | OUT_KEYWORD | INOUT_KEYWORD

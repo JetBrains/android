@@ -59,7 +59,7 @@ public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements D
   public Collection<AbstractTreeNode> getChildren() {
     Module module = getValue().getModule();
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.getIdeaAndroidProject() == null) {
+    if (facet == null || facet.getAndroidModel() == null) {
       return Collections.emptyList();
     }
 
@@ -70,7 +70,7 @@ public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements D
   public boolean contains(@NotNull VirtualFile file) {
     Module module = getValue().getModule();
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.getIdeaAndroidProject() == null) {
+    if (facet == null || facet.getAndroidModel() == null) {
       return false;
     }
 

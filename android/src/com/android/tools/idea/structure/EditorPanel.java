@@ -21,6 +21,7 @@ import java.awt.*;
 /**
  * This is the base class for panels that can appear in the right-hand pane of the Project Structure dialog.
  */
+@Deprecated
 public abstract class EditorPanel extends JPanel {
   public EditorPanel(LayoutManager layoutManager) {
     super(layoutManager);

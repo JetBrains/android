@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.MyTheme">
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:actionModeStyle">@style/ActionModeStyle</item>
+    </style>
+
+    <style name="Theme.MyV14Theme">
+        <item name="android:windowIsFloating">true</item>
+    </style>
+</resources>

@@ -76,7 +76,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
     final Project project = getEventProject(e);
     if (project == null) return;
 
-    if (!Projects.isGradleProject(project)) {
+    if (!Projects.requiresAndroidModel(project)) {
       myDelegate.actionPerformed(e);
       return;
     }

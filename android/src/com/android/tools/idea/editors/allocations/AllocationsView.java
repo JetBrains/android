@@ -52,7 +52,6 @@ import java.awt.event.MouseEvent;
 import java.util.Comparator;
 
 public class AllocationsView implements SunburstComponent.SliceSelectionListener {
-
   @NotNull private final Project myProject;
 
   @NotNull private final AllocationInfo[] myAllocations;
@@ -89,15 +88,15 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
 
     myTree = new Tree(myTreeModel);
     myTree.setRootVisible(false);
+    myTree.setShowsRootHandles(true);
 
+    myTree.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this.new TreeDataProvider());
     final DefaultActionGroup popupGroup = new DefaultActionGroup();
     popupGroup.add(new EditMultipleSourcesAction());
-
     myTree.addMouseListener(new PopupHandler() {
       @Override
       public void invokePopup(Component comp, int x, int y) {
-        ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, popupGroup);
-        popupMenu.getComponent().show(comp, x, y);
+        ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, popupGroup).getComponent().show(comp, x, y);
       }
     });
 
@@ -266,7 +265,13 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     };
     myInfoTableModel.addColumn("Data");
     myInfoTable = new JBTable(myInfoTableModel);
+    myInfoTable.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this.new TableDataProvider());
     myInfoTable.addMouseListener(new PopupHandler() {
+      @Override
+      public void invokePopup(Component comp, int x, int y) {
+        ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, popupGroup).getComponent().show(comp, x, y);
+      }
+
       @Override
       public void mousePressed(MouseEvent e) {
         super.mousePressed(e);
@@ -281,12 +286,6 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
           }
         }
       }
-
-      @Override
-      public void invokePopup(Component comp, int x, int y) {
-        ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UPDATE_POPUP, popupGroup);
-        popupMenu.getComponent().show(comp, x, y);
-      }
     });
     myInfoTable.setTableHeader(null);
     myInfoTable.setShowGrid(false);
@@ -298,9 +297,6 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     chartSplitter.setProportion(0.7f);
 
     myComponent = mySplitter;
-
-    myTree.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this.new TreeDataProvider());
-    myInfoTable.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, this.new TableDataProvider());
   }
 
   @NotNull
@@ -435,7 +431,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     if (node == null) {
       node = myTreeNode;
     }
-    builder.add("Total allocations:").addNbsp().addBold("" + node.getCount()).newline().add("Total size:").addNbsp()
+    builder.add("Total allocations:").addNbsp().addBold(Integer.toString(node.getCount())).newline().add("Total size:").addNbsp()
       .addBold(StringUtil.formatFileSize(node.getValue())).newline().newline();
     if (node instanceof AbstractTreeNode) {
       TreeNode[] path = myTreeModel.getPathToRoot(node);
@@ -450,7 +446,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     myInfoLabel.setText(builder.getHtml());
   }
 
-  private void customizeColoredRenderer(SimpleColoredComponent renderer, Object value) {
+  private static void customizeColoredRenderer(SimpleColoredComponent renderer, Object value) {
     renderer.setTransparentIconBackground(true);
     if (value instanceof ThreadNode) {
       renderer.setIcon(AllIcons.Debugger.ThreadSuspended);
@@ -500,6 +496,10 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
 
   @Nullable
   private PsiFileAndLineNavigation[] getTargetFiles(Object node) {
+    if (node == null) {
+      return null;
+    }
+
     String className = null;
     int lineNumber = 0;
     if (node instanceof ClassNode) {
@@ -529,14 +529,14 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, lineNumber);
   }
 
-  public class NodeTableCellRenderer extends ColoredTableCellRenderer {
+  public static class NodeTableCellRenderer extends ColoredTableCellRenderer {
     @Override
     protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
       customizeColoredRenderer(this, value);
     }
   }
 
-  private class NodeTreeCellRenderer extends ColoredTreeCellRenderer {
+  private static class NodeTreeCellRenderer extends ColoredTreeCellRenderer {
     @Override
     public void customizeCellRenderer(@NotNull JTree tree,
                                       Object value,
@@ -634,7 +634,11 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     @Nullable
     @Override
     public Object getData(@NonNls String dataId) {
-      return AllocationsView.this.getData(dataId, myInfoTable.getValueAt(myInfoTable.getSelectedRow(), 0));
+      int selectedRow = myInfoTable.getSelectedRow();
+      if (selectedRow < 0) {
+        return null;
+      }
+      return AllocationsView.this.getData(dataId, myInfoTable.getValueAt(selectedRow, 0));
     }
   }
 }

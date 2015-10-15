@@ -16,14 +16,17 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ExceptionUtil;
@@ -43,7 +46,7 @@ import static java.util.Collections.sort;
  */
 public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   private AndroidProjectStub myAndroidProject;
-  private IdeaAndroidProject myIdeaAndroidProject;
+  private AndroidGradleModel myAndroidModel;
 
   private ContentRootModuleCustomizer myCustomizer;
 
@@ -59,8 +62,8 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     Collection<Variant> variants = myAndroidProject.getVariants();
     Variant selectedVariant = getFirstItem(variants);
     assertNotNull(selectedVariant);
-    myIdeaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), baseDir, myAndroidProject,
-                                                  selectedVariant.getName(), ARTIFACT_ANDROID_TEST);
+    myAndroidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), baseDir, myAndroidProject,
+                                            selectedVariant.getName(), ARTIFACT_ANDROID_TEST);
 
     addContentEntry();
     myCustomizer = new ContentRootModuleCustomizer();
@@ -94,7 +97,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
-      myCustomizer.customizeModule(myProject, myModule, modelsProvider, myIdeaAndroidProject);
+      myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
       modelsProvider.commit();
     }
     catch (Throwable t) {

@@ -19,10 +19,7 @@ import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
-import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -44,9 +41,15 @@ import static com.android.ide.common.resources.configuration.LocaleQualifier.BCP
 
 public class LocaleMenuAction extends FlatComboAction {
   private final RenderContext myRenderContext;
+  private final boolean myClassicStyle;
 
   public LocaleMenuAction(RenderContext renderContext) {
+    this(renderContext, !RenderService.NELE_ENABLED);
+  }
+
+  public LocaleMenuAction(RenderContext renderContext, boolean classicStyle) {
     myRenderContext = renderContext;
+    myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Locale to render layout with inside the IDE");
     updatePresentation(presentation);
@@ -67,16 +70,16 @@ public class LocaleMenuAction extends FlatComboAction {
 
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null && locales.size() > 0) {
-      group.add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false), Locale.ANY));
+      group.add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false, myClassicStyle), Locale.ANY));
       group.addSeparator();
 
       Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
       for (Locale locale : locales) {
-        String title = getLocaleLabel(locale, false);
+        String title = getLocaleLabel(locale, false, myClassicStyle);
 
         VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, null, locale, null);
         if (better != null) {
-          title = ConfigurationAction.getBetterMatchLabel(getLocaleLabel(locale, true), better, configuration.getFile());
+          title = ConfigurationAction.getBetterMatchLabel(getLocaleLabel(locale, true, myClassicStyle), better, configuration.getFile());
         }
 
         group.add(new SetLocaleAction(myRenderContext, title, locale));
@@ -175,14 +178,17 @@ public class LocaleMenuAction extends FlatComboAction {
       //Locale locale = configuration.isLocaleSpecificLayout()
       //                ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
       Locale locale = configuration.getLocale();
-      if (locale == Locale.ANY) {
+      if (!myClassicStyle) {
+        presentation.setIcon(AndroidIcons.NeleIcons.Language);
+      } else if (locale == Locale.ANY) {
         presentation.setIcon(AndroidIcons.Globe);
       } else {
         presentation.setIcon(locale.getFlagImage());
       }
-      String brief = getLocaleLabel(locale, true);
+      String brief = getLocaleLabel(locale, true, myClassicStyle);
       presentation.setText(brief);
-    } else {
+    }
+    else {
       presentation.setIcon(AndroidIcons.Globe);
     }
     if (visible != presentation.isVisible()) {
@@ -205,11 +211,31 @@ public class LocaleMenuAction extends FlatComboAction {
    */
   @NotNull
   public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
+    return getLocaleLabel(locale, brief, !RenderService.NELE_ENABLED);
+  }
+
+  /**
+   * Returns a suitable label to use to display the given locale
+   *
+   * @param locale       the locale to look up a label for
+   * @param brief        if true, generate a brief label (suitable for a toolbar
+   *                     button), otherwise a fuller name (suitable for a menu item)
+   * @param classicStyle if true, use the pre Android Studio 1.5 configuration toolbar style (temporary compatibility code)
+   * @return the label
+   */
+  public static String getLocaleLabel(@Nullable Locale locale, boolean brief, boolean classicStyle) {
     if (locale == null) {
+      if (!classicStyle) {
+        return "Language";
+      }
       return "";
     }
 
     if (!locale.hasLanguage()) {
+      if (!classicStyle) {
+        return "Language";
+      }
+
       if (brief) {
         // Just use the icon
         return "";

@@ -23,10 +23,16 @@ import com.android.tools.idea.monitor.DeviceSampler;
 import org.jetbrains.annotations.NotNull;
 
 public class MemorySampler extends DeviceSampler implements AndroidDebugBridge.IClientChangeListener {
+  /**
+   * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
+   * a sample on every GC.
+   */
+  public static final int SAMPLES = 2048;
+
   private boolean myRequestPending;
 
-  MemorySampler(@NotNull TimelineData data, int sampleFrequencyMs) {
-    super(data, sampleFrequencyMs);
+  MemorySampler(int sampleFrequencyMs) {
+    super(new TimelineData(2, SAMPLES), sampleFrequencyMs);
   }
 
   @Override
@@ -52,12 +58,6 @@ public class MemorySampler extends DeviceSampler implements AndroidDebugBridge.I
     return "Memory Sampler";
   }
 
-  @NotNull
-  @Override
-  public String getDescription() {
-    return "memory information";
-  }
-
   @SuppressWarnings("ConstantConditions")
   protected void recordSample(int type) {
     float freeMb = 0.0f;
@@ -73,7 +73,7 @@ public class MemorySampler extends DeviceSampler implements AndroidDebugBridge.I
       type = TYPE_UNREACHABLE;
     }
     // We cannot use the timeStamp in HeapInfo because it's based on the current time of the attached device.
-    myData.add(System.currentTimeMillis(), type, allocMb, freeMb);
+    myTimelineData.add(System.currentTimeMillis(), type, allocMb, freeMb);
   }
 
   protected void requestSample() {

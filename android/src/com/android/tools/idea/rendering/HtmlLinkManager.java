@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -56,7 +56,6 @@ import com.intellij.util.PsiNavigateUtil;
 import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
-import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -315,7 +314,7 @@ public class HtmlLinkManager {
 
   private static void handleCompileModuleUrl(@NotNull String url, @NotNull Module module) {
     assert url.equals(URL_BUILD) : url;
-    ProjectBuilder.getInstance(module.getProject()).compileJava();
+    GradleProjectBuilder.getInstance(module.getProject()).compileJava();
   }
 
   public String createSyncProjectUrl() {
@@ -628,11 +627,11 @@ public class HtmlLinkManager {
   private static void handleAssignFragmentUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
 
-    ChooseClassDialog dialog = new ChooseClassDialog(module, "Fragments", true, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
-    if (!dialog.showAndGet()) {
+    final String className = ChooseClassDialog.openDialog(module, "Fragments", true, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
+    if (className == null) {
       return;
     }
-    final String fragmentClass = getFragmentClass(module, dialog.getClassName());
+    final String fragmentClass = getFragmentClass(module, className);
 
     int start = URL_ASSIGN_FRAGMENT_URL.length();
     final String id;

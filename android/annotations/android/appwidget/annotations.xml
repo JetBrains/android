@@ -1,72 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.appwidget.AppWidgetHost AppWidgetHost(android.content.Context, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetHost android.appwidget.AppWidgetHostView createView(android.content.Context, int, android.appwidget.AppWidgetProviderInfo) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetHost void onProviderChanged(int, android.appwidget.AppWidgetProviderInfo) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.appwidget.AppWidgetHost void startAppWidgetConfigureActivityForResult(android.app.Activity, int, int, int, android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.appwidget.AppWidgetHost void startAppWidgetConfigureActivityForResult(android.app.Activity, int, int, int, android.os.Bundle) 4">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.appwidget.AppWidgetHostView android.graphics.Rect getDefaultPaddingForWidget(android.content.Context, android.content.ComponentName, android.graphics.Rect) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetHostView android.graphics.Rect getDefaultPaddingForWidget(android.content.Context, android.content.ComponentName, android.graphics.Rect) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetHostView android.widget.FrameLayout.LayoutParams generateLayoutParams(android.util.AttributeSet)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetHostView boolean drawChild(android.graphics.Canvas, android.view.View, long) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetHostView boolean drawChild(android.graphics.Canvas, android.view.View, long) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetHostView void dispatchRestoreInstanceState(android.util.SparseArray&lt;android.os.Parcelable&gt;) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetHostView void dispatchSaveInstanceState(android.util.SparseArray&lt;android.os.Parcelable&gt;) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetHostView void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetHostView void prepareView(android.view.View) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetManager android.appwidget.AppWidgetManager getInstance(android.content.Context) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.appwidget.AppWidgetManager java.util.List&lt;android.appwidget.AppWidgetProviderInfo&gt; getInstalledProvidersForProfile(android.os.UserHandle) 0">
     <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.appwidget.AppWidgetProvider void onReceive(android.content.Context, android.content.Intent) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetProvider void onReceive(android.content.Context, android.content.Intent) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetProviderInfo AppWidgetProviderInfo(android.os.Parcel) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetProviderInfo android.appwidget.AppWidgetProviderInfo clone()">
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.appwidget.AppWidgetProviderInfo android.graphics.drawable.Drawable loadIcon(android.content.Context, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.appwidget.AppWidgetProviderInfo android.graphics.drawable.Drawable loadPreviewImage(android.content.Context, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.appwidget.AppWidgetProviderInfo void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>

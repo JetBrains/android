@@ -88,7 +88,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testTagNameCompletion1() throws Throwable {
-    doTestCompletionVariants("tn1.xml", "uses-permission", "uses-sdk", "uses-configuration", "uses-feature");
+    doTestCompletionVariants("tn1.xml", "uses-permission",  "uses-permission-sdk-23", "uses-sdk", "uses-configuration", "uses-feature");
   }
 
   public void testSoftTagsAndAttrs() throws Throwable {
@@ -168,6 +168,36 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testUsesPermissionCompletion1() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type('\n');
+    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+  }
+
+  public void testUsesPermissionCompletion2() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+  }
+
+  public void testUsesPermissionCompletion3() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+  }
+
+  public void testUsesPermissionCompletion4() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type('\n');
+    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+  }
+
+  public void testUsesPermissionCompletion5() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
@@ -399,7 +429,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     });
     try {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
-                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "MNC");
+                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23");
     }
     finally {
       ApplicationManager.getApplication().runWriteAction(new Runnable() {

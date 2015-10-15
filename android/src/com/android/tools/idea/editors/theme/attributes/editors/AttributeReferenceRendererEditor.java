@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import org.jetbrains.annotations.NotNull;
@@ -25,15 +25,21 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
 import java.util.List;
 
 /**
  * Cell editor that allows editing references in styles. It also allows providing auto-complete suggestions.
  */
-public class AttributeReferenceRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
+public class AttributeReferenceRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   protected final Box myBox = new Box(BoxLayout.LINE_AXIS);
-  protected final JLabel myLabel = new JLabel();
+  /** Renderer component, with isShowing overridden because of the use of a {@link CellRendererPane} */
+  protected final JLabel myLabel = new JLabel() {
+    @Override
+    public boolean isShowing() {
+      return true;
+    }
+  };
   protected final TextFieldWithAutoCompletion<String> myTextField;
   protected final CompletionProvider myCompletionProvider;
   protected EditedStyleItem myEditValue;
@@ -110,8 +116,8 @@ public class AttributeReferenceRendererEditor extends TypedCellEditor<EditedStyl
   }
 
   @Override
-  public AttributeEditorValue getEditorValue() {
-    return new AttributeEditorValue(myTextField.getText(), false);
+  public String getEditorValue() {
+    return myTextField.getText();
   }
 
   public interface CompletionProvider {

@@ -15,44 +15,31 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.sdklib.repository.FullRevision;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.ConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutWidgetFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.TagMatcher.AttributeMatcher;
-import com.android.tools.lint.detector.api.LintUtils;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.LAYOUT;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
  * GUI Tests for custom components.
  * <p/>
- * This tests layoutlib interaction with custom components and the error hadling.
+ * This tests layoutlib interaction with custom components and the error handling.
  */
 @BelongsToTestGroups({LAYOUT})
+@Ignore("Test in running forever on Jenkins")
 public class CustomComponentsTest extends GuiTestCase {
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testClassConverter() throws Exception {
     // Tests that the class converter rewrites the onDraw, onLayout and onMeasure methods to avoid errors from propagating
     // and breaking the rendering.
@@ -66,9 +53,10 @@ public class CustomComponentsTest extends GuiTestCase {
     // Load layout, wait for render to be shown in the preview window
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+    editor.requireName("activity_my.xml");
+
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
-    editor.requireName("activity_my.xml");
     preview.waitForRenderToFinish();
     preview.requireRenderSuccessful();
 

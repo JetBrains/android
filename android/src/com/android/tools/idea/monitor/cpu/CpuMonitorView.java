@@ -15,72 +15,54 @@
  */
 package com.android.tools.idea.monitor.cpu;
 
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
-import com.android.tools.chartlib.EventData;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.ToggleMethodProfilingAction;
-import com.android.tools.idea.monitor.*;
+import com.android.tools.idea.monitor.BaseMonitorView;
+import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.idea.monitor.actions.RecordingAction;
-import com.android.tools.chartlib.TimelineComponent;
-import com.android.tools.chartlib.TimelineData;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComponentWithActions;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
-
-public class CpuMonitorView extends BaseMonitorView implements TimelineEventListener, DeviceContext.DeviceSelectionListener {
+public class CpuMonitorView extends BaseMonitorView<CpuSampler> implements TimelineEventListener, DeviceContext.DeviceSelectionListener {
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
    * a sample on every GC.
    */
-  public static final int SAMPLES = 2048;
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
   private static final int SAMPLE_FREQUENCY_MS = 500;
-  @NotNull private final CpuSampler myCpuSampler;
-  private final DeviceContext myDeviceContext;
+  // Buffer at one and a half times the sample frequency.
+  private static final float TIMELINE_BUFFER_TIME = SAMPLE_FREQUENCY_MS * 1.5f / 1000;
+  private static final float TIMELINE_INITIAL_MAX = 100.0f;
+  private static final float TIMELINE_ABSOLUTE_MAX = TIMELINE_INITIAL_MAX;
+  private static final float TIMELINE_INITIAL_MARKER_SEPARATION = 10.0f;
 
   public CpuMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
-    super(project);
+    super(project, deviceContext, new CpuSampler(SAMPLE_FREQUENCY_MS), TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, TIMELINE_ABSOLUTE_MAX,
+          TIMELINE_INITIAL_MARKER_SEPARATION);
 
-    // Buffer at one and a half times the sample frequency.
-    float bufferTimeInSeconds = SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
-    float initialMax = 100.0f;
-    float initialMarker = 10.0f;
+    myTimelineComponent.configureUnits("%");
+    myTimelineComponent.configureStream(0, "Kernel", new JBColor(0xd73f3f, 0xd73f3f));
+    myTimelineComponent.configureStream(1, "User", new JBColor(0xeb9f9f, 0x9d4c4c));
+    myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
-    TimelineData data = new TimelineData(2, SAMPLES);
-    EventData events = new EventData();
-    TimelineComponent timelineComponent = new TimelineComponent(data, events, bufferTimeInSeconds, initialMax, 100, initialMarker);
+    addOverlayText(PAUSED_LABEL, 0);
 
-    timelineComponent.configureUnits("%");
-    timelineComponent.configureStream(0, "Kernel", new JBColor(0xd73f3f, 0xd73f3f));
-    timelineComponent.configureStream(1, "User", new JBColor(0xeb9f9f, 0x9d4c4c));
-    timelineComponent.setBackground(BACKGROUND_COLOR);
-
-    setComponent(timelineComponent);
-
-    myCpuSampler = new CpuSampler(data, SAMPLE_FREQUENCY_MS);
-    myCpuSampler.addListener(this);
-
-    myDeviceContext = deviceContext;
-    myDeviceContext.addListener(this, project);
+    setViewComponent(myTimelineComponent);
   }
 
+  @Override
   @NotNull
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
-    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
-      group.add(new RecordingAction(myCpuSampler));
-    }
-
+    group.add(new RecordingAction(this));
+    group.add(new Separator());
     group.add(new ToggleMethodProfilingAction(myProject, myDeviceContext));
     //group.add(new MyThreadDumpAction()); // thread dump -> systrace
 
@@ -88,35 +70,8 @@ public class CpuMonitorView extends BaseMonitorView implements TimelineEventList
   }
 
   @NotNull
-  public ComponentWithActions createComponent() {
-    return new ComponentWithActions.Impl(getToolbarActions(), null, null, null, myContentPane);
-  }
-
   @Override
-  public void deviceSelected(@Nullable IDevice device) {
-
-  }
-
-  @Override
-  public void deviceChanged(@NotNull IDevice device, int changeMask) {
-
-  }
-
-  @Override
-  public void clientSelected(@Nullable Client c) {
-    myCpuSampler.setClient(c);
-  }
-
-  @Override
-  public void onStart() {
-  }
-
-  @Override
-  public void onStop() {
-  }
-
-  @Override
-  protected DeviceSampler getSampler() {
-    return myCpuSampler;
+  public String getDescription() {
+    return "cpu usage";
   }
 }

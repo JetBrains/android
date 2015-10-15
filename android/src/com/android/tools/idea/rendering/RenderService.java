@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.Features;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
@@ -30,7 +32,7 @@ import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -61,6 +63,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService {
+  public static final boolean NELE_ENABLED = Boolean.getBoolean("nele.enabled");
   private static final Object RENDERING_LOCK = new Object();
 
   @NotNull
@@ -234,7 +237,7 @@ public class RenderService {
              public void run() {
                Project project = module.getProject();
                ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-               if (Projects.isGradleProject(project) && service instanceof AndroidProjectSettingsService) {
+               if (Projects.requiresAndroidModel(project) && service instanceof AndroidProjectSettingsService) {
                  ((AndroidProjectSettingsService)service).openSdkSettings();
                  return;
                }
@@ -363,4 +366,53 @@ public class RenderService {
       return callable.call();
     }
   }
+
+  /**
+   * Given a {@link ViewInfo} from a layoutlib rendering, checks that the view info provides
+   * valid bounds. This is normally the case. However, there are known scenarios, where
+   * for various reasons, the View is left in a state where some of its bounds (left, right, top
+   * or bottom) are not properly resolved; they carry MeasureSpec state along, which depending
+   * on whether the specification was AT_MOST or EXACTLY this will either be a very large number,
+   * or a very small (negative) number. In these cases we don't want to pass on the values to
+   * further UI editing processing, since it for example can lead to calling Graphics#drawLine
+   * with giant coordinates which can freeze the IDE; see for example
+   * https://code.google.com/p/android/issues/detail?id=178690.
+   * <p/>
+   * To detect this, we simply need to check to see if the MeasureSpec mode bits are set
+   * in any of the four bounds fields of the {@link ViewInfo}. Note however that these
+   * view bounds are sometimes manipulated (e.g. values added or subtracted if a parent view
+   * bound is also invalid) so rather than simply looking for the mode mask strictly, we look
+   * in the nearby range too.
+   *
+   * @param view the {@link ViewInfo} to check
+   * @return Normally the {@link ViewInfo} itself, but a dummy 0-bound {@link ViewInfo} if
+   * the view bounds are indeed invalid
+   */
+  @NonNull
+  public static ViewInfo getSafeBounds(@NonNull ViewInfo view) {
+    int left = Math.abs(view.getLeft());
+    int right = Math.abs(view.getRight());
+    int top = Math.abs(view.getTop());
+    int bottom = Math.abs(view.getBottom());
+
+    if (left < MAX_MAGNITUDE && right < MAX_MAGNITUDE && top < MAX_MAGNITUDE && bottom < MAX_MAGNITUDE) {
+      return view;
+    }
+    else {
+      // Not extracted as a constant; we expect this scenario to be rare
+      return new ViewInfo(null, null, 0, 0, 0, 0);
+    }
+  }
+
+  /** This is the View.MeasureSpec mode shift */
+  private static final int MEASURE_SPEC_MODE_SHIFT = 30;
+
+  /**
+   * The maximum absolute value of bounds. This tries to identify values that carry
+   * remnants of View.MeasureSpec mode bits, but accounts for the fact that sometimes arithmetic
+   * is carried out on these values afterwards to bring them to lower values than they started
+   * at, and we want to include those as well; there's a lot of room since the bits are shifted
+   * quite a long way compared to the current relevant screen pixel ranges.
+   */
+  private static final int MAX_MAGNITUDE = 1 << (MEASURE_SPEC_MODE_SHIFT - 5);
 }

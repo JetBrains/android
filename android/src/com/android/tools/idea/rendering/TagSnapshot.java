@@ -104,7 +104,9 @@ public class TagSnapshot {
 
   /**
    * Sets the given attribute in the snapshot; this should <b>only</b> be done during snapshot hierarchy
-   * construction, not later
+   * construction, not later, with the sole exception of the property sheet: In the case of the property sheet,
+   * there is a short time between the user editing a value to when the rendering is complete during which the
+   * snapshot value will be out of date unless it is updated via this API.
    */
   public void setAttribute(@NotNull String name, @Nullable String namespace, @Nullable String prefix, @Nullable String value) {
     for (AttributeSnapshot attribute : attributes) {

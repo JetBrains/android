@@ -18,12 +18,11 @@ package com.android.tools.idea.rendering;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.Disposable;
+import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.ui.EditorNotifications;
@@ -36,42 +35,29 @@ import java.util.Map;
 import static com.android.SdkConstants.EXT_PNG;
 import static com.android.SdkConstants.FD_RES_RAW;
 
-public class PsiProjectListener extends PsiTreeChangeAdapter {
-
-  @NotNull private static Map<Project, PsiProjectListener> ourListeners = Maps.newHashMap();
+public class PsiProjectListener extends AbstractProjectComponent implements PsiTreeChangeListener {
   @NotNull private final Map<VirtualFile, ResourceFolderRepository> myListeners = Maps.newHashMap();
-
-  private PsiProjectListener(@NotNull Project project) {
-    PsiManager.getInstance(project).addPsiTreeChangeListener(this);
-  }
 
   public static void addRoot(@NotNull Project project, @NotNull VirtualFile root, @NotNull ResourceFolderRepository repository) {
     synchronized (PsiProjectListener.class) {
-      getListener(project).addRoot(root, repository);
+      getInstance(project).addRoot(root, repository);
     }
   }
 
   public static void removeRoot(@NotNull Project project, @NotNull VirtualFile root, @NotNull ResourceFolderRepository repository) {
     synchronized (PsiProjectListener.class) {
-      getListener(project).removeRoot(root, repository);
+      getInstance(project).removeRoot(root, repository);
     }
   }
 
   @NotNull
-  public static PsiProjectListener getListener(@NotNull final Project project) {
-    PsiProjectListener listener = ourListeners.get(project);
-    if (listener == null) {
-      listener = new PsiProjectListener(project);
-      ourListeners.put(project, listener);
-      Disposer.register(project, new Disposable() {
-        @Override
-        public void dispose() {
-          ourListeners.remove(project);
-        }
-      });
-    }
+  public static PsiProjectListener getInstance(@NotNull Project project) {
+    return project.getComponent(PsiProjectListener.class);
+  }
 
-    return listener;
+  public PsiProjectListener(@NotNull Project project) {
+    super(project);
+    PsiManager.getInstance(project).addPsiTreeChangeListener(this);
   }
 
   private void addRoot(@NotNull VirtualFile root, @NotNull ResourceFolderRepository repository) {
@@ -155,6 +141,10 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
   }
 
   @Override
+  public void beforeChildAddition(@NotNull PsiTreeChangeEvent event) {
+  }
+
+  @Override
   public void childAdded(@NotNull PsiTreeChangeEvent event) {
     PsiFile psiFile = event.getFile();
     if (psiFile == null) {
@@ -180,6 +170,10 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
     if (repository != null) {
       repository.getPsiListener().childAdded(event);
     }
+  }
+
+  @Override
+  public void beforeChildRemoval(@NotNull PsiTreeChangeEvent event) {
   }
 
   @Override
@@ -212,6 +206,10 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
     if (repository != null) {
       repository.getPsiListener().childRemoved(event);
     }
+  }
+
+  @Override
+  public void beforeChildReplacement(@NotNull PsiTreeChangeEvent event) {
   }
 
   @Override
@@ -255,6 +253,10 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
   }
 
   @Override
+  public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
+  }
+
+  @Override
   public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
     PsiFile psiFile = event.getFile();
     if (psiFile != null && isRelevantFile(psiFile)) {
@@ -268,6 +270,10 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
     if (repository != null) {
       repository.getPsiListener().childrenChanged(event);
     }
+  }
+
+  @Override
+  public void beforeChildMovement(@NotNull PsiTreeChangeEvent event) {
   }
 
   @Override

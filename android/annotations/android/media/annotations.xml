@@ -28,6 +28,9 @@
   <item name="android.media.AudioDeviceInfo int[] getChannelMasks()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.AudioDeviceInfo int[] getEncodings()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.media.AudioDeviceInfo int[] getSampleRates()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -121,6 +124,9 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.media.AudioTrack.WRITE_BLOCKING, android.media.AudioTrack.WRITE_NON_BLOCKING}" />
     </annotation>
+  </item>
+  <item name="android.media.AudioTrack int write(java.nio.ByteBuffer, int, int, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.AudioTrack int write(java.nio.ByteBuffer, int, int, long) 2">
     <annotation name="android.support.annotation.IntDef">
@@ -323,7 +329,7 @@
   </item>
   <item name="android.media.MediaCodec.CryptoException int getErrorCode()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.media.MediaCodec.CryptoException.ERROR_NO_KEY, android.media.MediaCodec.CryptoException.ERROR_KEY_EXPIRED, android.media.MediaCodec.CryptoException.ERROR_RESOURCE_BUSY, android.media.MediaCodec.CryptoException.ERROR_INSUFFICIENT_OUTPUT_PROTECTION}" />
+      <val name="value" val="{android.media.MediaCodec.CryptoException.ERROR_NO_KEY, android.media.MediaCodec.CryptoException.ERROR_KEY_EXPIRED, android.media.MediaCodec.CryptoException.ERROR_RESOURCE_BUSY, android.media.MediaCodec.CryptoException.ERROR_INSUFFICIENT_OUTPUT_PROTECTION, android.media.MediaCodec.CryptoException.ERROR_SESSION_NOT_OPENED}" />
     </annotation>
   </item>
   <item name="android.media.MediaCodec.CryptoInfo void set(int, int[], int[], byte[], byte[], int) 1">
@@ -340,6 +346,9 @@
   </item>
   <item name="android.media.MediaCodec.OnFrameRenderedListener void onFrameRendered(android.media.MediaCodec, long, long) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCodecInfo.VideoCapabilities android.util.Range&lt;java.lang.Double&gt; getAchievableFrameRatesFor(int, int)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.media.MediaCrypto MediaCrypto(java.util.UUID, byte[]) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -522,6 +531,12 @@
   <item name="android.media.MediaDrm void setOnExpirationUpdateListener(android.media.MediaDrm.OnExpirationUpdateListener, android.os.Handler) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.media.MediaDrm void setOnKeyStatusChangeListener(android.media.MediaDrm.OnKeyStatusChangeListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDrm void setOnKeyStatusChangeListener(android.media.MediaDrm.OnKeyStatusChangeListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.media.MediaDrm void setPropertyByteArray(java.lang.String, byte[]) 0">
     <annotation name="android.support.annotation.StringDef">
       <val name="value" val="{android.media.MediaDrm.PROPERTY_DEVICE_UNIQUE_ID}" />
@@ -583,11 +598,21 @@
   <item name="android.media.MediaDrm.KeyRequest byte[] getData()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.MediaDrm.KeyRequest int getRequestType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaDrm.KeyRequest.REQUEST_TYPE_INITIAL, android.media.MediaDrm.KeyRequest.REQUEST_TYPE_RENEWAL, android.media.MediaDrm.KeyRequest.REQUEST_TYPE_RELEASE}" />
+    </annotation>
+  </item>
   <item name="android.media.MediaDrm.KeyRequest java.lang.String getDefaultUrl()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.MediaDrm.KeyStatus byte[] getKeyId()">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.KeyStatus int getStatusCode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaDrm.KeyStatus.STATUS_USABLE, android.media.MediaDrm.KeyStatus.STATUS_EXPIRED, android.media.MediaDrm.KeyStatus.STATUS_OUTPUT_NOT_ALLOWED, android.media.MediaDrm.KeyStatus.STATUS_PENDING, android.media.MediaDrm.KeyStatus.STATUS_INTERNAL_ERROR}" />
+    </annotation>
   </item>
   <item name="android.media.MediaDrm.MediaDrmStateException java.lang.String getDiagnosticInfo()">
     <annotation name="android.support.annotation.NonNull" />
@@ -610,6 +635,15 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.MediaDrm.OnExpirationUpdateListener void onExpirationUpdate(android.media.MediaDrm, byte[], long) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.OnKeyStatusChangeListener void onKeyStatusChange(android.media.MediaDrm, byte[], java.util.List&lt;android.media.MediaDrm.KeyStatus&gt;, boolean) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.OnKeyStatusChangeListener void onKeyStatusChange(android.media.MediaDrm, byte[], java.util.List&lt;android.media.MediaDrm.KeyStatus&gt;, boolean) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDrm.OnKeyStatusChangeListener void onKeyStatusChange(android.media.MediaDrm, byte[], java.util.List&lt;android.media.MediaDrm.KeyStatus&gt;, boolean) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.MediaDrm.ProvisionRequest byte[] getData()">

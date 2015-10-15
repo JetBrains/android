@@ -1,23 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.os.AsyncTask Result get(long, java.util.concurrent.TimeUnit) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.AsyncTask android.os.AsyncTask.Status getStatus()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; execute(Params...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; executeOnExecutor(java.util.concurrent.Executor, Params...)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; executeOnExecutor(java.util.concurrent.Executor, Params...) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.AsyncTask void execute(java.lang.Runnable) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.os.AsyncTask Result doInBackground(Params...)">
     <annotation name="android.support.annotation.WorkerThread" />
   </item>
@@ -138,24 +120,6 @@
   <item name="android.os.BaseBundle void putStringArray(java.lang.String, java.lang.String[]) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.os.Binder android.os.UserHandle getCallingUserHandle()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Binder boolean onTransact(int, android.os.Parcel, android.os.Parcel, int) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Binder boolean onTransact(int, android.os.Parcel, android.os.Parcel, int) 2">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Binder boolean transact(int, android.os.Parcel, android.os.Parcel, int) 2">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Bundle Bundle(android.os.Bundle) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Bundle EMPTY">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.os.Bundle T getParcelable(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -237,9 +201,6 @@
   <item name="android.os.Bundle java.lang.CharSequence[] getCharSequenceArray(java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.os.Bundle java.lang.Object clone()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.os.Bundle java.util.ArrayList&lt;T&gt; getParcelableArrayList(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -264,17 +225,11 @@
   <item name="android.os.Bundle java.util.ArrayList&lt;java.lang.String&gt; getStringArrayList(java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.os.Bundle java.util.Set&lt;java.lang.String&gt; keySet()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.os.Bundle short[] getShortArray(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.os.Bundle short[] getShortArray(java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.os.Bundle void putAll(android.os.Bundle) 0">
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Bundle void putBinder(java.lang.String, android.os.IBinder) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -396,90 +351,6 @@
   <item name="android.os.Bundle void putStringArrayList(java.lang.String, java.util.ArrayList&lt;java.lang.String&gt;) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.os.Bundle void readFromParcel(android.os.Parcel) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Bundle void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.CountDownTimer android.os.CountDownTimer start()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Debug.MemoryInfo void readFromParcel(android.os.Parcel) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Debug.MemoryInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment DIRECTORY_ALARMS">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment DIRECTORY_DCIM">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment DIRECTORY_DOWNLOADS">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment DIRECTORY_MOVIES">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment DIRECTORY_MUSIC">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment DIRECTORY_NOTIFICATIONS">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment DIRECTORY_PICTURES">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment DIRECTORY_PODCASTS">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment DIRECTORY_RINGTONES">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment java.io.File getDataDirectory()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment java.io.File getDownloadCacheDirectory()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment java.io.File getExternalStoragePublicDirectory(java.lang.String)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Environment java.io.File getRootDirectory()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Handler Handler(android.os.Looper) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Handler Handler(android.os.Looper, android.os.Handler.Callback) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Handler boolean sendMessage(android.os.Message) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Handler boolean sendMessageAtFrontOfQueue(android.os.Message) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Handler boolean sendMessageAtTime(android.os.Message, long) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Handler boolean sendMessageDelayed(android.os.Message, long) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Handler java.lang.String getMessageName(android.os.Message) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Handler void dispatchMessage(android.os.Message) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Handler void dump(android.util.Printer, java.lang.String) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.os.Looper android.os.Looper myLooper()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -501,155 +372,41 @@
   <item name="android.os.Looper void setMessageLogging(android.util.Printer) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.os.MemoryFile int readBytes(byte[], int, int, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.MemoryFile java.io.InputStream getInputStream()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.MemoryFile java.io.OutputStream getOutputStream()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.MemoryFile void writeBytes(byte[], int, int, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Message android.os.Message obtain(android.os.Message) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Message void copyFrom(android.os.Message) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Message void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.os.MessageQueue void addIdleHandler(android.os.MessageQueue.IdleHandler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.MessageQueue void addOnFileDescriptorEventListener(java.io.FileDescriptor, int, android.os.MessageQueue.OnFileDescriptorEventListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.MessageQueue void addOnFileDescriptorEventListener(java.io.FileDescriptor, int, android.os.MessageQueue.OnFileDescriptorEventListener) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_INPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_OUTPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_ERROR}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.os.MessageQueue void addOnFileDescriptorEventListener(java.io.FileDescriptor, int, android.os.MessageQueue.OnFileDescriptorEventListener) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.MessageQueue void removeIdleHandler(android.os.MessageQueue.IdleHandler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.os.Messenger Messenger(android.os.Handler) 0">
+  <item name="android.os.MessageQueue void removeOnFileDescriptorEventListener(java.io.FileDescriptor) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.os.Messenger android.os.Messenger readMessengerOrNullFromParcel(android.os.Parcel) 0">
+  <item name="android.os.MessageQueue.OnFileDescriptorEventListener int onFileDescriptorEvents(java.io.FileDescriptor, int)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_INPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_OUTPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_ERROR}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.os.MessageQueue.OnFileDescriptorEventListener int onFileDescriptorEvents(java.io.FileDescriptor, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.os.Messenger void writeMessengerOrNullToParcel(android.os.Messenger, android.os.Parcel) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Messenger void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel T[] createTypedArray(android.os.Parcelable.Creator&lt;T&gt;) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel android.os.IBinder readStrongBinder()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel byte[] createByteArray()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel byte[] marshall()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel java.lang.String readString()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel java.util.ArrayList&lt;T&gt; createTypedArrayList(android.os.Parcelable.Creator&lt;T&gt;) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void appendFrom(android.os.Parcel, int, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readBinderArray(android.os.IBinder[]) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readBinderList(java.util.List&lt;android.os.IBinder&gt;) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readBooleanArray(boolean[]) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readByteArray(byte[]) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readCharArray(char[]) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readDoubleArray(double[]) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readFloatArray(float[]) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readIntArray(int[]) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readList(java.util.List, java.lang.ClassLoader) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readLongArray(long[]) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readMap(java.util.Map, java.lang.ClassLoader) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readStringArray(java.lang.String[]) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readStringList(java.util.List&lt;java.lang.String&gt;) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readTypedArray(T[], android.os.Parcelable.Creator&lt;T&gt;) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readTypedArray(T[], android.os.Parcelable.Creator&lt;T&gt;) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readTypedList(java.util.List&lt;T&gt;, android.os.Parcelable.Creator&lt;T&gt;) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Parcel void readTypedList(java.util.List&lt;T&gt;, android.os.Parcelable.Creator&lt;T&gt;) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor adoptFd(int)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor fromDatagramSocket(java.net.DatagramSocket) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor fromFd(int)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor fromSocket(java.net.Socket) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor open(java.io.File, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor[] createPipe()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor.AutoCloseInputStream AutoCloseInputStream(android.os.ParcelFileDescriptor) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor.AutoCloseOutputStream AutoCloseOutputStream(android.os.ParcelFileDescriptor) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ParcelUuid android.os.ParcelUuid fromString(java.lang.String)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ParcelUuid void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.PatternMatcher PatternMatcher(android.os.Parcel) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.PatternMatcher void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
+  <item name="android.os.MessageQueue.OnFileDescriptorEventListener int onFileDescriptorEvents(java.io.FileDescriptor, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_INPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_OUTPUT, android.os.MessageQueue.OnFileDescriptorEventListener.EVENT_ERROR}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.os.PersistableBundle android.os.PersistableBundle getPersistableBundle(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
@@ -662,189 +419,6 @@
   </item>
   <item name="android.os.PersistableBundle void putPersistableBundle(java.lang.String, android.os.PersistableBundle) 1">
     <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.os.PowerManager android.os.PowerManager.WakeLock newWakeLock(int, java.lang.String)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.Process android.os.UserHandle myUserHandle()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.RecoverySystem void installPackage(android.content.Context, java.io.File) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.RecoverySystem void installPackage(android.content.Context, java.io.File) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.RecoverySystem void rebootWipeCache(android.content.Context) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.RecoverySystem void rebootWipeUserData(android.content.Context) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.RecoverySystem void verifyPackage(java.io.File, android.os.RecoverySystem.ProgressListener, java.io.File) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.RemoteCallbackList boolean register(E) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.RemoteCallbackList boolean register(E, java.lang.Object) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.RemoteCallbackList boolean unregister(E) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.ResultReceiver void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode android.os.StrictMode.ThreadPolicy allowThreadDiskReads()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode android.os.StrictMode.ThreadPolicy allowThreadDiskWrites()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode android.os.StrictMode.ThreadPolicy getThreadPolicy()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode android.os.StrictMode.VmPolicy getVmPolicy()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode void setThreadPolicy(android.os.StrictMode.ThreadPolicy) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode void setVmPolicy(android.os.StrictMode.VmPolicy) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder Builder(android.os.StrictMode.ThreadPolicy) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy build()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder detectAll()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder detectCustomSlowCalls()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder detectDiskReads()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder detectDiskWrites()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder detectNetwork()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyDeath()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyDeathOnNetwork()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyDialog()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyDropBox()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyFlashScreen()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyLog()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder permitAll()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder permitCustomSlowCalls()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder permitDiskReads()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder permitDiskWrites()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder permitNetwork()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder Builder(android.os.StrictMode.VmPolicy) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy build()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder detectActivityLeaks()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder detectAll()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder detectLeakedClosableObjects()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder detectLeakedRegistrationObjects()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder detectLeakedSqlLiteObjects()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder penaltyDeath()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder penaltyDropBox()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder penaltyLog()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder setClassInstanceLimit(java.lang.Class, int)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.TokenWatcher void acquire(android.os.IBinder, java.lang.String) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.TokenWatcher void dump(java.io.PrintWriter) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.UserHandle UserHandle(android.os.Parcel) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.UserHandle android.os.UserHandle readFromParcel(android.os.Parcel) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.UserHandle void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.UserHandle void writeToParcel(android.os.UserHandle, android.os.Parcel) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.UserManager android.os.Bundle getUserRestrictions(android.os.UserHandle) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.UserManager boolean isUserRunning(android.os.UserHandle) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.UserManager boolean isUserRunningOrStopping(android.os.UserHandle) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.UserManager long getSerialNumberForUser(android.os.UserHandle) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.UserManager void setUserRestrictions(android.os.Bundle, android.os.UserHandle) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.WorkSource boolean add(android.os.WorkSource) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.WorkSource boolean diff(android.os.WorkSource) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.WorkSource boolean remove(android.os.WorkSource) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.os.WorkSource void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 

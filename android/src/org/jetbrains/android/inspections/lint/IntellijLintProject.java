@@ -19,8 +19,9 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.client.api.LintClient;
@@ -234,6 +235,8 @@ class IntellijLintProject extends Project {
     }
 
     List<Project> dependencies = Lists.newArrayList();
+    // No, this shouldn't use getAllAndroidDependencies; we may have non-Android dependencies that this won't include
+    // (e.g. Java-only modules)
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(module, true);
     for (AndroidFacet dependentFacet : dependentFacets) {
       Project p = moduleMap.get(dependentFacet.getModule());
@@ -245,8 +248,11 @@ class IntellijLintProject extends Project {
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.isGradleProject()) {
-      addGradleLibraryProjects(client, files, libraryMap, projects, facet, project, projectMap, dependencies);
+    if (facet != null) {
+      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
+      if (androidGradleModel != null) {
+        addGradleLibraryProjects(client, files, libraryMap, projects, facet, androidGradleModel, project, projectMap, dependencies);
+      }
     }
 
     project.setDirectLibraries(dependencies);
@@ -296,21 +302,26 @@ class IntellijLintProject extends Project {
       }
       dir = new File(FileUtil.toSystemDependentName(moduleDirPath));
     }
-    LintModuleProject project;
+    LintModuleProject project = null;
     if (facet == null) {
       project = new LintModuleProject(client, dir, dir, module);
       AndroidFacet f = findAndroidFacetInProject(module.getProject());
       if (f != null) {
-        project.mGradleProject = f.isGradleProject();
+        project.mGradleProject = f.requiresAndroidModel();
       }
     }
-    else if (facet.isGradleProject()) {
-      project = new LintGradleProject(client, dir, dir, facet);
+    else if (facet.requiresAndroidModel()) {
+      AndroidModel androidModel = facet.getAndroidModel();
+      if (androidModel instanceof AndroidGradleModel) {
+        project = new LintGradleProject(client, dir, dir, facet, (AndroidGradleModel)androidModel);
+      }
     }
     else {
       project = new LintAndroidProject(client, dir, dir, facet);
     }
-    client.registerProject(dir, project);
+    if (project != null) {
+      client.registerProject(dir, project);
+    }
     return project;
   }
 
@@ -337,40 +348,38 @@ class IntellijLintProject extends Project {
                                                @NonNull Map<AndroidLibrary, Project> libraryMap,
                                                @NonNull List<Project> projects,
                                                @NonNull AndroidFacet facet,
+                                               @NonNull AndroidGradleModel androidGradleModel,
                                                @NonNull LintModuleProject project,
                                                @NonNull Map<Project,Module> projectMap,
                                                @NonNull List<Project> dependencies) {
-    File dir;IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-    if (gradleProject != null) {
-      Collection<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
-      for (AndroidLibrary library : libraries) {
-        Project p = libraryMap.get(library);
-        if (p == null) {
-          dir = library.getFolder();
-          p = new LintGradleLibraryProject(client, dir, dir, library);
-          libraryMap.put(library, p);
-          projectMap.put(p, facet.getModule());
-          projects.add(p);
+    Collection<AndroidLibrary> libraries = androidGradleModel.getMainArtifact().getDependencies().getLibraries();
+    for (AndroidLibrary library : libraries) {
+      Project p = libraryMap.get(library);
+      if (p == null) {
+        File dir = library.getFolder();
+        p = new LintGradleLibraryProject(client, dir, dir, library);
+        libraryMap.put(library, p);
+        projectMap.put(p, facet.getModule());
+        projects.add(p);
 
-          if (files != null) {
-            VirtualFile libraryDir = LocalFileSystem.getInstance().findFileByIoFile(dir);
-            if (libraryDir != null) {
-              ListIterator<VirtualFile> iterator = files.listIterator();
-              while (iterator.hasNext()) {
-                VirtualFile file = iterator.next();
-                if (VfsUtilCore.isAncestor(libraryDir, file, false)) {
-                  project.addFile(VfsUtilCore.virtualToIoFile(file));
-                  iterator.remove();
-                }
+        if (files != null) {
+          VirtualFile libraryDir = LocalFileSystem.getInstance().findFileByIoFile(dir);
+          if (libraryDir != null) {
+            ListIterator<VirtualFile> iterator = files.listIterator();
+            while (iterator.hasNext()) {
+              VirtualFile file = iterator.next();
+              if (VfsUtilCore.isAncestor(libraryDir, file, false)) {
+                project.addFile(VfsUtilCore.virtualToIoFile(file));
+                iterator.remove();
               }
             }
-            if (files.isEmpty()) {
-              files = null; // No more work in other modules
-            }
+          }
+          if (files.isEmpty()) {
+            files = null; // No more work in other modules
           }
         }
-        dependencies.add(p);
       }
+      dependencies.add(p);
     }
   }
 
@@ -463,7 +472,7 @@ class IntellijLintProject extends Project {
 
     @NonNull
     @Override
-    public List<File> getJavaLibraries() {
+    public List<File> getJavaLibraries(boolean includeProvided) {
       if (SUPPORT_CLASS_FILES) {
         if (mJavaLibraries == null) {
           mJavaLibraries = Lists.newArrayList();
@@ -540,7 +549,7 @@ class IntellijLintProject extends Project {
     @Override
     public List<File> getProguardFiles() {
       if (mProguardFiles == null) {
-        assert !myFacet.isGradleProject(); // Should be overridden to read from gradle state
+        assert !myFacet.requiresAndroidModel(); // Should be overridden to read from gradle state
         final JpsAndroidModuleProperties properties = myFacet.getProperties();
 
         if (properties.RUN_PROGUARD) {
@@ -640,13 +649,21 @@ class IntellijLintProject extends Project {
   }
 
   private static class LintGradleProject extends LintAndroidProject {
+    private final AndroidGradleModel myAndroidGradleModel;
+
     /**
      * Creates a new Project. Use one of the factory methods to create.
      */
-    private LintGradleProject(@NonNull LintClient client, @NonNull File dir, @NonNull File referenceDir, @NonNull AndroidFacet facet) {
+    private LintGradleProject(
+      @NonNull LintClient client,
+      @NonNull File dir,
+      @NonNull File referenceDir,
+      @NonNull AndroidFacet facet,
+      @NonNull AndroidGradleModel androidGradleModel) {
       super(client, dir, referenceDir, facet);
       mGradleProject = true;
       mMergeManifests = true;
+      myAndroidGradleModel = androidGradleModel;
     }
 
     @NonNull
@@ -659,7 +676,7 @@ class IntellijLintProject extends Project {
           mManifestFiles.add(mainManifest);
         }
 
-        List<SourceProvider> flavorSourceProviders = myFacet.getFlavorSourceProviders();
+        List<SourceProvider> flavorSourceProviders = myAndroidGradleModel.getFlavorSourceProviders();
         if (flavorSourceProviders != null) {
           for (SourceProvider provider : flavorSourceProviders) {
             File manifestFile = provider.getManifestFile();
@@ -669,7 +686,7 @@ class IntellijLintProject extends Project {
           }
         }
 
-        SourceProvider multiProvider = myFacet.getMultiFlavorSourceProvider();
+        SourceProvider multiProvider = myAndroidGradleModel.getMultiFlavorSourceProvider();
         if (multiProvider != null) {
           File manifestFile = multiProvider.getManifestFile();
           if (manifestFile.exists()) {
@@ -677,7 +694,7 @@ class IntellijLintProject extends Project {
           }
         }
 
-        SourceProvider buildTypeSourceProvider = myFacet.getBuildTypeSourceProvider();
+        SourceProvider buildTypeSourceProvider = myAndroidGradleModel.getBuildTypeSourceProvider();
         if (buildTypeSourceProvider != null) {
           File manifestFile = buildTypeSourceProvider.getManifestFile();
           if (manifestFile.exists()) {
@@ -685,7 +702,7 @@ class IntellijLintProject extends Project {
           }
         }
 
-        SourceProvider variantProvider = myFacet.getVariantSourceProvider();
+        SourceProvider variantProvider = myAndroidGradleModel.getVariantSourceProvider();
         if (variantProvider != null) {
           File manifestFile = variantProvider.getManifestFile();
           if (manifestFile.exists()) {
@@ -701,10 +718,11 @@ class IntellijLintProject extends Project {
     @Override
     public List<File> getProguardFiles() {
       if (mProguardFiles == null) {
-        if (myFacet.isGradleProject()) {
-          IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
-          if (gradleProject != null) {
-            ProductFlavor flavor = gradleProject.getDelegate().getDefaultConfig().getProductFlavor();
+        if (myFacet.requiresAndroidModel()) {
+          // TODO: b/22928250
+          AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+          if (androidModel != null) {
+            ProductFlavor flavor = androidModel.getAndroidProject().getDefaultConfig().getProductFlavor();
             mProguardFiles = Lists.newArrayList();
             for (File file : flavor.getProguardFiles()) {
               if (file.exists()) {
@@ -741,14 +759,7 @@ class IntellijLintProject extends Project {
           // Overridden because we don't synchronize the gradle output directory to
           // the AndroidDexCompiler settings the way java source roots are mapped into
           // the module content root settings
-          File dir = null;
-          if (myFacet.isGradleProject()) {
-            IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
-            if (gradleProject != null) {
-              Variant variant = gradleProject.getSelectedVariant();
-              dir = variant.getMainArtifact().getClassesFolder();
-            }
-          }
+          File dir = myAndroidGradleModel.getMainArtifact().getClassesFolder();
           if (dir != null) {
             mJavaClassFolders = Collections.singletonList(dir);
           } else {
@@ -762,23 +773,40 @@ class IntellijLintProject extends Project {
       return Collections.emptyList();
     }
 
+    private static boolean sProvidedAvailable = true;
+
     @NonNull
     @Override
-    public List<File> getJavaLibraries() {
+    public List<File> getJavaLibraries(boolean includeProvided) {
       if (SUPPORT_CLASS_FILES) {
         if (mJavaLibraries == null) {
-          if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
-            IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
-            Collection<JavaLibrary> libs = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getJavaLibraries();
+          if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
+            Collection<JavaLibrary> libs = myAndroidGradleModel.getMainArtifact().getDependencies().getJavaLibraries();
             mJavaLibraries = Lists.newArrayListWithExpectedSize(libs.size());
             for (JavaLibrary lib : libs) {
+              if (!includeProvided) {
+                if (sProvidedAvailable) {
+                  // Method added in 1.4-rc1; gracefully handle running with
+                  // older plugins
+                  try {
+                    if (lib.isProvided()) {
+                      continue;
+                    }
+                  }
+                  catch (Throwable t) {
+                    //noinspection AssignmentToStaticFieldFromInstanceMethod
+                    sProvidedAvailable = false; // don't try again
+                  }
+                }
+              }
+
               File jar = lib.getJarFile();
               if (jar.exists()) {
                 mJavaLibraries.add(jar);
               }
             }
           } else {
-            mJavaLibraries = super.getJavaLibraries();
+            mJavaLibraries = super.getJavaLibraries(includeProvided);
           }
         }
         return mJavaLibraries;
@@ -798,9 +826,10 @@ class IntellijLintProject extends Project {
         return manifestPackage;
       }
 
-      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-      if (project != null) {
-        return project.computePackageName();
+      // TODO: b/22928250
+      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      if (androidModel != null) {
+        return androidModel.getApplicationId();
       }
 
       return null;
@@ -828,9 +857,10 @@ class IntellijLintProject extends Project {
 
     @Override
     public int getBuildSdk() {
-      IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
-      if (ideaAndroidProject != null) {
-        String compileTarget = ideaAndroidProject.getDelegate().getCompileTarget();
+      // TODO: b/22928250
+      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      if (androidModel != null) {
+        String compileTarget = androidModel.getAndroidProject().getCompileTarget();
         AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
         if (version != null) {
           return version.getApiLevel();
@@ -848,10 +878,11 @@ class IntellijLintProject extends Project {
     @Nullable
     @Override
     public AndroidProject getGradleProjectModel() {
-      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-      if (project != null) {
-        project.getSelectedVariant();
-        return project.getDelegate();
+      // TODO: b/22928250
+      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      if (androidModel != null) {
+        androidModel.getSelectedVariant();
+        return androidModel.getAndroidProject();
       }
 
       return null;
@@ -860,9 +891,10 @@ class IntellijLintProject extends Project {
     @Nullable
     @Override
     public Variant getCurrentVariant() {
-      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-      if (project != null) {
-        return project.getSelectedVariant();
+      // TODO: b/22928250
+      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      if (androidModel != null) {
+        return androidModel.getSelectedVariant();
       }
 
       return null;
@@ -877,10 +909,13 @@ class IntellijLintProject extends Project {
     @Nullable
     @Override
     public Boolean dependsOn(@NonNull String artifact) {
+      // TODO: b/22928250
+      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+
       if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
         if (mSupportLib == null) {
-          if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
-            mSupportLib = GradleUtil.dependsOn(myFacet.getIdeaAndroidProject(), artifact);
+          if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
+            mSupportLib = GradleUtil.dependsOn(androidModel, artifact);
           } else {
             mSupportLib = depsDependsOn(this, artifact);
           }
@@ -888,8 +923,8 @@ class IntellijLintProject extends Project {
         return mSupportLib;
       } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
         if (mAppCompat == null) {
-          if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
-            mAppCompat = GradleUtil.dependsOn(myFacet.getIdeaAndroidProject(), artifact);
+          if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
+            mAppCompat = GradleUtil.dependsOn(androidModel, artifact);
           } else {
             mAppCompat = depsDependsOn(this, artifact);
           }
@@ -897,8 +932,8 @@ class IntellijLintProject extends Project {
         return mAppCompat;
       } else {
         // Some other (not yet directly cached result)
-        if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null
-           && GradleUtil.dependsOn(myFacet.getIdeaAndroidProject(), artifact)) {
+        if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null
+           && GradleUtil.dependsOn(androidModel, artifact)) {
           return true;
         }
 
@@ -981,10 +1016,28 @@ class IntellijLintProject extends Project {
       return Collections.emptyList();
     }
 
+    private static boolean sOptionalAvailable = true;
+
     @NonNull
     @Override
-    public List<File> getJavaLibraries() {
+    public List<File> getJavaLibraries(boolean includeProvided) {
       if (SUPPORT_CLASS_FILES) {
+        if (!includeProvided) {
+          if (sOptionalAvailable) {
+            // Method added in 1.4-rc1; gracefully handle running with
+            // older plugins
+            try {
+              if (myLibrary.isOptional()) {
+                return Collections.emptyList();
+              }
+            }
+            catch (Throwable t) {
+              //noinspection AssignmentToStaticFieldFromInstanceMethod
+              sOptionalAvailable = false; // don't try again
+            }
+          }
+        }
+
         if (mJavaLibraries == null) {
           mJavaLibraries = Lists.newArrayList();
           File jarFile = myLibrary.getJarFile();

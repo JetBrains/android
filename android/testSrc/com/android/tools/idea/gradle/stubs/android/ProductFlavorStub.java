@@ -24,10 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ProductFlavorStub implements ProductFlavor {
   @NotNull private final String myName;
@@ -45,6 +42,12 @@ public class ProductFlavorStub implements ProductFlavor {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  @Override
+  @Nullable
+  public String getApplicationIdSuffix() {
+    return null;
   }
 
   @Override
@@ -141,6 +144,12 @@ public class ProductFlavorStub implements ProductFlavor {
   @Nullable
   public SigningConfig getSigningConfig() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @Nullable
+  public Set<String> getGeneratedDensities() {
+    return null;
   }
 
   @Override

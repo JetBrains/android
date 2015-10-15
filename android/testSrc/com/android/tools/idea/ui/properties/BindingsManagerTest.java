@@ -74,7 +74,7 @@ public final class BindingsManagerTest {
     CountListener listener = new CountListener();
     stringList.addListener(listener);
 
-    bindings.bindList(stringList, new AbstractMapExpression<Integer, String>(numericList) {
+    bindings.bind(stringList, new AbstractMapExpression<Integer, String>(numericList) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
@@ -135,7 +135,7 @@ public final class BindingsManagerTest {
     ObservableList<String> dest = new ObservableList<String>();
     ObservableList<Integer> src = new ObservableList<Integer>();
 
-    bindings.bindList(dest, new AbstractMapExpression<Integer, String>(src) {
+    bindings.bind(dest, new AbstractMapExpression<Integer, String>(src) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
@@ -146,7 +146,7 @@ public final class BindingsManagerTest {
     src.add(5);
     assertThat(dest).containsExactly("5");
 
-    bindings.releaseList(dest);
+    bindings.release(dest);
 
     src.add(10);
     assertThat(dest).containsExactly("5");
@@ -191,7 +191,7 @@ public final class BindingsManagerTest {
     ObservableList<String> dest = new ObservableList<String>();
     ObservableList<Integer> src = new ObservableList<Integer>();
 
-    bindings.bindList(dest, new AbstractMapExpression<Integer, String>(src) {
+    bindings.bind(dest, new AbstractMapExpression<Integer, String>(src) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {

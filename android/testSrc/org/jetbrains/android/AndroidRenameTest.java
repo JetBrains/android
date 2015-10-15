@@ -62,6 +62,13 @@ public class AndroidRenameTest extends AndroidTestCase {
     AndroidResourceRenameResourceProcessor.ASK = false;
   }
 
+  @Override
+  public void tearDown() throws Exception {
+    super.tearDown();
+    // Restore static flag to its default value.
+    AndroidResourceRenameResourceProcessor.ASK = true;
+  }
+
   public void testXmlReferenceToFileResource() throws Throwable {
     createManifest();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml");
@@ -92,6 +99,36 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values/styles.xml", BASE_PATH + "styles_after.xml", true);
     myFixture.checkResultByFile("src/p1/p2/RefR2.java", BASE_PATH + "RefR2_after.java", true);
     assertNotNull(myFixture.findFileInTempDir("res/drawable/pic1.9.png"));
+  }
+
+  // Regression test for http://b.android.com/174014
+  // Bug: when mipmap resource was renamed, new reference contained ".png" file extension.
+  public void testXmlReferenceToFileResource2() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "pic.png", "res/mipmap/pic.png");
+    myFixture.configureFromExistingVirtualFile(
+      myFixture.copyFileToProject(BASE_PATH + "AndroidManifest_mipmap_before.xml", "AndroidManifest.xml"));
+    renameElementWithTextOccurences("app_icon.png");
+    myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + "AndroidManifest_mipmap_after.xml", true);
+    assertNotNull(myFixture.findFileInTempDir("res/mipmap/app_icon.png"));
+  }
+
+  // Regression test for raw resources renaming, http://b.android.com/183128
+  public void testXmlReferenceToFileResource3() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "styles.xml", "res/raw/raw_resource.txt");
+    myFixture
+      .configureFromExistingVirtualFile(myFixture.copyFileToProject(BASE_PATH + "AndroidManifest_raw_before.xml", "AndroidManifest.xml"));
+    renameElementWithTextOccurences("new_raw_resource.txt");
+    myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + "AndroidManifest_raw_after.xml", true);
+    assertNotNull(myFixture.findFileInTempDir("res/raw/new_raw_resource.txt"));
+  }
+
+  // Regression test for transition resources renaming, http://b.android.com/183128
+  public void testXmlReferenceToFileResource4() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "transition.xml", "res/transition/great.xml");
+    myFixture.configureFromExistingVirtualFile(myFixture.copyFileToProject(BASE_PATH + "styles12.xml", "res/values/styles.xml"));
+    renameElementWithTextOccurences("good.xml");
+    myFixture.checkResultByFile("res/values/styles.xml", BASE_PATH + "styles12_after.xml", true);
+    assertNotNull(myFixture.findFileInTempDir("res/transition/good.xml"));
   }
 
   public void testMoveApplicationClass() throws Throwable {
@@ -261,6 +298,18 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + "RefR3_after.java", true);
     myFixture.checkResultByFile("res/layout/layout3.xml", BASE_PATH + "layout_file_after.xml", true);
     assertNotNull(myFixture.findFileInTempDir("res/drawable/pic1.png"));
+  }
+
+  // Regression test for http://b.android.com/135180
+  public void testJavaReferenceToFileResourceWithUnderscores() throws Throwable {
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR12.java", "src/p1/p2/RefR.java");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.copyFileToProject("R.java", R_JAVA_PATH);
+    myFixture.copyFileToProject(BASE_PATH + "pic.png", "res/drawable/pic.png");
+    checkAndRename("my_pic");
+    myFixture.checkResultByFile(BASE_PATH + "RefR12_after.java");
+    assertNotNull(myFixture.findFileInTempDir("res/drawable/my_pic.png"));
   }
 
   public void testJavaReferenceToValueResource() throws Throwable {

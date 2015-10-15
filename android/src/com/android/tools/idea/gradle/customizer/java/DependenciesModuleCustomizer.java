@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.JavaModel;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
+import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -32,6 +32,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,13 +45,13 @@ import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static java.util.Collections.singletonList;
 
-public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaJavaProject> {
+public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<JavaProject> {
   private static final DependencyScope DEFAULT_DEPENDENCY_SCOPE = COMPILE;
 
   @Override
   protected void setUpDependencies(@NotNull Module module,
                                    @NotNull IdeModifiableModelsProvider modelsProvider,
-                                   @NotNull IdeaJavaProject javaProject) {
+                                   @NotNull JavaProject javaProject) {
 
     final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     List<String> unresolved = Lists.newArrayList();
@@ -96,13 +97,17 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     if (found != null) {
-      ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(found);
-      orderEntry.setExported(true);
-      DependencyScope scope = parseScope(dependency.getScope());
-      orderEntry.setScope(scope);
+      AndroidFacet androidFacet = AndroidFacet.getInstance(found);
+      if (androidFacet == null) {
+        ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(found);
+        orderEntry.setExported(true);
+      } else {
+        // If it depends on an android module, we should skip that.
+        setupErrors.addInvalidModuleDependency(moduleModel.getModule(), found.getName(), "Java modules cannot depend on Android modules");
+      }
       return;
     }
-    setupErrors.addMissingModule(moduleName, module.getName(), null);
+    setupErrors.addMissingModule(moduleName, moduleModel.getModule().getName(), null);
   }
 
   private void updateDependency(@NotNull Module module,

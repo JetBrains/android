@@ -33,6 +33,26 @@ import static org.jetbrains.android.inspections.lint.IntellijLintProject.*;
  * of some issues with IDEA specific ones.
  */
 public class IntellijLintIssueRegistry extends BuiltinIssueRegistry {
+  private static final Implementation DUMMY_IMPLEMENTATION = new Implementation(Detector.class,
+                                                                                EnumSet.noneOf(Scope.class));
+
+  private static final String CUSTOM_EXPLANATION =
+    "When custom (third-party) lint rules are integrated in the IDE, they are not available as native IDE inspections, " +
+    "so the explanation text (which must be statically registered by a plugin) is not available. As a workaround, run the " +
+    "lint target in Gradle instead; the HTML report will include full explanations.";
+
+  /**
+   * Issue reported by a custom rule (3rd party detector). We need a placeholder issue to reference for inspections, which
+   * have to be registered statically (can't load these on the fly from custom jars the way lint does)
+   */
+  @NonNull
+  public static final Issue CUSTOM_WARNING = Issue.create(
+    "CustomWarning", "Warning from Custom Rule", CUSTOM_EXPLANATION, Category.CORRECTNESS, 5, Severity.WARNING, DUMMY_IMPLEMENTATION);
+
+  @NonNull
+  public static final Issue CUSTOM_ERROR = Issue.create(
+    "CustomError", "Error from Custom Rule", CUSTOM_EXPLANATION, Category.CORRECTNESS, 5, Severity.ERROR, DUMMY_IMPLEMENTATION);
+
   private static List<Issue> ourFilteredIssues;
 
   public IntellijLintIssueRegistry() {

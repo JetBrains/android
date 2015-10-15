@@ -1,0 +1,3 @@
+interface IAidlInterface {
+  int a();
+}

@@ -20,11 +20,12 @@ import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.analysis.AnalysisScopeBundle;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInspection.inferNullity.InferNullityAnnotationsAction;
@@ -85,16 +86,15 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       return;
     }
     int[] fileCount = new int[] {0};
-    Map<Module, PsiFile> modules = findModulesInScope(project, scope, fileCount);
-    if (modules == null) {
-      return;
-    }
-    if (!checkModules(project, scope, modules)) {
-      return;
-    }
     PsiDocumentManager.getInstance(project).commitAllDocuments();
     final UsageInfo[] usageInfos = findUsages(project, scope, fileCount[0]);
     if (usageInfos == null) return;
+
+    Map<Module, PsiFile> modules = findModulesFromUsage(usageInfos);
+
+    if (!checkModules(project, scope, modules)) {
+      return;
+    }
 
     if (usageInfos.length < 5) {
       SwingUtilities.invokeLater(applyRunnable(project, new Computable<UsageInfo[]>() {
@@ -109,36 +109,17 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     }
   }
 
-  // Intellij code from InferNullityAnnotationsAction.
-  private static Map<Module, PsiFile> findModulesInScope(@NotNull final Project project,
-                                                         @NotNull final AnalysisScope scope,
-                                                         @NotNull final int[] fileCount) {
-    final ProgressManager progressManager = ProgressManager.getInstance();
+  private static Map<Module, PsiFile> findModulesFromUsage(UsageInfo[] infos) {
+    // We need 1 file from each module that requires changes (the file may be overwritten below):
     final Map<Module, PsiFile> modules = new HashMap<Module, PsiFile>();
-    boolean completed = progressManager.runProcessWithProgressSynchronously(new Runnable() {
-      @Override
-      public void run() {
-        scope.accept(new PsiElementVisitor() {
-          @Override
-          public void visitFile(PsiFile file) {
-            fileCount[0]++;
-            final ProgressIndicator progressIndicator = progressManager.getProgressIndicator();
-            if (progressIndicator != null) {
-              final VirtualFile virtualFile = file.getVirtualFile();
-              if (virtualFile != null) {
-                progressIndicator.setText2(ProjectUtil.calcRelativeToProjectPath(virtualFile, project));
-              }
-              progressIndicator.setText(AnalysisScopeBundle.message("scanning.scope.progress.title"));
-            }
-            final Module module = ModuleUtilCore.findModuleForPsiElement(file);
-            if (module != null && !modules.containsKey(module)) {
-              modules.put(module, file);
-            }
-          }
-        });
-      }
-    }, "Check applicability...", true, project);
-    return completed ? modules : null;
+
+    for (UsageInfo info : infos) {
+      final PsiElement element = info.getElement();
+      Module module = ModuleUtilCore.findModuleForPsiElement(element);
+      PsiFile file = element.getContainingFile();
+      modules.put(module, file);
+    }
+    return modules;
   }
 
   // Intellij code from InferNullityAnnotationsAction.
@@ -190,7 +171,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
                                  @NotNull final AnalysisScope scope,
                                  @NotNull Map<Module, PsiFile> modules) {
     RepositoryUrlManager manager = RepositoryUrlManager.get();
-    final String libraryCoordinate = manager.getLibraryCoordinate(RepositoryUrlManager.SUPPORT_ANNOTATIONS);
+    final String annotationsLibraryCoordinate = manager.getLibraryCoordinate(RepositoryUrlManager.SUPPORT_ANNOTATIONS);
+    final String appCompatLibraryCoordinate = manager.getLibraryCoordinate(RepositoryUrlManager.APP_COMPAT_ID_V7);
 
     final Set<Module> modulesWithoutAnnotations = new HashSet<Module>();
     final Set<Module> modulesWithLowVersion = new HashSet<Module>();
@@ -210,7 +192,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           Dependency dependency = (Dependency)entry;
           if (dependency.scope == Dependency.Scope.COMPILE &&
               dependency.type == Dependency.Type.EXTERNAL &&
-              dependency.getValueAsString().equals(libraryCoordinate)) {
+              (dependency.getValueAsString().equals(annotationsLibraryCoordinate) ||
+               dependency.getValueAsString().equals(appCompatLibraryCoordinate))) {
             dependencyFound = true;
             break;
           }
@@ -252,18 +235,22 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           @Override
           protected void run(@NotNull final Result result) throws Throwable {
             for (Module module : modulesWithoutAnnotations) {
-              addDependency(module, libraryCoordinate);
+              addDependency(module, annotationsLibraryCoordinate);
             }
-            GradleProjectImporter.getInstance().requestProjectSync(project, false /* do not generate sources */, null);
+            GradleProjectImporter.getInstance().requestProjectSync(project, false, new GradleSyncListener.Adapter() {
+              @Override
+              public void syncSucceeded(@NotNull Project project) {
+                restartAnalysis(project, scope);
+              }
+            });
           }
         }.execute();
-        restartAnalysis(project, scope);
       }
       finally {
         action.finish();
       }
     }
-    return true;
+    return false;
   }
 
   // Intellij code from InferNullityAnnotationsAction.
@@ -382,7 +369,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       public void consume(ModifiableRootModel model) {
         GradleBuildFile gradleBuildFile = GradleBuildFile.get(module);
         if (gradleBuildFile != null) {
-          List<BuildFileStatement> dependencies = gradleBuildFile.getDependencies();
+          List<BuildFileStatement> dependencies = Lists.newArrayList(gradleBuildFile.getDependencies());
           dependencies.add(new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, libraryCoordinate));
           gradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
         }

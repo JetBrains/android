@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Lists;
+import com.intellij.diagnostic.AbstractMessage;
+import com.intellij.diagnostic.MessagePool;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,6 +43,7 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Timeout;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
@@ -51,15 +54,18 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.io.Files.createTempDir;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.fest.assertions.Assertions.assertThat;
@@ -87,6 +93,46 @@ public final class GuiTests {
   public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
+
+  private static final File TMP_PROJECT_ROOT = createTempProjectCreationDir();
+
+  // Called by MethodInvoker via reflection
+  @SuppressWarnings("unused")
+  public static void failIfIdeHasFatalErrors() {
+    final MessagePool messagePool = MessagePool.getInstance();
+    List<AbstractMessage> fatalErrors = messagePool.getFatalErrors(true, true);
+    int fatalErrorCount = fatalErrors.size();
+    for (int i = 0; i < fatalErrorCount; i++) {
+      System.err.println("** Fatal Error " + (i + 1) + " of " + fatalErrorCount);
+      AbstractMessage error = fatalErrors.get(i);
+      System.err.println("* Message: ");
+      System.err.println(error.getMessage());
+
+      String additionalInfo = error.getAdditionalInfo();
+      if (isNotEmpty(additionalInfo)) {
+        System.err.println("* Additional Info: ");
+        System.err.println(additionalInfo);
+      }
+
+      String throwableText = error.getThrowableText();
+      if (isNotEmpty(throwableText)) {
+        System.err.println("* Throwable: ");
+        System.err.println(throwableText);
+      }
+      System.err.println();
+    }
+    if (fatalErrorCount > 0) {
+      throw new AssertionError(fatalErrorCount + " fatal errors found. Stopping test execution.");
+    }
+  }
+
+  // Called by MethodInvoker via reflection
+  @SuppressWarnings("unused")
+  public static boolean doesIdeHaveFatalErrors() {
+    final MessagePool messagePool = MessagePool.getInstance();
+    List<AbstractMessage> fatalErrors = messagePool.getFatalErrors(true, true);
+    return !fatalErrors.isEmpty();
+  }
 
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
@@ -216,7 +262,21 @@ public final class GuiTests {
 
   @NotNull
   public static File getProjectCreationDirPath() {
-    return new File(getTestProjectsRootDirPath(), "newProjects");
+   return TMP_PROJECT_ROOT;
+  }
+
+  @NotNull
+  public static File createTempProjectCreationDir() {
+    try {
+      // The temporary location might contain symlinks, such as /var@ -> /private/var on MacOS.
+      // EditorFixture seems to require a canonical path when opening the file.
+      return createTempDir().getCanonicalFile();
+    }
+    catch (IOException ex) {
+      // For now, keep the original behavior and point inside the source tree.
+      ex.printStackTrace();
+      return new File(getTestProjectsRootDirPath(), "newProjects");
+    }
   }
 
   @NotNull
@@ -279,7 +339,7 @@ public final class GuiTests {
 
     Container root = getRootContainer(component);
 
-    // First fine the JBList which holds the popup. There could be other JBLists in the hierarchy,
+    // First find the JBList which holds the popup. There could be other JBLists in the hierarchy,
     // so limit it to one that is actually used as a popup, as identified by its model being a ListPopupModel:
     assertNotNull(root);
     JBList list = robot.finder().find(root, new GenericTypeMatcher<JBList>(JBList.class) {
@@ -342,17 +402,34 @@ public final class GuiTests {
 
   public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
     Robot robot = container.robot();
-    JButton button = robot.finder().find(container.target(), new GenericTypeMatcher<JButton>(JButton.class) {
+    JButton button = findButton(container, text, robot);
+    robot.click(button);
+  }
+
+  public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
+    Robot robot = container.robot();
+    final JButton button = findButton(container, text, robot);
+    Pause.pause(new Condition("Wait for button " + text + " to be enabled.") {
       @Override
-      protected boolean isMatching(@NotNull JButton button) {
-        String buttonText = button.getText();
-        if (buttonText != null) {
-          return buttonText.trim().equals(text) && button.isShowing();
-        }
-        return false;
+      public boolean test() {
+        return button.isEnabled();
       }
     });
     robot.click(button);
+  }
+
+  @NotNull
+  private static JButton findButton(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text, Robot robot) {
+    return robot.finder().find(container.target(), new GenericTypeMatcher<JButton>(JButton.class) {
+        @Override
+        protected boolean isMatching(@NotNull JButton button) {
+          String buttonText = button.getText();
+          if (buttonText != null) {
+            return buttonText.trim().equals(text) && button.isShowing();
+          }
+          return false;
+        }
+      });
   }
 
   /** Returns a full path to the GUI data directory in the user's AOSP source tree, if known, or null */

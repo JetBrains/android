@@ -63,7 +63,7 @@ public class AndroidProjectTemplatesFactory extends ProjectTemplatesFactory {
   @Override
   public ProjectTemplate[] createTemplates(@Nullable String group, WizardContext context) {
     Project project = context.getProject();
-    if (project != null && Projects.isGradleProject(project)) {
+    if (project != null && Projects.requiresAndroidModel(project)) {
       return EMPTY_PROJECT_TEMPLATES;
     }
     ProjectTemplate[] templates = {

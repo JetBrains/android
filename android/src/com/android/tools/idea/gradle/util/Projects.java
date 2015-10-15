@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
-import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
-import com.android.tools.idea.gradle.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
+import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -36,10 +39,12 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
@@ -54,7 +59,7 @@ import java.io.File;
 import java.util.Collection;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -167,7 +172,7 @@ public final class Projects {
    * Indicates whether the last sync with Gradle failed.
    */
   public static boolean lastGradleSyncFailed(@NotNull Project project) {
-    return !GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project);
+    return !GradleSyncState.getInstance(project).isSyncInProgress() && isBuildWithGradle(project) && requiredAndroidModelMissing(project);
   }
 
   public static boolean hasErrors(@NotNull Project project) {
@@ -198,8 +203,7 @@ public final class Projects {
   }
 
   /**
-   * Indicates the given project is an Gradle-based Android project that does not contain any Gradle model. Possible causes for this
-   * scenario to happen are:
+   * Indicates the given project requires an Android model, but the model is {@code null}. Possible causes for this scenario to happen are:
    * <ul>
    * <li>the last sync with Gradle failed</li>
    * <li>Studio just started up and it has not synced the project yet</li>
@@ -208,10 +212,10 @@ public final class Projects {
    * @param project the project.
    * @return {@code true} if the project is a Gradle-based Android project that does not contain any Gradle model.
    */
-  public static boolean isGradleProjectWithoutModel(@NotNull Project project) {
+  public static boolean requiredAndroidModelMissing(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.isGradleProject() && facet.getIdeaAndroidProject() == null) {
+      if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() == null) {
         return true;
       }
     }
@@ -247,15 +251,27 @@ public final class Projects {
     return GradleSettings.getInstance(project).isOfflineWork();
   }
 
-  public static boolean isGradleProject(@NotNull Project project) {
+  /**
+   * Indicates whether the given project has at least one module backed by an {@link AndroidProject}. To check if a project is a
+   * "Gradle project," please use the method {@link Projects#isBuildWithGradle(Project)}.
+   * @param project the given project.
+   * @return {@code true} if the given project has one or more modules backed by an {@link AndroidProject}; {@code false} otherwise.
+   */
+  public static boolean requiresAndroidModel(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.isGradleProject()) {
+      if (androidFacet != null && androidFacet.requiresAndroidModel()) {
         return true;
       }
     }
     return false;
+  }
+
+  @Nullable
+  public static AndroidModel getAndroidModel(@NotNull Module module) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    return androidFacet != null ? androidFacet.getAndroidModel() : null;
   }
 
   /**
@@ -267,7 +283,9 @@ public final class Projects {
   public static boolean isIdeaAndroidProject(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      if (AndroidFacet.getInstance(module) != null && !isBuildWithGradle(module)) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && !facet.requiresAndroidModel()) {
+        // If a module has the Android facet, but it does not require a model from the build system, it is a legacy IDEA project.
         return true;
       }
     }
@@ -281,7 +299,7 @@ public final class Projects {
    * @param project the given project. This method does not do anything if the given project is not a Gradle-based project.
    */
   public static void enforceExternalBuild(@NotNull Project project) {
-    if (isGradleProject(project)) {
+    if (requiresAndroidModel(project)) {
       // We only enforce JPS usage when the 'android' plug-in is not being used in Android Studio.
       if (!isAndroidStudio()) {
         AndroidGradleBuildConfiguration.getInstance(project).USE_EXPERIMENTAL_FASTER_BUILD = false;
@@ -319,12 +337,10 @@ public final class Projects {
       }
       return modules;
     }
-
     Module module = MODULE.getData(dataContext);
     if (module != null) {
       return isProjectModule(module) ? ModuleManager.getInstance(project).getModules() : new Module[]{module};
     }
-
     return Module.EMPTY_ARRAY;
   }
 
@@ -343,9 +359,9 @@ public final class Projects {
 
   /**
    * Indicates whether Gradle is used to build this project.
-   * Note: {@link #isGradleProject(Project)} indicates whether a project has a IdeaAndroidProject model.
-   * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model was
-   * generated by Gradle (this will exclude models generated by other build systems.)
+   * Note: {@link #requiresAndroidModel(Project)} indicates whether a project requires an {@link AndroidModel}.
+   * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model is
+   * Gradle-specific.
    */
   public static boolean isBuildWithGradle(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
@@ -402,9 +418,10 @@ public final class Projects {
    */
   public static boolean isGradleProjectModule(@NotNull Module module) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet != null && androidFacet.isGradleProject()) {
+    if (androidFacet != null && androidFacet.requiresAndroidModel() && isBuildWithGradle(module)) {
       // If the module is an Android project, check that the module's path is the same as the project's.
-      File moduleRootDirPath = new File(toSystemDependentName(module.getModuleFilePath())).getParentFile();
+      File moduleFilePath = new File(toSystemDependentName(module.getModuleFilePath()));
+      File moduleRootDirPath = moduleFilePath.getParentFile();
       return pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
     }
     // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
@@ -413,12 +430,12 @@ public final class Projects {
 
   @Nullable
   public static File getBuildFolderPath(@NotNull Module module) {
-    if (module.isDisposed() || !isGradleProject(module.getProject())) {
+    if (module.isDisposed() || !requiresAndroidModel(module.getProject())) {
       return null;
     }
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
-      return androidFacet.getIdeaAndroidProject().getDelegate().getBuildFolder();
+    AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
+    if (gradleModel != null) {
+      return gradleModel.getAndroidProject().getBuildFolder();
     }
     JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
     if (javaFacet != null) {
@@ -441,5 +458,38 @@ public final class Projects {
 
   public static void setDependencySetupErrors(@NotNull Project project, @Nullable DependencySetupErrors errors) {
     project.putUserData(DEPENDENCY_SETUP_ERRORS, errors);
+  }
+
+  @Nullable
+  public static AndroidProject getAndroidModel(@NotNull VirtualFile file, @NotNull Project project) {
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
+    if (module == null) {
+      if (requiresAndroidModel(project)) {
+        // You've edited a file that does not correspond to a module in a Gradle project; you are
+        // most likely editing a file in an excluded folder under the build directory
+        VirtualFile base = project.getBaseDir();
+        VirtualFile parent = file.getParent();
+        while (parent != null && parent.equals(base)) {
+          module = ModuleUtilCore.findModuleForFile(parent, project);
+          if (module != null) {
+            break;
+          }
+          parent = parent.getParent();
+        }
+      }
+
+      if (module == null) {
+        return null;
+      }
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return null;
+    }
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    if (androidModel == null) {
+      return null;
+    }
+    return androidModel.getAndroidProject();
   }
 }

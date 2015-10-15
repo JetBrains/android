@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.wizard.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.AssetStudioAssetGenerator;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +51,7 @@ public class TemplateMetadata {
   public static final String ATTR_MIN_BUILD_API = "minBuildApi";
   public static final String ATTR_BUILD_API = "buildApi";
   public static final String ATTR_BUILD_API_STRING = "buildApiString";
+  public static final String ATTR_APPTHEME_REQUIRED = "requireAppTheme";
   public static final String ATTR_REVISION = "revision";
   public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
   public static final String ATTR_PACKAGE_NAME = "packageName";
@@ -97,6 +101,7 @@ public class TemplateMetadata {
   private final String myIconName;
   private String myFormFactor = null;
   private String myCategory = null;
+  private final Multimap<Parameter, Parameter> myRelatedParameters;
 
   @VisibleForTesting
   public TemplateMetadata(@NotNull Document document) {
@@ -142,6 +147,22 @@ public class TemplateMetadata {
         myFormFactor = element.getAttribute(Template.ATTR_VALUE);
       }
     }
+    myRelatedParameters = computeRelatedParameters();
+  }
+
+  private Multimap<Parameter, Parameter> computeRelatedParameters() {
+    ImmutableMultimap.Builder<Parameter, Parameter> builder = ImmutableMultimap.builder();
+    for (Parameter p : myParameterMap.values()) {
+      for (Parameter p2 : myParameterMap.values()) {
+        if (p == p2) {
+          continue;
+        }
+        if (p.isRelated(p2)) {
+          builder.put(p, p2);
+        }
+      }
+    }
+    return builder.build();
   }
 
   @Nullable
@@ -164,6 +185,10 @@ public class TemplateMetadata {
 
   public int getRevision() {
     return getInteger(ATTR_REVISION, 1);
+  }
+
+  public boolean isAppThemeRequired() {
+    return getBoolean(ATTR_APPTHEME_REQUIRED, false);
   }
 
   @Nullable
@@ -200,7 +225,6 @@ public class TemplateMetadata {
       return null;
     }
 
-
     int bestMatchCount = 0;
     Element bestMatch = null;
 
@@ -217,15 +241,10 @@ public class TemplateMetadata {
         boolean match = true;
         for (int j = 0, max = attributes.getLength(); j < max; j++) {
           Attr attribute = (Attr) attributes.item(j);
-          Parameter parameter = myParameterMap.get(attribute.getName());
-          if (parameter == null) {
-            LOG.warn("Unexpected parameter in template thumbnail: " +
-                          attribute.getName());
-            continue;
-          }
+          String variableName = attribute.getName();
           String thumbNailValue = attribute.getValue();
 
-          if (currentState == null || !thumbNailValue.equals(currentState.apply(parameter.id))) {
+          if (currentState == null || !thumbNailValue.equals(currentState.apply(variableName))) {
             match = false;
             break;
           }
@@ -263,6 +282,22 @@ public class TemplateMetadata {
 
     // Older templates without version specified: supported
     return true;
+  }
+
+  public boolean useImplicitRootFolder() {
+    String format = myDocument.getDocumentElement().getAttribute(ATTR_FORMAT);
+    if (format == null || format.isEmpty()) {
+      // If no format is specified, assume this is an old format:
+      return true;
+    }
+    try {
+      int version = Integer.parseInt(format);
+      return version < Template.RELATIVE_FILES_FORMAT;
+    }
+    catch (NumberFormatException ignore) {
+      // If we cannot parse the format string assume this is an old format:
+      return true;
+    }
   }
 
   /** Returns the list of available parameters */
@@ -303,6 +338,14 @@ public class TemplateMetadata {
     }
   }
 
+  private boolean getBoolean(@NotNull String attrName, boolean defaultValue) {
+    String value = myDocument.getDocumentElement().getAttribute(attrName);
+    if (value == null) {
+      return defaultValue;
+    }
+    return value.equals(SdkConstants.VALUE_TRUE);
+  }
+
   /**
    * Computes a suitable build api string, e.g. for API level 18 the build
    * API string is "18".
@@ -313,5 +356,13 @@ public class TemplateMetadata {
       return AndroidTargetHash.getPlatformHashString(version);
     }
     return version.getApiString();
+  }
+
+  /**
+   * Gets all the params that share a type constraint with the given param,
+   */
+  @NotNull
+  public Collection<Parameter> getRelatedParams(Parameter param) {
+    return myRelatedParameters.get(param);
   }
 }

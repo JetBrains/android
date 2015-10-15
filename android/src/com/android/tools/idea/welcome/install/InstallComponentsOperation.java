@@ -17,7 +17,7 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.sdk.LogWrapper;
-import com.android.tools.idea.wizard.ImportUIUtil;
+import com.android.tools.idea.npw.ImportUIUtil;
 import com.android.utils.ILogger;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
@@ -67,7 +67,7 @@ public class InstallComponentsOperation extends InstallOperation<File, File> {
       indicator.setText("Checking for updated SDK components");
       ArrayList<String> packages = myComponentInstaller.getPackagesToInstall(manager, myComponents, true);
       while (!packages.isEmpty()) {
-        ILogger logger = new SdkManagerProgressIndicatorIntegration(indicator, myContext, packages.size());
+        SdkManagerProgressIndicatorIntegration logger = new SdkManagerProgressIndicatorIntegration(indicator, myContext, packages.size());
         myComponentInstaller.installPackages(manager, packages, logger);
         manager.reloadSdk(new LogWrapper(LOG));
         // If we didn't set remote information on the installer we assume we weren't expecting updates. So set false for
@@ -75,7 +75,7 @@ public class InstallComponentsOperation extends InstallOperation<File, File> {
         packages = myComponentInstaller.getPackagesToInstall(manager, myComponents, false);
         String message = getRetryMessage(packages);
         if (message != null) {
-          promptToRetry(message, message, null);
+          promptToRetry(message, logger.getErrors(), null);
         }
       }
     }

@@ -43,6 +43,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ThreeState;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -74,7 +75,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JComboBox myNetworkSpeedCombo;
   private JComboBox myNetworkLatencyCombo;
   private JCheckBox myDisableBootAnimationCombo;
-  private JCheckBox myClearLogCheckBox;
   private JBLabel myModuleJBLabel;
   private JRadioButton myShowChooserRadioButton;
   private JRadioButton myEmulatorRadioButton;
@@ -83,10 +83,14 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JBLabel myMinSdkInfoMessageLabel;
   private JBCheckBox myUseAdditionalCommandLineOptionsCheckBox;
   private RawCommandLineEditor myCommandLineField;
-  private JCheckBox myShowLogcatCheckBox;
-  private JCheckBox myFilterLogcatCheckBox;
   private JCheckBox myUseLastSelectedDeviceCheckBox;
   private JRadioButton myRunTestsInGoogleCloudRadioButton;
+
+  // Misc. options tab
+  private JCheckBox myClearLogCheckBox;
+  private JCheckBox myShowLogcatCheckBox;
+  private JCheckBox mySkipNoOpApkInstallation;
+  private JCheckBox myForceStopRunningApplicationCheckBox;
 
   private CloudConfigurationComboBox myCloudMatrixConfigurationCombo;
   private JBLabel myCloudMatrixProjectLabel;
@@ -116,7 +120,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myConfigurationSpecificPanel.add(configurationSpecificEditor.getComponent());
     setAnchor(myConfigurationSpecificEditor.getAnchor());
     myShowLogcatCheckBox.setVisible(configurationSpecificEditor instanceof ApplicationRunParameters);
-    myFilterLogcatCheckBox.setVisible(configurationSpecificEditor instanceof ApplicationRunParameters);
   }
 
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator) {
@@ -190,12 +193,19 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myNetworkSpeedCombo.setModel(new DefaultComboBoxModel(NETWORK_SPEEDS));
     myNetworkLatencyCombo.setModel(new DefaultComboBoxModel(NETWORK_LATENCIES));
 
-    myUseAdditionalCommandLineOptionsCheckBox.addActionListener(new ActionListener() {
+    ActionListener actionListener = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        myCommandLineField.setEnabled(myUseAdditionalCommandLineOptionsCheckBox.isSelected());
+        if (myUseAdditionalCommandLineOptionsCheckBox == e.getSource()) {
+          myCommandLineField.setEnabled(myUseAdditionalCommandLineOptionsCheckBox.isSelected());
+        }
+        else if (mySkipNoOpApkInstallation == e.getSource()) {
+          myForceStopRunningApplicationCheckBox.setEnabled(mySkipNoOpApkInstallation.isSelected());
+        }
       }
-    });
+    };
+    myUseAdditionalCommandLineOptionsCheckBox.addActionListener(actionListener);
+    mySkipNoOpApkInstallation.addActionListener(actionListener);
 
     updateEnabled();
   }
@@ -228,14 +238,14 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myCloudMatrixConfigurationCombo = new CloudConfigurationComboBox(MATRIX);
     AnAction cloudMatrixProjectAction = new SelectCloudProjectAction(myCloudMatrixProjectIdLabel, myCloudMatrixConfigurationCombo);
     myCloudMatrixProjectIdUpdateButton = new ActionButton(
-      cloudMatrixProjectAction, new PresentationFactory().getPresentation(cloudMatrixProjectAction), "MyPlace", new Dimension(25, 25));
+      cloudMatrixProjectAction, new PresentationFactory().getPresentation(cloudMatrixProjectAction), "MyPlace", JBUI.size(25, 25));
     Disposer.register(this, myCloudMatrixConfigurationCombo);
 
     myCloudDeviceProjectIdLabel = new CloudProjectIdLabel(SINGLE_DEVICE);
     myCloudDeviceConfigurationCombo = new CloudConfigurationComboBox(SINGLE_DEVICE);
     AnAction cloudDeviceProjectAction = new SelectCloudProjectAction(myCloudDeviceProjectIdLabel, myCloudDeviceConfigurationCombo);
     myCloudDeviceProjectIdUpdateButton = new ActionButton(
-      cloudDeviceProjectAction, new PresentationFactory().getPresentation(cloudDeviceProjectAction), "MyPlace", new Dimension(25, 25));
+      cloudDeviceProjectAction, new PresentationFactory().getPresentation(cloudDeviceProjectAction), "MyPlace", JBUI.size(25, 25));
     Disposer.register(this, myCloudDeviceConfigurationCombo);
   }
 
@@ -440,9 +450,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     myAvdComboComponent.setEnabled(targetSelectionMode == TargetSelectionMode.EMULATOR);
 
-    resetAvdCompatibilityWarningLabel(targetSelectionMode == TargetSelectionMode.EMULATOR
-                                      ? getAvdCompatibilityWarning()
-                                      : null);
+    resetAvdCompatibilityWarningLabel(targetSelectionMode == TargetSelectionMode.EMULATOR ? getAvdCompatibilityWarning() : null);
 
     myUseAdditionalCommandLineOptionsCheckBox.setSelected(configuration.USE_COMMAND_LINE);
     myCommandLineField.setText(configuration.COMMAND_LINE);
@@ -451,9 +459,11 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myDisableBootAnimationCombo.setSelected(configuration.DISABLE_BOOT_ANIMATION);
     selectItemCaseInsensitively(myNetworkSpeedCombo, configuration.NETWORK_SPEED);
     selectItemCaseInsensitively(myNetworkLatencyCombo, configuration.NETWORK_LATENCY);
+
     myClearLogCheckBox.setSelected(configuration.CLEAR_LOGCAT);
     myShowLogcatCheckBox.setSelected(configuration.SHOW_LOGCAT_AUTOMATICALLY);
-    myFilterLogcatCheckBox.setSelected(configuration.FILTER_LOGCAT_AUTOMATICALLY);
+    mySkipNoOpApkInstallation.setSelected(configuration.SKIP_NOOP_APK_INSTALLATIONS);
+    myForceStopRunningApplicationCheckBox.setSelected(configuration.FORCE_STOP_RUNNING_APP);
 
     updateEnabled();
   }
@@ -513,9 +523,12 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     configuration.DISABLE_BOOT_ANIMATION = myDisableBootAnimationCombo.isSelected();
     configuration.NETWORK_SPEED = ((String)myNetworkSpeedCombo.getSelectedItem()).toLowerCase();
     configuration.NETWORK_LATENCY = ((String)myNetworkLatencyCombo.getSelectedItem()).toLowerCase();
+
     configuration.CLEAR_LOGCAT = myClearLogCheckBox.isSelected();
     configuration.SHOW_LOGCAT_AUTOMATICALLY = myShowLogcatCheckBox.isSelected();
-    configuration.FILTER_LOGCAT_AUTOMATICALLY = myFilterLogcatCheckBox.isSelected();
+    configuration.SKIP_NOOP_APK_INSTALLATIONS = mySkipNoOpApkInstallation.isSelected();
+    configuration.FORCE_STOP_RUNNING_APP = myForceStopRunningApplicationCheckBox.isSelected();
+
     if (myAvdComboComponent.isEnabled()) {
       JComboBox combo = myAvdCombo.getComboBox();
       IdDisplay preferredAvd = (IdDisplay)combo.getSelectedItem();

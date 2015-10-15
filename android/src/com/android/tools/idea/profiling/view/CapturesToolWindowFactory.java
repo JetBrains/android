@@ -21,9 +21,11 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public class CapturesToolWindowFactory implements ToolWindowFactory, DumbAware {
+  public static final String TOOL_WINDOW_ID = AndroidBundle.message("android.captures.title");
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
@@ -32,6 +34,6 @@ public class CapturesToolWindowFactory implements ToolWindowFactory, DumbAware {
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
     Content content = contentFactory.createContent(view.getComponent(), "", false);
     toolWindow.getContentManager().addContent(content);
+    toolWindow.setTitle(TOOL_WINDOW_ID);
   }
 }
-

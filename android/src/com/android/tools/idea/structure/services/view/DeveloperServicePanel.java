@@ -18,6 +18,7 @@ package com.android.tools.idea.structure.services.view;
 import com.android.tools.idea.structure.EditorPanel;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServiceMetadata;
+import com.android.tools.idea.structure.services.ServiceContext;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.Observable;
@@ -29,6 +30,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.IconUtil;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -70,6 +72,7 @@ public final class DeveloperServicePanel extends EditorPanel {
   public DeveloperServicePanel(@NotNull DeveloperService service) {
     super(new BorderLayout());
     myService = service;
+    ServiceContext context = service.getContext();
 
     DeveloperServiceMetadata developerServiceMetadata = service.getMetadata();
 
@@ -78,13 +81,11 @@ public final class DeveloperServicePanel extends EditorPanel {
     initializeFooterPanel(developerServiceMetadata);
 
     final SelectedProperty enabledCheckboxSelected = new SelectedProperty(myEnabledCheckbox);
-    myBindings.bind(new VisibleProperty(myDetailsPanel), enabledCheckboxSelected.and(not(service.getContext().installed())));
+    myBindings.bind(new VisibleProperty(myDetailsPanel), enabledCheckboxSelected.and(not(context.installed())));
 
     // This definition might be modified from the user interacting with the service earlier but not
     // yet committing to install it.
-    if (service.getContext().installed().get() || service.getContext().modified().get()) {
-      myEnabledCheckbox.setSelected(true);
-    }
+    myBindings.bind(new SelectedProperty(myEnabledCheckbox), context.installed().or(context.modified()));
 
     enabledCheckboxSelected.addListener(new InvalidationListener() {
       @Override
@@ -144,7 +145,7 @@ public final class DeveloperServicePanel extends EditorPanel {
     JPanel verticalFlowPanel = new JPanel();
     verticalFlowPanel.setLayout(new BoxLayout(verticalFlowPanel, BoxLayout.PAGE_AXIS));
 
-    verticalFlowPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+    verticalFlowPanel.add(Box.createRigidArea(new Dimension(0, JBUI.scale(30))));
     final HtmlBuilder htmlBuilder = new HtmlBuilder();
     htmlBuilder.openHtmlBody();
     htmlBuilder.add("Enabling this service will...");
@@ -194,7 +195,7 @@ public final class DeveloperServicePanel extends EditorPanel {
     // Setting the padding on myLinksPanel puts in ugly leading space, so we instead space links
     // apart using invisible rigid areas instead.
     if (myLinksPanel.getComponentCount() > 0) {
-      myLinksPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+      myLinksPanel.add(Box.createRigidArea(new Dimension(JBUI.scale(10), 0)));
     }
     myLinksPanel.add(hyperlinkLabel);
   }

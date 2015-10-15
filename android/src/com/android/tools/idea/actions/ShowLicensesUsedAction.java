@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.wizard.WizardUtils;
+import com.android.tools.idea.npw.WizardUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ui.JBUI;
@@ -38,7 +37,7 @@ import java.io.IOException;
 /**
  * Surfaces a UI action for displaying a dialog of licenses for 3rd-party libraries
  */
-public class ShowLicensesUsedAction extends AnAction {
+public class ShowLicensesUsedAction extends DumbAwareAction {
 
   public ShowLicensesUsedAction() {
     super("Show Licenses...");
@@ -73,21 +72,32 @@ public class ShowLicensesUsedAction extends AnAction {
       StringBuilder sb = new StringBuilder(5000);
       File licenseDir = new File(PathManager.getHomePath(), "license");
       assert licenseDir.exists() : licenseDir;
-      for (File file : WizardUtils.listFiles(licenseDir)) {
-        sb.append("<br><br>");
-        sb.append(getLicenseText(file));
-      }
+      collectLicenses(sb, licenseDir);
 
-      File androidLicenses = new File(PathManager.getPreInstalledPluginsPath(), PathUtil.toSystemDependentName("android/lib/NOTICE"));
-      if (androidLicenses.exists()) {
-        sb.append(getLicenseText(androidLicenses));
+      File androidLicenses = new File(PathManager.getPreInstalledPluginsPath(), PathUtil.toSystemDependentName("android/lib/licenses"));
+      if (androidLicenses.exists() && androidLicenses.isDirectory()) {
+        collectLicenses(sb, androidLicenses);
       }
 
       String text = "<html>" + sb.toString() + "</html>";
-      JBScrollPane pane = new JBScrollPane(new JBLabel(text));
+      JTextPane label = new JTextPane();
+      label.setContentType("text/html");
+      label.setText(text);
+      JBScrollPane pane = new JBScrollPane(label);
+
       pane.setPreferredSize(JBUI.size(600, 400));
       panel.add(pane, BorderLayout.CENTER);
       return panel;
+    }
+
+    private static void collectLicenses(@NotNull StringBuilder sb, @NotNull File licenseDir) {
+      for (File file : WizardUtils.listFiles(licenseDir)) {
+        sb.append("<br><br>------------ License file: ");
+        sb.append(file.getName());
+        sb.append("------------");
+        sb.append("<br><br>");
+        sb.append(getLicenseText(file));
+      }
     }
 
     @NotNull

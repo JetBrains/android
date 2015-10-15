@@ -17,7 +17,7 @@
 package com.android.tools.idea.stats;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.internal.statistic.connect.StatisticsConnectionService;
 import com.intellij.internal.statistic.connect.StatisticsResult;
 import com.intellij.internal.statistic.connect.StatisticsService;
@@ -89,7 +89,7 @@ public class AndroidStatisticsService implements StatisticsService {
   @SuppressWarnings("ConstantConditions")
   @Override
   public StatisticsResult send() {
-    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (!AndroidStudioInitializer.isAndroidStudio()) {
       // If this is running as part of another product (not studio), then we return immediately
       // without sending anything via this service
       return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");

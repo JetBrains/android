@@ -18,7 +18,7 @@ package com.android.tools.idea.welcome.wizard;
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.install.Haxm;
-import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +48,7 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
   private final ScopedStateStore.Key<Boolean> myKeyInstallHaxm;
   private JPanel myRoot;
-  private JButton myIntelHAXMDocumentationButton;
+  private com.intellij.ui.HyperlinkLabel myIntelHAXMDocumentationButton;
   private JSlider myMemorySlider;
   private JSpinner myMemorySize;
   private JLabel myUnitLabel;
@@ -63,7 +63,8 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
     myUnitLabel.setText(UI_UNITS.toString());
     myKeyEmulatorMemory = keyEmulatorMemory;
     final long memorySize = Haxm.getMemorySize();
-    WelcomeUIUtils.makeButtonAHyperlink(myIntelHAXMDocumentationButton, FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL);
+    myIntelHAXMDocumentationButton.setHyperlinkText("Intel® HAXM Documentation");
+    myIntelHAXMDocumentationButton.setHyperlinkTarget(FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL);
     myRecommendedMemorySize = setupSliderAndSpinner(memorySize, myMemorySlider, myMemorySize);
     setComponent(myRoot);
     myRecommended.addActionListener(new ActionListener() {

@@ -46,7 +46,7 @@ public class NdkLocationNotFoundErrorHandler extends AbstractSyncErrorHandler {
 
     if (firstLine.startsWith("NDK location not found.")) {
       List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-      NotificationHyperlink selectNdkLink = getSelectNdkNotificationHyperlink();
+      NotificationHyperlink selectNdkLink = getSelectNdkNotificationHyperlink(true);
       hyperlinks.add(selectNdkLink);
       updateNotification(notification, project, "Android NDK location is not specified.", hyperlinks);
       return true;
@@ -54,12 +54,12 @@ public class NdkLocationNotFoundErrorHandler extends AbstractSyncErrorHandler {
     return false;
   }
 
-  public static NotificationHyperlink getSelectNdkNotificationHyperlink() {
+  public static NotificationHyperlink getSelectNdkNotificationHyperlink(final boolean showDownloadLink) {
     return new NotificationHyperlink("ndk.select", "Select NDK") {
       @Override
       protected void execute(@NotNull Project project) {
         File path = getNdkPath(project);
-        SelectNdkDialog dialog = new SelectNdkDialog(path == null ? null : path.getPath(), false);
+        SelectNdkDialog dialog = new SelectNdkDialog(path == null ? null : path.getPath(), false, showDownloadLink);
         dialog.setModal(true);
         if(dialog.showAndGet()) { // User clicked OK.
           if (setNdkPath(project, dialog.getAndroidNdkPath())) { // Saving NDK path is successful.

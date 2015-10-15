@@ -37,7 +37,7 @@ import com.android.tools.idea.sdk.LogWrapper;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
-import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
@@ -133,6 +133,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
     File hardwareSkinPath = AvdEditWizard.resolveSkinPath(d.getDefaultHardware().getSkinFile(), systemImageDescription);
     String displayName =
       String.format("%1$s %2$s %3$s", d.getDisplayName(), systemImageDescription.getVersion(), systemImageDescription.getAbiType());
+    displayName = connection.uniquifyDisplayName(displayName);
     String internalName = AvdEditWizard.cleanAvdName(connection, displayName, true);
     Map<String, String> settings = getAvdSettings(internalName, d);
     settings.put(AvdManagerConnection.AVD_INI_DISPLAY_NAME, displayName);
@@ -214,5 +215,32 @@ public class AndroidVirtualDevice extends InstallableComponent {
       String failureMessage = String.format("Unable to create a virtual device: %s\n", e.getMessage());
       installContext.print(failureMessage, ConsoleViewContentType.ERROR_OUTPUT);
     }
+  }
+
+  @Override
+  protected boolean isSelectedByDefault(@Nullable SdkManager sdkManager) {
+    if (sdkManager == null) {
+      return false;
+    }
+    LocalSdk sdk = sdkManager.getLocalSdk();
+    SystemImageDescription desired;
+    try {
+      desired = getSystemImageDescription(sdk.getLocation().getPath());
+    }
+    catch (WizardException e) {
+      // ignore, error will be shown during configure if they opt to try to create.
+      return false;
+    }
+
+    AvdManagerConnection connection = AvdManagerConnection.getAvdManagerConnection(sdk);
+    List<AvdInfo> avds = connection.getAvds(false);
+    for (AvdInfo avd : avds) {
+      if (avd.getAbiType().equals(desired.getAbiType()) && avd.getTarget() != null
+          && avd.getTarget().getVersion().equals(desired.getVersion())) {
+        // We have a similar avd already installed. Deselect by default.
+        return false;
+      }
+    }
+    return true;
   }
 }

@@ -9,6 +9,9 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.security.keystore.KeyGenParameterSpec java.lang.String getKeystoreAlias()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.security.keystore.KeyGenParameterSpec java.lang.String[] getBlockModes()">
     <annotation name="android.support.annotation.NonNull" />
     <annotation name="android.support.annotation.StringDef">
@@ -37,7 +40,7 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.security.keystore.KeyGenParameterSpec java.security.spec.AlgorithmParameterSpec getAlgorithmParameterSpec()">
-    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.security.keystore.KeyGenParameterSpec java.util.Date getCertificateNotAfter()">
     <annotation name="android.support.annotation.NonNull" />

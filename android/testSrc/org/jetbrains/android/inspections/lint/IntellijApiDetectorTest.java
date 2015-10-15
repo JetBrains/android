@@ -15,9 +15,8 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.tools.idea.wizard.ConfigureAndroidModuleStep;
+import com.android.tools.idea.npw.ConfigureAndroidModuleStep;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.AndroidTestCase;
@@ -25,7 +24,6 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Ignore;
 
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider.AndroidLintNewApiInspection;
 
@@ -108,6 +106,30 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
   public void testThisCall() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=93158
     // Make sure we properly resolve super classes in Class.this.call()
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
+  public void testSuppressArray() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=183724
+    // Ensure that when a lint error is suppressed from a @SuppressLint annotation,
+    // the suppress id works whether it's the first element in the array or not
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
+  public void testVersionUtility() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=178686
+    // Makes sure the version conditional lookup peeks into surrounding method calls to see
+    // if they're providing version checks.
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
+  public void testEarlyExit() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=37728
+    // Makes sure that if a method exits earlier in the method, we don't flag
+    // API checks after that
     AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
     doTest(inspection, null);
   }

@@ -8,7 +8,7 @@ import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.AarResourceClassRegistry;
@@ -136,7 +136,12 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @NotNull
   @Override
   protected Class<?> load(String name) throws ClassNotFoundException {
-    final Class<?> aClass = loadClassFromModuleOrDependency(myModule, name, new HashSet<Module>());
+    Class<?> aClass = loadClassFromModuleOrDependency(myModule, name, new HashSet<Module>());
+
+    if (aClass == null) {
+      aClass = loadClassFromJar(name);
+    }
+
     if (aClass != null) {
       return aClass;
     }
@@ -151,11 +156,6 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     Class<?> aClass = loadClassFromModule(module, name);
-    if (aClass != null) {
-      return aClass;
-    }
-
-    aClass = loadClassFromJar(name);
     if (aClass != null) {
       return aClass;
     }
@@ -179,14 +179,15 @@ public final class ModuleClassLoader extends RenderClassLoader {
     VirtualFile vOutFolder = extension.getCompilerOutputPath();
     if (vOutFolder == null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.isGradleProject()) {
+      if (facet != null && facet.requiresAndroidModel()) {
         // Try a bit harder; we don't have a compiler module extension or mechanism
         // to query this yet, so just hardcode it (ugh!)
-        IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-        if (gradleProject != null) {
-          Variant variant = gradleProject.getSelectedVariant();
+        // TODO: b/22597804
+        AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+        if (androidModel != null) {
+          Variant variant = androidModel.getSelectedVariant();
           String variantName = variant.getName();
-          AndroidArtifact mainArtifactInfo = variant.getMainArtifact();
+          AndroidArtifact mainArtifactInfo = androidModel.getMainArtifact();
           File classesFolder = mainArtifactInfo.getClassesFolder();
 
           // Older models may not supply it; in that case, we rely on looking relative
@@ -273,7 +274,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
               // User modifications on the source file might not always result on a new .class file.
               // If it's a gradle project, we use the project modification time instead to display the warning
               // more reliably.
-              long lastBuildTimestamp = facet != null && facet.isGradleProject()
+              long lastBuildTimestamp = facet != null && facet.requiresAndroidModel()
                                         ? PostProjectBuildTasksExecutor.getInstance(myModule.getProject()).getLastBuildTimestamp()
                                         : classFileModified;
               if (sourceFileModified > lastBuildTimestamp && lastBuildTimestamp != -1) {
@@ -426,6 +427,13 @@ public final class ModuleClassLoader extends RenderClassLoader {
   /** Flush any cached class loaders */
   public static void clearCache() {
     ourCache.clear();
+  }
+
+  /** Remove the cached class loader for the module. */
+  public static void clearCache(Module module) {
+    if (ourCache.containsKey(module)) {
+      ourCache.remove(module);
+    }
   }
 
   /** Temporary hack: Store this in a weak hash map cached by modules. In the next version we should move this

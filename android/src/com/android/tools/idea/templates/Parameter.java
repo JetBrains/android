@@ -145,6 +145,9 @@ public class Parameter {
     /** The associated value should represent a valid drawable resource name */
     DRAWABLE,
 
+    /** The associated value should represent a valid values file name */
+    VALUES,
+
     /** The associated value should represent a valid id resource name */
     ID,
 
@@ -172,6 +175,10 @@ public class Parameter {
       return NONEMPTY;
     }
   }
+
+  public static final EnumSet<Constraint> TYPE_CONSTRAINTS = EnumSet
+    .of(Constraint.ACTIVITY, Constraint.APILEVEL, Constraint.CLASS, Constraint.PACKAGE, Constraint.APP_PACKAGE, Constraint.MODULE,
+        Constraint.LAYOUT, Constraint.DRAWABLE, Constraint.ID, Constraint.SOURCE_SET_FOLDER, Constraint.STRING);
 
   /** The template defining the parameter */
   public final TemplateMetadata template;
@@ -255,7 +262,7 @@ public class Parameter {
     name = parameter.getAttribute(ATTR_NAME);
     help = parameter.getAttribute(ATTR_HELP);
     if (type == Type.CUSTOM) {
-        externalTypeName = typeName;
+      externalTypeName = typeName;
     }
     else {
       externalTypeName = null;
@@ -278,46 +285,18 @@ public class Parameter {
     }
   }
 
-  Parameter(
-    @NotNull TemplateMetadata template,
-    @NotNull Type type,
-    @NotNull String id) {
-    this.template = template;
-    this.type = type;
-    this.id = id;
-    element = null;
-    initial = null;
-    suggest = null;
-    visibility = null;
-    enabled = null;
-    sourceUrl = null;
-    name = id;
-    help = null;
-    constraints = EnumSet.noneOf(Constraint.class);
-  }
-
   public List<Element> getOptions() {
     return TemplateUtils.getChildren(element);
   }
 
   @Nullable
-  public String validate(@Nullable Project project, @Nullable String packageName, @Nullable Object value) {
-    return validate(project, null, null, packageName, value);
-  }
-
-  @Nullable
-  public String validate(@Nullable Project project, @Nullable Module module, @Nullable String packageName, @Nullable Object value) {
-    return validate(project, module, null, packageName, value);
-  }
-
-  @Nullable
   public String validate(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
-                         @Nullable String packageName, @Nullable Object value) {
+                         @Nullable String packageName, @Nullable Object value, Set<Object> relatedValues) {
     switch (type) {
       case EXTERNAL:
       case CUSTOM:
       case STRING:
-        return getErrorMessageForStringType(project, module, provider, packageName, value.toString());
+        return getErrorMessageForStringType(project, module, provider, packageName, value.toString(), relatedValues);
       case BOOLEAN:
       case ENUM:
       case SEPARATOR:
@@ -331,12 +310,13 @@ public class Parameter {
    * @param project
    * @param packageName
    * @param value
+   * @param relatedValues
    * @return An error message detailing why the given value is invalid.
    */
   @Nullable
   protected String getErrorMessageForStringType(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
-                                                @Nullable String packageName, @Nullable String value) {
-    Collection<Constraint> violations = validateStringType(project, module, provider, packageName, value);
+                                                @Nullable String packageName, @Nullable String value, @Nullable Set<Object> relatedValues) {
+    Collection<Constraint> violations = validateStringType(project, module, provider, packageName, value, relatedValues);
 
     if (violations.contains(Constraint.NONEMPTY)) {
       return "Please specify " + name;
@@ -382,6 +362,11 @@ public class Parameter {
         return name + " is not a valid resource name. " + resourceNameError;
 
       }
+    } else if (violations.contains(Constraint.VALUES)) {
+      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
+      if (resourceNameError != null) {
+        return name + " is not a valid resource name. " + resourceNameError;
+      }
     }
 
     if (violations.contains(Constraint.UNIQUE)) {
@@ -400,8 +385,12 @@ public class Parameter {
    * @return All constraints of this parameter that are violated by the proposed value.
    */
   @NotNull
-  protected Collection<Constraint> validateStringType(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
-                                                      @Nullable String packageName, @Nullable String value) {
+  protected Collection<Constraint> validateStringType(@Nullable Project project,
+                                                      @Nullable Module module,
+                                                      @Nullable SourceProvider provider,
+                                                      @Nullable String packageName,
+                                                      @Nullable String value,
+                                                      @Nullable Set<Object> relatedValues) {
     GlobalSearchScope searchScope = module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) :
                                     GlobalSearchScope.EMPTY_SCOPE;
 
@@ -465,7 +454,7 @@ public class Parameter {
         violations.add(Constraint.LAYOUT);
       }
       exists = provider != null ? existsResourceFile(provider, module, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, value) :
-                                  existsResourceFile(module, ResourceType.LAYOUT, value);
+               existsResourceFile(module, ResourceType.LAYOUT, value);
     }
     if (constraints.contains(Constraint.DRAWABLE)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
@@ -473,10 +462,25 @@ public class Parameter {
         violations.add(Constraint.DRAWABLE);
       }
       exists = provider != null ? existsResourceFile(provider, module, ResourceFolderType.DRAWABLE, ResourceType.DRAWABLE, value) :
-                                  existsResourceFile(module, ResourceType.DRAWABLE, value);
+               existsResourceFile(module, ResourceType.DRAWABLE, value);
     }
     if (constraints.contains(Constraint.ID)) {
       // TODO: validity and existence check
+    }
+    if (constraints.contains(Constraint.VALUES)) {
+      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
+      if (resourceNameError != null) {
+        violations.add(Constraint.VALUES);
+      }
+
+      if (provider != null) {
+        for (File resDir : provider.getResDirectories()) {
+          if (existsResourceFile(resDir, ResourceFolderType.VALUES, value)) {
+            exists = true;
+            break;
+          }
+        }
+      }
     }
     if (constraints.contains(Constraint.STRING)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
@@ -499,6 +503,10 @@ public class Parameter {
       }
     }
 
+    if (relatedValues != null && relatedValues.contains(value)) {
+      exists = true;
+    }
+
     if (constraints.contains(Constraint.UNIQUE) && exists) {
       violations.add(Constraint.UNIQUE);
     } else if (constraints.contains(Constraint.EXISTS) && !exists) {
@@ -511,8 +519,8 @@ public class Parameter {
    * Returns true if the given stringType is non-unique when it should be.
    */
   public boolean uniquenessSatisfied(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
-                                     @Nullable String packageName, @Nullable String value) {
-    return !validateStringType(project, module, provider, packageName, value).contains(Constraint.UNIQUE);
+                                     @Nullable String packageName, @Nullable String value, @Nullable Set<Object> relatedValues) {
+    return !validateStringType(project, module, provider, packageName, value, relatedValues).contains(Constraint.UNIQUE);
   }
 
   private static boolean isValidFullyQualifiedJavaIdentifier(String value) {
@@ -604,7 +612,7 @@ public class Parameter {
   }
 
   public static boolean existsPackage(@Nullable Project project, @NotNull GlobalSearchScope searchScope,
-                                        @Nullable SourceProvider sourceProvider, @NotNull String packageName) {
+                                      @Nullable SourceProvider sourceProvider, @NotNull String packageName) {
     if (project == null) {
       return false;
     }
@@ -619,6 +627,11 @@ public class Parameter {
     } else {
       return JavaPsiFacade.getInstance(project).findPackage(packageName) != null;
     }
+  }
+
+  public boolean isRelated(Parameter p) {
+    Set<Parameter.Constraint> types = Sets.intersection(Sets.intersection(p.constraints, constraints), TYPE_CONSTRAINTS);
+    return !types.isEmpty();
   }
 
   @Override

@@ -19,10 +19,12 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.*;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.*;
+import com.android.tools.idea.wizard.dynamic.*;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -66,6 +68,8 @@ public class HaxmAlert extends JPanel {
   private HyperlinkLabel myErrorInstructionsLink;
   private HyperlinkListener myErrorLinkListener;
   SystemImageDescription myImageDescription;
+
+  private static final IdDisplay GOOGLE_APIS_TAG = new IdDisplay("google_apis", "");
 
   public HaxmAlert() {
     myErrorInstructionsLink = new HyperlinkLabel();
@@ -142,6 +146,11 @@ public class HaxmAlert extends JPanel {
     if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
       warningTextBuilder.append("This API Level is Deprecated<br>");
     }
+
+    if (!GOOGLE_APIS_TAG.equals(myImageDescription.getTag())) {
+      warningTextBuilder.append("Consider using a system image with Google APIs to enable testing with Google Play Services.");
+    }
+
     String warningText = warningTextBuilder.toString();
     if (!warningText.isEmpty()) {
       warningTextBuilder.insert(0, "<html>");
@@ -151,11 +160,6 @@ public class HaxmAlert extends JPanel {
       myErrorInstructionsLink.setVisible(hasLink);
     } else {
       setVisible(false);
-    }
-
-    Window window = SwingUtilities.getWindowAncestor(this);
-    if (window != null) {
-      window.pack();
     }
   }
 
@@ -389,7 +393,7 @@ public class HaxmAlert extends JPanel {
 
       // Assume install and configure take approximately the same time; assign 0.5 progressRatio to each
       InstallComponentsOperation install =
-        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(null), 0.5);
+        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(null, true), 0.5);
 
       try {
         install.then(InstallOperation.wrap(installContext, new Function<File, File>() {

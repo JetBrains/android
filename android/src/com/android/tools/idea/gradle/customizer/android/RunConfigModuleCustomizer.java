@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -37,12 +37,12 @@ import static org.jetbrains.android.util.AndroidUtils.addRunConfiguration;
 /**
  * Creates run configurations for modules imported from {@link com.android.builder.model.AndroidProject}s.
  */
-public class RunConfigModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
+public class RunConfigModuleCustomizer implements ModuleCustomizer<AndroidGradleModel> {
   @Override
   public void customizeModule(@NotNull Project project,
                               @NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable IdeaAndroidProject androidProject) {
+                              @Nullable AndroidGradleModel androidProject) {
     if (androidProject != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && !facet.isLibraryProject()) {

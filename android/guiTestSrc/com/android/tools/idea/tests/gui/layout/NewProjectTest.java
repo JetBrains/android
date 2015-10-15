@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.layout;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -40,7 +40,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
+import static com.android.tools.idea.npw.FormFactorUtils.FormFactor.MOBILE;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
@@ -56,11 +56,11 @@ public class NewProjectTest extends GuiTestCase {
 
     // Verify state of project
     projectFrame.requireModuleCount(2);
-    IdeaAndroidProject appAndroidProject = projectFrame.getAndroidProjectForModule("app");
-    assertThat(appAndroidProject.getVariantNames()).as("variants").containsOnly("debug", "release");
-    assertThat(appAndroidProject.getSelectedVariant().getName()).as("selected variant").isEqualTo("debug");
+    AndroidGradleModel appAndroidModel = projectFrame.getAndroidProjectForModule("app");
+    assertThat(appAndroidModel.getVariantNames()).as("variants").containsOnly("debug", "release");
+    assertThat(appAndroidModel.getSelectedVariant().getName()).as("selected variant").isEqualTo("debug");
 
-    AndroidProject model = appAndroidProject.getDelegate();
+    AndroidProject model = appAndroidModel.getAndroidProject();
     ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
     assertNotNull("minSdkVersion", minSdkVersion);
     assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo("19");
@@ -74,7 +74,7 @@ public class NewProjectTest extends GuiTestCase {
 
     // Creating a project with minSdkVersion 19 should leave the Java language level as Java 6
     // For L and higher we use Java 7 language level; that is tested separately in testLanguageLevelForApi21
-    assertThat(appAndroidProject.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_6);
+    assertThat(appAndroidModel.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_6);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(projectFrame.getProject());
     assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_6);
     for (Module module : ModuleManager.getInstance(projectFrame.getProject()).getModules()) {
@@ -141,10 +141,10 @@ public class NewProjectTest extends GuiTestCase {
     // both in the generated Gradle model as well as in the synced project and modules
 
     // "20+" here should change to 21 as soon as L goes out of preview state
-    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("20+").create();
+    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("21").create();
 
-    IdeaAndroidProject appAndroidProject = projectFrame.getAndroidProjectForModule("app");
-    AndroidProject model = appAndroidProject.getDelegate();
+    AndroidGradleModel appAndroidModel = projectFrame.getAndroidProjectForModule("app");
+    AndroidProject model = appAndroidModel.getAndroidProject();
     ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
     assertNotNull("minSdkVersion", minSdkVersion);
 
@@ -152,7 +152,7 @@ public class NewProjectTest extends GuiTestCase {
     //   (1) you have the L preview installed in the SDK on the test machine
     //   (2) the associated JDK is JDK 7 or higher
     assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo("L");
-    assertThat(appAndroidProject.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
+    assertThat(appAndroidModel.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(projectFrame.getProject());
     assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
     for (Module module : ModuleManager.getInstance(projectFrame.getProject()).getModules()) {

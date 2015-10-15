@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.sdklib.repository.FullRevision;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
@@ -172,7 +173,7 @@ public class GradleUtilTest extends TestCase {
                       "        classpath 'com.android.tools.build:gradle:0.13.0'\n" +
                       "    }\n" +
                       "}";
-    FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents, null);
+    FullRevision revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
     assertNotNull(revision);
     assertEquals("0.13.0", revision.toString());
   }
@@ -186,7 +187,7 @@ public class GradleUtilTest extends TestCase {
                       "        classpath 'com.android.tools.build:gradle:0.13.+'\n" +
                       "    }\n" +
                       "}";
-    FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents, null);
+    FullRevision revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
     assertNotNull(revision);
     assertEquals("0.13.0", revision.toString());
   }
@@ -200,7 +201,7 @@ public class GradleUtilTest extends TestCase {
                       "        classpath 'com.android.tools.build:gradle:+'\n" +
                       "    }\n" +
                       "}";
-    FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents, null);
+    FullRevision revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
     assertNotNull(revision);
   }
 
@@ -218,7 +219,7 @@ public class GradleUtilTest extends TestCase {
     String expectedScript = "allprojects {\n" +
                             "  buildscript {\n" +
                             "    repositories {\n" +
-                            "      maven { url '" + repoPath.getPath() + "'}\n" +
+                            "      maven { url '" + GradleImport.escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
                             "    }\n" +
                             "  }\n" +
                             "}\n";

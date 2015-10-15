@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EditLibraryAndDependenciesAction extends AbstractProjectStructureAction {
   public EditLibraryAndDependenciesAction() {
-    super("Edit Libraries and Dependencies...", null, null);
+    super("Edit Libraries and Dependencies...");
   }
 
   @Override
@@ -34,9 +34,7 @@ public class EditLibraryAndDependenciesAction extends AbstractProjectStructureAc
   }
 
   @Override
-  protected void actionPerformed(@NotNull Module module,
-                                 @NotNull AndroidProjectSettingsService projectStructureService,
-                                 @NotNull AnActionEvent e) {
+  protected void doPerform(@NotNull Module module, @NotNull AndroidProjectSettingsService projectStructureService, @NotNull AnActionEvent e) {
     projectStructureService.openAndSelectDependenciesEditor(module);
   }
 }

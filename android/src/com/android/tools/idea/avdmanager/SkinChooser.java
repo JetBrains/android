@@ -19,7 +19,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.local.LocalSdk;
-import com.android.tools.idea.wizard.ScopedDataBinder;
+import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;

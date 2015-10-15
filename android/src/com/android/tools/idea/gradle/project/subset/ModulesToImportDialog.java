@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.subset;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.GradleModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
@@ -63,8 +63,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_ANDROID_PROJECT;
-import static com.android.tools.idea.gradle.AndroidProjectKeys.IDE_GRADLE_PROJECT;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
 import static com.intellij.icons.AllIcons.Nodes.PpJdk;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
 import static com.intellij.openapi.util.JDOMUtil.loadDocument;
@@ -107,7 +107,7 @@ public class ModulesToImportDialog extends DialogWrapper {
     init();
     ModuleTableModel model = getModulesTable().getModel();
     for (DataNode<ModuleData> module : modules) {
-      Collection<DataNode<IdeaGradleProject>> gradleProjects = getChildren(module, IDE_GRADLE_PROJECT);
+      Collection<DataNode<GradleModel>> gradleProjects = getChildren(module, GRADLE_MODEL);
       if (gradleProjects.isEmpty()) {
         alwaysIncludedModules.add(module);
       }
@@ -661,12 +661,12 @@ public class ModulesToImportDialog extends DialogWrapper {
 
     @NotNull
     private static Icon getModuleIcon(@NotNull DataNode<ModuleData> module) {
-      Collection<DataNode<IdeaAndroidProject>> children = getChildren(module, IDE_ANDROID_PROJECT);
+      Collection<DataNode<AndroidGradleModel>> children = getChildren(module, ANDROID_MODEL);
       if (!children.isEmpty()) {
-        DataNode<IdeaAndroidProject> child = getFirstItem(children);
+        DataNode<AndroidGradleModel> child = getFirstItem(children);
         if (child != null) {
-          IdeaAndroidProject androidProject = child.getData();
-          return androidProject.getDelegate().isLibrary() ? LibraryModule : AppModule;
+          AndroidGradleModel androidModel = child.getData();
+          return androidModel.getAndroidProject().isLibrary() ? LibraryModule : AppModule;
         }
       }
       return PpJdk;

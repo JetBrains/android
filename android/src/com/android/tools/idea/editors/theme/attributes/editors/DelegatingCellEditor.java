@@ -16,12 +16,10 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
-import org.jetbrains.annotations.NotNull;
 import spantable.CellSpanModel;
 
 import javax.swing.*;
@@ -39,16 +37,13 @@ public class DelegatingCellEditor implements TableCellEditor {
   private final TableCellEditor myDelegate;
   private final boolean myConvertValueToString;
 
-  private final ThemeEditorContext myContext;
-
-  public DelegatingCellEditor(boolean convertValueToString, final TableCellEditor delegate, @NotNull ThemeEditorContext context) {
+  public DelegatingCellEditor(boolean convertValueToString, final TableCellEditor delegate) {
     myConvertValueToString = convertValueToString;
     myDelegate = delegate;
-    myContext = context;
   }
 
-  public DelegatingCellEditor(final TableCellEditor delegate, @NotNull ThemeEditorContext context) {
-    this(true, delegate, context);
+  public DelegatingCellEditor(final TableCellEditor delegate) {
+    this(true, delegate);
   }
 
   @Override
@@ -56,34 +51,24 @@ public class DelegatingCellEditor implements TableCellEditor {
     final Object stringValue;
     final CellSpanModel model = (CellSpanModel)table.getModel();
 
-    final String tooltipText;
-
-    final Font font;
+    boolean boldFont = false;
     if (value instanceof EditedStyleItem) {
       final EditedStyleItem item = (EditedStyleItem) value;
-      tooltipText = ThemeEditorUtils.generateToolTipText(item.getItemResourceValue(), myContext.getCurrentThemeModule(), myContext.getConfiguration());
       stringValue = ThemeEditorUtils.extractRealValue(item, model.getCellClass(row, column));
       ThemeEditorStyle selectedStyle = ((AttributesTableModel)table.getModel()).getSelectedStyle();
       // Displays in bold attributes that are overriding their inherited value
-      font = selectedStyle.hasItem(item) ? table.getFont().deriveFont(Font.BOLD) : table.getFont();
+      boldFont = selectedStyle.hasItem(item);
     }
     else {
       // Not an EditedStyleItem for theme name and theme parent.
       stringValue = value;
-      tooltipText = null;
-      font = table.getFont();
     }
 
     final Component returnedComponent =
       myDelegate.getTableCellEditorComponent(table, myConvertValueToString ? stringValue : value, isSelected, row, column);
 
-    returnedComponent.setFont(font);
-
-    if (returnedComponent instanceof JComponent) {
-      JComponent jComponent = (JComponent)returnedComponent;
-      jComponent.setToolTipText(tooltipText);
-      jComponent.setComponentPopupMenu(table.getComponentPopupMenu());
-    }
+    returnedComponent.setFont(boldFont ? returnedComponent.getFont().deriveFont(Font.BOLD) :
+                              returnedComponent.getFont().deriveFont(Font.PLAIN));
     return returnedComponent;
   }
 

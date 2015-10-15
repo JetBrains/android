@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.*;
 import com.google.common.base.Splitter;
@@ -116,7 +117,7 @@ public class IntellijLintUtils {
    */
   public static boolean isSuppressed(@NonNull PsiElement element, @NonNull PsiFile file, @NonNull Issue issue) {
     // Search upwards for suppress lint and suppress warnings annotations
-    // Search upwards for target api annotations
+    //noinspection ConstantConditions
     while (element != null && element != file) { // otherwise it will keep going into directories!
       if (element instanceof PsiModifierListOwner) {
         PsiModifierListOwner owner = (PsiModifierListOwner)element;
@@ -124,19 +125,17 @@ public class IntellijLintUtils {
         if (modifierList != null) {
           for (PsiAnnotation annotation : modifierList.getAnnotations()) {
             String fqcn = annotation.getQualifiedName();
-            if (fqcn.equals(SUPPRESS_LINT_FQCN) || fqcn.equals(SUPPRESS_WARNINGS_FQCN)) {
+            if (fqcn != null && (fqcn.equals(SUPPRESS_LINT_FQCN) || fqcn.equals(SUPPRESS_WARNINGS_FQCN))) {
               PsiAnnotationParameterList parameterList = annotation.getParameterList();
               for (PsiNameValuePair pair : parameterList.getAttributes()) {
                 PsiAnnotationMemberValue v = pair.getValue();
-                String text = v.getText().trim(); // UGH! Find better way to access value!
-                if (text.isEmpty()) {
-                  continue;
-                }
                 if (v instanceof PsiLiteral) {
                   PsiLiteral literal = (PsiLiteral)v;
                   Object value = literal.getValue();
                   if (value instanceof String) {
-                    text = (String) value;
+                    if (isSuppressed(issue, (String) value)) {
+                      return true;
+                    }
                   }
                 } else if (v instanceof PsiArrayInitializerMemberValue) {
                   PsiArrayInitializerMemberValue mv = (PsiArrayInitializerMemberValue)v;
@@ -145,18 +144,17 @@ public class IntellijLintUtils {
                       PsiLiteral literal = (PsiLiteral) mmv;
                       Object value = literal.getValue();
                       if (value instanceof String) {
-                        text = (String) value;
-                        break;
+                        if (isSuppressed(issue, (String) value)) {
+                          return true;
+                        }
                       }
                     }
                   }
-                }
-
-                if (text != null) {
-                  for (String id : Splitter.on(',').trimResults().split(text)) {
-                    if (id.equals(issue.getId()) || id.equals(SUPPRESS_ALL)) {
-                      return true;
-                    }
+                } else if (v != null) {
+                  // This shouldn't be necessary
+                  String text = v.getText().trim(); // UGH! Find better way to access value!
+                  if (!text.isEmpty() && isSuppressed(issue, text)) {
+                    return true;
                   }
                 }
               }
@@ -165,6 +163,25 @@ public class IntellijLintUtils {
         }
       }
       element = element.getParent();
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns true if the given issue is suppressed by the given suppress string; this
+   * is typically the same as the issue id, but is allowed to not match case sensitively,
+   * and is allowed to be a comma separated list, and can be the string "all"
+   *
+   * @param issue  the issue id to match
+   * @param string the suppress string -- typically the id, or "all", or a comma separated list of ids
+   * @return true if the issue is suppressed by the given string
+   */
+  private static boolean isSuppressed(@NonNull Issue issue, @NonNull String string) {
+    for (String id : Splitter.on(',').trimResults().split(string)) {
+      if (id.equals(issue.getId()) || id.equals(SUPPRESS_ALL)) {
+        return true;
+      }
     }
 
     return false;
@@ -349,34 +366,21 @@ public class IntellijLintUtils {
   /** Returns the resource directories to use for the given module */
   @NotNull
   public static List<File> getResourceDirectories(@NotNull AndroidFacet facet) {
-    if (facet.isGradleProject()) {
-      List<File> resDirectories = new ArrayList<File>();
-      resDirectories.addAll(facet.getMainSourceProvider().getResDirectories());
-      List<SourceProvider> flavorSourceProviders = facet.getFlavorSourceProviders();
-      if (flavorSourceProviders != null) {
-        for (SourceProvider provider : flavorSourceProviders) {
+    if (facet.requiresAndroidModel()) {
+      AndroidModel androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
+        List<File> resDirectories = new ArrayList<File>();
+        List<SourceProvider> sourceProviders = androidModel.getActiveSourceProviders();
+        for (SourceProvider provider : sourceProviders) {
           for (File file : provider.getResDirectories()) {
             if (file.isDirectory()) {
               resDirectories.add(file);
             }
           }
         }
+        return resDirectories;
       }
-
-      SourceProvider buildTypeSourceProvider = facet.getBuildTypeSourceProvider();
-      if (buildTypeSourceProvider != null) {
-        for (File file : buildTypeSourceProvider.getResDirectories()) {
-          if (file.isDirectory()) {
-            resDirectories.add(file);
-          }
-        }
-      }
-
-      return resDirectories;
-    } else {
-      return new ArrayList<File>(facet.getMainSourceProvider().getResDirectories());
     }
+    return new ArrayList<File>(facet.getMainSourceProvider().getResDirectories());
   }
-
-
 }

@@ -16,11 +16,15 @@
 package com.android.tools.idea.gradle;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.*;
 import com.intellij.execution.configurations.JavaParameters;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Function;
@@ -58,6 +62,22 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     myPatcher = new AndroidJunitPatcher();
     myJavaParameters = new JavaParameters();
     myJavaParameters.getClassPath().addAll(getExampleClasspath());
+
+    // Adding the facet makes Projects#isBuildWithGradle return 'true'.
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        FacetManager facetManager = FacetManager.getInstance(myModule);
+        ModifiableFacetModel model = facetManager.createModifiableModel();
+        try {
+          AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+          model.addFacet(facet);
+        }
+        finally {
+          model.commit();
+        }
+      }
+    });
   }
 
   private List<String> getExampleClasspath() {
@@ -98,10 +118,10 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     myAndroidProject = TestProjects.createBasicProject();
     VariantStub variant = myAndroidProject.getFirstVariant();
     assertNotNull(variant);
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myAndroidProject.getName(),
-                                                                   myAndroidProject.getRootDir(), myAndroidProject, variant.getName(),
-                                                                   AndroidProject.ARTIFACT_UNIT_TEST);
-    myFacet.setIdeaAndroidProject(ideaAndroidProject);
+    AndroidGradleModel androidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myAndroidProject.getName(),
+                                                             myAndroidProject.getRootDir(), myAndroidProject, variant.getName(),
+                                                             AndroidProject.ARTIFACT_UNIT_TEST);
+    myFacet.setAndroidModel(androidModel);
   }
 
   public void testPathChanges() throws Exception {
@@ -158,7 +178,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   public void testMultipleMockableJars_newModel() throws Exception {
     myJavaParameters.getClassPath().remove(myMockableAndroidJar);
 
-    JavaArtifactStub artifact = (JavaArtifactStub)myFacet.getIdeaAndroidProject().findSelectedTestArtifactInSelectedVariant();
+    JavaArtifactStub artifact = (JavaArtifactStub)AndroidGradleModel.get(myFacet).findSelectedTestArtifactInSelectedVariant();
     artifact.setMockablePlatformJar(new File(myMockableAndroidJar));
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
 

@@ -16,9 +16,10 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.npw.NewAndroidActivityWizard;
+import com.android.tools.idea.npw.ThemeHelper;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.wizard.NewAndroidActivityWizard;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
@@ -42,6 +43,7 @@ public class NewAndroidComponentAction extends AnAction {
   private final String myTemplateCategory;
   private final String myTemplateName;
   private final int myMinSdkVersion;
+  private final boolean myRequireAppTheme;
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, @Nullable TemplateMetadata metadata) {
     super(templateName, "Create a new " + templateName, null);
@@ -55,9 +57,11 @@ public class NewAndroidComponentAction extends AnAction {
     }
     if (metadata != null) {
       myMinSdkVersion = metadata.getMinSdk();
+      myRequireAppTheme = metadata.isAppThemeRequired();
     }
     else {
       myMinSdkVersion = 0;
+      myRequireAppTheme = false;
     }
   }
 
@@ -67,8 +71,8 @@ public class NewAndroidComponentAction extends AnAction {
 
   @Override
   public void update(AnActionEvent e) {
-    final DataContext dataContext = e.getDataContext();
-    final Module module = LangDataKeys.MODULE.getData(dataContext);
+    DataContext dataContext = e.getDataContext();
+    Module module = LangDataKeys.MODULE.getData(dataContext);
     if (module == null) {
       return;
     }
@@ -76,28 +80,40 @@ public class NewAndroidComponentAction extends AnAction {
     if (moduleInfo == null) {
       return;
     }
+
+    Presentation presentation = e.getPresentation();
     int moduleMinSdkVersion = moduleInfo.getMinSdkVersion().getApiLevel();
     if (myMinSdkVersion > moduleMinSdkVersion) {
-      Presentation presentation = getTemplatePresentation();
       presentation.setText(myTemplateName + " (Requires minSdk >= " + myMinSdkVersion + ")");
       presentation.setEnabled(false);
+      return;
+    }
+    if (myRequireAppTheme) {
+      ThemeHelper themeHelper = new ThemeHelper(module);
+      if (themeHelper.getAppThemeName() == null) {
+        presentation.setText(myTemplateName + " (No Application Theme Found)");
+        presentation.setEnabled(false);
+        return;
+      }
     }
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    final DataContext dataContext = e.getDataContext();
+    DataContext dataContext = e.getDataContext();
 
-    final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
+    IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
     if (view == null) {
       return;
     }
 
-    final Module module = LangDataKeys.MODULE.getData(dataContext);
+    Module module = LangDataKeys.MODULE.getData(dataContext);
 
-    if (module == null) return;
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.getIdeaAndroidProject() == null) {
+    if (module == null) {
+      return;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null || facet.getAndroidModel() == null) {
       return;
     }
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);

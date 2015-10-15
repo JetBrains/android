@@ -21,7 +21,7 @@ import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
-import com.android.tools.idea.wizard.DialogWrapperHost;
+import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.android.utils.HtmlBuilder;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;

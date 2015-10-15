@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
+import com.intellij.openapi.compiler.CompileScope;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -33,6 +36,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
@@ -44,27 +49,19 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 public class AndroidJunitPatcher extends JUnitPatcher {
   @Override
   public void patchJavaParameters(@Nullable Module module, @NotNull JavaParameters javaParameters) {
-    if (module == null) {
+    // Only patch if the project is a Gradle project.
+    if (module == null || !isBuildWithGradle(module.getProject())) {
       return;
     }
 
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null) {
+    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    if (androidModel == null) {
       return;
     }
 
-    IdeaAndroidProject ideaAndroidProject = androidFacet.getIdeaAndroidProject();
-    if (ideaAndroidProject == null) {
-      return;
-    }
-
-    BaseArtifact testArtifact = ideaAndroidProject.findSelectedTestArtifactInSelectedVariant();
-    if (testArtifact == null) {
-      return;
-    }
-
+    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
     // Modify the class path only if we're dealing with the unit test artifact.
-    if (!AndroidProject.ARTIFACT_UNIT_TEST.equals(testArtifact.getName()) || !(testArtifact instanceof JavaArtifact)) {
+    if (testArtifact == null || !(testArtifact instanceof JavaArtifact) || !ARTIFACT_UNIT_TEST.equals(testArtifact.getName())) {
       return;
     }
 
@@ -75,8 +72,14 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
 
-    handlePlatformJar(classPath, platform, (JavaArtifact) testArtifact);
-    handleJavaResources(ideaAndroidProject, classPath);
+    String originalClassPath = classPath.getPathsString();
+    try {
+      handlePlatformJar(classPath, platform, (JavaArtifact)testArtifact);
+      handleJavaResources(module, androidModel, classPath);
+    }
+    catch (RuntimeException e) {
+      throw new RuntimeException(String.format("Error patching the JUnit class path. Original class path:%n%s", originalClassPath), e);
+    }
   }
 
   // Removes real android.jar from the classpath and puts the mockable one at the end.
@@ -135,20 +138,48 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     }
   }
 
-  // Puts folders with merged java resources for the given variant on the classpath.
-  private static void handleJavaResources(@NotNull IdeaAndroidProject ideaAndroidProject,
+  /**
+   * Puts folders with merged java resources for the selected variant of every module on the classpath.
+   *
+   * <p>The problem we're solving here is that CompilerModuleExtension supports only one directory for "compiler output". When IJ compiles
+   * Java projects, it copies resources to the output classes dir. This is something our Gradle plugin doesn't do, so we need to add the
+   * resource directories to the classpath here.
+   *
+   * <p>We need to do this for every project dependency as well, since we're using classes and resources directories of these directly.
+   *
+   * @see <a href="http://b.android.com/172409">Bug 172409</a>
+   * @see com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer#customizeModule(Project, ModifiableRootModel, AndroidGradleModel)
+   */
+  private static void handleJavaResources(@NotNull Module module,
+                                          @NotNull AndroidGradleModel androidModel,
                                           @NotNull PathsList classPath) {
-    BaseArtifact testArtifact = ideaAndroidProject.findSelectedTestArtifactInSelectedVariant();
-    if (testArtifact == null) {
-      return;
+    CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
+    CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
+
+    // The only test resources we want to use, are the ones from the module where the test is. They should go first, before main resources.
+    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
+    if (testArtifact != null) {
+      try {
+        classPath.add(testArtifact.getJavaResourcesFolder());
+      }
+      catch (UnsupportedMethodException ignored) {
+        // Java resources were not present in older versions of the gradle plugin.
+      }
     }
 
-    try {
-      classPath.add(ideaAndroidProject.getSelectedVariant().getMainArtifact().getJavaResourcesFolder());
-      classPath.add(testArtifact.getJavaResourcesFolder());
-    }
-    catch (UnsupportedMethodException e) {
-      // Java resources were not in older versions of the gradle plugin.
+    for (Module affectedModule : scope.getAffectedModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(affectedModule);
+      if (facet != null) {
+        AndroidGradleModel affectedAndroidModel = AndroidGradleModel.get(facet);
+        if (affectedAndroidModel != null) {
+          try {
+            classPath.add(affectedAndroidModel.getMainArtifact().getJavaResourcesFolder());
+          }
+          catch (UnsupportedMethodException ignored) {
+            // Java resources were not present in older versions of the gradle plugin.
+          }
+        }
+      }
     }
   }
 }

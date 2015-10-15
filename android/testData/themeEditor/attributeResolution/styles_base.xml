@@ -1,0 +1,13 @@
+<resources>
+
+  <style name="Base.V17" parent="@android:style/Theme">
+    <item name="myBase">V17</item>
+  </style>
+
+  <style name="Base.V20" parent="@android:style/Theme">
+    <item name="myBase">V20</item>
+  </style>
+
+  <style name="AllVariants" parent="@android:style/Theme">
+  </style>
+</resources>

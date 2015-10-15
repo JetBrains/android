@@ -235,6 +235,9 @@ public class AndroidTargetData {
     myFrameworkResources = null;
   }
 
+  /**
+   * This method can return null when the user is changing the SDK setting in their project.
+   */
   @Nullable
   public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @NotNull Module module) {
     AndroidPlatform platform = AndroidPlatform.getInstance(module);

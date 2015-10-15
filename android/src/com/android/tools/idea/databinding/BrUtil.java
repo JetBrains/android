@@ -56,7 +56,7 @@ public class BrUtil {
     } else if (isBooleanGetter(psiMethod)) {
       propertyName = name.subSequence(2, name.length());
     } else {
-      LOG.error("@Bindable associated with method must follow JavaBeans convention %s", psiMethod.getName());
+      LOG.warn("@Bindable associated with a method must follow JavaBeans convention: " + psiMethod.getName());
       return null;
     }
     char firstChar = propertyName.charAt(0);

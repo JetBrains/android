@@ -177,6 +177,13 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     addText(values1, "Hello^</string>", " World");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
 
+    // Check that recreating AppResourceRepository object doesn't affect the ResourceNotificationManager
+    clear(called1, calledValue1, called2, calledValue2);
+    myFacet.refreshResources();
+    AndroidResourceUtil.createValueResource(myModule, "color4", ResourceType.COLOR, "colors.xml", Collections.singletonList("values"),
+                                            "#ff2300");
+    ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
+
     // Finally check that once we remove the listeners there are no more notifications
     manager.removeListener(listener1, myFacet, layout1, configuration1);
     manager.removeListener(listener2, myFacet, layout2, configuration1);

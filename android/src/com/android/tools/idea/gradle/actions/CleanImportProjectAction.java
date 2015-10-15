@@ -40,7 +40,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 
@@ -153,6 +153,6 @@ public class CleanImportProjectAction extends DumbAwareAction {
   }
 
   private static boolean isGradleProjectIfNotNull(@Nullable Project project) {
-    return project != null && isGradleProject(project);
+    return project != null && isBuildWithGradle(project);
   }
 }

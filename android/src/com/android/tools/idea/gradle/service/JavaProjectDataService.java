@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.java.*;
 import com.android.tools.idea.gradle.messages.Message;
@@ -50,21 +50,21 @@ import java.util.Map;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.PROJECT_STRUCTURE_ISSUES;
 import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
 
-public class JavaProjectDataService extends AbstractProjectDataService<IdeaJavaProject, Void> {
+public class JavaProjectDataService extends AbstractProjectDataService<JavaProject,Void> {
   private static final Logger LOG = Logger.getInstance(JavaProjectDataService.class);
 
-  private final List<ModuleCustomizer<IdeaJavaProject>> myCustomizers =
+  private final List<ModuleCustomizer<JavaProject>> myCustomizers =
     ImmutableList.of(new JavaLanguageLevelModuleCustomizer(), new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(),
                      new CompilerOutputModuleCustomizer(), new ArtifactsByConfigurationModuleCustomizer());
 
   @Override
   @NotNull
-  public Key<IdeaJavaProject> getTargetDataKey() {
-    return AndroidProjectKeys.IDE_JAVA_PROJECT;
+  public Key<JavaProject> getTargetDataKey() {
+    return AndroidProjectKeys.JAVA_PROJECT;
   }
 
   @Override
-  public void importData(@NotNull Collection<DataNode<IdeaJavaProject>> toImport,
+  public void importData(@NotNull Collection<DataNode<JavaProject>> toImport,
                          @Nullable final ProjectData projectData,
                          @NotNull final Project project,
                          @NotNull final IdeModifiableModelsProvider modelsProvider) {
@@ -78,15 +78,15 @@ public class JavaProjectDataService extends AbstractProjectDataService<IdeaJavaP
     }
   }
 
-  private void doImport(final Collection<DataNode<IdeaJavaProject>> toImport, final Project project, final IdeModifiableModelsProvider modelsProvider)
+  private void doImport(final Collection<DataNode<JavaProject>> toImport, final Project project, final IdeModifiableModelsProvider modelsProvider)
     throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
         if (!project.isDisposed()) {
-          Map<String, IdeaJavaProject> gradleProjectsByName = indexByModuleName(toImport);
+          Map<String, JavaProject> gradleProjectsByName = indexByModuleName(toImport);
           for (Module module : modelsProvider.getModules()) {
-            IdeaJavaProject javaProject = gradleProjectsByName.get(module.getName());
+            JavaProject javaProject = gradleProjectsByName.get(module.getName());
             if (javaProject != null) {
               customizeModule(module, modelsProvider, javaProject);
             }
@@ -101,16 +101,16 @@ public class JavaProjectDataService extends AbstractProjectDataService<IdeaJavaP
   }
 
   @NotNull
-  private static Map<String, IdeaJavaProject> indexByModuleName(@NotNull Collection<DataNode<IdeaJavaProject>> dataNodes) {
-    Map<String, IdeaJavaProject> javaProjectsByModuleName = Maps.newHashMap();
-    for (DataNode<IdeaJavaProject> d : dataNodes) {
-      IdeaJavaProject javaProject = d.getData();
+  private static Map<String, JavaProject> indexByModuleName(@NotNull Collection<DataNode<JavaProject>> dataNodes) {
+    Map<String, JavaProject> javaProjectsByModuleName = Maps.newHashMap();
+    for (DataNode<JavaProject> d : dataNodes) {
+      JavaProject javaProject = d.getData();
       javaProjectsByModuleName.put(javaProject.getModuleName(), javaProject);
     }
     return javaProjectsByModuleName;
   }
 
-  private void customizeModule(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider, @NotNull IdeaJavaProject javaProject) {
+  private void customizeModule(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider, @NotNull JavaProject javaProject) {
     if (javaProject.isAndroidProjectWithoutVariants()) {
       // See https://code.google.com/p/android/issues/detail?id=170722
       ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
@@ -125,7 +125,7 @@ public class JavaProjectDataService extends AbstractProjectDataService<IdeaJavaP
       return;
     }
 
-    for (ModuleCustomizer<IdeaJavaProject> customizer : myCustomizers) {
+    for (ModuleCustomizer<JavaProject> customizer : myCustomizers) {
       customizer.customizeModule(module.getProject(), module, modelsProvider, javaProject);
     }
   }

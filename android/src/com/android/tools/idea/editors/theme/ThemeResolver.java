@@ -5,209 +5,170 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.google.common.collect.ForwardingQueue;
+import com.android.tools.idea.rendering.ModuleResourceRepository;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.android.sdk.AndroidTargetData;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Pair;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
 
 /**
  * Class that provides methods to resolve themes for a given configuration.
- *
- * TODO(ddrone): get rid of this class
- * @deprecated this class is supposed to be replaced by ProjectThemeResolver
  */
-@Deprecated
 public class ThemeResolver {
-  @SuppressWarnings("ConstantNamingConvention")
-  private static final Logger LOG = Logger.getInstance(ThemeResolver.class);
+  private final Map<String, ThemeEditorStyle> myThemeByName = Maps.newHashMap();
+  private final ImmutableList<ThemeEditorStyle> myFrameworkThemes;
+  private final ImmutableList<ThemeEditorStyle> myLocalThemes;
+  private final ImmutableList<ThemeEditorStyle> myExternalLibraryThemes;
 
-  // Order is important, we want project themes first.
-  private final Set<String> myThemeNames = Sets.newHashSet();
-  private final List<ThemeEditorStyle> myAllThemes;
-  private final List<ThemeEditorStyle> myFrameworkThemes;
-  private final List<ThemeEditorStyle> myProjectThemes;
-  private final List<ThemeEditorStyle> myProjectLocalThemes;
-  private final StyleResolver myStyleResolver;
+  private final Configuration myConfiguration;
+  private final ResourceResolver myResolver;
 
   public ThemeResolver(@NotNull Configuration configuration) {
-    this(configuration, new StyleResolver(configuration));
+    myConfiguration = configuration;
+    myResolver = configuration.getResourceResolver();
+
+    if (myResolver == null) {
+      throw new IllegalArgumentException("Acquired ResourceResolver is null, not an Android module?");
+    }
+
+    myFrameworkThemes = fillThemeResolverFromStyles(resolveFrameworkThemes());
+
+    final ImmutableList.Builder<ThemeEditorStyle> localThemes = ImmutableList.builder();
+    for (Pair<StyleResourceValue, Module> pair : resolveLocallyDefinedModuleThemes()) {
+      final ThemeEditorStyle theme = constructThemeFromResourceValue(pair.getFirst(), pair.getSecond());
+      if (theme != null) {
+        localThemes.add(theme);
+      }
+    }
+    myLocalThemes = localThemes.build();
+
+    // resolveNonFrameworkThemes() returns all themes available from the current module, including library themes.
+    // Because all local themes would be added at previous step to myLocalThemes, they'll be ignored
+    // at this step, and all that we've got here is library themes.
+    myExternalLibraryThemes = fillThemeResolverFromStyles(resolveNonFrameworkThemes());
   }
 
-  public ThemeResolver(@NotNull Configuration configuration, @NotNull StyleResolver styleResolver) {
-    myStyleResolver = styleResolver;
-    IAndroidTarget target = configuration.getTarget();
-    if (target == null) {
-      myAllThemes = myProjectThemes = myFrameworkThemes = myProjectLocalThemes = Collections.emptyList();
-      LOG.error("Unable to get IAndroidTarget.");
-      return;
+  /**
+   * Create a ThemeEditorStyle instance stored in ThemeResolver, which can be added to one of theme lists.
+   */
+  @Nullable("if theme with this name was already added or resolution has failed")
+  private ThemeEditorStyle constructThemeFromResourceValue(@NotNull StyleResourceValue value, @Nullable Module sourceModule) {
+    final String name = ResolutionUtils.getQualifiedStyleName(value);
+
+    if (myThemeByName.containsKey(name)) {
+      return null;
     }
 
-    final Queue<StyleResourceValue> localThemes = new LinkedList<StyleResourceValue>(getProjectThemesNoLibraries(configuration));
-    // If there are no libraries, resolvedThemes will be the same as localThemes.
-    final Queue<StyleResourceValue> resolvedThemes = new LinkedList<StyleResourceValue>(getProjectThemes(configuration));
-    final Queue<StyleResourceValue> frameworkThemes = new LinkedList<StyleResourceValue>(getFrameworkThemes(configuration));
-    myProjectLocalThemes = Lists.newArrayListWithCapacity(resolvedThemes.size());
-    // We expect every local theme to have 1 parent.
-    myProjectThemes = Lists.newArrayListWithExpectedSize(resolvedThemes.size() * 2);
-    myFrameworkThemes = Lists.newArrayListWithCapacity(frameworkThemes.size());
-    myAllThemes = Lists.newArrayListWithExpectedSize(resolvedThemes.size() * 2 + frameworkThemes.size());
-
-    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, configuration.getModule());
-    if (androidTargetData == null) {
-      LOG.error("Unable to get AndroidTargetData.");
-      return;
+    final ThemeEditorStyle theme = ResolutionUtils.getStyle(myConfiguration, name, sourceModule);
+    if (theme != null) {
+      myThemeByName.put(name, theme);
     }
 
-    ResourceResolver resolver = configuration.getResourceResolver();
-    if (resolver == null) {
-      LOG.error("Unable to get ResourceResolver.");
-      return;
-    }
+    return theme;
+  }
 
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(configuration.getModule(), true);
-    if (resources == null) {
-      LOG.error("Unable to get AppResourceRepository.");
-      return;
-    }
+  private ImmutableList<ThemeEditorStyle> fillThemeResolverFromStyles(@NotNull List<StyleResourceValue> source) {
+    ImmutableList.Builder<ThemeEditorStyle> builder = ImmutableList.builder();
 
-    /*
-    Process all the available themes and their parents. We process them in the following order:
-    - Local themes
-    - Resolved themes (this include the parent themes that result from the checking the local themes and their parents)
-    - Framework themes
-
-    The order will ensure that we keep the attribute value that is lower in the hierarchy (first local, then any of the parents in order
-    and lastly the framework themes).
-     */
-    Queue<StyleResourceValue> pendingThemes = new ForwardingQueue<StyleResourceValue>() {
-      @Override
-      protected Queue<StyleResourceValue> delegate() {
-        if (!localThemes.isEmpty()) {
-          return localThemes;
-        }
-        else if (!resolvedThemes.isEmpty()) {
-          return resolvedThemes;
-        }
-        else {
-          return frameworkThemes;
-        }
-      }
-    };
-    while (!pendingThemes.isEmpty()) {
-      boolean isLocalTheme = !localThemes.isEmpty();
-      boolean isProjectDependency = isLocalTheme || !resolvedThemes.isEmpty();
-      StyleResourceValue style = pendingThemes.remove();
-      String styleQualifiedName = StyleResolver.getQualifiedStyleName(style);
-
-      if (myThemeNames.contains(styleQualifiedName)) {
-        continue;
-      }
-      myThemeNames.add(styleQualifiedName);
-      ThemeEditorStyle resolvedStyle = myStyleResolver.getStyle(styleQualifiedName);
-
-      myAllThemes.add(resolvedStyle);
-      if (isProjectDependency) {
-        myProjectThemes.add(resolvedStyle);
-
-        StyleResourceValue parent = resolver.getParent(style);
-        if (parent != null) {
-          resolvedThemes.add(parent);
-        }
-      }
-
-      if (isLocalTheme) {
-        myProjectLocalThemes.add(resolvedStyle);
-      }
-      else {
-        myFrameworkThemes.add(resolvedStyle);
+    for (StyleResourceValue value : source) {
+      ThemeEditorStyle theme = constructThemeFromResourceValue(value, null);
+      if (theme != null) {
+        builder.add(theme);
       }
     }
+
+    return builder.build();
   }
 
   @NotNull
-  private static List<StyleResourceValue> getFrameworkThemes(@NotNull Configuration myConfiguration) {
+  private List<StyleResourceValue> resolveFrameworkThemes() {
     ResourceRepository repository = myConfiguration.getFrameworkResources();
     if (repository == null) {
       return Collections.emptyList();
     }
 
-    Map<ResourceType, Map<String, ResourceValue>> resources = repository.getConfiguredResources(myConfiguration.getFullConfig());
-    return getThemes(myConfiguration, resources, true /*isFramework*/);
+    return getThemes(repository.getConfiguredResources(myConfiguration.getFullConfig()).get(ResourceType.STYLE), true /*isFramework*/);
   }
 
+  /**
+   * Resolve all non-framework themes available from module of passed Configuration
+   */
   @NotNull
-  private static List<StyleResourceValue> getProjectThemes(@NotNull Configuration myConfiguration) {
+  private List<StyleResourceValue> resolveNonFrameworkThemes() {
     LocalResourceRepository repository = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
     if (repository == null) {
       return Collections.emptyList();
     }
 
-    Map<ResourceType, Map<String, ResourceValue>> resources = repository.getConfiguredResources(myConfiguration.getFullConfig());
-    return getThemes(myConfiguration, resources, false /*isFramework*/);
+    return getThemes(repository.getConfiguredResources(ResourceType.STYLE, myConfiguration.getFullConfig()), false /*isFramework*/);
   }
 
+  /**
+   * Resolve all themes available from passed Configuration's source module and its dependencies which are defined
+   * in the current project (doesn't include themes available from libraries)
+   */
   @NotNull
-  private static List<StyleResourceValue> getProjectThemesNoLibraries(@NotNull Configuration myConfiguration) {
-    LocalResourceRepository repository = ProjectResourceRepository.getProjectResources(myConfiguration.getModule(), true);
-    if (repository == null) {
-      return Collections.emptyList();
+  private List<Pair<StyleResourceValue, Module>> resolveLocallyDefinedModuleThemes() {
+    final Module module = myConfiguration.getModule();
+    final List<Pair<StyleResourceValue, Module>> result = Lists.newArrayList();
+
+    fillModuleResources(module, ModuleResourceRepository.getModuleResources(module, true), result);
+
+    final List<AndroidFacet> allAndroidDependencies = AndroidUtils.getAllAndroidDependencies(module, false);
+    for (AndroidFacet facet : allAndroidDependencies) {
+      fillModuleResources(facet.getModule(), facet.getModuleResources(true), result);
     }
 
-    Map<ResourceType, Map<String, ResourceValue>> resources = repository.getConfiguredResources(myConfiguration.getFullConfig());
-    return getThemes(myConfiguration, resources, false /*isFramework*/);
+    return result;
+  }
+
+  private void fillModuleResources(@NotNull Module module,
+                                   @Nullable LocalResourceRepository repository,
+                                   @NotNull List<Pair<StyleResourceValue, Module>> sink) {
+    if (repository == null) {
+      return;
+    }
+
+    for (StyleResourceValue value : getThemes(repository.getConfiguredResources(ResourceType.STYLE, myConfiguration.getFullConfig()), false)) {
+      sink.add(Pair.create(value, module));
+    }
   }
 
   @NotNull
-  private static List<StyleResourceValue> getThemes(@NotNull Configuration configuration,
-                                                    @NotNull Map<ResourceType, Map<String, ResourceValue>> resources,
-                                                    boolean isFramework) {
-    // get the styles.
-    Map<String, ResourceValue> styles = resources.get(ResourceType.STYLE);
-
+  private List<StyleResourceValue> getThemes(@NotNull Map<String, ResourceValue> styles,
+                                             boolean isFramework) {
     // Collect the themes out of all the styles.
     Collection<ResourceValue> values = styles.values();
     List<StyleResourceValue> themes = new ArrayList<StyleResourceValue>(values.size());
 
     if (!isFramework) {
-      // Try a little harder to see if the user has themes that don't have the normal naming convention
-      ResourceResolver resolver = configuration.getResourceResolver();
-      if (resolver != null) {
-        Map<ResourceValue, Boolean> cache = Maps.newHashMapWithExpectedSize(values.size());
-        for (ResourceValue value : values) {
-          if (value instanceof StyleResourceValue) {
-            StyleResourceValue styleValue = (StyleResourceValue)value;
-            if (resolver.isTheme(styleValue, cache)) {
-              themes.add(styleValue);
-            }
+      Map<ResourceValue, Boolean> cache = Maps.newHashMapWithExpectedSize(values.size());
+      for (ResourceValue value : values) {
+        if (value instanceof StyleResourceValue) {
+          StyleResourceValue styleValue = (StyleResourceValue)value;
+          if (myResolver.isTheme(styleValue, cache)) {
+            themes.add(styleValue);
           }
         }
-        return themes;
       }
+      return themes;
     }
 
-    // For the framework (and projects if resolver can't be computed) the computation is easier
+    // For the framework themes the computation is easier
     for (ResourceValue value : values) {
       String name = value.getName();
       if (name.startsWith(THEME_NAME_DOT) || name.equals(THEME_NAME)) {
@@ -217,48 +178,41 @@ public class ThemeResolver {
     return themes;
   }
 
-  /**
-   * Returns whether the passed style is a theme.
-   */
-  public boolean isTheme(@NotNull ThemeEditorStyle style) {
-    return myThemeNames.contains(style.getName());
-  }
-
   @Nullable
   public ThemeEditorStyle getTheme(@NotNull String themeName) {
-    if (myThemeNames.contains(themeName)) {
-      return myStyleResolver.getStyle(themeName);
-    }
-
-    return null;
+    return myThemeByName.get(themeName);
   }
 
   /**
-   * Returns the list of themes declared by the project.
+   * Returns the list of themes available from the module passed Configuration comes from and all its dependencies.
    */
   @NotNull
-  public Collection<ThemeEditorStyle> getLocalThemes() {
-    return Collections.unmodifiableList(myProjectLocalThemes);
+  public ImmutableList<ThemeEditorStyle> getLocalThemes() {
+    return myLocalThemes;
   }
 
   /**
-   * Returns the list of themes declared by the project and its dependencies.
+   * Returns the list of themes that come from external libraries (e.g. AppCompat)
    */
   @NotNull
-  public Collection<ThemeEditorStyle> getProjectThemes() {
-    return Collections.unmodifiableList(myProjectThemes);
+  public ImmutableList<ThemeEditorStyle> getExternalLibraryThemes() {
+    return myExternalLibraryThemes;
   }
 
   /**
-   * Returns the list of themes declared by the project and its dependencies.
+   * Returns the list of available framework themes.
    */
   @NotNull
-  public Collection<ThemeEditorStyle> getFrameworkThemes() {
-    return Collections.unmodifiableList(myFrameworkThemes);
+  public ImmutableList<ThemeEditorStyle> getFrameworkThemes() {
+    return myFrameworkThemes;
+  }
+
+  public int getThemesCount() {
+    return myFrameworkThemes.size() + myExternalLibraryThemes.size() + myLocalThemes.size();
   }
 
   @NotNull
-  Collection<ThemeEditorStyle> getThemes() {
-    return Collections.unmodifiableCollection(myAllThemes);
+  Configuration getConfiguration() {
+    return myConfiguration;
   }
 }

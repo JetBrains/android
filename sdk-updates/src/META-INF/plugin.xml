@@ -27,6 +27,7 @@
   <idea-version since-build="131"/>
 
   <depends>org.jetbrains.android</depends>
+  <depends config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
@@ -46,6 +47,8 @@
   <actions>
     <action id="Android.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
             icon="AndroidIcons.SdkManager" overrides="true"/>
+    <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
+            icon="AndroidIcons.SdkManagerLarge" overrides="true"/>
   </actions>
 
 </idea-plugin>

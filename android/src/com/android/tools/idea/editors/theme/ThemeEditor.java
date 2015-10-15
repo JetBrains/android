@@ -26,12 +26,13 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.JComponent;
+import javax.swing.*;
 import java.beans.PropertyChangeListener;
 
 public class ThemeEditor extends UserDataHolderBase implements FileEditor {
@@ -47,7 +48,13 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
-        myComponent.reload(myComponent.getPreviousSelectedTheme());
+
+        // If the SDK is changing we will not be able to reload anything as AndroidTargetData.getTargetData will be returning null;
+        if (ModuleRootManager.getInstance(myComponent.getSelectedModule()).getSdk() == null) return;
+
+        ThemeEditorStyle theme = myComponent.getSelectedTheme();
+        ThemeEditorStyle subStyle = myComponent.getCurrentSubStyle();
+        myComponent.reload((theme == null) ? null : theme.getQualifiedName(), (subStyle == null) ? null : subStyle.getQualifiedName());
       }
     });
   }
@@ -78,9 +85,10 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
   public FileEditorState getState(@NotNull FileEditorStateLevel fileEditorStateLevel) {
     ThemeEditorStyle theme = myComponent.getSelectedTheme();
     ThemeEditorStyle subStyle = myComponent.getCurrentSubStyle();
-    return new ThemeEditorState(theme == null ? null : theme.getName(),
-                                subStyle == null ? null : subStyle.getName(),
-                                myComponent.getProportion());
+    return new ThemeEditorState(theme == null ? null : theme.getQualifiedName(),
+                                subStyle == null ? null : subStyle.getQualifiedName(),
+                                myComponent.getProportion(),
+                                myComponent.getSelectedModule().getName());
   }
 
   @Override
@@ -90,7 +98,7 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
     }
 
     ThemeEditorState state = (ThemeEditorState)fileEditorState;
-    myComponent.reload(state.getThemeName(), state.getSubStyleName());
+    myComponent.reload(state.getThemeName(), state.getSubStyleName(), state.getModuleName());
 
     myComponent.setProportion(state.getProportion());
   }
@@ -107,11 +115,12 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void selectNotify() {
-    myComponent.reload(myComponent.getPreviousSelectedTheme());
+    myComponent.selectNotify();
   }
 
   @Override
   public void deselectNotify() {
+    myComponent.deselectNotify();
   }
 
   @Override

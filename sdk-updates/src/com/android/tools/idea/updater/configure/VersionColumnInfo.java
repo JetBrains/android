@@ -37,9 +37,4 @@ class VersionColumnInfo extends ColumnInfo<UpdaterTreeNode, FullRevision> {
     }
     return ((PlatformDetailsTreeNode)node).getItemDesc().getPreciseRevision();
   }
-
-  @Override
-  public int getWidth(JTable table) {
-    return 70;
-  }
 }

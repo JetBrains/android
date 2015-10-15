@@ -41,6 +41,7 @@ import com.intellij.patterns.ElementPattern;
 import com.intellij.util.indexing.FileContent;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
+import org.jetbrains.android.run.DefaultActivityLocator;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -52,7 +53,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 
 /**
  * @author nik
@@ -69,7 +70,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
   public List<? extends DetectedFrameworkDescription> detect(@NotNull Collection<VirtualFile> newFiles,
                                                              @NotNull FrameworkDetectionContext context) {
     Project project = context.getProject();
-    if (project != null && isBuildWithGradle(project)) {
+    if (project != null && requiresAndroidModel(project)) {
       return Collections.emptyList();
     }
     return super.detect(newFiles, context);
@@ -135,7 +136,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
 
     Manifest manifest = facet.getManifest();
     if (manifest != null) {
-      if (AndroidUtils.getDefaultLauncherActivityName(manifest) != null) {
+      if (DefaultActivityLocator.getDefaultLauncherActivityName(manifest) != null) {
         AndroidUtils.addRunConfiguration(facet, null, false, null, null);
       }
     }

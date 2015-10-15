@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
-import com.android.tools.idea.wizard.FormFactorUtils.FormFactor;
+import com.android.tools.idea.npw.FormFactorUtils.FormFactor;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.AbstractButtonDriver;

@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.pom.java.LanguageLevel;
@@ -37,12 +38,12 @@ import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 /**
  * Configures Java SDK for Java library module.
  */
-public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJavaProject> {
+public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaProject> {
   @Override
   public void customizeModule(@NotNull Project project,
                               @NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable IdeaJavaProject javaProject) {
+                              @Nullable JavaProject javaProject) {
     if (javaProject == null) {
       return;
     }
@@ -57,7 +58,7 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJ
     if (isNotSupported(languageLevel)) {
       // Java language is still not correct. Most likely this module does not have dependents.
       // Get minimum language level from all Android modules.
-      Module[] modules = modelsProvider.getModules();
+      Module[] modules = ModuleManager.getInstance(project).getModules();
       languageLevel = getMinimumLanguageLevelForAndroidModules(modules);
     }
 
@@ -101,9 +102,9 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJ
   private static LanguageLevel getLanguageLevelForAndroidModule(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-      if (androidProject != null) {
-        return androidProject.getJavaLanguageLevel();
+      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+      if (androidModel != null) {
+        return androidModel.getJavaLanguageLevel();
       }
     }
     return null;

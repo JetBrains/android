@@ -16,18 +16,15 @@
 package com.android.tools.idea.logcat;
 
 import com.intellij.execution.ConsoleFolding;
-import org.jetbrains.android.logcat.AndroidLogcatReceiver;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 /** {@link AndroidLogcatReceiver} expands stack traces that were elided "(...N more)". This folds just those additional lines. */
 public class ExceptionFolding extends ConsoleFolding {
-  private static final String STACK_TRACE_LINE_PREFIX = AndroidLogcatReceiver.EXPANDED_STACK_TRACE_LINE_PREFIX + "at ";
-
   @Override
   public boolean shouldFoldLine(String line) {
-    return line.startsWith(STACK_TRACE_LINE_PREFIX);
+    return StackTraceExpander.wasLineExpanded(line);
   }
 
   @Nullable

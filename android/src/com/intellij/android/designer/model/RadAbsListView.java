@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.android.uipreview.RecyclerViewHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,10 +48,12 @@ public class RadAbsListView extends RadViewComponent {
                                  @NotNull List<RadComponent> selection) {
     super.addPopupActions(designer, beforeGroup, afterGroup, shortcuts, selection);
 
+    boolean isRecyclerView = RecyclerViewHelper.CN_RECYCLER_VIEW.equals(getTag().getName());
+    int testCapability = isRecyclerView ? Features.RECYCLER_VIEW_ADAPTER : Features.ADAPTER_BINDING;
     Configuration configuration = designer.getConfiguration();
     Module module = designer.getModule();
     IAndroidTarget target = configuration.getTarget();
-    if (target != null && RenderService.supportsCapability(module, target, Features.ADAPTER_BINDING)) {
+    if (target != null && RenderService.supportsCapability(module, target, testCapability)) {
       beforeGroup.add(createListTypeAction(designer));
       beforeGroup.addSeparator();
     }
@@ -63,6 +66,7 @@ public class RadAbsListView extends RadViewComponent {
     String tagName = tag.getName();
     boolean isSpinner = tagName.equals(SPINNER);
     boolean isGridView = tagName.equals(GRID_VIEW);
+    boolean isRecyclerView = tagName.equals(RecyclerViewHelper.CN_RECYCLER_VIEW);
     String previewType = isGridView ? "Preview Grid Content" : isSpinner ? "Preview Spinner Layout" : "Preview List Content";
 
     String selected = tag.getAttributeValue(KEY_LV_ITEM, TOOLS_URI);
@@ -94,9 +98,11 @@ public class RadAbsListView extends RadViewComponent {
         previewGroup.add(new SetListTypeAction(designer, "Simple Expandable List Item", "simple_expandable_list_item_1", selected));
         previewGroup.add(new SetListTypeAction(designer, "Simple 2-Line Expandable List Item", "simple_expandable_list_item_2", selected));
 
-        previewGroup.addSeparator();
-        previewGroup.add(new PickLayoutAction(designer, "Choose Header...", KEY_LV_HEADER));
-        previewGroup.add(new PickLayoutAction(designer, "Choose Footer...", KEY_LV_FOOTER));
+        if (!isRecyclerView) {
+          previewGroup.addSeparator();
+          previewGroup.add(new PickLayoutAction(designer, "Choose Header...", KEY_LV_HEADER));
+          previewGroup.add(new PickLayoutAction(designer, "Choose Footer...", KEY_LV_FOOTER));
+        }
       }
     }
 

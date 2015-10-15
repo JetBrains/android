@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.variant.conflict;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.stubs.android.*;
 import com.intellij.facet.FacetManager;
@@ -40,8 +40,8 @@ import java.util.List;
  */
 public class ConflictSetTest extends IdeaTestCase {
   private Module myLibModule;
-  private IdeaAndroidProject myApp;
-  private IdeaAndroidProject myLib;
+  private AndroidGradleModel myApp;
+  private AndroidGradleModel myLib;
   private String myLibGradlePath;
 
   @Override
@@ -70,7 +70,7 @@ public class ConflictSetTest extends IdeaTestCase {
     AndroidProjectStub project = new AndroidProjectStub("app");
     VariantStub variant = project.addVariant("debug");
 
-    myApp = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myModule.getName(), rootDirPath, project, variant.getName(),
+    myApp = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myModule.getName(), rootDirPath, project, variant.getName(),
                                    AndroidProject.ARTIFACT_ANDROID_TEST);
   }
 
@@ -81,7 +81,7 @@ public class ConflictSetTest extends IdeaTestCase {
     project.setIsLibrary(true);
     VariantStub variant = project.addVariant("debug");
 
-    myLib = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myModule.getName(), moduleFilePath.getParentFile(), project,
+    myLib = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myModule.getName(), moduleFilePath.getParentFile(), project,
                                    variant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
   }
 
@@ -90,7 +90,7 @@ public class ConflictSetTest extends IdeaTestCase {
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
       AndroidFacet facet = createFacet(facetManager, false);
-      facet.setIdeaAndroidProject(myApp);
+      facet.setAndroidModel(myApp);
       facetModel.addFacet(facet);
     }
     finally {
@@ -103,7 +103,7 @@ public class ConflictSetTest extends IdeaTestCase {
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
       AndroidFacet androidFacet = createFacet(facetManager, true);
-      androidFacet.setIdeaAndroidProject(myLib);
+      androidFacet.setAndroidModel(myLib);
       facetModel.addFacet(androidFacet);
 
       AndroidGradleFacet gradleFacet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);

@@ -16,10 +16,8 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.ui.JBColor;
 
@@ -41,7 +39,8 @@ public class DelegatingCellRenderer implements TableCellRenderer {
 
 
   @Override
-  public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+  public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus,
+                                                 final int row, final int column) {
 
     EditedStyleItem item = (value instanceof  EditedStyleItem) ? (EditedStyleItem) value : null;
 
@@ -49,30 +48,9 @@ public class DelegatingCellRenderer implements TableCellRenderer {
       myDelegate.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     ThemeEditorStyle selectedStyle = ((AttributesTableModel) table.getModel()).getSelectedStyle();
     // Displays in bold attributes that are overriding their inherited value
-    returnedComponent.setFont(selectedStyle.hasItem(item) ? table.getFont().deriveFont(Font.BOLD) : table.getFont());
-
+    returnedComponent.setFont(selectedStyle.hasItem(item) ? returnedComponent.getFont().deriveFont(Font.BOLD) :
+                              returnedComponent.getFont().deriveFont(Font.PLAIN));
     returnedComponent.setForeground((item != null && !item.isPublicAttribute()) ? JBColor.LIGHT_GRAY : table.getForeground());
-
-    if (!(returnedComponent instanceof JComponent)) {
-      // Does not support tooltips
-      return returnedComponent;
-    }
-
-    // Getting the tooltip information is an moderately expensive operation so we try to avoid doing it unless
-    // it's necessary. We first check if the mouse is in the current cell being rendered and only then
-    // we get the tooltip.
-    final JComponent jComponent = (JComponent)returnedComponent;
-    Point mousePos = table.getMousePosition();
-    if (mousePos != null && item != null) {
-      if (table.getCellRect(row, column, true).contains(mousePos)) {
-        final ItemResourceValue resValue = ((EditedStyleItem)value).getItemResourceValue();
-        Configuration configuration = item.getSourceStyle().getConfiguration();
-        String toolTipText = ThemeEditorUtils.generateToolTipText(resValue, configuration.getModule(), configuration);
-        jComponent.setToolTipText(toolTipText);
-      }
-    } else {
-      jComponent.setToolTipText(null);
-    }
 
     return returnedComponent;
   }

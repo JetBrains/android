@@ -17,9 +17,8 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.google.common.base.Strings;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -34,6 +33,7 @@ import java.io.File;
 import java.util.Collection;
 
 import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtilRt.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -41,7 +41,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 /**
  * Adds the Android facet to modules imported from {@link AndroidProject}s.
  */
-public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
+public class AndroidFacetModuleCustomizer implements ModuleCustomizer<AndroidGradleModel> {
 
   // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
   private static final String SEPARATOR = "/";
@@ -50,7 +50,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
   public void customizeModule(@NotNull Project project,
                               @NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable IdeaAndroidProject androidProject) {
+                              @Nullable AndroidGradleModel androidProject) {
     if (androidProject == null) {
       removeAllFacetsOfType(AndroidFacet.ID, modelsProvider.getModifiableFacetModel(module));
     }
@@ -70,19 +70,19 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
     }
   }
 
-  private static void configureFacet(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject ideaAndroidProject) {
+  private static void configureFacet(@NotNull AndroidFacet facet, @NotNull AndroidGradleModel androidModel) {
     JpsAndroidModuleProperties facetState = facet.getProperties();
     facetState.ALLOW_USER_CONFIGURATION = false;
 
-    AndroidProject delegate = ideaAndroidProject.getDelegate();
-    facetState.LIBRARY_PROJECT = delegate.isLibrary();
+    AndroidProject androidProject = androidModel.getAndroidProject();
+    facetState.LIBRARY_PROJECT = androidProject.isLibrary();
 
-    SourceProvider sourceProvider = delegate.getDefaultConfig().getSourceProvider();
+    SourceProvider sourceProvider = androidModel.getDefaultSourceProvider();
 
-    syncSelectedVariantAndTestArtifact(facetState, ideaAndroidProject);
+    syncSelectedVariantAndTestArtifact(facetState, androidModel);
 
     // This code needs to be modified soon. Read the TODO in getRelativePath
-    File moduleDirPath = ideaAndroidProject.getRootDirPath();
+    File moduleDirPath = androidModel.getRootDirPath();
     File manifestFile = sourceProvider.getManifestFile();
     facetState.MANIFEST_FILE_RELATIVE_PATH = relativePath(moduleDirPath, manifestFile);
 
@@ -92,20 +92,20 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
     Collection<File> assetsDirs = sourceProvider.getAssetsDirectories();
     facetState.ASSETS_FOLDER_RELATIVE_PATH = relativePath(moduleDirPath, assetsDirs);
 
-    facet.setIdeaAndroidProject(ideaAndroidProject);
-    facet.syncSelectedVariantAndTestArtifact();
+    facet.setAndroidModel(androidModel);
+    androidModel.syncSelectedVariantAndTestArtifact(facet);
   }
 
   private static void syncSelectedVariantAndTestArtifact(@NotNull JpsAndroidModuleProperties facetState,
-                                                         @NotNull IdeaAndroidProject ideaAndroidProject) {
+                                                         @NotNull AndroidGradleModel androidModel) {
     String variantStoredInFacet = facetState.SELECTED_BUILD_VARIANT;
-    if (!Strings.isNullOrEmpty(variantStoredInFacet) && ideaAndroidProject.getVariantNames().contains(variantStoredInFacet)) {
-      ideaAndroidProject.setSelectedVariantName(variantStoredInFacet);
+    if (!isNullOrEmpty(variantStoredInFacet) && androidModel.getVariantNames().contains(variantStoredInFacet)) {
+      androidModel.setSelectedVariantName(variantStoredInFacet);
     }
 
     String testArtifactStoredInFacet = facetState.SELECTED_TEST_ARTIFACT;
-    if (!Strings.isNullOrEmpty(testArtifactStoredInFacet)) {
-      ideaAndroidProject.setSelectedTestArtifactName(testArtifactStoredInFacet);
+    if (!isNullOrEmpty(testArtifactStoredInFacet)) {
+      androidModel.setSelectedTestArtifactName(testArtifactStoredInFacet);
     }
   }
 

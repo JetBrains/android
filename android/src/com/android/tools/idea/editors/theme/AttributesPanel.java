@@ -15,20 +15,30 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.intellij.icons.AllIcons;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ComboboxSpeedSearch;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import java.awt.Dimension;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import java.awt.*;
 
 public class AttributesPanel {
-  public static final Border BORDER = BorderFactory.createEmptyBorder(10, 10, 10, 10);
+  private static final boolean ENABLE_ADVANCED_MODE = false;
+  private static final int MAX_SIZE_THEME_SELECTOR = 25;
+
+  public static final Border BORDER = JBUI.Borders.empty(10, 10);
+  /* ThemeEditorConstants.ATTRIBUTE_ROW_GAP is already scaled so we use a regular BorderFactory empty border */
+  public static final Border LABEL_BORDER =
+    BorderFactory.createEmptyBorder(ThemeEditorConstants.ATTRIBUTE_ROW_GAP, 0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP, 0);
+  public static final String THEME_SELECTOR_NAME = "Theme Selector";
+  public static final String MODULE_SELECTOR_NAME = "Module Selector";
 
   private JComboBox myThemeCombo;
   private JCheckBox myAdvancedFilterCheckBox;
@@ -36,19 +46,31 @@ public class AttributesPanel {
   private JBLabel mySubStyleLabel;
   private ThemeEditorTable myAttributesTable;
   private JBScrollPane myAttributesScrollPane;
-  private JPanel myConfigToolbar;
   private JPanel myRightPanel;
   private JComboBox myAttrGroupCombo;
   private ColorPalette myPalette;
   private JBScrollPane myPaletteScrollPane;
+  private JComboBox myModuleCombo;
+  private JBLabel myThemeLabel;
+  private JBLabel myModuleLabel;
 
   public AttributesPanel() {
+    myThemeCombo.setMinimumSize(ThemeEditorConstants.ATTRIBUTES_PANEL_COMBO_MIN_SIZE);
+    myModuleCombo.setMinimumSize(ThemeEditorConstants.ATTRIBUTES_PANEL_COMBO_MIN_SIZE);
+
     myBackButton.setIcon(AllIcons.Actions.Back);
     myBackButton.setBorder(BORDER);
 
-    myPaletteScrollPane.setVisible(false);
-    myAdvancedFilterCheckBox.setVisible(false);
-    myAttrGroupCombo.setVisible(false);
+    myThemeLabel.setBorder(LABEL_BORDER);
+    myModuleLabel.setBorder(LABEL_BORDER);
+    myThemeLabel.setText(
+      String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), "Theme"));
+    myModuleLabel.setText(
+      String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), "Module"));
+
+    myPaletteScrollPane.setVisible(ENABLE_ADVANCED_MODE);
+    myAdvancedFilterCheckBox.setVisible(ENABLE_ADVANCED_MODE);
+    myAttrGroupCombo.setVisible(ENABLE_ADVANCED_MODE);
 
     new ComboboxSpeedSearch(myThemeCombo);
 
@@ -72,47 +94,33 @@ public class AttributesPanel {
     myPalette.setShowCheckeredBackground(true);
 
     // Stop the combo box long items from blocking the right panel from being able to be made small.
-    myThemeCombo.setMinimumSize(new Dimension(10, myThemeCombo.getMinimumSize().height));
-    myThemeCombo.setPreferredSize(new Dimension(10, myThemeCombo.getPreferredSize().height));
+    myThemeCombo.setMinimumSize(new Dimension(JBUI.scale(10), myThemeCombo.getMinimumSize().height));
+    myThemeCombo.setPreferredSize(new Dimension(JBUI.scale(10), myThemeCombo.getPreferredSize().height));
+
+    myThemeCombo.setMaximumRowCount(MAX_SIZE_THEME_SELECTOR);
+
+    // Set combo boxes names to be able to distinguish them in UI tests
+    myThemeCombo.setName(THEME_SELECTOR_NAME);
+    myModuleCombo.setName(MODULE_SELECTOR_NAME);
+
+    myAttributesScrollPane = new JBScrollPane(myRightPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                              ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+    myAttributesTable.setBackground(null); // Get rid of default white background of the table.
+    myAttributesScrollPane.setBackground(null); // needed for OS X, as by default is set to white
+    myAttributesScrollPane.getViewport().setBackground(null); // needed for OS X, as by default is set to white
+    myAttributesScrollPane.getVerticalScrollBar().setUnitIncrement(AndroidPreviewPanel.VERTICAL_SCROLLING_UNIT_INCREMENT);
+    myAttributesScrollPane.getVerticalScrollBar().setBlockIncrement(AndroidPreviewPanel.VERTICAL_SCROLLING_BLOCK_INCREMENT);
   }
 
   /**
-   * @param theme Does not have to be one of the items in the combo box list.
+   * @param themeName Does not have to be one of the items in the combo box list.
    */
-  public void setSelectedTheme(final ThemeEditorStyle theme) {
+  public void setSelectedTheme(@Nullable final String themeName) {
     // we set the theme on the model and not the actual combo box
     // as the model allows setting a theme that is not contained in the list, but the combo box does not.
-    myThemeCombo.getModel().setSelectedItem(theme);
-  }
-
-  public boolean isCreateNewThemeSelected() {
-    return ThemesListModel.CREATE_NEW_THEME.equals(myThemeCombo.getSelectedItem());
-  }
-
-  public boolean isShowAllThemesSelected() {
-    return ThemesListModel.SHOW_ALL_THEMES.equals(myThemeCombo.getSelectedItem());
-  }
-
-  public boolean isRenameSelected() {
-    Object selectedItem = myThemeCombo.getSelectedItem();
-    if (!(selectedItem instanceof String)) {
-      // Selected themes are instances of EditedStyleItem
-      // So this method will return false on selecting a theme
-      return false;
-    }
-    return ((String)selectedItem).startsWith(ThemesListModel.RENAME);
-  }
-
-  public ThemeEditorStyle getSelectedTheme() {
-    Object item = myThemeCombo.getSelectedItem();
-    if (item instanceof ThemeEditorStyle) {
-      return (ThemeEditorStyle)item;
-    }
-    else if (item instanceof ProjectThemeResolver.ThemeWithSource) {
-      return ((ProjectThemeResolver.ThemeWithSource)item).getTheme();
-    }
-
-    throw new IllegalStateException("getSelectedTheme() is requested on themes combo while selected item is not theme");
+    myThemeCombo.getModel().setSelectedItem(themeName);
+    myThemeCombo.hidePopup();
   }
 
   public void setAdvancedMode(final boolean isAdvanced) {
@@ -134,6 +142,10 @@ public class AttributesPanel {
 
   // Raw getters ahead
 
+  public JComboBox getModuleCombo() {
+    return myModuleCombo;
+  }
+
   public JComboBox getThemeCombo() {
     return myThemeCombo;
   }
@@ -154,20 +166,8 @@ public class AttributesPanel {
     return myAdvancedFilterCheckBox;
   }
 
-  public JBScrollPane getAttributesScrollPane() {
+  public JComponent getRightPanel() {
     return myAttributesScrollPane;
-  }
-
-  public JPanel getRightPanel() {
-    return myRightPanel;
-  }
-
-  public JPanel getConfigToolbar() {
-    return myConfigToolbar;
-  }
-
-  public JBScrollPane getPaletteScrollPane() {
-    return myPaletteScrollPane;
   }
 
   public ColorPalette getPalette() {

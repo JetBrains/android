@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.builder.model.AndroidProject;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHype
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.Document;
@@ -40,7 +40,6 @@ import com.intellij.pom.NonNavigatable;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
@@ -56,15 +55,15 @@ final class ProjectJdkChecks {
   }
 
   static boolean hasCorrectJdkVersion(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.getIdeaAndroidProject() != null) {
-      return hasCorrectJdkVersion(module, facet.getIdeaAndroidProject());
+    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    if (androidModel != null) {
+      return hasCorrectJdkVersion(module, androidModel);
     }
     return true;
   }
 
-  static boolean hasCorrectJdkVersion(@NotNull Module module, @NotNull IdeaAndroidProject model) {
-    AndroidProject androidProject = model.getDelegate();
+  static boolean hasCorrectJdkVersion(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+    AndroidProject androidProject = androidModel.getAndroidProject();
     String compileTarget = androidProject.getCompileTarget();
 
     AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);

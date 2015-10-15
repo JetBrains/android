@@ -31,7 +31,7 @@ public class RunSdkConfigAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_TOOLBAR_BUTTON_CLICKED, null, null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_SDK_MANAGER_TOOLBAR_CLICKED, null, null);
     ShowSettingsUtil.getInstance().showSettingsDialog(null, SdkUpdaterConfigurable.class);
   }
 }

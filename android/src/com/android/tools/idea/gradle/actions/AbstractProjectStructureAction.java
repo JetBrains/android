@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
-import com.intellij.openapi.actionSystem.AnAction;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
@@ -34,23 +33,27 @@ import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT;
 
-public abstract class AbstractProjectStructureAction extends AnAction {
+public abstract class AbstractProjectStructureAction extends AndroidStudioGradleAction {
+  public AbstractProjectStructureAction(@Nullable String text) {
+    super(text);
+  }
+
   protected AbstractProjectStructureAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
     super(text, description, icon);
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
     e.getPresentation().setEnabled(getTargetModule(e) != null);
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  protected final void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
     Module module = getTargetModule(e);
     if (module != null) {
       ProjectSettingsService service = ProjectSettingsService.getInstance(module.getProject());
       if (service instanceof AndroidProjectSettingsService) {
-        actionPerformed(module, ((AndroidProjectSettingsService)service), e);
+        doPerform(module, ((AndroidProjectSettingsService)service), e);
       }
     }
   }
@@ -58,7 +61,7 @@ public abstract class AbstractProjectStructureAction extends AnAction {
   protected abstract Module getTargetModule(@NotNull AnActionEvent e);
 
   @Nullable
-  protected Module getSelectedAndroidModule(@NotNull AnActionEvent e) {
+  protected static Module getSelectedAndroidModule(@NotNull AnActionEvent e) {
     Module module = getSelectedGradleModule(e);
     if (module != null && AndroidFacet.getInstance(module) != null) {
       return module;
@@ -67,7 +70,7 @@ public abstract class AbstractProjectStructureAction extends AnAction {
   }
 
   @Nullable
-  protected Module getSelectedGradleModule(@NotNull AnActionEvent e) {
+  protected static Module getSelectedGradleModule(@NotNull AnActionEvent e) {
     DataContext dataContext = e.getDataContext();
     Module module = MODULE_CONTEXT.getData(dataContext);
     if (isGradleModule(module)) {
@@ -91,7 +94,7 @@ public abstract class AbstractProjectStructureAction extends AnAction {
     return module != null && isBuildWithGradle(module);
   }
 
-  protected abstract void actionPerformed(@NotNull Module module,
-                                          @NotNull AndroidProjectSettingsService projectStructureService,
-                                          @NotNull AnActionEvent e);
+  protected abstract void doPerform(@NotNull Module module,
+                                    @NotNull AndroidProjectSettingsService projectStructureService,
+                                    @NotNull AnActionEvent e);
 }

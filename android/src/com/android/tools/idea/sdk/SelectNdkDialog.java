@@ -21,12 +21,15 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.*;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +48,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class SelectNdkDialog extends DialogWrapper {
+  private boolean myHasBeenEdited = false;
   private JPanel myPanel;
   private JBLabel myInvalidNdkPathLabel;
   private JRadioButton myRemoveInvalidNdkRadioButton;
@@ -52,6 +56,8 @@ public class SelectNdkDialog extends DialogWrapper {
   private TextFieldWithBrowseButton myNdkTextFieldWithButton;
   private JRadioButton myDownloadNdkRadioButton;
   private JBLabel myHeaderText;
+  private JBLabel myErrorLabel;
+  private JBLabel myChoiceLabel;
 
   private String myNdkPath = "";
 
@@ -60,7 +66,7 @@ public class SelectNdkDialog extends DialogWrapper {
    *
    * @param invalidNdkPath path to the invalid Android Ndk. If {@code null}, no NDK path is set but one is required.
    */
-  public SelectNdkDialog(@Nullable String invalidNdkPath, boolean showRemove) {
+  public SelectNdkDialog(@Nullable String invalidNdkPath, boolean showRemove, boolean showDownload) {
     super(false);
     init();
 
@@ -70,8 +76,20 @@ public class SelectNdkDialog extends DialogWrapper {
 
     configureNdkTextField();
 
-    myDownloadNdkRadioButton.setSelected(true);
-    myNdkTextFieldWithButton.setEnabled(false);
+    if (showDownload) {
+      myDownloadNdkRadioButton.setSelected(true);
+      myNdkTextFieldWithButton.setEnabled(false);
+    }
+    else {
+      myDownloadNdkRadioButton.setVisible(false);
+      mySelectValidNdkRadioButton.setSelected(true);
+      myNdkTextFieldWithButton.setEnabled(true);
+    }
+
+    if (!showDownload && !showRemove) {
+      mySelectValidNdkRadioButton.setVisible(false);
+      myChoiceLabel.setVisible(false);
+    }
 
     if (showRemove) {
       myRemoveInvalidNdkRadioButton.addActionListener(new ActionListener() {
@@ -90,6 +108,9 @@ public class SelectNdkDialog extends DialogWrapper {
     }
     else {
       myHeaderText.setText("The project's local.properties file contains an invalid NDK path:");
+      myErrorLabel.setText(SdkPaths.validateAndroidNdk(new File(invalidNdkPath), false).message);
+      myErrorLabel.setVisible(true);
+      myErrorLabel.setForeground(JBColor.RED);
     }
 
     mySelectValidNdkRadioButton.addChangeListener(new ChangeListener() {
@@ -129,21 +150,6 @@ public class SelectNdkDialog extends DialogWrapper {
       "Select Android NDK Home", null, myNdkTextFieldWithButton, null, descriptor, TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
   }
 
-  @NotNull
-  @Override
-  protected Action[] createActions() {
-    // To hide the cancel button.
-    Action[] actions = super.createActions();
-    List<Action> filteredActions = Lists.newArrayList();
-    Action cancelAction = getCancelAction();
-    for (Action action : actions) {
-      if(!action.equals(cancelAction)) {
-        filteredActions.add(action);
-      }
-    }
-    return filteredActions.toArray(new Action[filteredActions.size()]);
-  }
-
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
@@ -162,6 +168,13 @@ public class SelectNdkDialog extends DialogWrapper {
       return null;
     }
     String ndkPath = myNdkTextFieldWithButton.getText().trim();
+    if (!Strings.isNullOrEmpty(ndkPath)) {
+      myHasBeenEdited = true;
+    }
+    if (!myHasBeenEdited) {
+      getOKAction().setEnabled(false);
+      return null;
+    }
     String ndkError = validateAndroidNdkPath(ndkPath);
     if (ndkError != null) {
       return new ValidationInfo(ndkError, myNdkTextFieldWithButton.getTextField());
@@ -170,7 +183,7 @@ public class SelectNdkDialog extends DialogWrapper {
   }
 
   @Nullable
-  private static String validateAndroidNdkPath(@Nullable String path) {
+  private String validateAndroidNdkPath(@Nullable String path) {
     if (isEmpty(path)) {
       return "Android NDK path not specified.";
     }

@@ -1,0 +1,4 @@
+<resources>
+  <style name="PortraitOnlyTheme" parent="AppTheme">
+  </style>
+</resources>

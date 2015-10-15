@@ -22,21 +22,17 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
-import com.android.tools.idea.welcome.install.WizardException;
-import com.android.tools.idea.wizard.AndroidStudioWizardPath;
-import com.android.tools.idea.wizard.DynamicWizard;
-import com.android.tools.idea.wizard.DynamicWizardHost;
-import com.android.tools.idea.wizard.SingleStepPath;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.android.utils.NullLogger;
 import com.google.common.collect.Multimap;
-import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -44,6 +40,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FirstRunWizard extends DynamicWizard {
   public static final String WIZARD_TITLE = "Android Studio Setup Wizard";
+  public static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
+    ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
+
   @NotNull private final FirstRunWizardMode myMode;
   @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
   /**
@@ -66,15 +65,31 @@ public class FirstRunWizard extends DynamicWizard {
   @Override
   public void init() {
     File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(myMode);
-    SetupProgressStep progressStep = new SetupProgressStep();
-    myComponentsPath = new InstallComponentsPath(progressStep, myMode, initialSdkLocation, myRemotePackages);
+    ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
+    myComponentsPath = new InstallComponentsPath(progressStep, myMode, initialSdkLocation, myRemotePackages, true);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       boolean sdkExists = initialSdkLocation.isDirectory() &&
                           SdkManager.createManager(initialSdkLocation.getAbsolutePath(), new NullLogger()) != null;
       addPath(new SingleStepPath(new FirstRunWelcomeStep(sdkExists)));
     }
     addPath(myJdkPath);
+    if (myMode == FirstRunWizardMode.NEW_INSTALL) {
+      if (initialSdkLocation.getPath().isEmpty()) {
+        // We don't have a default path specified, have to do custom install.
+        myState.put(KEY_CUSTOM_INSTALL, true);
+      }
+      else {
+        addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
+      }
+      addPath(new SingleStepPath(new SelectThemeStep(KEY_CUSTOM_INSTALL)));
+    }
+    if (myMode == FirstRunWizardMode.MISSING_SDK) {
+      addPath(new SingleStepPath(new MissingSdkAlertStep()));
+    }
     addPath(myComponentsPath);
+    if (SystemInfo.isLinux && myMode == FirstRunWizardMode.NEW_INSTALL) {
+      addPath(new SingleStepPath(new LinuxHaxmInfoStep()));
+    }
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
       addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
     }
@@ -116,17 +131,6 @@ public class FirstRunWizard extends DynamicWizard {
     return "Finishing setup...";
   }
 
-  private void doLongRunningOperation(@NotNull final ProgressStep progressStep) throws WizardException {
-    for (AndroidStudioWizardPath path : myPaths) {
-      if (progressStep.isCanceled()) {
-        break;
-      }
-      if (path instanceof LongRunningOperationPath) {
-        ((LongRunningOperationPath)path).runLongOperation();
-      }
-    }
-  }
-
   @Override
   public void performFinishingActions() {
     // Nothing
@@ -137,42 +141,10 @@ public class FirstRunWizard extends DynamicWizard {
     return "Android Studio Setup Wizard";
   }
 
-  public class SetupProgressStep extends ProgressStep {
-    private final AtomicBoolean myIsBusy = new AtomicBoolean(false);
-
-    public SetupProgressStep() {
-      super(FirstRunWizard.this.getDisposable());
-    }
-
-    @Override
-    public boolean canGoNext() {
-      return super.canGoNext() && !myIsBusy.get();
-    }
-
-    @Override
-    protected void execute() {
-      myIsBusy.set(true);
-      myHost.runSensitiveOperation(getProgressIndicator(), true, new Runnable() {
-        @Override
-        public void run() {
-          try {
-            doLongRunningOperation(SetupProgressStep.this);
-          }
-          catch (WizardException e) {
-            Logger.getInstance(getClass()).error(e);
-            showConsole();
-            print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
-          }
-          finally {
-            myIsBusy.set(false);
-          }
-        }
-      });
-    }
-
-    @Override
-    public boolean canGoPrevious() {
-      return false;
+  public class FirstRunProgressStep extends ConsolidatedProgressStep {
+    public FirstRunProgressStep() {
+      super(getDisposable(), myHost);
+      setPaths(myPaths);
     }
 
     /**

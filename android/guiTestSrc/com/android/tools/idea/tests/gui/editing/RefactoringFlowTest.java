@@ -24,9 +24,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialo
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 /** Tests the editing flow of refactoring */
 public class RefactoringFlowTest extends GuiTestCase {
+
+  private static final String VALUE_REGEX =
+    "(appcompat-v7/\\d+\\.\\d+\\.\\d+/res/values-\\p{Lower}\\p{Lower}(-r\\p{Upper}\\p{Upper})?/values.xml\\n)+";
+
   @Test @IdeGuiTest
   public void testResourceConflict() throws IOException {
     // Try to rename a resource to an existing resource; check that
@@ -45,6 +50,7 @@ public class RefactoringFlowTest extends GuiTestCase {
     ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(myRobot);
     conflictsDialog.requireMessageTextContains("Resource @string/action_settings already exists");
     conflictsDialog.clickCancel();
+    refactoringDialog.clickCancel();
   }
 
   @Test @IdeGuiTest()
@@ -68,23 +74,14 @@ public class RefactoringFlowTest extends GuiTestCase {
     refactoringDialog.clickRefactor();
 
     ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(myRobot);
-    conflictsDialog.requireMessageText(
-      "Resource is also only defined in external libraries and\n" +
-      "cannot be renamed.\n" +
-      "\n" +
-      "Unhandled references:\n" +
-      "appcompat-v7/20.0.0/res/values-af/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-am/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-ar/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-bg/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-ca/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-cs/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-da/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-de/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-el/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-en-rGB/values.xml\n" +
-      "...\n" +
-      "(Additional results truncated)");
+    conflictsDialog.requireMessageTextMatches(
+      Pattern.quote("Resource is also only defined in external libraries and\n" +
+                    "cannot be renamed.\n" +
+                    "\n" +
+                    "Unhandled references:\n") +
+      VALUE_REGEX +
+      Pattern.quote("...\n" +
+                    "(Additional results truncated)"));
     conflictsDialog.clickCancel();
     refactoringDialog.clickCancel();
 
@@ -97,27 +94,18 @@ public class RefactoringFlowTest extends GuiTestCase {
     refactoringDialog.clickRefactor();
 
     conflictsDialog = ConflictsDialogFixture.find(myRobot);
-    conflictsDialog.requireMessageText(
-      "The resource @string/abc_searchview_description_submit is\n" +
-      "defined outside of the project (in one of the libraries) and\n" +
-      "cannot be updated. This can change the behavior of the\n" +
-      "application.\n" +
-      "\n" +
-      "Are you sure you want to do this?\n" +
-      "\n" +
-      "Unhandled references:\n" +
-      "appcompat-v7/20.0.0/res/values-af/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-am/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-ar/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-bg/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-ca/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-cs/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-da/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-de/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-el/values.xml\n" +
-      "appcompat-v7/20.0.0/res/values-en-rGB/values.xml\n" +
-      "...\n" +
-      "(Additional results truncated)");
+    conflictsDialog.requireMessageTextMatches(
+      Pattern.quote("The resource @string/abc_searchview_description_submit is\n" +
+                    "defined outside of the project (in one of the libraries) and\n" +
+                    "cannot be updated. This can change the behavior of the\n" +
+                    "application.\n" +
+                    "\n" +
+                    "Are you sure you want to do this?\n" +
+                    "\n" +
+                    "Unhandled references:\n") +
+      VALUE_REGEX +
+      Pattern.quote("...\n" +
+                    "(Additional results truncated)"));
     conflictsDialog.clickCancel();
     refactoringDialog.clickCancel();
   }

@@ -230,6 +230,8 @@ public class LombokPsiParser extends JavaParser {
       if (qualifiedName != null) {
         return new ResolvedPsiClassName(element.getManager(), qualifiedName);
       }
+    } else if (element instanceof PsiAnnotation) {
+      return new ResolvedPsiAnnotation((PsiAnnotation)element);
     }
 
     return null;
@@ -296,6 +298,16 @@ public class LombokPsiParser extends JavaParser {
       }
 
       return null;
+    }
+
+    @Override
+    public boolean isPrimitive() {
+      return myType.getDeepComponentType() instanceof PsiPrimitiveType;
+    }
+
+    @Override
+    public boolean isArray() {
+      return myType instanceof PsiArrayType;
     }
 
     @Override
@@ -371,6 +383,31 @@ public class LombokPsiParser extends JavaParser {
     }
 
     return Collections.emptyList();
+  }
+
+  @VisibleForTesting
+  static boolean isInPackage(@Nullable PsiClass cls, @NonNull String pkg, boolean includeSubPackages) {
+    if (cls != null) {
+      PsiClass outer = cls.getContainingClass();
+      while (outer != null) {
+        cls = outer;
+        outer = cls.getContainingClass();
+      }
+      String qualifiedName = cls.getQualifiedName();
+      if (qualifiedName == null) {
+        return false;
+      }
+      if (!qualifiedName.startsWith(pkg)) {
+        return false;
+      }
+      if (!includeSubPackages) {
+        return qualifiedName.length() - cls.getName().length() - 1 == pkg.length();
+      } else {
+        return qualifiedName.length() == pkg.length() || qualifiedName.charAt(pkg.length()) == '.';
+      }
+    }
+
+    return false;
   }
 
   /* Handle for creating positions cheaply and returning full fledged locations later */
@@ -555,6 +592,11 @@ public class LombokPsiParser extends JavaParser {
     }
 
     @Override
+    public boolean isInPackage(@NonNull String pkg, boolean includeSubPackages) {
+      return LombokPsiParser.isInPackage(myMethod.getContainingClass(), pkg, includeSubPackages);
+    }
+
+    @Override
     public int hashCode() {
       return myMethod.hashCode();
     }
@@ -668,6 +710,11 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public String getSignature() {
       return myField.toString();
+    }
+
+    @Override
+    public boolean isInPackage(@NonNull String pkg, boolean includeSubPackages) {
+      return LombokPsiParser.isInPackage(myField.getContainingClass(), pkg, includeSubPackages);
     }
 
     @Override
@@ -952,6 +999,22 @@ public class LombokPsiParser extends JavaParser {
       return Collections.emptyList();
     }
 
+    @NonNull
+    @Override
+    public Iterable<ResolvedField> getFields(boolean includeInherited) {
+      if (myClass != null) {
+        PsiField[] fields = includeInherited ? myClass.getAllFields() : myClass.getFields();
+        if (fields.length > 0) {
+          List<ResolvedField> result = Lists.newArrayListWithExpectedSize(fields.length);
+          for (PsiField field : fields) {
+            result.add(new ResolvedPsiField(field));
+          }
+          return result;
+        }
+      }
+      return Collections.emptyList();
+    }
+
     @Nullable
     @Override
     public ResolvedField getField(@NonNull String name, boolean includeInherited) {
@@ -962,6 +1025,27 @@ public class LombokPsiParser extends JavaParser {
         }
       }
       return null;
+    }
+
+    @Nullable
+    @Override
+    public ResolvedPackage getPackage() {
+      if (myClass != null) {
+        PsiFile file = myClass.getContainingFile();
+        PsiDirectory dir = file.getContainingDirectory();
+        if (dir != null) {
+          PsiPackage pkg = JavaDirectoryService.getInstance().getPackage(dir);
+          if (pkg != null) {
+            return new ResolvedPsiPackage(pkg);
+          }
+        }
+      }
+      return null;
+    }
+
+    @Override
+    public boolean isInPackage(@NonNull String pkg, boolean includeSubPackages) {
+      return LombokPsiParser.isInPackage(myClass, pkg, includeSubPackages);
     }
 
     @NonNull
@@ -1178,6 +1262,36 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public int hashCode() {
       return myAnnotation.hashCode();
+    }
+  }
+
+  private static class ResolvedPsiPackage extends ResolvedPackage {
+    private PsiPackage myPackage;
+
+    public ResolvedPsiPackage(@NonNull PsiPackage pkg) {
+      myPackage = pkg;
+    }
+
+    @NonNull
+    @Override
+    public String getName() {
+      return myPackage.getQualifiedName();
+    }
+
+    @Override
+    public String getSignature() {
+      return getName();
+    }
+
+    @Override
+    public int getModifiers() {
+      return 0;
+    }
+
+    @NonNull
+    @Override
+    public Iterable<ResolvedAnnotation> getAnnotations() {
+      return LombokPsiParser.getAnnotations(myPackage);
     }
   }
 }

@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.text.JTextComponent;
 import java.awt.event.KeyEvent;
+import java.util.regex.Pattern;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static org.junit.Assert.assertEquals;
@@ -98,16 +99,12 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
       assertEquals(text, getText());
     }
 
-    public void requireMessageHtml(@NotNull String html) {
-      assertEquals(html, getText());
-    }
-
     public void requireMessageTextContains(@NotNull String text) {
       assertTrue(getText() + " does not contain expected message fragment " + text, getText().contains(text));
     }
 
-    public void requireMessageHtmlContains(@NotNull String html) {
-      assertTrue(getHtml() + " does not contain expected message fragment " + html, getHtml().contains(html));
+    public void requireMessageTextMatches(@NotNull String regexp) {
+      assertTrue(getText() + " does not match " + regexp, Pattern.matches(regexp, getText()));
     }
   }
 }

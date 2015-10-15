@@ -15,329 +15,173 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.rpc.*;
-import com.android.tools.rpclib.rpccore.RpcException;
-import com.google.common.primitives.Ints;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
+import com.android.tools.idea.editors.gfxtrace.service.Device;
+import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ListCellRendererWrapper;
-import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
-
-public class ContextController {
-  private static final String NO_DEVICE_AVAILABLE = "No Device Available";
-  private static final String NO_DEVICE_SELECTED = "No Device Selected";
-  private static final String NO_CAPTURE_AVAILABLE = "No Capture Available";
-  private static final String NO_CAPTURE_SELECTED = "No Capture Selected";
+public class ContextController extends Controller {
+  @NotNull public static final String TOOLBAR_NAME = "GfxTraceViewPanelToolbar";
+  @NotNull private static final String NO_DEVICE_AVAILABLE = "No Device Available";
+  @NotNull private static final String NO_DEVICE_SELECTED = "No Device Selected";
+  @NotNull private static final String RETRIEVING_DEVICES = "Retrieving Devices";
 
   @NotNull private static final Logger LOG = Logger.getInstance(ContextController.class);
-  @NotNull private final GfxTraceEditor myEditor;
-  @NotNull private final ComboBox myDevicesView;
-  @NotNull private final ComboBox myCapturesView;
-  @NotNull private final ComboBox myGfxContextsView;
-  @Nullable private Device myCurrentDevice;
-  @Nullable private Capture myCurrentCapture;
-  @Nullable private volatile Integer myCurrentContext;
-  @NotNull private Map<Device, DeviceId> myDevices = new HashMap<Device, DeviceId>();
-  @NotNull private Map<Capture, CaptureId> myCaptures = new HashMap<Capture, CaptureId>();
-  @NotNull private AtomicBoolean myShouldStopContextSwitch = new AtomicBoolean(false);
+  @Nullable private DeviceEntry[] myDevices;
+  @NotNull private final JComponent myToolBar;
+  private final PathStore<DevicePath> mySelectedDevice = new PathStore<DevicePath>();
 
-  public ContextController(@NotNull GfxTraceEditor editor,
-                           @NotNull ComboBox devicesView,
-                           @NotNull ComboBox capturesView,
-                           @NotNull ComboBox gfxContextsView) {
-    myEditor = editor;
-    myDevicesView = devicesView;
-    myCapturesView = capturesView;
-    myGfxContextsView = gfxContextsView;
-
-    myDevicesView.setRenderer(new ListCellRendererWrapper<Device>() {
-      @Override
-      public void customize(JList list, Device value, int index, boolean selected, boolean hasFocus) {
-        if (list.getModel().getSize() == 0) {
-          setText(NO_DEVICE_AVAILABLE);
-        }
-        else if (index == -1 && myCurrentDevice == null) {
-          setText(NO_DEVICE_SELECTED);
-        }
-        else {
-          setText(value.getName() + " (" + value.getModel() + ", " + value.getOS() + ")");
-        }
-      }
-    });
-
-    myCapturesView.setRenderer(new ListCellRendererWrapper<Capture>() {
-      @Override
-      public void customize(JList list, Capture value, int index, boolean selected, boolean hasFocus) {
-        if (list.getModel().getSize() == 0) {
-          setText(NO_CAPTURE_AVAILABLE);
-        }
-        else if (index == -1) {
-          if (myCurrentCapture == null) {
-            setText(NO_CAPTURE_SELECTED);
-          }
-          else {
-            setText(myCurrentCapture.getName());
-          }
-        }
-        else {
-          setText(((Capture)list.getModel().getElementAt(index)).getName());
-        }
-      }
-    });
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new ContextController(editor).myToolBar;
   }
 
-  @Nullable
-  public Device getCurrentDevice() {
-    return myCurrentDevice;
+  private ContextController(@NotNull GfxTraceEditor editor) {
+    super(editor);
+    DefaultActionGroup group = new DefaultActionGroup(getContextAction());
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+    myToolBar = toolbar.getComponent();
+    myToolBar.setName(TOOLBAR_NAME);
+
+    // Populate the available device list.
+    Futures.addCallback(myEditor.getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG) {
+      @Override
+      public void onSuccess(@Nullable final DevicePath[] paths) {
+        if (paths == null || paths.length == 0) {
+          myDevices = new DeviceEntry[0];
+          return;
+        }
+
+        final ArrayList<ListenableFuture<Device>> futures = new ArrayList<ListenableFuture<Device>>(paths.length);
+        for (DevicePath path : paths) {
+          futures.add(myEditor.getClient().get(path));
+        }
+
+        Futures.addCallback(Futures.allAsList(futures), new LoadingCallback<List<Device>>(LOG) {
+          @Override
+          public void onSuccess(@Nullable final List<Device> devices) {
+            if (devices == null || devices.size() == 0) {
+              return;
+            }
+
+            EdtExecutor.INSTANCE.execute(new Runnable() {
+              @Override
+              public void run() {
+                // Back in the UI thread here
+                myDevices = new DeviceEntry[paths.length];
+                for (int i = 0; i < paths.length; i++) {
+                  myDevices[i] = new DeviceEntry(paths[i], devices.get(i));
+                }
+                if (paths.length > 0 && mySelectedDevice.update(paths[0]) && mySelectedDevice.getPath() != null) {
+                  myEditor.activatePath(mySelectedDevice.getPath());
+                }
+              }
+            });
+          }
+        });
+      }
+    });
   }
 
   @NotNull
-  public DeviceId getCurrentDeviceId() {
-    DeviceId deviceId = myDevices.get(myCurrentDevice);
-    if (deviceId == null) {
-      throw new RuntimeException("DeviceId not found!");
-    }
-    return deviceId;
-  }
-
-  @Nullable
-  public Capture getCurrentCapture() {
-    return myCurrentCapture;
-  }
-
-  @NotNull
-  public CaptureId getCurrentCaptureId() {
-    CaptureId captureId = myCaptures.get(myCurrentCapture);
-    if (captureId == null) {
-      throw new RuntimeException("CaptureId not found!");
-    }
-    return captureId;
-  }
-
-  @Nullable
-  public Integer getCurrentContext() {
-    return myCurrentContext;
-  }
-
-  public void initialize() {
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+  private AnAction getContextAction() {
+    return new ComboBoxAction() {
+      @NotNull
       @Override
-      public void run() {
-        try {
-          Client client = myEditor.getClient();
+      protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+        DefaultActionGroup group = new DefaultActionGroup();
+        if (myDevices != null && myDevices.length > 0) {
+          for (final DeviceEntry device : myDevices) {
+            group.add(new AnAction(device.toString()) {
+              @Override
+              public void actionPerformed(AnActionEvent e) {
+                if (mySelectedDevice.update(device.myPath) && mySelectedDevice.getPath() != null) {
+                  myEditor.activatePath(mySelectedDevice.getPath());
+                }
+              }
+            });
+          }
+        }
+        return group;
+      }
 
-          Future<CaptureId[]> captureFuture = client.GetCaptures();
-          final CaptureId[] captureIds = captureFuture.get();
-
-          DeviceId[] tempDeviceIds;
-          while (true) {
-            // TODO: Fix this when proper signaling from the server is implemented.
-            // The server can detect and update the number of devices it is connected to at any moment in time. Therefore, during startup,
-            // the server will find all the devices connected to it. During this period of time, the server will return an empty list of
-            // available devices. This API/RPC is yet to be finalized, hence the hack below to work around that issue.
-            Future<DeviceId[]> deviceFuture = client.GetDevices();
-            tempDeviceIds = deviceFuture.get();
-            if (tempDeviceIds.length > 0) {
+      @Override
+      public void update(AnActionEvent e) {
+        super.update(e);
+        if (mySelectedDevice.getPath() != null && myDevices != null) {
+          for (DeviceEntry device : myDevices) {
+            if (mySelectedDevice.is(device.myPath)) {
+              getTemplatePresentation().setText(device.toString());
+              e.getPresentation().setText(device.toString());
               break;
             }
-            //noinspection BusyWait
-            Thread.sleep(200l);
           }
-          final DeviceId[] deviceIds = tempDeviceIds;
+          getTemplatePresentation().setEnabled(true);
+          e.getPresentation().setEnabled(true);
+        }
+        else if (myDevices == null) {
+          getTemplatePresentation().setText(RETRIEVING_DEVICES);
+          getTemplatePresentation().setEnabled(false);
+          e.getPresentation().setText(RETRIEVING_DEVICES);
+          e.getPresentation().setEnabled(false);
+        }
+        else if (myDevices.length == 0) {
+          getTemplatePresentation().setText(NO_DEVICE_AVAILABLE);
+          getTemplatePresentation().setEnabled(false);
+          e.getPresentation().setText(NO_DEVICE_AVAILABLE);
+          e.getPresentation().setEnabled(false);
+        }
+        else {
+          getTemplatePresentation().setText(NO_DEVICE_SELECTED);
+          getTemplatePresentation().setEnabled(true);
+          e.getPresentation().setText(NO_DEVICE_SELECTED);
+          e.getPresentation().setEnabled(true);
+        }
+      }
+    };
+  }
 
-          final List<Capture> captures = new ArrayList<Capture>(captureIds.length);
-          final List<Device> devices = new ArrayList<Device>(deviceIds.length);
-
-          for (CaptureId captureId : captureIds) {
-            Capture capture = client.ResolveCapture(captureId).get();
-            captures.add(capture);
-          }
-
-          for (DeviceId deviceId : deviceIds) {
-            Device device = client.ResolveDevice(deviceId).get();
-            devices.add(device);
-          }
-
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              updateCaptureList(captureIds, captures);
-              myCurrentCapture = null;
-
-              updateAvailableDevices(deviceIds, devices, myCurrentDevice);
-
-              getDevicesView().addItemListener(new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent itemEvent) {
-                  if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-                    if (itemEvent.getItem() instanceof Device) {
-                      Device selectedDevice = (Device)itemEvent.getItem();
-                      selectDevice(selectedDevice);
-                      myEditor.notifyDeviceChanged(selectedDevice);
-                    }
-                    else {
-                      myCurrentDevice = null;
-                    }
-                  }
-                }
-              });
-
-              getCapturesView().addItemListener(new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent itemEvent) {
-                  if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-                    assert (itemEvent.getItem() instanceof Capture);
-                    Capture selectedCapture = (Capture)itemEvent.getItem();
-                    selectCapture(selectedCapture);
-                    myEditor.notifyCaptureChanged(selectedCapture);
-                  }
-                }
-              });
+  @Override
+  public void notifyPath(Path path) {
+    if (path instanceof DevicePath) {
+      if (mySelectedDevice.update((DevicePath)path)) {
+        if (myDevices != null) {
+          for (DeviceEntry myDevice : myDevices) {
+            if (mySelectedDevice.is(myDevice.myPath)) {
+              return;
             }
-          });
-        }
-        catch (InterruptedException e) {
-          LOG.error(e);
-        }
-        catch (ExecutionException e) {
-          LOG.error(e);
-        }
-        catch (IOException e) {
-          LOG.error(e);
-        }
-        catch (RpcException e) {
-          LOG.error(e);
+          }
+          mySelectedDevice.update(null);
         }
       }
-    });
-  }
-
-  public void populateUi(@NotNull int[] contextIds) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
-    updateGfxContextView(contextIds);
-    setGfxContext(contextIds[0]);
-
-    getGfxContextsView().addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-          Integer newContext = (Integer)itemEvent.getItem();
-          assert (!newContext.equals(myCurrentContext));
-          myCurrentContext = newContext;
-
-          assert (myCurrentContext != null);
-          //noinspection ConstantConditions
-          setGfxContext(myCurrentContext);
-        }
-      }
-    });
-  }
-
-  private void updateAvailableDevices(@NotNull DeviceId[] deviceIds, @NotNull List<Device> devices, @Nullable Device previouslySelected) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
-    updateDeviceList(deviceIds, devices);
-
-    if (devices.size() > 0) {
-      Device deviceToSelect = devices.get(0);
-      if (previouslySelected != null) {
-        if (devices.contains(previouslySelected)) {
-          deviceToSelect = previouslySelected;
-        }
-      }
-      selectDevice(deviceToSelect);
-      myEditor.notifyDeviceChanged(deviceToSelect);
     }
   }
 
-  private void selectDevice(@NotNull Device selectedDevice) {
-    assert (myCurrentDevice != selectedDevice);
+  private static class DeviceEntry {
+    public DevicePath myPath;
+    public Device myDevice;
 
-    myCurrentDevice = selectedDevice;
-  }
-
-  private void selectCapture(@NotNull Capture selectedCapture) {
-    assert (selectedCapture != myCurrentCapture);
-    myCurrentCapture = selectedCapture;
-    myCurrentContext = null;
-    clearGfxContextView(); // Invalidate the context IDs in the ComboBox first.
-  }
-
-  private void setGfxContext(@NotNull final Integer contextId) {
-    ApplicationManager.getApplication().assertIsDispatchThread(); // Must be in EDT to call this, since we're synchronized on it.
-
-    if (!myShouldStopContextSwitch.get() && contextId.equals(myCurrentContext)) {
-      return;
+    public DeviceEntry(DevicePath path, Device device) {
+      myPath = path;
+      myDevice = device;
     }
 
-    myShouldStopContextSwitch.set(true);
-    myShouldStopContextSwitch = new AtomicBoolean(false);
-    myCurrentContext = contextId;
-
-    myEditor.resolveGfxContextChange(myShouldStopContextSwitch);
-  }
-
-  @NotNull
-  private ComboBox getDevicesView() {
-    return myDevicesView;
-  }
-
-  @NotNull
-  private ComboBox getCapturesView() {
-    return myCapturesView;
-  }
-
-  @NotNull
-  private ComboBox getGfxContextsView() {
-    return myGfxContextsView;
-  }
-
-  private void updateDeviceList(@NotNull DeviceId[] deviceIds, @NotNull List<Device> devices) {
-    myDevices.clear();
-    for (int i = 0; i < deviceIds.length; ++i) {
-      myDevices.put(devices.get(i), deviceIds[i]);
+    @Override
+    public String toString() {
+      return myDevice.getName() + " (" + myDevice.getModel() + ", " + myDevice.getOS() + ")";
     }
-
-    getDevicesView().setModel(new DefaultComboBoxModel(devices.toArray()));
-  }
-
-  private void updateCaptureList(@NotNull CaptureId[] captureIds, @NotNull List<Capture> captures) {
-    myCaptures.clear();
-    for (int i = 0; i < captureIds.length; ++i) {
-      myCaptures.put(captures.get(i), captureIds[i]);
-    }
-
-    myCapturesView.setModel(new DefaultComboBoxModel(captures.toArray()));
-    myCapturesView.setSelectedIndex(-1);
-  }
-
-  private void updateGfxContextView(@NotNull int[] contextList) {
-    assert (contextList.length > 0);
-    Object[] boxedContextList = Ints.asList(contextList).toArray();
-    DefaultComboBoxModel model = new DefaultComboBoxModel(boxedContextList);
-    myGfxContextsView.setModel(model);
-    myGfxContextsView.setSelectedIndex(0);
-  }
-
-  private void clearGfxContextView() {
-    getGfxContextsView().setModel(new DefaultComboBoxModel(EMPTY_OBJECT_ARRAY));
   }
 }

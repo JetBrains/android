@@ -70,7 +70,7 @@ public class UserDeviceManager implements Disposable {
 
     try {
       if (userDevicesFile.exists()) {
-        userDevices.addAll(DeviceParser.parse(userDevicesFile));
+        userDevices.addAll(DeviceParser.parse(userDevicesFile).values());
       }
     }
     catch (SAXException e) {

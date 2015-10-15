@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.TimeoutException;
 import com.intellij.execution.process.ProcessHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -36,7 +37,7 @@ public abstract class AndroidApplicationLauncher {
   public abstract LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
     throws IOException, AdbCommandRejectedException, TimeoutException;
 
-  public boolean isReadyForDebugging(ClientData data, ProcessHandler processHandler) {
+  public boolean isReadyForDebugging(@NotNull ClientData data, @Nullable ProcessHandler processHandler) {
     return data.getDebuggerConnectionStatus() == ClientData.DebuggerStatus.WAITING;
   }
 

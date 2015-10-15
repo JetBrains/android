@@ -20,6 +20,7 @@ import com.android.tools.idea.fileTypes.AndroidNinePatchFileType;
 import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
+import com.android.tools.idea.lang.aidl.AidlFileType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidFileTypeFactory extends FileTypeFactory {
     @Override
     public void createFileTypes(@NotNull FileTypeConsumer consumer) {
-      consumer.consume(AndroidIdlFileType.ourFileType, AndroidIdlFileType.DEFAULT_ASSOCIATED_EXTENSION);
+      consumer.consume(AidlFileType.INSTANCE, AidlFileType.DEFAULT_ASSOCIATED_EXTENSION);
       consumer.consume(AndroidRenderscriptFileType.INSTANCE,
                        AndroidRenderscriptFileType.fileNameMatchers());
       consumer.consume(AndroidNinePatchFileType.INSTANCE, AndroidNinePatchFileType.EXTENSION);

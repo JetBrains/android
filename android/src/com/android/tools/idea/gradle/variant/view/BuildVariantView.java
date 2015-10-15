@@ -19,8 +19,8 @@ import com.android.builder.model.AndroidProject;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.FullRevision.PreviewComparison;
 import com.android.sdklib.repository.PreciseRevision;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -47,6 +47,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.AbstractTableCellEditor;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -67,6 +68,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 
 /**
@@ -131,9 +133,9 @@ public class BuildVariantView {
     myTestArtifactComboBox.setToolTipText(tooltip);
 
     if (hasModules) {
-      IdeaAndroidProject androidProject = getAndroidProject(modules.get(0));
-      assert androidProject != null; // getGradleModules() returns only android modules and at this stage we have the IdeaAndroidProject.
-      String selectedTestArtifactName = androidProject.getSelectedTestArtifactName();
+      AndroidGradleModel androidModel = AndroidGradleModel.get(modules.get(0));
+      assert androidModel != null; // getGradleModules() returns only android modules and at this stage we have the AndroidGradleModel.
+      String selectedTestArtifactName = androidModel.getSelectedTestArtifactName();
       for (int i = 0; i < myTestArtifactComboBox.getItemCount(); i++) {
         NamedArtifactType namedArtifactType = (NamedArtifactType)myTestArtifactComboBox.getModel().getElementAt(i);
         if (namedArtifactType.artifactType.equals(selectedTestArtifactName)) {
@@ -154,10 +156,10 @@ public class BuildVariantView {
     List<Module> modules = Lists.newArrayList();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.isGradleProject()) {
-        IdeaAndroidProject ideaAndroidProject = androidFacet.getIdeaAndroidProject();
-        if (ideaAndroidProject != null) {
-          if (!supportsUnitTests(ideaAndroidProject.getDelegate(), minimumSupportedVersion)) {
+      if (androidFacet != null && androidFacet.requiresAndroidModel()) {
+        AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
+        if (androidModel != null) {
+          if (!supportsUnitTests(androidModel.getAndroidProject(), minimumSupportedVersion)) {
             return Collections.emptyList();
           }
           modules.add(module);
@@ -246,10 +248,10 @@ public class BuildVariantView {
 
       BuildVariantItem[] variantNames = getVariantNames(module);
       if (variantNames != null) {
-        // If we got here IdeaAndroidProject is *not* null.
-        IdeaAndroidProject androidProject = getAndroidProject(module);
-        assert androidProject != null;
-        variantName = androidProject.getSelectedVariant().getName();
+        // If we got here AndroidGradleModel is *not* null.
+        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+        assert androidModel != null;
+        variantName = androidModel.getSelectedVariant().getName();
         variantNamesPerRow.add(variantNames);
       }
 
@@ -279,7 +281,7 @@ public class BuildVariantView {
     List<Module> gradleModules = Lists.newArrayList();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.isGradleProject() && androidFacet.getIdeaAndroidProject() != null) {
+      if (androidFacet != null && androidFacet.requiresAndroidModel() && androidFacet.getAndroidModel() != null) {
         gradleModules.add(module);
       }
     }
@@ -298,11 +300,11 @@ public class BuildVariantView {
 
   @Nullable
   private static BuildVariantItem[] getVariantNames(@NotNull Module module) {
-    IdeaAndroidProject androidProject = getAndroidProject(module);
-    if (androidProject == null) {
+    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    if (androidModel == null) {
       return null;
     }
-    Collection<String> variantNames = androidProject.getVariantNames();
+    Collection<String> variantNames = androidModel.getVariantNames();
     BuildVariantItem[] items = new BuildVariantItem[variantNames.size()];
     int i = 0;
     for (String name : variantNames) {
@@ -310,12 +312,6 @@ public class BuildVariantView {
     }
     Arrays.sort(items);
     return items;
-  }
-
-  @Nullable
-  private static IdeaAndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 
   public void updateContents(@NotNull List<Conflict> conflicts) {
@@ -372,7 +368,7 @@ public class BuildVariantView {
       Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
       setBackground(color == null ? UIUtil.getToolTipBackground() : color);
       setBorder(BorderFactory.createEmptyBorder(1, 15, 1, 15)); // Same as EditorNotificationPanel
-      setPreferredSize(new Dimension(-1, 24));
+      setPreferredSize(new Dimension(-1, JBUI.scale(24)));
 
       JLabel textLabel = new JLabel("Variant selection conflicts found.");
       textLabel.setOpaque(false);
@@ -401,7 +397,7 @@ public class BuildVariantView {
 
       ActionToolbar toolbar = actionManager.createActionToolbar("", group, true);
       toolbar.setReservePlaceAutoPopupIcon(false);
-      toolbar.setMinimumButtonSize(new Dimension(23, 23)); // a little smaller than default (25 x 25)
+      toolbar.setMinimumButtonSize(JBUI.size(23, 23)); // a little smaller than default (25 x 25)
 
       JComponent toolbarComponent = toolbar.getComponent();
       toolbarComponent.setBorder(null);
@@ -665,9 +661,9 @@ public class BuildVariantView {
         public void actionPerformed(ActionEvent e) {
           if (myValue instanceof Module) {
             Module module = (Module)myValue;
-            IdeaAndroidProject ideaAndroidProject = getAndroidProject(module);
-            assert ideaAndroidProject != null;
-            ModuleVariantsInfoDialog dialog = new ModuleVariantsInfoDialog(module, ideaAndroidProject);
+            AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+            assert androidModel != null;
+            ModuleVariantsInfoDialog dialog = new ModuleVariantsInfoDialog(module, androidModel);
             dialog.show();
           }
         }

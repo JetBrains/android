@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.variant.profiles;
 
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.google.common.base.Joiner;
@@ -46,7 +46,6 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.Function;
 import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.BooleanCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,6 +65,9 @@ import java.text.Collator;
 import java.util.*;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getDirectLibraryDependencies;
+import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
+
 public class ProjectProfileSelectionDialog extends DialogWrapper {
   private static final SimpleTextAttributes UNRESOLVED_ATTRIBUTES =
     new SimpleTextAttributes(SimpleTextAttributes.STYLE_STRIKEOUT, SimpleTextAttributes.GRAY_ATTRIBUTES.getFgColor());
@@ -75,10 +77,10 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
 
   @NotNull private final JPanel myPanel;
 
-  @NotNull private CheckboxTreeView myProjectStructureTree;
-  @NotNull private ConflictsTable myConflictsTable;
-  @NotNull private CheckboxTreeView myConflictTree;
-  @NotNull private DetailsComponent myConflictDetails;
+  private CheckboxTreeView myProjectStructureTree;
+  private ConflictsTable myConflictsTable;
+  private CheckboxTreeView myConflictTree;
+  private DetailsComponent myConflictDetails;
 
   public ProjectProfileSelectionDialog(@NotNull Project project, @NotNull List<Conflict> conflicts) {
     super(project);
@@ -184,15 +186,15 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
       CheckedTreeNode moduleNode = new FilterAwareCheckedTreeNode(moduleElement);
       rootNode.add(moduleNode);
 
-      IdeaAndroidProject androidProject = getAndroidProject(module);
-      if (androidProject == null) {
+      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+      if (androidModel == null) {
         continue;
       }
 
       Multimap<String, DependencyTreeElement> dependenciesByVariant = HashMultimap.create();
 
-      for (Variant variant : androidProject.getDelegate().getVariants()) {
-        for (AndroidLibrary library : GradleUtil.getDirectLibraryDependencies(variant, androidProject)) {
+      for (Variant variant : androidModel.getAndroidProject().getVariants()) {
+        for (AndroidLibrary library : getDirectLibraryDependencies(variant, androidModel)) {
           gradlePath = library.getProject();
           if (gradlePath == null) {
             continue;
@@ -315,12 +317,6 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
 
     myProjectStructureTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     myProjectStructureTree.setRootVisible(false);
-  }
-
-  @Nullable
-  private static IdeaAndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? facet.getIdeaAndroidProject() : null;
   }
 
   @Nullable

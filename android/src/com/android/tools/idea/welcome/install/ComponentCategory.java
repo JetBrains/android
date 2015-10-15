@@ -17,8 +17,8 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
-import com.android.tools.idea.wizard.DynamicWizardStep;
-import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -61,7 +61,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
   @Override
   public List<TargetTypeBuildScope> getBuildTargetScopes(@NotNull CompileScope baseScope, @NotNull CompilerFilter filter,
                                                          @NotNull Project project, boolean forceBuild) {
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID) || Projects.isGradleProject(project)) {
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID) || Projects.requiresAndroidModel(project)) {
       return Collections.emptyList();
     }
     final List<String> appTargetIds = new ArrayList<String>();

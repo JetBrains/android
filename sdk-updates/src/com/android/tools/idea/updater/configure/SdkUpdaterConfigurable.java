@@ -16,7 +16,6 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
@@ -24,7 +23,7 @@ import com.android.tools.idea.updater.SdkComponentSource;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
@@ -40,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.AncestorEvent;
-import java.io.File;
 import java.util.List;
 
 /**
@@ -49,8 +47,8 @@ import java.util.List;
  * for the UI?
  */
 public class SdkUpdaterConfigurable implements SearchableConfigurable {
-  SdkUpdaterConfigPanel myPanel;
-  boolean myIncludePreview;
+  private SdkUpdaterConfigPanel myPanel;
+  private boolean myIncludePreview;
 
   @NotNull
   @Override
@@ -80,11 +78,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Override
   public JComponent createComponent() {
     AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (data == null) {
-      JPanel errorPanel = new JPanel();
-      errorPanel.add(new JBLabel("Failed to find android sdk"));
-      return errorPanel;
-    }
     final Runnable channelChangedCallback = new Runnable() {
       @Override
       public void run() {
@@ -116,13 +109,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
   @Override
   public void apply() throws ConfigurationException {
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        IdeSdks.setAndroidSdkPath(new File(myPanel.getSdkPath()), null);
-      }
-    });
-
     myPanel.saveSources();
 
     HtmlBuilder message = new HtmlBuilder();

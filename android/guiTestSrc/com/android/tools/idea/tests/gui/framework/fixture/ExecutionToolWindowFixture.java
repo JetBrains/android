@@ -27,6 +27,8 @@ import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Timeout;
@@ -143,6 +145,17 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       throw new IllegalStateException("Could not find the Re-run button.");
     }
 
+    public void rerunFailed() {
+      for (ActionButton button : getToolbarButtons()) {
+        if ("com.intellij.execution.junit2.ui.actions.RerunFailedTestsAction".equals(button.getAction().getClass().getCanonicalName())) {
+          myRobot.click(button);
+          return;
+        }
+      }
+
+      throw new IllegalStateException("Could not find the Re-run failed tests button.");
+    }
+
     public void waitForExecutionToFinish(@NotNull Timeout timeout) {
       Pause.pause(new Condition("Wait for execution to finish") {
         @Override
@@ -154,13 +167,18 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
     @TestOnly
     public boolean stop() {
-      for (ActionButton button : getToolbarButtons()) {
+      for (final ActionButton button : getToolbarButtons()) {
         final AnAction action = button.getAction();
         if (action != null && action.getClass().getName().equals("com.intellij.execution.actions.StopAction")) {
           //noinspection ConstantConditions
           boolean enabled = method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
           if (enabled) {
-            button.click();
+            GuiActionRunner.execute(new GuiTask() {
+              @Override
+              protected void executeInEDT() throws Throwable {
+                button.click();
+              }
+            });
             return true;
           }
           return false;

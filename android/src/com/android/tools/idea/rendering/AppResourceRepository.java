@@ -24,9 +24,9 @@ import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -35,6 +35,7 @@ import com.intellij.openapi.project.Project;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -129,9 +130,10 @@ public class AppResourceRepository extends MultiResourceRepository {
     // this and create them if necessary.
     // TODO: When https://code.google.com/p/android/issues/detail?id=76744 is implemented we can
     // optimize this to only check changes in AAR files
-    ProjectBuilder.getInstance(facet.getModule().getProject()).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildListener() {
+    Project project = facet.getModule().getProject();
+    AndroidProjectBuildNotifications.subscribe(project, new AndroidProjectBuildNotifications.AndroidProjectBuildListener() {
       @Override
-      protected void buildFinished() {
+      public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
         repository.updateRoots();
       }
     });
@@ -166,11 +168,15 @@ public class AppResourceRepository extends MultiResourceRepository {
   private static List<File> findAarLibraries(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
     // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
     // which have been persisted since the most recent sync
-    if (facet.isGradleProject() && facet.getIdeaAndroidProject() != null) {
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
+    if (androidGradleModel != null) {
       List<AndroidLibrary> libraries = Lists.newArrayList();
-      addGradleLibraries(libraries, facet);
-      for (AndroidFacet f : dependentFacets) {
-        addGradleLibraries(libraries, f);
+      addGradleLibraries(libraries, androidGradleModel);
+      for (AndroidFacet dependentFacet : dependentFacets) {
+        AndroidGradleModel dependentGradleModel = AndroidGradleModel.get(dependentFacet);
+        if (dependentGradleModel != null) {
+          addGradleLibraries(libraries, dependentGradleModel);
+        }
       }
       return findAarLibrariesFromGradle(dependentFacets, libraries);
     }
@@ -180,13 +186,16 @@ public class AppResourceRepository extends MultiResourceRepository {
   @NotNull
   public static Collection<AndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
-    if (facet.isGradleProject()) {
-      IdeaAndroidProject project = facet.getIdeaAndroidProject();
-      if (project != null) {
+    if (facet.requiresAndroidModel()) {
+      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+      if (androidModel != null) {
         List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-        addGradleLibraries(libraries, facet);
+        addGradleLibraries(libraries, androidModel);
         for (AndroidFacet dependentFacet : dependentFacets) {
-          addGradleLibraries(libraries, dependentFacet);
+          AndroidGradleModel dependentGradleModel = AndroidGradleModel.get(dependentFacet);
+          if (dependentGradleModel != null) {
+            addGradleLibraries(libraries, dependentGradleModel);
+          }
         }
       }
     }
@@ -269,14 +278,12 @@ public class AppResourceRepository extends MultiResourceRepository {
     return dirs;
   }
 
-  private static void addGradleLibraries(List<AndroidLibrary> list, AndroidFacet facet) {
-    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-    if (gradleProject != null) {
-      Collection<AndroidLibrary> libraries = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
-      Set<File> unique = Sets.newHashSet();
-      for (AndroidLibrary library : libraries) {
-        addGradleLibrary(list, library, unique);
-      }
+  // TODO: b/23032391
+  private static void addGradleLibraries(List<AndroidLibrary> list, AndroidGradleModel androidGradleModel) {
+    Collection<AndroidLibrary> libraries = androidGradleModel.getMainArtifact().getDependencies().getLibraries();
+    Set<File> unique = Sets.newHashSet();
+    for (AndroidLibrary library : libraries) {
+      addGradleLibrary(list, library, unique);
     }
   }
 
@@ -333,6 +340,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @VisibleForTesting
   void updateRoots(List<LocalResourceRepository> resources, List<FileResourceRepository> libraries) {
     myResourceVisibility = null;
+    myResourceVisibilityProvider = null;
 
     if (resources.equals(myChildren)) {
       // Nothing changed (including order); nothing to do
@@ -348,6 +356,10 @@ public class AppResourceRepository extends MultiResourceRepository {
       }
     }
     setChildren(resources);
+
+    // Clear the fake R class cache and the ModuleClassLoader cache.
+    resetDynamicIds(true);
+    ModuleClassLoader.clearCache(myFacet.getModule());
   }
 
   @VisibleForTesting
@@ -383,7 +395,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @Nullable
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
     if (myResourceVisibilityProvider == null) {
-      if (!myFacet.isGradleProject() || myFacet.getIdeaAndroidProject() == null) {
+      if (!myFacet.requiresAndroidModel() || myFacet.getAndroidModel() == null) {
         return null;
       }
       myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
@@ -394,13 +406,14 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @NonNull
   public ResourceVisibilityLookup getResourceVisibility(@NonNull AndroidFacet facet) {
-    IdeaAndroidProject project = facet.getIdeaAndroidProject();
-    if (project != null) {
+    // TODO: b/23032391
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    if (androidModel != null) {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider != null) {
-        AndroidProject delegate = project.getDelegate();
-        Variant variant = project.getSelectedVariant();
-        return provider.get(delegate, variant);
+        AndroidProject androidProject = androidModel.getAndroidProject();
+        Variant variant = androidModel.getSelectedVariant();
+        return provider.get(androidProject, variant);
       }
     }
 
@@ -420,14 +433,14 @@ public class AppResourceRepository extends MultiResourceRepository {
       if (provider == null) {
         return false;
       }
-      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-      if (project == null) {
+      // TODO: b/23032391
+      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      if (androidModel == null) {
         // normally doesn't happen since we check in getResourceVisibility,
         // but can be triggered during a sync (b/22523040)
         return false;
       }
-      myResourceVisibility = provider.get(project.getDelegate(),
-                                          project.getSelectedVariant());
+      myResourceVisibility = provider.get(androidModel.getAndroidProject(), androidModel.getSelectedVariant());
     }
 
     return myResourceVisibility.isPrivate(type, name);

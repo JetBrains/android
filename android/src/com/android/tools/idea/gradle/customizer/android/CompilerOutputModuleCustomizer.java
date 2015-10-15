@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -35,17 +35,17 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 /**
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleCustomizer<IdeaAndroidProject>
-  implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
+public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleCustomizer<AndroidGradleModel>
+  implements BuildVariantModuleCustomizer<AndroidGradleModel> {
   @Override
   public void customizeModule(@NotNull Project project,
                               @NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable IdeaAndroidProject androidProject) {
+                              @Nullable AndroidGradleModel androidProject) {
     if (androidProject == null) {
       return;
     }
-    String modelVersion = androidProject.getDelegate().getModelVersion();
+    String modelVersion = androidProject.getAndroidProject().getModelVersion();
     if (isEmpty(modelVersion)) {
       // We are dealing with old model that does not have 'class' folder.
       return;
@@ -67,7 +67,7 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
 
   @Override
   @NotNull
-  public Class<IdeaAndroidProject> getSupportedModelType() {
-    return IdeaAndroidProject.class;
+  public Class<AndroidGradleModel> getSupportedModelType() {
+    return AndroidGradleModel.class;
   }
 }

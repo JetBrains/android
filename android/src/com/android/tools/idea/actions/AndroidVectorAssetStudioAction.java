@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.wizard.VectorAssetStudioWizard;
-import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.PreciseRevision;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.npw.VectorAssetStudioWizard;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 
@@ -30,24 +34,41 @@ import icons.AndroidIcons;
  */
 public class AndroidVectorAssetStudioAction extends AndroidAssetStudioAction {
 
+  private static final String updateMessage =
+    "<html><p>To support vector assets when minimal SDK version is less than 21,<br>" +
+    "Android plugin for Gradle version must be 1.4 or above,<br>" +
+    "such that Android Studio will convert vector assets into PNG images at build time.</p>" +
+    "<p>See <a href=\"https://developer.android.com/tools/building/plugin-for-gradle.html" +
+    "#projectBuildFile\">here</a> for how to update the version of Android plugin for Gradle." +
+    "</p></html>";
+
+  private static final FullRevision VECTOR_ASSET_GENERATION_REVISION = new FullRevision(1, 4, 0);
+  private static final int VECTOR_DRAWABLE_API_LEVEL = 21;
+
   public AndroidVectorAssetStudioAction() {
     super("Vector Asset", "Open Vector Asset Studio to create an image asset", AndroidIcons.Android);
   }
 
   @Override
   protected void showWizardAndCreateAsset(Project project, Module module, VirtualFile targetFile) {
+    // If min SDK is less than 21 and the Android plugin for Gradle version is less than 1.4,
+    // then we want to show error message that vector assets won't be supported.
+    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    if (androidModel != null) {
+      AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
+      String version = androidModel.getAndroidProject().getModelVersion();
+      FullRevision revision = PreciseRevision.parseRevision(version);
+
+      if (revision.compareTo(VECTOR_ASSET_GENERATION_REVISION, FullRevision.PreviewComparison.IGNORE) < 0
+          && (minSdkVersion == null || minSdkVersion.getApiLevel() < VECTOR_DRAWABLE_API_LEVEL)) {
+        Messages.showErrorDialog(project, updateMessage, "Need Newer Android Plugin for Gradle");
+        return;
+      }
+    }
     VectorAssetStudioWizard dialog = new VectorAssetStudioWizard(project, module, targetFile);
     if (!dialog.showAndGet()) {
       return;
     }
     dialog.createAssets();
   }
-
-  @Override
-  public void update(AnActionEvent e) {
-    e.getPresentation().setVisible(
-      "true".equals(System.getProperty("testvectorassetstudio"))
-      && isAvailable(e.getDataContext())); // from superclass
-  }
-
 }

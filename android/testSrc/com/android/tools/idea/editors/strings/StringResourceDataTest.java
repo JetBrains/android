@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ModuleResourceRepository;
 import com.google.common.base.Function;
@@ -29,12 +30,21 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class StringResourceDataTest extends AndroidTestCase {
+  private VirtualFile resourceDirectory;
+  private StringResourceData data;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
+    LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory));
+    data = StringResourceParser.parse(myFacet, repository);
+  }
+
   public void testSummarizeLocales() {
     assertEquals("", StringResourceData.summarizeLocales(Collections.<Locale>emptySet()));
 
@@ -53,10 +63,6 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   public void testParser() {
-    VirtualFile res = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    ModuleResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res));
-    StringResourceData data = StringResourceParser.parse(myFacet, repository);
-
     Set<String> locales = Sets.newHashSet(Iterables.transform(data.getLocales(), new Function<Locale, String>() {
       @Override
       public String apply(Locale input) {
@@ -65,9 +71,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     }));
     assertSameElements(locales, ImmutableSet.of("en", "en-GB", "en-IN", "fr", "hi"));
 
-    Map<String, ResourceItem> defaultValues = data.getDefaultValues();
-    assertEquals(5, defaultValues.size());
-    assertContainsElements(defaultValues.keySet(), ImmutableSet.of("key1", "key2", "key3", "key5"));
+    assertEquals(ImmutableSet.of("key1", "key2", "key3", "key5", "key6", "key7"), data.getDefaultValues().keySet());
 
     Set<String> untranslatableKeys = data.getUntranslatableKeys();
     assertSameElements(untranslatableKeys, Lists.newArrayList("key5", "key6"));
@@ -78,10 +82,6 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   public void testValidation() {
-    VirtualFile res = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    ModuleResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res));
-    StringResourceData data = StringResourceParser.parse(myFacet, repository);
-
     assertEquals("Key 'key1' has translations missing for locales French (fr) and Hindi (hi)", data.validateKey("key1"));
     assertNull(data.validateKey("key2"));
     assertNull(data.validateKey("key3"));
@@ -98,12 +98,25 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals("Key 'key4' is missing the default value", data.validateTranslation("key4", null));
   }
 
-  public void testEditingDoNotTranslate() {
-    VirtualFile res = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    ModuleResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res));
-    StringResourceData data = StringResourceParser.parse(myFacet, repository);
+  public void testGetMissingTranslations() {
+    // @formatter:off
+    Collection<Locale> expected = ImmutableSet.of(
+      Locale.create("en"),
+      Locale.create("en-rGB"),
+      Locale.create("en-rIN"),
+      Locale.create("fr"),
+      Locale.create("hi"));
+    // @formatter:on
 
-    final VirtualFile stringsFile = res.findFileByRelativePath("values/strings.xml");
+    assertEquals(expected, data.getMissingTranslations("key7"));
+  }
+
+  public void testIsTranslationMissing() {
+    assertTrue(data.isTranslationMissing("key7", Locale.create("fr")));
+  }
+
+  public void testEditingDoNotTranslate() {
+    VirtualFile stringsFile = resourceDirectory.findFileByRelativePath("values/strings.xml");
     assertNotNull(stringsFile);
 
     assertFalse(data.getUntranslatableKeys().contains("key1"));
@@ -130,10 +143,6 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   public void testEditingCdata() {
-    VirtualFile res = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    ModuleResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res));
-    StringResourceData data = StringResourceParser.parse(myFacet, repository);
-
     final Locale locale = Locale.create("en-rIN");
     final String key = "key1";
 
@@ -151,23 +160,26 @@ public class StringResourceDataTest extends AndroidTestCase {
                             "        <a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>\n" +
                             "  ]]>";
     assertEquals(expected, StringResourceData.resourceToString(data.getTranslations().get(key, locale)));
-    XmlTag tag = getNthXmlTag(res.findFileByRelativePath("values-en-rIN/strings.xml"), "string", 0);
+
+    VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
+    assert file != null;
+
+    XmlTag tag = getNthXmlTag(file, "string", 0);
     assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(expected, tag.getValue().getText());
   }
 
   public void testAddingTranslation() {
-    VirtualFile res = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    ModuleResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res));
-    StringResourceData data = StringResourceParser.parse(myFacet, repository);
-
     final Locale locale = Locale.create("en");
     final String key = "key4";
     assertNull(data.getTranslations().get(key, locale));
 
     assertTrue(data.setTranslation(key, locale, "Hello"));
 
-    XmlTag tag = getNthXmlTag(res.findFileByRelativePath("values-en/strings.xml"), "string", 3);
+    VirtualFile file = resourceDirectory.findFileByRelativePath("values-en/strings.xml");
+    assert file != null;
+
+    XmlTag tag = getNthXmlTag(file, "string", 4);
     assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals("Hello", tag.getValue().getText());
 
@@ -176,6 +188,11 @@ public class StringResourceDataTest extends AndroidTestCase {
 
   private XmlTag getNthXmlTag(@NotNull VirtualFile file, @NotNull String tag, int index) {
     PsiFile psiFile = PsiManager.getInstance(myFacet.getModule().getProject()).findFile(file);
-    return ((XmlFile)psiFile).getRootTag().findSubTags(tag)[index];
+    assert psiFile != null;
+
+    XmlTag rootTag = ((XmlFile)psiFile).getRootTag();
+    assert rootTag != null;
+
+    return rootTag.findSubTags(tag)[index];
   }
 }

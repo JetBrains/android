@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.facet;
 
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.GradleModel;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.*;
 import com.intellij.facet.impl.FacetUtil;
@@ -45,7 +45,7 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
   @NonNls public static final String ID = "android-gradle";
   @NonNls public static final String NAME = "Android-Gradle";
 
-  private IdeaGradleProject myGradleProject;
+  private GradleModel myGradleModel;
 
   @Nullable
   public static AndroidGradleFacet getInstance(@NotNull Module module) {
@@ -97,12 +97,12 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
   }
 
   @Nullable
-  public IdeaGradleProject getGradleProject() {
-    return myGradleProject;
+  public GradleModel getGradleModel() {
+    return myGradleModel;
   }
 
-  public void setGradleProject(@NotNull IdeaGradleProject gradleProject) {
-    myGradleProject = gradleProject;
-    getConfiguration().GRADLE_PROJECT_PATH = myGradleProject.getGradlePath();
+  public void setGradleModel(@NotNull GradleModel gradleModel) {
+    myGradleModel = gradleModel;
+    getConfiguration().GRADLE_PROJECT_PATH = myGradleModel.getGradlePath();
   }
 }

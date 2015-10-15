@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.theme;
 import com.android.tools.idea.editors.AndroidFakeFileSystem;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FakeFileType;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -59,7 +58,7 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
   @Nullable
   @Override
   public VirtualFile getParent() {
-    return myProject.getProjectFile();
+    return myProject.getBaseDir();
   }
 
   @NotNull

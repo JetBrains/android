@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
-import com.google.common.base.Objects;
+import com.android.tools.idea.configurations.ConfigurationListener;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import static com.android.tools.idea.editors.theme.SeparatedList.group;
 
@@ -38,53 +34,90 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
   public static final String SHOW_ALL_THEMES = "Show all themes";
   public static final String RENAME = "Rename ";
 
-  // TODO(ddrone): replace untyped list to an explicit union type
+  private final ThemeEditorContext myContext;
+  private final ImmutableList<String> myDefaultThemeNames;
+  private final String myDefaultThemeName;
+
   private SeparatedList myAllItems;
-  private Object mySelectedObject;
+  private String mySelectedObject;
+  private final List<String> myEditOptions = new ArrayList<String>();
+  private ImmutableList<String> myAvailableProjectThemes;
 
-  private final ArrayList<String> myEditThemeOptions = new ArrayList<String>();
+  public ThemesListModel(@NotNull ThemeEditorContext context, @NotNull List<String> defaultThemeNames, @Nullable String defaultThemeName) {
+    myContext = context;
+    myDefaultThemeNames = ImmutableList.copyOf(defaultThemeNames);
+    myDefaultThemeName = defaultThemeName;
 
-  public ThemesListModel(@NotNull Project project, @NotNull ThemeResolver themeResolver, @Nullable String defaultThemeName) {
-    myEditThemeOptions.add(CREATE_NEW_THEME);
-    setThemeResolver(project, themeResolver, defaultThemeName);
+    updateThemes();
+
+    myContext.addConfigurationListener(new ConfigurationListener() {
+      @Override
+      public boolean changed(int flags) {
+        if ((flags & ConfigurationListener.MASK_FOLDERCONFIG) != 0) {
+          updateThemes();
+          fireContentsChanged(this, -1, -1);
+        }
+        return true;
+      }
+    });
   }
 
   /**
-   * Sets a new theme resolver. This will trigger an update of all the elements.
-   * @param themeResolver The new {@link ThemeResolver}.
-   * @param defaultThemeName If not null and the model still exists, the model will try to keep this theme selected.
+   * Updates the themes list reloading all the themes from the resolver
    */
-  public void setThemeResolver(Project project, @NotNull ThemeResolver themeResolver, @Nullable String defaultThemeName) {
+  private void updateThemes() {
     // We sort the themes, displaying the local project themes at the top sorted alphabetically. The non local themes are sorted
     // alphabetically right below the project themes.
-    ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(themeResolver);
+    ImmutableList<String> editableThemes = ThemeEditorUtils.getModuleThemeQualifiedNamesList(myContext.getCurrentContextModule());
 
-    ImmutableList<ProjectThemeResolver.ThemeWithSource> editableThemes = ProjectThemeResolver.getEditableProjectThemes(project);
-    Set<ThemeEditorStyle> temporarySet = new TreeSet<ThemeEditorStyle>(ThemeEditorUtils.STYLE_COMPARATOR);
-    for (ProjectThemeResolver.ThemeWithSource theme : editableThemes) {
-      temporarySet.add(theme.getTheme());
+    ImmutableList.Builder<String> availableThemesListBuilder = ImmutableList.builder();
+    ImmutableList.Builder<String> disabledThemesListBuilder = ImmutableList.builder();
+    ThemeResolver themeResolver = myContext.getThemeResolver();
+
+    for (String themeName : editableThemes) {
+      if (themeResolver.getTheme(themeName) != null) {
+        availableThemesListBuilder.add(themeName);
+      }
+      else {
+        disabledThemesListBuilder.add(themeName);
+      }
     }
-    temporarySet.addAll(defaultThemes);
 
-    ImmutableList<ThemeEditorStyle> allThemes = ImmutableList.copyOf(temporarySet);
-    ImmutableList<ThemeEditorStyle> externalThemes = allThemes.subList(editableThemes.size(), allThemes.size());
+    myAvailableProjectThemes = availableThemesListBuilder.build();
+    ImmutableList<String> disabledProjectThemes = disabledThemesListBuilder.build();
 
-    myAllItems = new SeparatedList(SEPARATOR, group(editableThemes), group(externalThemes, SHOW_ALL_THEMES),
-                                   group(myEditThemeOptions));
+    String selectedItem = getSelectedItem();
+    if (selectedItem == null) {
+      if (myDefaultThemeName != null &&
+          (editableThemes.contains(myDefaultThemeName) || themeResolver.getTheme(myDefaultThemeName) != null)) {
+        selectedItem = myDefaultThemeName;
+      }
+      else if (!editableThemes.isEmpty()) {
+        selectedItem = editableThemes.get(0);
+      }
+      else if (!myDefaultThemeNames.isEmpty()) {
+        selectedItem = myDefaultThemeNames.get(0);
+      }
+    }
+
+    myEditOptions.clear();
+    buildEditOptionsList(selectedItem);
+
+    myAllItems = new SeparatedList(SEPARATOR, group(myAvailableProjectThemes), group(disabledProjectThemes),
+                                   group(myDefaultThemeNames, SHOW_ALL_THEMES), group(myEditOptions));
 
     // Set the default selection to the first element.
-    if (defaultThemeName != null && themeResolver.getTheme(defaultThemeName) != null) {
-      setSelectedItem(themeResolver.getTheme(defaultThemeName));
-      return;
-    }
+    setSelectedItem(selectedItem);
+  }
 
-    if (!allThemes.isEmpty()) {
-      setSelectedItem(allThemes.get(0));
-    } else {
-      setSelectedItem(null);
+  private void buildEditOptionsList(@Nullable String selectedItem) {
+    myEditOptions.clear();
+    myEditOptions.add(CREATE_NEW_THEME);
+    if (selectedItem != null && myAvailableProjectThemes.contains(selectedItem)) {
+      String simpleName = StringUtil.substringAfter(selectedItem, "/");
+      assert simpleName != null;
+      myEditOptions.add(RENAME + simpleName);
     }
-
-    fireContentsChanged(this, 0, getSize() - 1);
   }
 
   @Override
@@ -98,34 +131,15 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     return myAllItems.get(index);
   }
 
-  public static ThemeEditorStyle getStyle(final Object object) {
-    if (object instanceof ThemeEditorStyle) {
-      return (ThemeEditorStyle)object;
-    }
-    else if (object instanceof ProjectThemeResolver.ThemeWithSource) {
-      return ((ProjectThemeResolver.ThemeWithSource)object).getTheme();
-    }
-    return null;
-  }
-
   @Override
   public void setSelectedItem(@Nullable Object anItem) {
-    if (anItem instanceof JSeparator) {
+    if (!(anItem instanceof String)) {
       return;
     }
-    if (!Objects.equal(mySelectedObject, anItem)) {
-      mySelectedObject = anItem;
 
-      ThemeEditorStyle selectedStyle = getStyle(mySelectedObject);
-
-      if (selectedStyle != null) {
-        if (myEditThemeOptions.size() == 2) {
-          myEditThemeOptions.remove(1);
-        }
-        if (selectedStyle.isProjectStyle()) {
-          myEditThemeOptions.add(renameOption());
-        }
-      }
+    mySelectedObject = (String)anItem;
+    if (!isSpecialOption(mySelectedObject)) {
+      buildEditOptionsList(mySelectedObject);
     }
 
     fireContentsChanged(this, -1, -1);
@@ -133,15 +147,11 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   @Nullable
   @Override
-  public Object getSelectedItem() {
+  public String getSelectedItem() {
     return mySelectedObject;
   }
 
-  @NotNull
-  private String renameOption() {
-    ThemeEditorStyle theme = getStyle(mySelectedObject);
-    assert theme != null : "Theme should be selected to call renameOption()";
-    assert theme.isProjectStyle();
-    return RENAME + theme.getSimpleName();
+  public static boolean isSpecialOption(@NotNull String value) {
+    return (SHOW_ALL_THEMES.equals(value) || CREATE_NEW_THEME.equals(value) || value.startsWith(RENAME));
   }
 }

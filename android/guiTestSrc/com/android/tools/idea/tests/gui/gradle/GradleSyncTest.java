@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
@@ -33,11 +35,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.ContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -49,6 +53,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
@@ -59,8 +65,10 @@ import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
+import junit.framework.AssertionFailedError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
@@ -69,6 +77,8 @@ import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -85,10 +95,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
+import static com.android.tools.idea.gradle.parser.BuildFileKey.DEPENDENCIES;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
+import static com.android.tools.idea.gradle.parser.Dependency.Scope.COMPILE;
+import static com.android.tools.idea.gradle.parser.Dependency.Type.EXTERNAL;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
@@ -99,6 +114,9 @@ import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDial
 import static com.android.tools.idea.tests.gui.framework.fixture.FileFixture.getDocument;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.*;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -107,7 +125,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.*;
 import static com.intellij.util.SystemProperties.getLineSeparator;
-import static junit.framework.Assert.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
@@ -117,8 +134,7 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
@@ -167,6 +183,32 @@ public class GradleSyncTest extends GuiTestCase {
   }
 
   @Test @IdeGuiTest
+  // See https://code.google.com/p/android/issues/detail?id=183368
+  public void testTestOnlyInterModuleDependencies() throws IOException {
+    final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/build.gradle")
+      .moveTo(editor.findOffset("^compile fileTree"))
+      .enterText("androidTestCompile project(':library3')\n");
+
+    projectFrame.requestProjectSync();
+    projectFrame.waitForBackgroundTasksToFinish();
+    Module appModule = projectFrame.getModule("app");
+
+    for (OrderEntry entry : ModuleRootManager.getInstance(appModule).getOrderEntries()) {
+      if (entry instanceof ModuleOrderEntry) {
+        ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)entry;
+        if ("library3".equals(moduleOrderEntry.getModuleName())) {
+          assertEquals(DependencyScope.TEST, moduleOrderEntry.getScope());
+          return;
+        }
+      }
+    }
+    fail("No dependency for library3 found");
+  }
+
+  @Test @IdeGuiTest
   public void testNonExistingInterModuleDependencies() throws IOException {
     final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
@@ -181,10 +223,10 @@ public class GradleSyncTest extends GuiTestCase {
         new WriteCommandAction<Void>(projectFrame.getProject(), "Adding dependencies", buildFile.getPsiFile()) {
           @Override
           protected void run(@NotNull Result<Void> result) throws Throwable {
-            final Dependency nonExisting = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, ":fakeLibrary");
+            final Dependency nonExisting = new Dependency(COMPILE, Dependency.Type.MODULE, ":fakeLibrary");
             List<BuildFileStatement> dependencies = Lists.newArrayList();
             dependencies.add(nonExisting);
-            buildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+            buildFile.setValue(DEPENDENCIES, dependencies);
           }
         }.execute();
       }
@@ -348,6 +390,15 @@ public class GradleSyncTest extends GuiTestCase {
     }
     assertNotNull(jdkNode);
 
+    final ProjectViewFixture.NodeFixture finalJdkNode = jdkNode;
+    pause(new Condition("JDK node is customized") {
+      @Override
+      public boolean test() {
+        List<ProjectViewFixture.NodeFixture> jdkChildren = finalJdkNode.getChildren();
+        return jdkChildren.size() == 1;
+      }
+    });
+
     // Now we verify that the JDK node has only these children:
     // - jdk
     //   - rt.jar
@@ -377,7 +428,7 @@ public class GradleSyncTest extends GuiTestCase {
     File buildFilePath = new File(project.getBasePath(), FN_BUILD_GRADLE);
     final VirtualFile buildFile = findFileByIoFile(buildFilePath, true);
     assertNotNull(buildFile);
-    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+    runWriteCommandAction(project, new Runnable() {
       @Override
       public void run() {
         new GradleBuildFile(buildFile, project).setValue(PLUGIN_VERSION, "0.12.+");
@@ -385,9 +436,7 @@ public class GradleSyncTest extends GuiTestCase {
     });
 
     // Use old, unsupported Gradle in the wrapper.
-    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
-    assertNotNull(wrapperPropertiesFile);
-    updateGradleDistributionUrl("1.12", wrapperPropertiesFile);
+    projectFrame.updateGradleWrapperVersion("1.12");
 
     GradleProjectSettings settings = getGradleProjectSettings(project);
     assertNotNull(settings);
@@ -605,7 +654,7 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
   }
 
-  @Test @IdeGuiTest
+  @Test @IdeGuiTest(retryCount = 2)
   public void testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
     File unsupportedGradleHome = getUnsupportedGradleHome();
     if (unsupportedGradleHome == null) {
@@ -989,6 +1038,41 @@ public class GradleSyncTest extends GuiTestCase {
     assertThat(moduleDependency.getModuleName()).isEqualTo("library2");
   }
 
+  // See https://code.google.com/p/android/issues/detail?id=169778
+  @Test @IdeGuiTest
+  public void testJavaToAndroidModuleDependencies() throws IOException {
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    Module library3 = projectFrame.getModule("library3");
+    assertNull(AndroidFacet.getInstance(library3));
+
+    File library3BuildFile = new File(projectFrame.getProjectPath(), join("library3", FN_BUILD_GRADLE));
+    assertThat(library3BuildFile).isFile();
+    appendToFile(library3BuildFile, "dependencies { compile project(':app') }");
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(library3);
+    // Verify that the module "library3" doesn't depend on module "app"
+    ModuleOrderEntry moduleDependency = null;
+    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
+      if (orderEntry instanceof ModuleOrderEntry) {
+        moduleDependency = (ModuleOrderEntry)orderEntry;
+        break;
+      }
+    }
+
+    assertNull(moduleDependency);
+
+    ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    MessageFixture message = syncMessages.findMessage(WARNING,
+                                                      firstLineStartingWith("Ignoring dependency of module 'app' on module 'library3'."));
+
+    // Verify if the error message's link goes to the build file.
+    VirtualFile buildFile = getGradleBuildFile(library3);
+    assertNotNull(buildFile);
+    message.requireLocation(new File(buildFile.getPath()), 0);
+  }
+
   // See https://code.google.com/p/android/issues/detail?id=73087
   @Test @IdeGuiTest
   public void testUserDefinedLibraryAttachments() throws IOException {
@@ -1276,8 +1360,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testWithPreReleasePlugin() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
-    projectFrame.updateAndroidModelVersion("1.2.0-beta1")
-                .requestProjectSync().waitForGradleProjectSyncToFinish();
+    projectFrame.updateAndroidModelVersion("1.2.0-beta1").requestProjectSync().waitForGradleProjectSyncToFinish();
 
     ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message =
@@ -1286,8 +1369,228 @@ public class GradleSyncTest extends GuiTestCase {
     message.findHyperlink("Fix plugin version and sync project");
   }
 
+  @Test @IdeGuiTest
+  public void testSyncDuringOfflineMode() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+
+    File buildFile = new File(projectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
+    assertThat(buildFile).isFile();
+    appendToFile(buildFile, "dependencies { compile 'something:not:exists' }");
+
+    GradleSettings gradleSettings = GradleSettings.getInstance(projectFrame.getProject());
+    gradleSettings.setOfflineWork(true);
+
+    projectFrame.requestProjectSync();
+
+    MessageFixture message =
+      projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
+
+    HyperlinkFixture hyperlink = message.findHyperlink("Disable offline mode and Sync");
+    hyperlink.click();
+
+    assertFalse(gradleSettings.isOfflineWork());
+
+    message = projectFrame.getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
+
+    try {
+      message.findHyperlink("Disable offline mode and Sync");
+      fail("Expecting AssertionFailedError");
+    }
+    catch (AssertionFailedError expected) {
+      // After offline mode is disable, the previous hyperlink will disappear after next sync
+    }
+  }
+
   @Nullable
   private static LanguageLevel getJavaLanguageLevel(@NotNull Module module) {
     return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
+  }
+
+  @Test @IdeGuiTest
+  public void suggestUpgradingAndroidPlugin() throws IOException {
+    final String hyperlinkText = "Fix plugin version and sync project";
+
+    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+    projectFrame.updateAndroidModelVersion("1.2.0");
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/build.gradle");
+    editor.moveTo(editor.findOffset("android {", "\n", true));
+    editor.enterText("\nlatestDsl()");
+
+    projectFrame.requestProjectSyncAndExpectFailure();
+
+    ContentFixture messages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    String expectedError = "Gradle DSL method not found: 'latestDsl()'";
+    MessageFixture message = messages.findMessageContainingText(ERROR, expectedError);
+    HyperlinkFixture quickFix = message.findHyperlink(hyperlinkText);
+    quickFix.clickAndContinue();
+
+    // Sync still fails, because latestDsl() is made up, but the plugin version should have changed.
+    projectFrame.waitForGradleProjectSyncToFail();
+
+    // Check the top-level build.gradle got updated.
+    FullRevision newVersion = getAndroidGradleModelVersionFromBuildFile(projectFrame.getProject());
+    assertNotNull(newVersion);
+    assertThat(newVersion.toString()).isEqualTo(GRADLE_PLUGIN_RECOMMENDED_VERSION);
+
+    messages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    expectedError = "Gradle DSL method not found: 'latestDsl()'";
+    message = messages.findMessageContainingText(ERROR, expectedError);
+    try {
+      message.findHyperlink(hyperlinkText);
+      fail("There should be no link, now that the plugin is up to date.");
+    }
+    catch (AssertionFailedError e) {
+      assertThat(e.getMessage()).contains("Failed to find URL");
+      assertThat(e.getMessage()).contains(hyperlinkText);
+    }
+  }
+
+  @Test @IdeGuiTest
+  public void testSyncWithInvalidJdk() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+
+    final File tempJdkDirectory = createTempDirectory("GradleSyncTest", "testSyncWithInvalidJdk", true);
+    String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
+    assert jdkHome != null;
+    copyDir(new File(jdkHome), tempJdkDirectory);
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            IdeSdks.setJdkPath(tempJdkDirectory);
+          }
+        });
+      }
+    });
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    delete(tempJdkDirectory);
+    projectFrame.requestProjectSyncAndExpectFailure();
+  }
+
+  @Test @IdeGuiTest
+  public void testUseLibrary() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    Project project = projectFrame.getProject();
+
+    // Make sure the library was added.
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    final String libraryName = "android-23.org.apache.http.legacy";
+    final Library library = libraryTable.getLibraryByName(libraryName);
+    assertNotNull(library);
+
+    // Verify that the library has the right j
+    VirtualFile[] jarFiles = library.getFiles(CLASSES);
+    assertThat(jarFiles).hasSize(1);
+    VirtualFile jarFile = jarFiles[0];
+    assertEquals("org.apache.http.legacy.jar", jarFile.getName());
+
+    // Verify that the module depends on the library
+    final Module appModule = projectFrame.getModule("app");
+    final AtomicBoolean dependencyFound = new AtomicBoolean();
+    new ReadAction() {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(appModule).getModifiableModel();
+        for (OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+          if (orderEntry instanceof LibraryOrderEntry) {
+            LibraryOrderEntry libraryDependency = (LibraryOrderEntry)orderEntry;
+            if (libraryDependency.getLibrary() == library) {
+              dependencyFound.set(true);
+            }
+          }
+        }
+      }
+    }.execute();
+    assertTrue("Module app should depend on library '" + library.getName() + "'", dependencyFound.get());
+  }
+
+  @Test @IdeGuiTest
+  public void testAarSourceAttachments() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    final Project project = projectFrame.getProject();
+
+    final Module appModule = projectFrame.getModule("app");
+    final GradleBuildFile buildFile = GradleBuildFile.get(appModule);
+    assertNotNull(buildFile);
+
+    final List<BuildFileStatement> dependencies = Lists.newArrayList();
+    new ReadAction() {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        dependencies.addAll(buildFile.getDependencies());
+      }
+    }.execute();
+    Dependency aarDependency = new Dependency(COMPILE, EXTERNAL, "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar");
+    dependencies.add(aarDependency);
+
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        runWriteCommandAction(project, new Runnable() {
+          @Override
+          public void run() {
+            buildFile.setValue(DEPENDENCIES, dependencies);
+          }
+        });
+      }
+    });
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    // Verify that the library has sources.
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    String libraryName = "mapbox-android-sdk-0.7.4";
+    Library library = libraryTable.getLibraryByName(libraryName);
+    assertNotNull(library);
+    VirtualFile[] files = library.getFiles(SOURCES);
+    assertThat(files).hasSize(1);
+  }
+
+  // https://code.google.com/p/android/issues/detail?id=185313
+  @Test @IdeGuiTest
+  public void testSdkCreationForAddons() throws IOException {
+    IdeFrameFixture projectFrame = importSimpleApplication();
+    final Project project = projectFrame.getProject();
+
+    final Module appModule = projectFrame.getModule("app");
+    final GradleBuildFile buildFile = GradleBuildFile.get(appModule);
+    assertNotNull(buildFile);
+
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        runWriteCommandAction(project, new Runnable() {
+          @Override
+          public void run() {
+            buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:23");
+          }
+        });
+      }
+    });
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
+    assertNotNull(sdk);
+
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+    assertNotNull(sdkData);
+
+    SdkAdditionalData data = sdk.getSdkAdditionalData();
+    assertThat(data).isInstanceOf(AndroidSdkAdditionalData.class);
+
+    AndroidSdkAdditionalData androidSdkData = (AndroidSdkAdditionalData)data;
+    assertNotNull(androidSdkData);
+    IAndroidTarget buildTarget = androidSdkData.getBuildTarget(sdkData);
+    assertNotNull(buildTarget);
+
+    // By checking that there are no additional libraries in the SDK, we are verifying that an additional SDK was not created for add-ons.
+    assertThat(buildTarget.getAdditionalLibraries()).hasSize(0);
   }
 }

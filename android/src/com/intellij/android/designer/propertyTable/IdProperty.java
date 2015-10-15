@@ -50,7 +50,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -68,7 +68,7 @@ public class IdProperty extends AttributeProperty {
   public static final Property INSTANCE = new IdProperty();
 
   private IdProperty() {
-    this(ATTR_ID, new AttributeDefinition(ATTR_ID, null, Arrays.asList(AttributeFormat.Reference)));
+    this(ATTR_ID, new AttributeDefinition(ATTR_ID, null, Collections.singletonList(AttributeFormat.Reference)));
     setImportant(true);
   }
 
@@ -149,11 +149,8 @@ public class IdProperty extends AttributeProperty {
                 choice = exitCode == DialogWrapper.OK_EXIT_CODE ? REFACTOR_YES :
                              exitCode == DialogWrapper.NEXT_USER_EXIT_CODE ? REFACTOR_NO : ourRefactoringChoice;
 
-                if (!checkBox.isSelected()) {
-                  ourRefactoringChoice = REFACTOR_ASK;
-                } else {
-                  ourRefactoringChoice = choice;
-                }
+                //noinspection AssignmentToStaticFieldFromInstanceMethod
+                ourRefactoringChoice = checkBox.isSelected() ? choice : REFACTOR_ASK;
 
                 if (exitCode == DialogWrapper.CANCEL_EXIT_CODE) {
                   return;
@@ -170,7 +167,6 @@ public class IdProperty extends AttributeProperty {
       }
     }
 
-    //noinspection ConstantConditions
     super.setValue(component, value);
   }
 
@@ -251,6 +247,9 @@ public class IdProperty extends AttributeProperty {
     @Override
     public Object getValue() throws Exception {
       String text = myEditor.getText().trim();
+      if (text.isEmpty()) {
+        return text;
+      }
       if (!text.startsWith(PREFIX_RESOURCE_REF)) {
         text = NEW_ID_PREFIX + text;
       }

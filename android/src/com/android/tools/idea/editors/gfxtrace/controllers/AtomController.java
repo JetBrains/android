@@ -15,156 +15,145 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.AtomNode;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.EnumInfoCache;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.HierarchyNode;
-import com.android.tools.idea.editors.gfxtrace.renderers.AtomTreeRenderer;
-import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
-import com.android.tools.idea.editors.gfxtrace.rpc.AtomGroup;
-import com.android.tools.idea.editors.gfxtrace.rpc.Hierarchy;
-import com.android.tools.idea.editors.gfxtrace.schema.AtomReader;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.treeStructure.SimpleTree;
-import com.intellij.util.ui.StatusText;
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.rpclib.binary.BinaryObject;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.swing.tree.*;
-import java.awt.*;
+import javax.swing.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 import java.util.Enumeration;
 
-public class AtomController implements GfxController {
-  @NotNull private final JBLoadingPanel myLoadingPanel;
-  @NotNull private final SimpleTree myTree;
-  @NotNull private final AtomTreeRenderer myAtomTreeRenderer;
-  private TreeNode myAtomTreeRoot;
-  private EnumInfoCache myEnumInfoCache;
-
-  public AtomController(@NotNull Project project, @NotNull JBScrollPane scrollPane) {
-    scrollPane.getHorizontalScrollBar().setUnitIncrement(20);
-    scrollPane.getVerticalScrollBar().setUnitIncrement(20);
-    myTree = new SimpleTree();
-    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
-    myTree.setRootVisible(false);
-    myTree.setLineStyleAngled();
-    myTree.getEmptyText().setText(SELECT_CAPTURE);
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project);
-    myLoadingPanel.add(myTree);
-    scrollPane.setViewportView(myLoadingPanel);
-    myAtomTreeRenderer = new AtomTreeRenderer();
+public class AtomController extends TreeController {
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new AtomController(editor).myPanel;
   }
 
-  @NotNull
-  public static TreeNode prepareData(@NotNull Hierarchy hierarchy) {
-    assert (!ApplicationManager.getApplication().isDispatchThread());
-    return generateAtomTree(hierarchy.getRoot());
-  }
+  @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
+  private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
+  private boolean mDisableActivation = false;
 
-  @NotNull
-  private static MutableTreeNode generateAtomTree(@NotNull AtomGroup atomGroup) {
-    assert (atomGroup.getRange().getCount() > 0);
+  public static class Node {
+    public final long index;
+    public final Atom atom;
 
-    DefaultMutableTreeNode currentNode = new DefaultMutableTreeNode();
-    currentNode.setUserObject(new HierarchyNode(atomGroup));
-
-    long lastGroupIndex = atomGroup.getRange().getFirst();
-    for (AtomGroup subGroup : atomGroup.getSubGroups()) {
-      long subGroupFirst = subGroup.getRange().getFirst();
-      assert (subGroupFirst >= lastGroupIndex);
-      if (subGroupFirst > lastGroupIndex) {
-        addLeafNodes(currentNode, subGroupFirst, subGroupFirst - lastGroupIndex);
-      }
-      currentNode.add(generateAtomTree(subGroup));
-      lastGroupIndex = subGroup.getRange().getFirst() + subGroup.getRange().getCount();
-    }
-
-    long nextSiblingStartIndex = atomGroup.getRange().getFirst() + atomGroup.getRange().getCount();
-    if (nextSiblingStartIndex > lastGroupIndex) {
-      addLeafNodes(currentNode, lastGroupIndex, nextSiblingStartIndex - lastGroupIndex);
-    }
-
-    return currentNode;
-  }
-
-  private static void addLeafNodes(@NotNull DefaultMutableTreeNode parentNode, long start, long count) {
-    for (long i = 0, index = start; i < count; ++i, ++index) {
-      AtomNode atomNode = new AtomNode(index);
-      parentNode.add(new DefaultMutableTreeNode(atomNode, false));
+    public Node(long index, Atom atom) {
+      this.index = index;
+      this.atom = atom;
     }
   }
 
-  @NotNull
-  public SimpleTree getTree() {
-    return myTree;
+  public static class Memory {
+    public final Observation observation;
+    public final boolean isRead;
+
+    public Memory(Observation observation, boolean isRead) {
+      this.observation = observation;
+      this.isRead = isRead;
+    }
   }
 
-  @Override
-  public void startLoad() {
-    myTree.getEmptyText().setText("");
-    myLoadingPanel.startLoading();
-  }
-
-  @Override
-  public void commitData(@NotNull GfxContextChangeState state) {
-    myEnumInfoCache = state.myEnumInfoCache;
-    myAtomTreeRoot = state.myTreeRoot;
-  }
-
-  public void populateUi(@NotNull AtomReader atomReader) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    assert (myAtomTreeRoot != null);
-
-    myAtomTreeRenderer.init(myEnumInfoCache, atomReader);
-
-    myTree.setModel(new DefaultTreeModel(myAtomTreeRoot));
+  private AtomController(@NotNull GfxTraceEditor editor) {
+    super(editor, GfxTraceEditor.SELECT_CAPTURE);
     myTree.setLargeModel(true); // Set some performance optimizations for large models.
-    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT); // Make sure our rows are constant height.
-    myTree.setCellRenderer(myAtomTreeRenderer);
+    myTree.addTreeSelectionListener(new TreeSelectionListener() {
+      @Override
+      public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
+        if (mDisableActivation || myAtomsPath.getPath() == null) return;
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
+        if (node == null || node.getUserObject() == null) return;
+        Object object = node.getUserObject();
+        if (object instanceof AtomGroup) {
+          myEditor.activatePath(myAtomsPath.getPath().index(((AtomGroup)object).getRange().getLast()));
+        }
+        else if (object instanceof Node) {
+          myEditor.activatePath(myAtomsPath.getPath().index(((Node)object).index));
+        }
+      }
+    });
 
-    if (myAtomTreeRoot.getChildCount() == 0) {
-      myTree.getEmptyText().setText(StatusText.DEFAULT_EMPTY_TEXT);
-    }
-
-    myLoadingPanel.stopLoading();
-    myLoadingPanel.revalidate();
   }
 
-  public void selectFrame(@NotNull AtomGroup group) {
+  public void selectDeepestVisibleNode(long atomIndex) {
+    Object object = myTree.getModel().getRoot();
+    assert (object instanceof DefaultMutableTreeNode);
+    DefaultMutableTreeNode root = (DefaultMutableTreeNode)object;
+    selectDeepestVisibleNode(root, new TreePath(root), atomIndex);
+  }
+
+  public void selectDeepestVisibleNode(DefaultMutableTreeNode node, TreePath path, long atomIndex) {
+    if (node.isLeaf() || !myTree.isExpanded(path)) {
+      try {
+        mDisableActivation = true;
+        myTree.setSelectionPath(path);
+        myTree.scrollPathToVisible(path);
+        return;
+      }
+      finally {
+        mDisableActivation = false;
+      }
+    }
     // Search through the list for now.
-    for (Enumeration it = myAtomTreeRoot.children(); it.hasMoreElements(); ) {
-      TreeNode node = (TreeNode)it.nextElement();
-      assert (node instanceof DefaultMutableTreeNode);
-
-      Object userObject = ((DefaultMutableTreeNode)node).getUserObject();
-      if (!(userObject instanceof HierarchyNode)) {
-        continue;
+    for (Enumeration it = node.children(); it.hasMoreElements(); ) {
+      Object obj = it.nextElement();
+      assert (obj instanceof DefaultMutableTreeNode);
+      DefaultMutableTreeNode child = (DefaultMutableTreeNode)obj;
+      Object object = child.getUserObject();
+      boolean matches = false;
+      if ((object instanceof AtomGroup) && (((AtomGroup)object).getRange().contains(atomIndex)) ||
+          (object instanceof Node) && ((((Node)object).index == atomIndex))) {
+        matches = true;
       }
-
-      if (((HierarchyNode)userObject).isProxyFor(group)) {
-        TreePath path = new TreePath(new Object[]{myAtomTreeRoot, node});
-        select(path);
-        break;
+      if (matches) {
+        selectDeepestVisibleNode(child, path.pathByAddingChild(child), atomIndex);
       }
     }
   }
 
   @Override
-  public void clear() {
-    myTree.setModel(null);
-    myAtomTreeRenderer.clearState();
-    myAtomTreeRoot = null;
-    myEnumInfoCache = null;
-  }
-
-  @Override
-  public void clearCache() {
-    myTree.clearSelection();
-  }
-
-  private void select(@NotNull TreePath path) {
-    myTree.setSelectionPath(path);
-    myTree.scrollPathToVisible(path);
+  public void notifyPath(Path path) {
+    boolean updateAtoms = false;
+    if (path instanceof CapturePath) {
+      updateAtoms |= myAtomsPath.update(((CapturePath)path).atoms());
+    }
+    if (path instanceof AtomPath) {
+      selectDeepestVisibleNode(((AtomPath)path).getIndex());
+    }
+    if (updateAtoms && myAtomsPath.getPath() != null) {
+      myTree.getEmptyText().setText("");
+      myLoadingPanel.startLoading();
+      final ListenableFuture<AtomList> atomF = myEditor.getClient().get(myAtomsPath.getPath());
+      final ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(myAtomsPath.getPath().getCapture().hierarchy());
+      Futures.addCallback(Futures.allAsList(atomF, hierarchyF), new LoadingCallback<java.util.List<BinaryObject>>(LOG, myLoadingPanel) {
+        @Override
+        public void onSuccess(@Nullable final java.util.List<BinaryObject> all) {
+          myLoadingPanel.stopLoading();
+          final AtomList atoms = (AtomList)all.get(0);
+          final AtomGroup group = (AtomGroup)all.get(1);
+          final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
+          group.addChildren(root, atoms);
+          EdtExecutor.INSTANCE.execute(new Runnable() {
+            @Override
+            public void run() {
+              // Back in the UI thread here
+              setRoot(root);
+            }
+          });
+        }
+      });
+    }
   }
 }

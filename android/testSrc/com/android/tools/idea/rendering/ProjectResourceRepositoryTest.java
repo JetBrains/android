@@ -21,7 +21,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -171,9 +171,9 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     VariantStub variant = androidProject.getFirstVariant();
     assertNotNull(variant);
     File rootDir = androidProject.getRootDir();
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, androidProject.getName(), rootDir,
-                                                                   androidProject, variant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
-    myFacet.setIdeaAndroidProject(ideaAndroidProject);
+    AndroidGradleModel androidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, androidProject.getName(), rootDir,
+                                                             androidProject, variant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
+    myFacet.setAndroidModel(androidModel);
 
     File bundle = new File(rootDir, "bundle.aar");
     File libJar = new File(rootDir, "bundle_aar" + File.separatorChar + "library.jar");

@@ -1,76 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.view.inputmethod.BaseInputConnection BaseInputConnection(android.view.View, boolean) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.BaseInputConnection int getComposingSpanEnd(android.text.Spannable) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.BaseInputConnection int getComposingSpanStart(android.text.Spannable) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.BaseInputConnection void removeComposingSpans(android.text.Spannable) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.BaseInputConnection void setComposingSpans(android.text.Spannable) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.CompletionInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.CorrectionInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.EditorInfo void dump(android.util.Printer, java.lang.String) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.EditorInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.ExtractedText void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.ExtractedTextRequest void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputBinding InputBinding(android.view.inputmethod.InputConnection, android.view.inputmethod.InputBinding) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputBinding void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputMethodInfo InputMethodInfo(android.content.Context, android.content.pm.ResolveInfo) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputMethodInfo InputMethodInfo(android.content.Context, android.content.pm.ResolveInfo) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputMethodInfo android.content.ComponentName getComponent()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputMethodInfo void dump(android.util.Printer, java.lang.String) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputMethodInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputMethodManager java.util.Map&lt;android.view.inputmethod.InputMethodInfo,java.util.List&lt;android.view.inputmethod.InputMethodSubtype&gt;&gt; getShortcutInputMethodsAndSubtypes()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputMethodSubtype java.lang.CharSequence getDisplayName(android.content.Context, java.lang.String, android.content.pm.ApplicationInfo) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputMethodSubtype java.lang.String getExtraValue()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputMethodSubtype java.lang.String getLocale()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputMethodSubtype java.lang.String getMode()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.inputmethod.InputMethodSubtype void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
+  <item name="android.view.inputmethod.InputMethodManager boolean setCurrentInputMethodSubtype(android.view.inputmethod.InputMethodSubtype)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.WRITE_SECURE_SETTINGS&quot;" />
+    </annotation>
   </item>
 </root>
 

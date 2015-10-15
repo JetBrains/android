@@ -19,7 +19,7 @@ package org.jetbrains.android.actions;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.android.tools.idea.wizard.ComboBoxItem;
+import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.projectView.ProjectView;
@@ -71,8 +71,8 @@ public abstract class CreateResourceActionBase extends AnAction {
   public static SourceProvider getSourceProvider(@Nullable JComboBox combo) {
     if (combo != null && combo.isVisible()) {
       Object selectedItem = combo.getSelectedItem();
-      if (selectedItem instanceof ComboBoxItem) {
-        return (SourceProvider)((ComboBoxItem)selectedItem).id;
+      if (selectedItem instanceof ComboBoxItemWithApiTag) {
+        return (SourceProvider)((ComboBoxItemWithApiTag)selectedItem).id;
       }
     }
 
@@ -127,12 +127,12 @@ public abstract class CreateResourceActionBase extends AnAction {
     // However, in the Android Project view there is only a single "res" node, shared by multiple possible source
     // sets, so we *always* want to ask for the target source set there. We don't have a way to know which view
     // we're in here, so we default to always including the source set combo (if it's a Gradle project that is.)
-    if (/*resDirectory == null && */ facet != null && facet.isGradleProject() && facet.getIdeaAndroidProject() != null) {
+    if (/*resDirectory == null && */ facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
       List<SourceProvider> providers = IdeaSourceProvider.getAllSourceProviders(facet);
       DefaultComboBoxModel model = new DefaultComboBoxModel();
       for (SourceProvider sourceProvider : providers) {
         //noinspection unchecked
-        model.addElement(new ComboBoxItem(sourceProvider, sourceProvider.getName(), 0, 0));
+        model.addElement(new ComboBoxItemWithApiTag(sourceProvider, sourceProvider.getName(), 0, 0));
       }
       combo.setModel(model);
 

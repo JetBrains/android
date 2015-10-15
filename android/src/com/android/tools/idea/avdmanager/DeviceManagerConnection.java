@@ -205,7 +205,7 @@ public class DeviceManagerConnection {
     List<Device> list = Lists.newArrayList();
     try {
       stream = new FileInputStream(xmlFile);
-      list.addAll(DeviceParser.parse(stream));
+      list.addAll(DeviceParser.parse(stream).values());
     } catch (IllegalStateException e) {
       // The device builders can throw IllegalStateExceptions if
       // build gets called before everything is properly setup

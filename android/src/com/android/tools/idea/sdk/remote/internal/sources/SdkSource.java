@@ -23,11 +23,11 @@ import com.android.io.NonClosingInputStream;
 import com.android.io.NonClosingInputStream.CloseBehavior;
 import com.android.sdklib.repository.IDescription;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.remote.internal.CanceledByUserException;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.packages.*;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -413,7 +413,7 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
     // and the URL doesn't explicitly end with our filename
     // and it wasn't an HTTP authentication operation canceled by the user
     // then make another tentative after changing the URL.
-    if (xml == null && !url.endsWith(firstDefaultName) && !(exception[0] instanceof CanceledByUserException)) {
+    if (xml == null && !url.endsWith(firstDefaultName) && !(exception[0] instanceof ProcessCanceledException)) {
       if (!url.endsWith("/")) {       //$NON-NLS-1$
         url += "/";                 //$NON-NLS-1$
       }

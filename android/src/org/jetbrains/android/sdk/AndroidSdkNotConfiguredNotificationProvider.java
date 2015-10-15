@@ -48,7 +48,7 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
     if (facet == null) {
       return null;
     }
-    if (!facet.isGradleProject() && (isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
+    if (!facet.requiresAndroidModel() && (isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
       final AndroidPlatform platform = AndroidPlatform.getInstance(module);
 
       if (platform == null) {

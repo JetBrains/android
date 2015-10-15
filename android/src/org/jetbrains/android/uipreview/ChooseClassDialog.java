@@ -17,6 +17,8 @@ package org.jetbrains.android.uipreview;
 
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.JavaPsiFacade;
@@ -100,7 +102,14 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
       GlobalSearchScope scope = includeAll ?
                                 GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false) :
                                 GlobalSearchScope.moduleScope(module);
-      return ClassInheritorsSearch.search(base, scope, true).findAll();
+      Collection<PsiClass> classes;
+      try {
+        classes = ClassInheritorsSearch.search(base, scope, true).findAll();
+      }
+      catch (IndexNotReadyException e) {
+        classes = Collections.emptyList();
+      }
+      return classes;
     }
     return Collections.emptyList();
   }
@@ -111,7 +120,33 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
       return null;
     }
     Project project = module.getProject();
-    return JavaPsiFacade.getInstance(project).findClass(name, GlobalSearchScope.allScope(project));
+    PsiClass aClass;
+    try {
+      aClass = JavaPsiFacade.getInstance(project).findClass(name, GlobalSearchScope.allScope(project));
+    }
+    catch (IndexNotReadyException e) {
+      aClass = null;
+    }
+    return aClass;
+  }
+
+  /**
+   * Open a dialog if indices are available, otherwise show an error message.
+   *
+   * @return class name if user has selected one, null otherwise
+   */
+  @Nullable
+  public static String openDialog(Module module, String title, boolean includeAll, String... classes) {
+    final Project project = module.getProject();
+    final DumbService dumbService = DumbService.getInstance(project);
+    if (dumbService.isDumb()) {
+      // Variable "title" contains a string like "Classes", "Activities", "Fragments".
+      dumbService.showDumbModeNotification(String.format("%1$s are not available while indices are updating.", title));
+      return null;
+    }
+
+    final ChooseClassDialog dialog = new ChooseClassDialog(module, title, includeAll, classes);
+    return dialog.showAndGet() ? dialog.getClassName() : null;
   }
 
   @Override

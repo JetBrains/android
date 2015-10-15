@@ -28,7 +28,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.SystemProperties;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,10 +36,11 @@ import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.SdkConstants.TAG_STYLE;
 
 public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
-  public final static boolean THEME_EDITOR_ENABLE = false;
+  public final static boolean THEME_EDITOR_ENABLE = true;
 
   private final static String THEME_NAME = "theme-name";
   private final static String STYLE_NAME = "style-name";
+  private final static String MODULE_NAME = "module-name";
   private final static String PROPORTION = "proportion";
 
   @Override
@@ -68,6 +68,7 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
   public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
     String themeName = sourceElement.getAttributeValue(THEME_NAME);
     String styleName = sourceElement.getAttributeValue(STYLE_NAME);
+    String moduleName = sourceElement.getAttributeValue(MODULE_NAME);
 
     Float proportion = null;
     try {
@@ -79,7 +80,7 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
       // ignore
     }
 
-    return new ThemeEditorState(themeName, styleName, proportion);
+    return new ThemeEditorState(themeName, styleName, proportion, moduleName);
   }
 
   @Override
@@ -89,15 +90,18 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
     }
 
     ThemeEditorState editorState = (ThemeEditorState) state;
-    if (editorState.getThemeName() != null) {
-      targetElement.setAttribute(THEME_NAME, editorState.getThemeName());
-    }
 
-    if (editorState.getSubStyleName() != null) {
-      targetElement.setAttribute(STYLE_NAME, editorState.getSubStyleName());
-    }
+    setAttributeIfNotNull(targetElement, THEME_NAME, editorState.getThemeName());
+    setAttributeIfNotNull(targetElement, STYLE_NAME, editorState.getSubStyleName());
+    setAttributeIfNotNull(targetElement, MODULE_NAME, editorState.getModuleName());
 
     targetElement.setAttribute(PROPORTION, Float.toString(editorState.getProportion()));
+  }
+
+  private static void setAttributeIfNotNull(@NotNull Element targetElement, String paramName, String paramValue) {
+    if (paramValue != null) {
+      targetElement.setAttribute(paramName, paramValue);
+    }
   }
 
   @NotNull

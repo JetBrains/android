@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.annotations.NonNull;
 import com.android.utils.SdkUtils;
 import freemarker.template.*;
 import org.jetbrains.annotations.NotNull;
@@ -23,8 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.tools.idea.templates.FmUtil.stripSuffix;
-import static com.android.tools.idea.wizard.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
-import static com.android.tools.idea.wizard.TemplateWizardState.LAYOUT_NAME_PREFIX;
+import static com.android.tools.idea.wizard.template.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
+import static com.android.tools.idea.wizard.template.TemplateWizardState.LAYOUT_NAME_PREFIX;
 
 /**
  * Method invoked by FreeMarker to convert an Activity class name into
@@ -33,11 +32,15 @@ import static com.android.tools.idea.wizard.TemplateWizardState.LAYOUT_NAME_PREF
 public class FmActivityToLayoutMethod implements TemplateMethodModelEx {
   @Override
   public TemplateModel exec(List args) throws TemplateModelException {
-    if (args.size() != 1) {
+    if (args.size() < 1 || args.size() > 2) {
       throw new TemplateModelException("Wrong arguments");
     }
 
     String activityName = ((TemplateScalarModel)args.get(0)).getAsString();
+    String layoutNamePrefix = LAYOUT_NAME_PREFIX;
+    if (args.size() > 1) {
+      layoutNamePrefix = ((TemplateScalarModel)args.get(1)).getAsString() + "_";
+    }
 
     if (activityName.isEmpty()) {
       return new SimpleScalar("");
@@ -47,7 +50,7 @@ public class FmActivityToLayoutMethod implements TemplateMethodModelEx {
 
     // Convert CamelCase convention used in activity class names to underlined convention
     // used in layout name:
-    String name = LAYOUT_NAME_PREFIX + TemplateUtils.camelCaseToUnderlines(activityName);
+    String name = layoutNamePrefix + TemplateUtils.camelCaseToUnderlines(activityName);
 
     return new SimpleScalar(name);
   }

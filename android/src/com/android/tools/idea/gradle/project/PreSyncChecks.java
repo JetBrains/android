@@ -18,18 +18,19 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.intellij.CommonBundle;
-import com.intellij.ide.util.PropertiesComponent;
+import com.android.tools.idea.gradle.util.ProxySettings;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper.DoNotAskOption;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.net.HttpConfigurable;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
@@ -40,8 +41,11 @@ import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
-import static com.intellij.openapi.ui.Messages.*;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.checkForJdk;
+import static com.intellij.openapi.ui.Messages.getQuestionIcon;
+import static com.intellij.openapi.ui.Messages.showOkCancelDialog;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -55,9 +59,6 @@ final class PreSyncChecks {
   private static final String GRADLE_SYNC_MSG_TITLE = "Gradle Sync";
   private static final String PROJECT_SYNCING_ERROR_GROUP = "Project syncing error";
 
-  @NonNls private static final String SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME =
-    "show.do.not.copy.http.proxy.settings.to.gradle";
-
   private PreSyncChecks() {
   }
 
@@ -70,6 +71,15 @@ final class PreSyncChecks {
     }
 
     if (isAndroidStudio()) {
+      // We only check jdk for Studio, because only Studio uses the same JDK for all modules and all Gradle invocations.
+      // See https://code.google.com/p/android/issues/detail?id=172714
+      Sdk jdk = IdeSdks.getJdk();
+      if (jdk == null || !checkForJdk(project, jdk.getName())) {
+        AndroidGradleNotification.getInstance(project).showBalloon("Invalid Project JDK", "Please choose a valid JDK directory", ERROR,
+                                                                   OpenProjectStructureHyperlink.openJdkSettings(project));
+        return PreSyncCheckResult.failure("Invalid Project Jdk");
+      }
+
       // We only check proxy settings for Studio, because Studio does not pass the IDE's proxy settings to Gradle.
       // See https://code.google.com/p/android/issues/detail?id=169743
       checkHttpProxySettings(project);
@@ -106,14 +116,8 @@ final class PreSyncChecks {
   // Gradle may need those settings to access the Internet to download dependencies.
   // See https://code.google.com/p/android/issues/detail?id=65325
   private static void checkHttpProxySettings(@NotNull Project project) {
-    boolean performCheck = PropertiesComponent.getInstance().getBoolean(SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME, true);
-    if (!performCheck) {
-      // User already checked the "do not ask me" option.
-      return;
-    }
-
-    HttpConfigurable ideProxySettings = HttpConfigurable.getInstance();
-    if (ideProxySettings.USE_HTTP_PROXY && isNotEmpty(ideProxySettings.PROXY_HOST)) {
+    HttpConfigurable ideHttpProxySettings = HttpConfigurable.getInstance();
+    if (ideHttpProxySettings.USE_HTTP_PROXY && isNotEmpty(ideHttpProxySettings.PROXY_HOST)) {
       GradleProperties properties;
       try {
         properties = new GradleProperties(project);
@@ -123,16 +127,14 @@ final class PreSyncChecks {
         // Let sync continue, even though it may fail.
         return;
       }
-      GradleProperties.ProxySettings proxySettings = properties.getProxySettings();
-      if (!ideProxySettings.PROXY_HOST.equals(proxySettings.getHost())) {
-        String msg = "Android Studio is configured to use a HTTP proxy. " +
-                     "Gradle may need these proxy settings to access the Internet (e.g. for downloading dependencies.)\n\n" +
-                     "Would you like to have the IDE's proxy configuration be set in the project's gradle.properties file?";
-        DoNotAskOption doNotAskOption = new PropertyDoNotAskOption(SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME);
-        int result = Messages.showYesNoDialog(project, msg, "Proxy Settings", Messages.getQuestionIcon(), doNotAskOption);
-        if (result == YES) {
-          proxySettings.copyFrom(ideProxySettings);
-          properties.setProxySettings(proxySettings);
+      ProxySettings gradleProxySettings = properties.getHttpProxySettings();
+      ProxySettings ideProxySettings = new ProxySettings(ideHttpProxySettings);
+
+      if (!ideProxySettings.equals(gradleProxySettings)) {
+        ProxySettingsDialog dialog = new ProxySettingsDialog(project, ideProxySettings);
+        dialog.show();
+        if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
+          dialog.applyProxySettings(properties.getProperties());
           try {
             properties.save();
           }
@@ -271,50 +273,6 @@ final class PreSyncChecks {
     @Nullable
     public String getFailureCause() {
       return myFailureCause;
-    }
-  }
-
-  /**
-   * Implementation of "Do not show this dialog in the future" option. This option is displayed as a checkbox in a {@code Messages} dialog.
-   * The state of such checkbox is stored in the IDE's {@code PropertiesComponent} under the name passed in the constructor.
-   */
-  private static class PropertyDoNotAskOption implements DoNotAskOption {
-    /** The name of the property storing the value of the "Do not show this dialog in the future" option.  */
-    @NotNull private final String myProperty;
-
-    PropertyDoNotAskOption(@NotNull String property) {
-      myProperty = property;
-    }
-
-    @Override
-    public boolean isToBeShown() {
-      // Read the stored value. If none is found, return "true" to display the checkbox the first time.
-      return PropertiesComponent.getInstance().getBoolean(myProperty, true);
-    }
-
-    @Override
-    public void setToBeShown(boolean toBeShown, int exitCode) {
-      // Stores the state of the checkbox into the property.
-      PropertiesComponent.getInstance().setValue(myProperty, String.valueOf(toBeShown));
-    }
-
-    @Override
-    public boolean canBeHidden() {
-      // By returning "true", the Messages dialog can hide the checkbox if the user previously set the checkbox as "selected".
-      return true;
-    }
-
-    @Override
-    public boolean shouldSaveOptionsOnCancel() {
-      // We always want to save the value of the checkbox, regardless of the button pressed in the Messages dialog.
-      return true;
-    }
-
-    @NotNull
-    @Override
-    public String getDoNotShowMessage() {
-      // This is the text to set in the checkbox.
-      return CommonBundle.message("dialog.options.do.not.show");
     }
   }
 }

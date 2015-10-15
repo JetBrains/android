@@ -23,18 +23,18 @@ import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
 import com.android.utils.ILogger;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ex.ApplicationEx;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
+import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.*;
-import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.concurrency.Semaphore;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,7 +49,6 @@ public class SdkState {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.sdk.SdkState");
 
   @GuardedBy(value = "sSdkStates") private static final Set<SoftReference<SdkState>> sSdkStates = new HashSet<SoftReference<SdkState>>();
-
   @Nullable private final AndroidSdkData mySdkData;
   private final RemoteSdk myRemoteSdk;
   private SdkPackages myPackages = new SdkPackages();
@@ -64,7 +63,7 @@ public class SdkState {
     if (mySdkData == null) {
       myPackages = new SdkPackages();
     }
-    myRemoteSdk = new RemoteSdk(new LogWrapper(Logger.getInstance(SdkState.class)));
+    myRemoteSdk = new RemoteSdk();
   }
 
   /**
@@ -87,8 +86,7 @@ public class SdkState {
           it.remove();
           continue;
         }
-        // Note: check the cache for actual AndroidSdkData references, not equality.
-        if (s.mySdkData == sdkData) {
+        if (Objects.equal(s.mySdkData, sdkData)) {
           return s;
         }
       }
@@ -111,8 +109,8 @@ public class SdkState {
 
   public boolean loadAsync(long timeoutMs,
                            boolean canBeCancelled,
-                           @Nullable Runnable onLocalComplete,
-                           @Nullable Runnable onSuccess,
+                           @Nullable SdkLoadedCallback onLocalComplete,
+                           @Nullable SdkLoadedCallback onSuccess,
                            @Nullable Runnable onError,
                            boolean forceRefresh) {
     return load(timeoutMs, canBeCancelled, createList(onLocalComplete), createList(onSuccess), createList(onError), forceRefresh, false);
@@ -120,17 +118,17 @@ public class SdkState {
 
   private boolean load(long timeoutMs,
                        boolean canBeCancelled,
-                       @NonNull List<Runnable> onLocalComplete,
-                       @NonNull List<Runnable> onSuccess,
+                       @NonNull List<SdkLoadedCallback> onLocalComplete,
+                       @NonNull List<SdkLoadedCallback> onSuccess,
                        @NonNull List<Runnable> onError,
                        boolean forceRefresh,
                        boolean sync) {
     if (!forceRefresh && System.currentTimeMillis() - myLastRefreshMs < timeoutMs) {
-      for (Runnable localComplete : onLocalComplete) {
-        localComplete.run();
+      for (SdkLoadedCallback localComplete : onLocalComplete) {
+        localComplete.run(myPackages);
       }
-      for (Runnable success : onSuccess) {
-        success.run();
+      for (SdkLoadedCallback success : onSuccess) {
+        success.run(myPackages);
       }
       return false;
     }
@@ -155,36 +153,42 @@ public class SdkState {
 
   public boolean loadSynchronously(long timeoutMs,
                                    boolean canBeCancelled,
-                                   @Nullable Runnable onLocalComplete,
-                                   @Nullable Runnable onSuccess,
+                                   @Nullable SdkLoadedCallback onLocalComplete,
+                                   @Nullable SdkLoadedCallback onSuccess,
                                    @Nullable final Runnable onError,
                                    boolean forceRefresh) {
     final Semaphore completed = new Semaphore();
     completed.down();
-    Runnable complete = new Runnable() {
+
+    List<SdkLoadedCallback> onLocalCompletes = createList(onLocalComplete);
+    List<SdkLoadedCallback> onSuccesses = createList(onSuccess);
+    List<Runnable> onErrors = createList(onError);
+    onSuccesses.add(new SdkLoadedCallback(false) {
+      @Override
+      public void doRun(@NotNull SdkPackages packages) {
+        completed.up();
+      }
+    });
+    onErrors.add(new Runnable() {
       @Override
       public void run() {
         completed.up();
       }
-    };
-
-    List<Runnable> onLocalCompletes = createList(onLocalComplete);
-    List<Runnable> onSuccesses = createList(onSuccess);
-    List<Runnable> onErrors = createList(onError);
-    onSuccesses.add(complete);
-    onErrors.add(complete);
+    });
     boolean result = load(timeoutMs, canBeCancelled, onLocalCompletes, onSuccesses, onErrors, forceRefresh, true);
     if (!ApplicationManager.getApplication().isDispatchThread()) {
       // Not dispatch thread, assume progress is being handled elsewhere.
       if (result) {
         // We don't have to wait since load() ran in-thread.
-        return result;
+        return true;
       }
       try {
         completed.waitForUnsafe();
       }
       catch (InterruptedException e) {
-        onError.run();
+        if (onError != null) {
+          onError.run();
+        }
         return false;
       }
       return true;
@@ -193,7 +197,11 @@ public class SdkState {
     // If we are on the dispatch thread, show progress while waiting.
     ProgressManager pm = ProgressManager.getInstance();
     ProgressIndicator indicator = pm.getProgressIndicator();
-    indicator = indicator == null ? new ProgressWindow(false, false, null) : indicator;
+    boolean startedProgress;
+    indicator = (startedProgress = indicator == null) ? new ProgressWindow(false, false, null) : indicator;
+    if (startedProgress) {
+      indicator.start();
+    }
     pm.executeProcessUnderProgress(new Runnable() {
       @Override
       public void run() {
@@ -214,17 +222,19 @@ public class SdkState {
         }
       }
     }, indicator);
+    if (startedProgress) {
+      indicator.stop();
+    }
     return result;
   }
 
   @NonNull
-  private static List<Runnable> createList(@Nullable Runnable r) {
+  private static <T> List<T> createList(@Nullable T r) {
     if (r == null) {
       return Lists.newArrayList();
     }
     return Lists.newArrayList(r);
   }
-
 
   // -----
 
@@ -264,15 +274,15 @@ public class SdkState {
 
   private class LoadTask extends Task.ConditionalModal {
 
-    private final List<Runnable> myOnSuccesses = Lists.newArrayList();
+    private final List<SdkLoadedCallback> myOnSuccesses = Lists.newArrayList();
     private final List<Runnable> myOnErrors = Lists.newArrayList();
-    private final List<Runnable> myOnLocalCompletes = Lists.newArrayList();
+    private final List<SdkLoadedCallback> myOnLocalCompletes = Lists.newArrayList();
     private final boolean myForceRefresh;
     private ProgressWindow myProgress;
 
     public LoadTask(boolean canBeCancelled,
-                    @NonNull List<Runnable> onLocalComplete,
-                    @NonNull List<Runnable> onSuccess,
+                    @NonNull List<SdkLoadedCallback> onLocalComplete,
+                    @NonNull List<SdkLoadedCallback> onSuccess,
                     @NonNull List<Runnable> onError,
                     boolean forceRefresh,
                     boolean modal) {
@@ -287,7 +297,8 @@ public class SdkState {
       myProgress = progress;
     }
 
-    public void addCallbacks(@NonNull List<Runnable> onLocalComplete, @NonNull List<Runnable> onSuccess, @NonNull List<Runnable> onError) {
+    public void addCallbacks(@NonNull List<SdkLoadedCallback> onLocalComplete, @NonNull List<SdkLoadedCallback> onSuccess,
+                             @NonNull List<Runnable> onError) {
       myOnLocalCompletes.addAll(onLocalComplete);
       myOnSuccesses.addAll(onSuccess);
       myOnErrors.addAll(onError);
@@ -311,17 +322,14 @@ public class SdkState {
             mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
           }
           packages.setLocalPkgInfos(mySdkData.getLocalSdk().getPkgsInfos(PkgType.PKG_ALL));
-          myLastRefreshMs = 0;  // until the load is complete, while only partial results are available, set the last refresh time to
-                                // 0 to ensure further calls block until the complete load has finished.
-          myPackages = packages;
           indicator.setFraction(0.25);
         }
         if (indicator.isCanceled()) {
           return;
         }
         synchronized (myTaskLock) {
-          for (Runnable onLocalComplete : myOnLocalCompletes) {
-            onLocalComplete.run();
+          for (SdkLoadedCallback onLocalComplete : myOnLocalCompletes) {
+            onLocalComplete.run(packages);
           }
           myOnLocalCompletes.clear();
         }
@@ -362,11 +370,11 @@ public class SdkState {
           // kicked off when needed, set myTask to null.
           myTask = null;
           if (success) {
-            for (Runnable onLocalComplete : myOnLocalCompletes) {  // in case some were added by another call in the interim.
-              onLocalComplete.run();
+            for (SdkLoadedCallback onLocalComplete : myOnLocalCompletes) {  // in case some were added by another call in the interim.
+              onLocalComplete.run(myPackages);
             }
-            for (Runnable onSuccess : myOnSuccesses) {
-              onSuccess.run();
+            for (SdkLoadedCallback onSuccess : myOnSuccesses) {
+              onSuccess.run(myPackages);
             }
           }
           else {

@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.ChooseGradleHomeDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;

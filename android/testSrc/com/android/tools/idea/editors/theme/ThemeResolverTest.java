@@ -18,7 +18,10 @@ package com.android.tools.idea.editors.theme;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -38,26 +41,12 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertNull(themeResolver.getTheme("@style/Theme.Holo.Light")); // It's system theme and we're not specifying namespace so it will fail.
 
     ThemeEditorStyle theme = themeResolver.getTheme("@android:style/Theme.Holo.Light");
-    assertEquals("Theme.Holo.Light", theme.getSimpleName());
+    assertEquals("Theme.Holo.Light", theme.getName());
 
-    assertEquals(themeResolver.getThemes().size(), themeResolver.getFrameworkThemes().size()); // Only framework themes.
+    assertEquals(themeResolver.getThemesCount(), themeResolver.getFrameworkThemes().size()); // Only framework themes.
     assertEmpty(themeResolver.getLocalThemes());
 
     assertNull("Theme resolver shouldn't resolve styles", themeResolver.getTheme("@android:style/TextAppearance"));
-  }
-
-  public void testIsTheme() {
-    VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-    StyleResolver styleResolver = new StyleResolver(configuration);
-
-    ThemeEditorStyle theme = themeResolver.getTheme("@android:style/Theme.Holo.Light");
-    ThemeEditorStyle style = styleResolver.getStyle("@android:style/TextAppearance");
-
-    assertFalse(themeResolver.isTheme(style));
-    assertTrue(themeResolver.isTheme(theme));
-    assertTrue(themeResolver.isTheme(theme.getParent()));
   }
 
   public void testLocalThemes() throws IOException {
@@ -69,20 +58,19 @@ public class ThemeResolverTest extends AndroidTestCase {
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
     assertEquals(1, themeResolver.getLocalThemes().size()); // We don't have any libraries so this will only include the project theme
-    assertEquals(2, themeResolver.getProjectThemes().size()); // The Theme.MyTheme + parent Theme
-    assertEquals(themeResolver.getThemes().size(), themeResolver.getFrameworkThemes().size() + 1); // One local theme
+    assertEquals(0, themeResolver.getExternalLibraryThemes().size()); // No library themes
 
     assertNull("The theme is an app theme and shouldn't be returned for the android namespace",
                themeResolver.getTheme("@android:style/Theme.MyTheme"));
 
     ThemeEditorStyle theme = themeResolver.getTheme("@style/Theme.MyTheme");
-    assertEquals("Theme.MyTheme", theme.getSimpleName());
-    assertEquals("Theme", theme.getParent().getSimpleName());
+    assertEquals("Theme.MyTheme", theme.getName());
+    assertEquals("Theme", theme.getParent().getName());
 
-    assertEquals(1, theme.getValues().size());
-    ItemResourceValue value = theme.getValues().toArray(new ItemResourceValue[0])[0];
-    assertEquals("windowBackground", value.getName());
-    assertEquals("@drawable/pic", value.getRawXmlValue());
+    assertEquals(1, theme.getConfiguredValues().values().size());
+    ConfiguredElement<ItemResourceValue> value = Iterables.get(theme.getConfiguredValues().values(), 0);
+    assertEquals("windowBackground", value.getElement().getName());
+    assertEquals("@drawable/pic", value.getElement().getValue());
 
     // Modify a value.
     theme.setValue("android:windowBackground", "@drawable/other");
@@ -95,5 +83,30 @@ public class ThemeResolverTest extends AndroidTestCase {
     FileDocumentManager.getInstance().saveAllDocuments();
     assertTrue(new String(myStyleFile.contentsToByteArray(), "UTF-8").contains("@drawable/other"));
     assertTrue(new String(myStyleFile.contentsToByteArray(), "UTF-8").contains("@drawable/second_background"));
+  }
+
+  /** Check that, after a configuration update, the resolver updates the list of themes */
+  public void testConfigurationUpdate() {
+    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v17.xml", "res/values-v17/styles.xml");
+    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v19.xml", "res/values-v19/styles.xml");
+    VirtualFile file = myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v20.xml", "res/values-v20/styles.xml");
+
+    ConfigurationManager configurationManager = myFacet.getConfigurationManager();
+    Configuration configuration = configurationManager.getConfiguration(file);
+
+    ThemeEditorContext context = new ThemeEditorContext(configuration);
+    ThemeResolver resolver = context.getThemeResolver();
+    assertNotNull(resolver.getTheme("@style/V20OnlyTheme"));
+    assertNotNull(resolver.getTheme("@style/V19OnlyTheme"));
+    assertNotNull(resolver.getTheme("@style/V17OnlyTheme"));
+
+    // Set API level 17 and check that only the V17 theme can be resolved
+    //noinspection ConstantConditions
+    configuration
+      .setTarget(new CompatibilityRenderTarget(configurationManager.getHighestApiTarget(), 17, configurationManager.getHighestApiTarget()));
+    resolver = context.getThemeResolver();
+    assertNull(resolver.getTheme("@style/V20OnlyTheme"));
+    assertNull(resolver.getTheme("@style/V19OnlyTheme"));
+    assertNotNull(resolver.getTheme("@style/V17OnlyTheme"));
   }
 }

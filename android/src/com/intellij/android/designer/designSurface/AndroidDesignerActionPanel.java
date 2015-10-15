@@ -44,6 +44,7 @@ import com.intellij.refactoring.psi.SearchUtils;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.PsiNavigateUtil;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,7 +86,7 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
     // The default toolbar layout adds too much spacing between the buttons. Switch to mini mode,
     // but also set a minimum size which will add *some* padding for our 16x16 icons.
     layoutToolBar.setMiniMode(true);
-    layoutToolBar.setMinimumButtonSize(new Dimension(22, 24));
+    layoutToolBar.setMinimumButtonSize(JBUI.size(22, 24));
 
     ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, getRhsActions(), true);
     JPanel bottom = new JPanel(new BorderLayout());

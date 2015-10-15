@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.subset;
 
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject.SourceFileContainerInfo;
-import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.AndroidGradleModel.SourceFileContainerInfo;
+import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.google.common.collect.Lists;
@@ -186,18 +186,18 @@ public final class ProjectSubset {
    */
   @Nullable
   private static ModuleSearchResult containsSourceFile(@NotNull DataNode<ModuleData> moduleNode, @NotNull File file, boolean selected) {
-    DataNode<IdeaAndroidProject> androidProjectNode = find(moduleNode, IDE_ANDROID_PROJECT);
+    DataNode<AndroidGradleModel> androidProjectNode = find(moduleNode, ANDROID_MODEL);
     if (androidProjectNode != null) {
-      IdeaAndroidProject androidProject = androidProjectNode.getData();
-      SourceFileContainerInfo result = androidProject.containsSourceFile(file);
+      AndroidGradleModel androidModel = androidProjectNode.getData();
+      SourceFileContainerInfo result = androidModel.containsSourceFile(file);
       if (result != null) {
         return new ModuleSearchResult(moduleNode, result, selected);
       }
     }
 
-    DataNode<IdeaJavaProject> javaProjectNode = find(moduleNode, IDE_JAVA_PROJECT);
+    DataNode<JavaProject> javaProjectNode = find(moduleNode, JAVA_PROJECT);
     if (javaProjectNode != null) {
-      IdeaJavaProject javaProject = javaProjectNode.getData();
+      JavaProject javaProject = javaProjectNode.getData();
       if (javaProject.containsSourceFile(file)) {
         return new ModuleSearchResult(moduleNode, null, selected);
       }
@@ -331,10 +331,10 @@ public final class ProjectSubset {
               selectedModules.add(module);
               continue;
             }
-            DataNode<IdeaGradleProject> gradleProjectNode = find(module, IDE_GRADLE_PROJECT);
+            DataNode<GradleModel> gradleProjectNode = find(module, GRADLE_MODEL);
             if (gradleProjectNode != null) {
-              IdeaGradleProject gradleProject = gradleProjectNode.getData();
-              if (moduleGradlePaths.contains(gradleProject.getGradlePath())) {
+              GradleModel gradleModel = gradleProjectNode.getData();
+              if (moduleGradlePaths.contains(gradleModel.getGradlePath())) {
                 selection.add(name);
                 selectedModules.add(module);
                 found = true;

@@ -19,9 +19,9 @@ import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.dependency.DependencySetupErrors;
-import com.android.tools.idea.gradle.dependency.DependencySetupErrors.MissingModule;
+import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
+import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors.MissingModule;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService;
@@ -30,8 +30,8 @@ import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.components.ServiceManager;
@@ -41,6 +41,7 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationCate
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
@@ -50,6 +51,7 @@ import com.intellij.pom.Navigatable;
 import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.util.Collection;
 import java.util.List;
@@ -159,9 +161,9 @@ public class ProjectSyncMessages {
   @Nullable
   private static VirtualFile getBuildFile(@NotNull Module module) {
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
-    if (gradleFacet != null && gradleFacet.getGradleProject() != null) {
-      IdeaGradleProject gradleProject = gradleFacet.getGradleProject();
-      return gradleProject.getBuildFile();
+    if (gradleFacet != null && gradleFacet.getGradleModel() != null) {
+      GradleModel gradleModel = gradleFacet.getGradleModel();
+      return gradleModel.getBuildFile();
     }
     return null;
   }
@@ -179,6 +181,16 @@ public class ProjectSyncMessages {
     }
     else {
       group = UNRESOLVED_DEPENDENCIES;
+      if (isOfflineBuildModeEnabled(myProject)) {
+        NotificationHyperlink disableOfflineModeHyperlink = new NotificationHyperlink("disable.gradle.offline.mode", "Disable offline mode and Sync") {
+          @Override
+          protected void execute(@NotNull Project project) {
+            GradleSettings.getInstance(myProject).setOfflineWork(false);
+            GradleProjectImporter.getInstance().requestProjectSync(project, null);
+          }
+        };
+        hyperlinks.add(disableOfflineModeHyperlink);
+      }
     }
 
     String text = "Failed to resolve: " + dependency;
@@ -206,7 +218,7 @@ public class ProjectSyncMessages {
     else {
       msg = new Message(group, Message.Type.ERROR, NonNavigatable.INSTANCE, text);
     }
-    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (AndroidStudioInitializer.isAndroidStudio()) {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
       if (coordinate != null) {
         hyperlinks.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
@@ -234,6 +246,14 @@ public class ProjectSyncMessages {
     for (String dependent : setupErrors.getDependentsOnLibrariesWithoutBinaryPath()) {
       String msg = String.format("Module '%1$s' depends on libraries that do not have a 'binary' path.", dependent);
       add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, Message.Type.ERROR, msg));
+    }
+
+    for (DependencySetupErrors.InvalidModuleDependency dependency : setupErrors.getInvalidModuleDependencies()) {
+      String msg = String.format("Ignoring dependency of module '%1$s' on module '%2$s'. %3$s",
+                                 dependency.dependent, dependency.dependency.getName(), dependency.detail);
+      VirtualFile buildFile = getBuildFile(dependency.dependency);
+      assert buildFile != null;
+      add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, Message.Type.WARNING, new OpenFileDescriptor(dependency.dependency.getProject(), buildFile, 0), msg));
     }
 
     reportModulesNotFoundIssues(FAILED_TO_SET_UP_DEPENDENCIES, setupErrors.getMissingModulesWithBackupLibraries());

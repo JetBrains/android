@@ -47,7 +47,8 @@ public final class Recipe {
     @XmlElement(name = "merge", type = MergeInstruction.class),
     @XmlElement(name = "mkdir", type = MkDirInstruction.class),
     @XmlElement(name = "dependency", type = DependencyInstruction.class),
-    @XmlElement(name = "open", type = OpenInstruction.class)
+    @XmlElement(name = "open", type = OpenInstruction.class),
+    @XmlElement(name = "execute", type = ExecuteInstruction.class)
   })
   private List<RecipeInstruction> instructions = Lists.newArrayList();
 
@@ -57,8 +58,13 @@ public final class Recipe {
   }
 
   @NotNull
-  public List<File> getFilesToModify() {
-    return myFilesToModify;
+  public List<File> getSourceFiles() {
+    return mySourceFiles;
+  }
+
+  @NotNull
+  public List<File> getTargetFiles() {
+    return myTargetFiles;
   }
 
   @NotNull
@@ -67,7 +73,8 @@ public final class Recipe {
   }
 
   @NotNull private final List<String> myDependencies = Lists.newArrayList();
-  @NotNull private final List<File> myFilesToModify = Lists.newArrayList();
+  @NotNull private final List<File> mySourceFiles = Lists.newArrayList();
+  @NotNull private final List<File> myTargetFiles = Lists.newArrayList();
   @NotNull private final List<File> myFilesToOpen = Lists.newArrayList();
 
   /**
@@ -102,7 +109,8 @@ public final class Recipe {
 
     for (RecipeInstruction instruction : instructions) {
       instruction.addDependenciesInto(myDependencies);
-      instruction.addFilesToModifyInto(myFilesToModify);
+      instruction.addSourceFilesInto(mySourceFiles);
+      instruction.addTargetFilesInto(myTargetFiles);
       instruction.addFilesToOpenInto(myFilesToOpen);
     }
   }
@@ -114,7 +122,8 @@ public final class Recipe {
     public abstract void execute(RecipeContext context);
 
     public void addDependenciesInto(@NotNull List<String> dependencies) {}
-    public void addFilesToModifyInto(@NotNull List<File> files) {}
+    public void addSourceFilesInto(@NotNull List<File> files) {}
+    public void addTargetFilesInto(@NotNull List<File> files) {}
     public void addFilesToOpenInto(@NotNull List<File> files) {}
   }
 
@@ -132,12 +141,17 @@ public final class Recipe {
 
     @Override
     public void execute(RecipeContext context) {
-      assert to != null; // Should be non-null after unmarshalled
+      assert to != null; // Will be non-null after afterUnmarshal is called
       context.copy(from, to);
     }
 
     @Override
-    public void addFilesToModifyInto(@NotNull List<File> files) {
+    public void addSourceFilesInto(@NotNull List<File> files) {
+      files.add(from);
+    }
+
+    @Override
+    public void addTargetFilesInto(@NotNull List<File> files) {
       files.add(to);
     }
 
@@ -163,12 +177,17 @@ public final class Recipe {
 
     @Override
     public void execute(RecipeContext context) {
-      assert to != null; // Should be non-null after unmarshalled
+      assert to != null; // Will be non-null after afterUnmarshal is called
       context.instantiate(from, to);
     }
 
     @Override
-    public void addFilesToModifyInto(@NotNull List<File> files) {
+    public void addSourceFilesInto(@NotNull List<File> files) {
+      files.add(from);
+    }
+
+    @Override
+    public void addTargetFilesInto(@NotNull List<File> files) {
       files.add(to);
     }
 
@@ -195,12 +214,17 @@ public final class Recipe {
 
     @Override
     public void execute(RecipeContext context) {
-      assert to != null; // Should be non-null after unmarshalled
+      assert to != null; // Will be non-null after afterUnmarshal is called
       context.merge(from, to);
     }
 
     @Override
-    public void addFilesToModifyInto(@NotNull List<File> files) {
+    public void addSourceFilesInto(@NotNull List<File> files) {
+      files.add(from);
+    }
+
+    @Override
+    public void addTargetFilesInto(@NotNull List<File> files) {
       files.add(to);
     }
 
@@ -263,6 +287,22 @@ public final class Recipe {
   }
 
   /**
+   * Execute another recipe file from within the current recipe file
+   */
+  private static final class ExecuteInstruction extends RecipeInstruction {
+
+    @XmlJavaTypeAdapter(StringFileAdapter.class)
+    @XmlAttribute(required = true)
+    @NotNull
+    private File file;
+
+    @Override
+    public void execute(RecipeContext context) {
+      context.execute(file);
+    }
+  }
+
+  /**
    * Post-process instruction that's always added to the end of a recipe's instruction list.
    */
   private static final class FinalInstruction extends RecipeInstruction {
@@ -272,5 +312,4 @@ public final class Recipe {
       context.updateAndSyncGradle();
     }
   }
-
 }

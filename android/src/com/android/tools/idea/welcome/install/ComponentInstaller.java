@@ -40,15 +40,17 @@ import java.util.*;
  */
 public final class ComponentInstaller {
   @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
+  private final boolean myInstallUpdates;
 
-  public ComponentInstaller(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
+  public ComponentInstaller(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages, boolean installUpdates) {
     myRemotePackages = remotePackages;
+    myInstallUpdates = installUpdates;
   }
 
   private static Set<String> getPackageIds(Iterable<LocalPkgInfo> localPackages) {
     Set<String> toUpdate = Sets.newHashSet();
     for (LocalPkgInfo localPkgInfo : localPackages) {
-      toUpdate.add(localPkgInfo.getDesc().getInstallId());
+      toUpdate.add(localPkgInfo.getDesc().getBaseInstallId());
     }
     return toUpdate;
   }
@@ -58,7 +60,7 @@ public final class ComponentInstaller {
     LocalPkgInfo[] installed = localSdk.getPkgsInfos(EnumSet.allOf(PkgType.class));
     List<LocalPkgInfo> toCheckForUpdate = Lists.newArrayListWithCapacity(installed.length);
     for (LocalPkgInfo info : installed) {
-      if (toInstall.contains(info.getDesc().getInstallId())) {
+      if (toInstall.contains(info.getDesc().getBaseInstallId())) {
         toCheckForUpdate.add(info);
       }
     }
@@ -112,7 +114,7 @@ public final class ComponentInstaller {
       List<LocalPkgInfo> installed = getInstalledPackages(manager, toInstall);
       if (!installed.isEmpty()) {
         toInstall.removeAll(getPackageIds(installed));
-        if (myRemotePackages != null || defaultUpdateAvailable) {
+        if (myInstallUpdates && (myRemotePackages != null || defaultUpdateAvailable)) {
           toInstall.addAll(getPackageIds(getOldPackages(installed)));
         }
       }
@@ -128,8 +130,7 @@ public final class ComponentInstaller {
     if (!StringUtil.isEmptyOrSpaces(sdkPath) && myRemotePackages != null) {
       SdkManager sdkManager = SdkManager.createManager(sdkPath, new NullLogger());
       if (sdkManager != null) {
-        Set<String> packagesToInstall = ImmutableSet
-          .copyOf(new ComponentInstaller(myRemotePackages).getPackagesToInstall(sdkManager, components, true));
+        Set<String> packagesToInstall = ImmutableSet.copyOf(getPackagesToInstall(sdkManager, components, true));
         Set<RemotePkgInfo> remotePackages = Sets.newHashSetWithExpectedSize(packagesToInstall.size());
         for (RemotePkgInfo remotePkgInfo : myRemotePackages.values()) {
           if (packagesToInstall.contains(remotePkgInfo.getPkgDesc().getInstallId())) {
@@ -143,7 +144,7 @@ public final class ComponentInstaller {
   }
 
   public void installPackages(@NotNull SdkManager manager, @NotNull ArrayList<String> packages, ILogger logger) throws WizardException {
-    SdkUpdaterNoWindow updater = new SdkUpdaterNoWindow(manager.getLocation(), manager, logger, false, true, null, null);
+    SdkUpdaterNoWindow updater = new SdkUpdaterNoWindow(manager.getLocation(), manager, logger, false, null, null);
     updater.updateAll(packages, true, false, null, false);
   }
 }

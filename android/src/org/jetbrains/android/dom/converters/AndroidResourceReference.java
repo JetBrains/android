@@ -80,10 +80,17 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
     final ResourceType resType = value.getType();
     if (resType != null && newElementName != null) {
       // todo: do not allow new value resource name to contain dot, because it is impossible to check if it file or value otherwise
-      final String newResName = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resType) &&
-                                newElementName.contains(".") // it is file
-                                ? AndroidCommonUtils.getResourceName(resType.getName(), newElementName)
-                                : newElementName;
+
+      final String newResName;
+      // Does renamed resource point to a file?
+      if (AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resType) && newElementName.contains(".")) {
+        // If it does, we need to chop off its extension when inserting the new value.
+        newResName = AndroidCommonUtils.getResourceName(resType.getName(), newElementName);
+      }
+      else {
+        newResName = newElementName;
+      }
+
       // Note: We're using value.getResourceType(), not resType.getName() here, because we want the "+" in the new name
       myValue.setValue(ResourceValue.referenceTo(value.getPrefix(), value.getPackage(), value.getResourceType(), newResName));
     }

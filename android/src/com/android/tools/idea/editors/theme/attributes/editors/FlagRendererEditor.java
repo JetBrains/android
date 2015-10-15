@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.StyleResolver;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.ide.IdeTooltipManager;
@@ -35,16 +35,25 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.HashSet;
 
 /**
  * Renderer and Editor for attributes that take flags as values.
  * When editing, opens a dialog with checkboxes for all the possible flags to choose from.
  */
-public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
+public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   private final Box myBox = new Box(BoxLayout.LINE_AXIS);
-  private final JLabel myLabel = new JLabel();
+  /** Renderer component, with isShowing overridden because of the use of a {@link CellRendererPane} */
+  private final JLabel myLabel = new JLabel() {
+    @Override
+    public boolean isShowing() {
+      return true;
+    }
+  };
   private final EditorTextField myTextField = new EditorTextField();
   private EditedStyleItem myItem = null;
 
@@ -105,8 +114,8 @@ public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, Attribu
   }
 
   @Override
-  public AttributeEditorValue getEditorValue() {
-    return new AttributeEditorValue(myTextField.getText(), false);
+  public String getEditorValue() {
+    return myTextField.getText();
   }
 
   private class FlagDialog extends DialogWrapper {
@@ -194,7 +203,7 @@ public class FlagRendererEditor extends TypedCellEditor<EditedStyleItem, Attribu
     protected JComponent createCenterPanel() {
       Box box = new Box(BoxLayout.PAGE_AXIS);
       AttributeDefinition attrDefinition =
-        StyleResolver.getAttributeDefinition(myItem.getSourceStyle().getConfiguration(), myItem.getItemResourceValue());
+        ResolutionUtils.getAttributeDefinition(myItem.getSourceStyle().getConfiguration(), myItem.getSelectedValue());
       if (attrDefinition != null) {
         String[] flagNames = attrDefinition.getValues();
         for (String flagName : flagNames) {

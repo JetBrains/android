@@ -48,7 +48,7 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
                                                          @NotNull CompilerFilter filter,
                                                          @NotNull Project project,
                                                          boolean forceBuild) {
-    if (!Projects.isGradleProject(project)) {
+    if (!Projects.requiresAndroidModel(project)) {
       return Collections.emptyList();
     }
     BuildSettings buildSettings = BuildSettings.getInstance(project);

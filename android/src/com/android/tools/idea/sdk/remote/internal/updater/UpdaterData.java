@@ -43,6 +43,8 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -53,7 +55,7 @@ import java.util.*;
 /**
  * Data shared by the SDK Manager updaters.
  */
-public class UpdaterData implements IUpdaterData {
+public class UpdaterData {
 
   public static final int NO_TOOLS_MSG = 0;
   public static final int TOOLS_MSG_UPDATED_FROM_ADT = 1;
@@ -66,11 +68,6 @@ public class UpdaterData implements IUpdaterData {
    * Instead use {@link #getSources()} so that unit tests can override this as needed.
    */
   private final SdkSources mSources = new SdkSources();
-  /**
-   * Holds settings. Do not use this directly.
-   * Instead use {@link #getSettingsController()} so that unit tests can override this.
-   */
-  private final SettingsController mSettingsController;
   private final ArrayList<ISdkChangeListener> mListeners = new ArrayList<ISdkChangeListener>();
   private final ILogger mSdkLog;
   private ITaskFactory mTaskFactory;
@@ -92,7 +89,6 @@ public class UpdaterData implements IUpdaterData {
     mOsSdkRoot = osSdkRoot;
     mSdkLog = sdkLog;
 
-    mSettingsController = initSettingsController();
     initSdk();
   }
 
@@ -102,11 +98,10 @@ public class UpdaterData implements IUpdaterData {
     return mOsSdkRoot;
   }
 
-  @Override
   public DownloadCache getDownloadCache() {
     if (mDownloadCache == null) {
       mDownloadCache = new DownloadCache(
-        getSettingsController().getSettings().getUseDownloadCache() ? DownloadCache.Strategy.FRESH_CACHE : DownloadCache.Strategy.DIRECT);
+        SettingsController.getInstance().getUseDownloadCache() ? DownloadCache.Strategy.FRESH_CACHE : DownloadCache.Strategy.DIRECT);
     }
     return mDownloadCache;
   }
@@ -115,28 +110,8 @@ public class UpdaterData implements IUpdaterData {
     mTaskFactory = taskFactory;
   }
 
-  @Override
-  public ITaskFactory getTaskFactory() {
-    return mTaskFactory;
-  }
-
-  public SdkSources getSources() {
-    return mSources;
-  }
-
-  @Override
-  public ILogger getSdkLog() {
-    return mSdkLog;
-  }
-
-  @Override
   public SdkManager getSdkManager() {
     return mSdkManager;
-  }
-
-  @Override
-  public SettingsController getSettingsController() {
-    return mSettingsController;
   }
 
   /**
@@ -144,10 +119,6 @@ public class UpdaterData implements IUpdaterData {
    */
   public void removeListener(ISdkChangeListener listener) {
     mListeners.remove(listener);
-  }
-
-  protected void displayInitError(String error) {
-    mSdkLog.error(null /* Throwable */, "%s", error);  //$NON-NLS-1$
   }
 
   // -----
@@ -171,16 +142,6 @@ public class UpdaterData implements IUpdaterData {
     setSdkManager(SdkManager.createManager(mOsSdkRoot, mSdkLog));
     // notify listeners.
     broadcastOnSdkReload();
-  }
-
-  /**
-   * Initializes the {@link SettingsController}
-   * Extracted so that we can override this in unit tests.
-   */
-  @VisibleForTesting(visibility = Visibility.PRIVATE)
-  protected SettingsController initSettingsController() {
-    SettingsController settingsController = new SettingsController(mSdkLog);
-    return settingsController;
   }
 
   @VisibleForTesting(visibility = Visibility.PRIVATE)
@@ -211,8 +172,6 @@ public class UpdaterData implements IUpdaterData {
    * - and finally the extra user repo URLs from the environment.
    */
   public void setupDefaultSources() {
-    SdkSources sources = getSources();
-
     // Load the conventional sources.
     // For testing, the env var can be set to replace the default root download URL.
     // It must end with a / and its the location where the updater will look for
@@ -223,11 +182,11 @@ public class UpdaterData implements IUpdaterData {
       baseUrl = SdkRepoConstants.URL_GOOGLE_SDK_SITE;
     }
 
-    sources.add(SdkSourceCategory.ANDROID_REPO, new SdkRepoSource(baseUrl, SdkSourceCategory.ANDROID_REPO.getUiName()));
+    mSources.add(SdkSourceCategory.ANDROID_REPO, new SdkRepoSource(baseUrl, SdkSourceCategory.ANDROID_REPO.getUiName()));
 
     // Load user sources (this will also notify change listeners but this operation is
     // done early enough that there shouldn't be any anyway.)
-    sources.loadUserAddons(getSdkLog());
+    mSources.loadUserAddons(mSdkLog);
   }
 
   /**
@@ -247,7 +206,7 @@ public class UpdaterData implements IUpdaterData {
     // this will accumulate all the packages installed.
     final List<Archive> newlyInstalledArchives = new ArrayList<Archive>();
 
-    final boolean forceHttp = getSettingsController().getSettings().getForceHttp();
+    final boolean forceHttp = SettingsController.getInstance().getForceHttp();
 
     // sort all archives based on their dependency level.
     Collections.sort(archives, new InstallOrderComparator());
@@ -317,6 +276,10 @@ public class UpdaterData implements IUpdaterData {
               }
             }
 
+          }
+          catch (ProcessCanceledException e) {
+            // A valid exception that shouldn't be logged in the monitor. Propagate it back up.
+            throw e;
           }
           catch (Throwable t) {
             // Display anything unexpected in the monitor.
@@ -448,7 +411,7 @@ public class UpdaterData implements IUpdaterData {
    */
   protected void askForAdbRestart(ITaskMonitor monitor) {
     // Restart ADB if we don't need to ask.
-    if (!getSettingsController().getSettings().getAskBeforeAdbRestart()) {
+    if (!SettingsController.getInstance().getAskBeforeAdbRestart()) {
       AdbWrapper adb = new AdbWrapper(getOsSdkRoot(), monitor);
       adb.stopAdb();
       adb.startAdb();
@@ -604,7 +567,7 @@ public class UpdaterData implements IUpdaterData {
   }
 
   private List<ArchiveInfo> getRemoteArchives(boolean includeAll) {
-    SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
+    SdkState state = SdkState.getInstance(AndroidSdkData.getSdkData(mOsSdkRoot));
     state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, false);
     List<ArchiveInfo> result = Lists.newArrayList();
     for (UpdatablePkgInfo update : state.getPackages().getConsolidatedPkgs().values()) {

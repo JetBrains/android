@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTestCaseHelper;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
@@ -49,9 +50,11 @@ public class IdeSdksTest extends IdeaTestCase {
       @Override
       public void run() {
         FacetManager facetManager = FacetManager.getInstance(myModule);
+
         ModifiableFacetModel model = facetManager.createModifiableModel();
         try {
           model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
+          model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
         } finally {
           model.commit();
         }
@@ -61,6 +64,9 @@ public class IdeSdksTest extends IdeaTestCase {
     assertNotNull(facet);
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
   }
+
+  @Override
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) { }
 
   public void testCreateAndroidSdkPerAndroidTarget() {
     List<Sdk> sdks = IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);

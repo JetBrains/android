@@ -21,10 +21,9 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.wizard.ConfigureAndroidModuleStep;
-import com.android.tools.idea.wizard.NewProjectWizardState;
-import com.android.tools.idea.wizard.StringEvaluator;
-import com.android.tools.idea.wizard.TemplateWizardState;
+import com.android.tools.idea.npw.ConfigureAndroidModuleStep;
+import com.android.tools.idea.npw.NewProjectWizardState;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
@@ -55,9 +54,9 @@ import java.util.Set;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
-import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
-import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LOCATION;
-import static com.android.tools.idea.wizard.FormFactorUtils.ATTR_MODULE_NAME;
+import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
+import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
 
 /**
  * Test for template instantiation.
@@ -100,6 +99,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   /** Whether we should enforce that lint passes cleanly on the projects */
   private static final boolean CHECK_LINT = false; // Needs work on closing projects cleanly
   private static final boolean ALLOW_WARNINGS = true; // TODO: Provide finer granularity
+
+  /** Manual sdk version selections **/
+  private static final int MANUAL_BUILD_API = Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_BUILD_API", "-1"));
+  private static final int MANUAL_MIN_API = Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_MIN_API", "-1"));
+  private static final int MANUAL_TARGET_API = Integer.parseInt(System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_TARGET_API", "-1"));
 
   /**
    * The following templates are known to be broken! We need to work through these and fix them such that tests
@@ -189,10 +193,20 @@ public class TemplateTest extends AndroidGradleTestCase {
    * be EXTRA comprehensive, occasionally try returning true unconditionally
    * here to test absolutely everything.
    */
-  private boolean isInterestingApiLevel(int api) {
-    // For templates that aren't API sensitive, only test with API = 16
+  private boolean isInterestingApiLevel(int api, int manualApi) {
+    // If a manual api version was specified then accept only that version:
+    if (manualApi > 0) {
+      return api == manualApi;
+    }
+
+    // For templates that aren't API sensitive, only test with latest API
     if (!myApiSensitiveTemplate) {
-      return api == 16;
+      return api == SdkVersionInfo.HIGHEST_KNOWN_API;
+    }
+
+    // Always accept the highest known version
+    if (api == SdkVersionInfo.HIGHEST_KNOWN_API) {
+      return true;
     }
 
     // Relevant versions, used to prune down the set of targets we need to
@@ -203,7 +217,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       case 7:
       case 11:
       case 14:
-      case 16:
+      case 21:
         return true;
       case 9:
       case 13:
@@ -443,6 +457,22 @@ public class TemplateTest extends AndroidGradleTestCase {
     PlatformTestUtil.assertFilesEqual(desired, actual);
   }
 
+  public void testRelatedParameters() throws Exception {
+    Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")));
+    Parameter layoutName = template.getMetadata().getParameter("layoutName");
+    Parameter activityClass = template.getMetadata().getParameter("activityClass");
+    Parameter mainFragment = template.getMetadata().getParameter("mainFragment");
+    Parameter activityTitle = template.getMetadata().getParameter("activityTitle");
+    Parameter detailsActivity = template.getMetadata().getParameter("detailsActivity");
+    Parameter detailsLayoutName = template.getMetadata().getParameter("detailsLayoutName");
+    assertSameElements(template.getMetadata().getRelatedParams(layoutName), detailsLayoutName);
+    assertSameElements(template.getMetadata().getRelatedParams(activityClass), detailsActivity, mainFragment);
+    assertSameElements(template.getMetadata().getRelatedParams(mainFragment), detailsActivity, activityClass);
+    assertEmpty(template.getMetadata().getRelatedParams(activityTitle));
+    assertSameElements(template.getMetadata().getRelatedParams(detailsActivity), activityClass, mainFragment);
+    assertSameElements(template.getMetadata().getRelatedParams(detailsLayoutName), layoutName);
+  }
+
   // ---- Test support code below ----
 
   /** Checks whether we've already checked the given template in a new project or existing project context */
@@ -552,13 +582,16 @@ public class TemplateTest extends AndroidGradleTestCase {
     // Iterate over all (valid) combinations of build target, minSdk and targetSdk
     // TODO: Assert that the SDK manager has a minimum set of SDKs installed needed to be certain
     // the test is comprehensive
+    // For now make sure there's at least one
+    boolean ranTest = false;
+
     IAndroidTarget[] targets = sdkData.getTargets();
     for (int i = targets.length - 1; i >= 0; i--) {
       IAndroidTarget target = targets[i];
       if (!target.isPlatform()) {
         continue;
       }
-      if (!isInterestingApiLevel(target.getVersion().getApiLevel())) {
+      if (!isInterestingApiLevel(target.getVersion().getApiLevel(), MANUAL_BUILD_API)) {
         continue;
       }
 
@@ -573,14 +606,14 @@ public class TemplateTest extends AndroidGradleTestCase {
            minSdk <= SdkVersionInfo.HIGHEST_KNOWN_API;
            minSdk++) {
         // Don't bother checking *every* single minSdk, just pick some interesting ones
-        if (!isInterestingApiLevel(minSdk)) {
+        if (!isInterestingApiLevel(minSdk, MANUAL_MIN_API)) {
           continue;
         }
 
         for (int targetSdk = minSdk;
              targetSdk <= SdkVersionInfo.HIGHEST_KNOWN_API;
              targetSdk++) {
-          if (!isInterestingApiLevel(targetSdk)) {
+          if (!isInterestingApiLevel(targetSdk, MANUAL_TARGET_API)) {
             continue;
           }
 
@@ -622,6 +655,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                                   + "_build_" + target.getVersion().getApiLevel()
                                   + "_theme_" + optionId;
                     checkApiTarget(minSdk, targetSdk, target, values, base, state, null);
+                    ranTest = true;
                     if (!TEST_VARIABLE_COMBINATIONS) {
                       break projectParameters;
                     }
@@ -645,6 +679,7 @@ public class TemplateTest extends AndroidGradleTestCase {
         break;
       }
     }
+    assertTrue("Didn't run any tests! Make sure you have the right platforms installed.", ranTest);
   }
 
   /** Checks creating the given project and template for the given SDK versions */
@@ -667,8 +702,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     projectValues.put(ATTR_MIN_API_LEVEL, minSdk);
     projectValues.put(ATTR_TARGET_API, targetSdk);
     projectValues.put(ATTR_TARGET_API_STRING, Integer.toString(targetSdk));
-    values.put(ATTR_BUILD_API, target.getVersion().getApiLevel());
-    values.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(target.getVersion()));
+    projectValues.put(ATTR_BUILD_API, target.getVersion().getApiLevel());
+    projectValues.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(target.getVersion()));
     assertNotNull(values);
 
     // Next check all other parameters, cycling through booleans and enums.
@@ -791,9 +826,10 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private void checkProject(@NonNull final String projectName,
+  private void checkProject(@NonNull String projectName,
                             @NonNull NewProjectWizardState projectValues,
                             @Nullable final TemplateWizardState templateValues) throws Exception {
+    final String modifiedProjectName = projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们";
     ourCount++;
     projectValues.put(ATTR_RES_OUT, null);
     projectValues.put(ATTR_SRC_OUT, null);
@@ -803,9 +839,9 @@ public class TemplateTest extends AndroidGradleTestCase {
     JavaCodeInsightTestFixture fixture = null;
     File projectDir = null;
     try {
-      projectValues.put(ATTR_MODULE_NAME, projectName);
+      projectValues.put(ATTR_MODULE_NAME, modifiedProjectName);
       IdeaTestFixtureFactory factory = IdeaTestFixtureFactory.getFixtureFactory();
-      TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = factory.createFixtureBuilder(projectName);
+      TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = factory.createFixtureBuilder(modifiedProjectName);
       fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
       fixture.setUp();
 
@@ -827,7 +863,7 @@ public class TemplateTest extends AndroidGradleTestCase {
             File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
             Template template = templateValues.getTemplate();
             assert template != null;
-            File moduleRoot = new File(projectRoot, projectName);
+            File moduleRoot = new File(projectRoot, modifiedProjectName);
             templateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
             try {
               templateValues.populateDirectoryParameters();

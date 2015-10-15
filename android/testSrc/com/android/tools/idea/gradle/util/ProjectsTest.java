@@ -31,7 +31,7 @@ import static org.easymock.EasyMock.*;
  */
 public class ProjectsTest extends IdeaTestCase {
   public void testIsGradleProjectWithRegularProject() {
-    assertFalse(Projects.isGradleProject(myProject));
+    assertFalse(Projects.requiresAndroidModel(myProject));
   }
 
   public void testIsGradleProject() {
@@ -45,7 +45,7 @@ public class ProjectsTest extends IdeaTestCase {
       facetModel.commit();
     }
 
-    assertTrue(Projects.isGradleProject(myProject));
+    assertTrue(Projects.requiresAndroidModel(myProject));
   }
 
   public void testGetSelectedModules() {

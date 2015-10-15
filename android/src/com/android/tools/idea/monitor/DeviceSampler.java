@@ -23,10 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public abstract class DeviceSampler implements Runnable {
   /**
@@ -46,7 +43,7 @@ public abstract class DeviceSampler implements Runnable {
    */
   public static final int INHERITED_TYPE_START = 3;
 
-  @NotNull protected final TimelineData myData;
+  @NotNull protected TimelineData myTimelineData;
   @NotNull protected final List<TimelineEventListener> myListeners = Lists.newLinkedList();
   protected int mySampleFrequencyMs;
   /**
@@ -57,9 +54,11 @@ public abstract class DeviceSampler implements Runnable {
   @Nullable protected volatile Client myClient;
   @NotNull private final Semaphore myDataSemaphore;
   protected volatile boolean myRunning;
+  protected volatile CountDownLatch myTaskStatus;
+  protected volatile boolean myIsPaused;
 
-  public DeviceSampler(@NotNull TimelineData data, int sampleFrequencyMs) {
-    myData = data;
+  public DeviceSampler(@NotNull TimelineData timelineData, int sampleFrequencyMs) {
+    myTimelineData = timelineData;
     mySampleFrequencyMs = sampleFrequencyMs;
     myDataSemaphore = new Semaphore(0, true);
   }
@@ -68,6 +67,7 @@ public abstract class DeviceSampler implements Runnable {
   public void start() {
     if (myExecutingTask == null && myClient != null) {
       myRunning = true;
+      myTaskStatus = new CountDownLatch(1);
       myExecutingTask = ApplicationManager.getApplication().executeOnPooledThread(this);
       myClient.setHeapInfoUpdateEnabled(true);
 
@@ -82,18 +82,13 @@ public abstract class DeviceSampler implements Runnable {
     if (myExecutingTask != null) {
       myRunning = false;
       myDataSemaphore.release();
-      myData.clear();
 
+      myExecutingTask.cancel(true);
       try {
-        // Wait for the task to finish.
-        myExecutingTask.get();
+        myTaskStatus.await();
       }
-      catch (InterruptedException e) {
-        // Ignore
-      }
-      catch (ExecutionException e) {
-        // Rethrow the original cause of the exception on this thread.
-        throw new RuntimeException(e.getCause());
+      catch (InterruptedException ignored) {
+        // We're stopping anyway, so just ignore the interruption.
       }
 
       if (myClient != null) {
@@ -106,13 +101,54 @@ public abstract class DeviceSampler implements Runnable {
     }
   }
 
-  public void setClient(@Nullable Client client) {
-    if (client != myClient) {
+  @NotNull
+  public TimelineData getTimelineData() {
+    return myTimelineData;
+  }
+
+  protected boolean requiresSamplerRestart(@Nullable Client client) {
+    return client != myClient;
+  }
+
+  public final void setClient(@Nullable Client client) {
+    if (requiresSamplerRestart(client)) {
       stop();
       myClient = client;
-      myData.clear();
+      prepareSampler(client);
+      myTimelineData.clear();
+      if (!myIsPaused) {
+        start();
+      }
+    }
+  }
+
+  public final void setIsPaused(boolean paused) {
+    myIsPaused = paused;
+    if (myIsPaused) {
+      if (myClient != null) {
+        stop();
+      }
+    }
+    else {
+      myTimelineData.clear();
+      prepareSampler(myClient);
       start();
     }
+  }
+
+  public final boolean getIsPaused() {
+    return myIsPaused;
+  }
+
+  protected void prepareSampler(@Nullable Client client) {
+  }
+
+  /**
+   * This method returns a local copy of <code>myClient</code>, as it is volatile.
+   */
+  @Nullable
+  public Client getClient() {
+    return myClient;
   }
 
   public void addListener(TimelineEventListener listener) {
@@ -134,25 +170,27 @@ public abstract class DeviceSampler implements Runnable {
       try {
         long start = System.currentTimeMillis();
         boolean acquired = myDataSemaphore.tryAcquire(timeToWait, TimeUnit.MILLISECONDS);
-        if (myRunning) {
+        if (myRunning && !myIsPaused) {
           sample(acquired);
         }
         timeToWait -= System.currentTimeMillis() - start;
         if (timeToWait <= 0) {
           timeToWait = mySampleFrequencyMs;
         }
+        Client client = myClient; // needed because myClient is volatile
+        if ((client == null) || !client.isValid()) {
+          stop();
+        }
       }
       catch (InterruptedException e) {
         myRunning = false;
       }
     }
+    myTaskStatus.countDown();
   }
 
   @NotNull
   public abstract String getName();
-
-  @NotNull
-  public abstract String getDescription();
 
   protected abstract void sample(boolean forced) throws InterruptedException;
 }

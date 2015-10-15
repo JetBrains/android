@@ -23,6 +23,7 @@ import com.android.sdklib.IAndroidTarget.OptionalLibrary;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.logcat.AdbErrors;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -57,12 +58,14 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.JarFileSystem;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.actions.AndroidRunDdmsAction;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.logcat.AdbErrors;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,7 +80,7 @@ import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
 import static com.android.tools.idea.sdk.Jdks.chooseOrCreateJavaSdk;
 import static com.android.tools.idea.sdk.Jdks.createJdk;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.google.common.base.Joiner.on;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
@@ -88,6 +91,7 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.jetbrains.android.actions.AndroidEnableAdbServiceAction.setAdbServiceEnabled;
 import static org.jetbrains.android.facet.AndroidRootUtil.getProjectPropertyValue;
 import static org.jetbrains.android.facet.AndroidRootUtil.getPropertyValue;
@@ -97,8 +101,6 @@ import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
 import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 import static org.jetbrains.android.util.AndroidCommonUtils.platformToolPath;
 import static org.jetbrains.android.util.AndroidUtils.ANDROID_TARGET_PROPERTY;
-
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 /**
  * @author Eugene.Kudelevsky
@@ -340,6 +342,11 @@ public final class AndroidSdkUtils {
                                              @NotNull String sdkName,
                                              @Nullable Sdk jdk,
                                              boolean addRoots) {
+    if (!target.getAdditionalLibraries().isEmpty()) {
+      // Do not create an IntelliJ SDK for add-ons. Add-ons should be handled as module-level library dependencies.
+      return null;
+    }
+
     ProjectJdkTable table = ProjectJdkTable.getInstance();
     String tmpName = createUniqueSdkName(SDK_NAME, Arrays.asList(table.getAllJdks()));
 
@@ -883,7 +890,7 @@ public final class AndroidSdkUtils {
       return String.format("API %d+: %s", target.getVersion().getApiLevel(), target.getName());
     }
     String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
-    if (name != null) {
+    if (isNotEmpty(name)) {
       return name;
     }
     String release = target.getProperty("ro.build.version.release"); //$NON-NLS-1$

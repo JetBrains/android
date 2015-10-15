@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.npw.WizardUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +40,7 @@ public class SdkPaths {
    */
   @NotNull
   public static ValidationResult validateAndroidSdk(@Nullable File sdkPath, boolean includePathInMessage) {
-    return validatedSdkPath(sdkPath, "SDK", true, includePathInMessage);
+    return validatedSdkPath(sdkPath, "SDK", false, includePathInMessage);
   }
 
   /**
@@ -51,24 +52,28 @@ public class SdkPaths {
    */
   @NotNull
   public static ValidationResult validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage) {
+    if (ndkPath != null) {
+      WizardUtils.ValidationResult wizardValidationResult =
+        WizardUtils.validateLocation(ndkPath.getAbsolutePath(), "Android NDK location", false, false);
+      if (!wizardValidationResult.isOk()) {
+        return ValidationResult.error(wizardValidationResult.getFormattedMessage());
+      }
+    }
     ValidationResult validationResult = validatedSdkPath(ndkPath, "NDK", false, includePathInMessage);
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    File toolchainsDirPath = new File(ndkPath, "toolchains");
-    if (!toolchainsDirPath.isDirectory()) {
-      String message;
-      if (includePathInMessage) {
-        message = String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", ndkPath.getPath());
+    if (validationResult.success && ndkPath != null) {
+      File toolchainsDirPath = new File(ndkPath, "toolchains");
+      if (!toolchainsDirPath.isDirectory()) {
+        String message;
+        if (includePathInMessage) {
+          message = String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", ndkPath.getPath());
+        }
+        else {
+          message = "NDK does not contain any toolchains.";
+        }
+        return ValidationResult.error(message);
       }
-      else {
-        message = "NDK does not contain any toolchains.";
-      }
-      return ValidationResult.error(message);
     }
-
-    return ValidationResult.SUCCESS;
+    return validationResult;
   }
 
   @NotNull

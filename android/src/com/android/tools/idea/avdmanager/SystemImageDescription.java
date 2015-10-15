@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.ISystemImage;
+import com.android.sdklib.*;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.IPkgDescAddon;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.google.common.base.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -42,6 +42,24 @@ public final class SystemImageDescription {
   public SystemImageDescription(IPkgDesc remotePackage, IAndroidTarget target) {
     this.myRemotePackage = remotePackage;
     this.myTarget = target;
+  }
+
+  static boolean hasSystemImage(IPkgDesc desc) {
+    if (desc.getType().equals(PkgType.PKG_SYS_IMAGE) ||
+        desc.getType().equals(PkgType.PKG_ADDON_SYS_IMAGE)) {
+      return true;
+    }
+    // Platforms up to 13 included a bundled system image
+    if (desc.getType().equals(PkgType.PKG_PLATFORM) && desc.getAndroidVersion().getApiLevel() <= 13) {
+      return true;
+    }
+    // Google APIs addons up to 18 included a bundled system image
+    if (desc.getType().equals(PkgType.PKG_ADDON) && desc.hasVendor() && desc.getVendor().getId().equals("google") &&
+        ((IPkgDescAddon)desc).getName().getId().equals("google_apis") && desc.getAndroidVersion().getApiLevel() <= 18) {
+      return true;
+    }
+
+    return false;
   }
 
   @Override
@@ -78,33 +96,43 @@ public final class SystemImageDescription {
     return myRemotePackage != null;
   }
 
-  @Nullable
+  @NotNull
   public String getAbiType() {
     if (mySystemImage != null) {
       return mySystemImage.getAbiType();
     }
-    else if (myRemotePackage.getType() == PkgType.PKG_SYS_IMAGE || myRemotePackage.getType() == PkgType.PKG_ADDON_SYS_IMAGE) {
+    PkgType type = myRemotePackage.getType();
+    if (type == PkgType.PKG_SYS_IMAGE || type == PkgType.PKG_ADDON_SYS_IMAGE) {
       return myRemotePackage.getPath();
+    }
+    else if (type == PkgType.PKG_PLATFORM || type == PkgType.PKG_ADDON) {
+      // Bundled images don't specify the abi, but in practice they're all arm.
+      return "armeabi";
     }
     else {
       return "";
     }
   }
 
-  @Nullable
+  @NotNull
   public IdDisplay getTag() {
     if (mySystemImage != null) {
       return mySystemImage.getTag();
     }
-    return myRemotePackage.getTag();
+    // for normal system images, the tag will be e.g. google_apis. Bundled images don't have a tag; instead use the name.
+    if (myRemotePackage.getType() == PkgType.PKG_ADDON) {
+      return ((IPkgDescAddon)myRemotePackage).getName();
+    }
+    IdDisplay tag = myRemotePackage.getTag();
+    if (tag != null) {
+      return tag;
+    }
+    return SystemImage.DEFAULT_TAG;
   }
 
   public String getName() {
-    if (myTarget != null) {
-      return myTarget.getFullName();
-    }
-    if (myRemotePackage != null) {
-      return String.format("%s not installed", myRemotePackage.getAndroidVersion());
+    if (getVersion() != null) {
+      return String.format("Android %s", SdkVersionInfo.getVersionString(getVersion().getFeatureLevel()));
     }
     return "Unknown platform";
   }

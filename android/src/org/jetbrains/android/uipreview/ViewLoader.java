@@ -28,6 +28,10 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.util.Pair;
 import com.android.utils.HtmlBuilder;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -60,10 +64,16 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  */
 @SuppressWarnings("deprecation") // The Pair class is required by the IProjectCallback
 public class ViewLoader {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.ViewLoader");
+  private static final Logger LOG = Logger.getInstance(ViewLoader.class);
+  /** Number of instances of a custom view that are allowed to nest inside itself. */
+  private static final int ALLOWED_NESTED_VIEWS = 100;
 
   @NotNull private final Module myModule;
-  @NotNull private final Map<String, Class<?>> myLoadedClasses = new HashMap<String, Class<?>>();
+  @NotNull private final Map<String, Class<?>> myLoadedClasses = Maps.newHashMap();
+  /** Classes that are being loaded currently. */
+  @NotNull private final Multiset<Class<?>> myLoadingClasses = HashMultiset.create(5);
+  /** Classes that have been modified after compilation. */
+  @NotNull private final Set<String> myRecentlyModifiedClasses = Sets.newHashSetWithExpectedSize(5);
   @Nullable private final Object myCredential;
   @NotNull private RenderLogger myLogger;
   @NotNull private final LayoutLibrary myLayoutLibrary;
@@ -151,9 +161,19 @@ public class ViewLoader {
 
       if (aClass != null) {
         checkModified(className);
-        final Object viewObject = createNewInstance(aClass, constructorSignature, constructorArgs, isView);
-        myLoadedClasses.put(className, aClass);
-        return viewObject;
+        if (myLoadingClasses.count(aClass) > ALLOWED_NESTED_VIEWS) {
+          throw new InstantiationException(
+            "The layout involves creation of " + className + " over " + ALLOWED_NESTED_VIEWS + " levels deep. Infinite recursion?");
+        }
+        myLoadingClasses.add(aClass);
+        try {
+          final Object viewObject = createNewInstance(aClass, constructorSignature, constructorArgs, isView);
+          myLoadedClasses.put(className, aClass);
+          return viewObject;
+        }
+        finally {
+          myLoadingClasses.remove(aClass);
+        }
       }
     }
     catch (InconvertibleClassError e) {
@@ -189,7 +209,8 @@ public class ViewLoader {
 
   /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
   private void checkModified(@NotNull String fqcn) {
-    if (myModuleClassLoader != null && myModuleClassLoader.isSourceModified(fqcn, myCredential)) {
+    if (myModuleClassLoader != null && myModuleClassLoader.isSourceModified(fqcn, myCredential) && !myRecentlyModifiedClasses.contains(fqcn)) {
+      myRecentlyModifiedClasses.add(fqcn);
       RenderProblem.Html problem = RenderProblem.create(WARNING);
       HtmlBuilder builder = problem.getHtmlBuilder();
       String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);

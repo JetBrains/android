@@ -17,7 +17,9 @@ package com.android.tools.idea.templates;
 
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.model.AndroidModel;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -27,6 +29,8 @@ import org.mockito.Mockito;
 import org.w3c.dom.Element;
 
 import javax.imageio.metadata.IIOMetadataNode;
+
+import java.util.Set;
 
 import static com.android.tools.idea.templates.Template.*;
 import static org.junit.Assume.assumeTrue;
@@ -50,8 +54,8 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);
-    IdeaAndroidProject gradleProject = myAndroidFacet.getIdeaAndroidProject();
-    assertNotNull(gradleProject);
+    AndroidModel androidModel = AndroidGradleModel.get(myAndroidFacet);
+    assertNotNull(androidModel);
 
     // Set up modules
     for (Module m : ModuleManager.getInstance(getProject()).getModules()) {
@@ -71,8 +75,9 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
 
-    assertNotNull(myAppFacet.getIdeaAndroidProject());
-    ProductFlavorContainer paidFlavor = myAppFacet.getIdeaAndroidProject().findProductFlavor("paid");
+    assertNotNull(myAppFacet.getAndroidModel());
+    // TODO: b/23032990
+    ProductFlavorContainer paidFlavor = AndroidGradleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     myPaidSourceProvider = paidFlavor.getSourceProvider();
     assertNotNull(myPaidSourceProvider);
@@ -96,58 +101,57 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
   }
 
   private void assertViolates(@Nullable String packageName, @Nullable SourceProvider provider,
-                              @Nullable String value, Parameter.Constraint c) {
-    assertTrue(myParameter.validateStringType(getProject(), myAppModule, provider, packageName, value).contains(c));
+                              @Nullable String value, Parameter.Constraint c, Set<Object> relatedValues) {
+    assertTrue(myParameter.validateStringType(getProject(), myAppModule, provider, packageName, value, relatedValues).contains(c));
   }
 
   private void assertPasses(@Nullable String packageName, @Nullable SourceProvider provider,
-                            @Nullable String value, Parameter.Constraint c) {
-    assertFalse(myParameter.validateStringType(getProject(), myAppModule, provider, packageName, value).contains(c));
+                            @Nullable String value, Parameter.Constraint c, Set<Object> relatedValues) {
+    assertFalse(myParameter.validateStringType(getProject(), myAppModule, provider, packageName, value, relatedValues).contains(c));
   }
 
-  private void assertViolates(@Nullable String value, Parameter.Constraint c) {
-    assertTrue(myParameter.validateStringType(getProject(), myAppModule, null, null, value).contains(c));
+  private void assertViolates(@Nullable String value, Parameter.Constraint c, Set<Object> relatedValues) {
+    assertTrue(myParameter.validateStringType(getProject(), myAppModule, null, null, value, relatedValues).contains(c));
   }
 
-  private void assertPasses(@Nullable String value, Parameter.Constraint c) {
-    assertFalse(myParameter.validateStringType(getProject(), myAppModule, null, null, value).contains(c));
+  private void assertPasses(@Nullable String value, Parameter.Constraint c, Set<Object> relatedValues) {
+    assertFalse(myParameter.validateStringType(getProject(), myAppModule, null, null, value, relatedValues).contains(c));
   }
-
 
   public void testUniqueLayout() throws Exception {
     myParameter.constraints.add(Parameter.Constraint.LAYOUT);
     myParameter.constraints.add(Parameter.Constraint.UNIQUE);
 
-    assertViolates(null, myMainSourceProvider, "activity_main", UNIQUE);
-    assertViolates(null, myMainSourceProvider, "fragment_main", UNIQUE);
+    assertViolates(null, myMainSourceProvider, "activity_main", UNIQUE, null);
+    assertViolates(null, myMainSourceProvider, "fragment_main", UNIQUE, null);
 
-    assertPasses(null, myPaidSourceProvider, "activity_main", UNIQUE);
-    assertPasses(null, myPaidSourceProvider, "fragment_main", UNIQUE);
+    assertPasses(null, myPaidSourceProvider, "activity_main", UNIQUE, null);
+    assertPasses(null, myPaidSourceProvider, "fragment_main", UNIQUE, null);
 
-    assertPasses(null, myMainSourceProvider, "blahblahblah", UNIQUE);
+    assertPasses(null, myMainSourceProvider, "blahblahblah", UNIQUE, null);
   }
 
   public void testUniqueDrawable() throws Exception {
     myParameter.constraints.add(Parameter.Constraint.DRAWABLE);
     myParameter.constraints.add(Parameter.Constraint.UNIQUE);
 
-    assertViolates(null, myMainSourceProvider, "drawer_shadow", UNIQUE);
-    assertViolates(null, myMainSourceProvider, "ic_launcher", UNIQUE);
+    assertViolates(null, myMainSourceProvider, "drawer_shadow", UNIQUE, null);
+    assertViolates(null, myMainSourceProvider, "ic_launcher", UNIQUE, null);
 
-    assertPasses(null, myPaidSourceProvider, "drawer_shadow", UNIQUE);
-    assertPasses(null, myPaidSourceProvider, "ic_launcher", UNIQUE);
+    assertPasses(null, myPaidSourceProvider, "drawer_shadow", UNIQUE, null);
+    assertPasses(null, myPaidSourceProvider, "ic_launcher", UNIQUE, null);
 
-    assertPasses(null, myMainSourceProvider, "blahblahblah", UNIQUE);
+    assertPasses(null, myMainSourceProvider, "blahblahblah", UNIQUE, null);
   }
 
   public void testUniqueModule() throws Exception {
     myParameter.constraints.add(Parameter.Constraint.MODULE);
     myParameter.constraints.add(Parameter.Constraint.UNIQUE);
 
-    assertViolates(null, null, "app", UNIQUE);
-    assertViolates(null, null, "lib", UNIQUE);
+    assertViolates(null, null, "app", UNIQUE, null);
+    assertViolates(null, null, "lib", UNIQUE, null);
 
-    assertPasses(null, null, "foo", UNIQUE);
+    assertPasses(null, null, "foo", UNIQUE, null);
   }
 
   // Existence check is the same for PACKAGE and APP_PACKAGE
@@ -155,38 +159,48 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
     myParameter.constraints.add(Parameter.Constraint.PACKAGE);
     myParameter.constraints.add(Parameter.Constraint.UNIQUE);
 
-    assertViolates("com.example.projectwithappandlib", UNIQUE);
-    assertViolates("com.example.projectwithappandlib.app", UNIQUE);
+    assertViolates("com.example.projectwithappandlib", UNIQUE, null);
+    assertViolates("com.example.projectwithappandlib.app", UNIQUE, null);
 
     // Ensure distinction between source sets
-    assertViolates(null, myPaidSourceProvider, "com.example.projectwithappandlib.app.paid", UNIQUE);
-    assertPasses(null, myMainSourceProvider, "com.example.projectwithappandlib.app.paid", UNIQUE);
+    assertViolates(null, myPaidSourceProvider, "com.example.projectwithappandlib.app.paid", UNIQUE, null);
+    assertPasses(null, myMainSourceProvider, "com.example.projectwithappandlib.app.paid", UNIQUE, null);
 
-    assertPasses("com.example.foo", UNIQUE);
+    assertPasses("com.example.foo", UNIQUE, null);
 
-    assertPasses("org.android.blah", UNIQUE);
+    assertPasses("org.android.blah", UNIQUE, null);
   }
 
   public void testUniqueClass() throws Exception {
     myParameter.constraints.add(Parameter.Constraint.CLASS);
     myParameter.constraints.add(Parameter.Constraint.UNIQUE);
 
-    assertViolates("com.example.projectwithappandlib.app", myMainSourceProvider, "MainActivity", UNIQUE);
-    assertViolates("com.example.projectwithappandlib.app", myMainSourceProvider, "NavigationDrawerFragment", UNIQUE);
+    assertViolates("com.example.projectwithappandlib.app", myMainSourceProvider, "MainActivity", UNIQUE, null);
+    assertViolates("com.example.projectwithappandlib.app", myMainSourceProvider, "NavigationDrawerFragment", UNIQUE, null);
 
-    assertViolates("com.example.projectwithappandlib.app.paid", myPaidSourceProvider, "BlankFragment", UNIQUE);
+    assertViolates("com.example.projectwithappandlib.app.paid", myPaidSourceProvider, "BlankFragment", UNIQUE, null);
 
-    assertPasses("com.example.foo", myMainSourceProvider, "MainActivity", UNIQUE);
+    assertPasses("com.example.foo", myMainSourceProvider, "MainActivity", UNIQUE, null);
 
-    assertPasses("com.example.projectwithappandlib.app", myMainSourceProvider, "MainActivity2", UNIQUE);
-    assertPasses("com.example.projectwithappandlib.app", myPaidSourceProvider, "MainActivity", UNIQUE);
+    assertPasses("com.example.projectwithappandlib.app", myMainSourceProvider, "MainActivity2", UNIQUE, null);
+    assertPasses("com.example.projectwithappandlib.app", myPaidSourceProvider, "MainActivity", UNIQUE, null);
   }
 
   public void testUniqueLayoutWithLayoutAlias() throws Exception {
     myParameter.constraints.add(Parameter.Constraint.LAYOUT);
     myParameter.constraints.add(Parameter.Constraint.UNIQUE);
 
-    assertViolates(null, myMainSourceProvider, "fragment_foo", UNIQUE);
-    assertPasses(null, myPaidSourceProvider, "fragment_foo", UNIQUE);
+    assertViolates(null, myMainSourceProvider, "fragment_foo", UNIQUE, null);
+    assertPasses(null, myPaidSourceProvider, "fragment_foo", UNIQUE, null);
+  }
+
+  public void testRelatedValue() throws Exception {
+    myParameter.constraints.add(Parameter.Constraint.UNIQUE);
+
+    assertViolates(null, myPaidSourceProvider, "fragment_foo", UNIQUE, ImmutableSet.<Object>of("bar", "fragment_foo"));
+    assertPasses(null, myPaidSourceProvider, "fragment_foo", UNIQUE, ImmutableSet.<Object>of("bar", "fragment_bar"));
+
+    myParameter.constraints.remove(Parameter.Constraint.UNIQUE);
+    assertPasses(null, myPaidSourceProvider, "fragment_foo", UNIQUE, ImmutableSet.<Object>of("bar", "fragment_foo"));
   }
 }

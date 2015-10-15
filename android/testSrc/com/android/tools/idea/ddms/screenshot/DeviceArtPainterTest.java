@@ -38,11 +38,18 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.DeviceData;
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.FrameData;
 
+/**
+ * If adding a new device (new device art), run the tests to generate crop data and insert
+ * this into the device art descriptors for the new devices, then look at generateCropData
+ * and remove the early exit to have that method generate new, updated (cropped) images
+ * and adjusted device-art descriptors.
+ */
 public class DeviceArtPainterTest extends TestCase {
   public void testGenerateCropData() throws Exception {
     // TODO: Assert that the crop data is right
@@ -51,7 +58,8 @@ public class DeviceArtPainterTest extends TestCase {
 
   public void testRendering() throws Exception {
     // This test is disabled but code is preserved here; this is handy for quickly checking rendering results
-    // when tweaking the code to assemble composite images. (Make sure you also turn off the thumbnail cache first!
+    // when tweaking the code to assemble composite images. (Make sure you also turn off the thumbnail cache first! (Return
+    // null from DeviceArtPainter#getCachedImage).
     //noinspection ConstantConditions
     if (false) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
@@ -207,18 +215,18 @@ public class DeviceArtPainterTest extends TestCase {
 
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   private static Device newDevice() throws Exception {
-    java.util.List<Device> devices;
+    Collection<Device> devices;
     InputStream stream = null;
     try {
       stream = DeviceSchemaTest.class.getResourceAsStream("devices_minimal.xml");
-      devices = DeviceParser.parse(stream);
+      devices = DeviceParser.parse(stream).values();
     } finally {
       if (stream != null) {
         stream.close();
       }
     }
     assertTrue(!devices.isEmpty());
-    return devices.get(0);
+    return devices.iterator().next();
   }
 
   @Nullable

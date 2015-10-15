@@ -15,11 +15,10 @@
  */
 package org.jetbrains.android.spellchecker;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.lint.client.api.DefaultConfiguration;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -108,17 +107,16 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
     if (AndroidResourceUtil.isIdDeclaration((XmlAttributeValue)element)) {
       return myAttributeValueRenamingTokenizer;
     }
-    final PsiElement parent = element.getParent();
+    PsiElement parent = element.getParent();
 
     if (parent instanceof XmlAttribute) {
-      final String value = ((XmlAttribute)parent).getValue();
+      String value = ((XmlAttribute)parent).getValue();
 
       if (value != null) {
-        final GenericAttributeValue domValue = DomManager.getDomManager(
-          parent.getProject()).getDomElement((XmlAttribute)parent);
+        GenericAttributeValue domValue = DomManager.getDomManager(parent.getProject()).getDomElement((XmlAttribute)parent);
 
         if (domValue != null) {
-          final Converter converter = domValue.getConverter();
+          Converter converter = domValue.getConverter();
 
           if (converter instanceof ResourceReferenceConverter) {
             return myResourceReferenceTokenizer;
@@ -145,8 +143,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
     if (!(parent instanceof XmlTag)) {
       return false;
     }
-    final DomElement domElement = DomManager.getDomManager(
-      element.getProject()).getDomElement((XmlTag)parent);
+    DomElement domElement = DomManager.getDomManager(element.getProject()).getDomElement((XmlTag)parent);
     if (domElement instanceof AndroidDomElement) {
       return inEnglish(element);
     }
@@ -155,9 +152,8 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
   }
 
   /**
-   * Returns true if the given element is in an XML file that is in an English resource.
-   * Manifest files are considered to be in English, as are resources in base folders
-   * (unless a locale is explicitly defined on the root element)
+   * @return {@code true} if the given element is in an XML file that is in an English resource. Manifest files are considered to be in
+   * English, as are resources in base folders (unless a locale is explicitly defined on the root element).
    */
   private static boolean inEnglish(PsiElement element) {
     XmlFile file = PsiTreeUtil.getParentOfType(element, XmlFile.class);
@@ -165,22 +161,24 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
       String name = file.getName();
       if (name.equals(ANDROID_MANIFEST_XML)) {
         return true;
-      } else if (name.equals("generated.xml")) {
+      }
+      else if (name.equals("generated.xml")) {
         // Android Studio Workaround for issue https://code.google.com/p/android/issues/detail?id=76715
         // If this a generated file like this:
         //   ${project}/${module}/build/generated/res/generated/{test?}/${flavors}/${build-type}/values/generated.xml
         // ? If so, skip it.
         AndroidFacet facet = AndroidFacet.getInstance(file);
         VirtualFile virtualFile = file.getVirtualFile();
-        if (facet != null && facet.isGradleProject() && virtualFile != null) {
-          IdeaAndroidProject project = facet.getIdeaAndroidProject();
-          if (project != null) {
-            VirtualFile buildFolder = VfsUtil.findFileByIoFile(project.getDelegate().getBuildFolder(), false);
-            if (buildFolder != null && VfsUtilCore.isAncestor(buildFolder, virtualFile, false)) {
-              return false;
-            }
+        if (facet != null && facet.requiresAndroidModel() && virtualFile != null) {
+          AndroidModel androidModel = facet.getAndroidModel();
+          if (androidModel != null && androidModel.isGenerated(virtualFile)) {
+            return false;
           }
         }
+      }
+      else if (name.equals(DefaultConfiguration.CONFIG_FILE_NAME)) {
+        // lint config file: should not be spell checked
+        return false;
       }
       PsiDirectory dir = file.getParent();
       if (dir != null) {
@@ -218,8 +216,8 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
     }
 
     @Override
-    public void tokenize(@NotNull final XmlAttributeValue element, final TokenConsumer consumer) {
-      final AndroidResourceReferenceBase reference = findResourceReference(element);
+    public void tokenize(@NotNull XmlAttributeValue element, TokenConsumer consumer) {
+      AndroidResourceReferenceBase reference = findResourceReference(element);
 
       if (reference != null) {
         if (reference.getResourceValue().getPackage() == null) {

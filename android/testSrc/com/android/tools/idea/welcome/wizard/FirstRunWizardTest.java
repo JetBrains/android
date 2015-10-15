@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
 import com.android.tools.idea.welcome.install.ComponentCategory;
-import com.android.tools.idea.wizard.DynamicWizard;
-import com.android.tools.idea.wizard.DynamicWizardStep;
-import com.android.tools.idea.wizard.ScopedStateStore;
-import com.android.tools.idea.wizard.ScopedStateStore.Key;
-import com.android.tools.idea.wizard.SingleStepPath;
+import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -96,12 +96,8 @@ public final class FirstRunWizardTest extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
-    try {
-      myFixture.tearDown();
-    }
-    finally {
-      super.tearDown();
-    }
+    myFixture.tearDown();
+    super.tearDown();
   }
 
   public void testStepsVisibility() {

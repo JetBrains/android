@@ -18,89 +18,118 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.configurations.DeviceMenuAction;
-import com.android.tools.idea.configurations.ThemeSelectionDialog;
-import com.android.tools.idea.editors.theme.attributes.*;
-import com.android.tools.idea.editors.theme.attributes.editors.*;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
+import com.android.tools.idea.editors.theme.attributes.AttributesModelColorPaletteModel;
+import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
+import com.android.tools.idea.editors.theme.attributes.TableLabel;
+import com.android.tools.idea.editors.theme.attributes.editors.StyleListPaletteCellRenderer;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
-import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.GradleBuildListener;
-import com.android.tools.idea.gradle.util.BuildMode;
-import com.google.common.base.Strings;
+import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.android.tools.idea.rendering.ResourceNotificationManager;
+import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
-import com.intellij.ui.JBColor;
-import com.intellij.util.Processor;
-import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.ui.*;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
-import org.jetbrains.android.dom.resources.Flag;
-import org.jetbrains.android.dom.resources.ResourceElement;
-import org.jetbrains.android.dom.resources.Style;
-import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.PanelUI;
-import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 
 public class ThemeEditorComponent extends Splitter {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
 
-  private static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFAFAFA), new Color(0x606162));
+  private static final JBColor PREVIEW_BACKGROUND = new JBColor(new Color(0xFFFFFF), new Color(0x343739));
+  private static final DefaultTableModel EMPTY_TABLE_MODEL = new DefaultTableModel();
 
-  public static final float HEADER_FONT_SCALE = 1.3f;
+  private static final ImmutableMap<String, Integer> SORTING_MAP =
+    ImmutableMap.<String, Integer>builder()
+      .put(MaterialColors.PRIMARY_MATERIAL_ATTR, 1)
+      .put(MaterialColors.PRIMARY_DARK_MATERIAL_ATTR, 2)
+      .put(MaterialColors.ACCENT_MATERIAL_ATTR, 3)
+      .build();
+
+  /**
+   * Comparator used for simple mode attribute sorting
+   */
+  public static final Comparator SIMPLE_MODE_COMPARATOR = new Comparator() {
+    @Override
+    public int compare(Object o1, Object o2) {
+      // The parent attribute goes always first
+      if (o1 instanceof ThemeEditorStyle) {
+        return -1;
+      } else if (o2 instanceof ThemeEditorStyle) {
+        return 1;
+      }
+
+      if (o1 instanceof EditedStyleItem && o2 instanceof EditedStyleItem) {
+        Integer pos1 = SORTING_MAP.get(((EditedStyleItem)o1).getName());
+        Integer pos2 = SORTING_MAP.get(((EditedStyleItem)o2).getName());
+        if (pos1 != null && pos2 != null) {
+          return pos1 - pos2;
+        }
+        if (pos1 != null) {
+          return -1;
+        }
+        if (pos2 != null) {
+          return 1;
+        }
+        return ((EditedStyleItem)o1).compareTo((EditedStyleItem)o2);
+      }
+
+      // Fall-back for other comparisons
+      return Ordering.usingToString().compare(o1, o2);
+    }
+  };
+
   public static final int REGULAR_CELL_PADDING = 4;
   public static final int LARGE_CELL_PADDING = 10;
   private final Project myProject;
 
-  private Font myHeaderFont;
-
-  private StyleResolver myStyleResolver;
-  private String myPreviousSelectedTheme;
-
-  // Points to the current selected substyle within the theme.
-  private ThemeEditorStyle myCurrentSubStyle;
-
-  // Points to the attribute that original pointed to the substyle.
   private EditedStyleItem mySubStyleSourceAttribute;
+
+  // Name of current selected Theme
+  private String myThemeName;
+  // Name of current selected subStyle within the theme
+  private String mySubStyleName;
 
   // Subcomponents
   private final ThemeEditorContext myThemeEditorContext;
@@ -110,53 +139,56 @@ public class ThemeEditorComponent extends Splitter {
   private TableRowSorter<AttributesTableModel> myAttributesSorter;
   private final SimpleModeFilter mySimpleModeFilter;
 
-  private final AttributesPanel myPanel = new AttributesPanel();
-  private final ThemeEditorTable myAttributesTable = myPanel.getAttributesTable();
+  private final AttributesPanel myPanel;
+  private final ThemeEditorTable myAttributesTable;
 
-  private final AttributeReferenceRendererEditor myStyleEditor;
-  private final GoToListener myGoToListener;
+  private final ResourceChangeListener myResourceChangeListener;
+  private boolean myIsSubscribedResourceNotification;
+  private MutableCollectionComboBoxModel<Module> myModuleComboModel;
+
+  /** Next pending search. The {@link ScheduledFuture} allows us to cancel the next search before it runs. */
+  private ScheduledFuture<?> myScheduledSearch;
+
+  private String myHoverPreviewTheme;
 
   public interface GoToListener {
     void goTo(@NotNull EditedStyleItem value);
     void goToParent();
   }
 
-  private ThemeEditorStyle mySelectedTheme;
-  private MessageBusConnection myMessageBusConnection;
   private AttributesTableModel myModel;
 
   public ThemeEditorComponent(@NotNull final Project project) {
     myProject = project;
+    myPanel = new AttributesPanel();
 
-    // TODO(ddrone):
-    // The expensive call is done here only to acquire initial instance of Configuration and Module
-    // This should be optimized somehow, maybe setting Configuration and Module to null in the context initially?
-    final ImmutableList<ProjectThemeResolver.ThemeWithSource> editableProjectThemes =
-      ProjectThemeResolver.getEditableProjectThemes(project);
-    ProjectThemeResolver.ThemeWithSource firstTheme = Iterables.getFirst(editableProjectThemes, null);
+    initializeModulesCombo(null);
 
-    // TODO(ddrone): get non-project theme (e.g. Theme.Material) here in case there are no project themes
-    assert firstTheme != null : "Trying to launch Theme Editor without any themes";
+    final JComboBox moduleCombo = myPanel.getModuleCombo();
+    moduleCombo.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        reload(myThemeName, mySubStyleName, getSelectedModule().getName());
+      }
+    });
+    moduleCombo.setRenderer(new ListCellRendererWrapper<Module>() {
+      @Override
+      public void customize(JList list, Module value, int index, boolean selected, boolean hasFocus) {
+        setText(value.getName());
+      }
+    });
 
-    final Module module = firstTheme.getSourceModule();
-    AndroidFacet facet = AndroidFacet.getInstance(module);
+    final Module selectedModule = myModuleComboModel.getSelected();
+    assert selectedModule != null;
 
-    // Module is a source of a theme, thus, should be Android module
-    assert facet != null : String.format("Module %s is not Android module", module.getName());
+    final Configuration configuration = ThemeEditorUtils.getConfigurationForModule(selectedModule);
 
-    ConfigurationManager configurationManager = facet.getConfigurationManager();
-    final VirtualFile projectFile = project.getProjectFile();
-    assert projectFile != null;
-
-    final Configuration configuration = configurationManager.getConfiguration(projectFile);
-
-    myThemeEditorContext = new ThemeEditorContext(configuration, module);
+    myThemeEditorContext = new ThemeEditorContext(configuration);
     myThemeEditorContext.addConfigurationListener(new ConfigurationListener() {
       @Override
       public boolean changed(int flags) {
-
-        //reloads the theme editor preview when device is modified
-        if ((flags & CFG_DEVICE) != 0) {
+        // reloads the theme editor preview when the configuration folder is updated
+        if ((flags & MASK_FOLDERCONFIG) != 0) {
           loadStyleAttributes();
           myThemeEditorContext.getConfiguration().save();
         }
@@ -165,22 +197,14 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    myStyleResolver = new StyleResolver(configuration);
-
     myPreviewPanel = new AndroidThemePreviewPanel(myThemeEditorContext, PREVIEW_BACKGROUND);
     myPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-    // Setup Javadoc handler.
-    ActionManager actionManager = ActionManager.getInstance();
-    ShowJavadocAction showJavadoc = new ShowJavadocAction(myAttributesTable, myThemeEditorContext);
-    showJavadoc.registerCustomShortcutSet(actionManager.getAction(IdeActions.ACTION_QUICK_JAVADOC).getShortcutSet(), myAttributesTable);
-
-    ResourcesCompletionProvider completionProvider = new ResourcesCompletionProvider(myThemeEditorContext);
-    myGoToListener = new GoToListener() {
+    GoToListener goToListener = new GoToListener() {
       @Override
       public void goTo(@NotNull EditedStyleItem value) {
         ResourceResolver resolver = myThemeEditorContext.getResourceResolver();
-        if (value.isAttr() && getSelectedStyle() != null && resolver != null) {
+        if (value.isAttr() && getUsedStyle() != null && resolver != null) {
           // We need to resolve the theme attribute.
           // TODO: Do we need a full resolution or can we just try to get it from the StyleWrapper?
           ItemResourceValue resourceValue = (ItemResourceValue)resolver.findResValue(value.getValue(), false);
@@ -189,18 +213,10 @@ public class ThemeEditorComponent extends Splitter {
             return;
           }
 
-          EditedStyleItem editedStyleItem = new EditedStyleItem(resourceValue, getSelectedStyle());
-
-          assert editedStyleItem.getValue() != null;
-          myCurrentSubStyle = myStyleResolver.getStyle(editedStyleItem.getValue());
+          mySubStyleName = ResolutionUtils.getQualifiedValue(resourceValue);
         }
         else {
-          if (value.getValue() == null) {
-            LOG.error("null value for " + value.getName());
-            return;
-          }
-
-          myCurrentSubStyle = myStyleResolver.getStyle(value.getValue());
+          mySubStyleName = value.getValue();
         }
         mySubStyleSourceAttribute = value;
         loadStyleAttributes();
@@ -211,52 +227,11 @@ public class ThemeEditorComponent extends Splitter {
         ThemeEditorComponent.this.goToParent();
       }
     };
-    myStyleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
 
+    myAttributesTable = myPanel.getAttributesTable();
+    myAttributesTable.customizeTable(myThemeEditorContext, myPreviewPanel);
+    myAttributesTable.setGoToListener(goToListener);
 
-    final JScrollPane scroll = myPanel.getAttributesScrollPane();
-    scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)); // the scroll pane should fill all available space
-
-    myAttributesTable.setBackground(null); // Get rid of default white background of the table.
-    scroll.setBackground(null); // needed for OS X, as by default is set to white
-    scroll.getViewport().setBackground(null); // needed for OS X, as by default is set to white
-
-    myAttributesTable.setDefaultRenderer(Color.class, new DelegatingCellRenderer(new ColorRenderer(myThemeEditorContext)));
-    myAttributesTable.setDefaultRenderer(EditedStyleItem.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
-    myAttributesTable.setDefaultRenderer(ThemeEditorStyle.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
-    myAttributesTable.setDefaultRenderer(String.class, new DelegatingCellRenderer(myAttributesTable.getDefaultRenderer(String.class)));
-    myAttributesTable.setDefaultRenderer(Integer.class, new DelegatingCellRenderer(new IntegerRenderer()));
-    myAttributesTable.setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(new BooleanRendererEditor(myThemeEditorContext)));
-    myAttributesTable.setDefaultRenderer(Enum.class, new DelegatingCellRenderer(new EnumRendererEditor()));
-    myAttributesTable.setDefaultRenderer(Flag.class, new DelegatingCellRenderer(new FlagRendererEditor()));
-    myAttributesTable.setDefaultRenderer(AttributesTableModel.ParentAttribute.class, new DelegatingCellRenderer(new ParentRendererEditor(myThemeEditorContext)));
-    myAttributesTable.setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(new DrawableRenderer(myThemeEditorContext)));
-    myAttributesTable.setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
-      @Override
-      public Component getTableCellRendererComponent(JTable table,
-                                                     Object value,
-                                                     boolean isSelected,
-                                                     boolean hasFocus,
-                                                     int row,
-                                                     int column) {
-        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        this.setFont(myHeaderFont);
-        return this;
-      }
-    });
-
-    myAttributesTable.setDefaultEditor(Color.class, new DelegatingCellEditor(false, new ColorEditor(myThemeEditorContext, myPreviewPanel), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(EditedStyleItem.class, new DelegatingCellEditor(false, new AttributeReferenceRendererEditor(project, completionProvider), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(String.class, new DelegatingCellEditor(false, myAttributesTable.getDefaultEditor(String.class), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(Integer.class, new DelegatingCellEditor(myAttributesTable.getDefaultEditor(Integer.class), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(Boolean.class, new DelegatingCellEditor(false, new BooleanRendererEditor(myThemeEditorContext), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(Enum.class, new DelegatingCellEditor(false, new EnumRendererEditor(), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(Flag.class, new DelegatingCellEditor(false, new FlagRendererEditor(), myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(AttributesTableModel.ParentAttribute.class, new DelegatingCellEditor(false, new ParentRendererEditor(myThemeEditorContext), myThemeEditorContext));
-
-    // We allow to edit style pointers as Strings.
-    myAttributesTable.setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, myStyleEditor, myThemeEditorContext));
-    myAttributesTable.setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableEditor(myThemeEditorContext), myThemeEditorContext));
     updateUiParameters();
 
     myAttributesFilter = new StyleAttributesFilter();
@@ -265,7 +240,7 @@ public class ThemeEditorComponent extends Splitter {
     myPanel.getBackButton().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        myCurrentSubStyle = null;
+        mySubStyleName = null;
         loadStyleAttributes();
       }
     });
@@ -287,43 +262,63 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    // We have our own custom renderer that it's not based on the default one.
-    //noinspection GtkPreferredJComboBoxRenderer
-    myPanel.getThemeCombo().setRenderer(new StyleListCellRenderer(myThemeEditorContext));
+    myPanel.getThemeCombo()
+      .setRenderer(new StyleListPaletteCellRenderer(myThemeEditorContext, new StyleListPaletteCellRenderer.ItemHoverListener() {
+        @Override
+        public void itemHovered(@NotNull String name) {
+          if (!name.equals(myHoverPreviewTheme)) {
+            mySubStyleName = null;
+            mySubStyleSourceAttribute = null;
+            refreshPreviewPanel(name);
+          }
+        }
+      }, myPanel.getThemeCombo()));
+
     myPanel.getThemeCombo().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (myPanel.isCreateNewThemeSelected()) {
-          if (!createNewTheme()) {
-            // User clicked "cancel", restore previously selected item in themes combo.
-            myPanel.setSelectedTheme(mySelectedTheme);
-          }
-        }
-        else if (myPanel.isShowAllThemesSelected()) {
-          if (!selectNewTheme()) {
-            myPanel.setSelectedTheme(mySelectedTheme);
-          }
-        }
-        else if (myPanel.isRenameSelected()) {
-          if (!renameTheme()) {
-            myPanel.setSelectedTheme(mySelectedTheme);
-          }
-        }
-        else {
-          Object item = myPanel.getThemeCombo().getSelectedItem();
-          final ThemeEditorStyle theme = ThemesListModel.getStyle(item);
-          assert theme != null;
-
-          mySelectedTheme = theme;
-          saveCurrentSelectedTheme();
-          myCurrentSubStyle = null;
+        String selectedItem = (String)myPanel.getThemeCombo().getSelectedItem();
+        if (!ThemesListModel.isSpecialOption(selectedItem)) {
+          myThemeName = selectedItem;
+          myHoverPreviewTheme = null;
+          mySubStyleName = null;
           mySubStyleSourceAttribute = null;
 
-          if (item instanceof ProjectThemeResolver.ThemeWithSource) {
-            myThemeEditorContext.setCurrentThemeModule(((ProjectThemeResolver.ThemeWithSource)item).getSourceModule());
-          }
           loadStyleAttributes();
         }
+        else {
+          // Keep current theme name in combo box
+          myPanel.setSelectedTheme(myThemeName);
+
+          if (ThemesListModel.CREATE_NEW_THEME.equals(selectedItem)) {
+            createNewTheme();
+          }
+          else if (ThemesListModel.SHOW_ALL_THEMES.equals(selectedItem)) {
+            selectNewTheme();
+          }
+          else {
+            renameTheme();
+          }
+        }
+      }
+    });
+
+    myPanel.getThemeCombo().addPopupMenuListener(new PopupMenuListener() {
+
+      @Override
+      public void popupMenuWillBecomeVisible(PopupMenuEvent popupMenuEvent) {
+      }
+
+      @Override
+      public void popupMenuWillBecomeInvisible(PopupMenuEvent popupMenuEvent) {
+        myHoverPreviewTheme = null;
+        mySubStyleName = null;
+        mySubStyleSourceAttribute = null;
+        loadStyleAttributes();
+      }
+
+      @Override
+      public void popupMenuCanceled(PopupMenuEvent popupMenuEvent) {
       }
     });
 
@@ -337,44 +332,170 @@ public class ThemeEditorComponent extends Splitter {
 
     // Adds the Device selection button
     DefaultActionGroup group = new DefaultActionGroup();
-    DeviceMenuAction deviceAction = new DeviceMenuAction(myPreviewPanel);
-    group.add(deviceAction);
+    group.add(new OrientationMenuAction(myPreviewPanel, false));
+    group.add(new DeviceMenuAction(myPreviewPanel, false));
+    group.add(new TargetMenuAction(myPreviewPanel, true, false));
+    group.add(new LocaleMenuAction(myPreviewPanel, false));
+
+    ActionManager actionManager = ActionManager.getInstance();
     ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
-    JPanel myConfigToolbar = myPanel.getConfigToolbar();
-    myConfigToolbar.add(actionToolbar.getComponent());
 
-    setFirstComponent(myPreviewPanel);
+    final JPanel toolbar = new JPanel(null);
+    toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
+    toolbar.setBorder(BorderFactory.createMatteBorder(7, 14, 7, 14, PREVIEW_BACKGROUND));
+    toolbar.setBackground(PREVIEW_BACKGROUND);
+
+    final JComponent actionToolbarComponent = actionToolbar.getComponent();
+    actionToolbarComponent.setBackground(PREVIEW_BACKGROUND);
+    // The action toolbar is not always populated immediately.
+    // Wait to make sure the components exist before setting their background.
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        for (Component component : actionToolbarComponent.getComponents()) {
+          component.setBackground(PREVIEW_BACKGROUND);
+        }
+      }
+    });
+    toolbar.add(actionToolbarComponent);
+
+    final SearchTextField textField = new SearchTextField(true);
+    // Avoid search box stretching more than 1 line.
+    textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
+    textField.setBackground(PREVIEW_BACKGROUND);
+    // If the text field has icons outside of the search field, their background needs to be set correctly
+    for (Component component : textField.getComponents()) {
+      if (component instanceof JLabel) {
+        component.setBackground(PREVIEW_BACKGROUND);
+      }
+    }
+
+    final ScheduledExecutorService searchUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
+    textField.addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        if (myScheduledSearch != null) {
+          myScheduledSearch.cancel(false);
+        }
+
+        myScheduledSearch = searchUpdateScheduler.schedule(new Runnable() {
+          @Override
+          public void run() {
+            myPreviewPanel.setSearchTerm(textField.getText());
+          }
+        }, 300, TimeUnit.MILLISECONDS);
+      }
+    });
+    toolbar.add(textField);
+
+    final JPanel previewPanel = new JPanel(new BorderLayout());
+    previewPanel.add(myPreviewPanel, BorderLayout.CENTER);
+    previewPanel.add(toolbar, BorderLayout.NORTH);
+
+    setFirstComponent(previewPanel);
     setSecondComponent(myPanel.getRightPanel());
     setShowDividerControls(false);
 
-    myMessageBusConnection = project.getMessageBus().connect(project);
-    myMessageBusConnection.subscribe(PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC, new GradleBuildListener() {
+    myResourceChangeListener = new ResourceChangeListener() {
       @Override
-      public void buildFinished(@NotNull Project project, @Nullable BuildMode mode) {
-        if (project != myThemeEditorContext.getProject()) {
-          return;
-        }
-
-        // Classes probably have changed so reload the custom components and support library classes.
-        myPreviewPanel.reloadComponents();
-        myPreviewPanel.revalidate();
-        myPreviewPanel.repaint();
+      public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
+        myThemeEditorContext.updateThemeResolver();
+        reload(myThemeName, mySubStyleName);
       }
-    });
+    };
 
     // Set an initial state in case that the editor didn't have a previously saved state
     // TODO: Try to be smarter about this and get the ThemeEditor to set a default state where there is no previous state
     reload(null);
   }
 
+  @NotNull
+  public Module getSelectedModule() {
+    final Module module = myModuleComboModel.getSelected();
+    assert module != null;
+
+    return module;
+  }
+
+  private void initializeModulesCombo(@Nullable String defaultModuleName) {
+    final ImmutableList<Module> modules = ThemeEditorUtils.findAndroidModules(myProject);
+    assert modules.size() > 0 : "Theme Editor shouldn't be launched in a project with no Android modules";
+
+    Module defaultModule = null;
+    for (Module module : modules) {
+      if (module.getName().equals(defaultModuleName)) {
+        defaultModule = module;
+        break;
+      }
+    }
+
+    if (defaultModule == null) {
+      myModuleComboModel = new MutableCollectionComboBoxModel<Module>(modules);
+    }
+    else {
+      myModuleComboModel = new MutableCollectionComboBoxModel<Module>(modules, defaultModule);
+    }
+
+    final JComboBox moduleCombo = myPanel.getModuleCombo();
+    moduleCombo.setModel(myModuleComboModel);
+  }
+
+  /**
+   * Subscribes myResourceChangeListener to ResourceNotificationManager with current AndroidFacet.
+   * By subscribing, myResourceChangeListener can track all internal and external changes in resources.
+   */
+  private void subscribeResourceNotification() {
+    // Already subscribed, we check this, because sometimes selectNotify can be called twice
+    if (myIsSubscribedResourceNotification) {
+      return;
+    }
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
+    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentContextModule());
+    assert facet != null : myThemeEditorContext.getCurrentContextModule().getName() + " module doesn't have an AndroidFacet";
+    manager.addListener(myResourceChangeListener, facet, null, null);
+    myIsSubscribedResourceNotification = true;
+  }
+
+  /**
+   * Unsubscribes myResourceChangeListener from ResourceNotificationManager with current AndroidFacet.
+   */
+  private void unsubscribeResourceNotification() {
+    if (myIsSubscribedResourceNotification) {
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
+      AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentContextModule());
+      assert facet != null : myThemeEditorContext.getCurrentContextModule().getName() + " module doesn't have an AndroidFacet";
+      manager.removeListener(myResourceChangeListener, facet, null, null);
+      myIsSubscribedResourceNotification = false;
+    }
+  }
+
+  /**
+   * @see FileEditor#selectNotify().
+   */
+  public void selectNotify() {
+    reload(myThemeName, mySubStyleName);
+    // TODO calling reload will call subscribeResourceNotification, so why call it here?
+    subscribeResourceNotification();
+  }
+
+  /**
+   * @see FileEditor#deselectNotify().
+   */
+  public void deselectNotify() {
+    unsubscribeResourceNotification();
+  }
+
   private void configureFilter() {
     if (myPanel.isAdvancedMode()) {
       myAttributesFilter.setFilterEnabled(false);
       myAttributesSorter.setRowFilter(myAttributesFilter);
+      myAttributesSorter.setSortKeys(null);
     } else {
-      mySimpleModeFilter.configure(myModel.getDefinedAttributes());
+      mySimpleModeFilter
+        .configure(myModel.getDefinedAttributes(), ThemeEditorUtils.isSelectedAppCompatTheme(myThemeEditorContext));
       myAttributesSorter.setRowFilter(mySimpleModeFilter);
+      myAttributesSorter.setSortKeys(ImmutableList.of(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
     }
   }
 
@@ -383,12 +504,11 @@ public class ThemeEditorComponent extends Splitter {
    * @return whether creation of new theme succeeded.
    */
   private boolean createNewTheme() {
-    ThemeEditorStyle selectedTheme = getSelectedStyle();
-    String selectedThemeName = selectedTheme == null ? null : selectedTheme.getName();
-
-    String newThemeName = createNewStyle(selectedThemeName, null/*message*/, null/*newAttributeName*/, null/*newAttributeValue*/);
+    String newThemeName = ThemeEditorUtils.showCreateNewStyleDialog(getSelectedTheme(), myThemeEditorContext, !isSubStyleSelected(), null);
     if (newThemeName != null) {
-      reload(newThemeName);
+      // We don't need to call reload here, because myResourceChangeListener will take care of it
+      myThemeName = newThemeName;
+      mySubStyleName = null;
       return true;
     }
     return false;
@@ -403,6 +523,7 @@ public class ThemeEditorComponent extends Splitter {
     if (dialog.showAndGet()) {
       String newThemeName = dialog.getTheme();
       if (newThemeName != null) {
+        // TODO: call loadStyleProperties instead
         reload(newThemeName);
         return true;
       }
@@ -415,8 +536,10 @@ public class ThemeEditorComponent extends Splitter {
    * @return Whether the renaming is successful
    */
   private boolean renameTheme() {
-    assert mySelectedTheme.isProjectStyle();
-    PsiElement namePsiElement = mySelectedTheme.getNamePsiElement();
+    ThemeEditorStyle selectedTheme = getSelectedTheme();
+    assert selectedTheme != null;
+    assert selectedTheme.isProjectStyle();
+    PsiElement namePsiElement = selectedTheme.getNamePsiElement();
     if (namePsiElement == null) {
       return false;
     }
@@ -424,127 +547,55 @@ public class ThemeEditorComponent extends Splitter {
     renameDialog.show();
     if (renameDialog.isOK()) {
       String newName = renameDialog.getNewName();
-      String newQualifiedName = mySelectedTheme.getName().replace(mySelectedTheme.getSimpleName(), newName);
-      AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
-      if (facet != null) {
-        facet.refreshResources();
-      }
-      reload(newQualifiedName);
+      // We don't need to call reload here, because myResourceChangeListener will take care of it
+      myThemeName = selectedTheme.getQualifiedName().replace(selectedTheme.getName(), newName);
+      mySubStyleName = null;
       return true;
     }
     return false;
   }
 
   public void goToParent() {
-    ThemeEditorStyle selectedStyle = getSelectedStyle();
+    ThemeEditorStyle selectedStyle = getUsedStyle();
     if (selectedStyle == null) {
       LOG.error("No style selected.");
       return;
     }
 
-    ThemeEditorStyle parent = getSelectedStyle().getParent();
+    ThemeEditorStyle parent = getUsedStyle().getParent(myThemeEditorContext.getThemeResolver());
     assert parent != null;
 
     // TODO: This seems like it could be confusing for users, we might want to differentiate parent navigation depending if it's
     // substyle or theme navigation.
     if (isSubStyleSelected()) {
-      myCurrentSubStyle = parent;
+      mySubStyleName = parent.getQualifiedName();
       loadStyleAttributes();
     }
     else {
-      myPanel.setSelectedTheme(parent);
+      myPanel.setSelectedTheme(parent.getQualifiedName());
     }
-  }
-
-  /**
-   * Creates a new theme by displaying the {@link NewStyleDialog}. If newAttributeName is not null, a new attribute will be added to the
-   * style with the value specified in newAttributeValue.
-   * An optional message can be displayed as hint to the user of why the theme is being created.
-   * @return the new style name or null if the style wasn't created.
-   */
-  @Nullable
-  private String createNewStyle(@Nullable String defaultParentStyleName,
-                                @Nullable String message,
-                                @Nullable final String newAttributeName,
-                                @Nullable final String newAttributeValue) {
-    final NewStyleDialog dialog = new NewStyleDialog(!isSubStyleSelected() /*isTheme*/,
-                                                     myThemeEditorContext,
-                                                     defaultParentStyleName,
-                                                     getSelectedTheme() != null ? getSelectedTheme().getSimpleName() : null,
-                                                     message);
-    boolean createStyle = dialog.showAndGet();
-    if (!createStyle) {
-      return null;
-    }
-
-    final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
-    final List<String> dirNames = Collections.singletonList(ResourceFolderType.VALUES.getName());
-
-    if (fileName == null) {
-      LOG.error("Couldn't find a default filename for ResourceType.STYLE");
-      return null;
-    }
-    boolean isCreated = AndroidResourceUtil
-      .createValueResource(myThemeEditorContext.getCurrentThemeModule(), dialog.getStyleName(), ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {
-        @Override
-        public boolean process(ResourceElement element) {
-          assert element instanceof Style;
-          final Style style = (Style)element;
-
-          style.getParentStyle().setStringValue(dialog.getStyleParentName());
-
-          if (!Strings.isNullOrEmpty(newAttributeName)) {
-            StyleItem newItem = style.addItem();
-            newItem.getName().setStringValue(newAttributeName);
-
-            if (!Strings.isNullOrEmpty(newAttributeValue)) {
-              newItem.setStringValue(newAttributeValue);
-            }
-          }
-
-          return true;
-        }
-      });
-
-    if (isCreated) {
-      AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentThemeModule());
-      if (facet != null) {
-        facet.refreshResources();
-      }
-    }
-
-    return isCreated ? SdkConstants.STYLE_RESOURCE_PREFIX + dialog.getStyleName() : null;
-  }
-
-  /**
-   * Save the current selected theme so we can restore it if we need to refresh the data.
-   * If the theme does not exist anymore, the first available theme will be selected.
-   */
-  private void saveCurrentSelectedTheme() {
-    ThemeEditorStyle selectedTheme = getSelectedStyle();
-    myPreviousSelectedTheme = selectedTheme == null ? null : selectedTheme.getName();
   }
 
   @Nullable
-  public String getPreviousSelectedTheme() {
-    return myPreviousSelectedTheme;
+  ThemeEditorStyle getHoveredTheme() {
+    if (myHoverPreviewTheme != null) {
+      return myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
+    }
+    return null;
   }
 
   @Nullable
   ThemeEditorStyle getSelectedTheme() {
-    return mySelectedTheme;
-  }
-
-  //Never null, because DefaultComboBoxModel and fixed list of items rendered
-  @NotNull
-  private AttributesGrouper.GroupBy getSelectedAttrGroup() {
-    return (AttributesGrouper.GroupBy)myPanel.getAttrGroupCombo().getSelectedItem();
+    if (myThemeName != null) {
+      return myThemeEditorContext.getThemeResolver().getTheme(myThemeName);
+    }
+    return null;
   }
 
   @Nullable
-  private ThemeEditorStyle getSelectedStyle() {
-    if (myCurrentSubStyle != null) {
-      return myCurrentSubStyle;
+  private ThemeEditorStyle getUsedStyle() {
+    if (mySubStyleName != null) {
+      return getCurrentSubStyle();
     }
 
     return getSelectedTheme();
@@ -552,11 +603,20 @@ public class ThemeEditorComponent extends Splitter {
 
   @Nullable
   ThemeEditorStyle getCurrentSubStyle() {
-    return myCurrentSubStyle;
+    if (mySubStyleName == null) {
+      return null;
+    }
+    return myThemeEditorContext.getThemeResolver().getTheme(mySubStyleName);
   }
 
   private boolean isSubStyleSelected() {
-    return myCurrentSubStyle != null;
+    return mySubStyleName != null;
+  }
+
+  // Never null, because the list of elements of attGroup is constant and never changed
+  @NotNull
+  private AttributesGrouper.GroupBy getSelectedAttrGroup() {
+    return (AttributesGrouper.GroupBy)myPanel.getAttrGroupCombo().getSelectedItem();
   }
 
   /**
@@ -564,33 +624,45 @@ public class ThemeEditorComponent extends Splitter {
    * @param rv The attribute to set, including the current value.
    * @param strValue The new value.
    */
-  private void createNewThemeWithAttributeValue(@NotNull EditedStyleItem rv, @NotNull String strValue) {
+  private void createNewThemeWithAttributeValue(@NotNull final EditedStyleItem rv, @NotNull final String strValue) {
     if (strValue.equals(rv.getValue())) {
       // No modification required.
       return;
     }
 
-    ThemeEditorStyle selectedStyle = getSelectedStyle();
+    ThemeEditorStyle selectedStyle = getUsedStyle();
     if (selectedStyle == null) {
       LOG.error("No style/theme selected.");
       return;
     }
 
     // The current style is R/O so we need to propagate this change a new style.
-    String newStyleName = createNewStyle(selectedStyle.getName(), String
+    String message = String
       .format("<html>The %1$s '<code>%2$s</code>' is Read-Only.<br/>A new %1$s will be created to modify '<code>%3$s</code>'.<br/></html>",
-              isSubStyleSelected() ? "style" : "theme",
-              selectedStyle.getName(),
-              rv.getName()), rv.getQualifiedName(), strValue);
+              isSubStyleSelected() ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getName());
+
+    final String newStyleName = ThemeEditorUtils.showCreateNewStyleDialog(selectedStyle, myThemeEditorContext, !isSubStyleSelected(), message);
 
     if (newStyleName == null) {
       return;
     }
 
+    // Need invokeLater to wait for the theme resolver to be aware of the newly created style through the resource change listener
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        myThemeEditorContext.updateThemeResolver();
+        ThemeEditorStyle newStyle = myThemeEditorContext.getThemeResolver().getTheme(newStyleName);
+        assert newStyle != null;
+        newStyle.setValue(rv.getQualifiedName(), strValue);
+      }
+    });
+
     if (!isSubStyleSelected()) {
       // We changed a theme, so we are done.
-      reload(newStyleName);
-
+      // We don't need to call reload, because myResourceChangeListener will take care of it
+      myThemeName = newStyleName;
+      mySubStyleName = null;
       return;
     }
 
@@ -603,25 +675,42 @@ public class ThemeEditorComponent extends Splitter {
     // Decide what property we need to modify.
     // If the modified style was pointed by a theme attribute, we need to use that theme attribute value
     // as property. Otherwise, just update the original property name with the new style.
-    String sourcePropertyName = mySubStyleSourceAttribute.isAttr() ?
-                                mySubStyleSourceAttribute.getAttrPropertyName():
-                                mySubStyleSourceAttribute.getQualifiedName();
+    final String sourcePropertyName = mySubStyleSourceAttribute.isAttr() ?
+                                      mySubStyleSourceAttribute.getAttrPropertyName():
+                                      mySubStyleSourceAttribute.getQualifiedName();
 
     // We've modified a sub-style so we need to modify the attribute that was originally pointing to this.
     if (selectedTheme.isReadOnly()) {
-      // The theme pointing to the new style is r/o so create a new theme and then write the value.
-      String newThemeName = createNewStyle(selectedTheme.getName(), String.format(
-        "<html>The style '%1$s' which references to '%2$s' is also Read-Only.<br/>" +
-        "A new theme will be created to point to the modified style '%3$s'.<br/></html>", selectedTheme.getName(), rv.getName(),
-        newStyleName), sourcePropertyName, newStyleName);
 
+      // The theme pointing to the new style is r/o so create a new theme and then write the value.
+      message = String.format("<html>The style '%1$s' which references to '%2$s' is also Read-Only.<br/>" +
+                              "A new theme will be created to point to the modified style '%3$s'.<br/></html>",
+                              selectedTheme.getQualifiedName(), rv.getName(), newStyleName);
+
+      final String newThemeName = ThemeEditorUtils.showCreateNewStyleDialog(selectedTheme, myThemeEditorContext, true, message);
       if (newThemeName != null) {
-        reload(newThemeName);
+        // We don't need to call reload, because myResourceChangeListener will take care of it
+        myThemeName = newThemeName;
+        mySubStyleName = newStyleName;
+
+        // Need invokeLater to wait for the theme resolver to be aware of the newly created theme through the resource change listener
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            myThemeEditorContext.updateThemeResolver();
+            ThemeEditorStyle newTheme = myThemeEditorContext.getThemeResolver().getTheme(newThemeName);
+            assert newTheme != null;
+            newTheme.setValue(sourcePropertyName, newStyleName);
+          }
+        });
       }
-    } else {
+    }
+    else {
       // The theme pointing to the new style is writable, so go ahead.
-      selectedTheme.setValue(sourcePropertyName, newStyleName);
-      reload(selectedTheme.getName());
+      FolderConfiguration configurationToModify = selectedTheme.findBestConfiguration(myThemeEditorContext.getConfiguration().getFullConfig());
+      selectedTheme.setValue(configurationToModify, sourcePropertyName, newStyleName);
+      // We don't need to call reload, because myResourceChangeListener will take care of it
+      mySubStyleName = newStyleName;
     }
   }
 
@@ -634,88 +723,77 @@ public class ThemeEditorComponent extends Splitter {
   }
 
   public void reload(@Nullable final String defaultThemeName, @Nullable final String defaultSubStyleName) {
-    // This is required since the configuration could have a link to a non existent theme (if it was removed).
-    // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
-    // fails to find the local themes.
-    Configuration configuration = myThemeEditorContext.getConfiguration();
-    configuration.setTheme(null);
+    reload(defaultThemeName, defaultSubStyleName, getSelectedModule().getName());
+  }
 
-    myStyleResolver = new StyleResolver(configuration);
-    myCurrentSubStyle = defaultSubStyleName == null ? null : myStyleResolver.getStyle(defaultSubStyleName);
+  public void reload(@Nullable final String defaultThemeName, @Nullable final String defaultSubStyleName, @Nullable final String defaultModuleName) {
+    // Need to clean myHoverPreviewTheme, because we are no longer "hovering".
+    myHoverPreviewTheme = null;
+
+    // Unsubscribing from ResourceNotificationManager, because Module might be changed
+    unsubscribeResourceNotification();
+
+    initializeModulesCombo(defaultModuleName);
+    myThemeEditorContext.setCurrentContextModule(getSelectedModule());
+
+    // Subscribes to ResourceNotificationManager with new facet
+    subscribeResourceNotification();
+
     mySubStyleSourceAttribute = null;
 
-    final ThemeResolver themeResolver = new ThemeResolver(configuration, myStyleResolver);
-    myPanel.getThemeCombo().setModel(new ThemesListModel(myProject, themeResolver, defaultThemeName));
+    final ThemeResolver themeResolver = myThemeEditorContext.getThemeResolver();
+    myPanel.getThemeCombo().setModel(
+      new ThemesListModel(myThemeEditorContext, ThemeEditorUtils.getDefaultThemeNames(themeResolver), defaultThemeName));
+    myThemeName = (String)myPanel.getThemeCombo().getSelectedItem();
+    mySubStyleName = (StringUtil.equals(myThemeName, defaultThemeName)) ? defaultSubStyleName : null;
     loadStyleAttributes();
-    mySelectedTheme = myPanel.getSelectedTheme();
-    saveCurrentSelectedTheme();
   }
 
   /**
    * Loads the theme attributes table for the current selected theme or substyle.
    */
   private void loadStyleAttributes() {
-    mySelectedTheme = myPanel.getSelectedTheme();
-    final ThemeEditorStyle selectedTheme = getSelectedTheme();
-    final ThemeEditorStyle selectedStyle = getSelectedStyle();
+    ThemeEditorStyle selectedTheme = getHoveredTheme();
+    ThemeEditorStyle selectedStyle = null;
 
-    if (selectedTheme == null || selectedStyle == null) {
-      LOG.error("No style/theme selected");
+    if (selectedTheme == null) {
+      selectedTheme = getSelectedTheme();
+      selectedStyle = getCurrentSubStyle();
+    }
+
+    myAttributesTable.setRowSorter(null); // Clean any previous row sorters.
+
+    if (selectedTheme == null) {
+      myPreviewPanel.setError(myThemeName);
+      myAttributesTable.setModel(EMPTY_TABLE_MODEL);
       return;
     }
 
-    myPanel.setSubstyleName(myCurrentSubStyle == null ? null : myCurrentSubStyle.getName());
-
-    myPanel.getBackButton().setVisible(myCurrentSubStyle != null);
+    myPreviewPanel.setError(null);
+    myThemeEditorContext.setCurrentTheme(selectedTheme);
+    myPanel.setSubstyleName(mySubStyleName);
+    myPanel.getBackButton().setVisible(mySubStyleName != null);
     final Configuration configuration = myThemeEditorContext.getConfiguration();
-    configuration.setTheme(selectedTheme.getName());
+    configuration.setTheme(selectedTheme.getQualifiedName());
 
     assert configuration.getResourceResolver() != null; // ResourceResolver is only null if no theme was set.
-    myModel = new AttributesTableModel(selectedStyle, getSelectedAttrGroup(), configuration, myThemeEditorContext.getProject());
-    myModel.setGoToDefinitionListener(myGoToListener);
+    myModel = new AttributesTableModel(configuration, selectedStyle != null ? selectedStyle : selectedTheme,
+                                       getSelectedAttrGroup(), myThemeEditorContext);
 
     myModel.addThemePropertyChangedListener(new AttributesTableModel.ThemePropertyChangedListener() {
       @Override
       public void attributeChangedOnReadOnlyTheme(final EditedStyleItem attribute, final String newValue) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            createNewThemeWithAttributeValue(attribute, newValue);
-          }
-        });
+        createNewThemeWithAttributeValue(attribute, newValue);
       }
     });
 
-    myModel.addTableModelListener(new TableModelListener() {
-      @Override
-      public void tableChanged(final TableModelEvent e) {
-        // We ran this with invokeLater to allow any PSI rescans to run and update the modification count.
-        // If we don't use invokeLater, it will still work with the previous cached PSI file value.
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            if (e.getType() == TableModelEvent.UPDATE) {
-              if (e.getLastRow() == TableModelEvent.HEADER_ROW) { // Indicates a change of the model
-                myAttributesTable.updateRowHeights();
-              }
-              else if (e.getLastRow() == 0) {
-                // Theme parent has been changed, needs reloading to update attributes
-                reload(myPreviousSelectedTheme);
-              }
-            }
-
-            myPreviewPanel.invalidateGraphicsRenderer();
-            myPreviewPanel.revalidate();
-            myAttributesTable.repaint();
-          }
-        });
-      }
-    });
-
-    myAttributesTable.setRowSorter(null); // Clean any previous row sorters.
     myAttributesSorter = new TableRowSorter<AttributesTableModel>(myModel);
+    // This is only used when the sort keys are set (only set in simple mode).
+    myAttributesSorter.setComparator(0, SIMPLE_MODE_COMPARATOR);
+
     configureFilter();
 
+    myAttributesTable.removeEditor();
     myAttributesTable.setModel(myModel);
     myAttributesTable.setRowSorter(myAttributesSorter);
     myAttributesTable.updateRowHeights();
@@ -750,15 +828,38 @@ public class ThemeEditorComponent extends Splitter {
       }
     });
 
-    //We calling this to trigger tableChanged, which will calculate row heights and rePaint myPreviewPanel
-    myModel.fireTableStructureChanged();
+    myAttributesTable.updateRowHeights();
+    myPreviewPanel.invalidateGraphicsRenderer();
+    myPreviewPanel.revalidate();
+    myAttributesTable.repaint();
+    myPanel.getThemeCombo().repaint();
+  }
+
+  /**
+   * Refreshes the preview panel for theme previews
+   */
+  private void refreshPreviewPanel(@NotNull String hoveredPreviewTheme) {
+    myHoverPreviewTheme = hoveredPreviewTheme;
+
+    ThemeEditorStyle hoveredTheme = myThemeEditorContext.getThemeResolver().getTheme(myHoverPreviewTheme);
+
+    assert hoveredTheme != null;
+
+    myThemeEditorContext.setCurrentTheme(hoveredTheme);
+    final Configuration configuration = myThemeEditorContext.getConfiguration();
+    configuration.setTheme(hoveredTheme.getQualifiedName());
+
+    myPreviewPanel.invalidateGraphicsRenderer();
+    myPreviewPanel.revalidate();
   }
 
   @Override
   public void dispose() {
+    // First remove the table editor so that it won't be called after
+    // objects it relies on, like the module, have themselves been disposed
+    myAttributesTable.removeEditor();
+    myPreviewPanel.dispose();
     myThemeEditorContext.dispose();
-    myMessageBusConnection.disconnect();
-    myMessageBusConnection = null;
     super.dispose();
   }
 
@@ -782,11 +883,11 @@ public class ThemeEditorComponent extends Splitter {
       filterAttributes = new HashSet<String>();
     }
 
-    public void configure(final Set<String> availableAttributes) {
+    public void configure(final Set<String> availableAttributes, boolean appCompat) {
       filterAttributes.clear();
 
       for (final String candidate : ATTRIBUTES_DEFAULT_FILTER) {
-        if (availableAttributes.contains(candidate)) {
+        if (appCompat && availableAttributes.contains(candidate)) {
           filterAttributes.add(candidate);
         } else {
           filterAttributes.add(SdkConstants.ANDROID_NS_NAME_PREFIX + candidate);
@@ -823,7 +924,7 @@ public class ThemeEditorComponent extends Splitter {
         attributeName = value.toString();
       }
 
-      ThemeEditorStyle selectedTheme = getSelectedStyle();
+      ThemeEditorStyle selectedTheme = getUsedStyle();
       if (selectedTheme == null) {
         LOG.error("No theme selected.");
         return false;
@@ -861,7 +962,7 @@ public class ThemeEditorComponent extends Splitter {
     Font regularFont = UIUtil.getLabelFont();
 
     int regularFontSize = getFontMetrics(regularFont).getHeight();
-    myHeaderFont = regularFont.deriveFont(regularFontSize * HEADER_FONT_SCALE);
+    Font headerFont = regularFont.deriveFont(regularFontSize * ThemeEditorConstants.ATTRIBUTES_HEADER_FONT_SCALE);
 
     // The condition below isn't constant, because updateUiParameters() is triggered during
     // construction: constructor of ThemeEditorComponent calls constructor of Splitter, which
@@ -872,16 +973,18 @@ public class ThemeEditorComponent extends Splitter {
       return;
     }
 
-    int headerFontSize = getFontMetrics(myHeaderFont).getHeight();
+    int headerFontSize = getFontMetrics(headerFont).getHeight();
 
-    // Big cells contain two lines of text, and we want some space between them
-    // (thus multiplier is 2.8 rather than 2). Also, we need some padding on top and bottom.
-    int bigCellSize = 2 * regularFontSize + ColorComponent.SUM_PADDINGS;
+    // We calculate the size of the resource cell (drawable and color cells) by creating a ResourceComponent that
+    // we use to measure the preferred size.
+    ResourceComponent sampleComponent = new ResourceComponent();
+    int bigCellSize = sampleComponent.getPreferredSize().height;
     myAttributesTable.setClassHeights(ImmutableMap.of(
       Object.class, regularFontSize + REGULAR_CELL_PADDING,
       Color.class, bigCellSize,
       DrawableDomElement.class, bigCellSize,
-      TableLabel.class, headerFontSize + LARGE_CELL_PADDING
+      TableLabel.class, headerFontSize + LARGE_CELL_PADDING,
+      AttributesTableModel.ParentAttribute.class, bigCellSize
     ));
   }
 }

@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -72,7 +73,7 @@ import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAnd
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
@@ -181,7 +182,7 @@ public class GradleProjectImporter {
 
   /**
    * Requests a project sync with Gradle. If the project import is successful,
-   * {@link com.android.tools.idea.gradle.util.ProjectBuilder#generateSourcesOnly()} will be invoked at the end.
+   * {@link GradleProjectBuilder#generateSourcesOnly()} will be invoked at the end.
    *
    * @param project  the given project. This method does nothing if the project is not an Android-Gradle project.
    * @param listener called after the project has been imported.
@@ -220,6 +221,9 @@ public class GradleProjectImporter {
                                  boolean useCachedProjectData,
                                  boolean generateSourcesOnSuccess,
                                  @Nullable GradleSyncListener listener) {
+    if (GradleSyncState.getInstance(project).isSyncInProgress()) {
+      return;
+    }
     Runnable syncRequest = createSyncRequest(project, IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, useCachedProjectData, listener);
     invokeLaterIfProjectAlive(project, syncRequest);
   }
@@ -227,6 +231,9 @@ public class GradleProjectImporter {
   public void syncProjectSynchronously(@NotNull Project project,
                                        boolean generateSourcesOnSuccess,
                                        @Nullable GradleSyncListener listener) {
+    if (GradleSyncState.getInstance(project).isSyncInProgress()) {
+      return;
+    }
     Runnable syncRequest = createSyncRequest(project, MODAL_SYNC, generateSourcesOnSuccess, false, listener);
     invokeAndWaitIfNeeded(syncRequest);
   }
@@ -254,7 +261,7 @@ public class GradleProjectImporter {
                              @NotNull ProgressExecutionMode progressExecutionMode,
                              @NotNull ImportOptions options,
                              @Nullable final GradleSyncListener listener) throws ConfigurationException {
-    if (isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
+    if (requiresAndroidModel(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
       resetProject(project);
@@ -302,7 +309,7 @@ public class GradleProjectImporter {
         for (Module module : moduleManager.getModules()) {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null) {
-            facet.setIdeaAndroidProject(null);
+            facet.setAndroidModel(null);
           }
         }
       }
@@ -498,9 +505,14 @@ public class GradleProjectImporter {
     if (!preSyncCheckResult.isSuccess()) {
       // User should have already warned that something is not right and sync cannot continue.
       GradleSyncState syncState = GradleSyncState.getInstance(project);
-      syncState.syncStarted(true);
-      createTopLevelProjectAndOpen(project);
-      syncState.syncFailed(nullToEmpty(preSyncCheckResult.getFailureCause()));
+      if (syncState.syncStarted(true)) {
+        createTopLevelProjectAndOpen(project);
+        String cause = nullToEmpty(preSyncCheckResult.getFailureCause());
+        syncState.syncFailed(cause);
+        if (listener != null) {
+          listener.syncFailed(project, cause);
+        }
+      }
       return;
     }
 
@@ -535,7 +547,10 @@ public class GradleProjectImporter {
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
-    GradleSyncState.getInstance(project).syncStarted(!newProject);
+    boolean started = GradleSyncState.getInstance(project).syncStarted(!newProject);
+    if (!started) {
+      return;
+    }
 
     PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(options.generateSourcesOnSuccess);
     ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, false, listener);
@@ -591,14 +606,14 @@ public class GradleProjectImporter {
   private static boolean isCacheMissingModels(@NotNull DataNode<ModuleData> cache, @NotNull Module module) {
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
     if (gradleFacet != null) {
-      DataNode<IdeaGradleProject> gradleDataNode = find(cache, IDE_GRADLE_PROJECT);
+      DataNode<GradleModel> gradleDataNode = find(cache, GRADLE_MODEL);
       if (gradleDataNode == null) {
         return true;
       }
 
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
-        DataNode<IdeaAndroidProject> androidDataNode = find(cache, IDE_ANDROID_PROJECT);
+        DataNode<AndroidGradleModel> androidDataNode = find(cache, ANDROID_MODEL);
         if (androidDataNode == null) {
           return true;
         }
@@ -606,7 +621,7 @@ public class GradleProjectImporter {
       else {
         JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
         if (javaFacet != null) {
-          DataNode<IdeaJavaProject> javaProjectDataNode = find(cache, IDE_JAVA_PROJECT);
+          DataNode<JavaProject> javaProjectDataNode = find(cache, JAVA_PROJECT);
           if (javaProjectDataNode == null) {
             return true;
           }

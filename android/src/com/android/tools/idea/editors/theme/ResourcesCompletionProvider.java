@@ -43,7 +43,7 @@ class ResourcesCompletionProvider implements AttributeReferenceRendererEditor.Co
     ThemeEditorStyle selectedStyle = value.getSourceStyle();
 
     AttributeDefinition attrDefinition =
-      StyleResolver.getAttributeDefinition(selectedStyle.getConfiguration(), value.getItemResourceValue());
+      ResolutionUtils.getAttributeDefinition(selectedStyle.getConfiguration(), value.getSelectedValue());
     if (attrDefinition == null) {
       return Collections.emptyList();
     }

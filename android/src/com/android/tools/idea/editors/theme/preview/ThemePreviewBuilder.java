@@ -16,11 +16,7 @@
 package com.android.tools.idea.editors.theme.preview;
 
 import com.android.SdkConstants;
-import com.google.common.base.Joiner;
-import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -225,7 +221,9 @@ public class ThemePreviewBuilder {
           !component.hasAttributeNS(ANDROID_URI, ATTR_LAYOUT_MARGIN_END)) {
         // Default box around every component.
         setAttribute(component, ATTR_LAYOUT_MARGIN_START, toDp(12));
+        setAttribute(component, ATTR_LAYOUT_MARGIN_LEFT, toDp(12));
         setAttribute(component, ATTR_LAYOUT_MARGIN_END, toDp(12));
+        setAttribute(component, ATTR_LAYOUT_MARGIN_RIGHT, toDp(12));
       }
 
       component.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
@@ -403,9 +401,9 @@ public class ThemePreviewBuilder {
                                            @NotNull String groupColor,
                                            @NotNull List<ComponentDefinition> components,
                                            boolean supressErrors) {
-    Element componentGrouper = document.createElement(RELATIVE_LAYOUT);
-    setAttribute(componentGrouper, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
-    setAttribute(componentGrouper, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    Element componentGrouper = document.createElement(FRAME_LAYOUT);
+    setAttribute(componentGrouper, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
+    setAttribute(componentGrouper, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
     setAttribute(componentGrouper, ATTR_BACKGROUND, "?android:attr/colorBackground");
     setAttribute(componentGrouper, ATTR_PADDING_TOP, toDp(5));
     setAttribute(componentGrouper, ATTR_PADDING_RIGHT, toDp(10));
@@ -415,11 +413,10 @@ public class ThemePreviewBuilder {
 
     Element elementGroup = document.createElement(LINEAR_LAYOUT);
     setAttribute(elementGroup, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
-    setAttribute(elementGroup, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    setAttribute(elementGroup, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
     setAttribute(elementGroup, ATTR_ORIENTATION, group.orientation);
-    setAttribute(elementGroup, ATTR_LAYOUT_CENTER_IN_PARENT, VALUE_TRUE);
-    setAttribute(elementGroup, ATTR_LAYOUT_MARGIN_START, toDp(10));
-    setAttribute(elementGroup, ATTR_LAYOUT_MARGIN_BOTTOM, toDp(50));
+    setAttribute(elementGroup, ATTR_LAYOUT_MARGIN_TOP, toDp(30));
+    setAttribute(elementGroup, ATTR_LAYOUT_MARGIN_BOTTOM, toDp(30));
     setAttribute(elementGroup, ATTR_GRAVITY, GRAVITY_VALUE_CENTER);
     elementGroup.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
@@ -429,7 +426,7 @@ public class ThemePreviewBuilder {
     setAttribute(groupTitle, ATTR_TEXT_SIZE, toSp(GROUP_TITLE_FONT_SIZE));
     setAttribute(groupTitle, "textColor", groupColor);
     setAttribute(groupTitle, "text", group.name);
-    setAttribute(groupTitle, ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, VALUE_TRUE);
+    setAttribute(groupTitle, ATTR_LAYOUT_GRAVITY, VALUE_BOTTOM);
     groupTitle.setAttributeNS(BUILDER_URI, BUILDER_ATTR_GROUP, group.name());
 
     for (ComponentDefinition definition : components) {
