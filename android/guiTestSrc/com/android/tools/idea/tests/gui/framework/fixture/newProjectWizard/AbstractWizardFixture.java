@@ -45,6 +45,9 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
     waitUntilFound(robot(), rootPane, new GenericTypeMatcher<JLabel>(JLabel.class) {
       @Override
       protected boolean isMatching(@NotNull JLabel label) {
+        if (!label.isShowing()) {
+          return false;
+        }
         return title.equals(label.getText());
       }
     });
