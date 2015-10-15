@@ -15,25 +15,15 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.remote.internal.packages.RemotePlatformPkgInfo;
-import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.utils.StdLogger;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Multimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;

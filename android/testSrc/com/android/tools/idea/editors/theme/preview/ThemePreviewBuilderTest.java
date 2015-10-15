@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.theme.preview;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -33,14 +32,12 @@ import javax.xml.xpath.XPathFactory;
 import java.util.HashSet;
 import java.util.List;
 
-import static com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.BUILDER_ATTR_GROUP;
-import static com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.BUILDER_URI;
-import static com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.THEME_PREVIEW_LAYOUT;
+import static com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.*;
 
 public class ThemePreviewBuilderTest extends TestCase {
   // Xpath to search all the components
-  static final String COMPONENTS_XPATH = "/LinearLayout/" + THEME_PREVIEW_LAYOUT + "/RelativeLayout/LinearLayout/*";
-  static final String GROUP_LABELS_XPATH = "/LinearLayout/" + THEME_PREVIEW_LAYOUT + "/RelativeLayout/TextView/";
+  static final String COMPONENTS_XPATH = "/LinearLayout/" + THEME_PREVIEW_LAYOUT + "/FrameLayout/LinearLayout/*";
+  static final String GROUP_LABELS_XPATH = "/LinearLayout/" + THEME_PREVIEW_LAYOUT + "/FrameLayout/TextView/";
 
   public void testEmptyPreview() throws ParserConfigurationException, XPathExpressionException {
     Document document = new ThemePreviewBuilder().build();

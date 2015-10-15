@@ -16,15 +16,20 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.wizard.NewProjectWizardDynamic;
+import com.android.tools.idea.npw.NewProjectWizardDynamic;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidNewProjectAction extends AnAction implements DumbAware {
   public AndroidNewProjectAction() {
-    super("New Project...");
+    this("New Project...");
+  }
+
+  public AndroidNewProjectAction(@NotNull String text) {
+    super(text);
   }
 
   @Override
@@ -34,8 +39,8 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
       dialog = new NewProjectWizardDynamic(null, null);
       dialog.init();
     }
-    catch (IllegalStateException e1) {
-      Logger.getInstance(AndroidNewProjectAction.class).error("Unable to launch New Project Wizard", e1);
+    catch (IllegalStateException error) {
+      Logger.getInstance(AndroidNewProjectAction.class).warn("Unable to launch New Project Wizard", error);
       return;
     }
 

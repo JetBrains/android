@@ -60,14 +60,14 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
     });
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Key<EditorNotificationPanel> getKey() {
     return KEY;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public EditorNotificationPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull FileEditor fileEditor) {
     if (file.getFileType() != JavaClassFileType.INSTANCE) {
       return null;
@@ -125,7 +125,7 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
   }
 
   @Nullable
-  public JdkOrderEntry findAndroidSdkEntryForFile(@NotNull VirtualFile file) {
+  private JdkOrderEntry findAndroidSdkEntryForFile(@NotNull VirtualFile file) {
     ProjectFileIndex index = ProjectFileIndex.SERVICE.getInstance(myProject);
     for (OrderEntry entry : index.getOrderEntriesForFile(file)) {
       if (entry instanceof JdkOrderEntry) {

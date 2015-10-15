@@ -1,51 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.security.EcIesParameterSpec int getKemPointFormat()">
-    <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.security.EcIesParameterSpec.POINT_FORMAT_UNSPECIFIED, android.security.EcIesParameterSpec.POINT_FORMAT_UNCOMPRESSED, android.security.EcIesParameterSpec.POINT_FORMAT_COMPRESSED}" />
-    </annotation>
-  </item>
-  <item name="android.security.EcIesParameterSpec java.lang.String getDemCipherTransformation()">
-    <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.security.EcIesParameterSpec java.lang.String getDemMacAlgorithm()">
-    <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.security.EcIesParameterSpec java.lang.String getKemKdfAlgorithm()">
-    <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec build()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemCipherKeySize(int)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemCipherTransformation(java.lang.String)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemCipherTransformation(java.lang.String) 0">
-    <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemMacAlgorithm(java.lang.String)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemMacAlgorithm(java.lang.String) 0">
-    <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setDemMacKeySize(int)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setKemKdfAlgorithm(java.lang.String)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setKemKdfAlgorithm(java.lang.String) 0">
-    <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.security.EcIesParameterSpec.Builder android.security.EcIesParameterSpec.Builder setKemPointFormat(int) 0">
-    <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.security.EcIesParameterSpec.POINT_FORMAT_UNSPECIFIED, android.security.EcIesParameterSpec.POINT_FORMAT_UNCOMPRESSED, android.security.EcIesParameterSpec.POINT_FORMAT_COMPRESSED}" />
-    </annotation>
-  </item>
   <item name="android.security.KeyChain android.content.Intent createInstallIntent()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -63,6 +17,7 @@
   </item>
   <item name="android.security.KeyChain java.security.PrivateKey getPrivateKey(android.content.Context, java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.WorkerThread" />
   </item>
   <item name="android.security.KeyChain java.security.PrivateKey getPrivateKey(android.content.Context, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -72,12 +27,30 @@
   </item>
   <item name="android.security.KeyChain java.security.cert.X509Certificate[] getCertificateChain(android.content.Context, java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.WorkerThread" />
   </item>
   <item name="android.security.KeyChain java.security.cert.X509Certificate[] getCertificateChain(android.content.Context, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.security.KeyChain java.security.cert.X509Certificate[] getCertificateChain(android.content.Context, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyChain void choosePrivateKeyAlias(android.app.Activity, android.security.KeyChainAliasCallback, java.lang.String[], java.security.Principal[], android.net.Uri, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyChain void choosePrivateKeyAlias(android.app.Activity, android.security.KeyChainAliasCallback, java.lang.String[], java.security.Principal[], android.net.Uri, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.security.KeyChain void choosePrivateKeyAlias(android.app.Activity, android.security.KeyChainAliasCallback, java.lang.String[], java.security.Principal[], android.net.Uri, java.lang.String) 2">
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.security.keystore.KeyProperties.KEY_ALGORITHM_RSA, android.security.keystore.KeyProperties.KEY_ALGORITHM_EC, android.security.keystore.KeyProperties.KEY_ALGORITHM_AES, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA1, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA224, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA256, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA384, android.security.keystore.KeyProperties.KEY_ALGORITHM_HMAC_SHA512}" />
+    </annotation>
+  </item>
+  <item name="android.security.KeyChain void choosePrivateKeyAlias(android.app.Activity, android.security.KeyChainAliasCallback, java.lang.String[], java.security.Principal[], android.net.Uri, java.lang.String) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.security.KeyChain void choosePrivateKeyAlias(android.app.Activity, android.security.KeyChainAliasCallback, java.lang.String[], java.security.Principal[], android.net.Uri, java.lang.String) 5">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.security.KeyChain void choosePrivateKeyAlias(android.app.Activity, android.security.KeyChainAliasCallback, java.lang.String[], java.security.Principal[], java.lang.String, int, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />

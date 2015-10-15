@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.google.common.collect.Lists;
@@ -37,10 +37,10 @@ import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 
-public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaJavaProject> {
+public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<JavaProject> {
   @Override
   @NotNull
-  protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel model, @NotNull IdeaJavaProject javaProject) {
+  protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel model, @NotNull JavaProject javaProject) {
     List<ContentEntry> allEntries = Lists.newArrayList();
     for (JavaModuleContentRoot contentRoot : javaProject.getContentRoots()) {
       File rootDirPath = contentRoot.getRootDirPath();
@@ -53,7 +53,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   @Override
   protected void setUpContentEntries(@NotNull ModifiableRootModel ideaModuleModel,
                                      @NotNull Collection<ContentEntry> contentEntries,
-                                     @NotNull IdeaJavaProject javaProject,
+                                     @NotNull JavaProject javaProject,
                                      @NotNull List<RootSourceFolder> orphans) {
     boolean isTopLevelJavaModule = isGradleProjectModule(ideaModuleModel.getModule());
 

@@ -28,6 +28,7 @@ import java.util.GregorianCalendar;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.IdeTestApplication.getFailedTestScreenshotDirPath;
 import static org.fest.reflect.core.Reflection.field;
+import static org.fest.reflect.core.Reflection.method;
 
 public class MethodInvoker extends Statement {
   @NotNull private final GuiTestConfigurator myTestConfigurator;
@@ -48,16 +49,22 @@ public class MethodInvoker extends Statement {
       // Message already printed in console.
       return;
     }
-    System.out.println(String.format("Executing test '%1$s'", getTestFqn()));
+    String testFqn = getTestFqn();
+    if (doesIdeHaveFatalErrors()) {
+      // Fatal errors were caused by previous test. Skipping this test.
+      System.out.println(String.format("Skipping test '%1$s': a fatal error has occurred in the IDE", testFqn));
+      return;
+    }
+    System.out.println(String.format("Executing test '%1$s'", testFqn));
 
     int retryCount = myTestConfigurator.getRetryCount();
     for (int i = 0; i <= retryCount; i++) {
       if (i > 0) {
-        System.out.println(String.format("Retrying execution of test '%1$s'", getTestFqn()));
+        System.out.println(String.format("Retrying execution of test '%1$s'", testFqn));
       }
       try {
         runTest(i);
-        return; // no need to retry.
+        break; // no need to retry.
       }
       catch (Throwable throwable) {
         if (retryCount == i) {
@@ -65,9 +72,29 @@ public class MethodInvoker extends Statement {
         }
         else {
           throwable.printStackTrace();
+          failIfIdeHasFatalErrors();
         }
       }
     }
+    failIfIdeHasFatalErrors();
+  }
+
+  public static boolean doesIdeHaveFatalErrors() {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    try {
+      Class<?> guiTestsType = Class.forName(GuiTests.class.getCanonicalName(), true, classLoader);
+      //noinspection ConstantConditions
+      return method("doesIdeHaveFatalErrors").withReturnType(boolean.class).in(guiTestsType).invoke();
+    } catch (ClassNotFoundException ex) {
+      // ignore exception
+      return true;
+    }
+  }
+
+  private static void failIfIdeHasFatalErrors() throws ClassNotFoundException {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    Class<?> guiTestsType = Class.forName(GuiTests.class.getCanonicalName(), true, classLoader);
+    method("failIfIdeHasFatalErrors").in(guiTestsType).invoke();
   }
 
   private void runTest(int executionIndex) throws Throwable {

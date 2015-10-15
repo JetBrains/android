@@ -18,10 +18,9 @@ package com.android.tools.idea.editors.theme;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,22 +42,60 @@ import java.util.List;
  * and all classes using its capabilities should retain this single instance.
  */
 public class ThemeEditorContext {
+  // Field is initialized in method called from constructor which checker doesn't see, warning could be ignored
+  @SuppressWarnings("NullableProblems")
   private @NotNull Configuration myConfiguration;
 
-  // Right now Module instance can be acquired from the Configuration, so, this field is
-  // extraneous, however, later (after adding proper multiple modules support), myModule
-  // would point to source module of currently selected theme which would be used for,
-  // e.g., resolution of resources available as a value for attribute in currently
-  // selected theme. Configuration field would point to one that is used for as a
-  // rendering context.
-  private @NotNull Module myCurrentThemeModule;
+  /**
+   * Stores ThemeEditorStyle currently being edited
+   */
+  private @Nullable ThemeEditorStyle myCurrentTheme;
+
+  // Field is initialized in method called from constructor which checker doesn't see, warning could be ignored
+  @SuppressWarnings("NullableProblems")
+  private @NotNull ThemeResolver myThemeResolver;
 
   private final List<ChangeListener> myChangeListeners = new ArrayList<ChangeListener>();
   private final List<ConfigurationListener> myConfigurationListeners = new ArrayList<ConfigurationListener>();
+  private boolean myEnabledListeners = true;
+  private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
+    @Override
+    public boolean changed(int flags) {
+      if (!myEnabledListeners) {
+        return true;
+      }
 
-  public ThemeEditorContext(@NotNull Configuration configuration, @NotNull Module currentThemeModule) {
-    myConfiguration = configuration;
-    myCurrentThemeModule = currentThemeModule;
+      boolean accepted = true;
+      for (ConfigurationListener listener : myConfigurationListeners) {
+        accepted &= listener.changed(flags);
+      }
+      return accepted;
+    }
+  };
+
+  public ThemeEditorContext(@NotNull Configuration configuration) {
+    setConfiguration(configuration);
+
+    addConfigurationListener(new ConfigurationListener() {
+      @Override
+      public boolean changed(int flags) {
+        if ((ConfigurationListener.MASK_FOLDERCONFIG & flags) != 0) {
+          updateThemeResolver();
+        }
+        return true;
+      }
+    });
+  }
+
+  public void updateThemeResolver() {
+    // Disable listeners since we are not interested in the setTheme(null) update
+    myEnabledListeners = false;
+    // setTheme(null) is required since the configuration could have a link to a non existent theme (if it was removed).
+    // If the configuration is pointing to a theme that does not exist anymore, the local resource resolution breaks so ThemeResolver
+    // fails to find the local themes.
+    myConfiguration.setTheme(null);
+    myEnabledListeners = true;
+    myThemeResolver = new ThemeResolver(myConfiguration);
   }
 
   @NotNull
@@ -67,21 +104,36 @@ public class ThemeEditorContext {
   }
 
   @NotNull
-  public Module getCurrentThemeModule() {
-    return myCurrentThemeModule;
+  public Module getCurrentContextModule() {
+    return myConfiguration.getModule();
   }
 
-  public void setCurrentThemeModule(final @NotNull Module module) {
-    myCurrentThemeModule = module;
+  public void setCurrentTheme(@Nullable ThemeEditorStyle currentTheme) {
+    myCurrentTheme = currentTheme;
+  }
 
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
+  @Nullable
+  public ThemeEditorStyle getCurrentTheme() {
+    return myCurrentTheme;
+  }
 
-    VirtualFile projectFile = module.getProject().getProjectFile();
-    assert projectFile != null;
+  /**
+   * Function for acquiring Module that should be used every time resource resolving
+   * for possible values is needed.
+   */
+  @NotNull
+  public Module getModuleForResources() {
+    if (myCurrentTheme != null && myCurrentTheme.getSourceModule() != null) {
+      // If we have a source module, we want to use it for resolving possible values
+      return myCurrentTheme.getSourceModule();
+    }
+    // Otherwise, it should be a library theme or framework theme, in which case we will create
+    // a new theme in the current rendering context, which we are returning here;
+    return myConfiguration.getModule();
+  }
 
-    Configuration configuration = facet.getConfigurationManager().getConfiguration(projectFile);
-    setConfiguration(configuration);
+  public void setCurrentContextModule(final @NotNull Module module) {
+    setConfiguration(ThemeEditorUtils.getConfigurationForModule(module));
   }
 
   @Nullable
@@ -91,24 +143,29 @@ public class ThemeEditorContext {
 
   @NotNull
   public Project getProject() {
-    return myCurrentThemeModule.getProject();
+    return myConfiguration.getModule().getProject();
   }
 
   public void addConfigurationListener(@NotNull ConfigurationListener configurationListener) {
     myConfigurationListeners.add(configurationListener);
-    myConfiguration.addListener(configurationListener);
+  }
+
+  @NotNull
+  public ThemeResolver getThemeResolver() {
+    return myThemeResolver;
   }
 
   public void setConfiguration(@NotNull Configuration configuration) {
-    for (ConfigurationListener listener : myConfigurationListeners) {
-      myConfiguration.removeListener(listener);
+    // myConfiguration can be null when called from the constructor
+    //noinspection ConstantConditions
+    if (myConfiguration != null) {
+      myConfiguration.removeListener(myConfigurationListener);
     }
 
     myConfiguration = configuration;
+    updateThemeResolver();
 
-    for (ConfigurationListener listener : myConfigurationListeners) {
-      myConfiguration.addListener(listener);
-    }
+    myConfiguration.addListener(myConfigurationListener);
 
     fireNewConfiguration();
   }
@@ -124,10 +181,7 @@ public class ThemeEditorContext {
   }
 
   public void dispose() {
-    for (ConfigurationListener listener : myConfigurationListeners) {
-      myConfiguration.removeListener(listener);
-    }
-
+    myConfiguration.removeListener(myConfigurationListener);
     myConfigurationListeners.clear();
   }
 

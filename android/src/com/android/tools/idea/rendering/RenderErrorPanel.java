@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.RenderSecurityManager;
@@ -24,6 +25,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.utils.HtmlBuilder;
@@ -132,53 +134,9 @@ public class RenderErrorPanel extends JPanel {
   private JEditorPane myHTMLViewer;
   private final HyperlinkListener myHyperLinkListener;
   private RenderResult myResult;
+  private HighlightSeverity mySeverity; // severity of messages shown, currently just warning or error
   private HtmlLinkManager myLinkManager;
   private final JScrollPane myScrollPane;
-
-  public void dispose(){
-    removeAll();
-    if (myHTMLViewer != null) {
-      myHTMLViewer.removeHyperlinkListener(myHyperLinkListener);
-      myHTMLViewer = null;
-    }
-  }
-
-  @Nullable
-  public String showErrors(@NotNull final RenderResult result) {
-    RenderLogger logger = result.getLogger();
-    if (!logger.hasProblems()) {
-      showErrors(null, null, null);
-      return null;
-    }
-
-    try {
-      String html = generateHtml(result, result.getLogger().getLinkManager());
-      showErrors(html, result, logger.getLinkManager());
-      return html;
-    }
-    catch (Exception e) {
-      showEmpty();
-      return null;
-    }
-  }
-
-  public void showErrors(@Nullable String html, @Nullable RenderResult result, @Nullable HtmlLinkManager linkManager) {
-    if (html == null) {
-      myResult = null;
-      showEmpty();
-      return;
-    }
-    try {
-      myHTMLViewer.read(new StringReader(html), null);
-      setupStyle();
-      myHTMLViewer.setCaretPosition(0);
-      myResult = result;
-      myLinkManager = linkManager;
-    }
-    catch (Exception e) {
-      showEmpty();
-    }
-  }
 
   public RenderErrorPanel() {
     super(new BorderLayout());
@@ -215,6 +173,63 @@ public class RenderErrorPanel extends JPanel {
     add(myScrollPane, BorderLayout.CENTER);
   }
 
+  public void dispose(){
+    removeAll();
+    if (myHTMLViewer != null) {
+      myHTMLViewer.removeHyperlinkListener(myHyperLinkListener);
+      myHTMLViewer = null;
+    }
+  }
+
+  @Nullable
+  public String showErrors(@NotNull final RenderResult result) {
+    RenderLogger logger = result.getLogger();
+    if (!logger.hasProblems()) {
+      showErrors(null, null, null);
+      return null;
+    }
+
+    try {
+      String html = generateHtml(result, result.getLogger().getLinkManager());
+      showErrors(html, result, logger.getLinkManager());
+      return html;
+    }
+    catch (Exception e) {
+      showEmpty();
+      return null;
+    }
+  }
+
+  public void showErrors(@Nullable String html, @Nullable RenderResult result, @Nullable HtmlLinkManager linkManager) {
+    showErrors(HighlightSeverity.ERROR, html, result, linkManager);
+  }
+
+  public void showWarning(@Nullable String html) {
+    showErrors(HighlightSeverity.WARNING, html, null, null);
+  }
+
+  private void showErrors(@NonNull HighlightSeverity severity,
+                         @Nullable String html,
+                         @Nullable RenderResult result,
+                         @Nullable HtmlLinkManager linkManager) {
+    mySeverity = severity;
+    if (html == null) {
+      myResult = null;
+      showEmpty();
+      return;
+    }
+    try {
+      myHTMLViewer.read(new StringReader(html), null);
+      setupStyle();
+      myHTMLViewer.setCaretPosition(0);
+      myResult = result;
+      myLinkManager = linkManager;
+    }
+    catch (Exception e) {
+      showEmpty();
+    }
+  }
+
   @VisibleForTesting
   public void performClick(@NotNull String url) {
     Module module = myResult.getModule();
@@ -231,13 +246,11 @@ public class RenderErrorPanel extends JPanel {
 
   private void setupStyle() {
     // Make the scrollPane transparent
-    if (myScrollPane != null) {
-      JViewport viewPort = myScrollPane.getViewport();
-      viewPort.setOpaque(false);
-      viewPort.setBackground(null);
-      myScrollPane.setOpaque(false);
-      myScrollPane.setBackground(null);
-    }
+    JViewport viewPort = myScrollPane.getViewport();
+    viewPort.setOpaque(false);
+    viewPort.setBackground(null);
+    myScrollPane.setOpaque(false);
+    myScrollPane.setBackground(null);
 
     Document document = myHTMLViewer.getDocument();
     if (!(document instanceof StyledDocument)) {
@@ -257,6 +270,7 @@ public class RenderErrorPanel extends JPanel {
     // Make background semitransparent
     Color background = myHTMLViewer.getBackground();
     if (background != null) {
+      //noinspection UseJBColor
       background = new Color(background.getRed(), background.getGreen(), background.getBlue(), ERROR_PANEL_OPACITY);
       myHTMLViewer.setBackground(background);
     }
@@ -269,6 +283,11 @@ public class RenderErrorPanel extends JPanel {
 
   public int getPreferredHeight(@SuppressWarnings("UnusedParameters") int width) {
     return myHTMLViewer.getPreferredSize().height;
+  }
+
+  @Nullable
+  public HighlightSeverity getSeverity() {
+    return mySeverity;
   }
 
   public String generateHtml(@NotNull RenderResult result, @NotNull HtmlLinkManager linkManager) {
@@ -330,15 +349,18 @@ public class RenderErrorPanel extends JPanel {
 
       Collection<String> customViews = null;
       Collection<String> androidViewClassNames = null;
-      Collection<String> views = getAllViews(logger.getModule());
-      if (!views.isEmpty()) {
-        customViews = Lists.newArrayListWithExpectedSize(Math.max(10, views.size() - 80)); // most will be framework views
-        androidViewClassNames = Lists.newArrayListWithExpectedSize(views.size());
-        for (String fqcn : views) {
-          if (fqcn.startsWith("android.") && !viewNeedsPackage(fqcn)) {
-            androidViewClassNames.add(fqcn);
-          } else {
-            customViews.add(fqcn);
+      Module module = logger.getModule();
+      if (module != null) {
+        Collection<String> views = getAllViews(module);
+        if (!views.isEmpty()) {
+          customViews = Lists.newArrayListWithExpectedSize(Math.max(10, views.size() - 80)); // most will be framework views
+          androidViewClassNames = Lists.newArrayListWithExpectedSize(views.size());
+          for (String fqcn : views) {
+            if (fqcn.startsWith("android.") && !viewNeedsPackage(fqcn)) {
+              androidViewClassNames.add(fqcn);
+            } else {
+              customViews.add(fqcn);
+            }
           }
         }
       }
@@ -603,8 +625,9 @@ public class RenderErrorPanel extends JPanel {
       final Module module = logger.getModule();
       if (module != null) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null && facet.isGradleProject() && facet.getIdeaAndroidProject() != null) {
-          AndroidProject androidProject = facet.getIdeaAndroidProject().getDelegate();
+        if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
+          // TODO: b/23032391
+          AndroidProject androidProject = AndroidGradleModel.get(facet).getAndroidProject();
           String modelVersion = androidProject.getModelVersion();
           if (hasLayoutRenderingIssue(androidProject)) {
             builder.addBold("Using an obsolete version of the Gradle plugin (" + modelVersion +
@@ -651,9 +674,9 @@ public class RenderErrorPanel extends JPanel {
         builder.add(className);
         builder.add(" (");
         builder.addLink("Open Class", myLinkManager.createOpenClassUrl(className));
-        if (throwable != null) {
+        if (throwable != null && module != null) {
           builder.add(", ");
-          ShowExceptionFix detailsFix = new ShowExceptionFix(logger.getModule().getProject(), throwable);
+          ShowExceptionFix detailsFix = new ShowExceptionFix(module.getProject(), throwable);
           builder.addLink("Show Exception", myLinkManager.createRunnableLink(detailsFix));
         }
         builder.add(", ");
@@ -803,6 +826,9 @@ public class RenderErrorPanel extends JPanel {
 
   private static void reportRelevantCompilationErrors(RenderLogger logger, HtmlBuilder builder, RenderTask renderTask) {
     Module module = logger.getModule();
+    if (module == null) {
+      return;
+    }
     Project project = module.getProject();
     WolfTheProblemSolver wolfgang = WolfTheProblemSolver.getInstance(project);
     if (wolfgang.hasProblemFilesBeneath(module)) {
@@ -820,7 +846,7 @@ public class RenderErrorPanel extends JPanel {
                           "which can cause rendering failures. Fix resource problems first.");
           builder.newline().newline();
         }
-      } else if (renderTask.getLayoutlibCallback() != null && renderTask.getLayoutlibCallback().isUsed()) {
+      } else if (renderTask.getLayoutlibCallback().isUsed()) {
         boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(new Condition<VirtualFile>() {
           @Override
           public boolean value(VirtualFile virtualFile) {
@@ -839,6 +865,9 @@ public class RenderErrorPanel extends JPanel {
 
   private void reportMissingSizeAttributes(@NotNull final RenderLogger logger, final HtmlBuilder builder, RenderTask renderTask) {
     Module module = logger.getModule();
+    if (module == null) {
+      return;
+    }
     Project project = module.getProject();
     if (logger.isMissingSize()) {
       // Emit hyperlink about missing attributes; the action will operate on all of them
@@ -913,13 +942,20 @@ public class RenderErrorPanel extends JPanel {
         }
 
         String html = message.getHtml();
-        builder.getStringBuilder().append(html);
-        builder.newlineIfNecessary();
-
         Throwable throwable = message.getThrowable();
+
         if (throwable != null) {
           reportSandboxError(builder, throwable, false, true);
-          reportThrowable(builder, throwable, !html.isEmpty());
+          if (reportThrowable(builder, throwable, !html.isEmpty() || !message.isDefaultHtml())) {
+            // The error was hidden.
+            if (!html.isEmpty()) {
+              builder.getStringBuilder().append(html);
+              builder.newlineIfNecessary();
+            }
+          }
+        } else {
+          builder.getStringBuilder().append(html);
+          builder.newlineIfNecessary();
         }
 
         if (tag != null) {
@@ -991,8 +1027,12 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  /** Display the problem list encountered during a render */
-  private void reportThrowable(@NotNull HtmlBuilder builder, @NotNull final Throwable throwable, boolean hideIfIrrelevant) {
+  /**
+   * Display the problem list encountered during a render.
+   *
+   * @return if the throwable was hidden.
+   */
+  private boolean reportThrowable(@NotNull HtmlBuilder builder, @NotNull final Throwable throwable, boolean hideIfIrrelevant) {
     StackTraceElement[] frames = throwable.getStackTrace();
     int end = -1;
     boolean haveInterestingFrame = false;
@@ -1015,7 +1055,7 @@ public class RenderErrorPanel extends JPanel {
           ShowExceptionFix detailsFix = new ShowExceptionFix(myResult.getModule().getProject(), throwable);
           builder.addLink("Show Exception", myLinkManager.createRunnableLink(detailsFix));
         }
-        return;
+        return true;
       } else {
         // List just the top frames
         for (int i = 0; i < frames.length; i++) {
@@ -1115,6 +1155,7 @@ public class RenderErrorPanel extends JPanel {
         }
       }
     }));
+    return false;
   }
 
   private static boolean isHiddenFrame(StackTraceElement frame) {
@@ -1155,7 +1196,11 @@ public class RenderErrorPanel extends JPanel {
                                  @NotNull XmlTag tag,
                                  @NotNull String id,
                                  @NotNull String attribute) {
-    Project project = logger.getModule().getProject();
+    Module module = logger.getModule();
+    if (module == null) {
+      return;
+    }
+    Project project = module.getProject();
     String wrapUrl = myLinkManager.createCommandLink(new SetAttributeFix(project, tag, attribute, ANDROID_URI, VALUE_WRAP_CONTENT));
     String fillUrl = myLinkManager.createCommandLink(new SetAttributeFix(project, tag, attribute, ANDROID_URI, fill));
 
@@ -1212,6 +1257,7 @@ public class RenderErrorPanel extends JPanel {
       for (String className : names) {
         builder.listItem();
         builder.add(className);
+        //noinspection ThrowableResultOfMethodCallIgnored
         Throwable throwable = classesWithIncorrectFormat.get(className);
         if (throwable instanceof InconvertibleClassError) {
           InconvertibleClassError error = (InconvertibleClassError)throwable;
@@ -1223,6 +1269,9 @@ public class RenderErrorPanel extends JPanel {
       builder.endList();
 
       Module module = logger.getModule();
+      if (module == null) {
+        return;
+      }
       final List<Module> problemModules = getProblemModules(module);
       if (!problemModules.isEmpty()) {
         builder.add("The following modules are built with incompatible JDK:").newline();
@@ -1237,13 +1286,13 @@ public class RenderErrorPanel extends JPanel {
       }
 
       AndroidFacet facet = AndroidFacet.getInstance(logger.getModule());
-      if (facet != null && !facet.isGradleProject()) {
+      if (facet != null && !facet.requiresAndroidModel()) {
         Project project = logger.getModule().getProject();
         builder.addLink("Rebuild project with '-target 1.6'", myLinkManager.createRunnableLink(new RebuildWith16Fix(project)));
         builder.newline();
 
         if (!problemModules.isEmpty()) {
-          builder.addLink("Change Java SDK to 1.5/1.6", myLinkManager.createRunnableLink(new SwitchTo16Fix(project, problemModules)));
+          builder.addLink("Change Java SDK to 1.6", myLinkManager.createRunnableLink(new SwitchTo16Fix(project, problemModules)));
           builder.newline();
         }
       }
@@ -1294,7 +1343,7 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  private static boolean isBuiltByJdk7OrHigher(@NotNull Module module) {
+  static boolean isBuiltByJdk7OrHigher(@NotNull Module module) {
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     if (sdk == null) {
       return false;

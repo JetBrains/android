@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.facet;
 
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
@@ -38,7 +38,7 @@ public class AndroidGradleFacetConfiguration implements FacetConfiguration {
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext,
                                            FacetValidatorsManager validatorsManager) {
-    if (!AndroidStudioSpecificInitializer.isAndroidStudio() && StringUtil.isNotEmpty(GRADLE_PROJECT_PATH)) {
+    if (!AndroidStudioInitializer.isAndroidStudio() && StringUtil.isNotEmpty(GRADLE_PROJECT_PATH)) {
       // IntelliJ only
       return new FacetEditorTab[]{new AndroidGradleFacetEditorTab(editorContext.getProject(), GRADLE_PROJECT_PATH)};
     }

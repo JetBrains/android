@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.service.dreams.DreamService android.os.IBinder onBind(android.content.Intent)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.service.dreams.DreamService android.view.View findViewById(int) 0">
     <annotation name="android.support.annotation.IdRes" />
-  </item>
-  <item name="android.service.dreams.DreamService boolean dispatchKeyEvent(android.view.KeyEvent) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.service.dreams.DreamService void dump(java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 1">
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.service.dreams.DreamService void setContentView(int) 0">
     <annotation name="android.support.annotation.LayoutRes" />

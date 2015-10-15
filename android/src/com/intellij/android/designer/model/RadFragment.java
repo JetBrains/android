@@ -102,18 +102,12 @@ public class RadFragment extends RadViewComponent implements IConfigurableCompon
     if (module == null) {
       return null;
     }
-    ChooseClassDialog dialog =
-      new ChooseClassDialog(module, "Fragments", true, "android.app.Fragment", "android.support.v4.app.Fragment");
-    if (dialog.showAndGet()) {
-      return dialog.getClassName();
-    }
-
-    return null;
+    return ChooseClassDialog.openDialog(module, "Fragments", true, "android.app.Fragment", "android.support.v4.app.Fragment");
   }
 
   @Override
   public void setProperties(List<Property> properties) {
-    if (!properties.isEmpty()) {
+    if (!properties.contains(CLASS_PROPERTY)) {
       properties = new ArrayList<Property>(properties);
       properties.add(NAME_PROPERTY);
       properties.add(CLASS_PROPERTY);

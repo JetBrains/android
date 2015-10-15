@@ -23,7 +23,7 @@ import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.sdk.SdkLoggerIntegration;
 import com.android.tools.idea.welcome.install.*;
-import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.utils.ILogger;
 import com.android.utils.StdLogger;
 import com.google.common.base.Function;
@@ -112,7 +112,7 @@ public class InstallComponentsPathTest extends AndroidTestBase {
       }
     }
 
-    ComponentInstaller operation = new ComponentInstaller(null);
+    ComponentInstaller operation = new ComponentInstaller(null, true);
     ArrayList<String> packagesToDownload = getAndroidSdkPackages(manager, operation);
     operation.installPackages(manager, packagesToDownload, new LoggerForTest());
     manager.reloadSdk(log);
@@ -154,7 +154,7 @@ public class InstallComponentsPathTest extends AndroidTestBase {
     SdkManager manager = SdkManager.createManager(sdkPath.getAbsolutePath(), new StdLogger(StdLogger.Level.VERBOSE));
     assert manager != null;
 
-    ComponentInstaller operation = new ComponentInstaller(null);
+    ComponentInstaller operation = new ComponentInstaller(null, true);
     ArrayList<String> packagesToDownload = getAndroidSdkPackages(manager, operation);
 
     System.out.println(Joiner.on("\n").join(packagesToDownload));

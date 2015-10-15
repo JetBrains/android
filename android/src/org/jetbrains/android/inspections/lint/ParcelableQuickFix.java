@@ -540,6 +540,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
       myPersistenceMap.put(myTType, new ParcelableFieldPersistence());
       myPersistenceMap.put(myTArrayType, new EfficientParcelableArrayFieldPersistence());
       myPersistenceMap.put(myTListType, new EfficientParcelableListFieldPersistence());
+      myPersistenceMap.put(PsiType.BOOLEAN, new BooleanFieldPersistence());
     }
 
     @NotNull
@@ -669,6 +670,18 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
                 String.format("%1$s = %2$s.createTypedArrayList(%3$s.CREATOR);\n",
                         field.getName(), parcelVariableName, elemType.getCanonicalText())
         };
+      }
+    }
+
+    private static class BooleanFieldPersistence implements FieldPersistence {
+      @Override
+      public String[] formatWrite(@NotNull PsiField field, @NotNull String parcelVariableName, @NotNull String flagsVariableName) {
+        return new String[]{String.format("%1$s.writeByte((byte)(%2$s ? 1 : 0));\n", parcelVariableName, field.getName())};
+      }
+
+      @Override
+      public String[] formatRead(@NotNull PsiField field, @NotNull String parcelVariableName) {
+        return new String[]{String.format("%1$s = %2$s.readByte() != 0;\n", field.getName(), parcelVariableName)};
       }
     }
   }

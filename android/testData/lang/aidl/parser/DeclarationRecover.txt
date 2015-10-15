@@ -1,0 +1,28 @@
+FILE
+  AidlHeadersImpl(HEADERS)
+    <empty list>
+  AidlBodyImpl(BODY)
+    AidlInterfaceDeclarationImpl(INTERFACE_DECLARATION)
+      PsiElement(AidlTokenType.interface)('interface')
+      AidlDeclarationNameImpl(DECLARATION_NAME)
+        PsiElement(AidlTokenType.IDENTIFIER)('A')
+      PsiElement(AidlTokenType.{)('{')
+      PsiElement(AidlTokenType.})('}')
+    PsiErrorElement:'aa' unexpected
+      PsiElement(AidlTokenType.IDENTIFIER)('aa')
+    AidlInterfaceDeclarationImpl(INTERFACE_DECLARATION)
+      PsiElement(AidlTokenType.interface)('interface')
+      AidlDeclarationNameImpl(DECLARATION_NAME)
+        PsiElement(AidlTokenType.IDENTIFIER)('B')
+      PsiElement(AidlTokenType.{)('{')
+      PsiElement(AidlTokenType.})('}')
+    PsiErrorElement:'bb' unexpected
+      PsiElement(AidlTokenType.IDENTIFIER)('bb')
+    PsiElement(AidlTokenType.;)(';')
+    PsiElement(AidlTokenType.import)('import')
+    AidlInterfaceDeclarationImpl(INTERFACE_DECLARATION)
+      PsiElement(AidlTokenType.interface)('interface')
+      AidlDeclarationNameImpl(DECLARATION_NAME)
+        PsiElement(AidlTokenType.IDENTIFIER)('C')
+      PsiElement(AidlTokenType.{)('{')
+      PsiElement(AidlTokenType.})('}')

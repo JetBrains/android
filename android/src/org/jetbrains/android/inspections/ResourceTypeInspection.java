@@ -16,9 +16,11 @@
 
 package org.jetbrains.android.inspections;
 
+import com.android.annotations.NonNull;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.DeclaredPermissionsLookup;
+import com.android.tools.lint.checks.PermissionFinder;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.tools.lint.checks.PermissionRequirement;
 import com.google.common.base.Joiner;
@@ -43,6 +45,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
+import com.intellij.psi.controlFlow.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.LocalSearchScope;
@@ -53,8 +56,10 @@ import com.intellij.slicer.*;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
+import com.siyeh.ig.psiutils.ExpressionUtils;
 import gnu.trove.THashSet;
 import lombok.ast.BinaryOperator;
+import lombok.ast.NullLiteral;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -69,9 +74,12 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.PermissionFinder.Operation.*;
 import static com.android.tools.lint.checks.SupportAnnotationDetector.*;
 import static com.intellij.psi.CommonClassNames.DEFAULT_PACKAGE;
 import static com.intellij.psi.CommonClassNames.JAVA_LANG_STRING;
+import static com.intellij.psi.util.PsiFormatUtilBase.SHOW_CONTAINING_CLASS;
+import static com.intellij.psi.util.PsiFormatUtilBase.SHOW_NAME;
 
 /**
  * A custom version of the IntelliJ
@@ -177,6 +185,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
 
       @Override
+      public void visitEnumConstant(PsiEnumConstant enumConstant) {
+        checkCall(enumConstant, holder);
+      }
+
+      @Override
       public void visitAssignmentExpression(PsiAssignmentExpression expression) {
         PsiExpression r = expression.getRExpression();
         if (r == null) return;
@@ -248,12 +261,36 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     //noinspection ConstantConditions
     PsiElement scope = PsiUtil.getTopLevelEnclosingCodeBlock(expression, null);
     if (scope == null) scope = expression;
-    if (!isAllowed(scope, expression, allowed, expression.getManager(), null)) {
-      registerProblem(expression, allowed, holder);
+
+    checkConstraints(scope, expression, allowed, holder);
+  }
+
+  private static void checkConstraints(@NotNull PsiElement scope,
+                                       @NotNull PsiExpression expression,
+                                       @NotNull Constraints constraints,
+                                       @NotNull ProblemsHolder holder) {
+    if (expression.getTextRange().isEmpty()) {
+      return;
+    }
+    PsiManager manager = expression.getManager();
+    if (constraints.next != null && ExpressionUtils.isLiteral(expression)) {
+      // The only possible combination of constraints is @IntDef and @IntRange, which allows you
+      // to specify that an argument must be one of a set of constants, OR, a number in a range.
+      if (!isAllowed(scope, expression, constraints, manager, null)) {
+        if (!isAllowed(scope, expression, constraints.next, manager, null)) {
+          registerProblem(expression, constraints, holder);
+        }
+      } else if (!isAllowed(scope, expression, constraints.next, manager, null)) {
+        registerProblem(expression, constraints.next, holder);
+      }
+    } else {
+      if (!isAllowed(scope, expression, constraints, manager, null)) {
+        registerProblem(expression, constraints, holder);
+      }
     }
   }
 
-  private static void checkCall(@NotNull PsiCallExpression methodCall, @NotNull ProblemsHolder holder) {
+  private static void checkCall(@NotNull PsiCall methodCall, @NotNull ProblemsHolder holder) {
     PsiMethod method = methodCall.resolveMethod();
     if (method == null) return;
     PsiParameter[] parameters = method.getParameterList().getParameters();
@@ -269,13 +306,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       argument = PsiUtil.deparenthesizeExpression(argument);
       if (argument == null) continue;
 
-      checkMagicParameterArgument(parameter, argument, values, holder);
+      checkConstraints(parameter.getDeclarationScope(), argument, values, holder);
     }
 
     checkMethodAnnotations(methodCall, holder, method);
   }
 
-  private static void checkMethodAnnotations(PsiCallExpression methodCall, ProblemsHolder holder, PsiMethod method) {
+  private static void checkMethodAnnotations(PsiCall methodCall, ProblemsHolder holder, PsiMethod method) {
     PsiAnnotation[] annotations = getAllAnnotations(method);
     for (PsiAnnotation annotation : annotations) {
       String qualifiedName = annotation.getQualifiedName();
@@ -340,7 +377,153 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
   }
 
-  private static void checkThreadAnnotation(PsiCallExpression methodCall, ProblemsHolder holder, PsiMethod method, String qualifiedName) {
+  @Nullable
+  private static PermissionFinder.Result search(@NonNull PsiElement node, @NonNull PermissionFinder.Operation operation) {
+    if (node instanceof NullLiteral) {
+      return null;
+    } else if (node instanceof PsiTypeCastExpression) {
+      PsiTypeCastExpression cast = (PsiTypeCastExpression) node;
+      final PsiExpression operand = cast.getOperand();
+      if (operand != null) {
+        return search(operand, operation);
+      }
+    } else if (node instanceof PsiNewExpression && operation == PermissionFinder.Operation.ACTION) {
+      // Identifies "new Intent(argument)" calls and, if found, continues
+      // resolving the argument instead looking for the action definition
+      PsiNewExpression call = (PsiNewExpression)node;
+      PsiJavaCodeReferenceElement classOrAnonymousClassReference = call.getClassOrAnonymousClassReference();
+      if (classOrAnonymousClassReference != null) {
+        String qualifiedName = classOrAnonymousClassReference.getQualifiedName();
+        if (CLASS_INTENT.equals(qualifiedName)) {
+          PsiExpressionList argumentList = call.getArgumentList();
+          if (argumentList != null) {
+            PsiExpression[] expressions = argumentList.getExpressions();
+            if (expressions.length > 0) {
+              return search(expressions[0], operation);
+            }
+          }
+        }
+      }
+      return null;
+    } else if (node instanceof PsiJavaReference) {
+      PsiElement resolved = ((PsiJavaReference)node).resolve();
+      if (resolved instanceof PsiField) {
+        PsiField field = (PsiField)resolved;
+        if (operation == PermissionFinder.Operation.ACTION) {
+          for (PsiAnnotation annotation : getAllAnnotations(field)) {
+            if (PERMISSION_ANNOTATION.equals(annotation.getQualifiedName())) {
+              return getPermissionRequirement(field, annotation, operation);
+            }
+          }
+        }
+        else if (operation == PermissionFinder.Operation.READ || operation == PermissionFinder.Operation.WRITE) {
+          String fqn = operation == PermissionFinder.Operation.READ ? PERMISSION_ANNOTATION_READ : PERMISSION_ANNOTATION_WRITE;
+          PsiAnnotation annotation = null;
+          for (PsiAnnotation a : getAllAnnotations(field)) {
+            if (fqn.equals(a.getQualifiedName())) {
+              annotation = null;
+              if (AnnotationUtil.isExternalAnnotation(a)) {
+                // The complex annotations used for read/write cannot be
+                // expressed in the external annotations format, so they're inlined.
+                // (See Extractor.AnnotationData#write).
+                //
+                // Instead we've inlined the fields of the annotation on the
+                // outer one:
+                annotation = a;
+                break;
+              } else {
+                final PsiAnnotationMemberValue o = a.findAttributeValue(ATTR_VALUE);
+                if (o instanceof PsiAnnotation) {
+                  annotation = (PsiAnnotation)o;
+                  if (PERMISSION_ANNOTATION.equals(annotation.getQualifiedName())) {
+                    break;
+                  }
+                }
+              }
+            }
+          }
+          if (annotation != null) {
+            return getPermissionRequirement(field, annotation, operation);
+          } else {
+            PsiExpression initializer = field.getInitializer();
+            if (initializer instanceof PsiMethodCallExpression) {
+              PsiMethodCallExpression call = (PsiMethodCallExpression)initializer;
+              if (call.getMethodExpression().getQualifiedName().equals("Uri.withAppendedPath")) {
+                PsiExpression[] expressions = call.getArgumentList().getExpressions();
+                if (expressions.length == 2) {
+                  return search(expressions[0], operation);
+                }
+              }
+            }
+          }
+        }
+        else {
+          assert false : operation;
+        }
+      } else if (resolved instanceof PsiLocalVariable) {
+        PsiStatement statement = PsiTreeUtil.getParentOfType(node, PsiStatement.class, false);
+        while (statement != null) {
+          if (statement instanceof PsiDeclarationStatement) {
+            PsiDeclarationStatement declaration = (PsiDeclarationStatement)statement;
+            PsiElement[] declaredElements = declaration.getDeclaredElements();
+            for (PsiElement declared : declaredElements) {
+              if (declared == resolved && declared instanceof PsiLocalVariable) {
+                // Found the declaration of the target variable; look at the right hand side to determine how
+                // to proceed.
+                PsiExpression initializer = ((PsiLocalVariable)declared).getInitializer();
+                if (initializer != null) {
+                  return search(initializer, operation);
+                }
+              }
+            }
+          } else if (statement instanceof PsiExpressionStatement) {
+            PsiExpression expression = ((PsiExpressionStatement)statement).getExpression();
+            if (expression instanceof PsiAssignmentExpression) {
+              PsiAssignmentExpression assignment = (PsiAssignmentExpression)expression;
+              if (assignment.getLExpression() instanceof PsiReferenceExpression) {
+                PsiElement variable = ((PsiReferenceExpression)assignment.getLExpression()).resolve();
+                if (variable == resolved) {
+                  PsiExpression value = assignment.getRExpression();
+                  if (value != null) {
+                    return search(value, operation);
+                  }
+                }
+              }
+            }
+          } else if (statement instanceof PsiBinaryExpression) {
+            PsiBinaryExpression binary = (PsiBinaryExpression)statement;
+            if (binary.getOperationTokenType() == JavaTokenType.EQ) {
+              // Look at the LHS to see how to proceed
+              if (binary.getLOperand() == resolved && binary.getROperand() != null) {
+                // Found assignment: delegate to rhs.
+                return search(binary.getROperand(), operation);
+              }
+            }
+          }
+          statement = PsiTreeUtil.getPrevSiblingOfType(statement, PsiStatement.class);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @NonNull
+  private static PermissionFinder.Result getPermissionRequirement(@NonNull PsiField field,
+                                                                  @NonNull PsiAnnotation annotation,
+                                                                  @NonNull PermissionFinder.Operation operation) {
+    PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    PsiClass containingClass = field.getContainingClass();
+    String name;
+    if (containingClass != null) {
+      name = containingClass.getName() + "." + field.getName();
+    } else {
+      name = field.getName();
+    }
+    return new PermissionFinder.Result(operation, requirement, name);
+  }
+
+  private static void checkThreadAnnotation(PsiCall methodCall, ProblemsHolder holder, PsiMethod method, String qualifiedName) {
     String threadContext = getThreadContext(methodCall);
     if (threadContext != null && !isCompatibleThread(threadContext, qualifiedName)) {
       String message = String.format("Method %1$s must be called from the %2$s thread, currently inferred thread is %3$s",
@@ -351,7 +534,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
   /** Attempts to infer the current thread context at the site of the given method call */
   @Nullable
-  private static String getThreadContext(PsiCallExpression methodCall) {
+  private static String getThreadContext(PsiCall methodCall) {
     PsiMethod method = PsiTreeUtil.getParentOfType(methodCall, PsiMethod.class, true);
     if (method != null) {
       PsiAnnotation[] annotations = getAllAnnotations(method);
@@ -391,11 +574,19 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return null;
   }
 
-  private static void checkPermissionRequirement(PsiCallExpression methodCall,
+  private static void checkPermissionRequirement(PsiCall methodCall,
                                                  ProblemsHolder holder,
                                                  PsiMethod method,
                                                  PsiAnnotation annotation) {
     PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    checkPermissionRequirement(methodCall, holder, method, null, requirement);
+  }
+
+  private static void checkPermissionRequirement(PsiCall methodCall,
+                                                 ProblemsHolder holder,
+                                                 @Nullable PsiMethod method,
+                                                 @Nullable PermissionFinder.Result result,
+                                                 PermissionRequirement requirement) {
     if (!requirement.isConditional()) {
       Project project = methodCall.getProject();
       final AndroidFacet facet = AndroidFacet.getInstance(methodCall);
@@ -409,9 +600,18 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           return;
         }
 
-        PsiClass containingClass = method.getContainingClass();
-        String methodName = containingClass != null ? containingClass.getName() + "." + method.getName() : method.getName();
-        String message = getMissingPermissionMessage(requirement, methodName, lookup);
+        String methodName;
+        PermissionFinder.Operation operation;
+        if (result != null) {
+          operation = result.operation;
+          methodName = result.name;
+        } else {
+          assert method != null;
+          operation = PermissionFinder.Operation.CALL;
+          PsiClass containingClass = method.getContainingClass();
+          methodName = containingClass != null ? containingClass.getName() + "." + method.getName() : method.getName();
+        }
+        String message = getMissingPermissionMessage(requirement, methodName, lookup, operation);
         LocalQuickFix[] fixes = LocalQuickFix.EMPTY_ARRAY;
         List<LocalQuickFix> list = Lists.newArrayList();
         for (String permissionName : requirement.getMissingPermissions(lookup)) {
@@ -424,7 +624,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       } else if (requirement.isRevocable(lookup) && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23) {
         JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
         PsiClass securityException = psiFacade.findClass("java.lang.SecurityException", GlobalSearchScope.allScope(project));
-        if (securityException != null && ExceptionUtil.isHandled(PsiTypesUtil.getClassType(securityException), methodCall)) {
+        if (securityException != null &&
+            // Can't just call ExceptionUtil#isHandled like this:
+            //   ExceptionUtil.isHandled(PsiTypesUtil.getClassType(securityException), methodCall)) {
+            // because we *don't* want to quietly accept catching some SecurityException superclass (like Throwable);
+            // we want to warn about newly uncaught SecurityExceptions since users should be aware of this change
+            // and a better fix than just catching it is to insert manual checks and calling APIs to request
+            // permissions from the user.
+            isHandled(methodCall, PsiTypesUtil.getClassType(securityException), methodCall.getContainingFile())) {
           return;
         }
 
@@ -446,7 +653,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
   }
 
-  private static PermissionHolder addLocalPermissions(PermissionHolder lookup, PsiCallExpression call) {
+  private static PermissionHolder addLocalPermissions(PermissionHolder lookup, PsiCall call) {
     // Accumulate @RequirePermissions available in the local context
     PsiMethod method = PsiTreeUtil.getParentOfType(call, PsiMethod.class);
     if (method == null) {
@@ -461,13 +668,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return PermissionHolder.SetPermissionLookup.join(lookup, requirement);
   }
 
-  private static void checkReturnValueUsage(PsiCallExpression methodCall, ProblemsHolder holder, PsiMethod method) {
+  private static void checkReturnValueUsage(PsiCall methodCall, ProblemsHolder holder, PsiMethod method) {
     if (methodCall.getParent() instanceof PsiExpressionStatement) {
       PsiAnnotation annotation = AnnotationUtil.findAnnotation(method, CHECK_RESULT_ANNOTATION);
       if (annotation == null) {
         return;
       }
-      String message = String.format("The result '%1$s' is not used", method.getName());
+      String message = String.format("The result of '%1$s' is not used", method.getName());
       PsiAnnotationMemberValue value = annotation.findAttributeValue(ATTR_SUGGEST);
       if (value instanceof PsiLiteral) {
         PsiLiteral literal = (PsiLiteral)value;
@@ -555,7 +762,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           if (tagName.equals(TAG_APPLICATION)) {
             before = tag;
             break;
-          } else if (tagName.equals(TAG_USES_PERMISSION)) {
+          } else if (tagName.equals(TAG_USES_PERMISSION)
+                           || tagName.equals(TAG_USES_PERMISSION_SDK_23)
+                           || tagName.equals(TAG_USES_PERMISSION_SDK_M)) {
             String name = tag.getAttributeValue(ATTR_NAME, ANDROID_URI);
             if (name != null && name.compareTo(myPermissionName) > 0) {
               before = tag;
@@ -591,9 +800,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     private final AndroidFacet myFacet;
     private final PermissionRequirement myRequirement;
     private final Set<String> myRevocablePermissions;
-    private final PsiCallExpression myCall;
+    private final PsiCall myCall;
 
-    public AddCheckPermissionFix(AndroidFacet facet, PermissionRequirement requirement, PsiCallExpression call,
+    public AddCheckPermissionFix(AndroidFacet facet, PermissionRequirement requirement, PsiCall call,
                                  Set<String> revocablePermissions) {
       myFacet = facet;
       myRequirement = requirement;
@@ -782,6 +991,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     public boolean isSubsetOf(@NotNull Constraints other, @NotNull PsiManager manager) {
       return false;
     }
+
+    /** Linked list next reference, when more than one applies */
+    @Nullable public Constraints next;
   }
 
   /**
@@ -942,6 +1154,29 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           PsiExpression initializer = variable.getInitializer();
           if (initializer != null) {
             return guessSize(initializer);
+          }
+        }
+      } else if (argument instanceof PsiPrefixExpression) {
+        PsiPrefixExpression prefix = (PsiPrefixExpression)argument;
+        if (prefix.getOperationTokenType() == JavaTokenType.MINUS) {
+          PsiExpression operand = prefix.getOperand();
+          if (operand != null) {
+            Number number = guessSize(operand);
+            if (number != null) {
+              if (number instanceof Long) {
+                return -number.longValue();
+              } else if (number instanceof Integer) {
+                return -number.intValue();
+              } else if (number instanceof Double) {
+                return -number.doubleValue();
+              } else if (number instanceof Float) {
+                return -number.floatValue();
+              } else if (number instanceof Short) {
+                return -number.shortValue();
+              } else if (number instanceof Byte) {
+                return -number.byteValue();
+              }
+            }
           }
         }
       }
@@ -1265,6 +1500,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
   }
 
+  static class IndirectPermission extends Constraints {
+    public final String signature;
+    @Nullable public PermissionFinder.Result result;
+
+    public IndirectPermission(String signature) {
+      this.signature = signature;
+    }
+  }
+
   @Nullable
   private static Constraints getAllowedValuesFromTypedef(@NotNull PsiType type,
                                                            @NotNull PsiAnnotation magic,
@@ -1303,35 +1547,63 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   }
 
   @Nullable
+  private static Constraints merge(@Nullable Constraints head, @Nullable Constraints tail) {
+    if (head != null) {
+      if (tail != null) {
+        head.next = tail;
+
+        // The only valid combination of multiple constraints are @IntDef and @IntRange.
+        // In this case, always arrange for the IntDef constraint to be processed first
+        if (tail instanceof AllowedValues) {
+          head.next = tail.next;
+          tail.next = head;
+          head = tail;
+        }
+
+        return head;
+      } else {
+        return head;
+      }
+    }
+    return tail;
+  }
+
+  @Nullable
   public static Constraints getAllowedValues(@NotNull PsiModifierListOwner element, @Nullable PsiType type, @Nullable Set<PsiClass> visited) {
     PsiAnnotation[] annotations = getAllAnnotations(element);
     PsiManager manager = element.getManager();
     List<ResourceType> resourceTypes = null;
+    Constraints constraint = null;
     for (PsiAnnotation annotation : annotations) {
-      Constraints values;
       String qualifiedName = annotation.getQualifiedName();
       if (qualifiedName == null) {
         continue;
       }
 
-      if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
+      if (qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX) || qualifiedName.startsWith("test.pkg.")) {
         if (INT_DEF_ANNOTATION.equals(qualifiedName) || STRING_DEF_ANNOTATION.equals(qualifiedName)) {
           if (type != null) {
-            values = getAllowedValuesFromTypedef(type, annotation, manager);
-            if (values != null) return values;
+            constraint = merge(getAllowedValuesFromTypedef(type, annotation, manager), constraint);
           }
         }
-        else if (INT_RANGE_ANNOTATION.equals(qualifiedName)) {
-          return new IntRangeConstraint(annotation);
+        else if (INT_RANGE_ANNOTATION.equals(qualifiedName) || "test.pkg.IntRange".equals(qualifiedName)) {
+          constraint = merge(new IntRangeConstraint(annotation), constraint);
         }
         else if (FLOAT_RANGE_ANNOTATION.equals(qualifiedName)) {
-          return new FloatRangeConstraint(annotation);
+          constraint = merge(new FloatRangeConstraint(annotation), constraint);
         }
         else if (SIZE_ANNOTATION.equals(qualifiedName)) {
-          return new SizeConstraint(annotation);
+          constraint = merge(new SizeConstraint(annotation), constraint);
         }
         else if (COLOR_INT_ANNOTATION.equals(qualifiedName)) {
-          return new ResourceTypeAllowedValues(Collections.<ResourceType>emptyList());
+          constraint = merge(new ResourceTypeAllowedValues(Collections.<ResourceType>emptyList()), constraint);
+        }
+        else if (qualifiedName.startsWith(PERMISSION_ANNOTATION)) {
+          // PERMISSION_ANNOTATION, PERMISSION_ANNOTATION_READ, PERMISSION_ANNOTATION_WRITE
+          // When specified on a parameter, that indicates that we're dealing with
+          // a permission requirement on this *method* which depends on the value
+          // supplied by this parameter
+          constraint = merge(new IndirectPermission(qualifiedName), constraint);
         }
         else if (qualifiedName.endsWith(RES_SUFFIX)) {
           ResourceType resourceType = getResourceTypeFromAnnotation(qualifiedName);
@@ -1344,21 +1616,22 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         }
       }
 
-      PsiJavaCodeReferenceElement ref = annotation.getNameReferenceElement();
-      PsiElement resolved = ref == null ? null : ref.resolve();
-      if (!(resolved instanceof PsiClass) || !((PsiClass)resolved).isAnnotationType()) continue;
-      PsiClass aClass = (PsiClass)resolved;
-      if (visited == null) visited = new THashSet<PsiClass>();
-      if (!visited.add(aClass)) continue;
-      values = getAllowedValues(aClass, type, visited);
-      if (values != null) return values;
+      if (constraint == null) {
+        PsiJavaCodeReferenceElement ref = annotation.getNameReferenceElement();
+        PsiElement resolved = ref == null ? null : ref.resolve();
+        if (!(resolved instanceof PsiClass) || !((PsiClass)resolved).isAnnotationType()) continue;
+        PsiClass aClass = (PsiClass)resolved;
+        if (visited == null) visited = new THashSet<PsiClass>();
+        if (!visited.add(aClass)) continue;
+        constraint = merge(getAllowedValues(aClass, type, visited), constraint);
+      }
     }
 
     if (resourceTypes != null) {
-      return new ResourceTypeAllowedValues(resourceTypes);
+      constraint = merge(new ResourceTypeAllowedValues(resourceTypes), constraint);
     }
 
-    return null;
+    return constraint;
   }
 
   public static PsiAnnotation[] getAllAnnotations(final PsiModifierListOwner element) {
@@ -1376,88 +1649,94 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return element instanceof PsiVariable ? ((PsiVariable)element).getType() : element instanceof PsiMethod ? ((PsiMethod)element).getReturnType() : null;
   }
 
-  private static void checkMagicParameterArgument(@NotNull PsiParameter parameter,
-                                                  @NotNull PsiExpression argument,
-                                                  @NotNull Constraints allowedValues,
-                                                  @NotNull ProblemsHolder holder) {
-    final PsiManager manager = PsiManager.getInstance(holder.getProject());
-
-    if (!argument.getTextRange().isEmpty() && !isAllowed(parameter.getDeclarationScope(), argument, allowedValues, manager, null)) {
-      registerProblem(argument, allowedValues, holder);
+  private static void registerProblem(@NotNull PsiExpression argument, @NotNull Constraints constraint,
+                                      @NotNull ProblemsHolder holder) {
+    if (constraint instanceof IndirectPermission) {
+      PsiMethodCallExpression call = PsiTreeUtil.getParentOfType(argument, PsiMethodCallExpression.class);
+      IndirectPermission ip = (IndirectPermission)constraint;
+      if (call != null && ip.result != null) {
+        checkPermissionRequirement(call, holder, null, ip.result, ip.result.requirement);
+      }
     }
-  }
-
-  private static void registerProblem(@NotNull PsiExpression argument, @NotNull Constraints allowedValues, @NotNull ProblemsHolder holder) {
-    if (allowedValues instanceof ResourceTypeAllowedValues) {
-      List<ResourceType> types = ((ResourceTypeAllowedValues)allowedValues).types;
+    else if (constraint instanceof ResourceTypeAllowedValues) {
+      List<ResourceType> types = ((ResourceTypeAllowedValues)constraint).types;
       String message;
       if (types.isEmpty()) {
-        message = String.format(
-          "Should pass resolved color instead of resource id here: " +
-          "`getResources().getColor(%1$s)`", argument.getText());
-      } else if (types.size() == 1) {
+        message = String.format("Should pass resolved color instead of resource id here: `getResources().getColor(%1$s)`",
+                                argument.getText());
+      }
+      else if (types.size() == 1) {
         message = "Expected resource of type " + types.get(0);
-      } else {
+      }
+      else {
         message = "Expected resource type to be one of " + Joiner.on(", ").join(types);
       }
       holder.registerProblem(argument, message);
-      return;
     }
+    else if (constraint instanceof RangeAllowedValues) {
+      String message = ((RangeAllowedValues)constraint).describe(argument);
+      holder.registerProblem(argument, message);
+    }
+    else {
+      assert constraint instanceof AllowedValues;
+      AllowedValues typedef = (AllowedValues)constraint;
+      Function<PsiAnnotationMemberValue, String> formatter = new Function<PsiAnnotationMemberValue, String>() {
+        @Override
+        public String fun(PsiAnnotationMemberValue value) {
+          if (value instanceof PsiReferenceExpression) {
+            PsiElement resolved = ((PsiReferenceExpression)value).resolve();
+            if (resolved instanceof PsiVariable) {
+              return PsiFormatUtil.formatVariable((PsiVariable)resolved, SHOW_NAME | SHOW_CONTAINING_CLASS,
+                                                  PsiSubstitutor.EMPTY);
+            }
+          }
+          return value.getText();
+        }
+      };
+      String values = StringUtil.join(typedef.values, formatter, ", ");
+      String message;
+      if (typedef.canBeOred) {
+        message = "Must be one or more of: " + values;
+      }
+      else {
+        message = "Must be one of: " + values;
+      }
 
-    if (allowedValues instanceof RangeAllowedValues) {
-      String message = ((RangeAllowedValues)allowedValues).describe(argument);
-        holder.registerProblem(argument, message);
-      return;
-    }
+      // @IntDef and @IntRange can be combined
+      if (constraint.next instanceof RangeAllowedValues) {
+        message += " or " + StringUtil.decapitalize(((RangeAllowedValues)constraint.next).describe(argument));
+      }
 
-    assert allowedValues instanceof AllowedValues;
-    AllowedValues typedef = (AllowedValues)allowedValues;
-    String values = StringUtil.join(typedef.values,
-                                    new Function<PsiAnnotationMemberValue, String>() {
-                                      @Override
-                                      public String fun(PsiAnnotationMemberValue value) {
-                                        if (value instanceof PsiReferenceExpression) {
-                                          PsiElement resolved = ((PsiReferenceExpression)value).resolve();
-                                          if (resolved instanceof PsiVariable) {
-                                            return PsiFormatUtil.formatVariable((PsiVariable)resolved, PsiFormatUtilBase.SHOW_NAME |
-                                                                                                       PsiFormatUtilBase.SHOW_CONTAINING_CLASS, PsiSubstitutor.EMPTY);
-                                          }
-                                        }
-                                        return value.getText();
-                                      }
-                                    }, ", ");
-    String message;
-    if (typedef.canBeOred) {
-      message = "Must be one or more of: " + values;
-    } else {
-      message = "Must be one of: " + values;
+      holder.registerProblem(argument, message);
     }
-    holder.registerProblem(argument, message);
   }
 
   private static boolean isAllowed(@NotNull final PsiElement scope,
                                    @NotNull final PsiExpression argument,
-                                   @NotNull final Constraints allowedValues,
+                                   @NotNull final Constraints constraints,
                                    @NotNull final PsiManager manager,
                                    @Nullable final Set<PsiExpression> visited) {
-    // Resource type check
-    if (allowedValues instanceof ResourceTypeAllowedValues) {
-      return isResourceTypeAllowed(scope, argument, (ResourceTypeAllowedValues)allowedValues, manager, visited);
-    } else if (allowedValues instanceof RangeAllowedValues) {
-      return isInRange(scope, argument, (RangeAllowedValues)allowedValues, manager, visited);
+    if (constraints instanceof ResourceTypeAllowedValues) {
+      return isResourceTypeAllowed(scope, argument, (ResourceTypeAllowedValues)constraints, manager, visited);
+    } else if (constraints instanceof RangeAllowedValues) {
+      return isInRange(scope, argument, (RangeAllowedValues)constraints, manager, visited);
+    } else if (constraints instanceof IndirectPermission) {
+      return isGrantedPermission(argument, (IndirectPermission)constraints);
+    } else {
+      assert constraints instanceof AllowedValues;
+      final AllowedValues a = (AllowedValues)constraints;
+
+      if (isGoodExpression(argument, a, scope, manager, visited)) return true;
+
+      boolean allowed = processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
+        @Override
+        public boolean process(PsiExpression expression) {
+          return isGoodExpression(expression, a, scope, manager, visited);
+        }
+      });
+
+      return allowed;
     }
-
-    assert allowedValues instanceof AllowedValues;
-    final AllowedValues a = (AllowedValues)allowedValues;
-
-    if (isGoodExpression(argument, a, scope, manager, visited)) return true;
-
-    return processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
-      @Override
-      public boolean process(PsiExpression expression) {
-        return isGoodExpression(expression, a, scope, manager, visited);
-      }
-    });
   }
 
   private static boolean isGoodExpression(@NotNull PsiExpression e,
@@ -1482,8 +1761,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     if (allowedValues.canBeOred) {
       PsiExpression zero = getLiteralExpression(expression, manager, "0");
       if (same(expression, zero, manager)) return true;
-      PsiExpression mOne = getLiteralExpression(expression, manager, "-1");
-      if (same(expression, mOne, manager)) return true;
+      PsiExpression one = getLiteralExpression(expression, manager, "-1");
+      if (same(expression, one, manager)) return true;
       if (expression instanceof PsiPolyadicExpression) {
         IElementType tokenType = ((PsiPolyadicExpression)expression).getOperationTokenType();
         if (JavaTokenType.OR.equals(tokenType) || JavaTokenType.AND.equals(tokenType) || JavaTokenType.PLUS.equals(tokenType)) {
@@ -1517,7 +1796,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return PsiType.NULL.equals(expression.getType());
   }
 
-  private static long getLongValue(@Nullable PsiAnnotationMemberValue value, long defaultValue) {
+  private static long getLongValue(@Nullable PsiElement value, long defaultValue) {
     if (value == null) {
       return defaultValue;
     } else if (value instanceof PsiLiteral) {
@@ -1528,12 +1807,19 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     } else if (value instanceof PsiPrefixExpression) {
       // negative number
       PsiPrefixExpression exp = (PsiPrefixExpression)value;
-      PsiExpression operand = exp.getOperand();
-      if (operand instanceof PsiLiteral) {
-        Object o = ((PsiLiteral)operand).getValue();
-        if (o instanceof Number) {
-          return -((Number)o).longValue();
+      if (exp.getOperationTokenType() == JavaTokenType.MINUS) {
+        PsiExpression operand = exp.getOperand();
+        if (operand instanceof PsiLiteral) {
+          Object o = ((PsiLiteral)operand).getValue();
+          if (o instanceof Number) {
+            return -((Number)o).longValue();
+          }
         }
+      }
+    } else if (value instanceof PsiReferenceExpression) {
+      PsiElement resolved = ((PsiReferenceExpression)value).resolve();
+      if (resolved instanceof PsiField) {
+        return getLongValue(((PsiField)resolved).getInitializer(), defaultValue);
       }
     } // TODO: Allow inlined arithmetic here? If so look for operator nodes
 
@@ -1547,6 +1833,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       Object o = ((PsiLiteral)value).getValue();
       if (o instanceof Number) {
         return ((Number)o).doubleValue();
+      }
+    } else if (value instanceof PsiReferenceExpression) {
+      PsiElement resolved = ((PsiReferenceExpression)value).resolve();
+      if (resolved instanceof PsiField) {
+        return getDoubleValue(((PsiField)resolved).getInitializer(), defaultValue);
       }
     } // TODO: Allow inlined arithmetic here? If so look for operator nodes
 
@@ -1797,6 +2088,34 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return UNCERTAIN;
   }
 
+  private static boolean isGrantedPermission(@NotNull PsiExpression argument, @NotNull IndirectPermission permission) {
+    PsiMethodCallExpression call = PsiTreeUtil.getParentOfType(argument, PsiMethodCallExpression.class);
+    if (call != null) {
+      String signature = permission.signature;
+      PermissionFinder.Operation operation;
+      if (signature.equals(PERMISSION_ANNOTATION_READ)) {
+        operation = READ;
+      }
+      else if (signature.equals(PERMISSION_ANNOTATION_WRITE)) {
+        operation = WRITE;
+      }
+      else {
+        PsiType type = argument.getType();
+        if (type == null || !CLASS_INTENT.equals(type.getCanonicalText())) {
+          return true;
+        }
+        operation = ACTION;
+      }
+      permission.result = search(argument, operation);
+      if (permission.result != null) {
+        // Finish check in registerProblem
+        return false;
+      }
+    }
+    // No unsatisfied permission requirement found
+    return true;
+  }
+
   // Would be nice to reuse the MagicConstantInspection's cache for this, but it's not accessible
   private static final Key<Map<String, PsiExpression>> LITERAL_EXPRESSION_CACHE = Key.create("TYPE_DEF_LITERAL_EXPRESSION");
   private static PsiExpression getLiteralExpression(@NotNull PsiExpression context, @NotNull PsiManager manager, @NotNull String text) {
@@ -1857,5 +2176,89 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     return !children.isEmpty();
+  }
+
+  // Based on ExceptionUtil#isHandled and various methods it calls, but unlike that method, it checks to
+  // see whether you are catching or throwing the *specific* exceptionType, not some type assignable from it.
+  // (The code was also simplified quite a bit from the ExceptionUtil method, since we don't have to handle
+  // many of the same cases (this method only supports exceptions thrown from methods in a normal Java method.)
+  private static boolean isHandled(@Nullable PsiElement element, @NotNull PsiClassType exceptionType, PsiElement topElement) {
+    if (element == null || element.getParent() == topElement || element.getParent() == null) return false;
+
+    final PsiElement parent = element.getParent();
+
+    if (parent instanceof PsiMethod) {
+      PsiMethod method = (PsiMethod)parent;
+      return isHandledByMethodThrowsClause(method, exceptionType, PsiSubstitutor.EMPTY);
+    }
+    else if (parent instanceof PsiClass) {
+      return parent instanceof PsiAnonymousClass && isHandled(parent, exceptionType, topElement);
+    }
+    else if (parent instanceof PsiTryStatement) {
+      PsiTryStatement tryStatement = (PsiTryStatement)parent;
+      if (tryStatement.getTryBlock() == element && isCaught(tryStatement, exceptionType)) {
+        return true;
+      }
+      if (tryStatement.getResourceList() == element && isCaught(tryStatement, exceptionType)) {
+        return true;
+      }
+      PsiCodeBlock finallyBlock = tryStatement.getFinallyBlock();
+      if (element instanceof PsiCatchSection && finallyBlock != null && blockCompletesAbruptly(finallyBlock)) {
+        // exception swallowed
+        return true;
+      }
+    }
+    else if (parent instanceof PsiFile) {
+      return false;
+    }
+    return isHandled(parent, exceptionType, topElement);
+  }
+
+  private static boolean isHandledByMethodThrowsClause(@NotNull PsiMethod method,
+                                                       @NotNull PsiClassType exceptionType,
+                                                       PsiSubstitutor substitutor) {
+    final PsiClassType[] referencedTypes = method.getThrowsList().getReferencedTypes();
+    return isHandledBy(exceptionType, referencedTypes, substitutor);
+  }
+
+  public static boolean isHandledBy(@NotNull PsiClassType exceptionType,
+                                    @NotNull PsiClassType[] referencedTypes,
+                                    PsiSubstitutor substitutor) {
+    for (PsiClassType classType : referencedTypes) {
+      PsiType psiType = substitutor.substitute(classType);
+      // This is where we diverge from ExceptionUtil:
+      //if (psiType != null && psiType.isAssignableFrom(exceptionType)) return true;
+      if (psiType != null && psiType.equals(exceptionType)) return true;
+    }
+    return false;
+  }
+
+  private static boolean isCaught(@NotNull PsiTryStatement tryStatement, @NotNull PsiClassType exceptionType) {
+    // if finally block completes abruptly, exception gets lost
+    PsiCodeBlock finallyBlock = tryStatement.getFinallyBlock();
+    if (finallyBlock != null && blockCompletesAbruptly(finallyBlock)) return true;
+
+    final PsiParameter[] catchBlockParameters = tryStatement.getCatchBlockParameters();
+    for (PsiParameter parameter : catchBlockParameters) {
+      PsiType paramType = parameter.getType();
+      // This is where we diverge from ExceptionUtil:
+      //if (paramType.isAssignableFrom(exceptionType)) return true;
+      if (paramType.equals(exceptionType)) return true;
+    }
+
+    return false;
+  }
+
+  private static boolean blockCompletesAbruptly(@NotNull final PsiCodeBlock finallyBlock) {
+    try {
+      ControlFlow flow = ControlFlowFactory
+        .getInstance(finallyBlock.getProject()).getControlFlow(finallyBlock, LocalsOrMyInstanceFieldsControlFlowPolicy.getInstance(), false);
+      int completionReasons = ControlFlowUtil.getCompletionReasons(flow, 0, flow.getSize());
+      if ((completionReasons & ControlFlowUtil.NORMAL_COMPLETION_REASON) == 0) return true;
+    }
+    catch (AnalysisCanceledException e) {
+      return true;
+    }
+    return false;
   }
 }

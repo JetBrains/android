@@ -1,76 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.text.format.DateFormat boolean is24HourFormat(android.content.Context) 0">
-    <annotation name="android.support.annotation.NonNull" />
+  <item name="android.text.format.Formatter java.lang.String formatFileSize(android.content.Context, long) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.text.format.DateFormat char[] getDateFormatOrder(android.content.Context)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat char[] getDateFormatOrder(android.content.Context) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat java.lang.CharSequence format(java.lang.CharSequence, java.util.Calendar)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat java.lang.CharSequence format(java.lang.CharSequence, java.util.Calendar) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat java.lang.CharSequence format(java.lang.CharSequence, java.util.Calendar) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat java.lang.CharSequence format(java.lang.CharSequence, java.util.Date)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat java.lang.CharSequence format(java.lang.CharSequence, java.util.Date) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat java.lang.CharSequence format(java.lang.CharSequence, long)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat java.lang.CharSequence format(java.lang.CharSequence, long) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat java.text.DateFormat getDateFormat(android.content.Context)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat java.text.DateFormat getDateFormat(android.content.Context) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat java.text.DateFormat getTimeFormat(android.content.Context)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateFormat java.text.DateFormat getTimeFormat(android.content.Context) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateUtils java.lang.CharSequence getRelativeDateTimeString(android.content.Context, long, long, long, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateUtils java.lang.CharSequence getRelativeTimeSpanString(android.content.Context, long) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateUtils java.lang.CharSequence getRelativeTimeSpanString(android.content.Context, long, boolean) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateUtils java.util.Formatter formatDateRange(android.content.Context, java.util.Formatter, long, long, int) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.DateUtils java.util.Formatter formatDateRange(android.content.Context, java.util.Formatter, long, long, int, java.lang.String) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.Time Time(android.text.format.Time) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.Time boolean isEpoch(android.text.format.Time) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.Time java.lang.String format(java.lang.String)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.Time java.lang.String format2445()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.text.format.Time void set(android.text.format.Time) 0">
-    <annotation name="android.support.annotation.NonNull" />
+  <item name="android.text.format.Formatter java.lang.String formatShortFileSize(android.content.Context, long) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
 </root>
 

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.service.chooser.ChooserTarget ChooserTarget(java.lang.CharSequence, android.graphics.drawable.Icon, float, android.content.ComponentName, android.os.Bundle) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+</root>
+

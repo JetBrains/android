@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderService;
 import com.google.common.collect.Maps;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
@@ -55,6 +56,7 @@ import static com.intellij.android.designer.designSurface.RootView.VISUAL_EMPTY_
  * objects from layoutlib with a corresponding hierarchy of {@link com.intellij.android.designer.model.RadViewComponent}
  */
 public class RadModelBuilder {
+
   private static final String DESIGNER_KEY = "DESIGNER";
 
   // Special tag defined in the meta model file (views-meta-model.xml) defining the root node, shown as "Device Screen"
@@ -240,6 +242,7 @@ public class RadModelBuilder {
                                           int parentY) {
     Object cookie = view.getCookie();
     RadViewComponent component = null;
+    ViewInfo bounds = RenderService.getSafeBounds(view);
 
     XmlTag tag = null;
     boolean isMerge = false;
@@ -252,10 +255,10 @@ public class RadModelBuilder {
         tag = (XmlTag)cookie;
         if (myMergeComponentMap.containsKey(tag)) {
           // Just expand the bounds
-          int left = parentX + view.getLeft();
-          int top = parentY + view.getTop();
-          int width = view.getRight() - view.getLeft();
-          int height = view.getBottom() - view.getTop();
+          int left = parentX + bounds.getLeft();
+          int top = parentY + bounds.getTop();
+          int width = bounds.getRight() - bounds.getLeft();
+          int height = bounds.getBottom() - bounds.getTop();
           RadViewComponent radViewComponent = myMergeComponentMap.get(tag);
           radViewComponent.getBounds().add(new Rectangle(left, top, width, height));
           return null;
@@ -303,10 +306,10 @@ public class RadModelBuilder {
       component.setViewInfo(view);
       component.setNativeComponent(myNativeComponent);
 
-      int left = parentX + view.getLeft();
-      int top = parentY + view.getTop();
-      int width = view.getRight() - view.getLeft();
-      int height = view.getBottom() - view.getTop();
+      int left = parentX + bounds.getLeft();
+      int top = parentY + bounds.getTop();
+      int width = bounds.getRight() - bounds.getLeft();
+      int height = bounds.getBottom() - bounds.getTop();
 
       if (width < EMPTY_COMPONENT_SIZE && height < EMPTY_COMPONENT_SIZE) {
         myNativeComponent.addEmptyRegion(left, top, VISUAL_EMPTY_COMPONENT_SIZE, VISUAL_EMPTY_COMPONENT_SIZE);
@@ -336,8 +339,8 @@ public class RadModelBuilder {
       parent = component;
     }
 
-    parentX += view.getLeft();
-    parentY += view.getTop();
+    parentX += bounds.getLeft();
+    parentY += bounds.getTop();
 
     for (ViewInfo child : view.getChildren()) {
       updateHierarchy(parent, child, parentX, parentY);

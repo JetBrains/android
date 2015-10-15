@@ -16,17 +16,22 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JLabelFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
 /**
- * Base class for fixtures which control wizards that extend {@link com.android.tools.idea.wizard.DynamicWizard}
+ * Base class for fixtures which control wizards that extend {@link DynamicWizard}
  */
 public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDialog> implements ContainerFixture<JDialog> {
 
@@ -62,5 +67,37 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
   public S clickCancel() {
     findAndClickCancelButton(this);
     return myself();
+  }
+
+  @NotNull
+  public JTextComponentFixture findTextField(@NotNull final String labelText) {
+    return new JTextComponentFixture(robot(), robot().finder().findByLabel(labelText, JTextComponent.class));
+  }
+
+  @NotNull
+  public JButtonFixture findWizardButton(@NotNull final String text) {
+    JButton button = robot().finder().find(target(), new GenericTypeMatcher<JButton>(JButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull JButton button) {
+        String buttonText = button.getText();
+        if (buttonText != null) {
+          return buttonText.trim().equals(text) && button.isShowing();
+        }
+        return false;
+      }
+    });
+    return new JButtonFixture(robot(), button);
+  }
+
+  @NotNull
+  public JLabelFixture findLabel(@NotNull final String text) {
+    JLabel label = waitUntilFound(robot(), target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull JLabel label) {
+        return text.equals(label.getText().replaceAll("(?i)<.?html>", ""));
+      }
+    });
+
+    return new JLabelFixture(robot(), label);
   }
 }

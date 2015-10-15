@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import junit.framework.TestCase;
+import com.android.tools.idea.configurations.Configuration;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.AndroidTestCase;
 
-public class NewStyleDialogTest extends TestCase {
+public class NewStyleDialogTest extends AndroidTestCase {
   public void testNewStyleNameSuggestion() {
     assertEquals("", NewStyleDialog.getNewStyleNameSuggestion(null, null));
     assertEquals("", NewStyleDialog.getNewStyleNameSuggestion(null, "MyNewTheme"));
@@ -36,4 +38,19 @@ public class NewStyleDialogTest extends TestCase {
                  NewStyleDialog.getNewStyleNameSuggestion("@style/Widget.AppCompat2.EditStyle", "Theme.MyNewTheme"));
   }
 
+  public void testGetStyleParentName() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
+    myFixture.copyFileToProject("themeEditor/attrs.xml", "res/values/attrs.xml");
+
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+    ThemeEditorContext context = new ThemeEditorContext(configuration);
+    String styleName = "@android:style/TextAppearance.Medium";
+
+    NewStyleDialog dialog = new NewStyleDialog(false, context, styleName, "textAppearance", null);
+    assertEquals(styleName, dialog.getStyleParentName());
+    assertEquals("TextAppearance.Medium.textAppearance", dialog.getStyleName());
+
+    // Calling .doCancelAction to dispose dialog object and avoid memory leaks
+    dialog.doCancelAction();
+  }
 }

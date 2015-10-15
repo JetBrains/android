@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -37,12 +37,12 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
 
-public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomizer<IdeaJavaProject> {
+public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomizer<JavaProject> {
   @Override
   public void customizeModule(@NotNull Project project,
                               @NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable IdeaJavaProject model) {
+                              @Nullable JavaProject model) {
     if (model != null) {
       final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
 

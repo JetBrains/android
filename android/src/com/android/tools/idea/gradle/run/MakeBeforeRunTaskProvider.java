@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -24,15 +24,17 @@ import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
-import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.compiler.CompileScope;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -108,7 +110,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Override
   public MakeBeforeRunTask createTask(RunConfiguration runConfiguration) {
     // "Gradle-aware Make" is only available in Android Studio.
-    if (AndroidStudioSpecificInitializer.isAndroidStudio() && configurationTypeIsSupported(runConfiguration)) {
+    if (AndroidStudioInitializer.isAndroidStudio() && configurationTypeIsSupported(runConfiguration)) {
       MakeBeforeRunTask task = new MakeBeforeRunTask();
       if (runConfiguration instanceof AndroidRunConfigurationBase) {
         // For Android configurations, we want to replace the default make, so this new task needs to be enabled.
@@ -124,9 +126,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
   }
 
-  private static boolean configurationTypeIsSupported(RunConfiguration runConfiguration) {
-    return runConfiguration instanceof AndroidRunConfigurationBase ||
-           runConfiguration instanceof JUnitConfiguration ||
+  private static boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
+    return runConfiguration instanceof AndroidRunConfigurationBase || isUnitTestConfiguration(runConfiguration);
+  }
+
+  private static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
+    return runConfiguration instanceof JUnitConfiguration ||
            // Avoid direct dependency on the TestNG plugin:
            runConfiguration.getClass().getSimpleName().equals("TestNGConfiguration");
   }
@@ -157,12 +162,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         continue;
       }
 
-      IdeaGradleProject gradleProject = facet.getGradleProject();
-      if (gradleProject == null) {
+      GradleModel gradleModel = facet.getGradleModel();
+      if (gradleModel == null) {
         continue;
       }
 
-      gradleTasks.addAll(gradleProject.getTaskNames());
+      gradleTasks.addAll(gradleModel.getTaskNames());
     }
 
     return gradleTasks;
@@ -178,7 +183,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
                              final RunConfiguration configuration,
                              ExecutionEnvironment env,
                              final MakeBeforeRunTask task) {
-    if (!Projects.isGradleProject(myProject) || !Projects.isDirectGradleInvocationEnabled(myProject)) {
+    if (!Projects.requiresAndroidModel(myProject) || !Projects.isDirectGradleInvocationEnabled(myProject)) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }
@@ -231,18 +236,26 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
           @Override
           public void run() {
             Module[] modules;
-            if (configuration instanceof ModuleBasedConfiguration) {
-              // ModuleBasedConfiguration includes Android and JUnit run configurations.
-              modules = ((ModuleBasedConfiguration)configuration).getModules();
+            if (configuration instanceof ModuleRunProfile) {
+              // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
+              // which is AbstractRerunFailedTestsAction.MyRunProfile.
+              modules = ((ModuleRunProfile)configuration).getModules();
             }
             else {
               modules = Projects.getModulesToBuildFromSelection(myProject, context);
             }
-            TestCompileType testCompileType = getTestCompileType(configuration);
+
             gradleInvoker.addAfterGradleInvocationTask(afterTask);
             String goal = task.getGoal();
             if (StringUtil.isEmpty(goal)) {
-              gradleInvoker.assemble(modules, testCompileType);
+              if (isUnitTestConfiguration(configuration)) {
+                // Make sure all "intermediates/classes" directories are up-to-date.
+                Module[] affectedModules = getAffectedModules(modules);
+                gradleInvoker.compileJava(affectedModules, TestCompileType.JAVA_TESTS);
+              } else {
+                TestCompileType testCompileType = getTestCompileType(configuration);
+                gradleInvoker.assemble(modules, testCompileType);
+              }
             } else {
               gradleInvoker.executeTasks(Lists.newArrayList(goal));
             }
@@ -256,6 +269,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
     return success.get();
+  }
+
+  @NotNull
+  private Module[] getAffectedModules(@NotNull Module[] modules) {
+    final CompilerManager compilerManager = CompilerManager.getInstance(myProject);
+    CompileScope scope = compilerManager.createModulesCompileScope(modules, true, true);
+    return scope.getAffectedModules();
   }
 
   @NotNull

@@ -15,12 +15,12 @@
  */
 package org.jetbrains.android.run;
 
+import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.RemoteConnection;
-import com.intellij.execution.configurations.RemoteState;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -31,7 +31,6 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.execution.ui.RunContentManager;
@@ -53,7 +52,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
-import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -127,7 +125,8 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       final RunContentDescriptor descriptor = super.doExecute(state, environment);
 
       if (descriptor != null) {
-        setActivateToolWindowWhenAddedProperty(environment.getProject(), environment.getExecutor(), descriptor, "running");
+        // suppress the run tool window because it takes focus away
+        deactivateToolWindowWhenAddedProperty(environment.getProject(), environment.getExecutor(), descriptor, "running");
       }
       return descriptor;
     }
@@ -135,7 +134,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     final RunProfile runProfile = environment.getRunProfile();
     if (runProfile instanceof AndroidTestRunConfiguration) {
       // attempt to set the target package only in case on non Gradle projects
-      if (!state.getFacet().isGradleProject()) {
+      if (!state.getFacet().requiresAndroidModel()) {
         String targetPackage = getTargetPackage((AndroidTestRunConfiguration)runProfile, state);
         if (targetPackage == null) {
           throw new ExecutionException(AndroidBundle.message("target.package.not.specified.error"));
@@ -163,26 +162,18 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     tryToCloseOldSessions(environment.getExecutor(), environment.getProject());
     final ProcessHandler handler = state.getProcessHandler();
     handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(runDescriptor, state, environment.getExecutor().getId()));
-    setActivateToolWindowWhenAddedProperty(environment.getProject(), environment.getExecutor(), runDescriptor, "running");
+    deactivateToolWindowWhenAddedProperty(environment.getProject(), environment.getExecutor(), runDescriptor, "running");
     return runDescriptor;
   }
 
-  private static void setActivateToolWindowWhenAddedProperty(Project project,
-                                                             Executor executor,
-                                                             RunContentDescriptor descriptor,
-                                                             String status) {
-    final boolean activateToolWindow = shouldActivateExecWindow(project);
-    descriptor.setActivateToolWindowWhenAdded(activateToolWindow);
-
-    if (!activateToolWindow) {
-      showNotification(project, executor, descriptor, status, false, NotificationType.INFORMATION);
-    }
-  }
-
-  private static boolean shouldActivateExecWindow(Project project) {
-    final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(
-      AndroidToolWindowFactory.TOOL_WINDOW_ID);
-    return toolWindow == null || !toolWindow.isVisible();
+  private static void deactivateToolWindowWhenAddedProperty(Project project,
+                                                            Executor executor,
+                                                            RunContentDescriptor descriptor,
+                                                            String status) {
+    // don't pop up the tool window (AndroidRunningState.execute takes care of popping up the tool window if there are errors)
+    descriptor.setActivateToolWindowWhenAdded(false);
+    // but show a notification that a launch took place
+    showNotification(project, executor, descriptor, status, false, NotificationType.INFORMATION);
   }
 
   @Nullable
@@ -349,57 +340,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     return null;
   }
 
-  private static class AndroidDebugState implements RemoteState, AndroidExecutionState {
-    private final Project myProject;
-    private final RemoteConnection myConnection;
-    private final AndroidRunningState myState;
-    private final IDevice myDevice;
-
-    private volatile ConsoleView myConsoleView;
-
-    public AndroidDebugState(Project project,
-                             RemoteConnection connection,
-                             AndroidRunningState state,
-                             IDevice device) {
-      myProject = project;
-      myConnection = connection;
-      myState = state;
-      myDevice = device;
-    }
-
-    @Override
-    public ExecutionResult execute(final Executor executor, @NotNull final ProgramRunner runner) throws ExecutionException {
-      RemoteDebugProcessHandler process = new RemoteDebugProcessHandler(myProject);
-      myState.setProcessHandler(process);
-      myConsoleView = myState.getConfiguration().attachConsole(myState, executor);
-      final LogcatExecutionConsole console = new LogcatExecutionConsole(myProject, myDevice, myConsoleView,
-                                                                            myState.getConfiguration().getType().getId());
-      return new DefaultExecutionResult(console, process);
-    }
-
-    @Override
-    public RemoteConnection getRemoteConnection() {
-      return myConnection;
-    }
-
-    @Override
-    public IDevice[] getDevices() {
-      return new IDevice[]{myDevice};
-    }
-
-    @Nullable
-    @Override
-    public ConsoleView getConsoleView() {
-      return myConsoleView;
-    }
-
-    @NotNull
-    @Override
-    public AndroidRunConfigurationBase getConfiguration() {
-      return myState.getConfiguration();
-    }
-  }
-
   @Override
   @NotNull
   public String getRunnerId() {
@@ -439,11 +379,14 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     }
 
     @Override
-    public void launchDebug(final IDevice device, final String debugPort) {
+    public void launchDebug(@NotNull final Client client) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})
         public void run() {
+          IDevice device = client.getDevice();
+          String debugPort = Integer.toString(client.getDebuggerListenPort());
+
           final DebuggerPanelsManager manager = DebuggerPanelsManager.getInstance(myProject);
           AndroidDebugState st =
             new AndroidDebugState(myProject, new RemoteConnection(true, "localhost", debugPort, false),
@@ -469,15 +412,16 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
             LOG.info("cannot start debugging");
             return;
           }
+
+          AndroidProcessText.attach(newProcessHandler);
           final AndroidProcessText oldText = AndroidProcessText.get(processHandler);
           if (oldText != null) {
             oldText.printTo(newProcessHandler);
           }
-          AndroidProcessText.attach(newProcessHandler);
 
-          myRunningState.getProcessHandler().putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(
-            debugDescriptor, st, myExecutor.getId()));
-          setActivateToolWindowWhenAddedProperty(myProject, myExecutor, debugDescriptor, "debugger connected");
+          myRunningState.getProcessHandler().putUserData(ANDROID_SESSION_INFO,
+                                                         new AndroidSessionInfo(debugDescriptor, st, myExecutor.getId()));
+          deactivateToolWindowWhenAddedProperty(myProject, myExecutor, debugDescriptor, "debugger connected");
         }
       });
     }

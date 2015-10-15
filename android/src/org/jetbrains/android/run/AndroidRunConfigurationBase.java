@@ -17,27 +17,23 @@
 package org.jetbrains.android.run;
 
 import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.run.CloudConfiguration;
 import com.android.tools.idea.run.CloudDebuggingTargetChooser;
 import com.android.tools.idea.run.CloudTargetChooser;
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.notification.NotificationType;
@@ -71,7 +67,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.util.Projects.isGradleProjectWithoutModel;
+import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 import static com.android.tools.idea.run.CloudConfiguration.Kind.MATRIX;
 import static com.android.tools.idea.run.CloudConfiguration.Kind.SINGLE_DEVICE;
 
@@ -97,7 +93,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public String NETWORK_LATENCY = "none";
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
-  public boolean FILTER_LOGCAT_AUTOMATICALLY = true;
+  public boolean SKIP_NOOP_APK_INSTALLATIONS = true; // skip installation if the APK hasn't hasn't changed
+  public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
 
   public int SELECTED_CLOUD_MATRIX_CONFIGURATION_ID = 0;
   public String SELECTED_CLOUD_MATRIX_PROJECT_ID = "";
@@ -124,7 +121,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     Project project = module.getProject();
-    if (isGradleProjectWithoutModel(project)) {
+    if (requiredAndroidModelMissing(project)) {
       // This only shows an error message on the "Run Configuration" dialog, but does not prevent user from running app.
       throw new RuntimeConfigurationException(GRADLE_SYNC_FAILED_ERR_MSG);
     }
@@ -217,16 +214,15 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     Project project = env.getProject();
 
-    if (isGradleProjectWithoutModel(project)) {
+    if (requiredAndroidModelMissing(project)) {
       // This prevents user from running the app.
       throw new ExecutionException(GRADLE_SYNC_FAILED_ERR_MSG);
     }
 
-    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    if (ideaAndroidProject != null) {
-      Variant variant = ideaAndroidProject.getSelectedVariant();
-      if (!variant.getMainArtifact().isSigned()) {
-        AndroidArtifactOutput output = GradleUtil.getOutput(variant.getMainArtifact());
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
+    if (androidGradleModel != null) {
+      if (!androidGradleModel.getMainArtifact().isSigned()) {
+        AndroidArtifactOutput output = GradleUtil.getOutput(androidGradleModel.getMainArtifact());
         String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName());
         String title = CommonBundle.getErrorTitle();
         NotificationHyperlink quickfix =
@@ -294,17 +290,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         break;
     }
 
-    AndroidApplicationLauncher applicationLauncher = getApplicationLauncher(facet);
-    if (applicationLauncher != null) {
-      final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
-      return new AndroidRunningState(env, facet, targetChooser, computeCommandLine(), applicationLauncher,
-                                     supportMultipleDevices, CLEAR_LOGCAT, this, nonDebuggableOnDevice);
-    }
-    return null;
+    final boolean supportMultipleDevices = supportMultipleDevices() && executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID);
+    return new AndroidRunningState(env, facet, getApkProvider(), targetChooser, computeCommandLine(), getApplicationLauncher(facet),
+                                   supportMultipleDevices, CLEAR_LOGCAT, this, nonDebuggableOnDevice);
   }
 
+  @NotNull
+  protected abstract ApkProvider getApkProvider();
+
   @Nullable
-  protected static Pair<File, String> getCopyOfCompilerManifestFile(@NotNull AndroidFacet facet, @Nullable ProcessHandler processHandler) {
+  protected static Pair<File, String> getCopyOfCompilerManifestFile(@NotNull AndroidFacet facet) throws IOException {
     final VirtualFile manifestFile = AndroidRootUtil.getCustomManifestFileForCompiler(facet);
 
     if (manifestFile == null) {
@@ -319,14 +314,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return Pair.create(manifestCopy, PathUtil.getLocalPath(manifestFile));
     }
     catch (IOException e) {
-      if (processHandler != null) {
-        processHandler.notifyTextAvailable("I/O error: " + e.getMessage(), ProcessOutputTypes.STDERR);
-      }
       LOG.info(e);
       if (tmpDir != null) {
         FileUtil.delete(tmpDir);
       }
-      return null;
+      throw e;
     }
   }
 
@@ -353,7 +345,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected abstract ConsoleView attachConsole(AndroidRunningState state, Executor executor) throws ExecutionException;
 
-  @Nullable
+  @NotNull
   protected abstract AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet);
 
   protected abstract boolean supportMultipleDevices();

@@ -59,6 +59,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
+import static org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry.CUSTOM_ERROR;
+import static org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry.CUSTOM_WARNING;
 
 /**
  * Implementation of the {@linkplain LintClient} API for executing lint within the IDE:
@@ -70,7 +72,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
   @NonNull protected Project myProject;
   @Nullable protected Map<com.android.tools.lint.detector.api.Project, Module> myModuleMap;
 
-  protected IntellijLintClient(@NonNull Project project) {
+  public IntellijLintClient(@NonNull Project project) {
     myProject = project;
   }
 
@@ -118,8 +120,9 @@ public class IntellijLintClient extends LintClient implements Disposable {
     myModuleMap = moduleMap;
   }
 
+  @NonNull
   @Override
-  public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project) {
+  public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project, @Nullable final LintDriver driver) {
     if (project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
       AndroidProject model = project.getGradleProjectModel();
       if (model != null) {
@@ -149,7 +152,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
                 }
 
                 // This is a LIST lookup. I should make this faster!
-                if (!getIssues().contains(issue)) {
+                if (!getIssues().contains(issue) && (driver == null || !driver.isCustomIssue(issue))) {
                   return Severity.IGNORE;
                 }
 
@@ -165,7 +168,11 @@ public class IntellijLintClient extends LintClient implements Disposable {
     return new DefaultConfiguration(this, project, null) {
       @Override
       public boolean isEnabled(@NonNull Issue issue) {
-        return getIssues().contains(issue) && super.isEnabled(issue);
+        if (getIssues().contains(issue) && super.isEnabled(issue)) {
+          return true;
+        }
+
+        return driver != null && driver.isCustomIssue(issue);
       }
     };
   }
@@ -248,7 +255,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
 
   @NonNull
   @Override
-  public List<File> getJavaLibraries(@NonNull com.android.tools.lint.detector.api.Project project) {
+  public List<File> getJavaLibraries(@NonNull com.android.tools.lint.detector.api.Project project, boolean includeProvided) {
     // todo: implement
     return Collections.emptyList();
   }
@@ -368,9 +375,9 @@ public class IntellijLintClient extends LintClient implements Disposable {
     Module module = getModule();
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      return facet != null && facet.isGradleProject();
+      return facet != null && facet.requiresAndroidModel();
     }
-    return Projects.isGradleProject(myProject);
+    return Projects.requiresAndroidModel(myProject);
   }
 
   // Overridden such that lint doesn't complain about missing a bin dir property in the event
@@ -443,6 +450,10 @@ public class IntellijLintClient extends LintClient implements Disposable {
       if (location != null) {
         final File file = location.getFile();
         final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+
+        if (context.getDriver().isCustomIssue(issue)) {
+          issue = Severity.WARNING.compareTo(severity) <= 0 ? CUSTOM_WARNING : CUSTOM_ERROR;
+        }
 
         if (myState.getMainFile().equals(vFile)) {
           final Position start = location.getStart();
@@ -616,6 +627,10 @@ public class IntellijLintClient extends LintClient implements Disposable {
       }
 
       if (inScope) {
+        if (context.getDriver().isCustomIssue(issue)) {
+          issue = Severity.WARNING.compareTo(severity) <= 0 ? CUSTOM_WARNING : CUSTOM_ERROR;
+        }
+
         file = new File(PathUtil.getCanonicalPath(file.getPath()));
 
         Map<File, List<ProblemData>> file2ProblemList = myProblemMap.get(issue);

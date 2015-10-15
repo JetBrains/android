@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -33,14 +33,14 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 /**
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleCustomizer<IdeaJavaProject> {
+public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleCustomizer<JavaProject> {
   @NonNls private static final String CLASSES_FOLDER_NAME = "classes";
 
   @Override
   public void customizeModule(@NotNull Project project,
                               @NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable IdeaJavaProject javaProject) {
+                              @Nullable JavaProject javaProject) {
     if (javaProject == null) {
       return;
     }

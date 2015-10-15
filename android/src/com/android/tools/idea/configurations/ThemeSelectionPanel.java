@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeResolver;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
@@ -78,18 +78,23 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   @NotNull private ThemeFilterComponent myFilter;
   @Nullable private List<String> myFrameworkThemes;
   @Nullable private List<String> myProjectThemes;
+  @Nullable private List<String> myLibraryThemes;
   @Nullable private static Deque<String> ourRecent;
   @Nullable private ThemeCategory myCategory = ThemeCategory.ALL;
   @NotNull private Map<ThemeCategory, List<String>> myThemeMap = Maps.newEnumMap(ThemeCategory.class);
   @NotNull private ThemeResolver myThemeResolver;
+  @NotNull private Set<String> myExcludedThemes;
   private boolean myIgnore;
 
-  public ThemeSelectionPanel(@NotNull ThemeSelectionDialog dialog, @NotNull Configuration configuration) {
+  public ThemeSelectionPanel(@NotNull ThemeSelectionDialog dialog,
+                             @NotNull Configuration configuration,
+                             @NotNull Set<String> excludedThemes) {
     myDialog = dialog;
     myConfiguration = configuration;
+    myExcludedThemes = excludedThemes;
     myThemeResolver = new ThemeResolver(configuration);
     String currentTheme = configuration.getTheme();
-    touchTheme(currentTheme);
+    touchTheme(currentTheme, myExcludedThemes);
 
     myCategoryTree.setModel(new CategoryModel());
     myCategoryTree.setRootVisible(false);
@@ -329,6 +334,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         for (String theme : getFrameworkThemes()) {
           themes.add(theme);
         }
+        for (String theme : getLibraryThemes()) {
+          themes.add(theme);
+        }
         break;
       case ROOT:
       default:
@@ -373,17 +381,26 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   private List<String> getFrameworkThemes() {
     if (myFrameworkThemes == null) {
-      myFrameworkThemes = getSortedNames(getPublicThemes(myThemeResolver.getFrameworkThemes()));
+      myFrameworkThemes = getFilteredSortedNames(getPublicThemes(myThemeResolver.getFrameworkThemes()), myExcludedThemes);
     }
     return myFrameworkThemes;
   }
 
   private List<String> getProjectThemes() {
     if (myProjectThemes == null) {
-      myProjectThemes = getSortedNames(getPublicThemes(myThemeResolver.getLocalThemes()));
+      myProjectThemes = getFilteredSortedNames(getPublicThemes(myThemeResolver.getLocalThemes()), myExcludedThemes);
     }
 
     return myProjectThemes;
+  }
+
+  private List<String> getLibraryThemes() {
+    if (myLibraryThemes == null) {
+      myLibraryThemes = getFilteredPrefixesSortedNames(getPublicThemes(myThemeResolver.getExternalLibraryThemes()), myExcludedThemes,
+                                                       Collections.singleton("Base."));
+    }
+
+    return myLibraryThemes;
   }
 
   // ---- Implements ListSelectionListener ----
@@ -424,17 +441,19 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   @Nullable
   public String getTheme() {
     String selected = (String)myThemeList.getSelectedValue();
-    touchTheme(selected);
+    touchTheme(selected, myExcludedThemes);
     return selected;
   }
 
-  private static void touchTheme(@Nullable String selected) {
+  private static void touchTheme(@Nullable String selected, Set<String> excludedThemes) {
     if (selected != null) {
       if (ourRecent == null || !ourRecent.contains(selected)) {
         if (ourRecent == null) {
           ourRecent = new LinkedList<String>();
         }
-        ourRecent.addFirst(selected);
+        if (!excludedThemes.contains(selected)) {
+          ourRecent.addFirst(selected);
+        }
       }
     }
   }
@@ -534,10 +553,44 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
   }
 
-  private static List<String> getSortedNames(Collection<ThemeEditorStyle> themesRaw) {
+  /**
+   * Sorts the themes in themesRaw excluding those in excludedThemes
+   *
+   * @param themesRaw      themes to process
+   * @param excludedThemes themes to filter out
+   * @return the sorted themes excluding those in excludedThemes
+   */
+  private static List<String> getFilteredSortedNames(Collection<ThemeEditorStyle> themesRaw, Set<String> excludedThemes) {
+    return getFilteredPrefixesSortedNames(themesRaw, excludedThemes, Collections.<String>emptySet());
+  }
+
+  /**
+   * Sorts the themes in themesRaw excluding those in excludedThemes and those starting with prefixes in excludedPrefixes
+   *
+   * @param themesRaw themes to process
+   * @param excludedThemes themes to filter out
+   * @param excludedPrefixes set of prefixes of the themes to filter
+   * @return the sorted themes excluding those in excludedThemes or starting with a prefix in excludedPrefixes
+   */
+  private static List<String> getFilteredPrefixesSortedNames(Collection<ThemeEditorStyle> themesRaw,
+                                                             Set<String> excludedThemes,
+                                                             Set<String> excludedPrefixes) {
     List<String> themes = new ArrayList<String>(themesRaw.size());
     for (ThemeEditorStyle theme : themesRaw) {
-      themes.add(theme.getName());
+      String qualifiedName = theme.getQualifiedName();
+      if (!excludedThemes.contains(qualifiedName)) {
+        boolean startWithPrefix = false;
+        String themeName = theme.getName();
+        for (String prefix : excludedPrefixes) {
+          if (themeName.startsWith(prefix)) {
+            startWithPrefix = true;
+            break;
+          }
+        }
+        if (!startWithPrefix) {
+          themes.add(qualifiedName);
+        }
+      }
     }
     Collections.sort(themes);
     return themes;

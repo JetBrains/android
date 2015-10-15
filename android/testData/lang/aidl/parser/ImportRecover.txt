@@ -1,0 +1,23 @@
+FILE
+  AidlHeadersImpl(HEADERS)
+    AidlImportStatementImpl(IMPORT_STATEMENT)
+      PsiElement(AidlTokenType.import)('import')
+      AidlQualifiedNameImpl(QUALIFIED_NAME)
+        AidlNameComponentImpl(NAME_COMPONENT)
+          PsiElement(AidlTokenType.IDENTIFIER)('x')
+      PsiElement(AidlTokenType.;)(';')
+    AidlImportStatementImpl(IMPORT_STATEMENT)
+      PsiElement(AidlTokenType.import)('import')
+      AidlQualifiedNameImpl(QUALIFIED_NAME)
+        AidlNameComponentImpl(NAME_COMPONENT)
+          PsiElement(AidlTokenType.IDENTIFIER)('y')
+      PsiErrorElement:'.' or AidlTokenType.; expected, got 'import'
+        <empty list>
+    AidlImportStatementImpl(IMPORT_STATEMENT)
+      PsiElement(AidlTokenType.import)('import')
+      AidlQualifiedNameImpl(QUALIFIED_NAME)
+        AidlNameComponentImpl(NAME_COMPONENT)
+          PsiElement(AidlTokenType.IDENTIFIER)('z')
+      PsiElement(AidlTokenType.;)(';')
+  AidlBodyImpl(BODY)
+    <empty list>

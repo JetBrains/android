@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.compatibility;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.module.Module;
@@ -43,9 +43,9 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
   public String getComponentVersion(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-      if (androidProject != null) {
-        return androidProject.getDelegate().getModelVersion();
+      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+      if (androidModel != null) {
+        return androidModel.getAndroidProject().getModelVersion();
       }
     }
     return null;

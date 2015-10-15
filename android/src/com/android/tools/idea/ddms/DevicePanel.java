@@ -209,14 +209,23 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     boolean update = true;
     IDevice selected = (IDevice)myDeviceCombo.getSelectedItem();
     myDeviceCombo.removeAllItems();
+    boolean shouldAddSelected = true;
     if (myBridge != null) {
       for (IDevice device : myBridge.getDevices()) {
         myDeviceCombo.addItem(device);
-        if (selected == device) {
+        // If we reattach an actual device into Studio, "device" will be the connected IDevice and "selected" will be the disconnected one.
+        boolean isSelectedReattached =
+          selected != null && !selected.isEmulator() && selected.getSerialNumber().equals(device.getSerialNumber());
+        if (selected == device || isSelectedReattached) {
           myDeviceCombo.setSelectedItem(device);
-          update = false;
+          shouldAddSelected = false;
+          update = selected != device;
         }
       }
+    }
+    if (selected != null && shouldAddSelected) {
+      myDeviceCombo.addItem(selected);
+      myDeviceCombo.setSelectedItem(selected);
     }
 
     if (update) {

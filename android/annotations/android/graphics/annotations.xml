@@ -21,6 +21,9 @@
   <item name="android.graphics.Bitmap void setPixels(int[], int, int, int, int, int, int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.graphics.BitmapShader BitmapShader(android.graphics.Bitmap, android.graphics.Shader.TileMode, android.graphics.Shader.TileMode) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.Canvas Canvas(android.graphics.Bitmap) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -481,16 +484,7 @@
       <val name="value" val="3" />
     </annotation>
   </item>
-  <item name="android.graphics.Color int alpha(int)">
-    <annotation name="android.support.annotation.ColorInt" />
-  </item>
   <item name="android.graphics.Color int argb(int, int, int, int)">
-    <annotation name="android.support.annotation.ColorInt" />
-  </item>
-  <item name="android.graphics.Color int blue(int)">
-    <annotation name="android.support.annotation.ColorInt" />
-  </item>
-  <item name="android.graphics.Color int green(int)">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.graphics.Color int parseColor(java.lang.String)">
@@ -500,9 +494,6 @@
     <annotation name="android.support.annotation.Size">
       <val name="min" val="1" />
     </annotation>
-  </item>
-  <item name="android.graphics.Color int red(int)">
-    <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.graphics.Color int rgb(int, int, int)">
     <annotation name="android.support.annotation.ColorInt" />

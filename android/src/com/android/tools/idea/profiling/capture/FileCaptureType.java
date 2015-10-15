@@ -50,7 +50,11 @@ public abstract class FileCaptureType extends CaptureType {
 
   @Override
   public boolean isValidCapture(@NotNull VirtualFile file) {
-    return SdkUtils.endsWithIgnoreCase(file.getPath(), myFileNameExtension);
+    return isValidCapture(file.getPath());
+  }
+
+  public boolean isValidCapture(@NotNull String filePath) {
+    return SdkUtils.endsWithIgnoreCase(filePath, myFileNameExtension);
   }
 
   @NotNull

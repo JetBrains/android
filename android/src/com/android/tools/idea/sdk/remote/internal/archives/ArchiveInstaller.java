@@ -25,7 +25,6 @@ import com.android.sdklib.io.FileOp;
 import com.android.sdklib.io.IFileOp;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.remote.internal.CanceledByUserException;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
@@ -34,15 +33,16 @@ import com.android.utils.GrabProcessOutput;
 import com.android.utils.GrabProcessOutput.IProcessOutput;
 import com.android.utils.GrabProcessOutput.Wait;
 import com.android.utils.Pair;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.message.BasicHeader;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -363,11 +363,11 @@ public class ArchiveInstaller {
     InputStream is = null;
     int inc_remain = NUM_MONITOR_INC;
     try {
-      Pair<InputStream, HttpResponse> result = cache.openDirectUrl(urlString, resumeHeaders, monitor);
+      Pair<InputStream, HttpURLConnection> result = cache.openDirectUrl(urlString, resumeHeaders, monitor);
 
       is = result.getFirst();
-      HttpResponse resp = result.getSecond();
-      int status = resp.getStatusLine().getStatusCode();
+      HttpURLConnection connection = result.getSecond();
+      int status = connection.getResponseCode();
       if (status == HttpStatus.SC_NOT_FOUND) {
         throw new Exception("URL not found.");
       }
@@ -378,11 +378,13 @@ public class ArchiveInstaller {
 
       Properties props = new Properties();
       props.setProperty(PROP_STATUS_CODE, Integer.toString(status));
-      if (resp.containsHeader(HttpHeaders.ETAG)) {
-        props.setProperty(HttpHeaders.ETAG, resp.getFirstHeader(HttpHeaders.ETAG).getValue());
+      String etag = connection.getHeaderField(HttpHeaders.ETAG);
+      if (etag != null) {
+        props.setProperty(HttpHeaders.ETAG, etag);
       }
-      if (resp.containsHeader(HttpHeaders.LAST_MODIFIED)) {
-        props.setProperty(HttpHeaders.LAST_MODIFIED, resp.getFirstHeader(HttpHeaders.LAST_MODIFIED).getValue());
+      String lastModified = connection.getHeaderField(HttpHeaders.LAST_MODIFIED);
+      if (lastModified != null) {
+        props.setProperty(HttpHeaders.LAST_MODIFIED, lastModified);
       }
 
       try {
@@ -511,10 +513,10 @@ public class ArchiveInstaller {
       return true;
 
     }
-    catch (CanceledByUserException e) {
+    catch (ProcessCanceledException e) {
       // HTTP Basic Auth or NTLM login was canceled by user.
       // Don't output an error in the log.
-
+      throw e;
     }
     catch (FileNotFoundException e) {
       // The FNF message is just the URL. Make it a bit more useful.

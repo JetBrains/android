@@ -47,7 +47,7 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.compatibility.ComponentVersionReader.*;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.io.Closeables.close;
 import static com.intellij.openapi.util.JDOMUtil.load;

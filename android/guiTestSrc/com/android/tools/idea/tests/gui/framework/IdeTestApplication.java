@@ -28,8 +28,6 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.lang.ClassPath;
-import com.intellij.util.lang.ClasspathCache;
 import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.text.StringTokenizer;
 import org.fest.reflect.reference.TypeRef;
@@ -49,6 +47,7 @@ import java.util.regex.Pattern;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationDirPath;
 import static com.intellij.openapi.application.PathManager.PROPERTY_CONFIG_PATH;
 import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.PlatformUtils.PLATFORM_PREFIX_KEY;
 import static com.intellij.util.containers.ContainerUtil.addAll;
@@ -109,6 +108,13 @@ public class IdeTestApplication implements Disposable {
 
   @NotNull
   private static File getGuiTestRootDirPath() throws IOException {
+    String guiTestRootDirPathProperty = System.getProperty("gui.tests.root.dir.path");
+    if (isNotEmpty(guiTestRootDirPathProperty)) {
+      File rootDirPath = new File(guiTestRootDirPathProperty);
+      if (rootDirPath.isDirectory()) {
+        return rootDirPath;
+      }
+    }
     String homeDirPath = toSystemDependentName(PathManager.getHomePath());
     assertThat(homeDirPath).isNotEmpty();
     File rootDirPath = new File(homeDirPath, join("androidStudio", "gui-tests"));
@@ -131,7 +137,6 @@ public class IdeTestApplication implements Disposable {
     mainMain();
 
     myIdeClassLoader = createClassLoader();
-    forceEagerClassPathLoading();
 
     WindowsCommandLineProcessor.ourMirrorClass = Class.forName(WindowsCommandLineProcessor.class.getName(), true, myIdeClassLoader);
 
@@ -154,15 +159,14 @@ public class IdeTestApplication implements Disposable {
   @NotNull
   private static ClassLoader createClassLoader() throws MalformedURLException, URISyntaxException {
     Collection<URL> classpath = Sets.newLinkedHashSet();
-    addParentClassPath(classpath);
     addIdeaLibraries(classpath);
     addAdditionalClassPath(classpath);
 
     UrlClassLoader.Builder builder = UrlClassLoader.build()
                                                    .urls(filterClassPath(Lists.newArrayList(classpath)))
+                                                   .parent(IdeTestApplication.class.getClassLoader())
                                                    .allowLock(false)
-                                                   .usePersistentClasspathIndexForLocalClassDirectories()
-                                                   .useCache();
+                                                   .usePersistentClasspathIndexForLocalClassDirectories();
     if (SystemProperties.getBooleanProperty(PROPERTY_ALLOW_BOOTSTRAP_RESOURCES, true)) {
       builder.allowBootstrapResources();
     }
@@ -179,44 +183,6 @@ public class IdeTestApplication implements Disposable {
 
     Thread.currentThread().setContextClassLoader(newClassLoader);
     return newClassLoader;
-  }
-
-  private static void addParentClassPath(@NotNull Collection<URL> classpath) throws MalformedURLException, URISyntaxException {
-    List<ClassLoader> urlClassLoaders = Lists.newArrayList();
-
-    for (ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-         classLoader != null;
-         classLoader = classLoader.getParent()) {
-      if (classLoader instanceof URLClassLoader || classLoader instanceof UrlClassLoader || isUrlClassLoader(classLoader)) {
-        urlClassLoaders.add(0, classLoader);
-      }
-    }
-    for (ClassLoader classLoader : urlClassLoaders) {
-      if (classLoader instanceof URLClassLoader) {
-        addAll(classpath, ((URLClassLoader)classLoader).getURLs());
-      }
-      else if (classLoader instanceof UrlClassLoader) {
-        addAll(classpath, ((UrlClassLoader)classLoader).getUrls());
-      }
-      else if (isUrlClassLoader(classLoader)) {
-        addAll(classpath, getUrlsFrom(classLoader));
-      }
-    }
-  }
-
-  private static boolean isUrlClassLoader(@NotNull ClassLoader classLoader) {
-    return classLoader.getClass().getName().equals(UrlClassLoader.class.getName());
-  }
-
-  @NotNull
-  private static List<URL> getUrlsFrom(@NotNull ClassLoader classLoader) throws URISyntaxException, MalformedURLException {
-    // We need to use reflection because the given classLoader was loaded using another ClassLoader and 'instanceof UrlClassLoader' returns
-    // false.
-    List<URL> urls = field("myURLs").ofType(new TypeRef<List<URL>>() {})
-                                    .in(classLoader)
-                                    .get();
-    assertNotNull(urls);
-    return urls;
   }
 
   private static void addIdeaLibraries(@NotNull Collection<URL> classpath) throws MalformedURLException {
@@ -244,6 +210,7 @@ public class IdeTestApplication implements Disposable {
       }
     }
   }
+
   private static void addAdditionalClassPath(@NotNull Collection<URL> classpath) throws MalformedURLException {
     StringTokenizer tokenizer = new StringTokenizer(System.getProperty(PROPERTY_ADDITIONAL_CLASSPATH, ""), File.pathSeparator, false);
     while (tokenizer.hasMoreTokens()) {
@@ -264,113 +231,6 @@ public class IdeTestApplication implements Disposable {
       }
     }
     return classpath;
-  }
-
-  /**
-   * We encountered a problem with {@link UrlClassLoader default IJ class loader} - it uses {@link ClassPath} which, in turn,
-   * uses {@link ClasspathCache caching} by default and there is a race condition. Here are some facts about class loading implementation
-   * details used by it:
-   * <ol>
-   * <li>
-   * {@link ClassPath} lazily evaluates {@link ClassPath#push(List) configured classpath roots} when there is
-   * {@link ClassPath#getResource(String, boolean) a request} for a resource and target resource hasn't been cached yet;
-   * </li
-   * <li>
-   * {@link ClassPath} {@link ClasspathCache#nameSymbolsLoaded() seals loaded data} (reorganize it in a way to consume less memory)
-   * when all {@link ClassPath#push(List) configured classpath roots} are processed;
-   * </li>
-   * <li>
-   * Here is the problem - {@link ClasspathCache} state update from {@link ClasspathCache#myTempMapMode 'use temp map'} mode to
-   * <code>'not use temp map'</code> mode is performed in not thread-safe manner;
-   * </li>
-   * <li>
-   * Class loading is performed in a thread-safe manner (guaranteed by {@link ClassLoader} from the standard library. However,
-   * resource loading doesn't imply any locks. E.g. we encountered a situation below:
-   * <table>
-   * <thead>
-   * <tr>
-   * <th>Thread1</th>
-   * <th>Thread2</th>
-   * </tr>
-   * </thead>
-   * <tbody>
-   * <tr>
-   * <td>{@link ClassPath#getResource(String, boolean)} is called for a particular class</td>
-   * <td></td>
-   * </tr>
-   * <tr>
-   * <td>{@link ClasspathCache#iterateLoaders(String, ClasspathCache.LoaderIterator, Object, Object)} is called as a result</td>
-   * <td></td>
-   * </tr>
-   * <tr>
-   * <td></td>
-   * <td>
-   * {@link ClassPath#getResource(String, boolean)} is called for a particular resource (not synced with the active
-   * <code>'load class'</code> request
-   * </td>
-   * </tr>
-   * <tr>
-   * <td></td>
-   * <td>
-   * This request is a general purpose one (e.g.
-   * <a href="http://docs.oracle.com/javase/tutorial/sound/SPI-intro.html">a call to custom service implementation</a>)
-   * and target resource is not found in any of the configured classpath roots, effectively forcing {@link ClassPath}
-   * to iterate (load) all of them;
-   * </td>
-   * </tr>
-   * <tr>
-   * <td></td>
-   * <td>
-   * {@link ClasspathCache#nameSymbolsLoaded()} is called when all configured classpath roots are processed during
-   * an attempt to find target resource;
-   * </td>
-   * </tr>
-   * <tr>
-   * <td></td>
-   * <td>
-   * {@link ClasspathCache#myTempMapMode} is set to <code>false</code> as the very first thing during
-   * {@link ClasspathCache#nameSymbolsLoaded()} processing, {@link ClasspathCache#myNameFilter} object is created and
-   * its state population begins;
-   * </td>
-   * </tr>
-   * <tr>
-   * <td>
-   * {@link ClasspathCache#iterateLoaders(String, ClasspathCache.LoaderIterator, Object, Object)} continues the processing
-   * and calls {@link ClassPath.ResourceStringLoaderIterator#process(Loader, Object, Object)} which, in turn,
-   * calls {@link ClasspathCache#loaderHasName(String, Loader)};
-   * </td>
-   * <td></td>
-   * </tr>
-   * <tr>
-   * <td>
-   * And here lays the problem: {@link ClasspathCache#loaderHasName(String, Loader)} sees that
-   * {@link ClasspathCache#myTempMapMode} is set to <code>false</code> and forwards the processing to the
-   * {@link ClasspathCache#myNameFilter}. But it's state is still being updated, so, there is a possible case that it
-   * returns <code>null</code> for a resource {@link ClasspathCache#addNameEntry(String, Loader) added previously};
-   * </td>
-   * <td></td>
-   * </tr>
-   * </tbody>
-   * </table>
-   * </li>
-   * </ol>
-   * So, proper way to fix the problem is to address that race condition at the {@link ClassPath}/{@link ClasspathCache} level.
-   * However, it's rather dangerous to just explicitly add synchronization there because JetBrains worked a lot on class loading
-   * performance optimization and any change there requires thorough testing.
-   * <p/>
-   * That's why we did the following:
-   * <ul>
-   * <li>told JetBrains about the problem (effectively putting the burden of a proper fix on them);</li>
-   * <li>
-   * do a kind of a hack here as a temporary solution - force eager {@link ClasspathCache#nameSymbolsLoaded() classpath cache sealing}
-   * by requesting to load un-existing resource;
-   * </li>
-   * </ul>
-   */
-  private void forceEagerClassPathLoading() {
-    if (myIdeClassLoader instanceof UrlClassLoader) {
-      ((UrlClassLoader)myIdeClassLoader).findResource("Really hope there is no resource with such name");
-    }
   }
 
   private static void pluginManagerStart(@NotNull String[] args) {

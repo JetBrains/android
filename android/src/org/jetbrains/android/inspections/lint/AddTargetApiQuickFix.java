@@ -41,20 +41,14 @@ class AddTargetApiQuickFix implements AndroidLintQuickFix {
     myElement = element;
   }
 
-  private String getAnnotationValue() {
-    String codeName = SdkVersionInfo.getBuildCode(myApi);
-    if (codeName == null) {
-      return Integer.toString(myApi);
-    } else {
-      return "android.os.Build.VERSION_CODES." + codeName;
-    }
+  private String getAnnotationValue(boolean fullyQualified) {
+    return AddTargetVersionCheckQuickFix.getVersionField(myApi, fullyQualified);
   }
 
   @NotNull
   @Override
   public String getName() {
-    String value = getAnnotationValue();
-    String key = value.substring(value.lastIndexOf('.') + 1);
+    String key = getAnnotationValue(false);
 
     final PsiFile file = PsiTreeUtil.getParentOfType(myElement, PsiFile.class);
     if (file instanceof XmlFile) {
@@ -116,7 +110,7 @@ class AddTargetApiQuickFix implements AndroidLintQuickFix {
     if (modifierList != null) {
       Project project = startElement.getProject();
       PsiElementFactory elementFactory = JavaPsiFacade.getInstance(project).getElementFactory();
-      String annotationText = "@" + FQCN_TARGET_API + "(" + getAnnotationValue() + ")";
+      String annotationText = "@" + FQCN_TARGET_API + "(" + getAnnotationValue(true) + ")";
       PsiAnnotation newAnnotation = elementFactory.createAnnotationFromText(annotationText, container);
       PsiAnnotation annotation = AnnotationUtil.findAnnotation(container, FQCN_TARGET_API);
       if (annotation != null && annotation.isPhysical()) {

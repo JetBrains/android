@@ -15,157 +15,166 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.rpc.RenderSettings;
-import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.idea.editors.gfxtrace.actions.FramebufferTypeAction;
+import com.android.tools.idea.editors.gfxtrace.actions.FramebufferWireframeAction;
+import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
+import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
+import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBViewport;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.awt.event.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class FrameBufferController implements GfxController {
-  @NotNull private final GfxTraceEditor myEditor;
-  @NotNull private final JBRunnerTabs myBufferTabs;
-  @NotNull private final JBScrollPane[] myBufferScrollPanes;
-  @NotNull private AtomicLong myCurrentFetchAtomId = new AtomicLong();
-  @Nullable private ImageFetcher myImageFetcher;
-  @NotNull private JBLoadingPanel[] myLoadingPanels = new JBLoadingPanel[BufferType.length];
-
-  public FrameBufferController(@NotNull GfxTraceEditor editor,
-                               @NotNull JBRunnerTabs bufferTabs,
-                               @NotNull JBScrollPane colorScrollPane,
-                               @NotNull JBScrollPane wireframePane,
-                               @NotNull JBScrollPane depthScrollPane) {
-    myEditor = editor;
-    myBufferTabs = bufferTabs;
-
-    myBufferScrollPanes = new JBScrollPane[]{colorScrollPane, wireframePane, depthScrollPane};
-    assert (myBufferScrollPanes.length == BufferType.length);
-
-    for (int i = 0; i < myBufferScrollPanes.length; ++i) {
-      myBufferScrollPanes[i].getVerticalScrollBar().setUnitIncrement(20);
-      myBufferScrollPanes[i].getHorizontalScrollBar().setUnitIncrement(20);
-      myBufferScrollPanes[i].setBorder(BorderFactory.createLineBorder(JBColor.border()));
-
-      myLoadingPanels[i] = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
-      myBufferScrollPanes[i].setViewportView(myLoadingPanels[i]);
-    }
-
-    // TODO: Add a way to pan the viewport with the keyboard.
+public class FrameBufferController extends Controller {
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new FrameBufferController(editor).myPanel;
   }
 
-  @Nullable
-  private static FetchedImage fetchImage(long atomId,
-                                         @NotNull ImageFetcher imageFetcher,
-                                         @NotNull BufferType instance,
-                                         @Nullable RenderSettings renderSettings) {
-    assert (instance == BufferType.DEPTH_BUFFER || renderSettings != null);
-    if (renderSettings != null) {
-      renderSettings.setWireframe(instance == BufferType.WIREFRAME_BUFFER);
+  private static final int MAX_SIZE = 0xffff;
+
+  public enum BufferType {
+    Color,
+    Depth
+  }
+
+  @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
+  @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
+  @NotNull private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
+  @NotNull private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
+  @NotNull private final JBScrollPane myScrollPane = new JBScrollPane();
+  @NotNull private final ImagePanel myImagePanel = new ImagePanel();
+  @NotNull private final RenderSettings mySettings = new RenderSettings();
+  @NotNull private JBLoadingPanel myLoading;
+  @NotNull private BufferType myBufferType = BufferType.Color;
+
+  private final AtomicInteger imageLoadCount = new AtomicInteger();
+  private ListenableFuture<?> request = Futures.immediateFuture(0);
+
+  public synchronized int newImageRequest(ListenableFuture<?> request) {
+    this.request.cancel(true);
+    this.request = request;
+    return imageLoadCount.incrementAndGet();
+  }
+
+  public boolean isCurrentImageRequest(int request) {
+    return imageLoadCount.get() == request;
+  }
+
+  private FrameBufferController(@NotNull GfxTraceEditor editor) {
+    super(editor);
+
+    myScrollPane.getVerticalScrollBar().setUnitIncrement(20);
+    myScrollPane.getHorizontalScrollBar().setUnitIncrement(20);
+    myScrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+    myScrollPane.setViewport(myImagePanel.getViewport());
+
+    myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
+    myLoading.add(myScrollPane, BorderLayout.CENTER);
+
+    mySettings.setMaxHeight(MAX_SIZE);
+    mySettings.setMaxWidth(MAX_SIZE);
+    mySettings.setWireframeMode(WireframeMode.noWireframe());
+    myPanel.add(myLoading, BorderLayout.CENTER);
+
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getToolbarActions(), false);
+    myPanel.add(toolbar.getComponent(), BorderLayout.WEST);
+  }
+
+  public ActionGroup getToolbarActions() {
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new FramebufferTypeAction(this, BufferType.Color, "Color", "Display the color framebuffer", AllIcons.Gutter.Colors));
+    group.add(new FramebufferTypeAction(this, BufferType.Depth, "Depth", "Display the depth framebuffer", AllIcons.Gutter.OverridenMethod));
+    group.add(new Separator());
+    group.add(new FramebufferWireframeAction(this, WireframeMode.noWireframe(), "None", "Display the frambuffer without wireframing",
+                                             AllIcons.Ide.Macro.Recording_1));
+    group.add(new FramebufferWireframeAction(this, WireframeMode.wireframeOverlay(), "Overlay", "Wireframe the last draw call only",
+                                             AllIcons.Gutter.Unique));
+    group.add(new FramebufferWireframeAction(this, WireframeMode.allWireframe(), "All", "Draw the framebuffer with full wireframing",
+                                             AllIcons.Graph.Grid));
+    return group;
+  }
+
+  @NotNull
+  public BufferType getBufferType() {
+    return myBufferType;
+  }
+
+  public void setBufferType(@NotNull BufferType bufferType) {
+    if (!myBufferType.equals(bufferType)) {
+      myBufferType = bufferType;
+      updateBuffer();
     }
+  }
 
-    ImageFetcher.ImageFetchHandle imageFetchHandle =
-      (instance == BufferType.DEPTH_BUFFER) ? imageFetcher.queueDepthImage(atomId) : imageFetcher.queueColorImage(atomId, renderSettings);
+  @NotNull
+  public WireframeMode getWireframeMode() {
+    return mySettings.getWireframeMode();
+  }
 
-    if (imageFetchHandle == null) {
-      return null;
+  public void setWireframeMode(@NotNull WireframeMode mode) {
+    if (!mySettings.getWireframeMode().equals(mode)) {
+      mySettings.setWireframeMode(mode);
+      updateBuffer();
     }
-
-    return imageFetcher.resolveImage(imageFetchHandle);
   }
 
   @Override
-  public void startLoad() {
-
+  public void notifyPath(Path path) {
+    boolean updateTabs = false;
+    if (path instanceof DevicePath) {
+      updateTabs |= myRenderDevice.update((DevicePath)path);
+    }
+    if (path instanceof AtomPath) {
+      updateTabs |= myAtomPath.update((AtomPath)path);
+    }
+    if (updateTabs && myRenderDevice.getPath() != null && myAtomPath.getPath() != null) {
+      // TODO: maybe do the selected tab first, but it's probably not much of a win
+      updateBuffer();
+    }
   }
 
-  @Override
-  public void commitData(@NotNull GfxContextChangeState state) {
-    myImageFetcher = new ImageFetcher(myEditor.getClient());
-    assert (myEditor.getCaptureId() != null);
-    if (myEditor.getDeviceId() == null || myEditor.getContext() == null) {
-      // If there is no device selected, don't do anything.
-      return;
-    }
-    myImageFetcher.prepareFetch(myEditor.getDeviceId(), myEditor.getCaptureId(), myEditor.getContext());
-  }
+  public void updateBuffer() {
+    final ListenableFuture<FetchedImage> imageFuture = loadImage();
+    final int imageRequest = newImageRequest(imageFuture);
 
-  public void setImageForId(final long atomId) {
-    // TODO: Add toggle for between scaled and full size.
+    myLoading.startLoading();
 
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    assert (myEditor.getCaptureId() != null);
-    assert (myImageFetcher != null);
-
-    if (myCurrentFetchAtomId.get() == atomId) {
-      // Early out if the given atomId was already fetched or is in the process of being fetched.
-      return;
-    }
-
-    clearCache();
-
-    // Only color, wireframe, and depth are fetched at the moment, since the server hasn't implemented stencil buffers.
-    final List<BufferType> bufferOrder =
-      new ArrayList<BufferType>(Arrays.asList(BufferType.COLOR_BUFFER, BufferType.WIREFRAME_BUFFER, BufferType.DEPTH_BUFFER));
-
-    for (JBLoadingPanel panel : myLoadingPanels) {
-      if (!panel.isLoading()) {
-        panel.startLoading();
-      }
-    }
-
-    myCurrentFetchAtomId.set(atomId);
-    final ImageFetcher imageFetcher = myImageFetcher;
-
-    // This needs to run in parallel to the main worker thread since it's slow and it doesn't affect the other controllers.
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+    Futures.addCallback(imageFuture, new FutureCallback<FetchedImage>() {
       @Override
-      public void run() {
-        RenderSettings renderSettings = new RenderSettings();
-        renderSettings.setMaxWidth(4096);
-        renderSettings.setMaxHeight(4096);
+      public void onSuccess(@Nullable FetchedImage result) {
+        updateBuffer(imageRequest, result);
+      }
 
-        // Prioritize the currently selected tab in bufferOrder.
-        if (myBufferTabs.getSelectedInfo() != null) {
-          String tabName = myBufferTabs.getSelectedInfo().getText();
-          for (BufferType buffer : BufferType.values()) {
-            if (buffer.getName().equals(tabName)) {
-              if (bufferOrder.remove(buffer)) {
-                bufferOrder.add(0, buffer);
-              }
-              break;
-            }
-          }
+      @Override
+      public void onFailure(Throwable t) {
+        if (!(t instanceof CancellationException)) {
+          LOG.error(t);
         }
 
-        for (BufferType buffer : bufferOrder) {
-          if (atomId != myCurrentFetchAtomId.get()) {
-            return;
-          }
-
-          FetchedImage fetchedImage = fetchImage(atomId, imageFetcher, buffer, renderSettings);
-          if (fetchedImage == null) {
-            break;
-          }
-
-          setIcons(atomId, fetchedImage.createImageIcon(), buffer);
-        }
-
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
+        EdtExecutor.INSTANCE.execute(new Runnable() {
           @Override
           public void run() {
-            if (atomId == myCurrentFetchAtomId.get()) {
-              stopLoading();
+            if (isCurrentImageRequest(imageRequest)) {
+              myLoading.stopLoading();
             }
           }
         });
@@ -173,67 +182,217 @@ public class FrameBufferController implements GfxController {
     });
   }
 
-  @Override
-  public void clear() {
-    myImageFetcher = null;
-    stopLoading();
-    clearCache();
-  }
-
-  @Override
-  public void clearCache() {
-    for (JBLoadingPanel panel : myLoadingPanels) {
-      panel.getContentPanel().removeAll();
-    }
-    myCurrentFetchAtomId.set(-1);
-  }
-
-  private void stopLoading() {
-    for (JBLoadingPanel panel : myLoadingPanels) {
-      if (panel.isLoading()) {
-        panel.stopLoading();
+  private ListenableFuture<FetchedImage> loadImage() {
+    return Futures.transform(getImageInfoPath(), new AsyncFunction<ImageInfoPath, FetchedImage>() {
+      @Override
+      public ListenableFuture<FetchedImage> apply(ImageInfoPath imageInfoPath) throws Exception {
+        return FetchedImage.load(myEditor.getClient(), imageInfoPath);
       }
+    });
+  }
+
+  private ListenableFuture<ImageInfoPath> getImageInfoPath() {
+    switch (myBufferType) {
+      case Color:
+        return myEditor.getClient().getFramebufferColor(myRenderDevice.getPath(), myAtomPath.getPath(), mySettings);
+      case Depth:
+        return myEditor.getClient().getFramebufferDepth(myRenderDevice.getPath(), myAtomPath.getPath());
+      default:
+        return null;
     }
   }
 
-  private void setIcons(final long closedAtomId, @NotNull final ImageIcon image, @NotNull final BufferType bufferType) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+  private void updateBuffer(final int imageRequest, FetchedImage fetchedImage) {
+    final Image image = fetchedImage.icon.getImage();
+    EdtExecutor.INSTANCE.execute(new Runnable() {
       @Override
       public void run() {
-        if (myCurrentFetchAtomId.get() == closedAtomId) {
-          int index = bufferType.ordinal();
-          myLoadingPanels[index].add(new JBLabel(image));
-          if (myLoadingPanels[index].isLoading()) {
-            myLoadingPanels[index].stopLoading();
-          }
-
-          myBufferScrollPanes[index].repaint();
+        // Back in the UI thread here
+        if (isCurrentImageRequest(imageRequest)) {
+          myLoading.stopLoading();
+          myImagePanel.setImage(image);
         }
       }
     });
   }
 
-  public enum BufferType {
-    COLOR_BUFFER("Color"),
-    WIREFRAME_BUFFER("Wirefame"),
-    DEPTH_BUFFER("Depth");
+  private static class ImagePanel extends JPanel {
+    private static final double ZOOM_FIT = Double.POSITIVE_INFINITY;
+    private static final double MAX_ZOOM = 8;
+    private static final double MIN_ZOOM_WIDTH = 100.0;
+    private static final int ZOOM_AMOUNT = 5;
+    private static final int SCROLL_AMOUNT = 15;
 
-    private static final int length = BufferType.values().length;
-    @NotNull final private String myName;
+    private final JBViewport parent = new JBViewport();
+    private Image image = null;
+    private double zoom;
 
-    BufferType(@NotNull String name) {
-      myName = name;
+    private ImagePanel() {
+      this.zoom = ZOOM_FIT;
+      this.parent.setView(this);
+
+      MouseAdapter mouseHandler = new MouseAdapter() {
+        private int lastX, lastY;
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+          zoom(Math.max(-ZOOM_AMOUNT, Math.min(ZOOM_AMOUNT, e.getWheelRotation())), e.getPoint());
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+          lastX = e.getX();
+          lastY = e.getY();
+
+          if (isPanningButton(e)) {
+            setCursor(new Cursor(Cursor.MOVE_CURSOR));
+          }
+          else {
+            zoomToFit();
+          }
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+          setCursor(null);
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
+          int dx = lastX - e.getX(), dy = lastY - e.getY();
+          lastX = e.getX();
+          lastY = e.getY();
+
+          if (isPanningButton(e)) {
+            scrollBy(dx, dy);
+          }
+        }
+
+        private boolean isPanningButton(MouseEvent e) {
+          // Pan for either the primary mouse button or the mouse wheel.
+          return (e.getModifiersEx() & (InputEvent.BUTTON1_DOWN_MASK | InputEvent.BUTTON2_DOWN_MASK)) != 0;
+        }
+      };
+
+      // Add the mouse listeners to the parent, so the coordinates stay consistent.
+      parent.addMouseListener(mouseHandler);
+      parent.addMouseWheelListener(mouseHandler);
+      parent.addMouseMotionListener(mouseHandler);
+
+      addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+          switch (e.getKeyCode()) {
+            case KeyEvent.VK_UP:
+            case KeyEvent.VK_K:
+              scrollBy(0, -SCROLL_AMOUNT);
+              break;
+            case KeyEvent.VK_DOWN:
+            case KeyEvent.VK_J:
+              scrollBy(0, SCROLL_AMOUNT);
+              break;
+            case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_H:
+              scrollBy(-SCROLL_AMOUNT, 0);
+              break;
+            case KeyEvent.VK_RIGHT:
+            case KeyEvent.VK_L:
+              scrollBy(SCROLL_AMOUNT, 0);
+              break;
+            case KeyEvent.VK_PLUS:
+            case KeyEvent.VK_ADD:
+              zoom(-ZOOM_AMOUNT, new Point(parent.getWidth() / 2, parent.getHeight() / 2));
+              break;
+            case KeyEvent.VK_MINUS:
+            case KeyEvent.VK_SUBTRACT:
+              zoom(ZOOM_AMOUNT, new Point(parent.getWidth() / 2, parent.getHeight() / 2));
+              break;
+            case KeyEvent.VK_EQUALS:
+              if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0) {
+                zoom(-ZOOM_AMOUNT, new Point(parent.getWidth() / 2, parent.getHeight() / 2));
+              }
+              else {
+                zoomToFit();
+              }
+              break;
+          }
+        }
+      });
+      setFocusable(true);
     }
 
-    @NotNull
-    public String getName() {
-      return myName;
+    public JBViewport getViewport() {
+      return parent;
+    }
+
+    public void setImage(Image image) {
+      this.image = image;
+      revalidate();
+      repaint();
     }
 
     @Override
-    @NotNull
-    public String toString() {
-      return getName();
+    public Dimension getPreferredSize() {
+      return (zoom == ZOOM_FIT)
+             ? new Dimension(parent.getWidth(), parent.getHeight())
+             : new Dimension((int)(zoom * image.getWidth(this)), (int)(zoom * image.getHeight(this)));
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
+      if (image != null) {
+        double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
+        int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
+        g.drawImage(image, (getWidth() - w) / 2, (getHeight() - h) / 2, w, h, this);
+      }
+    }
+
+    private void scrollBy(int dx, int dy) {
+      if (dx == 0 && dy == 0) {
+        // Do the revalidate and repaint that scrollRectoToVisible would do.
+        revalidate();
+        repaint();
+      }
+      else {
+        // The passed rectangle is relative to the currently visible rectangle, i.e. it is not in view coordinates.
+        parent.scrollRectToVisible(new Rectangle(new Point(dx, dy), parent.getExtentSize()));
+      }
+    }
+
+    private void zoom(int amount, Point cursor) {
+      Dimension oldSize = getPreferredSize();
+      oldSize.setSize(Math.max(parent.getWidth(), oldSize.width), Math.max(parent.getHeight(), oldSize.height));
+
+      if (zoom == ZOOM_FIT) {
+        zoom = getFitRatio();
+      }
+      int delta = Math.min(Math.max(amount, -5), 5);
+      zoom = Math.min(MAX_ZOOM, Math.max(getMinZoom(), zoom * (1 - 0.05 * delta)));
+      invalidate();
+
+      Dimension newSize = getPreferredSize();
+      newSize.setSize(Math.max(parent.getWidth(), newSize.width), Math.max(parent.getHeight(), newSize.height));
+
+      // Attempt to keep the same pixel under the mouse pointer.
+      Point pos = parent.getViewPosition();
+      pos.translate(cursor.x, cursor.y);
+      scrollBy(pos.x * newSize.width / oldSize.width - pos.x, pos.y * newSize.height / oldSize.height - pos.y);
+    }
+
+    private void zoomToFit() {
+      zoom = ZOOM_FIT;
+      revalidate();
+      repaint();
+    }
+
+    private double getFitRatio() {
+      return Math.min((double)getWidth() / image.getWidth(this), (double)getHeight() / image.getHeight(this));
+    }
+
+    private double getMinZoom() {
+      // The smallest zoom factor to see the whole image or that causes the larger dimension to be no less than MIN_ZOOM_WIDTH pixels.
+      return Math.min(getFitRatio(), Math.min(MIN_ZOOM_WIDTH / image.getWidth(this), MIN_ZOOM_WIDTH / image.getHeight(this)));
     }
   }
 }

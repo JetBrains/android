@@ -20,6 +20,7 @@ import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.TreeTableTree;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 
@@ -38,6 +39,10 @@ class CheckboxClickListener extends ClickListener {
 
   @Override
   public boolean onClick(@NotNull MouseEvent e, int clickCount) {
+    Object source = e.getSource();
+    if (source instanceof JComponent && !((JComponent)source).isEnabled()) {
+      return false;
+    }
     TreeTableTree tree = myTreeTable.getTree();
     int row = tree.getRowForLocation(e.getX(), e.getY());
     if (row < 0) {

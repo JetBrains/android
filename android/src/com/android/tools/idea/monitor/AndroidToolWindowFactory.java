@@ -18,19 +18,23 @@ package com.android.tools.idea.monitor;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.ClientData;
-import com.android.ddmlib.Log;
 import com.android.tools.idea.ddms.*;
-import com.android.tools.idea.ddms.actions.*;
+import com.android.tools.idea.ddms.actions.DumpSysActions;
+import com.android.tools.idea.ddms.actions.ScreenRecorderAction;
+import com.android.tools.idea.ddms.actions.ScreenshotAction;
+import com.android.tools.idea.ddms.actions.TerminateVMAction;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.monitor.cpu.CpuMonitorView;
+import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;
+import com.android.tools.idea.monitor.network.NetworkMonitorView;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.filters.HyperlinkInfo;
-import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.RunnerLayoutUi;
@@ -41,7 +45,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
@@ -64,9 +67,6 @@ import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBusConnection;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.logcat.AdbErrors;
-import org.jetbrains.android.logcat.AndroidLogcatConstants;
-import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.run.AndroidDebugRunner;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -106,10 +106,9 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
     DeviceContext deviceContext = new DeviceContext();
 
-    // TODO Remove global handlers. These handlers are global, but are set per project
+    // TODO Remove global handlers. These handlers are global, but are set per project.
     // if there are two projects opened, things go very wrong.
     ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
-    ClientData.setAllocationTrackingHandler(new ShowAllocationsHandler(project));
 
     Content logcatContent = createLogcatContent(layoutUi, project, deviceContext);
     final AndroidLogcatView logcatView = logcatContent.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
@@ -117,14 +116,17 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     logcatContent.setSearchComponent(logcatView.createSearchComponent());
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
 
-    Content adbLogsContent = createAdbLogsContent(layoutUi, project);
-    layoutUi.addContent(adbLogsContent, 1, PlaceInGrid.center, false);
-
     Content memoryContent = createMemoryContent(layoutUi, project, deviceContext);
-    layoutUi.addContent(memoryContent, 2, PlaceInGrid.center, false);
+    layoutUi.addContent(memoryContent, 1, PlaceInGrid.center, false);
 
     Content cpuContent = createCpuContent(layoutUi, project, deviceContext);
-    layoutUi.addContent(cpuContent, 3, PlaceInGrid.center, false);
+    layoutUi.addContent(cpuContent, 2, PlaceInGrid.center, false);
+
+    Content gpuContent = createGpuContent(layoutUi, project, deviceContext);
+    layoutUi.addContent(gpuContent, 3, PlaceInGrid.center, false);
+
+    Content networkContent = createNetworkContent(layoutUi, project, deviceContext);
+    layoutUi.addContent(networkContent, 4, PlaceInGrid.center, false);
 
     layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
 
@@ -184,12 +186,19 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
         // wrong. The only identified reason so far is that some machines have incompatible versions of adb that were already running.
         // e.g. Genymotion, some HTC flashing software, Ubuntu's adb package may all conflict with the version of adb in the SDK.
         Logger.getInstance(AndroidToolWindowFactory.class).info("Unable to obtain debug bridge", t);
-        String msg = String.format("Unable to establish a connection to adb.\n\n" +
-                                   "This usually happens if you have an incompatible version of adb running already.\n" +
-                                   "Try re-opening %1$s after killing any existing adb daemons.\n\n" +
-                                   "If this happens repeatedly, please file a bug at http://b.android.com including the following:\n" +
-                                   "  1. Output of the command: '%2$s devices'\n" +
-                                   "  2. Your idea.log file (Help | Show Log in Explorer)\n", ApplicationNamesInfo.getInstance().getProductName(), adb.getAbsolutePath());
+        String msg;
+        if (t.getMessage() != null) {
+          msg = t.getMessage();
+        }
+        else {
+          msg = String.format("Unable to establish a connection to adb.\n\n" +
+                              "Check the Event Log for possible issues.\n" +
+                              "This can happen if you have an incompatible version of adb running already.\n" +
+                              "Try re-opening Studio after killing any existing adb daemons.\n\n" +
+                              "If this happens repeatedly, please file a bug at http://b.android.com including the following:\n" +
+                              "  1. Output of the command: '%1$s devices'\n" +
+                              "  2. Your idea.log file (Help | Show Log in Explorer)\n", adb.getAbsolutePath());
+        }
         Messages.showErrorDialog(msg, "ADB Connection Error");
       }
     }, EdtExecutor.INSTANCE);
@@ -209,6 +218,24 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
                                           @NotNull DeviceContext deviceContext) {
     CpuMonitorView view = new CpuMonitorView(project, deviceContext);
     Content content = layoutUi.createContent("CPU", view.createComponent(), "CPU", AndroidIcons.CpuMonitor, null);
+    content.setCloseable(false);
+    return content;
+  }
+
+  private static Content createGpuContent(@NotNull RunnerLayoutUi layoutUi,
+                                          @NotNull Project project,
+                                          @NotNull DeviceContext deviceContext) {
+    GpuMonitorView view = new GpuMonitorView(project, deviceContext);
+    Content content = layoutUi.createContent("GPU", view.createComponent(), "GPU", AndroidIcons.GpuMonitor, null);
+    content.setCloseable(false);
+    return content;
+  }
+
+  private static Content createNetworkContent(@NotNull RunnerLayoutUi layoutUi,
+                                              @NotNull Project project,
+                                              @NotNull DeviceContext deviceContext) {
+    NetworkMonitorView view = new NetworkMonitorView(project, deviceContext);
+    Content content = layoutUi.createContent("Network", view.createComponent(), "Network", AndroidIcons.NetworkMonitor, null);
     content.setCloseable(false);
     return content;
   }
@@ -273,71 +300,6 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     logcatContent.setPreferredFocusableComponent(logcatContentPanel);
 
     return logcatContent;
-  }
-
-  private Content createAdbLogsContent(RunnerLayoutUi layoutUi, Project project) {
-    final ConsoleView console = new ConsoleViewImpl(project, false);
-    Content adbLogsContent =
-      layoutUi.createContent(ADBLOGS_CONTENT_ID, console.getComponent(), AndroidBundle.message("android.adb.logs.tab.title"), null, null);
-    adbLogsContent.setCloseable(false);
-
-    //noinspection UnnecessaryFullyQualifiedName
-    com.android.ddmlib.Log.setLogOutput(new Log.ILogOutput() {
-      @Override
-      public void printLog(Log.LogLevel logLevel, String tag, String message) {
-        reportAdbLogMessage(logLevel, tag, message, console);
-      }
-
-      @Override
-      public void printAndPromptLog(Log.LogLevel logLevel, String tag, String message) {
-        // todo: should we show dialog?
-        reportAdbLogMessage(logLevel, tag, message, console);
-      }
-    });
-
-    return adbLogsContent;
-  }
-
-  private static void reportAdbLogMessage(Log.LogLevel logLevel, String tag, String message, @NotNull ConsoleView consoleView) {
-    if (message == null) {
-      return;
-    }
-    if (logLevel == null) {
-      logLevel = Log.LogLevel.INFO;
-    }
-
-    if (logLevel == Log.LogLevel.ERROR || logLevel == Log.LogLevel.ASSERT) {
-      AdbErrors.reportError(message, tag);
-    }
-
-    final ConsoleViewContentType contentType = toConsoleViewContentType(logLevel);
-    if (contentType == null) {
-      return;
-    }
-
-    final String fullMessage = tag != null ? tag + ": " + message : message;
-    consoleView.print(fullMessage + '\n', contentType);
-  }
-
-  @Nullable
-  private static ConsoleViewContentType toConsoleViewContentType(@NotNull Log.LogLevel logLevel) {
-    switch (logLevel) {
-      case VERBOSE:
-        return null;
-      case DEBUG:
-        return null;
-      case INFO:
-        return ConsoleViewContentType.getConsoleViewType(AndroidLogcatConstants.INFO);
-      case WARN:
-        return ConsoleViewContentType.getConsoleViewType(AndroidLogcatConstants.WARNING);
-      case ERROR:
-        return ConsoleViewContentType.getConsoleViewType(AndroidLogcatConstants.ERROR);
-      case ASSERT:
-        return ConsoleViewContentType.getConsoleViewType(AndroidLogcatConstants.ASSERT);
-      default:
-        assert false : "Unknown log level " + logLevel;
-    }
-    return null;
   }
 
   private static void checkFacetAndSdk(Project project, @NotNull final ConsoleView console) {

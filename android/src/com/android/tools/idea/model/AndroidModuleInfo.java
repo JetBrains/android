@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.builder.model.ApiVersion;
-import com.android.builder.model.BuildTypeContainer;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -60,9 +57,9 @@ public class AndroidModuleInfo {
   /** Obtains the package name for the current variant, or if not specified, from the primary manifest. */
   @Nullable
   public String getPackage() {
-    IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-    if (project != null) {
-      return project.computePackageName();
+    AndroidModel androidModel = myFacet.getAndroidModel();
+    if (androidModel != null) {
+      return androidModel.getApplicationId();
     }
 
     // Read from the manifest: Not overridden in the configuration
@@ -77,11 +74,11 @@ public class AndroidModuleInfo {
    */
   @NotNull
   public AndroidVersion getRuntimeMinSdkVersion() {
-    IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-    if (project != null) {
-      ApiVersion minSdkVersion = project.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+    AndroidModel androidModel = myFacet.getAndroidModel();
+    if (androidModel != null) {
+      AndroidVersion minSdkVersion = androidModel.getRuntimeMinSdkVersion();
       if (minSdkVersion != null) {
-        return new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename());
+        return minSdkVersion;
       }
       // Else: not specified in gradle files; fall back to manifest
     }
@@ -91,9 +88,9 @@ public class AndroidModuleInfo {
 
   @NotNull
   public AndroidVersion getMinSdkVersion() {
-    IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-    if (project != null) {
-      AndroidVersion minSdkVersion = project.getConfigMinSdkVersion();
+    AndroidModel androidModel = myFacet.getAndroidModel();
+    if (androidModel != null) {
+      AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
       if (minSdkVersion != null) {
         return minSdkVersion;
       }
@@ -105,11 +102,11 @@ public class AndroidModuleInfo {
 
   @NotNull
   public AndroidVersion getTargetSdkVersion() {
-    IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-    if (project != null) {
-      ApiVersion targetSdkVersion = project.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+    AndroidModel androidModel = myFacet.getAndroidModel();
+    if (androidModel != null) {
+      AndroidVersion targetSdkVersion = androidModel.getTargetSdkVersion();
       if (targetSdkVersion != null) {
-        return new AndroidVersion(targetSdkVersion.getApiLevel(), targetSdkVersion.getCodename());
+        return targetSdkVersion;
       }
       // Else: not specified in gradle files; fall back to manifest
     }
@@ -135,11 +132,11 @@ public class AndroidModuleInfo {
    */
   @Nullable
   public Boolean isDebuggable() {
-    IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-    if (project != null) {
-      BuildTypeContainer buildTypeContainer = project.findBuildType(project.getSelectedVariant().getBuildType());
-      if (buildTypeContainer != null) {
-        return buildTypeContainer.getBuildType().isDebuggable();
+    AndroidModel androidModel = myFacet.getAndroidModel();
+    if (androidModel != null) {
+      Boolean debuggable = androidModel.isDebuggable();
+      if (debuggable != null) {
+        return debuggable;
       }
     }
 

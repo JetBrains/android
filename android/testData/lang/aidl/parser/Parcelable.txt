@@ -1,0 +1,9 @@
+FILE
+  AidlHeadersImpl(HEADERS)
+    <empty list>
+  AidlBodyImpl(BODY)
+    AidlParcelableDeclarationImpl(PARCELABLE_DECLARATION)
+      PsiElement(AidlTokenType.parcelable)('parcelable')
+      AidlDeclarationNameImpl(DECLARATION_NAME)
+        PsiElement(AidlTokenType.IDENTIFIER)('Rect')
+      PsiElement(AidlTokenType.;)(';')

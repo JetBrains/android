@@ -15,7 +15,12 @@
  */
 package com.android.tools.swing.util;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
 
 public class GraphicsUtil {
 
@@ -45,26 +50,33 @@ public class GraphicsUtil {
    * Paints a checkered board style background.
    */
   public static void paintCheckeredBackground(Graphics g, Shape clip) {
+    //noinspection UseJBColor
     paintCheckeredBackground(g, Color.LIGHT_GRAY, Color.GRAY, clip, BACKGROUND_CELL_SIZE);
   }
 
   /**
-   * Draw a cross.
-   *
-   * @param g The {@link Graphics} instance
-   * @param rect {@link Rectangle} to paint the cross into
-   * @param alpha Alpha level to use painting the cross
+   * Draws a centered string in the passed rectangle.
+   * @param g the {@link Graphics} instance to draw to
+   * @param rect the {@link Rectangle} to use as bounding box
+   * @param str the string to draw
+   * @param horzCentered if true, the string will be centered horizontally
+   * @param vertCentered if true, the string will be centered vertically
    */
-  public static void drawCross(Graphics g, Rectangle rect, float alpha) {
-    Color color = g.getColor();
-    //noinspection UseJBColor
-    g.setColor(new Color(color.getRGBComponents(null)[0],
-                         color.getRGBComponents(null)[1],
-                         color.getRGBComponents(null)[2],
-                         0.5f));
+  public static void drawCenteredString(Graphics g, Rectangle rect, String str, boolean horzCentered, boolean vertCentered) {
+    FontMetrics fm = g.getFontMetrics(g.getFont());
+    int textWidth = fm.stringWidth(str);
+    int x = horzCentered ? Math.max(rect.x, rect.x + (rect.width - textWidth) / 2) : rect.x;
+    int y = vertCentered ? Math.max(rect.y, rect.y + rect.height / 2 + fm.getAscent() * 2 / 5) : rect.y;
+    g.drawString(str, x, y);
+  }
 
-    g.drawLine(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
-    g.drawLine(rect.x, rect.height, rect.x + rect.width, rect.y);
-    g.setColor(color);
+  /**
+   * Draws a centered string in the passed rectangle.
+   * @param g the {@link Graphics} instance to draw to
+   * @param rect the {@link Rectangle} to use as bounding box
+   * @param str the string to draw
+   */
+  public static void drawCenteredString(Graphics g, Rectangle rect, String str) {
+    drawCenteredString(g, rect, str, true, true);
   }
 }

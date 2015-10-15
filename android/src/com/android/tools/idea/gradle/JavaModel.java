@@ -27,6 +27,7 @@ public class JavaModel implements Serializable {
   private static final long serialVersionUID = 1L;
 
   @NotNull private final List<String> myUnresolvedDependencyNames;
+
   @Nullable private final File myBuildFolderPath;
 
   public JavaModel(@NotNull List<String> unresolvedDependencyNames, @Nullable File buildFolderPath) {

@@ -69,7 +69,7 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.fileTypes.AndroidIdlFileType;
+import com.android.tools.idea.lang.aidl.AidlFileType;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NonNls;
@@ -616,7 +616,7 @@ public class AndroidCompileUtil {
   }
 
   public static boolean createGenModulesAndSourceRoots(@NotNull AndroidFacet facet, @NotNull ModifiableRootModel model) {
-    if (facet.isGradleProject() || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
+    if (facet.requiresAndroidModel() || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
       return false;
     }
     final Module module = facet.getModule();
@@ -649,7 +649,7 @@ public class AndroidCompileUtil {
     final String aidlGenRootPath = AndroidRootUtil.getAidlGenSourceRootPath(facet);
 
     if (aidlGenRootPath != null) {
-      final boolean createIfNotExist = FileTypeIndex.getFiles(AndroidIdlFileType.ourFileType, moduleScope).size() > 0;
+      final boolean createIfNotExist = FileTypeIndex.getFiles(AidlFileType.INSTANCE, moduleScope).size() > 0;
       (createIfNotExist ? genRootsToCreate : genRootsToInit).add(aidlGenRootPath);
     }
     genRootsToInit.addAll(genRootsToCreate);
@@ -934,7 +934,7 @@ public class AndroidCompileUtil {
         final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
 
         for (final AndroidFacet facet : facets) {
-          if (facet.isGradleProject()) {
+          if (facet.requiresAndroidModel()) {
             continue;
           }
           final Module module = facet.getModule();

@@ -22,8 +22,8 @@ import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
-import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
-import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -48,7 +48,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 /**
  * UI for configuring a Device Hardware Profile.
  */
-public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDescription {
+public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription {
   private static final String DEFAULT_DEVICE_TYPE_LABEL = "Phone/Tablet";
 
   @Nullable private final Device myTemplateDevice;
@@ -88,7 +88,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
   private Device.Builder myBuilder = new Device.Builder();
 
   public ConfigureDeviceOptionsStep(@Nullable Device templateDevice, boolean forceCreation, @Nullable Disposable parentDisposable) {
-    super("Configure Hardware Profile", null, parentDisposable);
+    super(parentDisposable);
     myTemplateDevice = templateDevice;
     myForceCreation = forceCreation;
     setBodyComponent(myRootPanel);

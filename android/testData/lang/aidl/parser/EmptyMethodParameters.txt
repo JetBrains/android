@@ -1,0 +1,18 @@
+FILE
+  AidlHeadersImpl(HEADERS)
+    <empty list>
+  AidlBodyImpl(BODY)
+    AidlInterfaceDeclarationImpl(INTERFACE_DECLARATION)
+      PsiElement(AidlTokenType.interface)('interface')
+      AidlDeclarationNameImpl(DECLARATION_NAME)
+        PsiElement(AidlTokenType.IDENTIFIER)('IAidlInterface')
+      PsiElement(AidlTokenType.{)('{')
+      AidlMethodDeclarationImpl(METHOD_DECLARATION)
+        AidlPrimitiveTypeImpl(PRIMITIVE_TYPE)
+          PsiElement(AidlTokenType.int)('int')
+        AidlDeclarationNameImpl(DECLARATION_NAME)
+          PsiElement(AidlTokenType.IDENTIFIER)('a')
+        PsiElement(AidlTokenType.()('(')
+        PsiElement(AidlTokenType.))(')')
+        PsiElement(AidlTokenType.;)(';')
+      PsiElement(AidlTokenType.})('}')

@@ -25,7 +25,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.util.ArrayUtil;
 import com.siyeh.ig.LightInspectionTestCase;
 import org.intellij.lang.annotations.Language;
@@ -39,8 +38,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class ResourceTypeInspectionTest extends LightInspectionTestCase {
-
-  private String myOldCharset;
 
   @Override
   protected void setUp() throws Exception {
@@ -86,14 +83,6 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                                "    <uses-permission android:name=\"my.dangerous.P2\" />\n" +
                                "\n" +
                                "</manifest>\n");
-    myOldCharset = EncodingProjectManager.getInstance(getProject()).getDefaultCharsetName();
-    EncodingProjectManager.getInstance(getProject()).setDefaultCharsetName("UTF-8");
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    EncodingProjectManager.getInstance(getProject()).setDefaultCharsetName(myOldCharset);
-    super.tearDown();
   }
 
   public void testTypes() {
@@ -152,6 +141,28 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        }\n" +
             "    }\n" +
             "}\n");
+  }
+
+  public void testTypes2() {
+        doCheck("package test.pkg;\n" +
+                "\n" +
+                "import android.support.annotation.DrawableRes;\n" +
+                "import android.support.annotation.StringRes;\n" +
+                "\n" +
+                "enum X {\n" +
+                "\n" +
+                "    SKI(/*Expected resource of type drawable*/1/**/, /*Expected resource of type string*/2/**/),\n" +
+                "    SNOWBOARD(/*Expected resource of type drawable*/3/**/, /*Expected resource of type string*/4/**/);\n" +
+                "\n" +
+                "    private final int mIconResId;\n" +
+                "    private final int mLabelResId;\n" +
+                "\n" +
+                "    X(@DrawableRes int iconResId, @StringRes int labelResId) {\n" +
+                "        mIconResId = iconResId;\n" +
+                "        mLabelResId = labelResId;\n" +
+                "    }\n" +
+                "\n" +
+                "}");
   }
 
   public void testIntDef() {
@@ -370,6 +381,11 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    public void printBetweenFromExclusiveToInclusive(@FloatRange(from=2.5,to=5.0,fromInclusive=false) float arg) { }\n" +
             "    public void printBetweenFromInclusiveToExclusive(@FloatRange(from=2.5,to=5.0,toInclusive=false) float arg) { }\n" +
             "    public void printBetweenFromExclusiveToExclusive(@FloatRange(from=2.5,to=5.0,fromInclusive=false,toInclusive=false) float arg) { }\n" +
+            "    public static final int MINIMUM = -1;\n" +
+            "    public static final int MAXIMUM = 42;\n" +
+            "    public static final int SIZE = 5;\n" +
+            "    public void printIndirect(@IntRange(from = MINIMUM, to = MAXIMUM) int arg) { }\n" +
+            "    public void printIndirectSize(@Size(SIZE) String arg) { }\n" +
             "\n" +
             "    public void testLength() {\n" +
             "        String arg = \"1234\";\n" +
@@ -390,8 +406,8 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printMax(/*Length must be at most 8 (was 9)*/\"123456789\"/**/); // ERROR\n" +
             "        printAtMost(1 << 2); // OK\n" +
             "        printMax(\"123456\" + \"\"); //OK\n" +
-            "        printAtMost(/*Value must be \u2264 7 (was 8)*/1 << 2 + 1/**/); // ERROR\n" +
-            "        printAtMost(/*Value must be \u2264 7 (was 32)*/1 << 5/**/); // ERROR\n" +
+            "        printAtMost(/*Value must be ≤ 7 (was 8)*/1 << 2 + 1/**/); // ERROR\n" +
+            "        printAtMost(/*Value must be ≤ 7 (was 32)*/1 << 5/**/); // ERROR\n" +
             "        printMax(/*Length must be at most 8 (was 11)*/\"123456\" + \"45678\"/**/); //ERROR\n" +
             "\n" +
             "        printRange(/*Length must be at least 4 and at most 6 (was 3)*/\"123\"/**/); // ERROR\n" +
@@ -399,6 +415,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printRange(\"12345\"); // OK\n" +
             "        printRange(\"123456\"); // OK\n" +
             "        printRange(/*Length must be at least 4 and at most 6 (was 7)*/\"1234567\"/**/); // ERROR\n" +
+            "        printIndirectSize(/*Length must be exactly 5*/\"1234567\"/**/); // ERROR\n" +
             "    }\n" +
             "\n" +
             "    public void testSize() {\n" +
@@ -441,60 +458,63 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    }\n" +
             "\n" +
             "    public void testIntRange() {\n" +
-            "        printAtLeast(/*Value must be \u2265 4 (was 3)*/3/**/); // ERROR\n" +
+            "        printAtLeast(/*Value must be ≥ 4 (was 3)*/3/**/); // ERROR\n" +
             "        printAtLeast(4); // OK\n" +
             "        printAtLeast(5); // OK\n" +
             "\n" +
             "        printAtMost(5); // OK\n" +
             "        printAtMost(6); // OK\n" +
             "        printAtMost(7); // OK\n" +
-            "        printAtMost(/*Value must be \u2264 7 (was 8)*/8/**/); // ERROR\n" +
+            "        printAtMost(/*Value must be ≤ 7 (was 8)*/8/**/); // ERROR\n" +
             "\n" +
-            "        printBetween(/*Value must be \u2265 4 and \u2264 7 (was 3)*/3/**/); // ERROR\n" +
+            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 3)*/3/**/); // ERROR\n" +
             "        printBetween(4); // OK\n" +
             "        printBetween(5); // OK\n" +
             "        printBetween(6); // OK\n" +
             "        printBetween(7); // OK\n" +
-            "        printBetween(/*Value must be \u2265 4 and \u2264 7 (was 8)*/8/**/); // ERROR\n" +
+            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 8)*/8/**/); // ERROR\n" +
             "        int value = 8;\n" +
-            "        printBetween(/*Value must be \u2265 4 and \u2264 7 (was 8)*/value/**/); // ERROR\n" +
+            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 8)*/value/**/); // ERROR\n" +
+            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was -7)*/-7/**/);\n" +
+            "        printIndirect(/*Value must be ≥ -1 and ≤ 42 (was -2)*/-2/**/);\n" +
             "    }\n" +
             "\n" +
             "    public void testFloatRange() {\n" +
-            "        printAtLeastInclusive(/*Value must be \u2265 2.5 (was 2.49f)*/2.49f/**/); // ERROR\n" +
+            "        printAtLeastInclusive(/*Value must be ≥ 2.5 (was 2.49f)*/2.49f/**/); // ERROR\n" +
             "        printAtLeastInclusive(2.5f); // OK\n" +
             "        printAtLeastInclusive(2.6f); // OK\n" +
             "\n" +
             "        printAtLeastExclusive(/*Value must be > 2.5 (was 2.49f)*/2.49f/**/); // ERROR\n" +
             "        printAtLeastExclusive(/*Value must be > 2.5 (was 2.5f)*/2.5f/**/); // ERROR\n" +
             "        printAtLeastExclusive(2.501f); // OK\n" +
+            "        printAtLeastExclusive(/*Value must be > 2.5 (was -10.0)*/-10/**/);\n" +
             "\n" +
             "        printAtMostInclusive(6.8f); // OK\n" +
             "        printAtMostInclusive(6.9f); // OK\n" +
             "        printAtMostInclusive(7.0f); // OK\n" +
-            "        printAtMostInclusive(/*Value must be \u2264 7.0 (was 7.1f)*/7.1f/**/); // ERROR\n" +
+            "        printAtMostInclusive(/*Value must be ≤ 7.0 (was 7.1f)*/7.1f/**/); // ERROR\n" +
             "\n" +
             "        printAtMostExclusive(6.9f); // OK\n" +
             "        printAtMostExclusive(6.99f); // OK\n" +
             "        printAtMostExclusive(/*Value must be < 7.0 (was 7.0f)*/7.0f/**/); // ERROR\n" +
             "        printAtMostExclusive(/*Value must be < 7.0 (was 7.1f)*/7.1f/**/); // ERROR\n" +
             "\n" +
-            "        printBetweenFromInclusiveToInclusive(/*Value must be \u2265 2.5 and \u2264 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToInclusive(/*Value must be ≥ 2.5 and ≤ 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
             "        printBetweenFromInclusiveToInclusive(2.5f); // OK\n" +
             "        printBetweenFromInclusiveToInclusive(3f); // OK\n" +
             "        printBetweenFromInclusiveToInclusive(5.0f); // OK\n" +
-            "        printBetweenFromInclusiveToInclusive(/*Value must be \u2265 2.5 and \u2264 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToInclusive(/*Value must be ≥ 2.5 and ≤ 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
             "\n" +
-            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and \u2264 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
-            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and \u2264 5.0 (was 2.5f)*/2.5f/**/); // ERROR\n" +
+            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and ≤ 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
+            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and ≤ 5.0 (was 2.5f)*/2.5f/**/); // ERROR\n" +
             "        printBetweenFromExclusiveToInclusive(5.0f); // OK\n" +
-            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and \u2264 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
+            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and ≤ 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
             "\n" +
-            "        printBetweenFromInclusiveToExclusive(/*Value must be \u2265 2.5 and < 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToExclusive(/*Value must be ≥ 2.5 and < 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
             "        printBetweenFromInclusiveToExclusive(2.5f); // OK\n" +
             "        printBetweenFromInclusiveToExclusive(3f); // OK\n" +
             "        printBetweenFromInclusiveToExclusive(4.99f); // OK\n" +
-            "        printBetweenFromInclusiveToExclusive(/*Value must be \u2265 2.5 and < 5.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToExclusive(/*Value must be ≥ 2.5 and < 5.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
             "\n" +
             "        printBetweenFromExclusiveToExclusive(/*Value must be > 2.5 and < 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
             "        printBetweenFromExclusiveToExclusive(/*Value must be > 2.5 and < 5.0 (was 2.5f)*/2.5f/**/); // ERROR\n" +
@@ -594,7 +614,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    }\n" +
             "\n" +
             "    private Bitmap checkResult(Bitmap bitmap) {\n" +
-            "        /*The result 'extractAlpha' is not used*/bitmap.extractAlpha()/**/; // WARNING\n" +
+            "        /*The result of 'extractAlpha' is not used*/bitmap.extractAlpha()/**/; // WARNING\n" +
             "        Bitmap bitmap2 = bitmap.extractAlpha(); // OK\n" +
             "        call(bitmap.extractAlpha()); // OK\n" +
             "        return bitmap.extractAlpha(); // OK\n" +
@@ -668,7 +688,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "\n" +
             "public class X {\n" +
             "    public void something() {\n" +
-            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or handle a potential `SecurityException`*/methodRequiresDangerous()/**/;\n" +
+            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/;\n" +
             "        methodRequiresNormal();\n" +
             "    }\n" +
             "\n" +
@@ -678,6 +698,179 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "\n" +
             "    @RequiresPermission(\"my.dangerous.P2\")\n" +
             "    public void methodRequiresDangerous() {\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  public void testHandledPermission() {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.content.Context;\n" +
+            "import android.content.pm.PackageManager;\n" +
+            "import android.location.LocationManager;\n" +
+            "import android.support.annotation.RequiresPermission;\n" +
+            "\n" +
+            "import java.security.AccessControlException;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    public static void test1() {\n" +
+            "        try {\n" +
+            "            // Ok: Security exception caught in one of the branches\n" +
+            "            methodRequiresDangerous(); // OK\n" +
+            "        } catch (IllegalArgumentException ignored) {\n" +
+            "        } catch (SecurityException ignored) {\n" +
+            "        }\n" +
+            "\n" +
+            "        try {\n" +
+            "            // You have to catch SecurityException explicitly, not parent\n" +
+            "            /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR\n" +
+            "        } catch (RuntimeException e) { // includes Security Exception\n" +
+            "        }\n" +
+            "\n" +
+            "        try {\n" +
+            "            // Ok: Caught in outer statement\n" +
+            "            try {\n" +
+            "                methodRequiresDangerous(); // OK\n" +
+            "            } catch (IllegalArgumentException e) {\n" +
+            "                // inner\n" +
+            "            }\n" +
+            "        } catch (SecurityException ignored) {\n" +
+            "        }\n" +
+            "\n" +
+            "        try {\n" +
+            "            // You have to catch SecurityException explicitly, not parent\n" +
+            "            /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR\n" +
+            "        } catch (Exception e) { // includes Security Exception\n" +
+            "        }\n" +
+            "\n" +
+            "        // NOT OK: Catching security exception subclass (except for dedicated ones?)\n" +
+            "\n" +
+            "        try {\n" +
+            "            // Error: catching security exception, but not all of them\n" +
+            "            /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR\n" +
+            "        } catch (AccessControlException e) { // security exception but specific one\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test2() {\n" +
+            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR: not caught\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test3()\n" +
+            "            throws IllegalArgumentException {\n" +
+            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR: not caught by right type\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test4()\n" +
+            "            throws AccessControlException {  // Security exception but specific one\n" +
+            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test5()\n" +
+            "            throws SecurityException {\n" +
+            "        methodRequiresDangerous(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test6()\n" +
+            "            throws Exception { // includes Security Exception\n" +
+            "        // You have to throw SecurityException explicitly, not parent\n" +
+            "        /*Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`*/methodRequiresDangerous()/**/; // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void test7(Context context)\n" +
+            "            throws IllegalArgumentException {\n" +
+            "        if (context.getPackageManager().checkPermission(android.Manifest.permission.ACCESS_FINE_LOCATION, context.getPackageName()) != PackageManager.PERMISSION_GRANTED) {\n" +
+            "            return;\n" +
+            "        }\n" +
+            "        methodRequiresDangerous(); // OK: permission checked\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresPermission(\"my.dangerous.P2\")\n" +
+            "    public static void methodRequiresDangerous() {\n" +
+            "    }\n" +
+            "\n" +
+            "}\n");
+  }
+
+  public void testIntentsAndContentResolvers() {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.Manifest;\n" +
+            "import android.app.Activity;\n" +
+            "import android.content.ContentResolver;\n" +
+            "import android.content.Context;\n" +
+            "import android.content.Intent;\n" +
+            "import android.net.Uri;\n" +
+            "import android.support.annotation.RequiresPermission;\n" +
+            "\n" +
+            "import static android.Manifest.permission.READ_HISTORY_BOOKMARKS;\n" +
+            "import static android.Manifest.permission.WRITE_HISTORY_BOOKMARKS;\n" +
+            "\n" +
+            "@SuppressWarnings({\"deprecation\", \"unused\"})\n" +
+            "public class X {\n" +
+            "    @RequiresPermission(Manifest.permission.CALL_PHONE)\n" +
+            "    public static final String ACTION_CALL = \"android.intent.action.CALL\";\n" +
+            "\n" +
+            "    @RequiresPermission.Read(@RequiresPermission(READ_HISTORY_BOOKMARKS))\n" +
+            "    @RequiresPermission.Write(@RequiresPermission(WRITE_HISTORY_BOOKMARKS))\n" +
+            "    public static final Uri BOOKMARKS_URI = Uri.parse(\"content://browser/bookmarks\");\n" +
+            "\n" +
+            "    public static final Uri COMBINED_URI = Uri.withAppendedPath(BOOKMARKS_URI, \"bookmarks\");\n" +
+            "\n" +
+            "    public static void activities1(Activity activity) {\n" +
+            "        Intent intent = new Intent(Intent.ACTION_CALL);\n" +
+            "        intent.setData(Uri.parse(\"tel:1234567890\"));\n" +
+            "        // This one will only be flagged if we have framework metadata on Intent.ACTION_CALL\n" +
+            "        /*Missing permissions required by intent Intent.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivity(intent)/**/;\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void activities2(Activity activity) {\n" +
+            "        Intent intent = new Intent(ACTION_CALL);\n" +
+            "        intent.setData(Uri.parse(\"tel:1234567890\"));\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivity(intent)/**/;\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void activities3(Activity activity) {\n" +
+            "        Intent intent;\n" +
+            "        intent = new Intent(ACTION_CALL);\n" +
+            "        intent.setData(Uri.parse(\"tel:1234567890\"));\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivity(intent)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivity(intent, null)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivityForResult(intent, 0)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivityFromChild(activity, intent, 0)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivityIfNeeded(intent, 0)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startActivityFromFragment(null, intent, 0)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/activity.startNextMatchingActivity(intent)/**/;\n" +
+            "        startActivity(\"\"); // Not an error!\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void broadcasts(Context context) {\n" +
+            "        Intent intent;\n" +
+            "        intent = new Intent(ACTION_CALL);\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/context.sendBroadcast(intent)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/context.sendBroadcast(intent, \"\")/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/context.sendBroadcastAsUser(intent, null)/**/;\n" +
+            "        /*Missing permissions required by intent X.ACTION_CALL: android.permission.CALL_PHONE*/context.sendStickyBroadcast(intent)/**/;\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void contentResolvers(Context context, ContentResolver resolver) {\n" +
+            "        // read\n" +
+            "        /*Missing permissions required to read X.BOOKMARKS_URI: com.android.browser.permission.READ_HISTORY_BOOKMARKS*/resolver.query(BOOKMARKS_URI, null, null, null, null)/**/;\n" +
+            "\n" +
+            "        // write\n" +
+            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.insert(BOOKMARKS_URI, null)/**/;\n" +
+            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.delete(BOOKMARKS_URI, null, null)/**/;\n" +
+            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.update(BOOKMARKS_URI, null, null, null)/**/;\n" +
+            "\n" +
+            "        // Framework (external) annotation\n" +
+            "        /*Missing permissions required to write Browser.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.update(android.provider.Browser.BOOKMARKS_URI, null, null, null)/**/;\n" +
+            "\n" +
+            "        // URI manipulations\n" +
+            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.insert(COMBINED_URI, null)/**/;\n" +
+            "    }\n" +
+            "\n" +
+            "    public static void startActivity(Object other) {\n" +
+            "        // Unrelated\n" +
             "    }\n" +
             "}\n");
   }
@@ -736,6 +929,43 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testCombinedIntDefAndIntRange() throws Exception {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.IntDef;\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "\n" +
+            "import java.lang.annotation.Retention;\n" +
+            "import java.lang.annotation.RetentionPolicy;\n" +
+            "\n" +
+            "@SuppressWarnings({\"UnusedParameters\", \"unused\", \"SpellCheckingInspection\"})\n" +
+            "public class X {\n" +
+            "\n" +
+            "    public static final int UNRELATED = 500;\n" +
+            "\n" +
+            "    @IntDef({LENGTH_INDEFINITE, LENGTH_SHORT, LENGTH_LONG})\n" +
+            "    @IntRange(from = 10)\n" +
+            "    @Retention(RetentionPolicy.SOURCE)\n" +
+            "    public @interface Duration {}\n" +
+            "\n" +
+            "    public static final int LENGTH_INDEFINITE = -2;\n" +
+            "    public static final int LENGTH_SHORT = -1;\n" +
+            "    public static final int LENGTH_LONG = 0;\n" +
+            "    public void setDuration(@Duration int duration) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void test() {\n" +
+            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be ≥ 10 (was 500)*/UNRELATED/**/); /// ERROR: Not right intdef, even if it's in the right number range\n" +
+            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be ≥ 10 (was -5)*/-5/**/); // ERROR (not right int def or value\n" +
+            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be ≥ 10 (was 8)*/8/**/); // ERROR (not matching number range)\n" +
+            "        setDuration(8000); // OK (@IntRange applies)\n" +
+            "        setDuration(LENGTH_INDEFINITE); // OK (@IntDef)\n" +
+            "        setDuration(LENGTH_LONG); // OK (@IntDef)\n" +
+            "        setDuration(LENGTH_SHORT); // OK (@IntDef)\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   @Override
   protected String[] getEnvironmentClasses() {
     @Language("JAVA")
@@ -770,7 +1000,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
 
     @Language("JAVA")
     String intRange = "@Retention(CLASS)\n" +
-                      "@Target({CONSTRUCTOR,METHOD,PARAMETER,FIELD,LOCAL_VARIABLE})\n" +
+                      "@Target({CONSTRUCTOR,METHOD,PARAMETER,FIELD,LOCAL_VARIABLE,ANNOTATION_TYPE})\n" +
                       "public @interface IntRange {\n" +
                       "    long from() default Long.MIN_VALUE;\n" +
                       "    long to() default Long.MAX_VALUE;\n" +
@@ -841,6 +1071,15 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                       "public @interface ColorInt {\n" +
                       "}";
     classes.add(header + colorInt);
+
+    @Language("JAVA")
+    String intDef = "@Retention(SOURCE)\n" +
+                    "@Target({ANNOTATION_TYPE})\n" +
+                    "public @interface IntDef {\n" +
+                    "    long[] value() default {};\n" +
+                    "    boolean flag() default false;\n" +
+                    "}\n";
+    classes.add(header + intDef);
 
     for (ResourceType type : ResourceType.values()) {
       if (type == ResourceType.FRACTION || type == ResourceType.PUBLIC) {

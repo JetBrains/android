@@ -37,6 +37,8 @@ import java.io.*;
 import java.net.URL;
 import java.util.concurrent.Callable;
 
+import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
+
 /**
  * A class used by plugins to expose their service resources to Android Studio.
  * <p/>
@@ -148,8 +150,9 @@ public abstract class DeveloperServiceCreator {
   }
 
   @NotNull
-  private ServiceContext createContext(@NotNull Module module) {
-    ServiceContext context = new ServiceContext();
+  private static ServiceContext createContext(@NotNull Module module) {
+    String buildSystemId = getBuildSystemOperations(module.getProject()).getBuildSystemId();
+    ServiceContext context = new ServiceContext(buildSystemId);
 
     String packageName = ManifestInfo.get(module, false).getPackage();
 
@@ -166,7 +169,7 @@ public abstract class DeveloperServiceCreator {
    * callback, as long as the initial callback doesn't throw an exception or return null.
    * The output of the initial callback will be fed as an argument into the dispatch callback.
    */
-  protected final <T> void runInBackground(@NotNull final Callable<T> backgroundAction, @Nullable final Dispatchable<T> dispatchAfter) {
+  protected static <T> void runInBackground(@NotNull final Callable<T> backgroundAction, @Nullable final Dispatchable<T> dispatchAfter) {
     final Application application = ApplicationManager.getApplication();
     application.executeOnPooledThread(new Runnable() {
       @Override
@@ -186,10 +189,20 @@ public abstract class DeveloperServiceCreator {
   }
 
   /**
-   * Convenience method to open a target ULR in a browser window.
+   * Convenience method to open a target URL in a browser window.
    */
-  protected final void browse(@NotNull String url) {
+  protected static void browse(@NotNull String url) {
     BrowserUtil.browse(url);
+  }
+
+  /**
+   * Given a dependency group ID and artifact ID, e.g. "com.google.android.gms" and "play-services", returns the highest version we know
+   * about, or {@code null} if we can't resolve the passed in IDs.
+   */
+  @Nullable
+  protected static String getHighestVersion(@NotNull String groupId, @NotNull String artifactId, @NotNull ServiceContext serviceContext) {
+    DeveloperServiceBuildSystemOperations operations = getBuildSystemOperations(serviceContext.getBuildSystemId());
+    return operations.getHighestVersion(groupId, artifactId);
   }
 
   /**
@@ -213,5 +226,5 @@ public abstract class DeveloperServiceCreator {
   /**
    * Given a fresh context, initialize it with values used by this service.
    */
-  protected abstract void initializeContext(@NotNull ServiceContext serviceContext);
+  protected void initializeContext(@NotNull ServiceContext serviceContext) {}
 }

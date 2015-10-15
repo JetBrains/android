@@ -17,13 +17,13 @@ package com.android.tools.idea.editors.theme.preview;
 
 
 import com.android.ide.common.rendering.api.MergeCookie;
-import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.ComponentDefinition;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
@@ -34,10 +34,12 @@ import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -45,12 +47,11 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.Query;
+import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -59,30 +60,17 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.event.DocumentEvent;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
+import javax.swing.*;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import javax.xml.parsers.ParserConfigurationException;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -90,23 +78,33 @@ import java.util.concurrent.TimeUnit;
  * for all devices.
  * Implements RenderContext to support Configuration toolbar in Theme Editor.
  */
-public class AndroidThemePreviewPanel extends Box implements RenderContext {
+public class AndroidThemePreviewPanel extends Box implements RenderContext, Disposable {
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class);
-
-  // The scaling factor is based on how we want the preview to look for different devices. 160 means that a device with 160 DPI would look
-  // exactly as GraphicsLayoutRenderer would render it. A device with 300 DPI would usually look smaller but because we apply this scaling
-  // factor, it would be scaled 2x to look exactly as the 100 DPI version would look.
-  private static final double DEFAULT_SCALING_FACTOR = 160.0;
 
   private static final Map<String, ComponentDefinition> SUPPORT_LIBRARY_COMPONENTS =
     ImmutableMap.of("android.support.design.widget.FloatingActionButton",
                     new ComponentDefinition("Fab", ThemePreviewBuilder.ComponentGroup.FAB_BUTTON,
                                             "android.support.design.widget.FloatingActionButton")
-                      .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha").set("clickable", "true"),
+                      .set("src", "@drawable/abc_ic_ab_back_mtrl_am_alpha")
+                      .set("layout_width", "56dp")
+                      .set("layout_height", "56dp"),
                     "android.support.v7.widget.Toolbar",
                     new ToolbarComponentDefinition(true/*isAppCompat*/));
   private static final Map<String, String> SUPPORT_LIBRARY_REPLACEMENTS =
     ImmutableMap.of("android.support.v7.widget.Toolbar", "Toolbar");
+  /** Enable the component drill down that allows to see only selected groups of components on click */
+  private static final boolean ENABLE_COMPONENTS_DRILL_DOWN = false;
+  private static final String ERROR = "Error";
+  private static final String PROGRESS = "Progress";
+  private static final String PREVIEW = "Preview";
+
+  private final MessageBusConnection myConnection;
+
+  private final JPanel myMainPanel;
+  private Box myErrorPanel;
+  private JTextPane myErrorLabel;
+  private Box myProgressPanel;
+  private AsyncProcessIcon myProgressIcon;
 
   /** Current search term to use for filtering. If empty, no search term is being used */
   private String mySearchTerm = "";
@@ -115,18 +113,13 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
   /** List of components on the support library (if available) */
   private List<ComponentDefinition> mySupportLibraryComponents = Collections.emptyList();
 
-  /** List of component names that shouldn't be displayed. This is used in the case where a support component superseeds a framework one. */
+  /** List of component names that shouldn't be displayed. This is used in the case where a support component supersedes a framework one. */
   private List<String> myDisabledComponents = new ArrayList<String>();
 
   private final ThemeEditorContext myContext;
   protected final NavigationComponent<Breadcrumb> myBreadcrumbs;
-  protected final SearchTextField mySearchTextField;
   protected final AndroidPreviewPanel myAndroidPreviewPanel;
   protected final JBScrollPane myScrollPane;
-
-  private final ScheduledExecutorService mySearchScheduler = Executors.newSingleThreadScheduledExecutor();
-  /** Next pending search. The {@link ScheduledFuture} allows us to cancel the next search before it runs. */
-  private ScheduledFuture<?> myPendingSearch;
 
   protected DumbService myDumbService;
 
@@ -153,8 +146,9 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     }
   };
 
-  private double myConstantScalingFactor = DEFAULT_SCALING_FACTOR;
+  private float myScale = 1;
   private boolean myIsAppCompatTheme = false;
+  private boolean myShowError = false;
 
   static class Breadcrumb extends NavigationComponent.Item {
     private final ThemePreviewBuilder.ComponentGroup myGroup;
@@ -193,7 +187,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     }
   }
 
-
   public AndroidThemePreviewPanel(@NotNull ThemeEditorContext context, @NotNull Color background) {
     super(BoxLayout.PAGE_AXIS);
 
@@ -201,6 +194,19 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     setMinimumSize(JBUI.size(200, 0));
 
     myContext = context;
+    myConnection = myContext.getProject().getMessageBus().connect();
+    myConnection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
+      @Override
+      public void enteredDumbMode() {
+        updateMainPanel();
+      }
+
+      @Override
+      public void exitDumbMode() {
+        updateMainPanel();
+      }
+    });
+
     myAndroidPreviewPanel = new AndroidPreviewPanel(myContext.getConfiguration());
     myContext.addChangeListener(new ThemeEditorContext.ChangeListener() {
       @Override
@@ -215,57 +221,27 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
     myDumbService = DumbService.getInstance(context.getProject());
 
-
     myScrollPane = new JBScrollPane(myAndroidPreviewPanel,
                                                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     myScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     myScrollPane.setBorder(null);
     myScrollPane.setViewportBorder(null);
-    mySearchTextField = new SearchTextField(true);
-    // Avoid search box stretching more than 1 line.
-    mySearchTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, mySearchTextField.getPreferredSize().height));
-    mySearchTextField.setBorder(IdeBorderFactory.createEmptyBorder(0, 30, 0, 30));
-    final Runnable delayedUpdate = new Runnable() {
-      @Override
-      public void run() {
-        rebuild();
-      }
-    };
-
-    // We use a timer when we detect a change in the search field to avoid re-creating the preview if it's not necessary.
-    mySearchTextField.addDocumentListener(new DocumentAdapter() {
-      @Override
-      protected void textChanged(DocumentEvent e) {
-        Document document = e.getDocument();
-        try {
-          String search = document.getText(0, document.getLength());
-
-          // Only use search terms longer than 3 characters.
-          String newSearchTerm = search.length() < 3 ? "" : search;
-          if (newSearchTerm.equals(mySearchTerm)) {
-            return;
-          }
-          if (myPendingSearch != null) {
-            myPendingSearch.cancel(true);
-          }
-          mySearchTerm = newSearchTerm;
-          myPendingSearch = mySearchScheduler.schedule(delayedUpdate, 300, TimeUnit.MILLISECONDS);
-        }
-        catch (BadLocationException e1) {
-          LOG.error(e1);
-        }
-      }
-    });
 
     myBreadcrumbs.setRootItem(new Breadcrumb("All components"));
 
-    add(Box.createRigidArea(new Dimension(0, 5)));
+    createErrorPanel();
+    createProgressPanel();
+
+    add(Box.createRigidArea(JBUI.size(0, 5)));
     add(myBreadcrumbs);
-    add(Box.createRigidArea(new Dimension(0, 10)));
-    add(mySearchTextField);
-    add(Box.createRigidArea(new Dimension(0, 10)));
-    add(myScrollPane);
+    add(Box.createRigidArea(JBUI.size(0, 10)));
+
+    myMainPanel = new JPanel(new CardLayout());
+    myMainPanel.add(myErrorPanel, ERROR);
+    myMainPanel.add(myProgressPanel, PROGRESS);
+    myMainPanel.add(myScrollPane, PREVIEW);
+    add(myMainPanel);
 
     setBackground(background);
     reloadComponents();
@@ -278,65 +254,85 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
       }
     });
 
-    myAndroidPreviewPanel.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        ViewInfo view = myAndroidPreviewPanel.findViewAtPoint(e.getPoint());
+    if (ENABLE_COMPONENTS_DRILL_DOWN) {
+      myAndroidPreviewPanel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          ViewInfo view = myAndroidPreviewPanel.findViewAtPoint(e.getPoint());
 
-        if (view == null) {
-          return;
+          if (view == null) {
+            return;
+          }
+
+          Object cookie = view.getCookie();
+          if (cookie instanceof MergeCookie) {
+            cookie = ((MergeCookie)cookie).getCookie();
+          }
+
+          if (!(cookie instanceof Element)) {
+            return;
+          }
+
+          NamedNodeMap attributes = ((Element)cookie).getAttributes();
+          Node group = attributes.getNamedItemNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP);
+
+          if (group != null) {
+            myBreadcrumbs.push(new Breadcrumb(ThemePreviewBuilder.ComponentGroup.valueOf(group.getNodeValue())));
+            rebuild();
+          }
         }
-
-        mySearchTextField.setText("");
-
-        Object cookie = view.getCookie();
-        if (cookie instanceof MergeCookie) {
-          cookie = ((MergeCookie)cookie).getCookie();
-        }
-
-        if (!(cookie instanceof Element)) {
-          return;
-        }
-
-        NamedNodeMap attributes = ((Element)cookie).getAttributes();
-        Node group = attributes.getNamedItemNS(ThemePreviewBuilder.BUILDER_URI, ThemePreviewBuilder.BUILDER_ATTR_GROUP);
-
-        if (group != null) {
-          myBreadcrumbs.push(new Breadcrumb(ThemePreviewBuilder.ComponentGroup.valueOf(group.getNodeValue())));
-          rebuild();
-        }
-      }
-    });
+      });
+    }
 
     myContext.addConfigurationListener(new ConfigurationListener() {
       @Override
       public boolean changed(int flags) {
         refreshConfiguration();
 
-        if ((flags & ConfigurationListener.CFG_THEME) != 0) {
-          boolean appCompatTheme = isAppCompatTheme(myContext.getConfiguration());
-          if (appCompatTheme != myIsAppCompatTheme) {
-            rebuild();
-          }
+        if (ThemeEditorUtils.isSelectedAppCompatTheme(myContext) != myIsAppCompatTheme) {
+          rebuild();
         }
 
         return true;
       }
     });
+
+    updateMainPanel();
+  }
+
+  /**
+   * Chooses the correct panel to display between the progress panel, the error panel or the preview panel
+   */
+  private void updateMainPanel() {
+    if (myDumbService.isDumb()) {
+      myProgressIcon.resume();
+      ((CardLayout)myMainPanel.getLayout()).show(myMainPanel, PROGRESS);
+    }
+    else {
+      myProgressIcon.suspend();
+      ((CardLayout)myMainPanel.getLayout()).show(myMainPanel, myShowError ? ERROR : PREVIEW);
+    }
+  }
+
+  /**
+   * Set a search term to filter components in a preview, will trigger a delayed update.
+   */
+  public void setSearchTerm(@NotNull String searchTerm) {
+    if (searchTerm.equals(mySearchTerm)) {
+      return;
+    }
+    mySearchTerm = searchTerm;
+    rebuild();
   }
 
   @Override
   public void setBackground(Color bg) {
     super.setBackground(bg);
 
+    myAndroidPreviewPanel.setBackground(bg);
     myScrollPane.getViewport().setBackground(bg);
-    mySearchTextField.setBackground(bg);
     myBreadcrumbs.setBackground(bg);
-  }
-
-  @NotNull
-  public Set<String> getUsedAttrs() {
-    return myAndroidPreviewPanel.getUsedAttrs();
+    myMainPanel.setBackground(bg);
   }
 
   /**
@@ -402,7 +398,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
 
         myCustomComponents = Collections.unmodifiableList(customComponents);
         mySupportLibraryComponents = ImmutableList.copyOf(supportLibraryComponents);
-        if (!myCustomComponents.isEmpty() || mySupportLibraryComponents.isEmpty()) {
+        if (!myCustomComponents.isEmpty() || !mySupportLibraryComponents.isEmpty()) {
           rebuild();
         }
       }
@@ -419,6 +415,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     try {
       Configuration configuration = myContext.getConfiguration();
       int minApiLevel = configuration.getTarget() != null ? configuration.getTarget().getVersion().getApiLevel() : Integer.MAX_VALUE;
+
       ThemePreviewBuilder builder = new ThemePreviewBuilder()
         .setBackgroundColor(getBackground()).addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS)
         .addAllComponents(myCustomComponents)
@@ -426,11 +423,14 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
         .addComponentFilter(new ThemePreviewBuilder.ApiLevelFilter(minApiLevel))
         .addComponentFilter(myGroupFilter);
 
-      myIsAppCompatTheme = isAppCompatTheme(configuration);
+      myIsAppCompatTheme = ThemeEditorUtils.isSelectedAppCompatTheme(myContext);
       if (myIsAppCompatTheme) {
         builder
           .addComponentFilter(mySupportReplacementsFilter)
           .addAllComponents(mySupportLibraryComponents);
+
+        // sometimes we come here when the mySupportLibraryComponents and the mySupportReplacementsFilter are not ready yet
+        // that is not too bad, as when they are ready, we will call reload again, and then the components list will be correct.
       }
       myAndroidPreviewPanel.setDocument(builder.build());
 
@@ -456,19 +456,78 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
     // We want the preview to remain the same size even when the device being used to render is different.
     // Adjust the scale to the current config.
     if (configuration.getDeviceState() != null) {
-      double scale = myConstantScalingFactor / configuration.getDeviceState().getHardware().getScreen().getPixelDensity().getDpiValue();
-      myAndroidPreviewPanel.setScale(scale);
-    } else {
+      float reverseDeviceScale =
+        Density.DEFAULT_DENSITY / (float)configuration.getDeviceState().getHardware().getScreen().getPixelDensity().getDpiValue();
+      // we combine our scale, the reverse device scale, and the platform scale into 1 scale factor.
+      myAndroidPreviewPanel.setScale(JBUI.scale(reverseDeviceScale * myScale));
+    }
+    else {
       LOG.error("Configuration getDeviceState returned null. Unable to set preview scale.");
     }
+  }
+
+  private void createProgressPanel() {
+    myProgressIcon = new AsyncProcessIcon("Indexing");
+    JLabel progressMessage = new JLabel("Waiting for indexing...");
+    JPanel progressBlock = new JPanel() {
+      @Override
+      public Dimension getMaximumSize() {
+        // Ensures this pane will always be only as big as the text it contains.
+        // Necessary to vertically center it inside a Box.
+        return super.getPreferredSize();
+      }
+    };
+
+    progressBlock.add(myProgressIcon);
+    progressBlock.add(progressMessage);
+    progressBlock.setOpaque(false);
+
+    myProgressPanel = new Box(BoxLayout.PAGE_AXIS);
+    myProgressPanel.add(Box.createVerticalGlue());
+    myProgressPanel.add(progressBlock);
+    myProgressPanel.add(Box.createVerticalGlue());
+
+    myProgressPanel.setOpaque(false);
+  }
+
+  private void createErrorPanel() {
+    myErrorLabel = new JTextPane() {
+      @Override
+      public Dimension getMaximumSize() {
+        // Ensures this pane will always be only as big as the text it contains.
+        // Necessary to vertically center it inside a Box.
+        return super.getPreferredSize();
+      }
+    };
+    myErrorLabel.setOpaque(false);
+
+    myErrorPanel = new Box(BoxLayout.PAGE_AXIS);
+    myErrorPanel.add(Box.createVerticalGlue());
+    myErrorPanel.add(myErrorLabel);
+    myErrorPanel.add(Box.createVerticalGlue());
+
+    myErrorPanel.setOpaque(false);
+
+    StyledDocument document = myErrorLabel.getStyledDocument();
+    SimpleAttributeSet attributes = new SimpleAttributeSet();
+    StyleConstants.setAlignment(attributes, StyleConstants.ALIGN_CENTER);
+    document.setParagraphAttributes(0, document.getLength(), attributes, false);
+  }
+
+  public void setError(@Nullable String themeName) {
+    myShowError = themeName != null;
+    if (themeName != null) {
+      myErrorLabel.setText("The theme " + themeName + " cannot be rendered in the current configuration");
+    }
+    updateMainPanel();
   }
 
   /**
    * Sets the preview scale to allow zooming in and out. Even when zoom (scale != 1.0) is set, different devices will still render to the
    * same size as the theme preview renderer is DPI independent.
    */
-  public void setScale(double scale) {
-    myConstantScalingFactor = DEFAULT_SCALING_FACTOR * scale;
+  public void setScale(float scale) {
+    myScale = scale;
   }
 
   /**
@@ -476,29 +535,12 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext {
    */
   public void invalidateGraphicsRenderer() {
     myAndroidPreviewPanel.invalidateGraphicsRenderer();
-    myAndroidPreviewPanel.repaint();
   }
 
-  /**
-   * Checks if the theme selected in the configuration is AppCompat based.
-   */
-  static boolean isAppCompatTheme(Configuration configuration) {
-    ResourceResolver resources = configuration.getResourceResolver();
-
-    if (resources == null) {
-      LOG.error("ResourceResolver is null");
-      return false;
-    }
-
-    StyleResourceValue defaultTheme = resources.getDefaultTheme();
-    for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && defaultTheme != null; i++) {
-      // for loop ensures that we don't run into cyclic theme inheritance.
-      if (defaultTheme.getName().startsWith("Theme.AppCompat")) {
-        return true;
-      }
-      defaultTheme = resources.getParent(defaultTheme);
-    }
-    return false;
+  @Override
+  public void dispose() {
+    Disposer.dispose(myProgressIcon);
+    myConnection.disconnect();
   }
 
   // Implements RenderContext

@@ -93,7 +93,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
         }
       }
     });
-    myDeviceComboBox.setPreferredSize(new Dimension(300, myDeviceComboBox.getPreferredSize().height));
+    myDeviceComboBox.setPreferredSize(new Dimension(JBUtil.scale(300), myDeviceComboBox.getPreferredSize().height));
 
     myDeviceListener = new AndroidDebugBridge.IDeviceChangeListener() {
       @Override

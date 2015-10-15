@@ -26,9 +26,9 @@ import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.*;
-import com.android.tools.idea.wizard.DynamicWizardPath;
-import com.android.tools.idea.wizard.DynamicWizardStep;
-import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,8 +39,8 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,8 +59,6 @@ import java.util.*;
  * perform component setup.
  */
 public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
-  public static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
-    ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.PATH, Boolean.class);
   public static final AndroidVersion LATEST_ANDROID_VERSION = new AndroidVersion(22, null);
   private static final ScopedStateStore.Key<String> KEY_SDK_INSTALL_LOCATION =
     ScopedStateStore.createKey("download.sdk.location", ScopedStateStore.Scope.PATH, String.class);
@@ -75,12 +73,13 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   public InstallComponentsPath(@NotNull ProgressStep progressStep,
                                @NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
-                               @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
+                               @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages,
+                               boolean installUpdates) {
     myProgressStep = progressStep;
     myMode = mode;
     mySdkLocation = sdkLocation;
     myRemotePackages = remotePackages;
-    myComponentInstaller = new ComponentInstaller(remotePackages);
+    myComponentInstaller = new ComponentInstaller(remotePackages, installUpdates);
   }
 
   private ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason, @NotNull ScopedStateStore stateStore, boolean createAvd) {
@@ -91,7 +90,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       components.add(platforms);
     }
     if (Haxm.canRun() && reason == FirstRunWizardMode.NEW_INSTALL) {
-      components.add(new Haxm(stateStore, KEY_CUSTOM_INSTALL));
+      components.add(new Haxm(stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
     if (createAvd) {
       components.add(new AndroidVirtualDevice(stateStore, myRemotePackages));
@@ -200,8 +199,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       return new MergeOperation(handoffSource, installContext, progressRatio);
     }
     if (isNonEmptyDirectory(destination)) {
-      SdkManager manager = SdkManager.createManager(destination.getAbsolutePath(), new NullLogger());
-      if (manager != null) {
+      if (AndroidSdkData.getSdkData(destination) != null) {
         // We have SDK, first operation simply passes path through
         return InstallOperation.wrap(installContext, new ReturnValue(), 0);
       }
@@ -222,16 +220,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @Override
   protected void init() {
     boolean createAvd = myMode.shouldCreateAvd();
-    if (myMode == FirstRunWizardMode.NEW_INSTALL) {
-      addStep(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL));
-    }
-    addStep(new SelectThemeStep(KEY_CUSTOM_INSTALL));
     String pathString = mySdkLocation.getAbsolutePath();
     myState.put(KEY_SDK_INSTALL_LOCATION, pathString);
 
     myComponentTree = createComponentTree(myMode, myState, createAvd);
     myComponentTree.init(myProgressStep);
-    mySdkComponentsStep = new SdkComponentsStep(myComponentTree, KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, myMode);
+    mySdkComponentsStep = new SdkComponentsStep(myComponentTree, FirstRunWizard.KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, myMode);
     addStep(mySdkComponentsStep);
 
     SdkManager manager = SdkManager.createManager(pathString, new NullLogger());
@@ -240,11 +234,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     for (DynamicWizardStep step : myComponentTree.createSteps()) {
       addStep(step);
     }
-    if (SystemInfo.isLinux && myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      addStep(new LinuxHaxmInfoStep());
-    }
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      addStep(new InstallSummaryStep(KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, new Supplier<Collection<RemotePkgInfo>>() {
+      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, new Supplier<Collection<RemotePkgInfo>>() {
         @Override
         public Collection<RemotePkgInfo> get() {
           return myComponentInstaller.getPackagesToInstallInfos(myState.get(KEY_SDK_INSTALL_LOCATION), myComponentTree.getChildrenToInstall());
@@ -265,7 +256,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       }
       myComponentTree.updateState(manager);
     }
-    if (modified.contains(KEY_CUSTOM_INSTALL) || modified.contains(KEY_SDK_INSTALL_LOCATION) ||
+    if (modified.contains(FirstRunWizard.KEY_CUSTOM_INSTALL) || modified.contains(KEY_SDK_INSTALL_LOCATION) ||
         myComponentTree.componentStateChanged(modified)) {
       myState.put(WizardConstants.INSTALL_REQUESTS_KEY, getPackageDescriptions());
     }

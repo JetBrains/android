@@ -63,11 +63,9 @@
               <text value="Please refer to the "/>
             </properties>
           </component>
-          <component id="c0092" class="javax.swing.JButton" binding="myIntelHAXMDocumentationButton" default-binding="true">
+          <component id="7fc0f" class="com.intellij.ui.HyperlinkLabel" binding="myIntelHAXMDocumentationButton" default-binding="true">
             <constraints/>
-            <properties>
-              <text value="Intel® HAXM Documentation"/>
-            </properties>
+            <properties/>
           </component>
           <component id="b15eb" class="javax.swing.JLabel">
             <constraints/>

@@ -16,9 +16,8 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.stats.Distribution;
-import com.android.tools.idea.stats.DistributionService;
-import com.android.tools.idea.wizard.ChooseApiLevelDialog;
+import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.tools.idea.npw.ChooseApiLevelDialog;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
@@ -108,8 +107,8 @@ public class SystemImagePreview {
       myAndroidVersion.setVisible(!image.getVersion().isPreview());
       myAndroidVersion.setText(SdkVersionInfo.getVersionString(apiLevel));
       String vendorName;
-      String tag = myImageDescription.getTag().getId();
-      if (tag.equals("android-wear") || tag.equals("android-tv")) {
+      IdDisplay tag = myImageDescription.getTag();
+      if (tag.getId().equals("android-wear") || tag.getId().equals("android-tv")) {
         vendorName = "Android";
       } else {
         vendorName = myImageDescription.getVendor();

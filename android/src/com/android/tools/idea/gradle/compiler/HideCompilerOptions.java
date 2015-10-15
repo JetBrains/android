@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 public class HideCompilerOptions implements CompilerOptionsFilter {
   @Override
   public boolean isAvailable(@NotNull Setting setting, @NotNull Project project) {
-    if (!Projects.isGradleProject(project)) {
+    if (!Projects.requiresAndroidModel(project)) {
       return true;
     }
     return Setting.EXTERNAL_BUILD != setting && Setting.ADD_NOT_NULL_ASSERTIONS != setting;

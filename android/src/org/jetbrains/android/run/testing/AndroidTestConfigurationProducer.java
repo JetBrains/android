@@ -17,7 +17,7 @@
 package org.jetbrains.android.run.testing;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
@@ -34,12 +34,13 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.AndroidRunConfigurationType;
 import org.jetbrains.android.run.TargetSelectionMode;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+
+import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
 
 /**
  * @author Eugene.Kudelevsky
@@ -72,7 +73,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
                                           PsiElement element,
                                           ConfigurationContext context,
                                           Ref<PsiElement> sourceElement) {
-    PsiClass elementClass = PsiTreeUtil.getParentOfType(element, PsiClass.class, false);
+    PsiClass elementClass = getParentOfType(element, PsiClass.class, false);
 
     while (elementClass != null) {
       if (JUnitUtil.isTestClass(elementClass)) {
@@ -82,7 +83,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
         configuration.setGeneratedName();
         return true;
       }
-      elementClass = PsiTreeUtil.getParentOfType(elementClass, PsiClass.class);
+      elementClass = getParentOfType(elementClass, PsiClass.class);
     }
     return false;
   }
@@ -91,7 +92,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
                                                   PsiElement element,
                                                   ConfigurationContext context,
                                                   Ref<PsiElement> sourceElement) {
-    PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class, false);
+    PsiMethod elementMethod = getParentOfType(element, PsiMethod.class, false);
 
     while (elementMethod != null) {
       if (isTestMethod(elementMethod)) {
@@ -104,7 +105,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
         configuration.setGeneratedName();
         return true;
       }
-      elementMethod = PsiTreeUtil.getParentOfType(elementMethod, PsiMethod.class);
+      elementMethod = getParentOfType(elementMethod, PsiMethod.class);
     }
     return false;
   }
@@ -164,8 +165,9 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
       return false;
     }
 
-    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    if (ideaAndroidProject != null && !ideaAndroidProject.getSelectedTestArtifactName().equals(AndroidProject.ARTIFACT_ANDROID_TEST)) {
+    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    if (androidModel != null && !androidModel.getSelectedTestArtifactName().equals(AndroidProject.ARTIFACT_ANDROID_TEST)) {
       // Only suggest the android test run configuration if it makes sense for the selected test artifact.
       return false;
     }
@@ -201,10 +203,10 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     final PsiPackage psiPackage = JavaRuntimeConfigurationProducerBase.checkPackage(element);
     final String packageName = psiPackage == null ? null : psiPackage.getQualifiedName();
 
-    final PsiClass elementClass = PsiTreeUtil.getParentOfType(element, PsiClass.class, false);
+    final PsiClass elementClass = getParentOfType(element, PsiClass.class, false);
     final String className = elementClass == null ? null : elementClass.getQualifiedName();
 
-    final PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class, false);
+    final PsiMethod elementMethod = getParentOfType(element, PsiMethod.class, false);
     final String methodName = elementMethod == null ? null : elementMethod.getName();
     final Module moduleInConfig = configuration.getConfigurationModule().getModule();
 

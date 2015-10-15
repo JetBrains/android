@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.vectordrawable.VdPreview;
+import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.Gray;
 import com.intellij.util.RetinaImage;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -32,10 +37,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import static com.android.SdkConstants.DOT_XML;
+
 public class GutterIconCache {
   private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
-  private static final int MAX_WIDTH = 16;
-  private static final int MAX_HEIGHT = 16;
+  private static final int MAX_WIDTH = JBUI.scale(16);
+  private static final int MAX_HEIGHT = JBUI.scale(16);
   private static final Icon NONE = AndroidIcons.Android; // placeholder
 
   private static final GutterIconCache ourInstance = new GutterIconCache();
@@ -74,7 +81,58 @@ public class GutterIconCache {
   }
 
   @Nullable
-  private static Icon createIcon(String path) {
+  private static Icon createIcon(@NotNull  String path) {
+    if (path.endsWith(DOT_XML)) {
+      return createXmlIcon(path);
+    } else {
+      return createBitmapIcon(path);
+    }
+  }
+
+  @Nullable
+  private static Icon createXmlIcon(@NotNull String path) {
+    try {
+      String xml = Files.toString(new File(path), Charsets.UTF_8);
+      // See if this drawable is a vector; we can't render other drawables yet.
+      // TODO: Consider resolving selectors to render for example the default image!
+      if (xml.contains("<vector")) {
+        StringBuilder builder = new StringBuilder();
+        boolean isRetina = ourRetinaEnabled && UIUtil.isRetina();
+        VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createSizeFromWidth(isRetina ? 2 * MAX_WIDTH : MAX_WIDTH);
+        BufferedImage image = VdPreview.getPreviewFromVectorXml(imageTargetSize, xml, builder);
+        if (builder.length() > 0) {
+          LOG.warn("Problems rendering " + path + ": " + builder);
+        }
+        if (image != null) {
+          if (isRetina) {
+            // The Retina image uses a scale of 2, and the RetinaImage class creates an
+            // image of size w/scale, h/scale. If the width or height is less than the scale,
+            // this rounds to width or height 0, which will cause exceptions to be thrown.
+            // Don't attempt to create a Retina image for images like that. See issue 65676.
+            final int scale = 2;
+            if (image.getWidth() >= scale && image.getHeight() >= scale) {
+              try {
+                @SuppressWarnings("ConstantConditions") Image hdpiImage = RetinaImage.createFrom(image, scale, null);
+                return new RetinaImageIcon(hdpiImage);
+              }
+              catch (Throwable t) {
+                // Can't always create Retina images (see issue 65609); fall through to non-Retina code path
+                ourRetinaEnabled = false;
+              }
+            }
+          }
+          return new ImageIcon(image);
+        }
+      }
+    } catch (Throwable e) {
+      LOG.warn(String.format("Could not read/render icon image %1$s", path), e);
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static Icon createBitmapIcon(@NotNull  String path) {
     try {
       BufferedImage image = ImageIO.read(new File(path));
       if (image != null) {
@@ -127,7 +185,7 @@ public class GutterIconCache {
       }
     }
     catch (IOException e) {
-      LOG.error(String.format("Could not read icon image %1$s", path), e);
+      LOG.warn(String.format("Could not read icon image %1$s", path), e);
     }
 
     return null;

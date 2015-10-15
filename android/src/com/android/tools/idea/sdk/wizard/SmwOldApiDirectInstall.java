@@ -19,15 +19,15 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.sdk.SdkLoadedCallback;
 import com.android.tools.idea.sdk.SdkLoggerIntegration;
+import com.android.tools.idea.sdk.SdkPackages;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
-import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -108,13 +108,11 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
 
     final CustomLogger logger = new CustomLogger();
 
-    Runnable onSdkAvailable = new Runnable() {
+    SdkLoadedCallback onSdkAvailable = new SdkLoadedCallback(true) {
       @Override
-      public void run() {
-        if (!ApplicationManager.getApplication().isDispatchThread()) {
-          ApplicationManager.getApplication().invokeLater(this, ModalityState.any());
-          return;
-        }
+      public void doRun(@NotNull SdkPackages packages) {
+        // Since this is only run on complete (not on local complete) it's ok that we're not using the passed-in packages
+
         // TODO: since the local SDK has been parsed, this is now a good time
         // to filter requestedPackages to remove current installed packages.
         // That's because on Windows trying to update some of the packages in-place
@@ -215,7 +213,6 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
         myLogger,
         false,  // force -- The reply to any question asked by the update process.
                //          Currently this will be yes/no for ability to replace modified samples, restart ADB, restart on locked win folder.
-        false, // useHttp -- True to force using HTTP instead of HTTPS for downloads.
         null,  // proxyPort -- An optional HTTP/HTTPS proxy port. Can be null. -- Can we get it from Studio?
         null); // proxyHost -- An optional HTTP/HTTPS proxy host. Can be null. -- Can we get it from Studio?
 

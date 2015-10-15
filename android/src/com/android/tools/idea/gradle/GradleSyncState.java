@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
@@ -39,17 +40,19 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.stats.UsageTracker.*;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.INFO;
@@ -70,9 +73,8 @@ public class GradleSyncState {
     "com.intellij.compiler.options.CompilerConfigurable"
   );
 
-  public static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC =
+  private static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC =
     new Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener.class);
-
   private static final Key<Long> PROJECT_LAST_SYNC_TIMESTAMP_KEY = Key.create("android.gradle.project.last.sync.timestamp");
 
   @NotNull private final Project myProject;
@@ -85,6 +87,11 @@ public class GradleSyncState {
 
   @GuardedBy("myLock")
   private boolean mySyncInProgress;
+
+  public static void subscribe(@NotNull Project project, @NotNull GradleSyncListener listener) {
+    MessageBusConnection connection = project.getMessageBus().connect(project);
+    connection.subscribe(GRADLE_SYNC_TOPIC, listener);
+  }
 
   @NotNull
   public static GradleSyncState getInstance(@NotNull Project project) {
@@ -115,18 +122,29 @@ public class GradleSyncState {
     });
 
     enableNotifications();
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_SKIPPED, null, null);
+    trackSyncEvent(ACTION_GRADLE_SYNC_SKIPPED);
   }
 
-  public void syncStarted(boolean notifyUser) {
+  /**
+   * Notification that a sync has started.
+   *
+   * @param notifyUser indicates whether the user should be notified.
+   * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
+   * current request cannot continue because there is already one in progress.
+   */
+  public boolean syncStarted(boolean notifyUser) {
+    synchronized (myLock) {
+      if (mySyncInProgress) {
+        LOG.info(String.format("Sync already in progress for project '%1$s'.", myProject.getName()));
+        return false;
+      }
+      mySyncInProgress = true;
+    }
     LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
 
     addInfoToEventLog("Gradle sync started");
 
     cleanUpProjectPreferences();
-    synchronized (myLock) {
-      mySyncInProgress = true;
-    }
     if (notifyUser) {
       notifyUser();
     }
@@ -137,7 +155,9 @@ public class GradleSyncState {
       }
     });
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_STARTED, null, null);
+    trackSyncEvent(ACTION_GRADLE_SYNC_STARTED);
+
+    return true;
   }
 
   public void syncFailed(@NotNull final String message) {
@@ -157,7 +177,7 @@ public class GradleSyncState {
       }
     });
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_FAILED, null, null);
+    trackSyncEvent(ACTION_GRADLE_SYNC_FAILED);
   }
 
   public void syncEnded() {
@@ -178,9 +198,21 @@ public class GradleSyncState {
       }
     });
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GRADLE, UsageTracker.ACTION_SYNC_ENDED, null, null);
+    FullRevision gradleVersion = getGradleVersion(myProject);
+    if (gradleVersion != null) {
+      trackSyncEvent(ACTION_GRADLE_VERSION, gradleVersion.toString());
+    }
+
+    trackSyncEvent(ACTION_GRADLE_SYNC_ENDED);
   }
 
+  private static void trackSyncEvent(@NotNull String event) {
+    trackSyncEvent(event, null);
+  }
+
+  private static void trackSyncEvent(@NotNull String event, @Nullable String extraInfo) {
+    UsageTracker.getInstance().trackEvent(CATEGORY_GRADLE, event, extraInfo, null);
+  }
 
   private void addInfoToEventLog(@NotNull String message) {
     addToEventLog(message, INFO);
@@ -307,7 +339,7 @@ public class GradleSyncState {
   }
 
   private void cleanUpProjectPreferences() {
-    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+    if (!AndroidStudioInitializer.isAndroidStudio()) {
       return;
     }
     try {

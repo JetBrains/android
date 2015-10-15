@@ -17,48 +17,62 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.dependency.*;
+import com.android.tools.idea.gradle.customizer.dependency.*;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.base.Objects;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 import static com.android.SdkConstants.FD_JARS;
-import static com.android.tools.idea.gradle.dependency.LibraryDependency.PathType.BINARY;
+import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.*;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.setModuleCompiledArtifact;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Sets the dependencies of a module imported from an {@link AndroidProject}.
  */
-public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaAndroidProject>
-  implements BuildVariantModuleCustomizer<IdeaAndroidProject> {
+public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<AndroidGradleModel>
+  implements BuildVariantModuleCustomizer<AndroidGradleModel> {
 
   @Override
   protected void setUpDependencies(@NotNull Module module,
                                    @NotNull IdeModifiableModelsProvider modelsProvider,
-                                   @NotNull IdeaAndroidProject androidProject) {
+                                   @NotNull AndroidGradleModel androidProject) {
     DependencySet dependencies = Dependency.extractFrom(androidProject);
     for (LibraryDependency dependency : dependencies.onLibraries()) {
-      updateLibraryDependency(module, modelsProvider, dependency, androidProject.getDelegate());
+      updateLibraryDependency(module, modelsProvider, dependency, androidProject.getAndroidProject());
     }
     for (ModuleDependency dependency : dependencies.onModules()) {
-      updateModuleDependency(module, modelsProvider, dependency, androidProject.getDelegate());
+      updateModuleDependency(module, modelsProvider, dependency, androidProject.getAndroidProject());
     }
+
+    addExtraSdkLibrariesAsDependencies(modelsProvider, module, androidProject.getAndroidProject());
 
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
     Collection<SyncIssue> syncIssues = androidProject.getSyncIssues();
@@ -66,7 +80,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       messages.reportSyncIssues(syncIssues, module);
     }
     else {
-      Collection<String> unresolvedDependencies = androidProject.getDelegate().getUnresolvedDependencies();
+      Collection<String> unresolvedDependencies = androidProject.getAndroidProject().getUnresolvedDependencies();
       messages.reportUnresolvedDependencies(unresolvedDependencies, module);
     }
   }
@@ -114,7 +128,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
                                              @NotNull LibraryDependency dependency,
                                              @NotNull AndroidProject androidProject) {
     Collection<String> binaryPaths = dependency.getPaths(BINARY);
-    setUpLibraryDependency(module, modelsProvider, dependency.getName(), dependency.getScope(), binaryPaths);
+    Collection<String> sourcePaths = dependency.getPaths(SOURCE);
+    Collection<String> docPaths = dependency.getPaths(DOC);
+    setUpLibraryDependency(module, modelsProvider, dependency.getName(), dependency.getScope(), binaryPaths, sourcePaths, docPaths);
 
     File buildFolder = androidProject.getBuildFolder();
 
@@ -132,6 +148,53 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     }
   }
 
+  /**
+   * Sets the 'useLibrary' libraries or SDK add-ons as library dependencies.
+   * <p>
+   * These libraries are set at the project level, which makes it impossible to add them to a IDE SDK definition because the IDE SDK is
+   * global to the whole IDE. To work around this limitation, we set these libraries as module dependencies instead.
+   * </p>
+   */
+  private static void addExtraSdkLibrariesAsDependencies(@NotNull IdeModifiableModelsProvider moduleModel, Module module, @NotNull AndroidProject androidProject) {
+    Sdk sdk = moduleModel.getModifiableRootModel(module).getSdk();
+    assert sdk != null; // If we got here, SDK will *NOT* be null.
+
+    String suffix = null;
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+    if (sdkData != null) {
+      SdkAdditionalData data = sdk.getSdkAdditionalData();
+      if (data instanceof AndroidSdkAdditionalData) {
+        AndroidSdkAdditionalData androidSdkData = (AndroidSdkAdditionalData)data;
+        suffix = androidSdkData.getBuildTargetHashString();
+      }
+    }
+
+    if (suffix == null) {
+      // In practice, we won't get here. A proper Android SDK has been already configured by now, and the suffix won't be null.
+      suffix = androidProject.getCompileTarget();
+    }
+
+    Set<String> currentIdeSdkFilePaths = Sets.newHashSetWithExpectedSize(5);
+    for (VirtualFile sdkFile : sdk.getRootProvider().getFiles(CLASSES)) {
+      // We need to convert the VirtualFile to java.io.File, because the path of the VirtualPath is using 'jar' protocol and it won't match
+      // the path returned by AndroidProject#getBootClasspath().
+      File sdkFilePath = virtualToIoFile(sdkFile);
+      currentIdeSdkFilePaths.add(sdkFilePath.getPath());
+    }
+    Collection<String> bootClasspath = androidProject.getBootClasspath();
+    for (String library : bootClasspath) {
+      if (isNotEmpty(library) && !currentIdeSdkFilePaths.contains(library)) {
+        // Library is not in the SDK IDE definition. Add it as library and make the module depend on it.
+        File binaryPath = new File(library);
+        String name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(library);
+        // Include compile target as part of the name, to ensure the library name is unique to this Android platform.
+
+        name = name + "-" + suffix; // e.g. maps-android-23, effects-android-23 (it follows the library naming convention: library-version
+        setUpLibraryDependency(module, moduleModel, name, DependencyScope.COMPILE, Collections.singletonList(library));
+      }
+    }
+  }
+
   @Override
   @NotNull
   public ProjectSystemId getProjectSystemId() {
@@ -140,7 +203,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
   @Override
   @NotNull
-  public Class<IdeaAndroidProject> getSupportedModelType() {
-    return IdeaAndroidProject.class;
+  public Class<AndroidGradleModel> getSupportedModelType() {
+    return AndroidGradleModel.class;
   }
 }

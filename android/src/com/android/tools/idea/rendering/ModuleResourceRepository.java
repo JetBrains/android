@@ -80,7 +80,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
    */
   @NotNull
   public static LocalResourceRepository create(@NotNull final AndroidFacet facet) {
-    boolean gradleProject = facet.isGradleProject();
+    boolean gradleProject = facet.requiresAndroidModel();
     if (!gradleProject) {
       // Always just a single resource folder: simple
       VirtualFile primaryResourceDir = facet.getPrimaryResourceDir();

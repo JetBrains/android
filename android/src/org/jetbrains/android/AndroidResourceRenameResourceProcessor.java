@@ -33,6 +33,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.DocumentReference;
 import com.intellij.openapi.command.undo.DocumentReferenceManager;
 import com.intellij.openapi.command.undo.UndoManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
@@ -43,10 +44,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.psi.xml.XmlElement;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.*;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
 import com.intellij.refactoring.rename.RenameJavaVariableProcessor;
@@ -251,8 +249,24 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     List<PsiElement> resources = AndroidResourceUtil.findResourcesByField(field);
 
     PsiElement res = resources.get(0);
-    String resName = res instanceof XmlAttributeValue ? ((XmlAttributeValue)res).getValue() : ((PsiFile)res).getName();
-    final String newResName = getResourceName(field.getProject(), newName, resName);
+
+    final String newResName;
+    if (res instanceof PsiFile) {
+      // Resource comes from XML file, don't need to suggest change underscores to dots
+      newResName = newName;
+    }
+    else if (res instanceof XmlAttributeValue){
+      newResName = getResourceName(field.getProject(), newName, ((XmlAttributeValue)res).getValue());
+    }
+    else {
+      // AndroidResourceUtil.findResourcesByField supposed to return a list of PsiElements that are
+      // either PsiFile or XmlAttributeValue. Previous version of this code doesn't handle other
+      // possibilities at all and would crash with ClassCastException, having an explicit error message
+      // seems to be a slightly better option.
+      Logger.getInstance(AndroidResourceRenameResourceProcessor.class).error(
+        String.format("%s: res is neither PsiFile nor XmlAttributeValue", AndroidResourceRenameResourceProcessor.class.getSimpleName()));
+      newResName = newName;
+    }
 
     for (PsiElement resource : resources) {
       if (resource instanceof PsiFile) {

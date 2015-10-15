@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.invoker.console.view;
 
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 
@@ -25,6 +25,6 @@ import com.intellij.openapi.util.Condition;
 public class GradleConsoleCondition implements Condition<Project> {
   @Override
   public boolean value(Project project) {
-    return AndroidStudioSpecificInitializer.isAndroidStudio();
+    return AndroidStudioInitializer.isAndroidStudio();
   }
 }

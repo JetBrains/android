@@ -18,12 +18,12 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
@@ -36,19 +36,25 @@ import java.awt.event.ActionListener;
  * Uses a dropdown to offer the choice between true or false or having a reference
  * Deals with references through a separate dialog window
  */
-public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, AttributeEditorValue> implements TableCellRenderer {
+public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
   private static final String USE_REFERENCE = "Use reference ...";
   private static final ResourceType[] BOOLEAN_TYPE = new ResourceType[] { ResourceType.BOOL };
   private static final String[] COMBOBOX_OPTIONS = {"true", "false", USE_REFERENCE};
 
   private final ComboBox myComboBox;
   private final @NotNull ThemeEditorContext myContext;
-  private @Nullable AttributeEditorValue myResultValue;
+  private @Nullable String myResultValue;
   private String myEditedItemValue;
 
   public BooleanRendererEditor(@NotNull ThemeEditorContext context) {
     myContext = context;
-    myComboBox = new ComboBox();
+    // Override isShowing because of the use of a {@link CellRendererPane}
+    myComboBox = new ComboBox() {
+      @Override
+      public boolean isShowing() {
+        return true;
+      }
+    };
     myComboBox.addActionListener(new BooleanChoiceListener());
   }
 
@@ -84,7 +90,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
   }
 
   @Override
-  public AttributeEditorValue getEditorValue() {
+  public String getEditorValue() {
     return myResultValue;
   }
 
@@ -95,12 +101,12 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
       String selectedValue = (String) myComboBox.getSelectedItem();
       if (USE_REFERENCE.equals(selectedValue)) {
         myComboBox.hidePopup();
-        final ChooseResourceDialog dialog = new ChooseResourceDialog(myContext.getCurrentThemeModule(), BOOLEAN_TYPE, myEditedItemValue, null);
+        final ChooseResourceDialog dialog = new ChooseResourceDialog(myContext.getModuleForResources(), BOOLEAN_TYPE, myEditedItemValue, null);
 
         dialog.show();
 
         if (dialog.isOK()) {
-          myResultValue = new AttributeEditorValue(dialog.getResourceName(), false);
+          myResultValue = dialog.getResourceName();
           stopCellEditing();
         }
         else {
@@ -108,7 +114,7 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Attr
           cancelCellEditing();
         }
       } else {
-        myResultValue = new AttributeEditorValue(selectedValue, false);
+        myResultValue = selectedValue;
         stopCellEditing();
       }
     }

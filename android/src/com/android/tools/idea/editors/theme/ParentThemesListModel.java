@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.theme;
 
 
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.android.tools.idea.editors.theme.SeparatedList.group;
 
@@ -35,14 +35,21 @@ public class ParentThemesListModel extends AbstractListModel implements MutableC
 
   private Object mySelectedObject;
   private final SeparatedList myAllItems;
-  private final ArrayList<ThemeEditorStyle> myRecentParentThemeList = new ArrayList<ThemeEditorStyle>();
+  private final ArrayList<String> myRecentParentThemeList = new ArrayList<String>();
 
-  public ParentThemesListModel(@NotNull ImmutableList<ThemeEditorStyle> defaultThemeList, @Nullable ThemeEditorStyle parent) {
-    if (!defaultThemeList.contains(parent)) {
-      myRecentParentThemeList.add(parent);
+  /**
+   * @param defaultThemeList Default theme list in the combo, usually is taken from {@link ThemeEditorUtils#getDefaultThemeNames(ThemeResolver)}
+   */
+  public ParentThemesListModel(@NotNull List<String> defaultThemeList, @Nullable String defaultParent) {
+    // If default parent is not in the theme list, add it
+    if (defaultParent != null && !defaultThemeList.contains(defaultParent)) {
+      myRecentParentThemeList.add(defaultParent);
     }
-    myAllItems = new SeparatedList(SEPARATOR, group(myRecentParentThemeList), group(defaultThemeList), group(SHOW_ALL_THEMES));
-    setSelectedItem(parent);
+
+    myAllItems = new SeparatedList(SEPARATOR, group(myRecentParentThemeList), group(ImmutableList.copyOf(defaultThemeList)), group(SHOW_ALL_THEMES));
+
+    // Set default parent if present, first item otherwise
+    setSelectedItem(defaultParent == null ? myAllItems.get(0) : defaultParent);
   }
 
   @Override
@@ -88,10 +95,8 @@ public class ParentThemesListModel extends AbstractListModel implements MutableC
 
   @Override
   public void insertElementAt(Object obj, int index) {
-    if (!(obj instanceof ThemeEditorStyle)) {
-      return;
-    }
-    myRecentParentThemeList.add(index, (ThemeEditorStyle)obj);
+    assert obj instanceof String;
+    myRecentParentThemeList.add(index, (String)obj);
     fireIntervalAdded(this, index, index);
     if (myRecentParentThemeList.size() > MAX_SIZE) {
       removeElementAt(MAX_SIZE);

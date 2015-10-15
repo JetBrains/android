@@ -258,7 +258,7 @@ public class AvdManagerConnection {
   }
 
   public boolean isAvdRunning(@NotNull AvdInfo info) {
-    return ourAvdManager.isAvdRunning(info);
+    return ourAvdManager.isAvdRunning(info, SDK_LOG);
   }
 
 
@@ -279,7 +279,7 @@ public class AvdManagerConnection {
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
     // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
     // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
-    if (ourAvdManager.isAvdRunning(info)) {
+    if (ourAvdManager.isAvdRunning(info, SDK_LOG)) {
       String baseFolder;
       try {
         baseFolder = ourAvdManager.getBaseAvdFolder();
@@ -518,5 +518,23 @@ public class AvdManagerConnection {
       displayName = avdInfo.getName().replaceAll("[_-]+", " ");
     }
     return displayName;
+  }
+
+  public String uniquifyDisplayName(String name) {
+    int suffix = 1;
+    String result = name;
+    while (findAvdWithName(result)) {
+      result = String.format("%1$s %2$d", name, ++suffix);
+    }
+    return result;
+  }
+
+  public boolean findAvdWithName(String name) {
+    for (AvdInfo avd : getDefaultAvdManagerConnection().getAvds(false)) {
+      if (getAvdDisplayName(avd).equals(name)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

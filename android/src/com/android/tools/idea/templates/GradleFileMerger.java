@@ -17,6 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -56,8 +57,18 @@ public class GradleFileMerger {
   private static final String DEPENDENCIES = "dependencies";
   private static final String COMPILE = "compile";
   public static final String COMPILE_FORMAT = "compile '%s'\n";
+  private static String mSupportLibVersionFilter;
 
-  public static String mergeGradleFiles(@NotNull String source, @NotNull String dest, @Nullable Project project) {
+  /**
+   * Merges the given source build.gradle content into the given destination build.gradle content,
+   * and resolves and dynamic Gradle dependencies into specific versions. If a support library
+   * filter is provided, the support libraries will be limited to match that filter. This is
+   * typically set to the compileSdkVersion, such that you don't end up mixing and matching
+   * compileSdkVersions and support libraries from different versions, which is not supported.
+   */
+  public static String mergeGradleFiles(@NotNull String source, @NotNull String dest, @Nullable Project project,
+                                        @Nullable String supportLibVersionFilter) {
+    mSupportLibVersionFilter = supportLibVersionFilter;
     source = source.replace("\r", "");
     dest = dest.replace("\r", "");
     final Project project2;
@@ -159,13 +170,20 @@ public class GradleFileMerger {
         // If this coordinate points to an artifact in one of our repositories, check to see if there is a static version
         // that we can add instead of a plus revision.
         if (RepositoryUrlManager.supports(highest.getArtifactId())) {
-          String libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), null, false /* No previews */);
-          GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
-
-          if (available != null) {
-            File archiveFile = urlManager.getArchiveForCoordinate(available);
-            if (archiveFile != null && archiveFile.exists() && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
-              highest = available;
+          String filter = highest.getGroupId() != null && ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())
+                          ? mSupportLibVersionFilter : null;
+          String libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), filter, false /* No previews */);
+          if (libraryCoordinate == null && filter != null) {
+            // No library found at the support lib version filter level, so look for any match
+            libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), null, false /* No previews */);
+          }
+          if (libraryCoordinate != null) {
+            GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
+            if (available != null) {
+              File archiveFile = urlManager.getArchiveForCoordinate(available);
+              if (archiveFile != null && archiveFile.exists() && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
+                highest = available;
+              }
             }
           }
         }

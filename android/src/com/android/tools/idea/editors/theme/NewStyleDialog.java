@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +36,6 @@ import java.awt.event.ActionListener;
 
 public class NewStyleDialog extends DialogWrapper {
   private final ResourceNameValidator myResourceNameValidator;
-  private final ThemeEditorContext myContext;
   private JPanel contentPane;
   private JTextField myStyleNameTextField;
   private JLabel myMessageLabel;
@@ -50,7 +48,7 @@ public class NewStyleDialog extends DialogWrapper {
   /**
    * Creates a new style dialog. This dialog it's used both to create new themes and new styles.
    * @param isTheme Whether the new item will be a theme or a regular style. This will only affect the messages displayed to user.
-   * @param configuration The current device configuration.
+   * @param context The current theme editor context.
    * @param defaultParentName The parent style that will be preselected in the parent text field.
    * @param currentThemeName The current theme name. This is used to automatically generate style names suggestions.
    * @param message Message to display to the user when creating the new style.
@@ -69,8 +67,7 @@ public class NewStyleDialog extends DialogWrapper {
       myMessageLabel.setVisible(false);
     }
 
-    myContext = context;
-    final Configuration configuration = myContext.getConfiguration();
+    final Configuration configuration = context.getConfiguration();
     myResourceNameValidator =
       ResourceNameValidator.create(false, AppResourceRepository.getAppResources(configuration.getModule(), true), ResourceType.STYLE);
 
@@ -82,47 +79,33 @@ public class NewStyleDialog extends DialogWrapper {
 
     myStyleNameTextField.setText(getNewStyleNameSuggestion(defaultParentName, currentThemeName));
 
-    final ThemeResolver themeResolver = new ThemeResolver(configuration);
-    final ImmutableList<ThemeEditorStyle> defaultThemes = ThemeEditorUtils.getDefaultThemes(themeResolver);
-    ThemeEditorStyle defaultParent = null;
-    if (defaultParentName != null) {
-      defaultParent = themeResolver.getTheme(defaultParentName);
-    }
+    final ThemeResolver themeResolver = context.getThemeResolver();
+    final ImmutableList<String> defaultThemeNames = ThemeEditorUtils.getDefaultThemeNames(themeResolver);
 
-    //noinspection GtkPreferredJComboBoxRenderer
-    myParentStyleComboBox.setRenderer(new StyleListCellRenderer(myContext));
-    final ParentThemesListModel parentThemesListModel = new ParentThemesListModel(defaultThemes, defaultParent);
+    myParentStyleComboBox.setRenderer(new StyleListCellRenderer(context, myParentStyleComboBox));
+    final ParentThemesListModel parentThemesListModel = new ParentThemesListModel(defaultThemeNames, defaultParentName);
     myParentStyleComboBox.setModel(parentThemesListModel);
     myParentStyleComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        Object selectedValue = myParentStyleComboBox.getSelectedItem();
-        ThemeEditorStyle selectedParent = null;
+        String selectedValue = (String)myParentStyleComboBox.getSelectedItem();
         if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
           myParentStyleComboBox.hidePopup();
           final ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
 
           dialog.show();
 
-          if (dialog.isOK()) {
-            String myStyleParentName = dialog.getTheme();
-            if (myStyleParentName != null) {
-              selectedParent = themeResolver.getTheme(myStyleParentName);
-            }
-          }
+          selectedValue = dialog.isOK() ? dialog.getTheme() : null;
         }
-        else if (selectedValue instanceof ThemeEditorStyle) {
-          selectedParent = (ThemeEditorStyle)selectedValue;
+        if (selectedValue == null) {
+          selectedValue = (String)parentThemesListModel.getElementAt(0);
         }
-        if (selectedParent == null) {
-          selectedParent = (ThemeEditorStyle)parentThemesListModel.getElementAt(0);
+        else if (!defaultThemeNames.contains(selectedValue)) {
+            parentThemesListModel.removeElement(selectedValue);
+            parentThemesListModel.insertElementAt(selectedValue, 0);
         }
-        else if (!defaultThemes.contains(selectedParent)) {
-            parentThemesListModel.removeElement(selectedParent);
-            parentThemesListModel.insertElementAt(selectedParent, 0);
-        }
-        myParentStyleComboBox.setSelectedItem(selectedParent);
-        myStyleNameTextField.setText(getNewStyleNameSuggestion(selectedParent.getName(), currentThemeName));
+        myParentStyleComboBox.setSelectedItem(selectedValue);
+        myStyleNameTextField.setText(getNewStyleNameSuggestion(selectedValue, currentThemeName));
       }
     });
 
@@ -163,10 +146,10 @@ public class NewStyleDialog extends DialogWrapper {
   }
 
   public String getStyleParentName() {
-    return ((ThemeEditorStyle)myParentStyleComboBox.getSelectedItem()).getName();
+    return (String)myParentStyleComboBox.getSelectedItem();
   }
 
-  static String[] COMMON_THEME_NAMES = {"Material", "Holo", "Leanback", "Micro", "DeviceDefault", "AppCompat"};
+  private static final String[] COMMON_THEME_NAMES = {"Material", "Holo", "Leanback", "Micro", "DeviceDefault", "AppCompat"};
 
   /**
    * Returns a suggestion for a new style name based on both the parent style name and the current theme name. It will try to replace parent

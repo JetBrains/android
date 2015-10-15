@@ -12,10 +12,10 @@
   <item name="android.media.browse.MediaBrowser java.lang.String getRoot()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.media.browse.MediaBrowser void getMediaItem(java.lang.String, android.media.browse.MediaBrowser.MediaItemCallback) 0">
+  <item name="android.media.browse.MediaBrowser void getItem(java.lang.String, android.media.browse.MediaBrowser.ItemCallback) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.media.browse.MediaBrowser void getMediaItem(java.lang.String, android.media.browse.MediaBrowser.MediaItemCallback) 1">
+  <item name="android.media.browse.MediaBrowser void getItem(java.lang.String, android.media.browse.MediaBrowser.ItemCallback) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.browse.MediaBrowser void subscribe(java.lang.String, android.media.browse.MediaBrowser.SubscriptionCallback) 0">
@@ -25,6 +25,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.browse.MediaBrowser void unsubscribe(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.browse.MediaBrowser.ItemCallback void onError(java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.browse.MediaBrowser.MediaItem MediaItem(android.media.MediaDescription, int) 0">

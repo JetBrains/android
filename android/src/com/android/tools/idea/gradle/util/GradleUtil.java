@@ -21,7 +21,7 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.PreciseRevision;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
@@ -33,6 +33,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -61,12 +62,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
+import com.intellij.util.containers.SmartHashSet;
 import icons.AndroidIcons;
 import org.gradle.StartParameter;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,9 +100,10 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.GradleSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.google.common.base.Splitter.on;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
@@ -137,6 +139,7 @@ public final class GradleUtil {
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
   private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-(.*)-(.*)\\.jar");
+  private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
 
   /**
    * Finds characters that shouldn't be used in the Gradle path.
@@ -220,19 +223,13 @@ public final class GradleUtil {
     if (androidProject != null) {
       return androidProject.isLibrary() ? AndroidIcons.LibraryModule : AndroidIcons.AppModule;
     }
-    return isGradleProject(module.getProject()) ? AllIcons.Nodes.PpJdk : AllIcons.Nodes.Module;
+    return requiresAndroidModel(module.getProject()) ? AllIcons.Nodes.PpJdk : AllIcons.Nodes.Module;
   }
 
   @Nullable
   public static AndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-      if (androidProject != null) {
-        return androidProject.getDelegate();
-      }
-    }
-    return null;
+    AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
+    return gradleModel != null ? gradleModel.getAndroidProject() : null;
   }
 
   /**
@@ -266,17 +263,13 @@ public final class GradleUtil {
   /**
    * Returns the library dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
    * in the UI) artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
-   *
-   * @param variant the given variant.
-   * @param ideaAndroidProject
-   * @return the library dependencies in the given variant.
    */
   @NotNull
   public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant,
-                                                                  @NotNull IdeaAndroidProject ideaAndroidProject) {
+                                                                  @NotNull AndroidGradleModel androidModel) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
     libraries.addAll(variant.getMainArtifact().getDependencies().getLibraries());
-    BaseArtifact testArtifact = ideaAndroidProject.findSelectedTestArtifact(variant);
+    BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(variant);
     if (testArtifact != null) {
       libraries.addAll(testArtifact.getDependencies().getLibraries());
     }
@@ -299,40 +292,72 @@ public final class GradleUtil {
 
   @NotNull
   public static List<String> getPathSegments(@NotNull String gradlePath) {
-    return Lists.newArrayList(on(GRADLE_PATH_SEPARATOR).omitEmptyStrings().split(gradlePath));
+    return on(GRADLE_PATH_SEPARATOR).omitEmptyStrings().splitToList(gradlePath);
   }
 
+  /**
+   * Returns the build.gradle file in the given module. This method first checks if the Gradle model has the path of the build.gradle
+   * file for the given module. If it doesn't find it, it tries to find a build.gradle inside the module's root directory.
+   *
+   * @param module the given module.
+   * @return the build.gradle file in the given module, or {@code null} if it cannot be found.
+   */
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull Module module) {
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
-    if (gradleFacet != null && gradleFacet.getGradleProject() != null) {
-      return gradleFacet.getGradleProject().getBuildFile();
+    if (gradleFacet != null && gradleFacet.getGradleModel() != null) {
+      return gradleFacet.getGradleModel().getBuildFile();
     }
     // At the time we're called, module.getModuleFile() may be null, but getModuleFilePath returns the path where it will be created.
     File moduleFilePath = new File(module.getModuleFilePath());
-    return getGradleBuildFile(moduleFilePath.getParentFile());
+    File parentFile = moduleFilePath.getParentFile();
+    return parentFile != null ? getGradleBuildFile(parentFile) : null;
   }
 
+  /**
+   * Returns the build.gradle file that is expected right in the directory at the given path. For example, if the directory path is
+   * '~/myProject/myModule', this method will look for the file '~/myProject/myModule/build.gradle'.
+   * <p>
+   * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
+   * {@link #getGradleBuildFile(Module)}.
+   * </p>
+   *
+   * @param dirPath the given directory path.
+   * @return the build.gradle file in the directory at the given path, or {@code null} if there is no build.gradle file in the given
+   * directory path.
+   */
   @Nullable
-  public static VirtualFile getGradleBuildFile(@NotNull File rootDir) {
-    File gradleBuildFilePath = getGradleBuildFilePath(rootDir);
+  public static VirtualFile getGradleBuildFile(@NotNull File dirPath) {
+    File gradleBuildFilePath = getGradleBuildFilePath(dirPath);
     return findFileByIoFile(gradleBuildFilePath, true);
   }
 
+  /**
+   * Returns the path of a build.gradle file in the directory at the given path. For example, if the directory path is
+   * '~/myProject/myModule', this method will return the path '~/myProject/myModule/build.gradle'. Please note that a build.gradle file
+   * may not exist at the returned path.
+   * <p>
+   * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
+   * {@link #getGradleBuildFile(Module)}.
+   * </p>
+   *
+   * @param dirPath the given directory path.
+   * @return the path of a build.gradle file in the directory at the given path.
+   */
   @NotNull
-  public static File getGradleBuildFilePath(@NotNull File rootDir) {
-    return new File(rootDir, FN_BUILD_GRADLE);
+  public static File getGradleBuildFilePath(@NotNull File dirPath) {
+    return new File(dirPath, FN_BUILD_GRADLE);
   }
 
   @Nullable
-  public static VirtualFile getGradleSettingsFile(@NotNull File rootDir) {
-    File gradleSettingsFilePath = getGradleSettingsFilePath(rootDir);
+  public static VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
+    File gradleSettingsFilePath = getGradleSettingsFilePath(dirPath);
     return findFileByIoFile(gradleSettingsFilePath, true);
   }
 
   @NotNull
-  public static File getGradleSettingsFilePath(@NotNull File rootDir) {
-    return new File(rootDir, FN_SETTINGS_GRADLE);
+  public static File getGradleSettingsFilePath(@NotNull File dirPath) {
+    return new File(dirPath, FN_SETTINGS_GRADLE);
   }
 
   @NotNull
@@ -385,8 +410,8 @@ public final class GradleUtil {
     GradleProjectSettings projectSettings = getGradleProjectSettings(project);
     if (projectSettings == null) {
       File baseDirPath = getBaseDirPath(project);
-      String msg = String.format("Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'", project.getName(),
-                                 baseDirPath.getPath());
+      String msg = String
+        .format("Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'", project.getName(), baseDirPath.getPath());
       LOG.info(msg);
       return null;
     }
@@ -773,8 +798,36 @@ public final class GradleUtil {
     return true;
   }
 
+
   /**
-   * Finds the version of the Android Gradle plug-in being used in the given project.
+   * Determines version of the Android gradle plugin (and model) used by the project. The result can be absent if there are no android
+   * modules in the project or if the last sync has failed.
+   *
+   * @see #getAndroidGradleModelVersionFromBuildFile(Project)
+   */
+  @Nullable
+  public static FullRevision getAndroidGradleModelVersionInUse(@NotNull Project project) {
+    Set<String> pluginVersionsUsedInProject = new SmartHashSet<String>();
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidProject androidProject = getAndroidProject(module);
+      if (androidProject == null) {
+        continue;
+      }
+      pluginVersionsUsedInProject.add(androidProject.getModelVersion());
+    }
+
+    // This should pretty much always be the case, but let's be safe here.
+    if (pluginVersionsUsedInProject.size() == 1) {
+      return parseRevision(getOnlyElement(pluginVersionsUsedInProject));
+    }
+
+    return null;
+  }
+
+  /**
+   * Tries to find the version of the Android Gradle plug-in declared in build.gradle files. If the project contains complicated build
+   * logic, this may be incorrect.
+   * <p/>
    * <p>
    * The version is returned as it is specified in build files if it does not use "+" notation.
    * </p>
@@ -789,9 +842,10 @@ public final class GradleUtil {
    *
    * @param project the given project.
    * @return the version of the Android Gradle plug-in being used in the given project. (or an approximation.)
+   * @see #getAndroidGradleModelVersionInUse(Project)
    */
   @Nullable
-  public static FullRevision getResolvedAndroidGradleModelVersion(@NotNull final Project project) {
+  public static FullRevision getAndroidGradleModelVersionFromBuildFile(@NotNull final Project project) {
     VirtualFile baseDir = project.getBaseDir();
     if (baseDir == null) {
       // This is default project.
@@ -805,7 +859,7 @@ public final class GradleUtil {
           File fileToCheck = virtualToIoFile(virtualFile);
           try {
             String contents = loadFile(fileToCheck);
-            FullRevision version = getResolvedAndroidGradleModelVersion(contents, project);
+            FullRevision version = getAndroidGradleModelVersionFromBuildFile(contents, project);
             if (version != null) {
               modelVersionRef.set(version);
               return false; // we found the model version. Stop.
@@ -824,7 +878,7 @@ public final class GradleUtil {
 
   @VisibleForTesting
   @Nullable
-  static FullRevision getResolvedAndroidGradleModelVersion(@NotNull String fileContents, @Nullable Project project) {
+  static FullRevision getAndroidGradleModelVersionFromBuildFile(@NotNull String fileContents, @Nullable Project project) {
     GradleCoordinate found = getPluginDefinition(fileContents, GRADLE_PLUGIN_NAME);
     if (found != null) {
       String revision = getAndroidGradleModelVersion(found, project);
@@ -930,9 +984,9 @@ public final class GradleUtil {
   /**
    * Delegates to the {@link #forPluginDefinition(String, String, Function)} and just returns target plugin's definition string (unquoted).
    *
-   * @param fileContents  target gradle config text
-   * @param pluginName    target plugin's name in a form <code>'group-id:artifact-id:'</code>
-   * @return              target plugin's definition string if found (unquoted); <code>null</code> otherwise
+   * @param fileContents target gradle config text
+   * @param pluginName   target plugin's name in a form <code>'group-id:artifact-id:'</code>
+   * @return target plugin's definition string if found (unquoted); <code>null</code> otherwise
    * @see #forPluginDefinition(String, String, Function)
    */
   @Nullable
@@ -968,11 +1022,11 @@ public final class GradleUtil {
    * (with quotes), i.e. we can get exact text range for the target string in case we need to do something like replacing plugin's
    * version.
    *
-   * @param fileContents  target gradle config text
-   * @param pluginName    target plugin's name in a form <code>'group-id:artifact-id:'</code>
-   * @param consumer      a callback to be notified for the target plugin's definition string
-   * @param <T>           given callback's return type
-   * @return              given callback's call result if target plugin definition is found; <code>null</code> otherwise
+   * @param fileContents target gradle config text
+   * @param pluginName   target plugin's name in a form <code>'group-id:artifact-id:'</code>
+   * @param consumer     a callback to be notified for the target plugin's definition string
+   * @param <T>          given callback's return type
+   * @return given callback's call result if target plugin definition is found; <code>null</code> otherwise
    */
   @Nullable
   public static <T> T forPluginDefinition(@NotNull String fileContents,
@@ -1213,15 +1267,15 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns {@code true} if the given project depends on the given artifact, which consists of a group id and an artifact id, such as
+   * Returns {@code true} if the given Android model depends on the given artifact, which consists of a group id and an artifact id, such as
    * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
-   * @param project  the Gradle project to check
-   * @param artifact the artifact
+   * @param androidModel the Android model to check
+   * @param artifact     the artifact
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
-  public static boolean dependsOn(@NonNull IdeaAndroidProject project, @NonNull String artifact) {
-    Dependencies dependencies = project.getSelectedVariant().getMainArtifact().getDependencies();
+  public static boolean dependsOn(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
+    Dependencies dependencies = androidModel.getMainArtifact().getDependencies();
     return dependsOn(dependencies, artifact);
   }
 
@@ -1308,5 +1362,46 @@ public final class GradleUtil {
   public static boolean hasLayoutRenderingIssue(@NotNull AndroidProject model) {
     String modelVersion = model.getModelVersion();
     return modelVersion.startsWith("1.2.0") || modelVersion.equals("1.2.1") || modelVersion.equals("1.2.2");
+  }
+
+  @Nullable
+  public static VirtualFile findSourceJarForLibrary(@NotNull File libraryFilePath) {
+    VirtualFile realJarFile = findFileByIoFile(libraryFilePath, true);
+
+    if (realJarFile == null) {
+      // Unlikely to happen. At this point the jar file should exist.
+      return null;
+    }
+
+    VirtualFile parent = realJarFile.getParent();
+    String name = getNameWithoutExtension(libraryFilePath);
+    String sourceFileName = name + SOURCES_JAR_NAME_SUFFIX;
+    if (parent != null) {
+
+      // Try finding sources in the same folder as the jar file. This is the layout of Maven repositories.
+      VirtualFile sourceJar = parent.findChild(sourceFileName);
+      if (sourceJar != null) {
+        return sourceJar;
+      }
+
+      // Try the parent's parent. This is the layout of the repository cache in .gradle folder.
+      parent = parent.getParent();
+      if (parent != null) {
+        for (VirtualFile child : parent.getChildren()) {
+          if (!child.isDirectory()) {
+            continue;
+          }
+          sourceJar = child.findChild(sourceFileName);
+          if (sourceJar != null) {
+            return sourceJar;
+          }
+        }
+      }
+    }
+
+    // Try IDEA's own cache.
+    File librarySourceDirPath = InternetAttachSourceProvider.getLibrarySourceDir();
+    File sourceJar = new File(librarySourceDirPath, sourceFileName);
+    return findFileByIoFile(sourceJar, true);
   }
 }

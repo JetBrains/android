@@ -1,4 +1,4 @@
-package p1.p2;
+<error descr="The SDK platform-tools version ((16.0.2)) is too old  to check APIs compiled with API 17; please update">package p1.p2;</error>
 
 import android.graphics.PorterDuff;
 

@@ -182,7 +182,21 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
             return true;
           }
           if (added.add(s)) {
-            result.add(LookupElementBuilder.create(pair.getFirst(), s).withCaseSensitivity(false));
+            // LookupElementBuilder should be case sensitive for manifest permission, because otherwise they are inserted in all uppercase
+            final boolean isManifestPermission = "android.Manifest.permission".equals(myClass.getQualifiedName());
+            LookupElementBuilder builder = LookupElementBuilder.create(pair.getFirst(), s).withCaseSensitivity(isManifestPermission);
+
+            // http://b.android.com/184877
+            if (isManifestPermission) {
+              // If an element is added for AndroidManifest.xml permission, we want to add name of a permission as a lookup string
+              // so autocompletion for "INT" would give "android.permission.INTERNET" as an option.
+              final int lastDot = s.lastIndexOf('.');
+              if (lastDot != -1 && lastDot + 1 < s.length()) {
+                final String suffix = s.substring(lastDot + 1);
+                builder = builder.withLookupString(suffix);
+              }
+            }
+            result.add(builder);
           }
           return true;
         }

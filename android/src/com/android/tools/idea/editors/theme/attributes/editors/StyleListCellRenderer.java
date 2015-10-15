@@ -16,11 +16,13 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.editors.theme.ProjectThemeResolver;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.ThemesListModel;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -33,120 +35,79 @@ import java.awt.*;
 /**
  * A {@link ListCellRenderer} to render {@link ThemeEditorStyle} elements.
  */
-public class StyleListCellRenderer extends JPanel implements ListCellRenderer {
+public class StyleListCellRenderer extends ColoredListCellRenderer {
   private final ThemeEditorContext myContext;
-  private final SimpleColoredComponent myStyleNameLabel = new SimpleColoredComponent();
-  private final SimpleColoredComponent myDefaultLabel = new SimpleColoredComponent();
 
-  public StyleListCellRenderer(ThemeEditorContext context) {
+  public StyleListCellRenderer(@NotNull ThemeEditorContext context, @Nullable JComboBox comboBox) {
+    super(comboBox);
     myContext = context;
-
-    setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-
-    myStyleNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    myDefaultLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    myDefaultLabel.append("DEFAULT", SimpleTextAttributes.GRAY_ATTRIBUTES);
-    myDefaultLabel.setTextAlign(SwingConstants.RIGHT);
-
-    add(myStyleNameLabel);
-    add(Box.createHorizontalGlue());
-    add(myDefaultLabel);
   }
 
   @Override
-  @Nullable
   public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-    if (value instanceof JSeparator) {
+    if (value instanceof JSeparator){
       return (JSeparator)value;
     }
 
-    if (isSelected) {
-      setBackground(list.getSelectionBackground());
-      myStyleNameLabel.setForeground(list.getSelectionForeground());
-      myDefaultLabel.setForeground(list.getSelectionForeground());
-    } else {
-      setBackground(list.getBackground());
-      myStyleNameLabel.setForeground(list.getForeground());
-      myDefaultLabel.setForeground(list.getForeground());
+    return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+  }
+
+  @Override
+  protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+    if (!(value instanceof String)) {
+      return;
     }
 
-    myStyleNameLabel.clear();
+    String stringValue = (String)value;
 
-    if (value instanceof String) {
-      myStyleNameLabel.append((String)value);
-      myDefaultLabel.setVisible(false);
-      return this;
-    }
-    if (value instanceof ProjectThemeResolver.ThemeWithSource) {
-      value = ((ProjectThemeResolver.ThemeWithSource)value).getTheme();
-    }
-    if (!(value instanceof ThemeEditorStyle)) {
-      return null;
+    if (ThemesListModel.isSpecialOption(stringValue) || ParentRendererEditor.NO_PARENT.equals(stringValue)) {
+      append(stringValue, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+      return;
     }
 
-    ThemeEditorStyle style = (ThemeEditorStyle)value;
+    ThemeEditorStyle style = myContext.getThemeResolver().getTheme(stringValue);
+    if (style == null) {
+      String simpleName = StringUtil.substringAfter(stringValue, "/");
+      assert simpleName != null;
+      append(simpleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+      return;
+    }
+
     ThemeEditorStyle parent = style.getParent();
-    String styleName = style.getSimpleName();
-    String parentName = parent != null ? parent.getSimpleName() : null;
+    String styleName = style.getName();
+    String parentName = parent != null ? parent.getName() : null;
 
     String defaultAppTheme = null;
-    final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentThemeModule());
+    final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
     if (facet != null) {
       Manifest manifest = facet.getManifest();
       if (manifest != null && manifest.getApplication() != null && manifest.getApplication().getXmlTag() != null) {
-        defaultAppTheme = manifest.getApplication()
-          .getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);
+        defaultAppTheme = manifest.getApplication().getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);
       }
     }
 
     if (!style.isProjectStyle()) {
-      String simplifiedName = simplifyName(style);
+      String simplifiedName = ThemeEditorUtils.simplifyThemeName(style);
+      String qualifiedStyleName = (style.isFramework() ? SdkConstants.PREFIX_ANDROID : "") + styleName;
+
       if (StringUtil.isEmpty(simplifiedName)) {
-        myStyleNameLabel.append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+        append(qualifiedStyleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
       }
       else {
-        myStyleNameLabel.append(simplifiedName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-        myStyleNameLabel.append(" [" + styleName + "]", SimpleTextAttributes.GRAY_ATTRIBUTES);
+        append(simplifiedName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+        append(" [" + qualifiedStyleName + "]", SimpleTextAttributes.GRAY_ATTRIBUTES, false);
       }
     }
-    else if (!isSelected && parentName != null && styleName.startsWith(parentName + ".")) {
-      myStyleNameLabel.append(parentName + ".", SimpleTextAttributes.GRAY_ATTRIBUTES);
-      myStyleNameLabel.append(styleName.substring(parentName.length() + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    else if (!selected && parentName != null && styleName.startsWith(parentName + ".")) {
+      append(parentName + ".", SimpleTextAttributes.GRAY_ATTRIBUTES, false);
+      append(styleName.substring(parentName.length() + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
     }
     else {
-      myStyleNameLabel.append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
     }
 
-    myDefaultLabel.setVisible(style.getName().equals(defaultAppTheme));
-
-    return this;
-  }
-
-  /**
-   * Returns a more user-friendly version of a given themeName.
-   * Aimed at framework themes with names of the form Theme.*.Light.*
-   * or Theme.*.*
-   */
-  @NotNull
-  private static String simplifyName(@NotNull ThemeEditorStyle theme) {
-    String result;
-    String name = theme.getName();
-    String[] pieces = name.split("\\.");
-    if (pieces.length > 1 && !"Light".equals(pieces[1])) {
-      result = pieces[1];
+    if (style.getQualifiedName().equals(defaultAppTheme)) {
+      append("  -  Default", new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, new JBColor(0xFF4CAF50, 0xFFA5D6A7)), true);
     }
-    else {
-      result = "Theme";
-    }
-    ThemeEditorStyle parent = theme;
-    while (parent != null) {
-      if ("Theme.Light".equals(parent.getSimpleName())) {
-        return result + " Light";
-      }
-      else {
-        parent = parent.getParent();
-      }
-    }
-    return result + " Dark";
   }
 }

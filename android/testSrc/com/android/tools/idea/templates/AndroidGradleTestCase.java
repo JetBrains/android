@@ -25,8 +25,10 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.wizard.*;
+import com.android.tools.idea.wizard.template.TemplateWizard;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -35,9 +37,11 @@ import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.CapturingProcessHandler;
+import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -45,8 +49,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.project.impl.ProjectManagerImpl;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -67,6 +72,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -135,49 +141,55 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
-    try {
-      if (myFixture != null) {
-        try {
-          if (CAN_SYNC_PROJECTS) {
-            Project project = myFixture.getProject();
-            // Since we don't really open the project, but we manually register listeners in the gradle importer
-            // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
-            // that here, otherwise the testsuite will leak
-            if (Projects.isGradleProject(project)) {
-              AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
-              projectComponent.projectClosed();
+    if (myFixture != null) {
+      Project project = myFixture.getProject();
+
+      if (CAN_SYNC_PROJECTS) {
+        // Since we don't really open the project, but we manually register listeners in the gradle importer
+        // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
+        // that here, otherwise the testsuite will leak
+        if (Projects.requiresAndroidModel(project)) {
+          AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
+          projectComponent.projectClosed();
+        }
+      }
+
+      myFixture.tearDown();
+      myFixture = null;
+    }
+
+    if (CAN_SYNC_PROJECTS) {
+      GradleProjectImporter.ourSkipSetupFromTest = false;
+    }
+
+    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+    Project[] openProjects = projectManager.getOpenProjects();
+    if (openProjects.length > 0) {
+      final Project project = openProjects[0];
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          Disposer.dispose(project);
+          ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+          if (projectManager instanceof ProjectManagerImpl) {
+            Collection<Project> projectsStillOpen = projectManager.closeTestProject(project);
+            if (!projectsStillOpen.isEmpty()) {
+              Project project = projectsStillOpen.iterator().next();
+              projectsStillOpen.clear();
+              throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
+                                       PlatformTestCase.getCreationPlace(project));
             }
           }
         }
-        finally {
-          myFixture.tearDown();
-          myFixture = null;
-        }
-      }
-
-      if (CAN_SYNC_PROJECTS) {
-        GradleProjectImporter.ourSkipSetupFromTest = false;
-      }
-
-      ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-      Project[] openProjects = projectManager.getOpenProjects();
-      if (openProjects.length > 0) {
-        PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
-      }
+      });
     }
-    finally {
-      try {
-        assertEquals(0, ProjectManager.getInstance().getOpenProjects().length);
-      }
-      finally {
-        super.tearDown();
-      }
 
-      // In case other test cases rely on the builtin (incomplete) SDK, restore
-      if (ourPreviousSdkData != null) {
-        setSdkData(ourPreviousSdkData);
-        ourPreviousSdkData = null;
-      }
+    super.tearDown();
+
+    // In case other test cases rely on the builtin (incomplete) SDK, restore
+    if (ourPreviousSdkData != null) {
+      setSdkData(ourPreviousSdkData);
+      ourPreviousSdkData = null;
     }
   }
 
@@ -237,7 +249,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     importProject(project, project.getName(), projectRoot, listener);
 
-    assertTrue(Projects.isGradleProject(project));
+    assertTrue(Projects.requiresAndroidModel(project));
     assertFalse(Projects.isIdeaAndroidProject(project));
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
@@ -408,12 +420,21 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     assertTrue(gradlew.exists());
     File pwd = base.getAbsoluteFile();
     // TODO: Add in --no-daemon, anything to suppress total time?
-    Process process = Runtime.getRuntime().exec(new String[]{gradlew.getPath(), "assembleDebug"}, null, pwd);
-    int exitCode = process.waitFor();
-    byte[] stdout = ByteStreams.toByteArray(process.getInputStream());
-    byte[] stderr = ByteStreams.toByteArray(process.getErrorStream());
-    String errors = new String(stderr, Charsets.UTF_8);
-    String output = new String(stdout, Charsets.UTF_8);
+    GeneralCommandLine cmdLine = new GeneralCommandLine(new String[]{gradlew.getPath(), "assembleDebug"}).withWorkDirectory(pwd);
+    CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
+    // Building currently takes about 30s, so a 5min timeout should give a safe margin.
+    int timeoutInMilliseconds = 5 * 60 * 1000;
+    ProcessOutput processOutput = process.runProcess(timeoutInMilliseconds, true);
+    if (processOutput.isTimeout()) {
+      throw new TimeoutException("\"gradlew assembleDebug\" did not terminate within test timeout value.\n" +
+                                 "[stdout]\n" +
+                                 processOutput.getStdout() + "\n" +
+                                 "[stderr]\n" +
+                                 processOutput.getStderr() + "\n");
+    }
+    String errors = processOutput.getStderr();
+    String output = processOutput.getStdout();
+    int exitCode = processOutput.getExitCode();
     int expectedExitCode = 0;
     if (output.contains("BUILD FAILED") && errors.contains("Could not find any version that matches com.android.tools.build:gradle:")) {
       // We ignore this assertion. We got here because we are using a version of the Android Gradle plug-in that is not available in Maven

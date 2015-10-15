@@ -13,8 +13,10 @@ import com.android.utils.StdLogger;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.CapturingProcessHandler;
+import com.intellij.execution.process.ProcessOutput;
 import org.jetbrains.android.AndroidTestCase;
 
 import javax.imageio.ImageIO;
@@ -25,6 +27,7 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.*;
@@ -68,9 +71,9 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     new File("bin", "classes"),
                     Arrays.asList(src, gen),
                     Collections.<File>emptyList());
-    createProjectProperties(dir, "android-17", null, null, null,
+    createProjectProperties(dir, "android-22", null, null, null,
                             Collections.<File>emptyList());
-    createAndroidManifest(dir, pkg, 8, 16, null);
+    createAndroidManifest(dir, pkg, 8, 22, null);
 
     createDefaultStrings(dir);
     createDefaultIcon(dir);
@@ -428,7 +431,14 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                  + "* src/test/pkg/latency.rs => app/src/main/rs/latency.rs\n"
                                  + "* src/zoneinfo-global/Pacific/Honolulu.ics => app/src/main/resources/zoneinfo-global/Pacific/Honolulu.ics\n"
                                  + MSG_FOOTER,
-                                 true /* checkBuild */);
+                                 //true /* checkBuild */);
+                                 // Turning off check builds because on some Jenkins machines this is triggering an exception
+                                 // from the RenderScript compiler, presumably because it's running on a too-old version
+                                 // of Ubuntu:
+                                 //
+                                 //  android-sdk-linux/build-tools/23.0.0/llvm-rs-cc: error while loading shared libraries: libncurses.so.5:
+                                 //  cannot open shared object file: No such file or directory
+                                 false /* checkBuild */);
 
     // Imported contents
     assertEquals(""
@@ -848,13 +858,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -996,12 +1006,12 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     new File("bin", "classes"),
                     Arrays.asList(appSrc, appGen),
                     Collections.<File>emptyList());
-    createProjectProperties(app, "android-17", null, null, null,
+    createProjectProperties(app, "android-22", null, null, null,
                             Arrays.asList(
                               new File(".." + separator + lib1Name),
                               new File(".." + separator + lib2Name),
                               new File(".." + separator + javaLibRelative)));
-    createAndroidManifest(app, appPkg, 8, 16, null);
+    createAndroidManifest(app, appPkg, 8, 22, null);
     createDefaultStrings(app);
     createDefaultIcon(app);
 
@@ -1025,9 +1035,9 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                  ""
                                  + MSG_HEADER
                                  + MSG_REPLACED_JARS
-                                 + "android-support-v4.jar => com.android.support:support-v4:18.0.0\n"
-                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:18.0.0\n"
-                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:18.0.0\n"
+                                 + "android-support-v4.jar => com.android.support:support-v4:22.2.1\n"
+                                 + "android-support-v7-appcompat.jar => com.android.support:appcompat-v7:22.2.1\n"
+                                 + "android-support-v7-gridlayout.jar => com.android.support:gridlayout-v7:22.2.1\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
                                  + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
@@ -1075,13 +1085,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -1093,9 +1103,9 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "}\n"
                  + "\n"
                  + "dependencies {\n"
-                 + "    compile 'com.android.support:support-v4:18.0.0'\n"
-                 + "    compile 'com.android.support:appcompat-v7:18.0.0'\n"
-                 + "    compile 'com.android.support:gridlayout-v7:18.0.0'\n"
+                 + "    compile 'com.android.support:support-v4:22.2.1'\n"
+                 + "    compile 'com.android.support:appcompat-v7:22.2.1'\n"
+                 + "    compile 'com.android.support:gridlayout-v7:22.2.1'\n"
                  + "}\n",
                  Files.toString(new File(imported, "app" + separator + "build.gradle"), UTF_8)
                    .replace(NL, "\n"));
@@ -1181,13 +1191,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -1330,13 +1340,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + MIN_BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "\n"
                  + "        ndk {\n"
                  + "            moduleName \"hello-jni\"\n"
@@ -1543,13 +1553,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "\n"
                  + "        testApplicationId \"my.test.pkg.name\"\n"
                  + "        testInstrumentationRunner \"android.test.InstrumentationTestRunner\"\n"
@@ -1743,13 +1753,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -1789,7 +1799,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                  ""
                                  + MSG_HEADER
                                  + MSG_REPLACED_JARS
-                                 + "android-support-v4.jar => com.android.support:support-v4:18.+\n"
+                                 + "android-support-v4.jar => com.android.support:support-v4:22.+\n"
                                  + MSG_FOLDER_STRUCTURE
                                  + DEFAULT_MOVED
                                  + MSG_MISSING_REPO_1
@@ -2052,9 +2062,9 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     new File("bin", "classes"),
                     Arrays.asList(appSrc, appGen),
                     Collections.<File>emptyList());
-    createProjectProperties(app, "android-17", null, null, null,
+    createProjectProperties(app, "android-22", null, null, null,
                             Collections.singletonList(new File(".." + separator + androidLibName)));
-    createAndroidManifest(app, appPkg, 8, 16, null);
+    createAndroidManifest(app, appPkg, 8, 22, null);
     createDefaultStrings(app);
     createDefaultIcon(app);
 
@@ -2253,13 +2263,13 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
-                 + "    compileSdkVersion 17\n"
+                 + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -2969,7 +2979,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -3130,7 +3140,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
                  + "        minSdkVersion 8\n"
-                 + "        targetSdkVersion 16\n"
+                 + "        targetSdkVersion 22\n"
                  + "    }\n"
                  + "\n"
                  + "    buildTypes {\n"
@@ -3642,13 +3652,23 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
       return;
     }
     File pwd = base.getAbsoluteFile();
-    Process process = Runtime.getRuntime().exec(new String[]{gradlew.getPath(),
-      "assembleDebug"}, null, pwd);
-    int exitCode = process.waitFor();
-    byte[] stdout = ByteStreams.toByteArray(process.getInputStream());
-    byte[] stderr = ByteStreams.toByteArray(process.getErrorStream());
-    String errors = new String(stderr, UTF_8);
-    String output = new String(stdout, UTF_8);
+
+    GeneralCommandLine cmdLine = new GeneralCommandLine(new String[]{gradlew.getPath(), "assembleDebug"}).withWorkDirectory(pwd);
+    CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
+    // Building currently takes about 30s, so a 5min timeout should give a safe margin.
+    int timeoutInMilliseconds = 5 * 60 * 1000;
+    ProcessOutput processOutput = process.runProcess(timeoutInMilliseconds, true);
+    if (processOutput.isTimeout()) {
+      throw new TimeoutException("\"gradlew assembleDebug\" did not terminate within test timeout value.\n" +
+                                 "[stdout]\n" +
+                                 processOutput.getStdout() + "\n" +
+                                 "[stderr]\n" +
+                                 processOutput.getStderr() + "\n");
+    }
+    String errors = processOutput.getStderr();
+    String output = processOutput.getStdout();
+    int exitCode = processOutput.getExitCode();
+
     int expectedExitCode = 0;
     if (output.contains("BUILD FAILED") && errors.contains(
       "Could not find any version that matches com.android.tools.build:gradle:")) {
@@ -3886,7 +3906,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
         sb.append("        android:minSdkVersion=\"8\"\n");
       }
       if (targetSdkVersion >= 1) {
-        sb.append("        android:targetSdkVersion=\"16\"\n");
+        sb.append("        android:targetSdkVersion=\"22\"\n");
       }
       sb.append("     />\n");
       sb.append("\n");

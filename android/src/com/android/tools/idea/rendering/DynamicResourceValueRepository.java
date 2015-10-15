@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.collect.ArrayListMultimap;
@@ -43,7 +43,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
   private DynamicResourceValueRepository(@NotNull AndroidFacet facet) {
     super("Gradle Dynamic");
     myFacet = facet;
-    assert facet.isGradleProject();
+    assert facet.requiresAndroidModel();
     facet.addListener(this);
     BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this);
   }
@@ -57,15 +57,16 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
   @NonNull
   protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
     if (mItems.isEmpty()) {
-      IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
-      if (project == null) {
+      // TODO: b/23032391
+      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      if (androidModel == null) {
         return mItems;
       }
 
-      Variant selectedVariant = project.getSelectedVariant();
+      Variant selectedVariant = androidModel.getSelectedVariant();
 
       // Reverse overlay order because when processing lower order ones, we ignore keys already processed
-      BuildTypeContainer buildType = project.findBuildType(selectedVariant.getBuildType());
+      BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
       if (buildType != null) {
         addValues(buildType.getBuildType().getResValues());
       }
@@ -110,7 +111,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
   protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
     if (mItems.isEmpty()) {
       // Force lazy initialization
-      getMap(type);
+      getMap();
     }
     ListMultimap<String, ResourceItem> multimap = mItems.get(type);
     if (multimap == null && create) {

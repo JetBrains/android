@@ -1,5 +1,7 @@
 package org.jetbrains.android;
 
+import com.intellij.codeInsight.actions.RearrangeCodeProcessor;
+import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.util.TextRange;
@@ -75,6 +77,22 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.LAYOUT_SETTINGS.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE = true;
     doTestLayout("layout1.xml");
+  }
+
+  public void testLayout8() throws Exception {
+    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
+    final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + "layout8.xml", "res/layout/layout.xml");
+    myFixture.configureFromExistingVirtualFile(f);
+
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      @Override
+      public void run() {
+        RearrangeCodeProcessor processor = new RearrangeCodeProcessor(new ReformatCodeProcessor(getProject(), false));
+        processor.run();
+      }
+    });
+
+    myFixture.checkResultByFile(BASE_PATH + "layout8_after.xml");
   }
 
   public void testManifest1() throws Exception {

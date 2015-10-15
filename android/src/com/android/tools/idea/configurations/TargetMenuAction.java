@@ -19,7 +19,9 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -41,13 +43,29 @@ import static com.android.tools.idea.configurations.Configuration.PREFERENCES_MI
 
 public class TargetMenuAction extends FlatComboAction {
   private final RenderContext myRenderContext;
+  private final boolean myUseCompatibilityTarget;
 
-  public TargetMenuAction(RenderContext renderContext) {
+  /**
+   * Creates a {@code TargetMenuAction}
+   * @param renderContext A {@link RenderContext} instance
+   * @param useCompatibilityTarget when true, this menu action will set a CompatibilityRenderTarget as instead of a real IAndroidTarget
+   * @param classicStyle if true, use the pre Android Studio 1.5 configuration toolbar style (temporary compatibility code)
+   */
+  public TargetMenuAction(RenderContext renderContext, boolean useCompatibilityTarget, boolean classicStyle) {
     myRenderContext = renderContext;
+    myUseCompatibilityTarget = useCompatibilityTarget;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Android version to use when rendering layouts in the IDE");
-    presentation.setIcon(AndroidIcons.Targets);
+    presentation.setIcon(classicStyle ? AndroidIcons.Targets : AndroidIcons.NeleIcons.Api);
     updatePresentation(presentation);
+  }
+
+  public TargetMenuAction(RenderContext renderContext, boolean useCompatibilityTarget) {
+    this(renderContext, useCompatibilityTarget, !RenderService.NELE_ENABLED);
+  }
+
+  public TargetMenuAction(RenderContext renderContext) {
+    this(renderContext, false);
   }
 
   @Override
@@ -121,6 +139,12 @@ public class TargetMenuAction extends FlatComboAction {
 
       String title = getRenderingTargetLabel(target, false);
       boolean select = current == target;
+
+      if (myUseCompatibilityTarget && configuration.getConfigurationManager().getHighestApiTarget() != null) {
+        target = new CompatibilityRenderTarget(configuration.getConfigurationManager().getHighestApiTarget(),
+                                               target.getVersion().getFeatureLevel(),
+                                               target);
+      }
       group.add(new SetTargetAction(myRenderContext, title, target, select));
     }
 

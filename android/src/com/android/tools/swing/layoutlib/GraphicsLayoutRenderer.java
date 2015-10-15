@@ -20,12 +20,27 @@ import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderParamsFlags;
 import com.android.ide.common.rendering.RenderSecurityManager;
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.ActionBarCallback;
+import com.android.ide.common.rendering.api.HardwareConfig;
+import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.RenderParams;
+import com.android.ide.common.rendering.api.RenderSession;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.Result;
+import com.android.ide.common.rendering.api.SessionParams;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.AssetRepositoryImpl;
+import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderSecurityManagerFactory;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -39,12 +54,22 @@ import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Class to render layouts to a {@link Graphics} instance. This renderer does not allow for much customization of the device and does not
@@ -59,8 +84,6 @@ public class GraphicsLayoutRenderer {
 
   private static final int MIN_LAYOUTLIB_API_VERSION = 15;
 
-  private final LayoutLibrary myLayoutLibrary;
-  private final SessionParams mySessionParams;
   private final FakeImageFactory myImageFactory;
   private final DynamicHardwareConfig myHardwareConfig;
   private final Object myCredential;
@@ -75,6 +98,7 @@ public class GraphicsLayoutRenderer {
    */
   private final List<ResourceValue> myResourceLookupChain;
 
+  private ReentrantReadWriteLock myRenderSessionLock = new ReentrantReadWriteLock();
   /*
    * The render session is lazily initialized. We need to wait until we have a valid Graphics2D
    * instance to launch it.
@@ -89,16 +113,16 @@ public class GraphicsLayoutRenderer {
                                  @NotNull DynamicHardwareConfig hardwareConfig,
                                  @NotNull List<ResourceValue> resourceLookupChain,
                                  @NotNull Object credential) {
-    myLayoutLibrary = layoutLib;
     mySecurityManager = securityManager;
     myHardwareConfig = hardwareConfig;
-    mySessionParams = sessionParams;
     myImageFactory = new FakeImageFactory();
     myResourceLookupChain = resourceLookupChain;
     myCredential = credential;
 
     sessionParams.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, Boolean.TRUE);
-    mySessionParams.setImageFactory(myImageFactory);
+    sessionParams.setImageFactory(myImageFactory);
+
+    myRenderSession = initRenderSession(layoutLib, sessionParams, mySecurityManager, myCredential);
   }
 
   @NotNull
@@ -108,13 +132,14 @@ public class GraphicsLayoutRenderer {
                                                  @NotNull Project project,
                                                  @NotNull Configuration configuration,
                                                  @NotNull ILayoutPullParser parser,
+                                                 @Nullable Color backgroundColor,
                                                  @NotNull SessionParams.RenderingMode renderingMode) throws InitializationException {
     Module module = facet.getModule();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
-
     LayoutLibrary layoutLib;
     try {
-      layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
+      IAndroidTarget latestTarget = configuration.getConfigurationManager().getHighestApiTarget();
+      layoutLib = platform.getSdkData().getTargetData(latestTarget).getLayoutLibrary(project);
 
       if (layoutLib == null) {
         throw new InitializationException("getLayoutLibrary() returned null");
@@ -150,32 +175,43 @@ public class GraphicsLayoutRenderer {
     // Load the local project R identifiers.
     layoutlibCallback.loadAndParseRClass();
 
-    HardwareConfigHelper hardwareConfigHelper = new HardwareConfigHelper(configuration.getDevice());
+    Device device = configuration.getDevice();
+    assert device != null;
+    HardwareConfigHelper hardwareConfigHelper = new HardwareConfigHelper(device);
     DynamicHardwareConfig hardwareConfig = new DynamicHardwareConfig(hardwareConfigHelper.getConfig());
     List<ResourceValue> resourceLookupChain = new ArrayList<ResourceValue>();
+    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    assert resourceResolver != null;
     // Create a resource resolver that will save the lookups on the passed List<>
-    ResourceResolver resourceResolver = configuration.getResourceResolver().createRecorder(resourceLookupChain);
+    ResourceResolver recordingResourceResolver = resourceResolver.createRecorder(resourceLookupChain);
     final SessionParams params =
-      new SessionParams(parser, renderingMode, module, hardwareConfig, resourceResolver,
+      new SessionParams(parser, renderingMode, module, hardwareConfig, recordingResourceResolver,
                         layoutlibCallback, moduleInfo.getMinSdkVersion().getApiLevel(), moduleInfo.getTargetSdkVersion().getApiLevel(),
                         logger, target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0);
     params.setForceNoDecor();
     params.setAssetRepository(new AssetRepositoryImpl(facet));
+    // The App Label needs to be not null
+    params.setAppLabel("");
+
+    if (backgroundColor != null) {
+      params.setOverrideBgColor(backgroundColor.getRGB());
+    }
 
     RenderSecurityManager mySecurityManager = RenderSecurityManagerFactory.create(module, platform);
     return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, resourceLookupChain, credential);
-
   }
 
   /**
    * Creates a new {@link GraphicsLayoutRenderer}.
    * @param configuration The configuration to use when rendering.
    * @param parser A layout pull-parser.
+   * @param backgroundColor If not null, this will be use to set the global Android window background
    * @throws InitializationException if layoutlib fails to initialize.
    */
   @NotNull
   public static GraphicsLayoutRenderer create(@NotNull Configuration configuration,
                                               @NotNull ILayoutPullParser parser,
+                                              @Nullable Color backgroundColor,
                                               boolean hasHorizontalScroll,
                                               boolean hasVerticalScroll) throws InitializationException {
     AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
@@ -206,7 +242,7 @@ public class GraphicsLayoutRenderer {
       renderingMode = SessionParams.RenderingMode.NORMAL;
     }
 
-    return create(facet, platform, target, module.getProject(), configuration, parser, renderingMode);
+    return create(facet, platform, target, module.getProject(), configuration, parser, backgroundColor, renderingMode);
   }
 
   /**
@@ -218,27 +254,11 @@ public class GraphicsLayoutRenderer {
   }
 
   /**
-   * Converts a dimension from model coordinates to view coordinates (possibly scaled).
-   */
-  @NotNull
-  private Dimension modelToView(@NotNull Dimension d) {
-    return modelToView(d.width, d.height);
-  }
-
-  /**
    * Converts a dimension from view coordinates (possibly scaled) to model coordinates.
    */
   @NotNull
   private Dimension viewToModel(int width, int height) {
     return new Dimension((int)(width / myScale), (int)(height / myScale));
-  }
-
-  /**
-   * Converts a point from view coordinates (possibly scaled) to model coordinates.
-   */
-  @NotNull
-  private Dimension viewToModel(@NotNull Dimension d) {
-    return viewToModel(d.width, d.height);
   }
 
   /**
@@ -279,84 +299,121 @@ public class GraphicsLayoutRenderer {
    * the access to it.
    */
   public boolean render(@NotNull final Graphics2D graphics) {
-    if (!SystemInfo.isMac) {
-      // Do not enable anti-aliasing on MAC. It doesn't improve much and causes has performance issues when filling the background using
-      // alpha values.
-      graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    }
-    myImageFactory.setGraphics(graphics);
-
-    AffineTransform oldTransform = graphics.getTransform();
-    if (myScale != 1.0) {
-      graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-      AffineTransform scaleTransform = new AffineTransform(oldTransform);
-      scaleTransform.scale(myScale, myScale);
-      graphics.setTransform(scaleTransform);
-    }
-
-    Result result = null;
-
+    myRenderSessionLock.readLock().lock();
     try {
-      result = RenderService.runRenderAction(new Callable<Result>() {
-        @Override
-        public Result call() {
-          mySecurityManager.setActive(true, myCredential);
-          try {
-            if (myRenderSession == null) {
-              myResourceLookupChain.clear();
-              myRenderSession = initRenderSession();
-              return myRenderSession != null ? myRenderSession.getResult() : null;
-              // initRenderSession will call render so we do not need to do it here.
-            }
-            else {
+      if (!SystemInfo.isMac) {
+        // Do not enable anti-aliasing on MAC. It doesn't improve much and causes has performance issues when filling the background using
+        // alpha values.
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      }
+      myImageFactory.setGraphics(graphics);
+
+      AffineTransform oldTransform = graphics.getTransform();
+      if (myScale != 1.0) {
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        AffineTransform scaleTransform = new AffineTransform(oldTransform);
+        scaleTransform.scale(myScale, myScale);
+        graphics.setTransform(scaleTransform);
+      }
+
+      Result result = null;
+
+      try {
+        result = RenderService.runRenderAction(new Callable<Result>() {
+          @Override
+          public Result call() {
+            mySecurityManager.setActive(true, myCredential);
+            try {
               return myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
             }
+            finally {
+              mySecurityManager.setActive(false, myCredential);
+            }
           }
-          finally {
-            mySecurityManager.setActive(false, myCredential);
-          }
+        });
+      }
+      catch (Exception e) {
+        LOG.warn("Exception running render action", e);
+      }
+
+
+      if (myScale != 1.0) {
+        graphics.setTransform(oldTransform);
+      }
+
+      // We need to log the errors after disabling the security manager since the logger will cause a security exception when trying to
+      // access the system properties.
+      if (result != null && result.getStatus() != Result.Status.SUCCESS) {
+        //noinspection ThrowableResultOfMethodCallIgnored
+        if (result.getException() != null) {
+          LOG.warn(result.getException());
         }
-      });
-    }
-    catch (Exception e) {
-      LOG.error("Exception running render action", e);
-    }
-
-
-    if (myScale != 1.0) {
-      graphics.setTransform(oldTransform);
-    }
-
-    // We need to log the errors after disabling the security manager since the logger will cause a security exception when trying to
-    // access the system properties.
-    if (result != null && result.getStatus() != Result.Status.SUCCESS) {
-      if (result.getException() != null) {
-        LOG.error(result.getException());
+        else {
+          LOG.warn("Render error (no exception). Status=" + result.getStatus().name());
+        }
+        return false;
       }
-      else {
-        LOG.error("Render error (no exception). Status=" + result.getStatus().name());
-      }
-      return false;
-    }
 
-    myInvalidate = false;
-    return true;
+      myInvalidate = false;
+      return true;
+    } finally {
+      myRenderSessionLock.readLock().unlock();
+    }
   }
 
   /**
-   * Returns the initialised render session. This will also do the an initial render of the layout.
+   * Returns the initialised render session. This method is called only once during the {@link GraphicsLayoutRenderer} initialization and
+   * will also do the an initial render of the layout.
    */
-  private
+  private static
   @Nullable
-  RenderSession initRenderSession() {
-    // createSession() might access the PSI tree so we need to run it inside as a read action.
-    return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
-      @Override
-      public RenderSession compute() {
-        // createSession will also render the layout for the first time.
-        return myLayoutLibrary.createSession(mySessionParams);
+  RenderSession initRenderSession(@NotNull final LayoutLibrary layoutLibrary,
+                                  @NotNull final SessionParams sessionParams,
+                                  @NotNull final RenderSecurityManager securityManager,
+                                  final @NotNull Object credential) {
+    try {
+      RenderSession session = RenderService.runRenderAction(new Callable<RenderSession>() {
+        @Override
+        public RenderSession call() {
+          securityManager.setActive(true, credential);
+          try {
+            // createSession() might access the PSI tree so we need to run it inside as a read action.
+            return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
+              @Override
+              public RenderSession compute() {
+                // createSession will also render the layout for the first time.
+                return layoutLibrary.createSession(sessionParams);
+
+              }
+            });
+          }
+          finally {
+            securityManager.setActive(false, credential);
+          }
+        }
+      });
+
+      if (session == null) {
+        LOG.warn("initRenderSession failed (returned null)");
+        return null;
       }
-    });
+
+      Result result = session.getResult();
+      if (result != null && result.getStatus() != Result.Status.SUCCESS) {
+        //noinspection ThrowableResultOfMethodCallIgnored
+        if (result.getException() != null) {
+          LOG.warn(result.getException());
+        }
+        else {
+          LOG.warn("Render error (no exception). Status=" + result.getStatus().name());
+        }
+      }
+      return session;
+    }
+    catch (Exception e) {
+      LOG.warn("initRenderSession failed", e);
+      return null;
+    }
   }
 
   /**
@@ -379,12 +436,13 @@ public class GraphicsLayoutRenderer {
 
   @Nullable
   private static ViewInfo viewAtPoint(@NotNull Point parentPosition, @NotNull ViewInfo view, @NotNull Point p) {
-    int x = parentPosition.x + view.getLeft();
-    int y = parentPosition.y + view.getTop();
+    ViewInfo bounds = RenderService.getSafeBounds(view);
+    int x = parentPosition.x + bounds.getLeft();
+    int y = parentPosition.y + bounds.getTop();
     Rectangle rect = new Rectangle(x,
                                    y,
-                                   view.getRight() - view.getLeft(),
-                                   view.getBottom() - view.getTop());
+                                   bounds.getRight() - bounds.getLeft(),
+                                   bounds.getBottom() - bounds.getTop());
     if (rect.contains(p)) {
       for (ViewInfo childView : view.getChildren()) {
         if (childView.getCookie() == null) {
@@ -409,21 +467,31 @@ public class GraphicsLayoutRenderer {
    */
   @Nullable
   public ViewInfo findViewAtPoint(@NotNull Point p) {
-    if (myRenderSession == null) {
-      return null;
-    }
-
-    p = viewToModel(p);
-
-    Point base = new Point();
-    for (ViewInfo view : myRenderSession.getRootViews()) {
-      ViewInfo hitView = viewAtPoint(base, view, p);
-      if (hitView != null) {
-        return hitView;
+    myRenderSessionLock.readLock().lock();
+    try {
+      if (myRenderSession == null) {
+        return null;
       }
-    }
 
-    return null;
+      p = viewToModel(p);
+
+      List<ViewInfo> rootViews = myRenderSession.getRootViews();
+      if (rootViews == null) {
+        return null;
+      }
+
+      Point base = new Point();
+      for (ViewInfo view : rootViews) {
+        ViewInfo hitView = viewAtPoint(base, view, p);
+        if (hitView != null) {
+          return hitView;
+        }
+      }
+
+      return null;
+    } finally {
+      myRenderSessionLock.readLock().unlock();
+    }
   }
 
   public Dimension getPreferredSize() {
@@ -431,9 +499,18 @@ public class GraphicsLayoutRenderer {
   }
 
   public void dispose() {
-    if (myRenderSession != null) {
-      myRenderSession.dispose();
-      myRenderSession = null;
+    // We could get the readLock here first to check myRenderSession but this is a method that is rarely called
+    // so we can optimistically get the writeLock.
+    myRenderSessionLock.writeLock().lock();
+    try {
+      if (myRenderSession != null) {
+        myImageFactory.setGraphics(null);
+        myRenderSession.dispose();
+        myRenderSession = null;
+      }
+    }
+    finally {
+      myRenderSessionLock.writeLock().unlock();
     }
   }
 

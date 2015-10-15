@@ -256,7 +256,7 @@ public class AndroidColorAnnotator implements Annotator {
                                             @NotNull ResourceValue value,
                                             @NotNull ResourceResolver resourceResolver) {
     if (type == ResourceType.COLOR) {
-      Color color = ResourceHelper.resolveColor(resourceResolver, value);
+      Color color = ResourceHelper.resolveColor(resourceResolver, value, element.getProject());
       if (color != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
         annotation.setGutterIconRenderer(new MyRenderer(element, color));
@@ -264,7 +264,7 @@ public class AndroidColorAnnotator implements Annotator {
     } else {
       assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
 
-      File iconFile = pickBestBitmap(ResourceHelper.resolveDrawable(resourceResolver, value));
+      File iconFile = pickBestBitmap(ResourceHelper.resolveDrawable(resourceResolver, value, element.getProject()));
       if (iconFile != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
         annotation.setGutterIconRenderer(new com.android.tools.idea.rendering.GutterIconRenderer(element, iconFile));
@@ -273,7 +273,7 @@ public class AndroidColorAnnotator implements Annotator {
   }
 
   @Nullable
-  private static File pickBestBitmap(@Nullable File bitmap) {
+  public static File pickBestBitmap(@Nullable File bitmap) {
     if (bitmap != null && bitmap.exists()) {
       // Pick the smallest resolution, if possible! E.g. if the theme resolver located
       // drawable-hdpi/foo.png, and drawable-mdpi/foo.png pick that one instead (and ditto
@@ -282,6 +282,9 @@ public class AndroidColorAnnotator implements Annotator {
       if (smallest != null) {
         return smallest;
       }
+
+      // TODO: For XML drawables, look in the rendered output to see if there's a DPI version we can use:
+      // These are found in  ${module}/build/generated/res/pngs/debug/drawable-*dpi
 
       long length = bitmap.length();
       if (length < MAX_ICON_SIZE) {

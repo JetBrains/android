@@ -61,6 +61,8 @@ public class AndroidIcons {
   public static final Icon CapturesToolWindow = load("/icons/captures.png"); // 13x13
   public static final Icon MemoryMonitor = load("/icons/memory_monitor.png"); // 16x16
   public static final Icon CpuMonitor = load("/icons/cpu_monitor.png"); // 16x16
+  public static final Icon GpuMonitor = load("/icons/gpu_monitor.png"); // 16x16
+  public static final Icon NetworkMonitor = load("/icons/network_monitor.png"); // 16x16
 
   public static final Icon Variant = load("/icons/variant.png");
 
@@ -133,7 +135,9 @@ public class AndroidIcons {
     public static final Icon Heap = load("/icons/ddms/heap.png"); // 16x16
     public static final Icon HeapInfo = load("/icons/ddms/heap_info.png"); // 16x16
     public static final Icon Logcat = load("/icons/ddms/logcat.png"); // 16x16
-    /** The {@link #LogcatAutoFilterSelectedPid} icon is a copy of the AllIcons.Diff.diff icon to be replaced if we get a better icon. */
+    /**
+     * The {@link #LogcatAutoFilterSelectedPid} icon is a copy of the AllIcons.Diff.diff icon to be replaced if we get a better icon.
+     */
     public static final Icon LogcatAutoFilterSelectedPid = load("/icons/ddms/logcat_filter_pid.png"); // 16x16
     public static final Icon RealDevice = load("/icons/ddms/real_device.png"); // 16x16
     public static final Icon ScreenCapture = load("/icons/ddms/screen_capture.png"); // 16x16
@@ -150,6 +154,20 @@ public class AndroidIcons {
     public static final Icon GithubIcon = load("/icons/wizards/github_icon.png"); // 256x256
     public static final Icon NewProjectMascot = load("/icons/wizards/welcome.png"); // 60x60
     public static final Icon NewProjectMascotGreen = load("/icons/wizards/welcome_green.png"); // 60x60
+  }
+
+  public static class NeleIcons {
+    // All 16x16 and 32x32 in Retina mode
+    public static final Icon Api = load("/icons/nele/api.png");
+    public static final Icon Language = load("/icons/nele/language.png");
+    public static final Icon Preview = load("/icons/nele/preview.png");
+    public static final Icon Rotate = load("/icons/nele/rotate.png");
+    public static final Icon Size = load("/icons/nele/size.png");
+    public static final Icon Phone = load("/icons/nele/phone.png");
+    public static final Icon Tablet = load("/icons/nele/tablet.png");
+    public static final Icon Wear = load("/icons/nele/wear.png");
+    public static final Icon Tv = load("/icons/nele/tv.png");
+    public static final Icon Theme = load("/icons/nele/theme.png");
   }
 
   public static class Views {
@@ -227,13 +245,14 @@ public class AndroidIcons {
   }
 
   public static class Versions {
-    public static final Icon Froyo = load("/icons/versions/Froyo.png"); // 512x512
+    public static final Icon Froyo = load("/icons/versions/Froyo.png"); // 128x128
     public static final Icon Gingerbread = load("/icons/versions/Gingerbread.png"); // 512x512
-    public static final Icon Honeycomb = load("/icons/versions/Honeycomb.png"); // 512x512
-    public static final Icon IceCreamSandwich = load("/icons/versions/IceCreamSandwich.png"); // 512x512
-    public static final Icon JellyBean = load("/icons/versions/Jelly Bean.png"); // 512x512
-    public static final Icon KitKat = load("/icons/versions/KitKat.png"); // 512x512
-    public static final Icon Lollipop = load("/icons/versions/Lollipop.png");
+    public static final Icon Honeycomb = load("/icons/versions/Honeycomb.png"); // 128x128
+    public static final Icon IceCreamSandwich = load("/icons/versions/IceCreamSandwich.png"); // 128x128
+    public static final Icon JellyBean = load("/icons/versions/Jelly Bean.png"); // 128x128
+    public static final Icon KitKat = load("/icons/versions/KitKat.png"); // 128x128
+    public static final Icon Lollipop = load("/icons/versions/Lollipop.png"); // 128x128
+    public static final Icon Marshmallow = load("/icons/versions/Marshmallow.png"); // 128x128
   }
 
   public static class ModuleTemplates {

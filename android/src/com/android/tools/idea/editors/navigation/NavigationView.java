@@ -26,7 +26,7 @@ import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 import com.android.tools.idea.editors.navigation.model.*;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.*;
-import com.android.tools.idea.wizard.NewAndroidActivityWizard;
+import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.intellij.ide.dnd.DnDEvent;
@@ -47,6 +47,7 @@ import com.intellij.psi.impl.source.xml.XmlFileImpl;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,9 +74,9 @@ public class NavigationView extends JComponent {
   public static final float ZOOM_FACTOR = 1.1f;
 
   // Snap grid
-  private static final int MINOR_SNAP = 32;
-  private static final int MIDDLE_COUNT = 5;
-  private static final int MAJOR_COUNT = 10;
+  private static final int MINOR_SNAP = JBUI.scale(32);
+  private static final int MIDDLE_COUNT = JBUI.scale(5);
+  private static final int MAJOR_COUNT = JBUI.scale(10);
 
   public static final Dimension MINOR_SNAP_GRID = new Dimension(MINOR_SNAP, MINOR_SNAP);
   public static final Dimension MIDDLE_SNAP_GRID = scale(MINOR_SNAP_GRID, MIDDLE_COUNT);
@@ -707,7 +708,7 @@ public class NavigationView extends JComponent {
 
   private static JLabel getSwipeGestureIcon() {
     JLabel result = new JLabel("<->");
-    result.setFont(result.getFont().deriveFont(20f));
+    result.setFont(result.getFont().deriveFont(JBUI.scale(20f)));
     result.setForeground(TRANSITION_LINE_COLOR);
     result.setBackground(TRIGGER_BACKGROUND_COLOR);
     result.setBorder(new LineBorder(TRANSITION_LINE_COLOR, 1));

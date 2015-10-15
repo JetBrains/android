@@ -16,8 +16,11 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
+import com.android.tools.idea.sdk.remote.internal.packages.RemotePlatformPkgInfo;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -32,6 +35,8 @@ import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Enumeration;
@@ -61,6 +66,13 @@ public class PlatformComponentsPanel {
   // map of versions to current subpackages
   Multimap<AndroidVersion, UpdatablePkgInfo> myCurrentPackages = TreeMultimap.create();
 
+  private final ChangeListener myModificationListener = new ChangeListener() {
+    @Override
+    public void stateChanged(ChangeEvent e) {
+      refreshModified();
+    }
+  };
+
   public PlatformComponentsPanel() {
     myPlatformSummaryTable.setColumnSelectionAllowed(false);
     myPlatformLoadingLabel.setForeground(JBColor.GRAY);
@@ -84,14 +96,30 @@ public class PlatformComponentsPanel {
     List<AndroidVersion> versions = Lists.newArrayList(myCurrentPackages.keySet());
     versions = Lists.reverse(versions);
     for (AndroidVersion version : versions) {
+      String androidVersion = null;
+      for (UpdatablePkgInfo info : myCurrentPackages.get(version)) {
+        String maybeVersion = null;
+        if (info.hasLocal()) {
+          maybeVersion = info.getLocalInfo().getSourceProperties().getProperty(PkgProps.PLATFORM_VERSION);
+        }
+        else {
+          RemotePkgInfo remote = info.getRemote(true);
+          if (remote instanceof RemotePlatformPkgInfo) {
+            maybeVersion = ((RemotePlatformPkgInfo)remote).getVersionName();
+          }
+        }
+        if (maybeVersion != null) {
+          androidVersion = maybeVersion;
+        }
+      }
       Set<UpdaterTreeNode> versionNodes = Sets.newHashSet();
-      UpdaterTreeNode marker = new ParentTreeNode(version);
+      UpdaterTreeNode marker = new ParentTreeNode(version, androidVersion);
       myPlatformDetailsRootNode.add(marker);
       boolean obsolete = false;
       for (UpdatablePkgInfo info : myCurrentPackages.get(version)) {
         NodeStateHolder holder = new NodeStateHolder(info);
         myStates.add(holder);
-        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview);
+        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener);
         marker.add(node);
         versionNodes.add(node);
         if (info.getPkgDesc(myIncludePreview).isObsolete() && info.getPkgDesc(myIncludePreview).getType() == PkgType.PKG_PLATFORM) {
@@ -99,10 +127,15 @@ public class PlatformComponentsPanel {
         }
       }
       if (!obsolete) {
-        myPlatformSummaryRootNode.add(new SummaryTreeNode(version, versionNodes));
+        SummaryTreeNode node = SummaryTreeNode.createNode(version, versionNodes, androidVersion);
+        if (node != null) {
+          myPlatformSummaryRootNode.add(node);
+        }
       }
     }
     refreshModified();
+    SdkUpdaterConfigPanel.resizeColumnsToFit(myPlatformDetailTable);
+    SdkUpdaterConfigPanel.resizeColumnsToFit(myPlatformSummaryTable);
     myPlatformDetailTable.updateUI();
     myPlatformSummaryTable.updateUI();
     TreeUtil.expandAll(myPlatformDetailTable.getTree());
@@ -129,21 +162,13 @@ public class PlatformComponentsPanel {
       new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new ApiLevelColumnInfo(), new RevisionColumnInfo(),
         new StatusColumnInfo()};
     myPlatformSummaryTable = new TreeTableView(new ListTreeTableModelOnColumns(myPlatformSummaryRootNode, platformSummaryColumns));
-    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformSummaryTable, renderer);
-    MouseListener modificationListener = new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        refreshModified();
-      }
-    };
-    myPlatformSummaryTable.addMouseListener(modificationListener);
+    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformSummaryTable, renderer, myModificationListener);
 
     ColumnInfo[] platformDetailColumns =
       new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new ApiLevelColumnInfo(), new RevisionColumnInfo(),
         new StatusColumnInfo()};
     myPlatformDetailTable = new TreeTableView(new ListTreeTableModelOnColumns(myPlatformDetailsRootNode, platformDetailColumns));
-    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformDetailTable, renderer);
-    myPlatformDetailTable.addMouseListener(modificationListener);
+    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformDetailTable, renderer, myModificationListener);
   }
 
   public void setPackages(Multimap<AndroidVersion, UpdatablePkgInfo> packages) {
@@ -184,5 +209,11 @@ public class PlatformComponentsPanel {
    */
   public void setIncludePreview(boolean includePreview) {
     myIncludePreview = includePreview;
+  }
+
+  public void setEnabled(boolean enabled) {
+    myPlatformDetailTable.setEnabled(enabled);
+    myPlatformSummaryTable.setEnabled(enabled);
+    myPlatformDetailsCheckbox.setEnabled(enabled);
   }
 }

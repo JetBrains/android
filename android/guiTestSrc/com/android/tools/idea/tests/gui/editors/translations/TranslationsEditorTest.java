@@ -21,11 +21,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.TranslationsEditorFixture;
+import com.intellij.ui.components.JBLoadingPanel;
+import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
+import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -37,6 +40,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 public class TranslationsEditorTest extends GuiTestCase {
@@ -54,11 +58,11 @@ public class TranslationsEditorTest extends GuiTestCase {
       ideFrame.requireEditorNotification("Edit translations for all locales in the translations editor.");
     notificationPanel.performAction("Open editor");
 
-    // Wait for the translations editor table to show up
+    // Wait for the translations editor table to show up, and the table to be initialized
     waitUntilFound(myRobot, new GenericTypeMatcher<JTable>(JTable.class) {
       @Override
-      protected boolean isMatching(@NotNull JTable component) {
-        return true;
+      protected boolean isMatching(@NotNull JTable table) {
+        return table.getModel() != null && table.getModel().getColumnCount() > 0;
       }
     });
 
@@ -81,7 +85,7 @@ public class TranslationsEditorTest extends GuiTestCase {
     // See FontUtil.getFontAbleToDisplay()
     final FontFixture font = cancel.font();
     //noinspection ConstantConditions
-    assertTrue(execute(new GuiQuery<Boolean>() {
+    assertTrue("Font " + font.target().getName() + " cannot display Chinese characters.", execute(new GuiQuery<Boolean>() {
       @Override
       protected Boolean executeInEDT() throws Throwable {
         return font.target().canDisplay('消');

@@ -40,9 +40,4 @@ class RevisionColumnInfo extends ColumnInfo<UpdaterTreeNode, FullRevision> {
     }
     return null;
   }
-
-  @Override
-  public int getWidth(JTable table) {
-    return 70;
-  }
 }

@@ -25,7 +25,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public final class ServiceContextTest {
   @Test
   public void dataModelCanRegisterActionsAndObservableValues() throws Exception {
-    ServiceContext context = new ServiceContext();
+    ServiceContext context = new ServiceContext("Gradle");
 
     {
       final IntValueProperty count = new IntValueProperty();

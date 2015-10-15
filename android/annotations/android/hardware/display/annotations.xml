@@ -18,11 +18,5 @@
   <item name="android.hardware.display.DisplayManager android.hardware.display.VirtualDisplay createVirtualDisplay(java.lang.String, int, int, int, android.view.Surface, int, android.hardware.display.VirtualDisplay.Callback, android.os.Handler) 7">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.hardware.display.DisplayManager android.view.Display[] getDisplays()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.hardware.display.DisplayManager android.view.Display[] getDisplays(java.lang.String)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
 </root>
 

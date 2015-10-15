@@ -46,7 +46,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     final Project project = e.getProject();
-    e.getPresentation().setEnabledAndVisible(
+    e.getPresentation().setEnabled(
       project != null &&
       !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty() &&
       AndroidSdkUtils.isAndroidSdkAvailable());

@@ -19,16 +19,18 @@ import com.android.tools.idea.profiling.capture.Capture;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.InputEvent;
 
 public class CaptureNode extends SimpleNode {
-  private final Capture myCapture;
+  @NotNull private final Capture myCapture;
 
-  public CaptureNode(Project project, Capture capture) {
+  public CaptureNode(@NotNull Project project, @NotNull Capture capture) {
     super(project);
     myCapture = capture;
 
@@ -46,13 +48,22 @@ public class CaptureNode extends SimpleNode {
     return true;
   }
 
+  @NotNull
   public Capture getCapture() {
     return myCapture;
   }
 
   @Override
   public void handleDoubleClickOrEnter(SimpleTree tree, InputEvent inputEvent) {
+    assert myProject != null;
     OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, myCapture.getFile());
-    FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+
+    try {
+      FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+    }
+    catch (IllegalArgumentException ignored) {
+      // The file might not be present anymore if the user deletes it from outside the editor.
+      // Just ignore this issue, as the editor will soon pick up that the file is gone.
+    }
   }
 }

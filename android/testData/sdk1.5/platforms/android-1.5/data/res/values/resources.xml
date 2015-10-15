@@ -42,4 +42,8 @@
       <item name="android:textStyle">normal</item>
   </style>
 
+  <style name="Theme.FrameworkTheme" parent="Theme">
+    <item name="textColorPrimary">@color/state_list</item>
+  </style>
+
 </resources>

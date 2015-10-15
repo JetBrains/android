@@ -21,13 +21,15 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import org.jetbrains.annotations.Nullable;
 
 public class ThemeEditorState implements FileEditorState {
+  private final @Nullable String myModuleName;
   private final @Nullable String myThemeName;
   private final @Nullable String mySubStyleName;
   private final float myProportion;
 
-  public ThemeEditorState(@Nullable String themeName, @Nullable String subStyleName, @Nullable Float proportion) {
+  public ThemeEditorState(@Nullable String themeName, @Nullable String subStyleName, @Nullable Float proportion, @Nullable String moduleName) {
     myThemeName = themeName;
     mySubStyleName = subStyleName;
+    myModuleName = moduleName;
     myProportion = proportion == null ? 0.5f : proportion;
   }
 
@@ -45,6 +47,11 @@ public class ThemeEditorState implements FileEditorState {
     return myProportion;
   }
 
+  @Nullable
+  public String getModuleName() {
+    return myModuleName;
+  }
+
   @Override
   public boolean canBeMergedWith(FileEditorState otherState, FileEditorStateLevel level) {
     return otherState instanceof ThemeEditorState;
@@ -56,12 +63,23 @@ public class ThemeEditorState implements FileEditorState {
     if (o == null || getClass() != o.getClass()) return false;
     ThemeEditorState that = (ThemeEditorState)o;
     return Objects.equal(myProportion, that.myProportion) &&
+           Objects.equal(myModuleName, that.myModuleName) &&
            Objects.equal(myThemeName, that.myThemeName) &&
            Objects.equal(mySubStyleName, that.mySubStyleName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myThemeName, mySubStyleName, myProportion);
+    return Objects.hashCode(myModuleName, myThemeName, mySubStyleName, myProportion);
+  }
+
+  @Override
+  public String toString() {
+    return "ThemeEditorState{" +
+           "myModuleName='" + myModuleName + '\'' +
+           ", myThemeName='" + myThemeName + '\'' +
+           ", mySubStyleName='" + mySubStyleName + '\'' +
+           ", myProportion=" + myProportion +
+           '}';
   }
 }

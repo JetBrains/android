@@ -45,6 +45,7 @@ import com.intellij.psi.xml.*;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -176,11 +177,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     boolean idGenerating = resourceTypes.size() > 1;
     assert !idGenerating || resourceTypes.size() == 2 && resourceTypes.get(1) == ResourceType.ID;
 
-    ListMultimap<String, ResourceItem> map = myItems.get(type);
-    if (map == null) {
-      map = ArrayListMultimap.create();
-      myItems.put(type, map);
-    }
+    ListMultimap<String, ResourceItem> map = getMap(type, true);
 
     for (PsiFile file : directory.getFiles()) {
       FileType fileType = file.getFileType();
@@ -379,6 +376,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   @Nullable
   @Override
+  @Contract("_, true -> !null")
   protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
     ListMultimap<String, ResourceItem> multimap = myItems.get(type);
     if (multimap == null && create) {
@@ -399,31 +397,64 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   }
 
   private void addIds(List<ResourceItem> items, PsiElement element, PsiFile file) {
+    // "@+id/" names found before processing the view tag corresponding to the id.
+    Map<String, XmlTag> pendingResourceIds = Maps.newHashMap();
     Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(element, XmlTag.class);
     if (element instanceof XmlTag) {
-      addId(items, file, (XmlTag)element);
+      addId(items, file, (XmlTag)element, pendingResourceIds);
     }
     if (!xmlTags.isEmpty()) {
       for (XmlTag tag : xmlTags) {
-        addId(items, file, tag);
+        addId(items, file, tag, pendingResourceIds);
+      }
+    }
+    // Add any remaining ids.
+    if (!pendingResourceIds.isEmpty()) {
+      ListMultimap<String, ResourceItem> map = getMap(ResourceType.ID, true);
+      for (Map.Entry<String, XmlTag> entry : pendingResourceIds.entrySet()) {
+        String id = entry.getKey();
+        map.put(id, new PsiResourceItem(id, ResourceType.ID, entry.getValue(), file));
       }
     }
   }
 
-  private void addId(List<ResourceItem> items, PsiFile file, XmlTag tag) {
+  private void addId(List<ResourceItem> items, PsiFile file, XmlTag tag, Map<String, XmlTag> pendingResourceIds) {
     assert tag.isValid();
+    for (XmlAttribute attribute : tag.getAttributes()) {
+      if (ANDROID_URI.equals(attribute.getNamespace())) {
+        // For all attributes in the android namespace, check if something has a value of the form "@+id/"
+        // If the attribute is not android:id, and an item for it hasn't been created yet, add it to
+        // the list of pending ids.
+        String value = attribute.getValue();
+        if (value != null && value.startsWith(NEW_ID_PREFIX) && !ATTR_ID.equals(attribute.getLocalName())) {
+          ListMultimap<String, ResourceItem> map = myItems.get(ResourceType.ID);
+          String id = value.substring(NEW_ID_PREFIX.length());
+          if (map != null && !map.containsKey(id) && !pendingResourceIds.containsKey(id)) {
+            pendingResourceIds.put(id, tag);
+          }
+        }
+      }
+    }
+    // Now process the android:id attribute.
     String id = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
-    if (id != null && id.startsWith(NEW_ID_PREFIX)) {
-      String name = id.substring(NEW_ID_PREFIX.length());
-      PsiResourceItem item = new PsiResourceItem(name, ResourceType.ID, tag, file);
+    if (id != null) {
+      if (id.startsWith(ID_PREFIX)) {
+        // If the id is not "@+id/", it may still have been declared as "@+id/" in a preceding view (eg. layout_above).
+        // So, we test if this is such a pending id.
+        id = id.substring(ID_PREFIX.length());
+        if (!pendingResourceIds.containsKey(id)) {
+          return;
+        }
+      } else if (id.startsWith(NEW_ID_PREFIX)) {
+        id = id.substring(NEW_ID_PREFIX.length());
+      } else {
+        return;
+      }
+      pendingResourceIds.remove(id);
+      PsiResourceItem item = new PsiResourceItem(id, ResourceType.ID, tag, file);
       items.add(item);
 
-      ListMultimap<String, ResourceItem> map = myItems.get(ResourceType.ID);
-      if (map == null) {
-        map = ArrayListMultimap.create();
-        myItems.put(ResourceType.ID, map);
-      }
-      map.put(name, item);
+      getMap(ResourceType.ID, true).put(id, item);
     }
   }
 
@@ -458,12 +489,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           if (name != null) {
             ResourceType type = getType(tag);
             if (type != null) {
-              ListMultimap<String, ResourceItem> map = myItems.get(type);
-              if (map == null) {
-                map = ArrayListMultimap.create();
-                myItems.put(type, map);
-              }
-
+              ListMultimap<String, ResourceItem> map = getMap(type, true);
               ResourceItem item = new PsiResourceItem(name, type, tag, file);
               map.put(name, item);
               items.add(item);
@@ -496,10 +522,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           }
         }
 
-        if (items != null) {
-          PsiResourceFile resourceFile = new PsiResourceFile(file, items, qualifiers, ResourceFolderType.VALUES, folderConfiguration);
-          myResourceFiles.put(file, resourceFile);
-        }
+        PsiResourceFile resourceFile = new PsiResourceFile(file, items, qualifiers, ResourceFolderType.VALUES, folderConfiguration);
+        myResourceFiles.put(file, resourceFile);
       }
     }
 
@@ -641,8 +665,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       boolean removed = false;
       if (resourceFile != null) {
         for (ResourceItem item : resourceFile) {
-          boolean removeFromFile = false; // Will throw away file
-          removed |= removeItems(resourceFile, item.getType(), item.getName(), removeFromFile);
+          removed |= removeItems(resourceFile, item.getType(), item.getName(), false);  // Will throw away file
         }
 
         myResourceFiles.remove(file);
@@ -750,11 +773,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         boolean idGenerating = resourceTypes.size() > 1;
         assert !idGenerating || resourceTypes.size() == 2 && resourceTypes.get(1) == ResourceType.ID;
 
-        ListMultimap<String, ResourceItem> map = myItems.get(type);
-        if (map == null) {
-          map = ArrayListMultimap.create();
-          myItems.put(type, map);
-        }
+        ListMultimap<String, ResourceItem> map = getMap(type, true);
 
         file = ensureValid(file);
         if (file != null) {
@@ -873,12 +892,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       return;
                     }
                     if (type != null) {
-                      ListMultimap<String, ResourceItem> map = myItems.get(type);
-                      if (map == null) {
-                        map = ArrayListMultimap.create();
-                        myItems.put(type, map);
-                      }
-
+                      ListMultimap<String, ResourceItem> map = getMap(type, true);
                       ResourceItem item = new PsiResourceItem(name, type, tag, psiFile);
                       map.put(name, item);
                       resourceFile.addItems(Collections.singletonList(item));
@@ -944,7 +958,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
               } else if (child instanceof XmlAttributeValue) {
                 assert parent instanceof XmlAttribute : parent;
                 @SuppressWarnings("CastConflictsWithInstanceof") // IDE bug? Cast is valid.
-                  XmlAttribute attribute = (XmlAttribute)parent;
+                XmlAttribute attribute = (XmlAttribute)parent;
+                // warning for separate if branches suppressed because to do.
+                //noinspection IfStatementWithIdenticalBranches
                 if (ATTR_ID.equals(attribute.getLocalName()) &&
                     ANDROID_URI.equals(attribute.getNamespace())) {
                   // TODO: Update it incrementally
@@ -1134,8 +1150,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         for (ResourceType type : resourceTypes) {
           if (type != ResourceType.ID) {
             String name = LintUtils.getBaseName(resourceFile.getName());
-            boolean removeFromFile = false; // no need since we're discarding the file
-            removeItems(resourceFile, type, name, removeFromFile);
+            removeItems(resourceFile, type, name, false);  // no need since we're discarding the file
           }
         }
       } // else: not a resource folder
@@ -1169,8 +1184,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         for (ResourceType type : resourceTypes) {
           if (type != ResourceType.ID) {
             String name = ResourceHelper.getResourceName(psiFile);
-            boolean removeFromFile = false; // no need since we're discarding the file
-            removeItems(resourceFile, type, name, removeFromFile);
+            removeItems(resourceFile, type, name, false);  // no need since we're discarding the file
           }
         }
       } // else: not a resource folder
@@ -1432,6 +1446,26 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             // the edit, so re-scan the whole value file instead
             rescan(psiFile, folderType);
 
+          } else if (folderType == COLOR) {
+            PsiElement parent = event.getParent();
+            if (parent instanceof XmlElement) {
+              if (parent instanceof XmlComment) {
+                // Nothing to do
+                return;
+              }
+
+              if (parent instanceof XmlAttributeValue) {
+                PsiElement attribute = parent.getParent();
+                if (attribute instanceof XmlProcessingInstruction) {
+                  // Don't care about edits in the processing instructions, e.g. editing the encoding attribute in
+                  // <?xml version="1.0" encoding="utf-8"?>
+                  return;
+                }
+              }
+
+              myGeneration++;
+              return;
+            }
           } // else: can ignore this edit
         }
       } else {
@@ -1728,8 +1762,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   private void removeItemsFromFile(PsiResourceFile resourceFile) {
     for (ResourceItem item : resourceFile) {
-      boolean removeFromFile = false; // no need since we're discarding the file
-      removeItems(resourceFile, item.getType(), item.getName(), removeFromFile);
+      removeItems(resourceFile, item.getType(), item.getName(), false);  // no need since we're discarding the file
     }
   }
 

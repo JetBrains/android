@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.intellij.openapi.diagnostic.Logger;
+import com.google.common.base.Strings;
 import org.fest.swing.image.ScreenshotTaker;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.internal.AssumptionViolatedException;
 import org.junit.internal.runners.model.ReflectiveCallable;
 import org.junit.internal.runners.statements.Fail;
 import org.junit.internal.runners.statements.RunAfters;
 import org.junit.internal.runners.statements.RunBefores;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
@@ -32,15 +34,12 @@ import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
 import java.awt.*;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
 
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
-  private Class<? extends Annotation> myBeforeClass;
-  private Class<? extends Annotation> myAfterClass;
 
   private TestClass myTestClass;
 
@@ -48,27 +47,41 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
+
     myScreenshotTaker = canRunGuiTests() ? new ScreenshotTaker() : null;
-    try {
-      // A random class which is reachable from module community-main's classpath but not
-      // module android's classpath
-      Class.forName("git4idea.repo.GitConfig");
+
+    // UI_TEST_MODE is set whenever we run UI tests on top of a Studio build. In that case, we
+    // assume the classpath has been properly configured. Otherwise, if we're running from the
+    // IDE or an Ant build, we need to check we have access to the classpath of community-main.
+    if (Strings.isNullOrEmpty(System.getenv("UI_TEST_MODE"))) {
+      try {
+        // A random class which is reachable from module community-main's classpath but not
+        // module android's classpath.
+        Class.forName("git4idea.repo.GitConfig", false, testClass.getClassLoader());
+      }
+      catch (ClassNotFoundException e) {
+        throw new InitializationError("Invalid test run configuration. Edit your test configuration and make sure that " +
+                                      "\"Use classpath of module\" is set to \"community-main\", *NOT* \"android\"!");
+      }
     }
-    catch (ClassNotFoundException e) {
-      throw new InitializationError("Invalid test run configuration. Edit your test configuration and make sure that " +
-                                    "\"Use classpath of module\" is set to \"community-main\", *NOT* \"android\"!");
+  }
+
+  @Override
+  protected void runChild(final FrameworkMethod method, RunNotifier notifier) {
+    if (!canRunGuiTests()) {
+      notifier.fireTestAssumptionFailed(new Failure(describeChild(method), new AssumptionViolatedException("Headless environment")));
+      System.out.println(String.format("Skipping test '%1$s'. UI tests cannot run in a headless environment.", method.getName()));
+    } else if (MethodInvoker.doesIdeHaveFatalErrors()) {
+      notifier.fireTestIgnored(describeChild(method)); // TODO: can we restart the IDE at this point, instead of giving up?
+      System.out.println(String.format("Skipping test '%1$s': a fatal error has occurred in the IDE", method.getName()));
+      notifier.pleaseStop();
+    } else {
+      super.runChild(method, notifier);
     }
   }
 
   @Override
   protected Statement methodBlock(FrameworkMethod method) {
-    if (!canRunGuiTests()) {
-      Class<?> testClass = getTestClass().getJavaClass();
-      Logger logger = Logger.getInstance(testClass);
-      logger.info("Skipping GUI test " + testClass.getCanonicalName() + " due to headless environment");
-      return super.methodBlock(method);
-    }
-
     FrameworkMethod newMethod;
     try {
       loadClassesWithIdeClassLoader();
@@ -93,12 +106,12 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
     Statement statement = methodInvoker(newMethod, test);
 
-    List<FrameworkMethod> beforeMethods = myTestClass.getAnnotatedMethods(myBeforeClass);
+    List<FrameworkMethod> beforeMethods = myTestClass.getAnnotatedMethods(Before.class);
     if (!beforeMethods.isEmpty()) {
       statement = new RunBefores(statement, beforeMethods, test);
     }
 
-    List<FrameworkMethod> afterMethods = myTestClass.getAnnotatedMethods(myAfterClass);
+    List<FrameworkMethod> afterMethods = myTestClass.getAnnotatedMethods(After.class);
     if (!afterMethods.isEmpty()) {
       statement = new RunAfters(statement, afterMethods, test);
     }
@@ -116,16 +129,6 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
     Class<?> testClass = getTestClass().getJavaClass();
     myTestClass = new TestClass(ideClassLoader.loadClass(testClass.getName()));
-    myBeforeClass = loadAnnotation(ideClassLoader, Before.class);
-    myAfterClass = loadAnnotation(ideClassLoader, After.class);
-  }
-
-  @NotNull
-  @SuppressWarnings("unchecked")
-  private static Class<? extends Annotation> loadAnnotation(@NotNull ClassLoader classLoader,
-                                                            @NotNull Class<? extends Annotation> annotationType)
-  throws ClassNotFoundException {
-    return (Class<? extends Annotation>)classLoader.loadClass(annotationType.getCanonicalName());
   }
 
   @Override
@@ -135,22 +138,12 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   @Override
   protected Statement methodInvoker(final FrameworkMethod method, Object test) {
-    if (canRunGuiTests()) {
-      try {
-        assertNotNull(myScreenshotTaker);
-        return new MethodInvoker(method, test, myScreenshotTaker);
-      }
-      catch (Throwable e) {
-        return new Fail(e);
-      }
+    try {
+      assertNotNull(myScreenshotTaker);
+      return new MethodInvoker(method, test, myScreenshotTaker);
     }
-    // Skip the test.
-    return new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        String msg = String.format("Skipping test '%1$s'. UI tests cannot run in a headless environment.", method.getName());
-        System.out.println(msg);
-      }
-    };
+    catch (Throwable e) {
+      return new Fail(e);
+    }
   }
 }

@@ -15,6 +15,7 @@ antialias
 antialiasing
 antivirus
 apis
+appbar
 app's
 appcompat
 appwidget
@@ -83,6 +84,7 @@ deobfuscator
 dependee
 depender
 dequeue
+deregister
 deserialize
 designtime
 despeckle

@@ -148,7 +148,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
         final List<XmlAttribute> attributesToDelete = new ArrayList<XmlAttribute>();
 
         if (!AndroidResourceUtil
-          .createValueResource(chosenModule, styleName, ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {
+          .createValueResource(chosenModule, styleName, null, ResourceType.STYLE, fileName, dirNames, new Processor<ResourceElement>() {
             @Override
             public boolean process(ResourceElement element) {
               assert element instanceof Style;

@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.tools.idea.wizard.AndroidStudioWizardPath;
-import com.android.tools.idea.wizard.DynamicWizardPath;
-import com.android.tools.idea.wizard.DynamicWizardStep;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
 

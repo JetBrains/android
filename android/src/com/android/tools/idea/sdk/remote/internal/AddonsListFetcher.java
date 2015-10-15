@@ -253,7 +253,6 @@ public class AddonsListFetcher {
      * @param monitor {@link ITaskMonitor} related to this URL.
      * @param outException If non null, where to store any exception that
      *            happens during the fetch.
-     * @see com.android.tools.idea.sdk.remote.internal.UrlOpener UrlOpener, which handles all URL logic.
      */
     private InputStream fetchXmlUrl(String urlString,
             DownloadCache cache,

@@ -1,23 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.nfc.NdefMessage NdefMessage(android.nfc.NdefRecord, android.nfc.NdefRecord...) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.nfc.NdefMessage NdefMessage(android.nfc.NdefRecord[]) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.nfc.NdefMessage android.nfc.NdefRecord[] getRecords()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.nfc.NdefMessage void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.nfc.NdefRecord android.nfc.NdefRecord createApplicationRecord(java.lang.String)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.nfc.NdefRecord void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.nfc.NfcAdapter boolean invokeBeam(android.app.Activity)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.NFC&quot;" />
@@ -27,9 +9,6 @@
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.NFC&quot;" />
     </annotation>
-  </item>
-  <item name="android.nfc.NfcAdapter void disableForegroundDispatch(android.app.Activity) 0">
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.nfc.NfcAdapter void disableForegroundNdefPush(android.app.Activity)">
     <annotation name="android.support.annotation.RequiresPermission">
@@ -61,30 +40,15 @@
       <val name="value" val="&quot;android.permission.NFC&quot;" />
     </annotation>
   </item>
-  <item name="android.nfc.NfcAdapter void setNdefPushMessage(android.nfc.NdefMessage, android.app.Activity, android.app.Activity...) 2">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.nfc.NfcAdapter void setNdefPushMessageCallback(android.nfc.NfcAdapter.CreateNdefMessageCallback, android.app.Activity, android.app.Activity...)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.NFC&quot;" />
     </annotation>
   </item>
-  <item name="android.nfc.NfcAdapter void setNdefPushMessageCallback(android.nfc.NfcAdapter.CreateNdefMessageCallback, android.app.Activity, android.app.Activity...) 2">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.nfc.NfcAdapter void setOnNdefPushCompleteCallback(android.nfc.NfcAdapter.OnNdefPushCompleteCallback, android.app.Activity, android.app.Activity...)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.NFC&quot;" />
     </annotation>
-  </item>
-  <item name="android.nfc.NfcAdapter void setOnNdefPushCompleteCallback(android.nfc.NfcAdapter.OnNdefPushCompleteCallback, android.app.Activity, android.app.Activity...) 2">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.nfc.Tag java.lang.String[] getTechList()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.nfc.Tag void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 

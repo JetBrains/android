@@ -29,6 +29,7 @@ import com.intellij.ui.ColorUtil;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.GraphicsUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -151,7 +152,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
       setMargin(new Insets(margins.top, 2, margins.bottom, 2));
       setBorder(IdeBorderFactory.createEmptyBorder(0, 2, 0, 2));
       if (!UIUtil.isUnderGTKLookAndFeel()) {
-        setFont(UIUtil.getLabelFont().deriveFont(11.0f));
+        setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
       }
       addActionListener(new ActionListener() {
         @Override
@@ -381,7 +382,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
       final boolean isEmpty = getIcon() == null && StringUtil.isEmpty(getText());
       int width = isEmpty ? 10 + ARROW_DOWN.getIconWidth() : super.getPreferredSize().width;
       // See ActionToolBarImpl: For a horizontal toolbar, the preferred height is 24
-      return new Dimension(width, 24);
+      return new Dimension(width, JBUI.scale(24));
     }
 
     @Override
@@ -393,10 +394,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
       final Dimension size = getSize();
       {
         final Graphics2D g2 = (Graphics2D)g;
-        Color controlColor = UIUtil.getControlColor();
-        if (UIUtil.isUnderIntelliJLaF()) {
-          controlColor = getParent().getBackground();
-        }
+        Color controlColor = getParent().getBackground();
         g2.setColor(controlColor);
         final int w = getWidth();
         final int h = getHeight();

@@ -104,8 +104,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       }
       // Ensure that we're listening to the PSI structure for Gradle file edit notifications
       Project project = file.getProject();
-      if (Projects.isGradleProject(project)) {
-        PsiProjectListener.getListener(project);
+      if (Projects.requiresAndroidModel(project)) {
+        PsiProjectListener.getInstance(project);
       }
     }
     else if (fileType != StdFileTypes.JAVA && fileType != StdFileTypes.PROPERTIES) {
@@ -188,6 +188,12 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
       if (!enabled) {
         continue;
+      } else if (!issue.isEnabledByDefault()) {
+        // If an issue is marked as not enabled by default, lint won't run it, even if it's in the set
+        // of issues provided by an issue registry. Since in the IDE we're enforcing the enabled-state via
+        // inspection profiles, mark the issue as enabled to allow users to turn on a lint check directly
+        // via the inspections UI.
+        issue.setEnabledByDefault(true);
       }
       result.add(issue);
     }

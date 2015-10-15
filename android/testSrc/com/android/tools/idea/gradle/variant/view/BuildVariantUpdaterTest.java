@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.JavaProject;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
@@ -35,21 +35,21 @@ import static org.fest.assertions.Assertions.assertThat;
 public class BuildVariantUpdaterTest extends TestCase {
 
   public void testGetCustomizers() {
-    BuildVariantModuleCustomizer<?> customizer1 = createCustomizer(GradleConstants.SYSTEM_ID, IdeaAndroidProjectStub.class);
-    BuildVariantModuleCustomizer<?> customizer2 = createCustomizer(ProjectSystemId.IDE, IdeaAndroidProject.class);
-    BuildVariantModuleCustomizer<?> customizer3 = createCustomizer(GradleConstants.SYSTEM_ID, IdeaJavaProject.class);
-    BuildVariantModuleCustomizer<?> customizer4 = createCustomizer(ProjectSystemId.IDE, IdeaJavaProject.class);
+    BuildVariantModuleCustomizer<?> customizer1 = createCustomizer(GradleConstants.SYSTEM_ID, AndroidGradleModelStub.class);
+    BuildVariantModuleCustomizer<?> customizer2 = createCustomizer(ProjectSystemId.IDE, AndroidGradleModel.class);
+    BuildVariantModuleCustomizer<?> customizer3 = createCustomizer(GradleConstants.SYSTEM_ID, JavaProject.class);
+    BuildVariantModuleCustomizer<?> customizer4 = createCustomizer(ProjectSystemId.IDE, JavaProject.class);
 
     replay(customizer1, customizer2, customizer3, customizer4);
 
-    List<BuildVariantModuleCustomizer<IdeaAndroidProject>> customizers =
+    List<BuildVariantModuleCustomizer<AndroidGradleModel>> customizers =
       BuildVariantUpdater.getCustomizers(GradleConstants.SYSTEM_ID, customizer1, customizer2, customizer3, customizer4);
 
     verify(customizer1, customizer2, customizer3, customizer4);
 
     // The list should include only the customizers that:
     // 1. Have a matching ProjectSystemId, or have ProjectSystemId.IDE as their ProjectSystemId
-    // 2. Have IdeaAndroidProject (or subclass) as the supported model type
+    // 2. Have AndroidGradleModel (or subclass) as the supported model type
     assertThat(customizers).containsOnly(customizer1, customizer2);
   }
 
@@ -65,8 +65,8 @@ public class BuildVariantUpdaterTest extends TestCase {
     return customizer;
   }
 
-  private static class IdeaAndroidProjectStub extends IdeaAndroidProject {
-    public IdeaAndroidProjectStub(@NotNull ProjectSystemId projectSystemId,
+  private static class AndroidGradleModelStub extends AndroidGradleModel {
+    public AndroidGradleModelStub(@NotNull ProjectSystemId projectSystemId,
                                   @NotNull String moduleName,
                                   @NotNull File rootDir,
                                   @NotNull AndroidProject delegate,

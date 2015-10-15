@@ -27,11 +27,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
+
 /**
  * Helper class which collects developer services from all plugins and provides a simple
  * interface to access them.
  */
 public final class DeveloperServices {
+
   private static final Logger LOG = Logger.getInstance(DeveloperService.class);
 
   private static Multimap<Module, DeveloperService> ourServices = ArrayListMultimap.create();
@@ -41,6 +44,7 @@ public final class DeveloperServices {
     return ourServices.get(module);
   }
 
+  @NotNull
   public static Iterable<DeveloperService> getFor(@NotNull Module module, final ServiceCategory category) {
     return Iterables.filter(getAll(module), new Predicate<DeveloperService>() {
       @Override
@@ -50,7 +54,7 @@ public final class DeveloperServices {
     });
   }
 
-  private static void initializeFor(@NotNull Module module) {
+  private static void initializeFor(@NotNull final Module module) {
     if (ourServices.containsKey(module)) {
       return;
     }
@@ -69,12 +73,22 @@ public final class DeveloperServices {
       }
     }
 
-    final MessageBusConnection connection = module.getMessageBus().connect();
+    getBuildSystemOperations(module.getProject()).initializeServices(module, new Runnable() {
+      @Override
+      public void run() {
+        for (DeveloperService service : ourServices.get(module)) {
+          service.updateInstalledState();
+        }
+      }
+    });
+
+    MessageBusConnection connection = module.getMessageBus().connect(module);
     connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
       @Override
-      public void moduleRemoved(Project project, Module module) {
-        ourServices.removeAll(module);
-        connection.disconnect();
+      public void moduleRemoved(Project project, Module moduleRemoved) {
+        if (module == moduleRemoved) {
+          ourServices.removeAll(module);
+        }
       }
     });
   }

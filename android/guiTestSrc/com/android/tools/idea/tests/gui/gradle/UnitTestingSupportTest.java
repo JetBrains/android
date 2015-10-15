@@ -19,22 +19,40 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture.ContentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.UnitTestTreeFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.UnitTestTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import java.io.IOException;
-
+import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @BelongsToTestGroups({TestGroup.UNIT_TESTING, TestGroup.PROJECT_SUPPORT})
 public class UnitTestingSupportTest extends GuiTestCase {
-
-  private IdeFrameFixture myProjectFrame;
+  protected IdeFrameFixture myProjectFrame;
   private EditorFixture myEditor;
 
+  @Test @IdeGuiTest
+  public void appModule_defaultMake() throws Exception {
+    doTest("Make", "app/src/test/java/com/android/tests", "UnitTest");
+  }
+  
+  @Test @IdeGuiTest
+  public void appModule_gradleAwareMake() throws Exception {
+    doTest("Gradle-aware Make", "app/src/test/java/com/android/tests", "UnitTest");
+  }
+
+  @Test @IdeGuiTest
+  public void libModule_defaultMake() throws Exception {
+    doTest("Make", "lib/src/test/java/com/android/tests/lib", "LibUnitTest");
+  }
+
+  @Test @IdeGuiTest
+  public void libModule_gradleAwareMake() throws Exception {
+    doTest("Gradle-aware Make", "lib/src/test/java/com/android/tests/lib", "LibUnitTest");
+  }
+  
   /**
    * This covers all functionality that we expect from AS when it comes to unit tests:
    *
@@ -45,9 +63,9 @@ public class UnitTestingSupportTest extends GuiTestCase {
    *   <li>You can fix a test and changes are picked up the next time tests are run (which means the correct gradle tasks are run).
    * </ul>
    */
-  @Test @IdeGuiTest
-  public void unitTestingSupport() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplicationWithUnitTests");
+  private void doTest(@NotNull String makeStepName, @NotNull String path, @NotNull String testClass) throws Exception {
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
+    myProjectFrame.setJUnitDefaultBeforeRunTask(makeStepName);
 
     BuildVariantsToolWindowFixture buildVariants = myProjectFrame.getBuildVariantsWindow();
     buildVariants.activate();
@@ -55,35 +73,84 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     // Open the test file:
     myEditor = myProjectFrame.getEditor();
-    myEditor.open("app/src/test/java/google/simpleapplication/UnitTest.java");
+    myEditor.open(path + "/" + testClass + ".java");
 
     // Run the test case that is supposed to pass:
     myEditor.moveTo(myEditor.findOffset("passing", "Test", true));
 
     runTestUnderCursor();
 
-    UnitTestTreeFixture unitTestTree = getTestTree("UnitTest.passingTest");
+    UnitTestTreeFixture unitTestTree = getTestTree(testClass + ".passingTest");
     assertTrue(unitTestTree.isAllTestsPassed());
+    assertEquals(1, unitTestTree.getAllTestsCount());
 
-    // Run the whole class, the second test case will fail:
+    // Run the test that is supposed to fail:
     myEditor.requestFocus();
-    myEditor.moveTo(myEditor.findOffset("class Unit", "Test", true));
+    myEditor.moveTo(myEditor.findOffset("failing", "Test", true));
 
     runTestUnderCursor();
 
-    unitTestTree = getTestTree("UnitTest");
+    unitTestTree = getTestTree(testClass + ".failingTest");
     assertEquals(1, unitTestTree.getFailingTestsCount());
+    assertEquals(1, unitTestTree.getAllTestsCount());
 
     // Fix the failing test and re-run the tests.
     myEditor.requestFocus();
-    myEditor.moveTo(myEditor.findOffset("(5", ",", true));
+    myEditor.moveTo(myEditor.findOffset("(7", ",", true));
     myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
-    myEditor.enterText("4");
+    myEditor.enterText("6");
 
+    runTestUnderCursor();
+    myProjectFrame.waitForBackgroundTasksToFinish();
+    unitTestTree = getTestTree(testClass + ".failingTest");
+    assertTrue(unitTestTree.isAllTestsPassed());
+    assertEquals(1, unitTestTree.getAllTestsCount());
+
+    // Run the whole class, it should pass now.
+    myEditor.moveTo(myEditor.findOffset("class ", testClass, true));
+
+    runTestUnderCursor();
+
+    unitTestTree = getTestTree(testClass);
+    assertTrue(unitTestTree.isAllTestsPassed());
+    assertThat(unitTestTree.getAllTestsCount()).isGreaterThan(1);
+
+    // Break the test again to check the re-run buttons.
+    myEditor.requestFocus();
+    myEditor.moveTo(myEditor.findOffset("(6", ",", true));
+    myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
+    myEditor.enterText("8");
+
+    // Re-run all the tests.
     unitTestTree.getContent().rerun();
     myProjectFrame.waitForBackgroundTasksToFinish();
-    unitTestTree = getTestTree("UnitTest");
+    unitTestTree = getTestTree(testClass);
+    assertEquals(1, unitTestTree.getFailingTestsCount());
+    assertThat(unitTestTree.getAllTestsCount()).isGreaterThan(1);
+
+    // Fix it again.
+    myEditor.requestFocus();
+    myEditor.moveTo(myEditor.findOffset("(8", ",", true));
+    myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
+    myEditor.enterText("6");
+
+    // Re-run failed tests.
+    unitTestTree.getContent().rerunFailed();
+    myProjectFrame.waitForBackgroundTasksToFinish();
+    unitTestTree = getTestTree("Rerun Failed Tests");
     assertTrue(unitTestTree.isAllTestsPassed());
+    assertEquals(1, unitTestTree.getAllTestsCount());
+
+    // Rebuild the project and run tests again, they should still run and pass.
+    myProjectFrame.invokeMenuPath("Build", "Rebuild Project");
+    myProjectFrame.waitForBackgroundTasksToFinish();
+
+    myEditor.requestFocus();
+    myEditor.moveTo(myEditor.findOffset("class ", testClass, true));
+    runTestUnderCursor();
+    unitTestTree = getTestTree(testClass);
+    assertTrue(unitTestTree.isAllTestsPassed());
+    assertThat(unitTestTree.getAllTestsCount()).isGreaterThan(1);
   }
 
   @NotNull
@@ -95,7 +162,7 @@ public class UnitTestingSupportTest extends GuiTestCase {
   }
 
   private void runTestUnderCursor() {
-    // This only works when there's one applicable run configuations, otherwise a popup would show up.
+    // This only works when there's one applicable run configurations, otherwise a popup would show up.
     myEditor.invokeAction(EditorFixture.EditorAction.RUN_FROM_CONTEXT);
     myProjectFrame.waitForBackgroundTasksToFinish();
   }

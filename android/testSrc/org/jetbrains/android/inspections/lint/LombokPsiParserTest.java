@@ -57,6 +57,10 @@ public class LombokPsiParserTest extends AndroidTestCase {
     ResolvedMethod method = (ResolvedMethod)resolved;
     assertEquals("foo", method.getName());
     assertEquals("p1.p2.Target", method.getContainingClass().getName());
+    assertTrue(method.isInPackage("p1.p2", true));
+    assertTrue(method.isInPackage("p1.p2", false));
+    assertTrue(method.isInPackage("p1", true));
+    assertFalse(method.isInPackage("p1", false));
 
     // Resolve "target" as a reference expression in the call() method
     PsiElement element = ((PsiMethodCallExpression)call).getMethodExpression().getQualifier();
@@ -87,6 +91,10 @@ public class LombokPsiParserTest extends AndroidTestCase {
     assertEquals("myField", field.getName());
     assertEquals("int", field.getType().getName());
     assertEquals("p1.p2.Target", field.getContainingClass().getName());
+    assertTrue(field.isInPackage("p1.p2", true));
+    assertTrue(field.isInPackage("p1.p2", false));
+    assertTrue(field.isInPackage("p1", true));
+    assertFalse(field.isInPackage("p1", false));
 
     PsiClass cls = PsiTreeUtil.findChildrenOfType(file2, PsiClass.class).iterator().next();
     @SuppressWarnings("ConstantConditions")
@@ -95,8 +103,13 @@ public class LombokPsiParserTest extends AndroidTestCase {
     assertTrue(resolved instanceof ResolvedClass);
     ResolvedClass rc = (ResolvedClass)resolved;
     assertTrue(rc.getName().equals("p1.p2.Target.Target2"));
+    assertTrue(rc.isInPackage("p1.p2", true));
+    assertTrue(rc.isInPackage("p1.p2", false));
+    assertTrue(rc.isInPackage("p1", true));
+    assertFalse(rc.isInPackage("p1", false));
 
     CompilationUnit unit = LombokPsiConverter.convert((PsiJavaFile)file2);
+    //noinspection ConstantConditions
     TypeDeclaration first = unit.astTypeDeclarations().first();
     resolved = LombokPsiParser.resolve((PsiElement)first.getNativeNode());
     assertTrue(resolved instanceof ResolvedClass);

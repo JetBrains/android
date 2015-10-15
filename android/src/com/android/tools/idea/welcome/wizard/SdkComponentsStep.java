@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallableComponent;
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardConstants;
-import com.android.tools.idea.wizard.WizardUtils;
-import com.google.common.collect.*;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Pair;
@@ -34,6 +36,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Contract;
@@ -53,8 +56,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Wizard page for selecting SDK components to download.
@@ -76,6 +80,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private TextFieldWithBrowseButton myPath;
   private JPanel myBody;
   private boolean myUserEditedPath = false;
+  private boolean myWasVisible = false;
 
   public SdkComponentsStep(@NotNull ComponentTreeNode rootNode,
                            @NotNull ScopedStateStore.Key<Boolean> keyCustomInstall,
@@ -89,8 +94,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                                    FileChooserDescriptorFactory.createSingleFolderDescriptor());
 
     mySdkDownloadPathKey = sdkDownloadPathKey;
-    Font labelFont = UIUtil.getLabelFont();
-    Font smallLabelFont = labelFont.deriveFont(labelFont.getSize() - 1.0f);
+    Font smallLabelFont = JBUI.Fonts.smallFont();
     myNeededSpace.setFont(smallLabelFont);
     myAvailableSpace.setFont(smallLabelFont);
     myErrorMessage.setText(null);
@@ -243,7 +247,13 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return !myMode.hasValidSdkLocation() && myState.getNotNull(myKeyCustomInstall, true);
+    if (myWasVisible) {
+      // If we showed it once (e.g. if we had a invalid path on the standard setup path) we want to be sure it shows again (e.g. if we
+      // fix the path and then go backward and forward). Otherwise the experience is confusing.
+      return true;
+    }
+    myWasVisible = !myMode.hasValidSdkLocation() && myState.getNotNull(myKeyCustomInstall, true) || !validate();
+    return myWasVisible;
   }
 
   private void createUIComponents() {
@@ -358,7 +368,8 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       myComponents = components.build();
     }
 
-    private void traverse(Collection<ComponentTreeNode> children, int indent,
+    private void traverse(Collection<ComponentTreeNode> children,
+                          int indent,
                           ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components) {
       for (ComponentTreeNode child : children) {
         components.add(Pair.create(child, indent));

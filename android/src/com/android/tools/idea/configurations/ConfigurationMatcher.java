@@ -767,6 +767,8 @@ public class ConfigurationMatcher {
       mDensitySort.put(Density.XXHIGH.getDpiValue(), ++i);
       mDensitySort.put(Density.DPI_560.getDpiValue(), ++i);
       mDensitySort.put(Density.XXXHIGH.getDpiValue(), ++i);
+      mDensitySort.put(Density.DPI_420.getDpiValue(), ++i);
+      mDensitySort.put(Density.DPI_360.getDpiValue(), ++i);
       mDensitySort.put(Density.DPI_280.getDpiValue(), ++i);
       mDensitySort.put(Density.TV.getDpiValue(), ++i);
       mDensitySort.put(Density.LOW.getDpiValue(), ++i);

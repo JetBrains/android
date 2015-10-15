@@ -16,6 +16,7 @@
 package com.android.tools.idea.structure.services;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
@@ -26,5 +27,6 @@ public interface DeveloperServiceCreators {
   ExtensionPointName<DeveloperServiceCreators> EP_NAME =
     ExtensionPointName.create("com.android.tools.idea.structure.services.developerServiceCreators");
 
+  @NotNull
   Collection<? extends DeveloperServiceCreator> getCreators();
 }

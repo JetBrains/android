@@ -21,12 +21,10 @@ import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -361,7 +359,7 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
 
     private void registerListeners() {
-      if (myFacet.isGradleProject()) {
+      if (myFacet.requiresAndroidModel()) {
         // Ensure that the app resources have been initialized first, since
         // we want it to add its own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
@@ -372,14 +370,14 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
 
     private void unregisterListeners() {
-      if (myFacet.isGradleProject()) {
+      if (myFacet.requiresAndroidModel()) {
         myFacet.getResourceFolderManager().removeListener(this);
       }
     }
 
     private void notifyListeners(@NonNull EnumSet<Reason> reason) {
       long generation = myFacet.getAppResources(true).getModificationCount();
-      if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation <= myGeneration) {
+      if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
         // such as a variant change, then notify regardless
@@ -413,7 +411,7 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
   }
 
-  private class ProjectEventObserver implements PsiTreeChangeListener, ProjectBuilder.AfterProjectBuildTask {
+  private class ProjectEventObserver implements PsiTreeChangeListener, AndroidProjectBuildNotifications.AndroidProjectBuildListener {
     private boolean myAlreadyAddedBuildListener;
     private boolean myIgnoreBuildEvents;
 
@@ -423,7 +421,7 @@ public class ResourceNotificationManager implements ProjectComponent {
     private void registerListeners() {
       if (!myAlreadyAddedBuildListener) { // See comment in unregisterListeners
         myAlreadyAddedBuildListener = true;
-        ProjectBuilder.getInstance(myProject).addAfterProjectBuildTask(this);
+        AndroidProjectBuildNotifications.subscribe(myProject, this);
       }
       myIgnoreBuildEvents = false;
 
@@ -442,20 +440,9 @@ public class ResourceNotificationManager implements ProjectComponent {
       myIgnoreBuildEvents = true;
     }
 
-    // ---- Implements ProjectBuilder.AfterProjectBuildTask ----
-
+    // ---- Implements AndroidProjectBuildNotifications.AndroidProjectBuildListener ----
     @Override
-    public void execute(@NotNull GradleInvocationResult result) {
-      buildFinished();
-    }
-
-    @Override
-    public boolean execute(CompileContext context) {
-      buildFinished();
-      return true;
-    }
-
-    private void buildFinished() {
+    public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
       if (!myIgnoreBuildEvents) {
         myModificationCount++;
         notice(Reason.PROJECT_BUILD);

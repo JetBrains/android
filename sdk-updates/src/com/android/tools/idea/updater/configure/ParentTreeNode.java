@@ -16,8 +16,6 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkVersionInfo;
-import com.google.common.base.Objects;
 import com.intellij.ui.SimpleTextAttributes;
 
 import javax.swing.*;
@@ -28,9 +26,11 @@ import java.util.Enumeration;
  */
 class ParentTreeNode extends UpdaterTreeNode {
   private AndroidVersion myVersion;
+  private final String myVersionName;
 
-  public ParentTreeNode(AndroidVersion version) {
+  public ParentTreeNode(AndroidVersion version, String versionName) {
     myVersion = version;
+    myVersionName = versionName;
   }
 
   @Override
@@ -100,7 +100,7 @@ class ParentTreeNode extends UpdaterTreeNode {
                                 boolean leaf,
                                 int row,
                                 boolean hasFocus) {
-    renderer.getTextRenderer().append(SummaryTreeNode.getDescription(myVersion), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    renderer.getTextRenderer().append(SummaryTreeNode.getDescription(myVersion, myVersionName), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
 
   @Override

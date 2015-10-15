@@ -33,26 +33,26 @@ public class CpuSampler extends DeviceSampler {
 
   public static final int TYPE_NOT_FOUND = INHERITED_TYPE_START + 1;
 
+  /**
+   * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
+   * a sample on every GC.
+   */
+  public static final int SAMPLES = 2048;
+
   private static final Logger LOG = Logger.getInstance(CpuSampler.class);
 
   private Long previousKernelUsage = null;
   private Long previousUserUsage = null;
   private Long previousTotalUptime = null;
 
-  public CpuSampler(@NotNull TimelineData data, int sampleFrequencyMs) {
-    super(data, sampleFrequencyMs);
+  public CpuSampler(int sampleFrequencyMs) {
+    super(new TimelineData(2, SAMPLES), sampleFrequencyMs);
   }
 
   @NotNull
   @Override
   public String getName() {
     return "CPU Sampler";
-  }
-
-  @NotNull
-  @Override
-  public String getDescription() {
-    return "cpu usage information";
   }
 
   @Override
@@ -106,7 +106,7 @@ public class CpuSampler extends DeviceSampler {
           kernelPercentUsage = Math.max(Math.min(kernelPercentUsage, 100.0f), 0.0f);
           float userPercentUsage = (float)(userCpuUsage - previousUserUsage) * 100.0f / (float)totalTimeDiff;
           userPercentUsage = Math.max(Math.min(userPercentUsage, 100.0f), 0.0f);
-          myData.add(System.currentTimeMillis(), type, kernelPercentUsage, userPercentUsage);
+          myTimelineData.add(System.currentTimeMillis(), type, kernelPercentUsage, userPercentUsage);
         }
       }
       previousKernelUsage = kernelCpuUsage;
@@ -114,10 +114,12 @@ public class CpuSampler extends DeviceSampler {
       previousTotalUptime = totalUptime;
     }
     else {
-      synchronized (myData) {
-        if (myData.size() > 0) {
-          TimelineData.Sample lastSample = myData.get(myData.size() - 1);
-          myData.add(System.currentTimeMillis(), TYPE_NOT_FOUND, lastSample.values[0], lastSample.values[1]);
+      final TimelineData timelineData = myTimelineData;
+      //noinspection SynchronizationOnLocalVariableOrMethodParameter - TimelineData synchronises on itself, and we need size/get to match
+      synchronized (timelineData) {
+        if (timelineData.size() > 0) {
+          TimelineData.Sample lastSample = timelineData.get(timelineData.size() - 1);
+          timelineData.add(System.currentTimeMillis(), TYPE_NOT_FOUND, lastSample.values[0], lastSample.values[1]);
         }
       }
     }

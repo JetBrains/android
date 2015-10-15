@@ -203,6 +203,9 @@ public class RecipeMergeUtils {
             else if (MERGE_ATTR_STRATEGY_PRESERVE.equals(mergeStrategy)) {
               // Preserve the existing value.
             }
+            else if (replace.getText().trim().equals(child.getText().trim())) {
+              // There are no differences, do not issue a warning.
+            }
             else {
               // No explicit directive given, preserve the original value by default.
               LOG.warn("Warning: Ignoring name conflict in resource file for name " + name);

@@ -1,21 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.accessibilityservice.AccessibilityService android.os.IBinder onBind(android.content.Intent)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.accessibilityservice.AccessibilityService java.lang.Object getSystemService(java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
       <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.NETWORK_STATS_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.FINGERPRINT_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE, android.content.Context.CARRIER_CONFIG_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.USAGE_STATS_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE, android.content.Context.MIDI_SERVICE}" />
     </annotation>
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.accessibilityservice.AccessibilityServiceInfo java.lang.String feedbackTypeToString(int)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.accessibilityservice.AccessibilityServiceInfo java.lang.String loadDescription(android.content.pm.PackageManager) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.accessibilityservice.AccessibilityServiceInfo void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>

@@ -23,7 +23,7 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;

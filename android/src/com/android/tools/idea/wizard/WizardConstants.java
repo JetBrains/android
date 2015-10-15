@@ -16,9 +16,12 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 
 import java.awt.*;
 import java.io.File;
@@ -26,10 +29,10 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * Constants for template based wizards
@@ -38,17 +41,17 @@ public class WizardConstants {
 
   // Colors
   public static final JBColor ANDROID_NPW_TITLE_COLOR = new JBColor(0x689F38, 0xFFFFFF);
-  public static final JBColor ANDROID_NPW_HEADER_COLOR = new JBColor(0x689F38, 0x356822);
+  public static final JBColor ANDROID_NPW_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
   public static final JBColor ANDROID_NPW_HEADER_TEXT_COLOR = new JBColor(0xFFFFFF, 0xAAAAAA);
 
   // Dimensions
-  public static final int STUDIO_WIZARD_INSET_SIZE = 12;
+  public static final int STUDIO_WIZARD_INSET_SIZE = JBUI.scale(12);
   public static final Insets STUDIO_WIZARD_INSETS = new Insets(0, STUDIO_WIZARD_INSET_SIZE, STUDIO_WIZARD_INSET_SIZE,
-                                                               STUDIO_WIZARD_INSET_SIZE);
+                                                                 STUDIO_WIZARD_INSET_SIZE);
   public static final int STUDIO_WIZARD_TOP_INSET = 18;
-  public static final Dimension DEFAULT_WIZARD_WINDOW_SIZE = new Dimension(1080, 650);
+  public static final Dimension DEFAULT_WIZARD_WINDOW_SIZE = JBUI.size(1080, 650);
 
-  public static final Dimension DEFAULT_GALLERY_THUMBNAIL_SIZE = new Dimension(192, 192);
+  public static final Dimension DEFAULT_GALLERY_THUMBNAIL_SIZE = JBUI.size(192, 192);
 
   // State Store Keys
   public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
@@ -85,7 +88,7 @@ public class WizardConstants {
   public static final Key<List<File>> FILES_TO_OPEN_KEY = createKey("files.to.open", WIZARD, (Class<List<File>>)(Class)List.class);
 
   // Patterns
-  public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
+  public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>!;]";
   public static final Set<String> INVALID_WINDOWS_FILENAMES = ImmutableSet
     .of("con", "prn", "aux", "clock$", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2",
         "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", "$mft", "$mftmirr", "$logfile", "$volume", "$attrdef", "$bitmap", "$boot",

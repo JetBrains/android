@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -33,7 +33,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ExceptionUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,13 +95,13 @@ class BuildVariantUpdater {
         for (Module module : modules) {
           AndroidFacet androidFacet = AndroidFacet.getInstance(module);
           assert androidFacet != null;
-          final IdeaAndroidProject ideaAndroidProject = androidFacet.getIdeaAndroidProject();
-          assert ideaAndroidProject != null;
+          AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
+          assert androidModel != null;
 
-          if (!ideaAndroidProject.getSelectedTestArtifactName().equals(testArtifactName)) {
-            ideaAndroidProject.setSelectedTestArtifactName(testArtifactName);
-            androidFacet.syncSelectedVariantAndTestArtifact();
-            invokeCustomizers(androidFacet.getModule(), ideaAndroidProject);
+          if (!androidModel.getSelectedTestArtifactName().equals(testArtifactName)) {
+            androidModel.setSelectedTestArtifactName(testArtifactName);
+            androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
+            invokeCustomizers(androidFacet.getModule(), androidModel);
             affectedFacets.add(androidFacet);
           }
         }
@@ -127,12 +126,12 @@ class BuildVariantUpdater {
     if (facet == null) {
       return null;
     }
-    IdeaAndroidProject androidProject = getAndroidProject(facet, variant);
-    if (androidProject == null) {
+    AndroidGradleModel androidModel = getAndroidModel(facet, variant);
+    if (androidModel == null) {
       return null;
     }
 
-    if (!updateSelectedVariant(facet, androidProject, variant, affectedFacets)) {
+    if (!updateSelectedVariant(facet, androidModel, variant, affectedFacets)) {
       return null;
     }
     affectedFacets.add(facet);
@@ -146,18 +145,18 @@ class BuildVariantUpdater {
   }
 
   private boolean updateSelectedVariant(@NotNull AndroidFacet androidFacet,
-                                        @NotNull IdeaAndroidProject androidProject,
+                                        @NotNull AndroidGradleModel androidModel,
                                         @NotNull String variantToSelect,
                                         @NotNull List<AndroidFacet> affectedFacets) {
-    Variant selectedVariant = androidProject.getSelectedVariant();
+    Variant selectedVariant = androidModel.getSelectedVariant();
     if (variantToSelect.equals(selectedVariant.getName())) {
       return false;
     }
-    androidProject.setSelectedVariantName(variantToSelect);
-    androidFacet.syncSelectedVariantAndTestArtifact();
-    Module module = invokeCustomizers(androidFacet.getModule(), androidProject);
+    androidModel.setSelectedVariantName(variantToSelect);
+    androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
+    Module module = invokeCustomizers(androidFacet.getModule(), androidModel);
 
-    selectedVariant = androidProject.getSelectedVariant();
+    selectedVariant = androidModel.getSelectedVariant();
     for (AndroidLibrary library : selectedVariant.getMainArtifact().getDependencies().getLibraries()) {
       String gradlePath = library.getProject();
       if (StringUtil.isEmpty(gradlePath)) {
@@ -177,40 +176,33 @@ class BuildVariantUpdater {
       // be there.
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
         Project project = affectedFacets.get(0).getModule().getProject();
-        ProjectBuilder.getInstance(project).generateSourcesOnly();
+        GradleProjectBuilder.getInstance(project).generateSourcesOnly();
       }
     }
   }
 
   @NotNull
-  private static Module invokeCustomizers(@NotNull Module module, @NotNull IdeaAndroidProject androidProject) {
+  private static Module invokeCustomizers(@NotNull Module module, @NotNull AndroidGradleModel androidProject) {
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
-    try {
-      for (ModuleCustomizer<IdeaAndroidProject> customizer : getCustomizers(androidProject.getProjectSystemId())) {
-        customizer.customizeModule(module.getProject(), module, modelsProvider, androidProject);
-      }
-      modelsProvider.commit();
-    }
-    catch (Throwable t) {
-      modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
+    for (ModuleCustomizer<AndroidGradleModel> customizer : getCustomizers(androidProject.getProjectSystemId())) {
+      customizer.customizeModule(module.getProject(), module, modelsProvider, androidProject);
     }
     return module;
   }
 
   @NotNull
-  private static List<BuildVariantModuleCustomizer<IdeaAndroidProject>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId) {
+  private static List<BuildVariantModuleCustomizer<AndroidGradleModel>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId) {
     return getCustomizers(targetProjectSystemId, BuildVariantModuleCustomizer.EP_NAME.getExtensions());
   }
 
   @VisibleForTesting
   @NotNull
-  static List<BuildVariantModuleCustomizer<IdeaAndroidProject>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId,
+  static List<BuildVariantModuleCustomizer<AndroidGradleModel>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId,
                                                                                @NotNull BuildVariantModuleCustomizer... allCustomizers) {
-    List<BuildVariantModuleCustomizer<IdeaAndroidProject>> customizers = Lists.newArrayList();
+    List<BuildVariantModuleCustomizer<AndroidGradleModel>> customizers = Lists.newArrayList();
     for (BuildVariantModuleCustomizer customizer : allCustomizers) {
-      // Supported model type must be IdeaAndroidProject or subclass.
-      if (IdeaAndroidProject.class.isAssignableFrom(customizer.getSupportedModelType())) {
+      // Supported model type must be AndroidGradleModel or subclass.
+      if (AndroidGradleModel.class.isAssignableFrom(customizer.getSupportedModelType())) {
         // Build system should be ProjectSystemId.IDE or match the build system sent as parameter.
         ProjectSystemId projectSystemId = customizer.getProjectSystemId();
         if (Objects.equal(projectSystemId, targetProjectSystemId) || Objects.equal(projectSystemId, ProjectSystemId.IDE)) {
@@ -235,12 +227,12 @@ class BuildVariantUpdater {
     if (facet == null) {
       return;
     }
-    IdeaAndroidProject androidProject = getAndroidProject(facet, variant);
-    if (androidProject == null) {
+    AndroidGradleModel androidModel = getAndroidModel(facet, variant);
+    if (androidModel == null) {
       return;
     }
 
-    if (!updateSelectedVariant(facet, androidProject, variant, affectedFacets)) {
+    if (!updateSelectedVariant(facet, androidModel, variant, affectedFacets)) {
       return;
     }
     affectedFacets.add(facet);
@@ -257,12 +249,12 @@ class BuildVariantUpdater {
   }
 
   @Nullable
-  private static IdeaAndroidProject getAndroidProject(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
-    IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-    if (androidProject == null) {
+  private static AndroidGradleModel getAndroidModel(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    if (androidModel == null) {
       logAndShowUpdateFailure(variantToSelect, String.format("Cannot find AndroidProject for module '%1$s'.", facet.getModule().getName()));
     }
-    return androidProject;
+    return androidModel;
   }
 
   private static void logAndShowUpdateFailure(@NotNull String buildVariantName, @NotNull String reason) {

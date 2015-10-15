@@ -21,11 +21,12 @@ import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.sdk.SdkLoadedCallback;
+import com.android.tools.idea.sdk.SdkPackages;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.wizard.DialogWrapperHost;
+import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -35,7 +36,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
@@ -158,19 +158,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().addListSelectionListener(this);
     TableRowSorter<ListTableModel<SystemImageDescription>> sorter =
-      new TableRowSorter<ListTableModel<SystemImageDescription>>(myModel) {
-        @Override
-        public Comparator<?> getComparator(int column) {
-          if (column == 1) {
-            // API levels: Sort numerically, but the column is of type String.class since
-            // it can contain preview codenames as well
-            return new ApiLevelComparator();
-          }
-          // We could consider sorting
-
-          return super.getComparator(column);
-        }
-      };
+      (TableRowSorter<ListTableModel<SystemImageDescription>>)myTable.getRowSorter();
     sorter.setSortKeys(Collections.singletonList(new RowSorter.SortKey(1, SortOrder.DESCENDING)));
     sorter.setRowFilter(new RowFilter<ListTableModel<SystemImageDescription>, Integer>() {
       @Override
@@ -223,43 +211,33 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     myRemoteStatusPanel.setVisible(true);
     myRefreshButton.setEnabled(false);
     final List<SystemImageDescription> items = Lists.newArrayList();
-    Runnable localComplete = new Runnable() {
+    SdkLoadedCallback localComplete = new SdkLoadedCallback(true) {
       @Override
-      public void run() {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-
-            items.addAll(getLocalImages());
-            // Update list in the UI immediately with the locally available system images
-            updateListModel(items);
-            if (items.isEmpty()) {
-              myShowRemoteCheckbox.setSelected(true);
-            }
-          }
-        });
+      public void doRun(@NotNull SdkPackages packages) {
+        // getLocalImages() doesn't use SdkPackages, so it's ok that we're not using what's passed in.
+        items.addAll(getLocalImages());
+        // Update list in the UI immediately with the locally available system images
+        updateListModel(items);
+        if (items.isEmpty()) {
+          myShowRemoteCheckbox.setSelected(true);
+        }
       }
     };
-    Runnable remoteComplete = new Runnable() {
+    SdkLoadedCallback remoteComplete = new SdkLoadedCallback(true) {
       @Override
-      public void run() {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            List<SystemImageDescription> remotes = getRemoteImages();
-            if (remotes != null) {
-              items.addAll(remotes);
-              updateListModel(items);
-              myRemoteStatusPanel.setVisible(false);
-              myRefreshButton.setEnabled(true);
-            }
-            else {
-              myShowRemoteCheckbox.setEnabled(false);
-              myShowRemoteCheckbox.setSelected(false);
-              myRemoteStatusPanel.setVisible(false);
-            }
-          }
-        });
+      public void doRun(@NotNull SdkPackages packages) {
+        List<SystemImageDescription> remotes = getRemoteImages(packages);
+        if (remotes != null) {
+          items.addAll(remotes);
+          updateListModel(items);
+          myRemoteStatusPanel.setVisible(false);
+          myRefreshButton.setEnabled(true);
+        }
+        else {
+          myShowRemoteCheckbox.setEnabled(false);
+          myShowRemoteCheckbox.setSelected(false);
+          myRemoteStatusPanel.setVisible(false);
+        }
       }
     };
     Runnable error = new Runnable() {
@@ -281,20 +259,20 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   }
 
   @Nullable
-  private List<SystemImageDescription> getRemoteImages() {
+  private List<SystemImageDescription> getRemoteImages(@NotNull SdkPackages packages) {
     List<SystemImageDescription> items = Lists.newArrayList();
-    Set<RemotePkgInfo> infos = mySdkState.getPackages().getNewPkgs();
+    Set<RemotePkgInfo> infos = packages.getNewPkgs();
 
     if (infos.isEmpty()) {
       return null;
     }
     else {
       for (RemotePkgInfo info : infos) {
-        if (info.getPkgDesc().getType().equals(PkgType.PKG_SYS_IMAGE)) {
+        if (SystemImageDescription.hasSystemImage(info.getPkgDesc())) {
           IAndroidTarget target = findTarget(info);
-          SystemImageDescription desc = new SystemImageDescription(info.getPkgDesc(), target);
-          if (myFilter == null || myFilter.apply(desc)) {
-            items.add(desc);
+          SystemImageDescription image = new SystemImageDescription(info.getPkgDesc(), target);
+          if (myFilter == null || myFilter.apply(image)) {
+            items.add(image);
           }
         }
       }
@@ -450,17 +428,6 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         }
         return "Unknown";
       }
-
-      @Nullable
-      @Override
-      public Comparator<SystemImageDescription> getComparator() {
-        return new Comparator<SystemImageDescription>() {
-          @Override
-          public int compare(SystemImageDescription o1, SystemImageDescription o2) {
-            return o1.getVersion().getApiLevel() - o2.getVersion().getApiLevel();
-          }
-        };
-      }
     },
     new SystemImageColumnInfo("ABI", 100) {
       @Nullable
@@ -475,7 +442,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       public String valueOf(SystemImageDescription systemImage) {
         IdDisplay tag = systemImage.getTag();
         String name = systemImage.getName();
-        return tag == null || tag.equals(SystemImage.DEFAULT_TAG) ? name : String.format("%1$s - %2$s", name, tag);
+        return String.format("%1$s %2$s", name, tag.equals(SystemImage.DEFAULT_TAG) ? "" :
+                                                  String.format("(with %s)", tag.getDisplay()));
       }
     },
   };
@@ -615,7 +583,13 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       IPkgDesc request = image.getRemotePackage();
       List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
       SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages,
-                                                                  new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
+                                                                  new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT)) {
+        @Nullable
+        @Override
+        public JComponent getProgressParentComponent() {
+          return SystemImageList.this;
+        }
+      };
       sdkQuickfixWizard.init();
       sdkQuickfixWizard.show();
       refreshImages(true);
@@ -625,11 +599,15 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     @Override
     public Comparator<SystemImageDescription> getComparator() {
       return new Comparator<SystemImageDescription>() {
+        ApiLevelComparator myComparator = new ApiLevelComparator();
         @Override
         public int compare(SystemImageDescription o1, SystemImageDescription o2) {
-          String s1 = valueOf(o1);
-          String s2 = valueOf(o2);
-          return Comparing.compare(s1, s2);
+          int res = myComparator.compare(valueOf(o1), valueOf(o2));
+          if (res == 0) {
+            return o1.getTag().compareTo(o2.getTag());
+          }
+          return res;
+
         }
       };
     }

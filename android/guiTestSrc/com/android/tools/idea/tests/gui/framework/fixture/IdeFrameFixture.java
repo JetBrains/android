@@ -15,29 +15,44 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.GradleBuildContext;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
+import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.google.common.base.Charsets;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.codeInspection.ui.InspectionTree;
+import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.BeforeRunTaskProvider;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.Result;
 import com.intellij.openapi.compiler.CompilationStatusListener;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -57,7 +72,6 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.util.ThreeState;
-import com.intellij.util.messages.MessageBusConnection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
@@ -78,6 +92,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -86,10 +101,12 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
-import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
+import static com.android.tools.idea.gradle.dsl.parser.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
 import static com.google.common.io.Files.write;
@@ -97,6 +114,7 @@ import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -147,9 +165,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     myGradleProjectEventListener = new GradleProjectEventListener();
 
-    MessageBusConnection connection = project.getMessageBus().connect(disposable);
-    connection.subscribe(GRADLE_SYNC_TOPIC, myGradleProjectEventListener);
-    connection.subscribe(GRADLE_BUILD_TOPIC, myGradleProjectEventListener);
+    GradleSyncState.subscribe(project, myGradleProjectEventListener);
+    PostProjectBuildTasksExecutor.subscribe(project, myGradleProjectEventListener);
   }
 
   @NotNull
@@ -174,45 +191,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeaAndroidProject getAndroidProjectForModule(@NotNull String name) {
+  public AndroidGradleModel getAndroidProjectForModule(@NotNull String name) {
     Module module = getModule(name);
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.isGradleProject()) {
-      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-      if (androidProject != null) {
-        return androidProject;
+    if (facet != null && facet.requiresAndroidModel()) {
+      // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+      if (androidModel != null) {
+        return androidModel;
       }
     }
-    throw new AssertionError("Unable to find IdeaAndroidProject for module " + quote(name));
-  }
-
-  @NotNull
-  public Multimap<JpsModuleSourceRootType, String> getSourceFolderRelativePaths(@NotNull String moduleName) {
-    final Multimap<JpsModuleSourceRootType, String> sourceFoldersByType = ArrayListMultimap.create();
-
-    Module module = getModule(moduleName);
-    final ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-        try {
-          for (ContentEntry contentEntry : rootModel.getContentEntries()) {
-            for (SourceFolder folder : contentEntry.getSourceFolders()) {
-              String path = urlToPath(folder.getUrl());
-              String relativePath = getRelativePath(myProjectPath, new File(toSystemDependentName(path)));
-              sourceFoldersByType.put(folder.getRootType(), relativePath);
-            }
-          }
-        }
-        finally {
-          rootModel.dispose();
-        }
-      }
-    });
-
-    return sourceFoldersByType;
+    throw new AssertionError("Unable to find AndroidGradleModel for module " + quote(name));
   }
 
   @NotNull
@@ -272,16 +261,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeaAndroidProject getGradleProject(@NotNull String moduleName) {
+  public AndroidGradleModel getAndroidModel(@NotNull String moduleName) {
     Module module = getModule(moduleName);
     assertNotNull("Could not find module " + moduleName, module);
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull("Module " + moduleName + " is not an Android module", facet);
-    assertTrue("Module " + moduleName + " is not a Gradle project", facet.isGradleProject());
-    IdeaAndroidProject project = facet.getIdeaAndroidProject();
-    assertNotNull("Module " + moduleName + " does not have a Gradle project (not synced yet or sync failed?)", project);
+    assertTrue("Module " + moduleName + " is not a Gradle project", facet.requiresAndroidModel());
+    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    assertNotNull("Module " + moduleName + " does not have a Gradle project (not synced yet or sync failed?)", androidModel);
 
-    return project;
+    return androidModel;
   }
 
   @NotNull
@@ -294,15 +284,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     myGradleProjectEventListener.reset();
 
     final AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<GradleInvocationResult>();
-    ProjectBuilder.getInstance(getProject()).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildTask() {
+    AndroidProjectBuildNotifications.subscribe(getProject(), new AndroidProjectBuildNotifications.AndroidProjectBuildListener() {
       @Override
-      public void execute(@NotNull GradleInvocationResult result) {
-        resultRef.set(result);
-      }
-
-      @Override
-      public boolean execute(CompileContext context) {
-        return false;
+      public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
+        if (context instanceof GradleBuildContext) {
+          resultRef.set(((GradleBuildContext)context).getBuildResult());
+        }
       }
     });
     selectProjectMakeAction();
@@ -467,7 +454,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public IdeFrameFixture waitForBuildToFinish(@NotNull final BuildMode buildMode) {
     final Project project = getProject();
-    if (buildMode == SOURCE_GEN && !ProjectBuilder.getInstance(project).isSourceGenerationEnabled()) {
+    if (buildMode == SOURCE_GEN && !GradleProjectBuilder.getInstance(project).isSourceGenerationEnabled()) {
       return this;
     }
 
@@ -641,6 +628,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public CapturesToolWindowFixture getCapturesToolWindow() {
+    return new CapturesToolWindowFixture(getProject(), robot());
+  }
+
+  @NotNull
   public BuildVariantsToolWindowFixture getBuildVariantsWindow() {
     return new BuildVariantsToolWindowFixture(this);
   }
@@ -803,6 +795,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public RunConfigurationsDialogFixture invokeRunConfigurationsDialog() {
+    invokeMenuPath("Run", "Edit Configurations...");
+    return RunConfigurationsDialogFixture.find(robot());
+  }
+
+  @NotNull
   public InspectionsFixture inspectCode() {
     invokeMenuPath("Analyze", "Inspect Code...");
 
@@ -888,6 +886,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeFrameFixture updateGradleWrapperVersion(@NotNull String version) throws IOException {
+    File wrapperPropertiesFile = findWrapperPropertiesFile(getProject());
+    assertNotNull(wrapperPropertiesFile);
+    updateGradleDistributionUrl(version, wrapperPropertiesFile);
+
+    return this;
+  }
+
+  @NotNull
   public IdeFrameFixture updateAndroidModelVersion(@NotNull String version) throws IOException {
     File buildFile = new File(getProjectPath(), FN_BUILD_GRADLE);
     assertThat(buildFile).isFile();
@@ -905,14 +912,96 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
+  /**
+   * Sets the "Before Launch" tasks in the "JUnit Run Configuration" template.
+   * @param taskName the name of the "Before Launch" task (e.g. "Make", "Gradle-aware Make")
+   */
+  @NotNull
+  public IdeFrameFixture setJUnitDefaultBeforeRunTask(@NotNull String taskName) {
+    Project project = getProject();
+    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(project);
+    ConfigurationType junitConfigurationType = runManager.getConfigurationType("JUnit");
+    assertNotNull("Failed to find run configuration type 'JUnit'", junitConfigurationType);
+
+    for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
+      RunnerAndConfigurationSettings template = runManager.getConfigurationTemplate(configurationFactory);
+      RunConfiguration runConfiguration = template.getConfiguration();
+      BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, project);
+
+      BeforeRunTaskProvider targetProvider = null;
+      for (BeforeRunTaskProvider<? extends BeforeRunTask> provider : taskProviders) {
+        if (taskName.equals(provider.getName())) {
+          targetProvider = provider;
+          break;
+        }
+      }
+      assertNotNull(String.format("Failed to find task provider '%1$s'", taskName), targetProvider);
+
+      BeforeRunTask task = targetProvider.createTask(runConfiguration);
+      assertNotNull(task);
+      task.setEnabled(true);
+
+      runManager.setBeforeRunTasks(runConfiguration, Collections.singletonList(task), false);
+    }
+    return this;
+  }
+
+  @NotNull
+  public FindDialogFixture invokeFindInPathDialog() {
+    invokeMenuPath("Edit", "Find", "Find in Path...");
+    return FindDialogFixture.find(robot());
+  }
+
+  @NotNull
+  public FindToolWindowFixture getFindToolWindow() {
+    return new FindToolWindowFixture(this);
+  }
+
+  @NotNull
+  public GradleBuildModelFixture openAndParseBuildFileForModule(@NotNull String moduleName) {
+    Module module = getModule(moduleName);
+    return openAndParseBuildFile(module);
+  }
+
+  @NotNull
+  public GradleBuildModelFixture openAndParseBuildFile(@NotNull Module module) {
+    VirtualFile buildFile = getGradleBuildFile(module);
+    assertNotNull(buildFile);
+    return openAndParseBuildFile(buildFile);
+  }
+
+  @NotNull
+  public GradleBuildModelFixture openAndParseBuildFile(@NotNull final VirtualFile buildFile) {
+    getEditor().open(buildFile, Tab.DEFAULT).getCurrentFile();
+    final Ref<GradleBuildModel> buildModelRef = new Ref<GradleBuildModel>();
+    new ReadAction() {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        buildModelRef.set(parseBuildFile(buildFile, getProject()));
+      }
+    }.execute();
+    GradleBuildModel buildModel = buildModelRef.get();
+    assertNotNull(buildModel);
+    return new GradleBuildModelFixture(buildModel);
+  }
+
   private static class NoOpDisposable implements Disposable {
     @Override
     public void dispose() {
     }
   }
 
-  private void selectApp(@NotNull String appName) throws ClassNotFoundException {
-    ComboBoxActionFixture comboBoxActionFixture = new ComboBoxActionFixture(robot(), this);
-    comboBoxActionFixture.selectApp(appName);
+  private void selectApp(@NotNull String appName) {
+    final ActionButtonFixture runButton = findRunApplicationButton();
+    Container actionToolbarContainer = execute(new GuiQuery<Container>() {
+      @Override
+      protected Container executeInEDT() throws Throwable {
+        return runButton.target().getParent();
+      }
+    });
+    assertNotNull(actionToolbarContainer);
+
+    ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBox(robot(), actionToolbarContainer);
+    comboBoxActionFixture.selectItem(appName);
   }
 }

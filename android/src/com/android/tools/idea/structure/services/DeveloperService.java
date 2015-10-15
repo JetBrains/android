@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.structure.services;
 
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.BuildFileStatement;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -27,8 +22,9 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Iterator;
-import java.util.List;
+
+import static com.android.tools.idea.stats.UsageTracker.*;
+import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
 
 /**
  * A class that wraps the contents and {@link ServiceContext} of a 'service.xml' file. Each
@@ -36,7 +32,6 @@ import java.util.List;
  * output, and when {@link #install()} is called, it copies the service's files into the project.
  */
 public final class DeveloperService {
-
   @NotNull private final ServiceXmlParser myServiceParser;
 
   public DeveloperService(@NotNull final ServiceXmlParser serviceParser) {
@@ -80,10 +75,7 @@ public final class DeveloperService {
       }
     }.execute();
     getContext().snapshot();
-    getContext().installed().set(true);
-
-    UsageTracker.getInstance()
-      .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_SERVICE_INSTALLED, getMetadata().getName(), null);
+    trackEvent(ACTION_DEVELOPER_SERVICES_INSTALLED);
   }
 
   public void uninstall() {
@@ -91,41 +83,23 @@ public final class DeveloperService {
       return;
     }
 
-    final GradleBuildFile gradleFile = GradleBuildFile.get(getModule());
-    if (gradleFile != null) {
-      boolean dependenciesChanged = false;
-      final List<BuildFileStatement> dependencies = gradleFile.getDependencies();
-      Iterator<BuildFileStatement> iterator = dependencies.iterator();
-      while (iterator.hasNext()) {
-        BuildFileStatement statement = iterator.next();
-        if (!(statement instanceof Dependency)) {
-          continue;
-        }
+    Module module = getModule();
+    getBuildSystemOperations(module.getProject()).removeDependencies(module, getMetadata());
+    trackEvent(ACTION_DEVELOPER_SERVICES_REMOVED);
+  }
 
-        Dependency dependency = (Dependency)statement;
-        for (String dependencyValue : getMetadata().getDependencies()) {
-          if (dependency.getValueAsString().equals(dependencyValue)) {
-            iterator.remove();
-            dependenciesChanged = true;
-            break;
-          }
-        }
-      }
+  private void trackEvent(@NotNull String event) {
+    UsageTracker.getInstance().trackEvent(CATEGORY_DEVELOPER_SERVICES, event, getMetadata().getName(), null);
+  }
 
-      if (dependenciesChanged) {
-        new WriteCommandAction.Simple(getModule().getProject(), "Uninstall " + getMetadata().getName()) {
-          @Override
-          public void run() {
-            gradleFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
-          }
-        }.execute();
-      }
-      GradleProjectImporter.getInstance().requestProjectSync(getModule().getProject(), null);
-    }
-
-    getContext().installed().set(false);
-
-    UsageTracker.getInstance()
-      .trackEvent(UsageTracker.CATEGORY_DEVELOPER_SERVICES, UsageTracker.ACTION_SERVICE_REMOVED, getMetadata().getName(), null);
+  /**
+   * We are not the authority of whether a service is installed or not - instead, we need to check
+   * the build model to find out. This method should be triggered externally by a manager class
+   * which listens to whenever the build model is modified.
+   */
+  void updateInstalledState() {
+    Module module = getModule();
+    boolean isInstalled = getBuildSystemOperations(module.getProject()).isServiceInstalled(module, getMetadata());
+    getContext().installed().set(isInstalled);
   }
 }

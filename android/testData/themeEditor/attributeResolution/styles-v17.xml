@@ -1,0 +1,9 @@
+<resources>
+  <style name="AppTheme" parent="Base.V17">
+    <item name="myAttribute">V17</item>
+  </style>
+
+  <style name="V17OnlyTheme" parent="@android:style/Theme">
+    <item name="myAttribute">V17</item>
+  </style>
+</resources>

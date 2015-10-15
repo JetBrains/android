@@ -16,7 +16,7 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
@@ -54,7 +54,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   private final DefaultListModel myFlavorsListModel = new DefaultListModel();
   private final DefaultComboBoxModel myBuildTypeComboModel = new DefaultComboBoxModel();
 
-  private IdeaAndroidProject myIdeaAndroidProject;
+  private AndroidGradleModel myAndroidModel;
 
   public GradleSignStep(@NotNull ExportSignedPackageWizard exportSignedPackageWizard) {
     myWizard = exportSignedPackageWizard;
@@ -68,13 +68,13 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   @Override
   public void _init() {
-    myIdeaAndroidProject = myWizard.getFacet().getIdeaAndroidProject();
+    myAndroidModel = AndroidGradleModel.get(myWizard.getFacet());
 
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
     String lastSelectedBuildType = properties.getValue(PROPERTY_BUILD_TYPE);
 
     myBuildTypeComboModel.removeAllElements();
-    Set<String> buildTypes = myIdeaAndroidProject == null ? Collections.<String>emptySet() : myIdeaAndroidProject.getBuildTypes();
+    Set<String> buildTypes = myAndroidModel == null ? Collections.<String>emptySet() : myAndroidModel.getBuildTypes();
     for (String buildType : buildTypes) {
       myBuildTypeComboModel.addElement(buildType);
 
@@ -85,12 +85,12 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
     myFlavorsListModel.clear();
     List<String> productFlavors;
-    if (myIdeaAndroidProject == null || myIdeaAndroidProject.getProductFlavors().isEmpty()) {
+    if (myAndroidModel == null || myAndroidModel.getProductFlavors().isEmpty()) {
       productFlavors = Collections.emptyList();
     } else {
       // if there are multiple flavors, we want the merged flavor list
       Set<String> mergedFlavors = Sets.newHashSet();
-      for (Variant v : myIdeaAndroidProject.getDelegate().getVariants()) {
+      for (Variant v : myAndroidModel.getAndroidProject().getVariants()) {
         mergedFlavors.add(ExportSignedPackageWizard.getMergedFlavorName(v));
       }
       productFlavors = Lists.newArrayList(mergedFlavors);
@@ -118,10 +118,10 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       lastApkFolder = new File(lastApkFolderPath);
     }
     else {
-      if (myIdeaAndroidProject == null) {
+      if (myAndroidModel == null) {
         lastApkFolder = VfsUtilCore.virtualToIoFile(myWizard.getProject().getBaseDir());
       } else {
-        lastApkFolder = myIdeaAndroidProject.getRootDirPath();
+        lastApkFolder = myAndroidModel.getRootDirPath();
       }
     }
     myApkPathField.setText(lastApkFolder.getAbsolutePath());
@@ -136,7 +136,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   @Override
   protected void commitForNext() throws CommitStepException {
-    if (myIdeaAndroidProject == null) {
+    if (myAndroidModel == null) {
       throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.no.model"));
     }
 

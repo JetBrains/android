@@ -18,10 +18,8 @@ package com.android.tools.idea.actions;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.gotoByName.GotoFileCellRenderer;
 import com.intellij.idea.ActionsBundle;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -30,9 +28,6 @@ import com.intellij.pom.Navigatable;
 import com.intellij.ui.components.JBList;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
 
 public class EditMultipleSourcesAction extends AnAction {
   public EditMultipleSourcesAction() {
@@ -48,7 +43,19 @@ public class EditMultipleSourcesAction extends AnAction {
   public void update(AnActionEvent e) {
     super.update(e);
     Navigatable[] navigatables = e.getData(CommonDataKeys.NAVIGATABLE_ARRAY);
-    e.getPresentation().setEnabled(navigatables != null && navigatables.length > 0);
+    if (navigatables != null && navigatables.length > 0) {
+      e.getPresentation().setEnabled(true);
+      if (navigatables.length > 1) {
+        e.getPresentation().setText(ActionsBundle.actionText("EditSource") + "...");
+      }
+      else {
+        e.getPresentation().setText(ActionsBundle.actionText("EditSource"));
+      }
+    }
+    else {
+      e.getPresentation().setEnabled(false);
+      e.getPresentation().setText(ActionsBundle.actionText("EditSource"));
+    }
   }
 
   @Override
@@ -63,6 +70,7 @@ public class EditMultipleSourcesAction extends AnAction {
       DefaultListModel listModel = new DefaultListModel();
       for (int i = 0; i < files.length; ++i) {
         assert files[i] instanceof PsiFileAndLineNavigation;
+        //noinspection unchecked
         listModel.add(i, ((PsiFileAndLineNavigation)files[i]).getPsiFile());
       }
       final JBList list = new JBList(listModel);
@@ -75,9 +83,9 @@ public class EditMultipleSourcesAction extends AnAction {
           public void run() {
             Object selectedValue = list.getSelectedValue();
             PsiFileAndLineNavigation navigationWrapper = null;
-            for (int i = 0; i < files.length; ++i) {
-              if (selectedValue == ((PsiFileAndLineNavigation)files[i]).getPsiFile()) {
-                navigationWrapper = (PsiFileAndLineNavigation)files[i];
+            for (Navigatable file : files) {
+              if (selectedValue == ((PsiFileAndLineNavigation)file).getPsiFile()) {
+                navigationWrapper = (PsiFileAndLineNavigation)file;
                 break;
               }
             }
@@ -88,15 +96,11 @@ public class EditMultipleSourcesAction extends AnAction {
           }
         }).createPopup();
 
-      InputEvent event = e.getInputEvent();
-      if (event instanceof MouseEvent) {
-        Point location = ((MouseEvent)event).getPoint();
-        Component owner = e.getInputEvent().getComponent();
-        SwingUtilities.convertPointToScreen(location, owner);
-        popup.showInScreenCoordinates(owner, location);
+      if (e.getInputEvent().getSource() instanceof ActionButton) {
+        popup.showUnderneathOf((ActionButton)e.getInputEvent().getSource());
       }
       else {
-        popup.showInFocusCenter();
+        popup.showInBestPositionFor(e.getDataContext());
       }
     }
     else {

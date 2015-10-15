@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.structure.gradle.AndroidProjectSettingsService;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -25,19 +24,25 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.actions.AbstractProjectStructureAction.getSelectedAndroidModule;
+
 /**
  * Action that allows users to select a build variant for the selected module, if the module is an Android Gradle module.
  */
-public class SelectBuildVariantAction extends AbstractProjectStructureAction {
+public class SelectBuildVariantAction extends AndroidStudioGradleAction {
   public SelectBuildVariantAction() {
-    super("Select Build Variant...", null, null);
+    super("Select Build Variant...");
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
-    final Module module = getTargetModule(e);
+  protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
+    e.getPresentation().setEnabled(getSelectedAndroidModule(e) != null);
+  }
+
+  @Override
+  protected void doPerform(@NotNull AnActionEvent e, @NotNull final Project project) {
+    final Module module = getSelectedAndroidModule(e);
     if (module != null) {
-      final Project project = module.getProject();
       ToolWindowManager manager = ToolWindowManager.getInstance(project);
       ToolWindow toolWindow = manager.getToolWindow(BuildVariantToolWindowFactory.ID);
       if (toolWindow != null) {
@@ -50,16 +55,5 @@ public class SelectBuildVariantAction extends AbstractProjectStructureAction {
         });
       }
     }
-  }
-
-  @Override
-  protected Module getTargetModule(@NotNull AnActionEvent e) {
-    return getSelectedAndroidModule(e);
-  }
-
-  @Override
-  protected void actionPerformed(@NotNull Module module,
-                                 @NotNull AndroidProjectSettingsService projectStructureService,
-                                 @NotNull AnActionEvent e) {
   }
 }

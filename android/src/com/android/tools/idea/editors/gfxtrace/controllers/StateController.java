@@ -17,223 +17,117 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.controllers.modeldata.StateTreeNode;
-import com.android.tools.idea.editors.gfxtrace.renderers.StateTreeRenderer;
-import com.android.tools.idea.editors.gfxtrace.renderers.styles.TreeUtil;
-import com.android.tools.idea.editors.gfxtrace.rpc.*;
-import com.android.tools.idea.editors.gfxtrace.schema.*;
-import com.android.tools.rpclib.binary.Decoder;
-import com.google.common.util.concurrent.FutureCallback;
+import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
+import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
+import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
+import com.android.tools.rpclib.schema.Dynamic;
+import com.android.tools.rpclib.schema.Field;
+import com.android.tools.rpclib.schema.Map;
+import com.android.tools.rpclib.schema.Type;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.treeStructure.SimpleTree;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import java.awt.*;
-import java.io.ByteArrayInputStream;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicLong;
 
-public class StateController implements GfxController {
+public class StateController extends TreeController {
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new StateController(editor).myPanel;
+  }
+
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
 
-  @NotNull private final GfxTraceEditor myEditor;
-  @NotNull private final JBLoadingPanel myLoadingPanel;
-  @NotNull private final SimpleTree myTree;
+  private final PathStore<StatePath> myStatePath = new PathStore<StatePath>();
 
-  @NotNull private AtomicLong myAtomicAtomId = new AtomicLong(-1);
-  @Nullable private StructInfo myStateHierarchy;
+  private StateController(@NotNull GfxTraceEditor editor) {
+    super(editor, GfxTraceEditor.SELECT_ATOM);
+  }
 
-  public StateController(@NotNull GfxTraceEditor editor, @NotNull JBScrollPane scrollPane) {
-    myEditor = editor;
-    myTree = new SimpleTree();
-    myTree.setRowHeight(TreeUtil.TREE_ROW_HEIGHT);
-    myTree.setRootVisible(false);
-    myTree.setCellRenderer(new StateTreeRenderer());
-    myTree.getEmptyText().setText(SELECT_CAPTURE);
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
-    myLoadingPanel.add(myTree);
-    scrollPane.setViewportView(myLoadingPanel);
+  public static class Typed {
+    @NotNull public final Type type;
+    @NotNull public final Object value;
+
+    public Typed(@NotNull Type type, @NotNull Object value) {
+      this.type = type;
+      this.value = value;
+    }
+  }
+
+  public static class Node {
+    @Nullable public final Object key;
+    @Nullable public final Object value;
+
+    public Node(@Nullable Object key, @Nullable Object value) {
+      this.key = key;
+      this.value = value;
+    }
   }
 
   @Nullable
-  private static DefaultMutableTreeNode constructStateNode(@NotNull String name, @NotNull TypeKind typeKind, @Nullable Object value) {
-    StateTreeNode thisNode = null;
-    switch (typeKind) {
-      case Bool:
-      case S8:
-      case U8:
-      case S16:
-      case U16:
-      case S32:
-      case U32:
-      case S64:
-      case U64:
-      case F32:
-      case F64:
-      case String:
-      case Pointer:
-        thisNode = new StateTreeNode(name, value);
-        break;
-
-      case Enum:
-        assert (value instanceof EnumValue);
-        EnumValue enumValue = (EnumValue)value;
-        for (EnumEntry entry : enumValue.info.getEntries()) {
-          if (enumValue.value == entry.getValue()) {
-            thisNode = new StateTreeNode(name, entry.getName());
-            break;
-          }
-        }
-        if (thisNode == null) {
-          LOG.warn("Invalid bitfield value passed in: " + enumValue.value);
-        }
-        break;
-
-      case Array:
-        assert (value instanceof Array);
-        Array array = (Array)value;
-        thisNode = new StateTreeNode(name, null);
-        ArrayInfo arrayInfo = array.info;
-        Object[] elements = array.elements;
-        int i = 0;
-        for (Object element : elements) {
-          DefaultMutableTreeNode childNode = constructStateNode(Integer.toString(i++), arrayInfo.getElementType().getKind(), element);
-          if (childNode != null) {
-            thisNode.add(childNode);
-          }
-        }
-        break;
-
-      case Struct:
-        assert (value instanceof Struct);
-        Struct struct = (Struct)value;
-        thisNode = new StateTreeNode(name, null);
-        for (Field field : struct.fields) {
-          DefaultMutableTreeNode childNode = constructStateNode(field.info.getName(), field.info.getType().getKind(), field.value);
-          if (childNode != null) {
-            thisNode.add(childNode);
-          }
-        }
-        break;
-
-      case Class:
-        assert (value instanceof com.android.tools.idea.editors.gfxtrace.schema.Class);
-        com.android.tools.idea.editors.gfxtrace.schema.Class gfxClass = (com.android.tools.idea.editors.gfxtrace.schema.Class)value;
-        thisNode = new StateTreeNode(name, null);
-        for (Field field : gfxClass.fields) {
-          DefaultMutableTreeNode childNode = constructStateNode(field.info.getName(), field.info.getType().getKind(), field.value);
-          if (childNode != null) {
-            thisNode.add(childNode);
-          }
-        }
-        break;
-
-      case Map:
-        assert (value instanceof Map);
-        Map map = (Map)value;
-        thisNode = new StateTreeNode(name, null);
-        for (MapEntry mapEntry : map.elements) {
-          DefaultMutableTreeNode childNode = constructStateNode(mapEntry.key.toString(), map.info.getValueType().getKind(), mapEntry.value);
-          if (childNode != null) {
-            thisNode.add(childNode);
-          }
-        }
-        break;
-
-      case Memory:
-        // Skip, since this is not supported at the moment.
-        thisNode = null;
-        break;
-
-      case Any:
-        // Skip, since this is not supported at the moment.
-        thisNode = null;
-        break;
-
-      default:
-        throw new RuntimeException("Attempting to decode unsupported types.");
+  private static DefaultMutableTreeNode createNode(@Nullable Object key, @Nullable Type type, @Nullable Object value) {
+    DefaultMutableTreeNode child = new DefaultMutableTreeNode();
+    fillNode(child, key, value);
+    if (child.getChildCount() != 0) {
+      child.setUserObject(new Node(key, null));
     }
-
-    return thisNode;
-  }
-
-  @Override
-  public void startLoad() {
-    myTree.getEmptyText().setText("");
-  }
-
-  @Override
-  public void commitData(@NotNull GfxContextChangeState state) {
-    myStateHierarchy = state.myCaptureChangeState.mySchema.getState();
-    myTree.getEmptyText().setText("Select an atom");
-  }
-
-  public void updateTreeModelFromAtomId(final long atomId) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    assert (myEditor.getCaptureId() != null);
-    assert (myEditor.getContext() != null);
-    assert (myStateHierarchy != null);
-
-    final Client client = myEditor.getClient();
-    final StructInfo stateHierarchy = myStateHierarchy;
-    final CaptureId captureId = myEditor.getCaptureId();
-    final int contextId = myEditor.getContext();
-    myAtomicAtomId.set(atomId);
-
-    if (!myLoadingPanel.isLoading()) {
-      myTree.getEmptyText().setText("");
-      myLoadingPanel.startLoading();
+    else if ((type != null) && (value != null)) {
+      child.setUserObject(new Node(key, new Typed(type, value)));
     }
+    else {
+      child.setUserObject(new Node(key, value));
+    }
+    return child;
+  }
 
-    ListenableFuture<TreeNode> nodeFuture = myEditor.getService().submit(new Callable<TreeNode>() {
-      @Override
-      @Nullable
-      public TreeNode call() throws Exception {
-        BinaryId binaryId = client.GetState(captureId, contextId, atomId).get();
-        Binary stateBinary = client.ResolveBinary(binaryId).get();
-        Struct stateStruct = (Struct)Unpack.Type(stateHierarchy, new Decoder(new ByteArrayInputStream(stateBinary.getData())));
-        return constructStateNode(stateStruct.info.getName(), TypeKind.Struct, stateStruct);
-      }
-    });
-    Futures.addCallback(nodeFuture, new FutureCallback<TreeNode>() {
-      @Override
-      public void onSuccess(@Nullable TreeNode result) {
-        if (myAtomicAtomId.get() != atomId) {
-          return;
+  private static void fillNode(@NotNull DefaultMutableTreeNode parent, @Nullable Object key, @Nullable Object value) {
+    if (value instanceof Dynamic) {
+      Dynamic dynamic = (Dynamic)value;
+      for (int index = 0; index < dynamic.getFieldCount(); ++index) {
+        Field field = dynamic.getFieldInfo(index);
+        if (field.getDeclared().length() == 0) {
+          // embed anonymous fields directly into the parent
+          fillNode(parent, field, dynamic.getFieldValue(index));
         }
-
-        myTree.setModel(new DefaultTreeModel(result));
-        myTree.updateUI();
-        myLoadingPanel.stopLoading();
+        else {
+          parent.add(createNode(field, field.getType(), dynamic.getFieldValue(index)));
+        }
       }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        myLoadingPanel.stopLoading();
-        LOG.error(t);
+    }
+    else if (key instanceof Field) {
+      Field field = (Field)key;
+      if (field.getType() instanceof Map) {
+        assert (value instanceof java.util.Map);
+        Map map = (Map)field.getType();
+        for (java.util.Map.Entry entry : ((java.util.Map<?, ?>)value).entrySet()) {
+          parent.add(createNode(new Typed(map.getKeyType(), entry.getKey()), map.getValueType(), entry.getValue()));
+        }
       }
-    }, EdtExecutor.INSTANCE);
+    }
   }
 
   @Override
-  public void clear() {
-    myStateHierarchy = null;
-    clearCache();
-  }
-
-  @Override
-  public void clearCache() {
-    myAtomicAtomId.set(-1);
-    myTree.setModel(null);
-    myTree.updateUI();
+  public void notifyPath(Path path) {
+    boolean updateState = false;
+    if (path instanceof AtomPath) {
+      updateState |= myStatePath.update(((AtomPath)path).stateAfter());
+    }
+    if (updateState && myStatePath.getPath() != null) {
+      Futures.addCallback(myEditor.getClient().get(myStatePath.getPath()), new LoadingCallback<Object>(LOG, myLoadingPanel) {
+        @Override
+        public void onSuccess(@Nullable final Object state) {
+          final DefaultMutableTreeNode stateNode = createNode("state", null, state);
+          EdtExecutor.INSTANCE.execute(new Runnable() {
+            @Override
+            public void run() {
+              setRoot(stateNode);
+            }
+          });
+        }
+      });
+    }
   }
 }

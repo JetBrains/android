@@ -21,6 +21,7 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Integrates SDK manager progress reporting with the wizard UI.
@@ -31,6 +32,7 @@ public class SdkManagerProgressIndicatorIntegration extends SdkLoggerIntegration
   private final int myComponentCount;
   private int myCompletedOperations = -1;
   private String previousTitle;
+  private StringBuffer myErrors = new StringBuffer();
 
   public SdkManagerProgressIndicatorIntegration(@NotNull ProgressIndicator indicator,
                                                 @NotNull InstallContext context,
@@ -66,5 +68,26 @@ public class SdkManagerProgressIndicatorIntegration extends SdkLoggerIntegration
   @Override
   protected void lineAdded(String string) {
     myContext.print(string, ConsoleViewContentType.SYSTEM_OUTPUT);
+  }
+
+  @Override
+  public void error(@Nullable Throwable t, @Nullable String msgFormat, Object... args) {
+    if (t != null) {
+      myErrors.append(String.format("%s: %s\n", t.getClass().getName(), t.getMessage()));
+    }
+    if (msgFormat != null) {
+      myErrors.append(String.format(msgFormat, args));
+    }
+    super.error(t, msgFormat, args);
+  }
+
+  @Override
+  public void warning(@NotNull String msgFormat, Object... args) {
+    myErrors.append(String.format("Warning: %s\n", String.format(msgFormat, args)));
+    super.warning(msgFormat, args);
+  }
+
+  public String getErrors() {
+    return myErrors.toString();
   }
 }

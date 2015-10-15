@@ -22,6 +22,8 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.tools.idea.sdk.SdkLoadedCallback;
+import com.android.tools.idea.sdk.SdkPackages;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
@@ -156,14 +158,14 @@ public class SdkComponentSource implements ExternalComponentSource {
     if (!initIfNecessary()) {
       return ImmutableList.of();
     }
-    final FutureResult<List<Pair<String, String>>> resultFuture = new FutureResult();
-    mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, new Runnable() {
+    final FutureResult<List<Pair<String, String>>> resultFuture = new FutureResult<List<Pair<String, String>>>();
+    mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, new SdkLoadedCallback(false) {
       @Override
-      public void run() {
+      public void doRun(@NotNull SdkPackages packages) {
         PreciseRevision toolsRevision = null;
         PreciseRevision platformRevision = null;
         AndroidVersion platformVersion = null;
-        for (LocalPkgInfo info : mySdkState.getPackages().getLocalPkgInfos()) {
+        for (LocalPkgInfo info : packages.getLocalPkgInfos()) {
           if (info.getDesc().getType() == PkgType.PKG_TOOLS &&
               (toolsRevision == null || toolsRevision.compareTo(info.getDesc().getPreciseRevision()) < 0)) {
             toolsRevision = info.getDesc().getPreciseRevision();

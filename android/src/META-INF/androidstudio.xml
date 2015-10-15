@@ -17,7 +17,12 @@
   -->
 <idea-plugin url="https://www.jetbrains.com/idea">
   <extensions defaultExtensionNs="com.intellij">
-    <androidStudioInitializer id="Startup.AndroidStudioSpecificInitializer" order="first" implementation="com.android.tools.idea.startup.AndroidStudioSpecificInitializer" />
+    <!--
+      Startup.AndroidStudioInitializer has to be always first because the first thing it does is checking that the IDE installation is not
+      corrupt. There is no point on performing any initialization task if the installation is corrupt.
+    -->
+    <androidStudioInitializer id="Startup.AndroidStudioInitializer" order="first" implementation="com.android.tools.idea.startup.AndroidStudioInitializer" />
+    <androidStudioInitializer id="Startup.GradleSpecificInitializer" order="after Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
 
     <!-- TODO: For now, restrict the Android project view pane to only be available in Android Studio. Once the bugs
     are sorted out, we can move it into the Android plugin (so that it gets included in IntelliJ). -->
@@ -39,7 +44,7 @@
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 
-    <action id="ShowProjectStructureSettings" class="com.android.tools.idea.actions.AndroidShowStructureSettingsAction"
+    <action id="ShowProjectStructureSettings" class="com.android.tools.idea.gradle.actions.AndroidShowStructureSettingsAction"
             project-type="Android" icon="AllIcons.General.ProjectStructure"/>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
   </actions>

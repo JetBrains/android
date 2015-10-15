@@ -1,26 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.view.accessibility.AccessibilityEvent android.view.accessibility.AccessibilityEvent obtain()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityEvent android.view.accessibility.AccessibilityEvent obtain(android.view.accessibility.AccessibilityEvent)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityEvent android.view.accessibility.AccessibilityEvent obtain(android.view.accessibility.AccessibilityEvent) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityEvent android.view.accessibility.AccessibilityEvent obtain(int)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityEvent java.lang.String eventTypeToString(int)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityEvent void initFromParcel(android.os.Parcel) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityEvent void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.view.accessibility.AccessibilityManager boolean addAccessibilityStateChangeListener(android.view.accessibility.AccessibilityManager.AccessibilityStateChangeListener) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -33,47 +12,8 @@
   <item name="android.view.accessibility.AccessibilityManager boolean removeTouchExplorationStateChangeListener(android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.view.accessibility.AccessibilityManager void sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityNodeInfo android.view.accessibility.AccessibilityNodeInfo obtain()">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityNodeInfo android.view.accessibility.AccessibilityNodeInfo obtain(android.view.View)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityNodeInfo android.view.accessibility.AccessibilityNodeInfo obtain(android.view.View, int)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityNodeInfo android.view.accessibility.AccessibilityNodeInfo obtain(android.view.accessibility.AccessibilityNodeInfo)">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityNodeInfo android.view.accessibility.AccessibilityNodeInfo obtain(android.view.accessibility.AccessibilityNodeInfo) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityNodeInfo void getBoundsInParent(android.graphics.Rect) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityNodeInfo void getBoundsInScreen(android.graphics.Rect) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityNodeInfo void setBoundsInParent(android.graphics.Rect) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityNodeInfo void setBoundsInScreen(android.graphics.Rect) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityNodeInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction AccessibilityAction(int, java.lang.CharSequence) 1">
     <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityRecord android.view.accessibility.AccessibilityRecord obtain(android.view.accessibility.AccessibilityRecord) 0">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.view.accessibility.AccessibilityRecord java.util.List&lt;java.lang.CharSequence&gt; getText()">
-    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.accessibility.CaptioningManager android.view.accessibility.CaptioningManager.CaptionStyle getUserStyle()">
     <annotation name="android.support.annotation.NonNull" />

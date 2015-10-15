@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.properties.collections;
 
 import com.android.tools.idea.ui.properties.AbstractObservable;
+import com.android.tools.idea.ui.properties.SettableValue;
 import com.google.common.collect.ForwardingIterator;
 import com.google.common.collect.ForwardingListIterator;
 import com.google.common.collect.Lists;
@@ -33,7 +34,7 @@ import java.util.ListIterator;
  * You may use {@link #beginUpdate()} and {@link #endUpdate()} to batch many separate changes
  * together.
  */
-public final class ObservableList<E> extends AbstractObservable implements List<E> {
+public final class ObservableList<E> extends AbstractObservable implements List<E>, SettableValue<List<? extends E>> {
   @NotNull private List<E> myInnerList;
   private int myUpdateCount;
   private boolean myInvalidatedWhileUpdating;
@@ -284,6 +285,17 @@ public final class ObservableList<E> extends AbstractObservable implements List<
   @Override
   public String toString() {
     return myInnerList.toString();
+  }
+
+  @NotNull
+  @Override
+  public List<E> get() {
+    return myInnerList;
+  }
+
+  @Override
+  public void set(@NotNull List<? extends E> value) {
+    setAll(value);
   }
 
   private class ObservableIterator extends ForwardingIterator<E> {

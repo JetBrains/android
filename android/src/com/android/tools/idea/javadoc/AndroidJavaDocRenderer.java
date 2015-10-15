@@ -32,8 +32,8 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.StyleResolver;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -101,14 +101,20 @@ public class AndroidJavaDocRenderer {
 
   @NotNull
   private static String renderAttributeDoc(Configuration configuration, ItemResourceValue resValue) {
-    AttributeDefinition def = StyleResolver.getAttributeDefinition(configuration, resValue);
+    AttributeDefinition def = ResolutionUtils.getAttributeDefinition(configuration, resValue);
     String doc = (def == null) ? null : def.getDocValue(null);
     HtmlBuilder builder = new HtmlBuilder();
     builder.beginBold();
-    builder.add(StyleResolver.getQualifiedItemName(resValue));
+    String name = ResolutionUtils.getQualifiedItemName(resValue);
+    builder.add(name);
     builder.endBold();
+    int api = ResolutionUtils.getOriginalApiLevel(name, configuration.getModule().getProject());
+    if (api >= 0) {
+      builder.add(" (Added in API level ");
+      builder.add(String.valueOf(api));
+      builder.add(")");
+    }
     builder.addHtml("<br/>");
-
     if (!StringUtil.isEmpty(doc)) {
       builder.addHtml(doc);
       builder.addHtml("<br/>");
@@ -326,14 +332,15 @@ public class AndroidJavaDocRenderer {
       List<ItemInfo> results = Lists.newArrayList();
 
       AppResourceRepository resources = getAppResources();
-      IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-      if (ideaAndroidProject != null) {
-        assert facet.isGradleProject();
-        AndroidProject delegate = ideaAndroidProject.getDelegate();
-        Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+      // TODO: b/22927607
+      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+      if (androidModel != null) {
+        assert facet.requiresAndroidModel();
+        AndroidProject androidProject = androidModel.getAndroidProject();
+        Variant selectedVariant = androidModel.getSelectedVariant();
         Set<SourceProvider> selectedProviders = Sets.newHashSet();
 
-        BuildTypeContainer buildType = ideaAndroidProject.findBuildType(selectedVariant.getBuildType());
+        BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
         assert buildType != null;
         SourceProvider sourceProvider = buildType.getSourceProvider();
         String buildTypeName = selectedVariant.getName();
@@ -345,19 +352,19 @@ public class AndroidJavaDocRenderer {
         // Iterate in *reverse* order
         for (int i = productFlavors.size() - 1; i >= 0; i--) {
           String flavorName = productFlavors.get(i);
-          ProductFlavorContainer productFlavor = ideaAndroidProject.findProductFlavor(flavorName);
+          ProductFlavorContainer productFlavor = androidModel.findProductFlavor(flavorName);
           assert productFlavor != null;
           SourceProvider provider = productFlavor.getSourceProvider();
           addItemsFromSourceSet(flavorName, MASK_FLAVOR_SELECTED, rank++, provider, type, resourceName, results, facet);
           selectedProviders.add(provider);
         }
 
-        SourceProvider main = delegate.getDefaultConfig().getSourceProvider();
+        SourceProvider main = androidProject.getDefaultConfig().getSourceProvider();
         addItemsFromSourceSet("main", MASK_FLAVOR_SELECTED, rank++, main, type, resourceName, results, facet);
         selectedProviders.add(main);
 
         // Next display any source sets that are *not* in the selected flavors or build types!
-        Collection<BuildTypeContainer> buildTypes = delegate.getBuildTypes();
+        Collection<BuildTypeContainer> buildTypes = androidProject.getBuildTypes();
         for (BuildTypeContainer container : buildTypes) {
           SourceProvider provider = container.getSourceProvider();
           if (!selectedProviders.contains(provider)) {
@@ -366,7 +373,7 @@ public class AndroidJavaDocRenderer {
           }
         }
 
-        Collection<ProductFlavorContainer> flavors = delegate.getProductFlavors();
+        Collection<ProductFlavorContainer> flavors = androidProject.getProductFlavors();
         for (ProductFlavorContainer container : flavors) {
           SourceProvider provider = container.getSourceProvider();
           if (!selectedProviders.contains(provider)) {
@@ -798,7 +805,7 @@ public class AndroidJavaDocRenderer {
           }
           builder.addBold(name).add(" = ").add(v != null ? v.getValue() : "null");
           if (v != null && v.getValue() != null) {
-            ResourceUrl url = ResourceUrl.parse(v.getValue());
+            ResourceUrl url = ResourceUrl.parse(v.getValue(), styleValue.isFramework());
             if (url != null) {
               ResourceUrl resolvedUrl = url;
               int count = 0;
@@ -807,19 +814,18 @@ public class AndroidJavaDocRenderer {
                   lookupChain.clear();
                 }
                 ResourceValue resourceValue;
-                boolean framework = resolvedUrl.framework || styleValue.isFramework();
                 if (resolvedUrl.theme) {
-                  resourceValue = resolver.findItemInTheme(resolvedUrl.name, framework);
+                  resourceValue = resolver.findItemInTheme(resolvedUrl.name, resolvedUrl.framework);
                 }
                 else {
-                  resourceValue = resolver.findResValue(resolvedUrl.toString(), framework);
+                  resourceValue = resolver.findResValue(resolvedUrl.toString(), resolvedUrl.framework);
                 }
                 if (resourceValue == null || resourceValue.getValue() == null) {
                   break;
                 }
                 url = resolvedUrl;
                 value = resourceValue.getValue();
-                resolvedUrl = ResourceUrl.parse(value);
+                resolvedUrl = ResourceUrl.parse(value, resolvedUrl.framework);
                 if (count++ == MAX_RESOURCE_INDIRECTION) { // prevent deep recursion (likely an invalid resource cycle)
                   break;
                 }
@@ -911,7 +917,7 @@ public class AndroidJavaDocRenderer {
     protected File resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue value, @NotNull ResourceUrl url) {
       assert resolver.getLookupChain() != null;
       resolver.setLookupChainList(Lists.<ResourceValue>newArrayList());
-      return ResourceHelper.resolveDrawable(resolver, value);
+      return ResourceHelper.resolveDrawable(resolver, value, myModule.getProject());
     }
 
     @Override
@@ -971,7 +977,7 @@ public class AndroidJavaDocRenderer {
     protected Color resolveValue(@NotNull ResourceItemResolver resolver, @Nullable ResourceValue value, @NotNull ResourceUrl url) {
       assert resolver.getLookupChain() != null;
       resolver.setLookupChainList(Lists.<ResourceValue>newArrayList());
-      return ResourceHelper.resolveColor(resolver, value);
+      return ResourceHelper.resolveColor(resolver, value, myModule.getProject());
     }
 
     @Override
@@ -1012,14 +1018,7 @@ public class AndroidJavaDocRenderer {
       // vertical-align:middle on divs)
       builder.addHtml("<table style=\"" + css + "\" border=\"0\"><tr height=\"" + height + "\">");
       builder.addHtml("<td align=\"center\" valign=\"middle\" height=\"" + height + "\" style=\"color:" + foregroundColor + "\">");
-      builder.addHtml("#");
-      int alpha = color.getAlpha();
-      // If not opaque, include alpha
-      if (alpha != 255) {
-          String alphaString = Integer.toHexString(alpha);
-          builder.addHtml((alphaString.length() < 2 ? "0" : "") + alphaString);
-      }
-      builder.addHtml(ColorUtil.toHex(color));
+      builder.addHtml(ResourceHelper.colorToString(color));
       builder.addHtml("</td></tr></table>");
     }
   }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -54,12 +54,12 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
 
   public void testCustomizeModule() {
     File rootDir = androidProject.getRootDir();
-    IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(GradleConstants.SYSTEM_ID, myModule.getName(), rootDir, androidProject,
-                                                                   "debug", AndroidProject.ARTIFACT_ANDROID_TEST);
+    AndroidGradleModel androidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myModule.getName(), rootDir, androidProject,
+                                                             "debug", AndroidProject.ARTIFACT_ANDROID_TEST);
     String compilerOutputPath = "";
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
-      customizer.customizeModule(myProject, myModule, modelsProvider, ideaAndroidProject);
+      customizer.customizeModule(myProject, myModule, modelsProvider, androidModel);
       CompilerModuleExtension compilerSettings = modelsProvider.getModifiableRootModel(myModule).getModuleExtension(CompilerModuleExtension.class);
       compilerOutputPath = compilerSettings.getCompilerOutputUrl();
       modelsProvider.commit();
@@ -69,7 +69,7 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
       ExceptionUtil.rethrowAllAsUnchecked(t);
     }
 
-    File classesFolder = ideaAndroidProject.getSelectedVariant().getMainArtifact().getClassesFolder();
+    File classesFolder = androidModel.getSelectedVariant().getMainArtifact().getClassesFolder();
     String path = FileUtil.toSystemIndependentName(classesFolder.getPath());
     String expected = VfsUtilCore.pathToUrl(ExternalSystemApiUtil.toCanonicalPath(path));
     assertEquals(expected, compilerOutputPath);

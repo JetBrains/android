@@ -18,8 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
-import com.android.tools.idea.editors.theme.ThemeEditor;
-import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
+import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
@@ -49,15 +48,20 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.FocusManager;
+import javax.annotation.Nonnull;
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.event.InputMethodEvent;
 import java.awt.event.KeyEvent;
+import java.awt.font.TextHitInfo;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
@@ -328,6 +332,33 @@ public class EditorFixture {
     Component component = getFocusedEditor();
     if (component != null) {
       robot.enterText(text);
+    }
+
+    return this;
+  }
+
+  /**
+   * Type the given text into the editor as if the user had typed it
+   * with an IME (an input method editor)
+   *
+   * @param text the text to type at the current editor position
+   */
+  public EditorFixture enterImeText(@NotNull final String text) {
+    final Component component = getFocusedEditor();
+    if (component != null && !text.isEmpty()) {
+      execute(new GuiTask() {
+        @Override
+        protected void executeInEDT() throws Throwable {
+          // Simulate editing by sending the same IME events that we observe arriving from a real input method
+          int characterCount = text.length();
+          TextHitInfo caret = TextHitInfo.afterOffset(characterCount - 1);
+          TextHitInfo visiblePosition = TextHitInfo.beforeOffset(0);
+          AttributedCharacterIterator iterator = new AttributedString(text).getIterator();
+          int id = InputMethodEvent.INPUT_METHOD_TEXT_CHANGED;
+          InputMethodEvent event = new InputMethodEvent(component, id, iterator, characterCount, caret, visiblePosition);
+          component.dispatchEvent(event);
+        }
+      });
     }
 
     return this;
@@ -706,9 +737,17 @@ public class EditorFixture {
           }
         });
         DialogFixture dialogFixture = new DialogFixture(robot, dialog);
-        // For some reason, the button is not found
-        //dialogFixture.button("Run").click();
-        dialogFixture.click();
+
+        // Find and click the Run button. We can't just invoke
+        //    dialogFixture.button("Run").click();
+        // because that searches by button name (which is null for the Run button), not the button *title*.
+        dialogFixture.button(new GenericTypeMatcher<JButton>(JButton.class) {
+          @Override
+          protected boolean isMatching(@Nonnull JButton component) {
+            return component.getText().equals("Run");
+          }
+        }).click();
+
         break;
       }
       case GOTO_DECLARATION:
@@ -725,6 +764,9 @@ public class EditorFixture {
         break;
       case DUPLICATE_LINES:
         invokeActionViaKeystroke("EditorDuplicate");
+        break;
+      case DELETE_LINE:
+        invokeActionViaKeystroke("EditorDeleteLine");
         break;
       case NEXT_METHOD:
         invokeActionViaKeystroke("MethodDown");
@@ -968,30 +1010,17 @@ public class EditorFixture {
    * Returns a fixture around the {@link com.android.tools.idea.editors.theme.ThemeEditor} <b>if</b> the currently
    * displayed editor is a theme editor.
    */
-  @Nullable
+  @NotNull
   public ThemeEditorFixture getThemeEditor() {
-    VirtualFile currentFile = getCurrentFile();
-    if (!(currentFile instanceof ThemeEditorVirtualFile)) {
-      return null;
-    }
-
-    return execute(new GuiQuery<ThemeEditorFixture>() {
-      @Override
-      @Nullable
-      protected ThemeEditorFixture executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        FileEditor[] editors = manager.getSelectedEditors();
-        if (editors.length == 0) {
-          return null;
+    final ThemeEditorComponent themeEditorComponent =
+      GuiTests.waitUntilFound(robot, new GenericTypeMatcher<ThemeEditorComponent>(ThemeEditorComponent.class) {
+        @Override
+        protected boolean isMatching(@NotNull ThemeEditorComponent component) {
+          return true;
         }
-        FileEditor selected = editors[0];
-        if (!(selected instanceof ThemeEditor)) {
-          return null;
-        }
+      });
 
-        return new ThemeEditorFixture(robot, (ThemeEditor)selected);
-      }
-    });
+    return new ThemeEditorFixture(robot, themeEditorComponent);
   }
 
   /**
@@ -1045,6 +1074,7 @@ public class EditorFixture {
     SELECT_ALL,
     JOIN_LINES,
     DUPLICATE_LINES,
+    DELETE_LINE,
     TOGGLE_COMMENT,
     GOTO_DECLARATION,
     NEXT_ERROR,

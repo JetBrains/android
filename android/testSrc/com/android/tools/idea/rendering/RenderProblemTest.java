@@ -36,11 +36,11 @@ public class RenderProblemTest extends TestCase {
     message.getHtmlBuilder().add("Plain").newline().addLink("mylink", "runnable:0").newline();
     message.getHtmlBuilder().beginList().listItem().add("item 1").listItem().add("item 2").endList();
 
-    assertEquals("Plain<BR/>\n" +
-                 "<A HREF=\"runnable:0\">mylink</A><BR/>\n" +
-                 "<DL>\n" +
-                 "<DD>-&NBSP;item 1\n" +
-                 "<DD>-&NBSP;item 2\n" +
+    assertEquals("Plain<BR/>" +
+                 "<A HREF=\"runnable:0\">mylink</A><BR/>" +
+                 "<DL>" +
+                 "<DD>-&NBSP;item 1" +
+                 "<DD>-&NBSP;item 2" +
                  "</DL>", message.getHtml());
   }
 
@@ -59,3 +59,4 @@ public class RenderProblemTest extends TestCase {
                  "first<br/>\n", RenderProblem.format(list));
   }
 }
+

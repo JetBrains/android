@@ -21,6 +21,7 @@ import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.google.common.collect.Maps;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.util.Function;
@@ -28,6 +29,7 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.lang.reflect.Field;
 import java.util.Map;
 
 /**
@@ -86,6 +88,10 @@ public class FlagManager {
       // Look up the region for a given language
       assert language != null;
 
+      if (!showFlagsForLanguages()) {
+        return null;
+      }
+
       // Special cases where we have a dedicated flag available:
       if (language.equals("ca")) {        //$NON-NLS-1$
         return getIcon("catalonia");      //$NON-NLS-1$
@@ -108,6 +114,25 @@ public class FlagManager {
     }
 
     return getIcon(region);
+  }
+
+  private static boolean ourFlagSettingAvailable = true;
+  private static Field ourLanguageFlagField;
+
+  /** Whether users want to use flags to represent languages when possible */
+  private static boolean showFlagsForLanguages() {
+    if (ourFlagSettingAvailable) {
+      try {
+        if (ourLanguageFlagField == null) {
+          ourLanguageFlagField = UISettings.class.getDeclaredField("LANGUAGE_FLAGS");
+        }
+        return ourLanguageFlagField.getBoolean(UISettings.getInstance());
+      } catch (Throwable t) {
+        ourFlagSettingAvailable = false;
+        return true;
+      }
+    }
+    return true;
   }
 
   /**

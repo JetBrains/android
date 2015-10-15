@@ -212,6 +212,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
                   "\n" +
                   "public class AllTypes implements Parcelable {\n" +
                   "    // Primitives:\n" +
+                  "    private boolean myBoolean;\n" +
                   "    private byte myByte;\n" +
                   "    private double myDouble;\n" +
                   "    private float myFloat;\n" +
@@ -274,6 +275,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
                   "\n" +
                   "public class AllTypes implements Parcelable {\n" +
                   "    // Primitives:\n" +
+                  "    private boolean myBoolean;\n" +
                   "    private byte myByte;\n" +
                   "    private double myDouble;\n" +
                   "    private float myFloat;\n" +
@@ -317,6 +319,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
                   "    private List<IBinder> myBinderArrayList;\n" +
                   "\n" +
                   "    protected AllTypes(Parcel in) {\n" +
+                  "        myBoolean = in.readByte() != 0;\n" +
                   "        myByte = in.readByte();\n" +
                   "        myDouble = in.readDouble();\n" +
                   "        myFloat = in.readFloat();\n" +
@@ -350,6 +353,7 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
                   "\n" +
                   "    @Override\n" +
                   "    public void writeToParcel(Parcel dest, int flags) {\n" +
+                  "        dest.writeByte((byte) (myBoolean ? 1 : 0));\n" +
                   "        dest.writeByte(myByte);\n" +
                   "        dest.writeDouble(myDouble);\n" +
                   "        dest.writeFloat(myFloat);\n" +

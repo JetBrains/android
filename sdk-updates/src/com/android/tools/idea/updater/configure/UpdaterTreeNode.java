@@ -28,7 +28,7 @@ import java.awt.*;
 /**
  * A tree node with a checkbox that can have three states.
  */
-abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Comparable<UpdaterTreeNode> {
+abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Comparable<UpdaterTreeNode>, SdkUpdaterConfigPanel.MultiStateRow {
   /**
    * @return The initial state of this node (representing the current state of the SDK).
    */
@@ -72,6 +72,7 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
   /**
    * Set the selected state of this node to the next one in sequence. This is what happens when a user clicks a checkbox.
    */
+  @Override
   public final void cycleState() {
     if (getCurrentState() == null) {
       return;

@@ -24,11 +24,14 @@ import com.android.sdklib.devices.CameraLocation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.wizard.*;
+import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.idea.wizard.dynamic.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -39,10 +42,14 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.*;
+import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +58,6 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -64,7 +70,7 @@ import java.util.Set;
 
 import static com.android.sdklib.devices.Storage.Unit;
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
  * Options panel for configuring various AVD options. Has an "advanced" mode and a "simple" mode.
@@ -124,6 +130,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JSeparator myKeyboardSeparator;
   private JSeparator myNetworkSeparator;
   private AvdConfigurationOptionHelpPanel myAvdConfigurationOptionHelpPanel;
+  private JBScrollPane myScrollPane;
 
   private PropertyChangeListener myFocusListener;
 
@@ -227,6 +234,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       }
     };
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myFocusListener);
+    myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
   }
 
   @Override
@@ -260,12 +268,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     getDescriptionLabel().setVisible(false);
     Device device = myState.get(DEVICE_DEFINITION_KEY);
     SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-    if (myState.get(DISPLAY_NAME_KEY) == null || myState.get(DISPLAY_NAME_KEY).isEmpty()) {
-      assert device != null && systemImage != null;
-      String avdName = String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel());
-      avdName = uniquifyDisplayName(avdName);
-      myState.put(DISPLAY_NAME_KEY, avdName);
-    }
     myAvdConfigurationOptionHelpPanel.setSystemImageDescription(systemImage);
 
     Boolean editMode = myState.get(AvdWizardConstants.IS_IN_EDIT_MODE_KEY);
@@ -324,24 +326,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     myState.put(BACKUP_SKIN_FILE_KEY, hasFrame ? null : displayFile);
 
     return super.commitStep();
-  }
-
-  private static String uniquifyDisplayName(String name) {
-    int suffix = 1;
-    String result = name;
-    while (findAvdWithName(result)) {
-      result = String.format("%1$s %2$d", name, ++suffix);
-    }
-    return result;
-  }
-
-  private static boolean findAvdWithName(String name) {
-    for (AvdInfo avd : AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false)) {
-      if (AvdManagerConnection.getAvdDisplayName(avd).equals(name)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override
@@ -427,7 +411,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     String displayName = myState.get(DISPLAY_NAME_KEY);
     if (displayName != null) {
       displayName = displayName.trim();
-      if (!displayName.equals(myOriginalName) && findAvdWithName(displayName)) {
+      if (!displayName.equals(myOriginalName) && AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(displayName)) {
         setErrorState(String.format("An AVD with the name \"%1$s\" already exists.", displayName), myAvdDisplayNamePanel, myAvdNameLabel);
         valid = false;
       }
@@ -511,6 +495,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private void registerComponents() {
     register(DISPLAY_NAME_KEY, myAvdDisplayName);
     register(AVD_ID_KEY, myAvdId);
+    final AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
     registerValueDeriver(AVD_ID_KEY, new ValueDeriver<String>() {
       @Nullable
       @Override
@@ -524,7 +509,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         String displayName = state.get(DISPLAY_NAME_KEY);
         if (displayName != null) {
           return AvdEditWizard
-            .cleanAvdName(AvdManagerConnection.getDefaultAvdManagerConnection(), displayName, !displayName.equals(myOriginalName));
+            .cleanAvdName(connection, displayName, !displayName.equals(myOriginalName));
         }
         return "";
       }
@@ -584,8 +569,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
           Device device = state.get(DEVICE_DEFINITION_KEY);
           SystemImageDescription systemImage = state.get(SYSTEM_IMAGE_KEY);
           if (device != null && systemImage != null) { // Should always be the case
-            return uniquifyDisplayName(
-              String.format(Locale.getDefault(), "%1$s API %2$d", device.getDisplayName(), systemImage.getVersion().getApiLevel()));
+            return connection.uniquifyDisplayName(
+              String.format(Locale.getDefault(), "%1$s API %2$s", device.getDisplayName(), systemImage.getVersion().getApiString()));
           }
           return null; // Should never occur
         }
@@ -754,8 +739,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         public String apply(ScreenOrientation input) {
           return ORIENTATIONS.get(input).myName;
         }
-      }, new Dimension(50, 50));
-    myOrientationToggle.setCellMargin(new Insets(3, 5, 3, 5));
+      }, JBUI.size(50, 50));
+    myOrientationToggle.setCellMargin(JBUI.insets(5, 20, 4, 20));
     myOrientationToggle.setBackground(JBColor.background());
     myOrientationToggle.setForeground(JBColor.foreground());
     myScalingComboBox = new ComboBox(new EnumComboBoxModel<AvdScaleFactor>(AvdScaleFactor.class));
@@ -971,10 +956,12 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         case TV:
         case HIGH:
         case DPI_280:
+        case DPI_360:
           vmHeapSize = 64;
           break;
         case XHIGH:
         case DPI_400:
+        case DPI_420:
         case XXHIGH:
         case DPI_560:
         case XXXHIGH:
@@ -994,10 +981,12 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         case TV:
         case HIGH:
         case DPI_280:
+        case DPI_360:
           vmHeapSize = 32;
           break;
         case XHIGH:
         case DPI_400:
+        case DPI_420:
         case XXHIGH:
         case DPI_560:
         case XXXHIGH:

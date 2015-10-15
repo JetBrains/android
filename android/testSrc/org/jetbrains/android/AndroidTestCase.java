@@ -72,7 +72,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   @Override
-  public void setUp() throws Exception {
+  protected void setUp() throws Exception {
     super.setUp();
 
     // this will throw an exception if we don't have a full Android SDK, so we need to do this first thing before any other setup
@@ -123,9 +123,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       facet.setLibraryProject(data.myLibrary);
       final String rootPath = getContentRootPath(data.myDirName);
       myFixture.copyDirectoryToProject("res", rootPath + "/res");
-      myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML,
-                                  rootPath + '/' + SdkConstants.FN_ANDROID_MANIFEST_XML);
-      ModuleRootModificationUtil.addDependency(myModule, additionalModule);
+      myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, rootPath + '/' + SdkConstants.FN_ANDROID_MANIFEST_XML);
+      if (data.myIsMainModuleDependency) {
+        ModuleRootModificationUtil.addDependency(myModule, additionalModule);
+      }
     }
 
     if (!myCreateManifest) {
@@ -178,12 +179,21 @@ public abstract class AndroidTestCase extends AndroidTestBase {
                                            @NotNull List<MyAdditionalModuleData> modules,
                                            @NotNull String dirName,
                                            boolean library) {
+    // By default, created module is declared as a main module's dependency
+    addModuleWithAndroidFacet(projectBuilder, modules, dirName, library, true);
+  }
+
+  protected void addModuleWithAndroidFacet(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                           @NotNull List<MyAdditionalModuleData> modules,
+                                           @NotNull String dirName,
+                                           boolean library,
+                                           boolean isMainModuleDependency) {
     final JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
     final String moduleDirPath = myFixture.getTempDirPath() + getContentRootPath(dirName);
     //noinspection ResultOfMethodCallIgnored
     new File(moduleDirPath).mkdirs();
     tuneModule(moduleFixtureBuilder, moduleDirPath);
-    modules.add(new MyAdditionalModuleData(moduleFixtureBuilder, dirName, library));
+    modules.add(new MyAdditionalModuleData(moduleFixtureBuilder, dirName, library, isMainModuleDependency));
   }
 
   protected static String getContentRootPath(@NotNull String moduleName) {
@@ -277,7 +287,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     return facet;
   }
 
-  /** Defines the project level to set for the test project, or null for the default */
+  /**
+   * Defines the project level to set for the test project, or null for the default
+   */
   @Nullable
   protected LanguageLevel getLanguageLevel() {
     return null;
@@ -308,13 +320,16 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     final JavaModuleFixtureBuilder myModuleFixtureBuilder;
     final String myDirName;
     final boolean myLibrary;
+    final boolean myIsMainModuleDependency;
 
     private MyAdditionalModuleData(@NotNull JavaModuleFixtureBuilder moduleFixtureBuilder,
                                    @NotNull String dirName,
-                                   boolean library) {
+                                   boolean library,
+                                   boolean isMainModuleDependency) {
       myModuleFixtureBuilder = moduleFixtureBuilder;
       myDirName = dirName;
       myLibrary = library;
+      myIsMainModuleDependency = isMainModuleDependency;
     }
   }
 }

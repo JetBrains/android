@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.wizard.FormFactorUtils;
+import com.android.tools.idea.npw.FormFactorUtils;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;

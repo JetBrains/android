@@ -15,34 +15,26 @@
  */
 package org.jetbrains.android.run;
 
-import com.android.SdkConstants;
-import com.android.annotations.concurrency.GuardedBy;
-import com.android.build.OutputFile;
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
-import com.android.ddmlib.TimeoutException;
-import com.android.ide.common.build.SplitOutputMatcher;
 import com.android.prefs.AndroidLocation;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectHyperlink;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.CommonBundle;
@@ -58,6 +50,7 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.runners.ProgramRunner;
@@ -66,7 +59,6 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -77,35 +69,23 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.packaging.artifacts.Artifact;
-import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Consumer;
 import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.ui.update.MergingUpdateQueue;
-import com.intellij.util.ui.update.Update;
-import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
-import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.AvdsNotSupportedException;
-import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -121,6 +101,7 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -139,7 +120,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   @NonNls private static final String ANDROID_TARGET_DEVICES_PROPERTY = "AndroidTargetDevices";
   private static final IDevice[] EMPTY_DEVICE_ARRAY = new IDevice[0];
 
-  public static final int WAITING_TIME = 20;
+  public static final int WAITING_TIME_SECS = 20;
 
   private static final Pattern FAILURE = Pattern.compile("Failure\\s+\\[(.*)\\]");
   private static final Pattern TYPED_ERROR = Pattern.compile("Error\\s+[Tt]ype\\s+(\\d+).*");
@@ -148,22 +129,12 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   public static final int NO_ERROR = -2;
   public static final int UNTYPED_ERROR = -1;
 
-  /** Default suffix for test packages (as added by Android Gradle plugin) */
-  private static final String DEFAULT_TEST_PACKAGE_SUFFIX = ".test";
-
-  private String myPackageName;
-
-  // In non gradle projects, test packages belong to a separate module, so their name is equal to
-  // the package name of the module. i.e. myPackageName = myTestPackageName.
-  // In gradle projects, tests are part of the same module, and their package name is either specified
-  // in build.gradle or generated automatically by Android Gradle plugin
-  private String myTestPackageName;
+  private final ApkProvider myApkProvider;
 
   private String myTargetPackageName;
   private final AndroidFacet myFacet;
   private final String myCommandLine;
   private final AndroidApplicationLauncher myApplicationLauncher;
-  private Map<AndroidFacet, String> myAdditionalFacet2PackageName;
   private final AndroidRunConfigurationBase myConfiguration;
 
   private final Object myDebugLock = new Object();
@@ -174,7 +145,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private volatile String myAvdName;
   private volatile boolean myDebugMode;
   private volatile boolean myOpenLogcatAutomatically;
-  private volatile boolean myFilterLogcatAutomatically;
 
   private volatile DebugLauncher myDebugLauncher;
 
@@ -185,7 +155,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private final Object myLock = new Object();
 
   private volatile boolean myDeploy = true;
-  private volatile String myArtifactName;
 
   private volatile boolean myApplicationDeployed = false;
 
@@ -198,6 +167,11 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   public void setDebugMode(boolean debugMode) {
     myDebugMode = debugMode;
+  }
+
+  @Nullable
+  public DebugLauncher getDebugLauncher() {
+    return myDebugLauncher;
   }
 
   public void setDebugLauncher(@NotNull DebugLauncher debugLauncher) {
@@ -222,7 +196,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   @Override
-  public ExecutionResult execute(@NotNull Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
+  public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
     Project project = myFacet.getModule().getProject();
     myProcessHandler = new DefaultDebugProcessHandler();
     AndroidProcessText.attach(myProcessHandler);
@@ -347,6 +321,27 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     if (console == null) { //Will not be null in debug mode or if additional option was chosen.
       console = myConfiguration.attachConsole(this, executor);
     }
+
+    getProcessHandler().addProcessListener(new ProcessAdapter() {
+      @Override
+      public void onTextAvailable(final ProcessEvent event, final Key outputType) {
+        if (outputType.equals(ProcessOutputTypes.STDERR)) {
+          UIUtil.invokeLaterIfNeeded(new Runnable() {
+            @Override
+            public void run() {
+              ToolWindowManager.getInstance(myFacet.getModule().getProject()).getToolWindow(executor.getToolWindowId())
+                .activate(null, true, false);
+            }
+          });
+        }
+      }
+
+      @Override
+      public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
+        getProcessHandler().removeProcessListener(this);
+      }
+    });
+
     myConsole = console;
 
     return new DefaultExecutionResult(console, myProcessHandler);
@@ -359,96 +354,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
 
     return Sets.newHashSet(debugBridge.getDevices());
-  }
-
-  @Nullable
-  private String computePackageName(@NotNull final AndroidFacet facet) {
-    if (facet.getProperties().USE_CUSTOM_MANIFEST_PACKAGE) {
-      return facet.getProperties().CUSTOM_MANIFEST_PACKAGE;
-    }
-    else if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
-      // Ensure the local file system is up to date to enable accurate calculation of the package name.
-      LocalFileSystem.getInstance().refresh(false);
-
-      File manifestCopy = null;
-      final Manifest manifest;
-      final String manifestLocalPath;
-
-      try {
-        final Pair<File, String> pair = AndroidRunConfigurationBase.getCopyOfCompilerManifestFile(facet, getProcessHandler());
-        manifestCopy = pair != null ? pair.getFirst() : null;
-        VirtualFile manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().refreshAndFindFileByIoFile(manifestCopy) : null;
-        if (manifestVFile != null) {
-          manifestVFile.refresh(false, false);
-          manifest = AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
-        }
-        else {
-          manifest = null;
-        }
-        manifestLocalPath = pair != null ? pair.getSecond() : null;
-
-        final Module module = facet.getModule();
-        final String moduleName = module.getName();
-
-        if (manifest == null) {
-          message("Cannot find " + SdkConstants.FN_ANDROID_MANIFEST_XML + " file for module " + moduleName, STDERR);
-          return null;
-        }
-
-        return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-          @Override
-          public String compute() {
-            final GenericAttributeValue<String> packageAttrValue = manifest.getPackage();
-            final String aPackage = packageAttrValue.getValue();
-
-            if (aPackage == null || aPackage.isEmpty()) {
-              message("[" + moduleName + "] Main package is not specified in file " + manifestLocalPath, STDERR);
-              //noinspection ConstantConditions
-              return null;
-            }
-            return aPackage;
-          }
-        });
-      }
-      finally {
-        if (manifestCopy != null) {
-          FileUtil.delete(manifestCopy.getParentFile());
-        }
-      }
-    }
-    else {
-      String pkg = AndroidModuleInfo.get(facet).getPackage();
-      if (pkg == null || pkg.isEmpty()) {
-        message("[" + facet.getModule().getName() + "] Unable to obtain main package from manifest.", STDERR);
-      }
-      return pkg;
-    }
-  }
-
-  private boolean fillRuntimeAndTestDependencies(@NotNull Module module,
-                                                 @NotNull Map<AndroidFacet, String> module2PackageName) {
-    for (OrderEntry entry : ModuleRootManager.getInstance(module).getOrderEntries()) {
-      if (entry instanceof ModuleOrderEntry) {
-        ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)entry;
-        Module depModule = moduleOrderEntry.getModule();
-        if (depModule != null) {
-          AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
-          if (depFacet != null &&
-              !module2PackageName.containsKey(depFacet) &&
-              !depFacet.isLibraryProject()) {
-            String packageName = computePackageName(depFacet);
-            if (packageName == null) {
-              return false;
-            }
-            module2PackageName.put(depFacet, packageName);
-            if (!fillRuntimeAndTestDependencies(depModule, module2PackageName)) {
-              return false;
-            }
-          }
-        }
-      }
-    }
-    return true;
   }
 
   @Override
@@ -470,11 +375,19 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   public String getPackageName() {
-    return myPackageName;
+    try {
+      return myApkProvider.getPackageName();
+    } catch (ApkProvisionException e) {
+      return null;
+    }
   }
 
   public String getTestPackageName() {
-    return myTestPackageName;
+    try {
+      return myApkProvider.getTestPackageName();
+    } catch (ApkProvisionException e) {
+      return null;
+    }
   }
 
   public Module getModule() {
@@ -536,6 +449,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   public AndroidRunningState(@NotNull ExecutionEnvironment environment,
                              @NotNull AndroidFacet facet,
+                             @NotNull ApkProvider apkProvider,
                              @Nullable TargetChooser targetChooser,
                              @NotNull String commandLine,
                              AndroidApplicationLauncher applicationLauncher,
@@ -544,6 +458,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
                              @NotNull AndroidRunConfigurationBase configuration,
                              boolean nonDebuggableOnDevice) {
     myFacet = facet;
+    myApkProvider = apkProvider;
     myCommandLine = commandLine;
     myConfiguration = configuration;
 
@@ -562,10 +477,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   public void setDeploy(boolean deploy) {
     myDeploy = deploy;
-  }
-
-  public void setArtifactName(@Nullable String artifactName) {
-    myArtifactName = artifactName;
   }
 
   public void setTargetPackageName(String targetPackageName) {
@@ -589,9 +500,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
-          devicesWrapper[0] = chooseDevicesManually(new Condition<IDevice>() {
+          devicesWrapper[0] = chooseDevicesManually(new Predicate<IDevice>() {
             @Override
-            public boolean value(IDevice device) {
+            public boolean apply(IDevice device) {
               return isCompatibleDevice(device) != Boolean.FALSE;
             }
           });
@@ -674,22 +585,14 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   void start(boolean chooseTargetDevice) {
-    myPackageName = computePackageName(myFacet);
-    if (myPackageName == null) {
+    try {
+      setTargetPackageName(myApkProvider.getPackageName());
+    } catch (ApkProvisionException e) {
+      message(e.getMessage(), STDERR);
+      LOG.error(e);
       getProcessHandler().destroyProcess();
       return;
     }
-
-    myTestPackageName = computeTestPackageName(myFacet, myPackageName);
-
-    setTargetPackageName(myPackageName);
-    final HashMap<AndroidFacet, String> depFacet2PackageName = new HashMap<AndroidFacet, String>();
-
-    if (!fillRuntimeAndTestDependencies(getModule(), depFacet2PackageName)) {
-      getProcessHandler().destroyProcess();
-      return;
-    }
-    myAdditionalFacet2PackageName = depFacet2PackageName;
 
     if (chooseTargetDevice) {
       //TODO: Why this message sometimes does not show up when a not yet booted device is picked?
@@ -708,7 +611,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     if (myDebugMode) {
       AndroidDebugBridge.addClientChangeListener(this);
     }
-    final MyDeviceChangeListener[] deviceListener = {null};
+    final DeviceReadyListener[] deviceListener = {null};
     getProcessHandler().addProcessListener(new ProcessAdapter() {
       @Override
       public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
@@ -758,7 +661,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   @NotNull
-  private IDevice[] chooseDevicesManually(@Nullable Condition<IDevice> filter) {
+  private IDevice[] chooseDevicesManually(@Nullable Predicate<IDevice> filter) {
     final Project project = myFacet.getModule().getProject();
     String value = PropertiesComponent.getInstance(project).getValue(ANDROID_TARGET_DEVICES_PROPERTY);
     String[] selectedSerials = value != null ? fromString(value) : null;
@@ -833,9 +736,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return description.equals(myTargetPackageName) && myApplicationLauncher.isReadyForDebugging(data, getProcessHandler());
   }
 
-  private void launchDebug(Client client) {
-    String port = Integer.toString(client.getDebuggerListenPort());
-    myDebugLauncher.launchDebug(client.getDevice(), port);
+  private void launchDebug(@NotNull Client client) {
+    myDebugLauncher.launchDebug(client);
     myDebugLauncher = null;
   }
 
@@ -889,7 +791,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   @Nullable
-  private MyDeviceChangeListener prepareAndStartAppWhenDeviceIsOnline() {
+  private DeviceReadyListener prepareAndStartAppWhenDeviceIsOnline() {
     if (myTargetDevices.length > 0) {
       boolean allDevicesOnline = true;
       for (IDevice targetDevice : myTargetDevices) {
@@ -914,7 +816,24 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         return null;
       }
     }
-    final MyDeviceChangeListener deviceListener = new MyDeviceChangeListener();
+    Predicate<IDevice> deviceFilter = new Predicate<IDevice>() {
+      @Override
+      public boolean apply(IDevice device) {
+        return isMyDevice(device);
+      }
+    };
+    DeviceReadyListener.Callback callback = new DeviceReadyListener.Callback() {
+      @Override
+      public void onDeviceReady(@NotNull IDevice device) {
+        if ((!prepareAndStartApp(device) || !myDebugMode) && !myStopped) {
+          getProcessHandler().destroyProcess();
+        }
+      }
+    };
+    final DeviceReadyListener deviceListener = new DeviceReadyListener(
+      new ProcessHandlerSimpleLogger(getProcessHandler()),
+      deviceFilter,
+      callback);
     AndroidDebugBridge.addDeviceChangeListener(deviceListener);
     return deviceListener;
   }
@@ -929,7 +848,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   private boolean prepareAndStartApp(IDevice device) {
     if (myDebugMode && myNonDebuggableOnDevice && !device.isEmulator()) {
-      message(AndroidBundle.message("android.cannot.debug.noDebugPermissions", myPackageName, device.getName()), STDERR);
+      message(AndroidBundle.message("android.cannot.debug.noDebugPermissions", getPackageName(), device.getName()), STDERR);
       fireExecutionFailed();
       return false;
     }
@@ -950,10 +869,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     myOpenLogcatAutomatically = openLogcatAutomatically;
   }
 
-  public void setFilterLogcatAutomatically(boolean filterLogcatAutomatically) {
-    myFilterLogcatAutomatically = filterLogcatAutomatically;
-  }
-
   private boolean doPrepareAndStart(@NotNull final IDevice device) {
     if (myClearLogcatBeforeStart) {
       clearLogcatAndConsole(getModule().getProject(), device);
@@ -962,46 +877,44 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     message("Target device: " + device.getName(), STDOUT);
     try {
       if (myDeploy) {
-        if (!checkPackageNames()) return false;
-        IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
-        if (ideaAndroidProject == null || !Projects.isBuildWithGradle(myFacet.getModule())) {
-          if (!uploadAndInstall(device, myPackageName, myFacet)) return false;
-          if (!uploadAndInstallDependentModules(device)) return false;
-        } else {
-          Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
-
-          // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
-          if (!ideaAndroidProject.getDelegate().isLibrary()) {
-            File apk = getApk(selectedVariant, device);
-            if (apk == null) {
-              String message =
-                AndroidBundle.message("deployment.failed.cannot.determine.apk", selectedVariant.getDisplayName(), device.getName());
-              message(message, STDERR);
-              return false;
-            }
-            if (!uploadAndInstallApk(device, myPackageName, apk.getAbsolutePath())) {
-              return false;
-            }
-            trackInstallation(device);
-          }
-
-          // install test apk
-          if (getConfiguration() instanceof AndroidTestRunConfiguration) {
-            BaseArtifact testArtifactInfo = ideaAndroidProject.findSelectedTestArtifactInSelectedVariant();
-            if (testArtifactInfo instanceof AndroidArtifact) {
-              AndroidArtifactOutput output = GradleUtil.getOutput((AndroidArtifact) testArtifactInfo);
-              File testApk = output.getMainOutputFile().getOutputFile();
-              if (!uploadAndInstallApk(device, myTestPackageName, testApk.getAbsolutePath())) {
-                return false;
-              }
-            }
+        Collection<ApkInfo> apks;
+        try {
+          apks = myApkProvider.getApks(device);
+        } catch (ApkProvisionException e) {
+          message(e.getMessage(), STDERR);
+          LOG.warn(e);
+          return false;
+        }
+        for (ApkInfo apk : apks) {
+          if (!uploadAndInstallApk(device, apk.getApplicationId(), apk.getFile())) {
+            return false;
           }
         }
+        trackInstallation(device);
         myApplicationDeployed = true;
       }
-      final AndroidApplicationLauncher.LaunchResult launchResult =
-        myApplicationLauncher.launch(this, device);
 
+      // From Version 23 onwards (in the emulator, possibly later on devices), we can dismiss the keyguard
+      // with "adb shell wm dismiss-keyguard". This allows the application to show up without the user having
+      // to manually dismiss the keyguard.
+      final AndroidVersion canDismissKeyguard = new AndroidVersion(23, null);
+      if (canDismissKeyguard.compareTo(DevicePropertyUtil.getDeviceVersion(device)) <= 0) {
+        // It is not necessary to wait for the keyguard to be dismissed. On a slow emulator, this seems
+        // to take a while (6s on my machine)
+        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              device.executeShellCommand("wm dismiss-keyguard", new NullOutputReceiver(), 10, TimeUnit.SECONDS);
+            }
+            catch (Exception e) {
+              LOG.warn("Unable to dismiss keyguard before launching activity");
+            }
+          }
+        });
+      }
+
+      final AndroidApplicationLauncher.LaunchResult launchResult = myApplicationLauncher.launch(this, device);
       if (launchResult == AndroidApplicationLauncher.LaunchResult.STOP) {
         return false;
       }
@@ -1068,89 +981,37 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
   }
 
+  private static int ourInstallationCount = 0;
+
   private static void trackInstallation(@NotNull IDevice device) {
     if (!UsageTracker.getInstance().canTrack()) {
       return;
     }
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_APK_DEPLOYED, null, null);
+    // only track every 10th installation (just to reduce the load on the server)
+    ourInstallationCount = (ourInstallationCount + 1) % 10;
+    if (ourInstallationCount != 0) {
+      return;
+    }
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_SERIAL_HASH,
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_DEPLOYMENT_APK, null, null);
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_SERIAL_HASH,
                                           Hashing.md5().hashString(device.getSerialNumber(), Charsets.UTF_8).toString(), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_BUILD_TAGS,
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_BUILD_TAGS,
                                           device.getProperty(IDevice.PROP_BUILD_TAGS), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_BUILD_TYPE,
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_BUILD_TYPE,
                                           device.getProperty(IDevice.PROP_BUILD_TYPE), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_BUILD_VERSION_RELEASE,
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_BUILD_VERSION_RELEASE,
                                           device.getProperty(IDevice.PROP_BUILD_VERSION), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_BUILD_API_LEVEL,
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_BUILD_API_LEVEL,
                                           device.getProperty(IDevice.PROP_BUILD_API_LEVEL), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_MANUFACTURER,
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_MANUFACTURER,
                                           device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_MODEL,
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_MODEL,
                                           device.getProperty(IDevice.PROP_DEVICE_MODEL), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICEINFO, UsageTracker.INFO_DEVICE_CPU_ABI,
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_CPU_ABI,
                                           device.getProperty(IDevice.PROP_DEVICE_CPU_ABI), null);
-  }
-
-  @Nullable
-  private static File getApk(@NotNull Variant variant, @NotNull IDevice device) {
-    AndroidArtifact mainArtifact = variant.getMainArtifact();
-    List<AndroidArtifactOutput> outputs = Lists.newArrayList(mainArtifact.getOutputs());
-    if (outputs.isEmpty()) {
-      LOG.info("No outputs for the main artifact of variant: " + variant.getDisplayName());
-      return null;
-    }
-
-    List<String> abis = device.getAbis();
-    int density = device.getDensity();
-    Set<String> variantAbiFilters = mainArtifact.getAbiFilters();
-    List<OutputFile> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
-    if (apkFiles.isEmpty()) {
-      String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
-      LOG.error(message);
-      return null;
-    }
-    return apkFiles.get(0).getOutputFile();
-  }
-
-  private boolean checkPackageNames() {
-    final Map<String, List<String>> packageName2ModuleNames = new HashMap<String, List<String>>();
-    packageName2ModuleNames.put(myPackageName, new ArrayList<String>(Arrays.asList(myFacet.getModule().getName())));
-
-    for (Map.Entry<AndroidFacet, String> entry : myAdditionalFacet2PackageName.entrySet()) {
-      final String moduleName = entry.getKey().getModule().getName();
-      final String packageName = entry.getValue();
-      List<String> list = packageName2ModuleNames.get(packageName);
-
-      if (list == null) {
-        list = new ArrayList<String>();
-        packageName2ModuleNames.put(packageName, list);
-      }
-      list.add(moduleName);
-    }
-    boolean result = true;
-
-    for (Map.Entry<String, List<String>> entry : packageName2ModuleNames.entrySet()) {
-      final String packageName = entry.getKey();
-      final List<String> moduleNames = entry.getValue();
-
-      if (moduleNames.size() > 1) {
-        final StringBuilder messageBuilder = new StringBuilder("Applications have the same package name ");
-        messageBuilder.append(packageName).append(":\n    ");
-
-        for (Iterator<String> it = moduleNames.iterator(); it.hasNext(); ) {
-          String moduleName = it.next();
-          messageBuilder.append(moduleName);
-          if (it.hasNext()) {
-            messageBuilder.append(", ");
-          }
-        }
-        message(messageBuilder.toString(), STDERR);
-        result = false;
-      }
-    }
-    return result;
   }
 
   protected static void clearLogcatAndConsole(@NotNull final Project project, @NotNull final IDevice device) {
@@ -1203,91 +1064,32 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return true;
   }
 
-  private boolean uploadAndInstallDependentModules(@NotNull IDevice device)
-    throws IOException, AdbCommandRejectedException, TimeoutException {
-    for (AndroidFacet depFacet : myAdditionalFacet2PackageName.keySet()) {
-      String packageName = AndroidModuleInfo.get(depFacet).getPackage();
-      if (packageName == null) {
-        packageName = myAdditionalFacet2PackageName.get(depFacet);
-      }
-      assert packageName != null;
-      if (!uploadAndInstall(device, packageName, depFacet)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private static String computeTestPackageName(@NotNull AndroidFacet facet, @NotNull String packageName) {
-    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    if (ideaAndroidProject == null || !Projects.isBuildWithGradle(facet.getModule())) {
-      return packageName;
-    }
-
-    // In the case of Gradle projects, either the merged flavor provides a test package name,
-    // or we just append ".test" to the source package name
-    Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
-    String testPackageName = selectedVariant.getMergedFlavor().getTestApplicationId();
-    return (testPackageName != null) ? testPackageName : packageName + DEFAULT_TEST_PACKAGE_SUFFIX;
-  }
-
-  private boolean uploadAndInstall(@NotNull IDevice device, @NotNull String packageName, AndroidFacet facet)
-    throws IOException, AdbCommandRejectedException, TimeoutException {
-    final Module module = facet.getModule();
-    String localPath;
-
-    if (myArtifactName != null && myArtifactName.length() > 0) {
-      final Artifact artifact = ArtifactManager.getInstance(myEnv.getProject()).findArtifact(myArtifactName);
-
-      if (artifact == null) {
-        message("ERROR: cannot find artifact \"" + myArtifactName + '"', STDERR);
-        return false;
-      }
-      if (!AndroidArtifactUtil.isRelatedArtifact(artifact, module)) {
-        message("ERROR: artifact \"" + myArtifactName + "\" doesn't contain packaged module \"" + module.getName() + '"', STDERR);
-        return false;
-      }
-      final String artifactOutPath = artifact.getOutputFilePath();
-
-      if (artifactOutPath == null || artifactOutPath.length() == 0) {
-        message("ERROR: output path is not specified for artifact \"" + myArtifactName + '"', STDERR);
-        return false;
-      }
-      localPath = FileUtil.toSystemDependentName(artifactOutPath);
-    }
-    else {
-      localPath = AndroidRootUtil.getApkPath(facet);
-    }
-    if (localPath == null) {
-      message("ERROR: APK path is not specified for module \"" + module.getName() + '"', STDERR);
-      return false;
-    }
-    return uploadAndInstallApk(device, packageName, localPath);
-  }
-
   /**
    * Installs the given apk on the device.
    * @return whether the installation was successful
    */
-  private boolean uploadAndInstallApk(@NotNull IDevice device, @NotNull String packageName, @NotNull String localPath)
+  private boolean uploadAndInstallApk(@NotNull IDevice device, @NotNull String packageName, @NotNull File localFile)
     throws IOException, AdbCommandRejectedException, TimeoutException {
 
     if (myStopped) return false;
     String remotePath = "/data/local/tmp/" + packageName;
     String exceptionMessage;
     String errorMessage;
-    message("Uploading file\n\tlocal path: " + localPath + "\n\tremote path: " + remotePath, STDOUT);
+    message("Uploading file\n\tlocal path: " + localFile + "\n\tremote path: " + remotePath, STDOUT);
     try {
       InstalledApks installedApks = ServiceManager.getService(InstalledApks.class);
-      if (installedApks.isInstalled(device, new File(localPath), packageName)) {
-        message("No apk changes detected. Skipping file upload, force stopping package instead.", STDOUT);
-        forceStopPackageSilently(device, packageName, true);
+      if (myConfiguration.SKIP_NOOP_APK_INSTALLATIONS && installedApks.isInstalled(device, localFile, packageName)) {
+        message("No apk changes detected.", STDOUT);
+        if (myConfiguration.FORCE_STOP_RUNNING_APP) {
+          message("Skipping file upload, force stopping package instead.", STDOUT);
+          forceStopPackageSilently(device, packageName, true);
+        }
         return true;
       } else {
-        device.pushFile(localPath, remotePath);
+        device.pushFile(localFile.getPath(), remotePath);
         boolean installed = installApp(device, remotePath, packageName);
         if (installed) {
-          installedApks.setInstalled(device, new File(localPath), packageName);
+          installedApks.setInstalled(device, localFile, packageName);
         }
         return installed;
       }
@@ -1313,7 +1115,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         // Gradle Files' if it is a gradle project.
         // See https://code.google.com/p/android/issues/detail?id=59018 for more info.
 
-        // The problem is that at this point, the project maybe a Gradle-based project, but its IdeaAndroidProject may be null.
+        // The problem is that at this point, the project maybe a Gradle-based project, but its AndroidGradleModel may be null.
         // We can check if there is a top-level build.gradle or settings.gradle file.
         DataManager.getInstance().getDataContextFromFocus().doWhenDone(new Consumer<DataContext>() {
           @Override
@@ -1383,10 +1185,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
       switch (result.failureCode) {
         case DEVICE_NOT_RESPONDING:
-          message("Device is not ready. Waiting for " + WAITING_TIME + " sec.", STDOUT);
+          message("Device is not ready. Waiting for " + WAITING_TIME_SECS + " sec.", STDOUT);
           synchronized (myLock) {
             try {
-              myLock.wait(WAITING_TIME * 1000);
+              myLock.wait(WAITING_TIME_SECS * 1000);
             }
             catch (InterruptedException e) {
               LOG.info(e);
@@ -1414,6 +1216,16 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           showMessageDialog(AndroidBundle.message("deployment.failed.no.certificates.explanation"));
           retry = false;
           break;
+        case INSTALL_FAILED_OLDER_SDK:
+          reason = validateSdkVersion(device);
+          if (reason != null) {
+            if (shouldOpenProjectStructure(reason)) {
+              openProjectStructure();
+            }
+            retry =  false;  // Don't retry as there needs to be another sync and build.
+            break;
+          }
+          // Maybe throw an exception because this shouldn't happen. But let it fall through to UNTYPED_ERROR for now.
         case UNTYPED_ERROR:
           reason = AndroidBundle.message("deployment.failed.uninstall.prompt.generic.text", result.failureMessage);
           retry = promptUninstallExistingApp(reason) && uninstallPackage(device, packageName);
@@ -1476,6 +1288,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     INSTALL_FAILED_VERSION_DOWNGRADE,
     INSTALL_FAILED_DEXOPT,
     NO_CERTIFICATE,
+    INSTALL_FAILED_OLDER_SDK,
     UNTYPED_ERROR
   }
 
@@ -1508,6 +1321,49 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
                              receiver.output.toString());
   }
 
+  private String validateSdkVersion(@NotNull IDevice device) {
+    AndroidVersion deviceVersion = DevicePropertyUtil.getDeviceVersion(device);
+    AndroidVersion minSdkVersion = myFacet.getAndroidModuleInfo().getRuntimeMinSdkVersion();
+    if (!deviceVersion.canRun(minSdkVersion)) {
+      message("Device API level: " + deviceVersion.toString(), STDERR); // Log the device version to console for easy reference.
+      return AndroidBundle.message("deployment.failed.reason.oldersdk", minSdkVersion.toString(), deviceVersion.toString());
+    }
+    else {
+      return null;
+    }
+  }
+
+  private boolean shouldOpenProjectStructure(@NotNull final String reason) {
+    final AtomicBoolean open = new AtomicBoolean(false);
+    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+      @Override
+      public void run() {
+        int result = Messages.showOkCancelDialog(myFacet.getModule().getProject(), reason,
+                                                 AndroidBundle.message("deployment.failed.title"),
+                                                 Messages.getQuestionIcon());
+        open.set(result == Messages.OK);
+      }
+    }, ModalityState.defaultModalityState());
+
+    return open.get();
+  }
+
+  /**
+   * Opens the project structure dialog and selects the flavors tab.
+   */
+  private boolean openProjectStructure() {
+    final ProjectSettingsService service = ProjectSettingsService.getInstance(myFacet.getModule().getProject());
+    if (service instanceof AndroidProjectSettingsService) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          ((AndroidProjectSettingsService)service).openAndSelectFlavorsEditor(myFacet.getModule());
+        }
+      });
+    }
+    return false;
+  }
+
   private InstallFailureCode getFailureCode(MyReceiver receiver) {
     if (receiver.errorType == NO_ERROR && receiver.failureMessage == null) {
       return InstallFailureCode.NO_ERROR;
@@ -1521,6 +1377,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return InstallFailureCode.INSTALL_FAILED_VERSION_DOWNGRADE;
     } else if ("INSTALL_FAILED_DEXOPT".equals(receiver.failureMessage)) {
       return InstallFailureCode.INSTALL_FAILED_DEXOPT;
+    } else if ("INSTALL_FAILED_OLDER_SDK".equals(receiver.failureMessage)) {
+      return InstallFailureCode.INSTALL_FAILED_OLDER_SDK;
     }
 
     return InstallFailureCode.UNTYPED_ERROR;
@@ -1528,86 +1386,5 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   public void addListener(@NotNull AndroidRunningStateListener listener) {
     myListeners.add(listener);
-  }
-
-  private class MyDeviceChangeListener implements AndroidDebugBridge.IDeviceChangeListener, Disposable {
-    private final MergingUpdateQueue myQueue =
-      new MergingUpdateQueue("ANDROID_DEVICE_STATE_UPDATE_QUEUE", 1000, true, null, this, null, false);
-
-    @GuardedBy("this")
-    private boolean installed;
-
-    @Override
-    public void deviceConnected(final IDevice device) {
-      // avd may be null if usb device is used, or if it didn't set by ddmlib yet
-      if (device.getAvdName() == null || isMyDevice(device)) {
-        message("Device connected: " + device.getSerialNumber(), STDOUT);
-
-        // we need this, because deviceChanged is not triggered if avd is set to the emulator
-        myQueue.queue(new MyDeviceStateUpdate(device));
-      }
-    }
-
-    @Override
-    public void deviceDisconnected(IDevice device) {
-      if (isMyDevice(device)) {
-        message("Device disconnected: " + device.getSerialNumber(), STDOUT);
-      }
-    }
-
-    @Override
-    public void deviceChanged(final IDevice device, int changeMask) {
-      myQueue.queue(new Update(device.getSerialNumber()) {
-        @Override
-        public void run() {
-          onDeviceChanged(device);
-        }
-      });
-    }
-
-    private synchronized void onDeviceChanged(IDevice device) {
-      if (installed || !isMyDevice(device) || !device.isOnline()) {
-        return;
-      }
-
-      if (myTargetDevices.length == 0) {
-        myTargetDevices = new IDevice[]{device};
-      }
-
-      // Devices (esp. emulators) may be reported as online, but may not have services running yet. Attempting to
-      // install at this time would result in an error like "Could not access the Package Manager".
-      // We use the following heuristic to check that the system is in a reasonable state to install apps.
-      if (device.getClients().length < 5 &&
-          device.getClient("android.process.acore") == null &&
-          device.getClient("com.google.android.wearable.app") == null) {
-        message(String.format("Device %1$s is online, waiting for processes to start up..", device.getName()), STDOUT);
-        return;
-      }
-
-      message("Device is ready: " + device.getName(), STDOUT);
-      installed = true;
-      if ((!prepareAndStartApp(device) || !myDebugMode) && !myStopped) {
-        getProcessHandler().destroyProcess();
-      }
-    }
-
-    @Override
-    public void dispose() {
-    }
-
-    private class MyDeviceStateUpdate extends Update {
-      private final IDevice myDevice;
-
-      public MyDeviceStateUpdate(IDevice device) {
-        super(device.getSerialNumber());
-        myDevice = device;
-      }
-
-      @Override
-      public void run() {
-        onDeviceChanged(myDevice);
-        myQueue.queue(new MyDeviceStateUpdate(myDevice));
-      }
-    }
   }
 }

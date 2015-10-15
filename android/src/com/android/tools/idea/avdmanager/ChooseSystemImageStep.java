@@ -18,7 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.tools.idea.wizard.DynamicWizardStepWithDescription;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.Disposable;

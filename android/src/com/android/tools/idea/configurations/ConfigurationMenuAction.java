@@ -55,7 +55,12 @@ public class ConfigurationMenuAction extends FlatComboAction {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Configuration to render this layout with inside the IDE");
-    presentation.setIcon(AndroidIcons.AndroidFile);
+    if (RenderService.NELE_ENABLED) {
+      presentation.setText("Preview");
+      presentation.setIcon(AndroidIcons.NeleIcons.Preview);
+    } else {
+      presentation.setIcon(AndroidIcons.AndroidFile);
+    }
   }
 
   @Override
@@ -213,11 +218,13 @@ public class ConfigurationMenuAction extends FlatComboAction {
   }
 
   static void addScreenSizeAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
-    group.add(new PreviewAction(context, "Preview All Screen Sizes", ACTION_PREVIEW_MODE, RenderPreviewMode.SCREENS, true));
+    boolean enabled = context.supportsPreviews();
+    group.add(new PreviewAction(context, "Preview All Screen Sizes", ACTION_PREVIEW_MODE, RenderPreviewMode.SCREENS, enabled));
   }
 
   static void addRemovePreviewsAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
-    group.add(new PreviewAction(context, "Remove Previews", ACTION_PREVIEW_MODE, RenderPreviewMode.NONE, true));
+    boolean enabled = context.supportsPreviews();
+    group.add(new PreviewAction(context, "Remove Previews", ACTION_PREVIEW_MODE, RenderPreviewMode.NONE, enabled));
   }
 
   private static final int ACTION_ADD = 1;

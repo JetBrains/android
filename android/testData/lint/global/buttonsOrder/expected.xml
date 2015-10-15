@@ -3,6 +3,6 @@
   <problem>
     <file>layout.xml</file>
     <line>15</line>
-    <description>&lt;html&gt;Layout uses the wrong button order for API &gt;= 14: Create a &lt;code&gt;layout-v14/layout.xml&lt;/code&gt; file with opposite order: OK button should be on the right (was &quot;OK | Cancel&quot;, should be &quot;Cancel | OK&quot;)&lt;/html&gt;</description>
+    <description><html>Layout uses the wrong button order for API &gt;= 14: Create a &lt;code&gt;layout-v14/layout.xml&lt;/code&gt; file with opposite order: OK button should be on the right (was &quot;OK | Cancel&quot;, should be &quot;Cancel | OK&quot;)</html></description>
   </problem>
 </problems>

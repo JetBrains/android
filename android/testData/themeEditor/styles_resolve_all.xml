@@ -1,0 +1,12 @@
+<resources>
+
+  <!-- Base application theme. -->
+  <style name="AppTheme" parent="@android:style/Theme">
+
+    <item name="myAttribute">123</item>
+
+    <item name="windowActionBar">false</item>
+
+  </style>
+
+</resources>

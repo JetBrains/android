@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.designer.AndroidMetaModel;
 import com.android.tools.idea.designer.Insets;
 import com.android.tools.idea.rendering.IncludeReference;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
@@ -295,6 +296,7 @@ public class RadViewComponent extends RadVisualComponent {
         }
       });
       if (viewInfo != null) {
+        viewInfo = RenderService.getSafeBounds(viewInfo);
         return new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());
       }
     }
@@ -337,7 +339,13 @@ public class RadViewComponent extends RadVisualComponent {
 
   @Override
   public boolean canDelete() {
-    return !isBackground() && super.canDelete();
+    // Can't delete root component (isBackground specifically returns false to let
+    // you select these so we can't rely on just isBackground() as before)
+    RadComponent parent = getParent();
+    if (parent == null || parent.getParent() == null && !parent.getMetaModel().isTag(VIEW_MERGE)) {
+      return false;
+    }
+    return super.canDelete();
   }
 
   @Override

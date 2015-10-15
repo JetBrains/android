@@ -18,6 +18,8 @@ package com.android.tools.idea.model;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.AndroidLibrary;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
@@ -34,6 +36,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
@@ -110,16 +113,22 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
   }
 
   @NonNull
-  private ModulePermissions getModulePermissions(@NonNull Module module) {
+  private synchronized ModulePermissions getModulePermissions(@NonNull Module module) {
     if (myModulePermissionsMap == null) {
       myModulePermissionsMap = Maps.newIdentityHashMap();
     }
     ModulePermissions modulePermissions = myModulePermissionsMap.get(module);
-    if (modulePermissions == null) {
-      modulePermissions = new ModulePermissions(module);
-      myModulePermissionsMap.put(module, modulePermissions);
+    if (modulePermissions != null) {
+      return modulePermissions;
     }
+    modulePermissions = new ModulePermissions(module);
+    myModulePermissionsMap.put(module, modulePermissions);
 
+    Module[] dependencies = ModuleRootManager.getInstance(module).getDependencies(false);
+    for (Module dependencyModule : dependencies) {
+      ModulePermissions dependencyModulePermissions = getModulePermissions(dependencyModule);
+      modulePermissions.addDependency(dependencyModulePermissions);
+    }
     return modulePermissions;
   }
 
@@ -310,7 +319,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
     private final AndroidFacet myFacet;
     private List<ManifestPermissions> myManifests;
     private List<LibraryPermissions> myLibraries;
-    private List<ModulePermissions> myDependencies;
+    private List<ModulePermissions> myDependencies = Lists.newArrayList();
     private Set<String> myFoundCache = Sets.newHashSet();
     private Map<String,Boolean> myRevocableCache = Maps.newHashMap();
 
@@ -324,32 +333,33 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
             myManifests.add(getManifestPermissions(manifest));
           }
         }
-        if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
-          Collection<AndroidLibrary> libraries = myFacet.getIdeaAndroidProject().getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
+        AndroidGradleModel androidGradleModel = AndroidGradleModel.get(myFacet);
+        if (androidGradleModel != null) {
+          Collection<AndroidLibrary> libraries = androidGradleModel.getMainArtifact().getDependencies().getLibraries();
           myLibraries = Lists.newArrayList();
           for (AndroidLibrary library : libraries) {
             myLibraries.add(getLibraryPermissions(library));
           }
         }
-
-        Module[] dependencies = ModuleRootManager.getInstance(module).getDependencies(false);
-        if (dependencies.length > 0) {
-          myDependencies = Lists.newArrayListWithExpectedSize(dependencies.length);
-          for (Module depModule : dependencies) {
-            myDependencies.add(getModulePermissions(depModule));
-          }
-        }
       }
+    }
+
+    private void addDependency(@NotNull ModulePermissions modulePermissions) {
+      myDependencies.add(modulePermissions);
     }
 
     @Override
     public boolean hasPermission(@NonNull String permission) {
+      return hasPermission(permission, new HashSet<ModulePermissions>());
+    }
+
+    private boolean hasPermission(@NonNull String permission, Set<ModulePermissions> seen) {
       // Permission already found to be available?
       if (myFoundCache.contains(permission)) {
         return true;
       }
 
-      boolean hasPermission = computeHasPermission(permission);
+      boolean hasPermission = computeHasPermission(permission, seen);
       if (hasPermission) {
         // We only cache *successfully* found permissions. If you've already
         // declared a permission, it's unlikely that it will disappear, so we
@@ -365,8 +375,11 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
       return hasPermission;
     }
 
-    private boolean computeHasPermission(@NonNull String permission) {
+    private boolean computeHasPermission(@NonNull String permission, Set<ModulePermissions> seen) {
       if (myFacet == null) {
+        return false;
+      }
+      if (!seen.add(this)) {
         return false;
       }
 
@@ -380,7 +393,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
 
       if (myDependencies != null) {
         for (ModulePermissions module : myDependencies) {
-          if (module.hasPermission(permission)) {
+          if (module.hasPermission(permission, seen)) {
             return true;
           }
         }
@@ -408,6 +421,18 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
       boolean isRevocable = computeRevocable(permission);
       myRevocableCache.put(permission, isRevocable);
       return isRevocable;
+    }
+
+    @NonNull
+    @Override
+    public AndroidVersion getMinSdkVersion() {
+      return AndroidModuleInfo.get(myFacet).getMinSdkVersion();
+    }
+
+    @NonNull
+    @Override
+    public AndroidVersion getTargetSdkVersion() {
+      return AndroidModuleInfo.get(myFacet).getTargetSdkVersion();
     }
 
     private boolean computeRevocable(@NonNull String permission) {
@@ -488,7 +513,9 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
         continue;
       }
       String nodeName = item.getNodeName();
-      if (nodeName.equals(TAG_USES_PERMISSION)) {
+      if (nodeName.equals(TAG_USES_PERMISSION)
+          || nodeName.equals(TAG_USES_PERMISSION_SDK_23)
+          || nodeName.equals(TAG_USES_PERMISSION_SDK_M)) {
         Element element = (Element)item;
         String name = element.getAttributeNS(ANDROID_URI, ATTR_NAME);
         if (!name.isEmpty()) {

@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +51,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     myTitle.setFont(TITLE_FONT);
     myValidationLabel.setForeground(JBColor.RED);
     add(myRoot);
-    Dimension preferred = new Dimension(500, -1);
+    Dimension preferred = new Dimension(JBUI.scale(500), -1);
     myTitle.setPreferredSize(preferred);
     myDescription.setPreferredSize(preferred);
     myValidationLabel.setPreferredSize(preferred);

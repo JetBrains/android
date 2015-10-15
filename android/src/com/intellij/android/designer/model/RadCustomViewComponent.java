@@ -164,8 +164,7 @@ public class RadCustomViewComponent extends RadViewComponent implements IConfigu
 
   @Override
   public void setProperties(List<Property> properties) {
-    List<Property> oldProperties = getProperties();
-    if (!properties.isEmpty() && (oldProperties == null || oldProperties.isEmpty())) {
+    if (!properties.contains(CLASS_PROPERTY)) {
       properties = new ArrayList<Property>(properties);
       properties.add(0, CLASS_PROPERTY);
     }

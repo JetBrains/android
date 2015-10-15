@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.builder.model.ProductFlavor;
-import com.android.builder.model.Variant;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.xml.AndroidManifestParser;
 import com.android.ide.common.xml.ManifestData;
@@ -315,11 +313,10 @@ public class StringResourceViewPanel implements HyperlinkListener {
 
     // Version code
     String versionCode = null;
-    if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
-        Variant variant = myFacet.getIdeaAndroidProject().getSelectedVariant();
-      ProductFlavor flavor = variant.getMergedFlavor();
-      if (flavor.getVersionCode() != null) {
-        versionCode = flavor.getVersionCode().toString();
+    if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
+      Integer code = myFacet.getAndroidModel().getVersionCode();
+      if (code != null) {
+        versionCode = code.toString();
       }
     }
     if (versionCode == null) {
