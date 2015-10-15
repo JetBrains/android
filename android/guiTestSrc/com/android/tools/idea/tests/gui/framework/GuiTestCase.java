@@ -111,7 +111,7 @@ public abstract class GuiTestCase {
     setIdeSettings();
     setUpSdks();
 
-    LocalFileSystem.getInstance().refresh(false /* synchronous */);
+    refreshFiles();
   }
 
   private static void setIdeSettings() {
@@ -430,5 +430,19 @@ public abstract class GuiTestCase {
   @NotNull
   protected IdeFrameFixture findIdeFrame(@NotNull File projectPath) {
     return IdeFrameFixture.find(myRobot, projectPath, null);
+  }
+
+  protected void refreshFiles() {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            LocalFileSystem.getInstance().refresh(false /* synchronous */);
+          }
+        });
+      }
+    });
   }
 }
