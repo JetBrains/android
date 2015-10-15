@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -56,6 +57,8 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
  */
 public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue>
   implements CustomReferenceConverter<ResourceValue>, AttributeValueDocumentationProvider {
+  private static final ImmutableSet<String> TOP_PRIORITY_VALUES =
+    ImmutableSet.of(SdkConstants.VALUE_MATCH_PARENT, SdkConstants.VALUE_WRAP_CONTENT);
   private final List<String> myResourceTypes;
   private ResolvingConverter<String> myAdditionalConverter;
   private boolean myAdditionalConverterSoft = false;
@@ -373,8 +376,19 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       builder = builder.withLookupString(resourceName);
     }
 
-    // Show deprecated values in the end of the autocompletion list
-    return PrioritizedLookupElement.withPriority(builder, deprecated ? 0 : 1);
+    final int priority;
+    if (deprecated) {
+      // Show deprecated values in the end of the autocompletion list
+      priority = 0;
+    } else if (TOP_PRIORITY_VALUES.contains(value)) {
+      // http://b.android.com/189164
+      // match_parent and wrap_content are shown higher in the list of autocompletions, if they're available
+      priority = 2;
+    } else {
+      priority = 1;
+    }
+
+    return PrioritizedLookupElement.withPriority(builder, priority);
   }
 
   @Override
