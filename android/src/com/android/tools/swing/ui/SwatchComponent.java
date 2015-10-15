@@ -237,7 +237,8 @@ public class SwatchComponent extends JComponent {
     }
 
     @Override
-    public void paint(@Nullable Component c, @NotNull Graphics g, int x, int y, int w, int h) {
+    public void paint(@Nullable Component c, @NotNull Graphics graphics, int x, int y, int w, int h) {
+      Graphics2D g = (Graphics2D)graphics;
       g.setColor(JBColor.LIGHT_GRAY);
       g.fillRect(x, y, w, h);
       g.setColor(JBColor.DARK_GRAY);
