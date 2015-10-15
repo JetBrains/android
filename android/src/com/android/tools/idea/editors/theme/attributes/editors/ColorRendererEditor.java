@@ -53,9 +53,9 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
     if (!colors.isEmpty()) {
       Color color = Iterables.getLast(colors);
       String attributeName = item.getName();
-      ImmutableMap<String, Color> contrastColorsWithWarning = ColorUtils.getContrastColorsWithWarning(context, attributeName);
+      ImmutableMap<String, Color> contrastColorsWithDescription = ColorUtils.getContrastColorsWithDescription(context, attributeName);
       component.setWarning(
-        ColorUtils.getContrastWarningMessage(contrastColorsWithWarning, color, ColorUtils.isBackgroundAttribute(attributeName)));
+        ColorUtils.getContrastWarningMessage(contrastColorsWithDescription, color, ColorUtils.isBackgroundAttribute(attributeName)));
     }
     else {
       component.setWarning(null);

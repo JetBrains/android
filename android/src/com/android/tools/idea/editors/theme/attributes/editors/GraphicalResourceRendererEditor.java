@@ -229,9 +229,9 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
         dialog.generateColorSuggestions(primaryColor, attributeName);
       }
 
-      ImmutableMap<String, Color> contrastColorsWithWarning = ColorUtils.getContrastColorsWithWarning(myContext, attributeName);
-      if (!contrastColorsWithWarning.isEmpty()) {
-        dialog.setContrastParameters(contrastColorsWithWarning, ColorUtils.isBackgroundAttribute(attributeName));
+      ImmutableMap<String, Color> contrastColorsWithDescription = ColorUtils.getContrastColorsWithDescription(myContext, attributeName);
+      if (!contrastColorsWithDescription.isEmpty()) {
+        dialog.setContrastParameters(contrastColorsWithDescription, ColorUtils.isBackgroundAttribute(attributeName), true);
       }
 
       final String oldValue = myItem.getSelectedValue().getValue();
