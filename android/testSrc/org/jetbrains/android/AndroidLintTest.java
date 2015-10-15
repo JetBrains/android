@@ -327,6 +327,24 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Set application icon", "AndroidManifest.xml", "xml");
   }
 
+  public void testMissingLeanbackSupport() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMissingLeanbackSupportInspection(),
+                  "Add uses-feature tag", "AndroidManifest.xml", "xml");
+  }
+
+  public void testPermissionImpliesHardware() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintPermissionImpliesUnsupportedHardwareInspection(),
+                  "Add uses-feature tag", "AndroidManifest.xml", "xml");
+  }
+
+  public void testMissingTvBanner() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMissingTvBannerInspection(),
+                  "Set banner attribute", "AndroidManifest.xml", "xml");
+  }
+
   /* Disabled: The mipmap check now only warns about mipmap usage in Gradle projects that use
    * density filtering. Re-enable this if we broaden the mipmap check, or if we update the AndroidLintTest
    * to also check Gradle projects.
