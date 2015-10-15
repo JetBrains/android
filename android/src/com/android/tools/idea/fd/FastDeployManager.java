@@ -186,7 +186,7 @@ public class FastDeployManager implements ProjectComponent {
     AppState appState = getAppState(device, module);
     // TODO: Use appState != AppState.NOT_RUNNING instead when we automatically
     // handle fronting background activities here
-    return appState != AppState.FOREGROUND;
+    return appState == AppState.FOREGROUND;
   }
 
   /**

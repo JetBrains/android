@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.fd;
+package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.FastDeployManager;
@@ -28,6 +28,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
@@ -35,14 +36,20 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Locale;
 
 public class PatchDeployState implements RunProfileState {
+  private final RunContentDescriptor myDescriptor;
+  private final ProcessHandler myProcessHandler;
   private final AndroidFacet myFacet;
   private final Collection<IDevice> myDevices;
 
-  public PatchDeployState(@NotNull AndroidFacet facet, @NotNull Collection<IDevice> devices) {
+  public PatchDeployState(@NotNull RunContentDescriptor descriptor, @NotNull AndroidFacet facet, @NotNull Collection<IDevice> devices) {
+    myDescriptor = descriptor;
+    myProcessHandler = descriptor.getProcessHandler();
     myFacet = facet;
     myDevices = devices;
   }
@@ -50,33 +57,27 @@ public class PatchDeployState implements RunProfileState {
   @Nullable
   @Override
   public ExecutionResult execute(Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
-    final ProcessHandler processHandler = new DefaultDebugProcessHandler();
-
-    final TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(myFacet.getModule().getProject());
-    ConsoleView console = builder.getConsole();
-    console.attachToProcess(processHandler);
-
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
         // @formatter:off
         String msg = String.format(Locale.US,
-                                   "Incrementally updating app on the following %1$s: %2$s\n",
+                                   "%1$s: Incrementally updating app on the following %2$s: %3$s\n",
+                                   new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime()),
                                    StringUtil.pluralize("device", myDevices.size()),
                                    join(myDevices));
         // @formatter:on
-        processHandler.notifyTextAvailable(msg, ProcessOutputTypes.STDOUT);
+        myProcessHandler.notifyTextAvailable(msg, ProcessOutputTypes.STDOUT);
 
         for (IDevice device : myDevices) {
           FastDeployManager.pushChanges(device, myFacet);
         }
 
-        processHandler.notifyTextAvailable("Incremental update complete.\n", ProcessOutputTypes.STDOUT);
-        processHandler.destroyProcess();
+        myProcessHandler.notifyTextAvailable("Incremental update complete.\n", ProcessOutputTypes.STDOUT);
       }
     });
 
-    return new DefaultExecutionResult(console, processHandler);
+    return new DefaultExecutionResult(myDescriptor.getExecutionConsole(), myProcessHandler);
   }
 
   private static String join(Collection<IDevice> devices) {
@@ -91,5 +92,9 @@ public class PatchDeployState implements RunProfileState {
     }
 
     return sb.toString().trim();
+  }
+
+  public RunContentDescriptor getDescriptor() {
+    return myDescriptor;
   }
 }
