@@ -73,10 +73,12 @@ public class ThemeEditorTable extends CellSpanTable {
     myGoToListener = goToListener;
   }
 
-  public void customizeTable(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel) {
+  public void customizeTable(@NotNull ThemeEditorContext context,
+                             @NotNull AndroidThemePreviewPanel previewPanel,
+                             @NotNull ParentRendererEditor.ThemeParentChangedListener themeParentChangedListener) {
     myContext = context;
     myJavadocAction = new ShowJavadocAction(this, myContext);
-    setRenderersAndEditors(previewPanel);
+    setRenderersAndEditors(previewPanel, themeParentChangedListener);
   }
 
   @Override
@@ -134,7 +136,8 @@ public class ThemeEditorTable extends CellSpanTable {
     updateRowHeights();
   }
 
-  private void setRenderersAndEditors(@NotNull AndroidThemePreviewPanel previewPanel) {
+  private void setRenderersAndEditors(@NotNull AndroidThemePreviewPanel previewPanel,
+                                      @NotNull ParentRendererEditor.ThemeParentChangedListener themeParentChangedListener) {
     Project project = myContext.getProject();
     ResourcesCompletionProvider completionProvider = new ResourcesCompletionProvider(myContext);
     final AttributeReferenceRendererEditor styleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
@@ -148,7 +151,7 @@ public class ThemeEditorTable extends CellSpanTable {
     setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(new BooleanRendererEditor(myContext)));
     setDefaultRenderer(Enum.class, new DelegatingCellRenderer(new EnumRendererEditor()));
     setDefaultRenderer(Flag.class, new DelegatingCellRenderer(new FlagRendererEditor()));
-    setDefaultRenderer(AttributesTableModel.ParentAttribute.class, new DelegatingCellRenderer(new ParentRendererEditor(myContext)));
+    setDefaultRenderer(AttributesTableModel.ParentAttribute.class, new DelegatingCellRenderer(new ParentRendererEditor(myContext, themeParentChangedListener)));
     setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(new DrawableRendererEditor(myContext, previewPanel, false)));
     setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
       @Override
@@ -175,7 +178,7 @@ public class ThemeEditorTable extends CellSpanTable {
     setDefaultEditor(Boolean.class, new DelegatingCellEditor(false, new BooleanRendererEditor(myContext)));
     setDefaultEditor(Enum.class, new DelegatingCellEditor(false, new EnumRendererEditor()));
     setDefaultEditor(Flag.class, new DelegatingCellEditor(false, new FlagRendererEditor()));
-    setDefaultEditor(AttributesTableModel.ParentAttribute.class, new DelegatingCellEditor(false, new ParentRendererEditor(myContext)));
+    setDefaultEditor(AttributesTableModel.ParentAttribute.class, new DelegatingCellEditor(false, new ParentRendererEditor(myContext, themeParentChangedListener)));
 
     // We allow to edit style pointers as Strings.
     setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor));
