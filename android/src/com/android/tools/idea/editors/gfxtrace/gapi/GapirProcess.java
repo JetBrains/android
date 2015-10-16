@@ -64,8 +64,7 @@ public final class GapirProcess extends ChildProcess {
       LOG.warn("Could not find gapir.");
       return false;
     }
-    pb.command(GapiPaths.gapir().getAbsolutePath(), "--port", "0", "--nocache", "--log",
-               new File(PathManager.getLogPath(), "gapir.log").getAbsolutePath());
+    pb.command(GapiPaths.gapir().getAbsolutePath(), "--log", new File(PathManager.getLogPath(), "gapir.log").getAbsolutePath());
     return true;
   }
 
