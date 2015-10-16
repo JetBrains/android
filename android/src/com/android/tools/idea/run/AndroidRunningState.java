@@ -77,7 +77,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   private final ApkProvider myApkProvider;
 
-  private String myPackageName;
+  @NotNull private final String myPackageName;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final AndroidApplicationLauncher myApplicationLauncher;
   @NotNull private final ProcessHandlerConsolePrinter myPrinter;
@@ -108,7 +108,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
                              @NotNull ProcessHandlerConsolePrinter printer,
                              @NotNull AndroidApplicationLauncher applicationLauncher,
                              @NotNull LaunchOptions launchOptions,
-                             @NotNull AndroidRunConfigurationBase configuration) {
+                             @NotNull AndroidRunConfigurationBase configuration) throws ExecutionException {
     myFacet = facet;
     myApkProvider = apkProvider;
     myDeviceTarget = deviceTarget;
@@ -118,6 +118,12 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myEnv = environment;
     myApplicationLauncher = applicationLauncher;
     myLaunchOptions = launchOptions;
+
+    try {
+      myPackageName = myApkProvider.getPackageName();
+    } catch (ApkProvisionException e) {
+      throw new ExecutionException("Unable to determine package name", e);
+    }
   }
 
   // Used by downstream plugins.
@@ -154,14 +160,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   public Object getRunningLock() {
     return myLock;
-  }
-
-  private void setPackageName() throws ExecutionException {
-    try {
-      myPackageName = myApkProvider.getPackageName();
-    } catch (ApkProvisionException e) {
-      throw new ExecutionException("Unable to determine package name", e);
-    }
   }
 
   @NotNull
@@ -253,10 +251,10 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myConsole = console;
   }
 
+  // Note: execute isn't called if we are re-attaching to an existing session and there is no need to create
+  // a new process handler and console. In such a scenario, control flow directly goes to #start().
   @Override
   public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
-    setPackageName();
-
     myProcessHandler = new DefaultDebugProcessHandler();
     AndroidProcessText.attach(myProcessHandler);
     myConsole = myConfiguration.attachConsole(this, executor);
