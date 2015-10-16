@@ -39,10 +39,8 @@ import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.runners.ProgramRunner;
-import com.intellij.execution.runners.RunContentBuilder;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.execution.ui.ObservableConsoleView;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
@@ -79,7 +77,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   private final ApkProvider myApkProvider;
 
-  private String myTargetPackageName;
+  private String myPackageName;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final AndroidApplicationLauncher myApplicationLauncher;
   @NotNull private final ProcessHandlerConsolePrinter myPrinter;
@@ -158,12 +156,17 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     return myLock;
   }
 
-  public String getPackageName() {
+  private void setPackageName() throws ExecutionException {
     try {
-      return myApkProvider.getPackageName();
+      myPackageName = myApkProvider.getPackageName();
     } catch (ApkProvisionException e) {
-      return null;
+      throw new ExecutionException("Unable to determine package name", e);
     }
+  }
+
+  @NotNull
+  public String getPackageName() {
+    return myPackageName;
   }
 
   public String getTestPackageName() {
@@ -193,12 +196,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   @Override
   public ConsoleView getConsoleView() {
     return myConsole;
-  }
-
-  public void setTargetPackageName(String targetPackageName) {
-    synchronized (myDebugLock) {
-      myTargetPackageName = targetPackageName;
-    }
   }
 
   @NotNull
@@ -232,19 +229,19 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
         }
       }
     }
-  }
 
-  private boolean isToLaunchDebug(@NotNull ClientData data) {
-    if (myApplicationLauncher.isReadyForDebugging(data, getProcessHandler())) {
-      // early exit without checking package name in case the debug package doesn't match
-      // our target package name. This happens for instance when debugging a test that doesn't launch an application
-      return true;
+    private boolean isToLaunchDebug(@NotNull ClientData data) {
+      if (myApplicationLauncher.isReadyForDebugging(data, getProcessHandler())) {
+        // early exit without checking package name in case the debug package doesn't match
+        // our target package name. This happens for instance when debugging a test that doesn't launch an application
+        return true;
+      }
+      String description = data.getClientDescription();
+      if (description == null) {
+        return false;
+      }
+      return description.equals(getPackageName());
     }
-    String description = data.getClientDescription();
-    if (description == null) {
-      return false;
-    }
-    return description.equals(myTargetPackageName);
   }
 
   private void launchDebug(@NotNull Client client) {
@@ -258,6 +255,8 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   @Override
   public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
+    setPackageName();
+
     myProcessHandler = new DefaultDebugProcessHandler();
     AndroidProcessText.attach(myProcessHandler);
     myConsole = myConfiguration.attachConsole(this, executor);
@@ -301,15 +300,6 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   }
 
   void start() {
-    try {
-      setTargetPackageName(myApkProvider.getPackageName());
-    } catch (ApkProvisionException e) {
-      myPrinter.stderr(e.getMessage());
-      LOG.error(e);
-      getProcessHandler().destroyProcess();
-      return;
-    }
-
     final AtomicInteger startedCount = new AtomicInteger();
     for (ListenableFuture<IDevice> targetDevice : myDeviceTarget.getDeviceFutures()) {
       Futures.addCallback(targetDevice, new FutureCallback<IDevice>() {
@@ -407,15 +397,16 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
       }
 
       final Client client;
+      final String pkgName = getPackageName();
       synchronized (myDebugLock) {
-        client = device.getClient(myTargetPackageName);
+        client = device.getClient(pkgName);
         if (myDebugLauncher != null) {
           if (client != null &&
               myApplicationLauncher.isReadyForDebugging(client.getClientData(), getProcessHandler())) {
             launchDebug(client);
           }
           else {
-            myPrinter.stdout("Waiting for process: " + myTargetPackageName);
+            myPrinter.stdout("Waiting for process: " + pkgName);
           }
         }
       }
@@ -502,7 +493,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
                                           device.getProperty(IDevice.PROP_DEVICE_CPU_ABI), null);
   }
 
-  protected static void clearLogcatAndConsole(@NotNull final Project project, @NotNull final IDevice device) {
+  private static void clearLogcatAndConsole(@NotNull final Project project, @NotNull final IDevice device) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
