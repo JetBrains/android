@@ -64,8 +64,7 @@ public final class GapisProcess extends ChildProcess {
       LOG.warn("Could not find gapis, but needed to start the server.");
       return false;
     }
-    pb.command(GapiPaths.gapis().getAbsolutePath(), "-shutdown_on_disconnect", "-rpc", SERVER_HOST + ":0", "-logs", PathManager.getLogPath(),
-               "--no_gapir", "--local_gapir_port", Integer.toString(myGapir.getPort()));
+    pb.command(GapiPaths.gapis().getAbsolutePath(), "-logs", PathManager.getLogPath(), "--gapir", Integer.toString(myGapir.getPort()));
     return true;
   }
 
