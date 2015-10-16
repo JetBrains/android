@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2012 JetBrains s.r.o.
+ * Copyright 2000-2015 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel;
 import com.intellij.openapi.util.Condition;
 import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.TestActionEvent;
+import com.intellij.util.Consumer;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.util.AndroidBundle;
 
@@ -68,7 +69,8 @@ public class AndroidSdkTypeNewProjectWizardTest extends NewProjectWizardTestCase
 
   private static AnAction getAddAction(ProjectSdksModel model) {
     DefaultActionGroup group = new DefaultActionGroup();
-    model.createAddActions(group, new JPanel(), null, new Condition<SdkTypeId>() {
+    //noinspection unchecked
+    model.createAddActions(group, new JPanel(), Consumer.EMPTY_CONSUMER, new Condition<SdkTypeId>() {
       @Override
       public boolean value(SdkTypeId id) {
         return id == AndroidSdkType.getInstance();
