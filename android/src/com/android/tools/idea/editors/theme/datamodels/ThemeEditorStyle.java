@@ -122,7 +122,7 @@ public class ThemeEditorStyle {
    * Returns StyleResourceValue for current Configuration
    */
   @NotNull
-  private StyleResourceValue getStyleResourceValue() {
+  public StyleResourceValue getStyleResourceValue() {
     return myStyleResourceValue;
   }
 
