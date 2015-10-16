@@ -22,8 +22,6 @@ import com.android.tools.idea.npw.WizardUtils;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.intellij.diff.comparison.ComparisonManager;
-import com.intellij.diff.comparison.ComparisonPolicy;
 import com.intellij.ide.impl.ProjectPaneSelectInTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -392,7 +390,7 @@ public class TemplateUtils {
    * @return the contents of the file as text
    */
   @Nullable
-  public static String readTextFile(@NotNull File file, boolean warnIfNotExists) {
+  public static String readTextFromDisk(@NotNull File file, boolean warnIfNotExists) {
     assert file.isAbsolute();
     try {
       return Files.toString(file, Charsets.UTF_8);
@@ -412,8 +410,8 @@ public class TemplateUtils {
    * @return the contents of the file as text
    */
   @Nullable
-  public static String readTextFile(@NotNull File file) {
-    return readTextFile(file, true);
+  public static String readTextFromDisk(@NotNull File file) {
+    return readTextFromDisk(file, true);
   }
 
   /**
@@ -423,16 +421,14 @@ public class TemplateUtils {
    * @return the contents of the file as text, or null if for some reason it couldn't be read
    */
   @Nullable
-  public static String readTextFile(@NotNull final Project project, @NotNull File file) {
-    if (!project.isInitialized()) {
-      return readTextFile(file);
-    }
+  public static String readTextFromPsiFile(@NotNull final Project project, @NotNull File file) {
+    assert project.isInitialized();
     VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
     if (vFile == null) {
       LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
       return null;
     }
-    return readTextFile(project, vFile);
+    return readTextFromPsiFile(project, vFile);
   }
 
   /**
@@ -442,16 +438,12 @@ public class TemplateUtils {
    * @return the contents of the file as text, or null if for some reason it couldn't be read
    */
   @Nullable
-  public static String readTextFile(@NotNull final Project project, @NotNull final VirtualFile file) {
+  public static String readTextFromPsiFile(@NotNull final Project project, @NotNull final VirtualFile file) {
+    assert project.isInitialized();
     return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
       @Nullable
       @Override
       public String compute() {
-        if (!project.isInitialized()) {
-          // When the project is not initialized (we are creating a project) we cannot
-          // read from PSI files.
-          return readTextFile(VfsUtil.virtualToIoFile(file));
-        }
         final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
         if (psiFile == null) {
           return null;
@@ -528,37 +520,5 @@ public class TemplateUtils {
   public static boolean hasExtension(File file, String extension) {
     String noDotExtension = extension.startsWith(".") ? extension.substring(1) : extension;
     return Files.getFileExtension(file.getName()).equalsIgnoreCase(noDotExtension);
-  }
-
-  /**
-   * Return true if the content of {@code targetFile} is the same as the content of {@code sourceVFile}.
-   */
-  public static boolean compareFile(@NotNull Project project, @NotNull VirtualFile sourceVFile, @NotNull File targetFile)
-    throws IOException {
-    VirtualFile targetVFile = VfsUtil.findFileByIoFile(targetFile, true);
-    if (targetVFile == null) {
-      return false;
-    }
-    if (sourceVFile.getFileType().isBinary()) {
-      byte[] source = sourceVFile.contentsToByteArray();
-      byte[] target = targetVFile.contentsToByteArray();
-      return Arrays.equals(source, target);
-    }
-    else {
-      String source = readTextFile(project, sourceVFile);
-      String target = readTextFile(project, targetVFile);
-      ComparisonManager comparisonManager = ComparisonManager.getInstance();
-      return comparisonManager.isEquals(source, target, ComparisonPolicy.IGNORE_WHITESPACES);
-    }
-  }
-
-  /**
-   * Return true if the content of {@code targetFile} is the same as {@code content}.
-   */
-  public static boolean compareTextFile(@NotNull Project project, @NotNull File targetFile, @NotNull String content) {
-    VirtualFile targetVFile = VfsUtil.findFileByIoFile(targetFile, true);
-    String target = readTextFile(project, targetVFile);
-    ComparisonManager comparisonManager = ComparisonManager.getInstance();
-    return comparisonManager.isEquals(content, target, ComparisonPolicy.IGNORE_WHITESPACES);
   }
 }
