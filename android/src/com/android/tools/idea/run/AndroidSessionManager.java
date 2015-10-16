@@ -22,13 +22,14 @@ import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidSessionManager {
   @Nullable
-  public static AndroidSessionInfo findOldSession(Project project,
-                                                  Executor executor,
-                                                  AndroidRunConfigurationBase configuration) {
+  public static AndroidSessionInfo findOldSession(@NotNull Project project,
+                                                  @NotNull Executor executor,
+                                                  @NotNull AndroidRunConfigurationBase configuration) {
     for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
       final AndroidSessionInfo info = handler.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
 
@@ -39,27 +40,5 @@ public class AndroidSessionManager {
       }
     }
     return null;
-  }
-
-  public static void tryToCloseOldSessions(final Executor executor, Project project) {
-    final ExecutionManager manager = ExecutionManager.getInstance(project);
-    ProcessHandler[] processes = manager.getRunningProcesses();
-    for (ProcessHandler process : processes) {
-      final AndroidSessionInfo info = process.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
-      if (info != null) {
-        process.addProcessListener(new ProcessAdapter() {
-          @Override
-          public void processTerminated(ProcessEvent event) {
-            ApplicationManager.getApplication().invokeLater(new Runnable() {
-              @Override
-              public void run() {
-                manager.getContentManager().removeRunContent(executor, info.getDescriptor());
-              }
-            });
-          }
-        });
-        process.detachProcess();
-      }
-    }
   }
 }
