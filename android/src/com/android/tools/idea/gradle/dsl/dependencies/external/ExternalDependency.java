@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.dependencies.external;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.dsl.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependency;
 import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
@@ -138,7 +138,9 @@ public abstract class ExternalDependency extends Dependency {
    * @param parent            represents the parent "dependencies" block.
    * @param methodCall        the PSI element containing the complete dependency declaration.
    * @param configurationName the PSI element containing the dependency's configuration name.
-   * @param arguments         the arguments of {@code methodCall}. In the case of "compact notation", each argument may represent an individual dependency. In the case of "map notation", each argument may represent an entry in the map (e.g. "group").
+   * @param arguments         the arguments of {@code methodCall}. In the case of "compact notation", each argument may represent an
+   *                          individual dependency. In the case of "map notation", each argument may represent an entry in the map
+   *                          (e.g. "group").
    * @return the parsed dependencies, or an empty list if the passed PSI elements do not belong to dependency declarations.
    */
   @NotNull
@@ -285,7 +287,7 @@ public abstract class ExternalDependency extends Dependency {
 
   @Override
   @NotNull
-  protected Collection<GradleDslElement> getChildren() {
+  protected Collection<GradlePsiElement> getChildren() {
     return ImmutableList.of();
   }
 }
