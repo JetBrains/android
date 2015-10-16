@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
@@ -96,8 +97,9 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     throws ExecutionException {
     final RunContentDescriptor descriptor = super.doExecute(state, environment);
     if (descriptor != null) {
-      // suppress the run tool window because it takes focus away
-      descriptor.setActivateToolWindowWhenAdded(false);
+      // we want the run tool window to show up only for test runs
+      boolean showRunContent = environment.getRunProfile() instanceof AndroidTestRunConfiguration;
+      descriptor.setActivateToolWindowWhenAdded(showRunContent);
     }
     return descriptor;
   }
