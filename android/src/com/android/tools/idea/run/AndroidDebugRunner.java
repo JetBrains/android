@@ -109,26 +109,28 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       return doExecSimple(state, environment);
     }
 
-    RunContentDescriptor runDescriptor;
+    RunContentDescriptor descriptor;
     synchronized (myDebugLock) {
       MyDebugLauncher launcher = new MyDebugLauncher(state, environment);
       state.setDebugLauncher(launcher);
 
-      final RunContentDescriptor descriptor = embedToExistingSession(environment.getProject(), environment.getExecutor(), state);
-      runDescriptor = descriptor != null ? descriptor : super.doExecute(state, environment);
-      launcher.setRunDescriptor(runDescriptor);
+      descriptor = embedToExistingSession(environment.getProject(), environment.getExecutor(), state);
       if (descriptor != null) {
+        launcher.setRunDescriptor(descriptor);
         return null;
       }
+
+      descriptor = super.doExecute(state, environment);
+      if (descriptor == null) {
+        return null;
+      }
+      launcher.setRunDescriptor(descriptor);
     }
-    if (runDescriptor == null) {
-      return null;
-    }
-    AndroidSessionManager.tryToCloseOldSessions(environment.getExecutor(), environment.getProject());
+
     final ProcessHandler handler = state.getProcessHandler();
-    handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, runDescriptor, state, environment.getExecutor().getId()));
-    runDescriptor.setActivateToolWindowWhenAdded(false);
-    return runDescriptor;
+    handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, descriptor, state, environment.getExecutor().getId()));
+    descriptor.setActivateToolWindowWhenAdded(false);
+    return descriptor;
   }
 
   @Nullable
@@ -235,21 +237,24 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           IDevice device = client.getDevice();
           String debugPort = Integer.toString(client.getDebuggerListenPort());
 
-          final DebuggerPanelsManager manager = DebuggerPanelsManager.getInstance(myProject);
-          AndroidDebugState st =
-            new AndroidDebugState(myProject, new RemoteConnection(true, "localhost", debugPort, false),
-                                  myRunningState, device);
+          RemoteConnection connection = new RemoteConnection(true, "localhost", debugPort, false);
+          AndroidDebugState debugState = new AndroidDebugState(myProject, connection, myRunningState, device);
           RunContentDescriptor debugDescriptor = null;
           final ProcessHandler processHandler = myRunningState.getProcessHandler();
           processHandler.detachProcess();
           try {
             synchronized (myDebugLock) {
               assert myRunDescriptor != null;
-              debugDescriptor = manager.attachVirtualMachine(new ExecutionEnvironmentBuilder(myEnvironment)
-                                                               .executor(myExecutor)
-                                                               .runner(AndroidDebugRunner.this)
-                                                               .contentToReuse(myRunDescriptor)
-                                                               .build(), st, st.getRemoteConnection(), false);
+
+              // @formatter:off
+              ExecutionEnvironment env = new ExecutionEnvironmentBuilder(myEnvironment)
+                .executor(myExecutor)
+                .runner(AndroidDebugRunner.this)
+                .contentToReuse(myRunDescriptor)
+                .build();
+              debugDescriptor = DebuggerPanelsManager.getInstance(myProject).attachVirtualMachine(
+                env, debugState, debugState.getRemoteConnection(), false);
+              // @formatter:on
             }
           }
           catch (ExecutionException e) {
@@ -268,7 +273,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           }
 
           ProcessHandler handler = myRunningState.getProcessHandler();
-          handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, debugDescriptor, st, myExecutor.getId()));
+          handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, debugDescriptor, debugState, myExecutor.getId()));
           debugDescriptor.setActivateToolWindowWhenAdded(false);
         }
       });
