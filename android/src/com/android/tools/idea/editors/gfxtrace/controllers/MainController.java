@@ -18,12 +18,15 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.ui.JBUI;
@@ -43,6 +46,14 @@ public class MainController extends Controller {
 
   private MainController(@NotNull GfxTraceEditor editor) {
     super(editor);
+    myPanel.add(new JBLabel() {{
+      setText("The GPU debugger is experimental software.");
+      setIcon(AllIcons.General.BalloonWarning);
+      setBackground(new JBColor(0xffee88, 0xa49152));
+      setBorder(JBUI.Borders.empty(0, 10));
+      setOpaque(true);
+    }}, BorderLayout.NORTH);
+
     ThreeComponentsSplitter threePanes = new ThreeComponentsSplitter(true);
     myPanel.add(threePanes, BorderLayout.CENTER);
     threePanes.setDividerWidth(5);
