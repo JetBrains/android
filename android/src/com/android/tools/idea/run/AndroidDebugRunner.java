@@ -17,7 +17,6 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
@@ -38,11 +37,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.psi.PsiClass;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
-import org.jetbrains.android.dom.manifest.Instrumentation;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -110,19 +105,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   private RunContentDescriptor doExec(AndroidRunningState state, ExecutionEnvironment environment) throws ExecutionException {
     if (!(environment.getExecutor() instanceof DefaultDebugExecutor)) {
       return doExecSimple(state, environment);
-    }
-
-    final RunProfile runProfile = environment.getRunProfile();
-    if (runProfile instanceof AndroidTestRunConfiguration) {
-      // attempt to set the target package only in case on non Gradle projects
-      if (!state.getFacet().requiresAndroidModel()) {
-        // TODO: Don't do this here - do it when setting up the AndroidRunningState or in AndroidRunningState itself.
-        String targetPackage = getTargetPackage((AndroidTestRunConfiguration)runProfile, state);
-        if (targetPackage == null) {
-          throw new ExecutionException(AndroidBundle.message("target.package.not.specified.error"));
-        }
-        state.setTargetPackageName(targetPackage);
-      }
     }
 
     RunContentDescriptor runDescriptor;
@@ -202,23 +184,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       }
     });
     return oldDescriptor;
-  }
-
-  @Nullable
-  private static String getTargetPackage(AndroidTestRunConfiguration configuration, AndroidRunningState state) {
-    Manifest manifest = state.getFacet().getManifest();
-    assert manifest != null;
-    for (Instrumentation instrumentation : manifest.getInstrumentations()) {
-      PsiClass c = instrumentation.getInstrumentationClass().getValue();
-      String runner = configuration.INSTRUMENTATION_RUNNER_CLASS;
-      if (c != null && (runner.length() == 0 || runner.equals(c.getQualifiedName()))) {
-        String targetPackage = instrumentation.getTargetPackage().getValue();
-        if (targetPackage != null) {
-          return targetPackage;
-        }
-      }
-    }
-    return null;
   }
 
   @Override
