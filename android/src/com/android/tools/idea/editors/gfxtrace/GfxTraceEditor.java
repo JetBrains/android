@@ -91,6 +91,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     myLoadingDecorator.setLoadingText("Initializing GFX Trace System");
     myLoadingDecorator.startLoading(false);
 
+    final JComponent mainUi = MainController.createUI(GfxTraceEditor.this);
+
     // Attempt to start/connect to the server on a separate thread to reduce the IDE from stalling.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
@@ -161,6 +163,14 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
               else {
                 LOG.error("Invalid capture file " + file.getPresentableName());
               }
+
+              ApplicationManager.getApplication().invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                  myView.add(mainUi, BorderLayout.CENTER);
+                  myLoadingDecorator.stopLoading();
+                }
+              });
             }
           });
         }
@@ -168,14 +178,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           setLoadingErrorTextOnEdt("Error reading gfxtrace file");
           return;
         }
-
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            myView.add(MainController.createUI(GfxTraceEditor.this), BorderLayout.CENTER);
-            myLoadingDecorator.stopLoading();
-          }
-        });
       }
     });
   }
