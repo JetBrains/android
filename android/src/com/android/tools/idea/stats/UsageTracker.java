@@ -123,4 +123,8 @@ public abstract class UsageTracker {
    * Track the count of external dependencies (# of jars and # of aars per project). The application Id will be anonymized before upload.
    */
   public abstract void trackLibraryCount(@NotNull String applicationId, int jarDependencyCount, int aarDependencyCount);
+
+  public abstract void trackGradleArtifactVersions(@NotNull String applicationId,
+                                                   @NotNull String androidPluginVersion,
+                                                   @NotNull String gradleVersion);
 }

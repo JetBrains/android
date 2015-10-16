@@ -26,6 +26,7 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   private static final ExtensionPointName<UsageUploader> EP_NAME = ExtensionPointName.create("com.android.tools.idea.stats.tracker");
 
   private static final String GLOGS_CATEGORY_LIBCOUNT = "gradlelibs";
+  private static final String GLOGS_CATEGORY_VERSIONS = "gradleVersions";
 
   private final UsageUploader myUploader;
 
@@ -57,12 +58,30 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
     }
 
     // @formatter:off
-    String anonymizedId = Hashing.md5().hashString(applicationId, Charsets.UTF_8).toString();
     myUploader.trackEvent(GLOGS_CATEGORY_LIBCOUNT,
                           ImmutableMap.of(
-                            "appId", anonymizedId,
+                            "appId", anonymize(applicationId),
                             "jars", Integer.toString(jarDependencyCount),
                             "aars", Integer.toString(aarDependencyCount)));
     // @formatter:on
+  }
+
+  @Override
+  public void trackGradleArtifactVersions(@NotNull String applicationId,
+                                          @NotNull String androidPluginVersion,
+                                          @NotNull String gradleVersion) {
+    if (!trackingEnabled()) {
+      return;
+    }
+    myUploader.trackEvent(GLOGS_CATEGORY_VERSIONS,
+                          ImmutableMap.of(
+                            "appId", anonymize(applicationId),
+                            "pluginVer", androidPluginVersion,
+                            "gradleVer", gradleVersion));
+  }
+
+  @NotNull
+  private static String anonymize(@NotNull String applicationId) {
+    return Hashing.md5().hashString(applicationId, Charsets.UTF_8).toString();
   }
 }
