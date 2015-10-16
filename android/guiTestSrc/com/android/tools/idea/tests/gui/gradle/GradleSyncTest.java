@@ -1079,8 +1079,8 @@ public class GradleSyncTest extends GuiTestCase {
     assertNull(GradleSettings.getInstance(project).getGradleVmOptions());
 
     // Verify JVM args were copied to gradle.properties file
+    refreshFiles();
 
-    LocalFileSystem.getInstance().refresh(false);
     gradleProperties = new GradleProperties(project);
     assertEquals(jvmArgs, gradleProperties.getJvmArgs());
   }
