@@ -207,7 +207,12 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @NotNull
   @Override
   public List<SourceProvider> getTestSourceProviders() {
-    return getTestSourceProviders(mySelectedVariantName, mySelectedTestArtifactName);
+    return getTestSourceProviders(mySelectedTestArtifactName);
+  }
+
+  @NotNull
+  public List<SourceProvider> getTestSourceProviders(@NotNull String artifactName) {
+    return getTestSourceProviders(mySelectedVariantName, artifactName);
   }
 
   @NotNull
@@ -242,8 +247,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     // Collect the build type test source providers.
     BuildTypeContainer buildType = findBuildType(variant.getBuildType());
     assert buildType != null;
-    providers.addAll(
-      getSourceProvidersForTestArtifact(buildType.getExtraSourceProviders(), testArtifactName));
+    providers.addAll(getSourceProvidersForTestArtifact(buildType.getExtraSourceProviders(), testArtifactName));
 
     // TODO: Does it make sense to add variant test source providers?
 
@@ -567,6 +571,13 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     }
 
     return providers;
+  }
+
+  @NotNull
+  public Collection<SourceProvider> getSourceProvidersForAllTestArtifact(@NotNull Iterable<SourceProviderContainer> containers) {
+    Collection<SourceProvider> testSourceProviders = getSourceProvidersForTestArtifact(containers, ARTIFACT_UNIT_TEST);
+    testSourceProviders.addAll(getSourceProvidersForTestArtifact(containers, ARTIFACT_ANDROID_TEST));
+    return testSourceProviders;
   }
 
   @NotNull

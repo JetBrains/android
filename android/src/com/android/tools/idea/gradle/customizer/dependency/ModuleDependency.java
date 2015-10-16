@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.gradle.customizer.dependency;
 
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,5 +91,20 @@ public class ModuleDependency extends Dependency {
            ", scope=" + getScope() +
            ", backUpDependency=" + myBackupDependency +
            "]";
+  }
+
+  @Nullable
+  public Module getModule(@NotNull  Module[] modules, @Nullable IdeModifiableModelsProvider modelsProvider) {
+    for (Module module : modules) {
+      AndroidGradleFacet androidGradleFacet = modelsProvider == null ? AndroidGradleFacet.getInstance(module)
+                                                                     : Facets.findFacet(module, modelsProvider, AndroidGradleFacet.TYPE_ID);
+      if (androidGradleFacet != null) {
+        String gradlePath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+        if (Objects.equal(gradlePath, getGradlePath())) {
+          return module;
+        }
+      }
+    }
+    return null;
   }
 }
