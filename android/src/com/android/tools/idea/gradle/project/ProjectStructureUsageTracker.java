@@ -16,11 +16,10 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.*;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.stats.UsageTracker;
-import com.google.common.base.Charsets;
 import com.google.common.collect.Sets;
-import com.google.common.hash.Hashing;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -31,38 +30,55 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 /**
  * Tracks, using {@link UsageTracker}, the structure of a project.
  */
-class ExternalDependenciesUsageTracker {
+class ProjectStructureUsageTracker {
   @NotNull private final Project myProject;
 
-  ExternalDependenciesUsageTracker(@NotNull Project project) {
+  ProjectStructureUsageTracker(@NotNull Project project) {
     myProject = project;
   }
 
-  void trackExternalDependenciesInAndroidApps() {
+  void trackProjectStructure() {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
         ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-        trackExternalDependenciesInAndroidApps(moduleManager.getModules());
+        trackProjectStructure(moduleManager.getModules());
       }
     });
   }
 
-  private static void trackExternalDependenciesInAndroidApps(@NotNull Module[] modules) {
+  private void trackProjectStructure(@NotNull Module[] modules) {
+    AndroidGradleModel appModel = null;
+    AndroidGradleModel libModel = null;
+
     for (Module module : modules) {
       AndroidGradleModel androidModel = AndroidGradleModel.get(module);
       if (androidModel != null) {
         AndroidProject androidProject = androidModel.getAndroidProject();
-        if (!androidProject.isLibrary()) {
-          trackExternalDependenciesInAndroidApp(androidProject);
+        if (androidProject.isLibrary()) {
+          libModel = androidModel;
+          continue;
         }
+        appModel = androidModel;
+        trackExternalDependenciesInAndroidApp(androidProject);
       }
+    }
+
+    // Ideally we would like to get data from an "app" module, but if the project does not have one (which would be unusual, we can use
+    // an Android library one.)
+    AndroidGradleModel target = appModel != null ? appModel : libModel;
+    if (target != null) {
+      AndroidProject androidProject = target.getAndroidProject();
+      FullRevision gradleVersion = getGradleVersion(myProject);
+      UsageTracker.getInstance().trackGradleArtifactVersions(target.getApplicationId(), androidProject.getModelVersion(),
+                                                             gradleVersion != null ? gradleVersion.toString() : "<Not Found>");
     }
   }
 
@@ -97,7 +113,6 @@ class ExternalDependenciesUsageTracker {
     AndroidArtifact artifact = variant.getMainArtifact();
     String applicationId = artifact.getApplicationId();
 
-    String id = Hashing.sha256().hashString(applicationId, Charsets.UTF_8).toString();
     Dependencies dependencies = artifact.getDependencies();
     for (JavaLibrary javaLibrary : dependencies.getJavaLibraries()) {
       addJarLibraryAndDependencies(javaLibrary, files);
@@ -107,7 +122,7 @@ class ExternalDependenciesUsageTracker {
       addAarLibraryAndDependencies(androidLibrary, files);
     }
 
-    UsageTracker.getInstance().trackLibraryCount(id, files.jars.size(), files.aars.size());
+    UsageTracker.getInstance().trackLibraryCount(applicationId, files.jars.size(), files.aars.size());
   }
 
   private static void addJarLibraryAndDependencies(@NotNull JavaLibrary javaLibrary, @NotNull DependencyFiles files) {
