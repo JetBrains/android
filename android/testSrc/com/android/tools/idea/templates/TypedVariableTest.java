@@ -54,7 +54,7 @@ public class TypedVariableTest extends AndroidTestCase {
     final Map<String, Object> paramMap = new HashMap<String, Object>();
 
     File xmlFile = new File(FileUtil.join(getTestDataPath(), "templates", "globals.xml"));
-    String xml = TemplateUtils.readTextFile(xmlFile);
+    String xml = TemplateUtils.readTextFromDisk(xmlFile);
     ByteArrayInputStream inputStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8.toString()));
     Reader reader = new InputStreamReader(inputStream, Charsets.UTF_8.toString());
     InputSource inputSource = new InputSource(reader);

@@ -22,6 +22,8 @@ import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplatePostProcessor;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
+import com.intellij.diff.comparison.ComparisonManager;
+import com.intellij.diff.comparison.ComparisonPolicy;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -34,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -129,7 +132,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
         File targetFile = getTargetFile(to);
         String content = processFreemarkerTemplate(myContext, sourceFile, null);
         if (targetFile.exists()) {
-          if (!compareTextFile(myContext.getProject(), targetFile, content)) {
+          if (!compareTextFile(targetFile, content)) {
             addFileAlreadyExistWarning(targetFile);
           }
         }
@@ -171,7 +174,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
               String.format("Attempt to update file that is readonly: %1$s", targetFile.getAbsolutePath()));
           }
         }
-        targetText = TemplateUtils.readTextFile(myContext.getProject(), targetFile);
+        targetText = readTextFile(targetFile);
       }
 
       if (targetText == null) {
@@ -192,7 +195,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
         sourceText = processFreemarkerTemplate(myContext, from, null);
       }
       else {
-        sourceText = readTextFile(sourceFile);
+        sourceText = TemplateUtils.readTextFromDisk(sourceFile);
         if (sourceText == null) {
           return;
         }
@@ -338,7 +341,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       copyDirectory(sourceFile, destPath);
     }
     else if (target.exists()) {
-      if (!compareFile(myContext.getProject(), sourceFile, target)) {
+      if (!compareFile(sourceFile, target)) {
         addFileAlreadyExistWarning(target);
       }
     }
@@ -366,7 +369,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     else {
       File target = new File(destinationFile, relativePath);
       if (target.exists()) {
-        if (!compareFile(myContext.getProject(), file, target)) {
+        if (!compareFile(file, target)) {
           addFileAlreadyExistWarning(target);
         }
       }
@@ -379,9 +382,61 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     return true;
   }
 
+  private String readTextFile(@NotNull File file) {
+    // TODO: Rename ATTR_IS_NEW_PROJECT to ATTR_IS_NEW_MODULE since that is what it means...
+    if (myContext.getParamMap().get(TemplateMetadata.ATTR_IS_NEW_PROJECT).equals(Boolean.TRUE)) {
+      return TemplateUtils.readTextFromDisk(file);
+    }
+    else {
+      return TemplateUtils.readTextFromPsiFile(myContext.getProject(), file);
+    }
+  }
+
+  private String readTextFile(@NotNull VirtualFile file) {
+    // TODO: Rename ATTR_IS_NEW_PROJECT to ATTR_IS_NEW_MODULE since that is what it means...
+    if (myContext.getParamMap().get(TemplateMetadata.ATTR_IS_NEW_PROJECT).equals(Boolean.TRUE)) {
+      return TemplateUtils.readTextFromDisk(VfsUtilCore.virtualToIoFile(file));
+    }
+    else {
+      return TemplateUtils.readTextFromPsiFile(myContext.getProject(), file);
+    }
+  }
+
+  /**
+   * Return true if the content of {@code targetFile} is the same as the content of {@code sourceVFile}.
+   */
+  public boolean compareFile(@NotNull VirtualFile sourceVFile, @NotNull File targetFile)
+    throws IOException {
+    VirtualFile targetVFile = VfsUtil.findFileByIoFile(targetFile, true);
+    if (targetVFile == null) {
+      return false;
+    }
+    if (sourceVFile.getFileType().isBinary()) {
+      byte[] source = sourceVFile.contentsToByteArray();
+      byte[] target = targetVFile.contentsToByteArray();
+      return Arrays.equals(source, target);
+    }
+    else {
+      String source = readTextFile(sourceVFile);
+      String target = readTextFile(targetVFile);
+      ComparisonManager comparisonManager = ComparisonManager.getInstance();
+      return comparisonManager.isEquals(source, target, ComparisonPolicy.IGNORE_WHITESPACES);
+    }
+  }
+
+  /**
+   * Return true if the content of {@code targetFile} is the same as {@code content}.
+   */
+  public boolean compareTextFile(@NotNull File targetFile, @NotNull String content) {
+    String target = readTextFile(targetFile);
+    ComparisonManager comparisonManager = ComparisonManager.getInstance();
+    return comparisonManager.isEquals(content, target, ComparisonPolicy.IGNORE_WHITESPACES);
+  }
+
   private void addFileAlreadyExistWarning(@NotNull File targetFile) {
     addWarning(String.format("The following file could not be created since it already exists: %1$s", targetFile.getName()));
   }
+
 
   private static class RecipeIO {
     public void writeFile(@NotNull Object requestor, @Nullable String contents, @NotNull File to) throws IOException {
