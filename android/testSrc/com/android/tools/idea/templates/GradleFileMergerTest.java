@@ -72,15 +72,15 @@ public class GradleFileMergerTest extends AndroidTestCase {
 
   private void checkDependencyMerge(String destPath, String srcPath, String goldenPath) {
     File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(destPath));
-    String dest = TemplateUtils.readTextFile(destFile);
+    String dest = TemplateUtils.readTextFromDisk(destFile);
     assertNotNull(dest);
 
     File srcFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(srcPath));
-    String source = TemplateUtils.readTextFile(srcFile);
+    String source = TemplateUtils.readTextFromDisk(srcFile);
     assertNotNull(source);
 
     File goldenFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(goldenPath));
-    String golden = TemplateUtils.readTextFile(goldenFile);
+    String golden = TemplateUtils.readTextFromDisk(goldenFile);
     assertNotNull(golden);
 
     // Strip comments from merged file
@@ -111,19 +111,19 @@ public class GradleFileMergerTest extends AndroidTestCase {
     String golden = "";
     if (destPath != null) {
       File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(destPath));
-      dest = TemplateUtils.readTextFile(destFile);
+      dest = TemplateUtils.readTextFromDisk(destFile);
       assertNotNull(dest);
     }
 
     if (srcPath != null) {
       File srcFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(srcPath));
-      source = TemplateUtils.readTextFile(srcFile);
+      source = TemplateUtils.readTextFromDisk(srcFile);
       assertNotNull(source);
     }
 
     if (goldenPath != null) {
       File goldenFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(goldenPath));
-      golden = TemplateUtils.readTextFile(goldenFile);
+      golden = TemplateUtils.readTextFromDisk(goldenFile);
       assertNotNull(golden);
     }
 

@@ -168,12 +168,12 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     File moduleDir = runCommonCreateProjectTest();
     File gradleFile = new File(moduleDir, SdkConstants.FN_BUILD_GRADLE);
 
-    String gradleContents = TemplateUtils.readTextFile(gradleFile);
+    String gradleContents = TemplateUtils.readTextFromDisk(gradleFile);
     assertNotNull(gradleContents);
     assertTrue(gradleContents.contains("apply plugin: 'com.android.library'"));
 
     File manifestFile = new File(moduleDir, FileUtil.join("src", "main", SdkConstants.ANDROID_MANIFEST_XML));
-    String manifestContents = TemplateUtils.readTextFile(manifestFile);
+    String manifestContents = TemplateUtils.readTextFromDisk(manifestFile);
     assertNotNull(manifestContents);
     assertFalse(manifestContents.contains("android:theme"));
 
@@ -191,12 +191,12 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     File moduleDir = runCommonCreateProjectTest();
     File gradleFile = new File(moduleDir, "build.gradle");
 
-    String gradleContents = TemplateUtils.readTextFile(gradleFile);
+    String gradleContents = TemplateUtils.readTextFromDisk(gradleFile);
     assertNotNull(gradleContents);
     assertTrue(gradleContents.contains("apply plugin: 'com.android.application'"));
 
     File manifestFile = new File(moduleDir, FileUtil.join("src", "main", SdkConstants.ANDROID_MANIFEST_XML));
-    String manifestContents = TemplateUtils.readTextFile(manifestFile);
+    String manifestContents = TemplateUtils.readTextFromDisk(manifestFile);
     assertNotNull(manifestContents);
     assertTrue(manifestContents.contains("android:theme"));
 

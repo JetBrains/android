@@ -75,7 +75,7 @@ public class NewModuleWizard extends TemplateWizard {
     boolean haveGlobalRepository = false;
     VirtualFile buildGradle = myProject.getBaseDir().findChild(FN_BUILD_GRADLE);
     if (buildGradle != null) {
-      String contents = TemplateUtils.readTextFile(myProject, buildGradle);
+      String contents = TemplateUtils.readTextFromPsiFile(myProject, buildGradle);
       if (contents != null) {
         haveGlobalRepository = contents.contains("repositories") && contents.contains(SdkConstants.GRADLE_PLUGIN_NAME);
       }

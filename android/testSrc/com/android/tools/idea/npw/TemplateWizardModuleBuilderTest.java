@@ -108,13 +108,13 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
                          "app/build.gradle",
                          "app/proguard-rules.pro");
         File buildGradleFile = new File(myProjectRoot, FileUtil.join("app", "build.gradle"));
-        String contents = TemplateUtils.readTextFile(buildGradleFile);
+        String contents = TemplateUtils.readTextFromDisk(buildGradleFile);
         assertNotNull(contents);
         assertFalse(contents.contains("android-library"));
         assertTrue(contents.contains("apply plugin: 'com.android.application'"));
 
         File settingsGradleFile = new File(myProjectRoot, "settings.gradle");
-        contents = TemplateUtils.readTextFile(settingsGradleFile);
+        contents = TemplateUtils.readTextFromDisk(settingsGradleFile);
         assertNotNull(contents);
         assertTrue(contents.contains("app"));
       }
@@ -142,12 +142,12 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
                          "lib/build.gradle",
                          "lib/proguard-rules.pro");
         File buildGradleFile = new File(myProjectRoot, FileUtil.join("lib", "build.gradle"));
-        String contents = TemplateUtils.readTextFile(buildGradleFile);
+        String contents = TemplateUtils.readTextFromDisk(buildGradleFile);
         assertNotNull(contents);
         assertTrue(contents.contains("apply plugin: 'com.android.library'"));
 
         File settingsGradleFile = new File(myProjectRoot, "settings.gradle");
-        contents = TemplateUtils.readTextFile(settingsGradleFile);
+        contents = TemplateUtils.readTextFromDisk(settingsGradleFile);
         assertNotNull(contents);
         assertTrue(contents.contains("lib"));
       }
@@ -171,13 +171,13 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
                          "lib/.gitignore",
                          "lib/build.gradle");
         File buildGradleFile = new File(myProjectRoot, FileUtil.join("lib", "build.gradle"));
-        String contents = TemplateUtils.readTextFile(buildGradleFile);
+        String contents = TemplateUtils.readTextFromDisk(buildGradleFile);
         assertNotNull(contents);
         assertFalse(contents.contains("android"));
         assertTrue(contents.contains("apply plugin: 'java'"));
 
         File settingsGradleFile = new File(myProjectRoot, "settings.gradle");
-        contents = TemplateUtils.readTextFile(settingsGradleFile);
+        contents = TemplateUtils.readTextFromDisk(settingsGradleFile);
         assertNotNull(contents);
         assertTrue(contents.contains("lib"));
       }
