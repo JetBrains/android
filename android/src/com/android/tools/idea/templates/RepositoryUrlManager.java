@@ -454,7 +454,7 @@ public class RepositoryUrlManager {
 
   @Nullable
   protected String readTextFile(File file) {
-    return TemplateUtils.readTextFile(file);
+    return TemplateUtils.readTextFromDisk(file);
   }
 
   protected boolean fileExists(@NotNull File file) {

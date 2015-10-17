@@ -57,7 +57,6 @@ import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.hasExtension;
-import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
 
 /**
@@ -378,7 +377,7 @@ public class Template {
     String xml;
     if (hasExtension(file, DOT_XML)) {
       // Just read the file
-      xml = readTextFile(getTemplateFile(file));
+      xml = TemplateUtils.readTextFromDisk(getTemplateFile(file));
       if (xml == null) {
         return;
       }
