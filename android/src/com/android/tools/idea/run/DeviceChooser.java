@@ -22,7 +22,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.run.cloud.CloudConfigurationProvider;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -83,7 +82,6 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
   private final AndroidVersion myMinSdkVersion;
   private final IAndroidTarget myProjectTarget;
   private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
-  private final CloudConfigurationProvider myCloudConfigurationProvider;
 
   private int[] mySelectedRows;
   private final AtomicBoolean myDevicesDetected = new AtomicBoolean();
@@ -93,7 +91,6 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
                        @NotNull AndroidFacet facet,
                        @NotNull IAndroidTarget projectTarget,
                        @Nullable Predicate<IDevice> filter) {
-    myCloudConfigurationProvider = CloudConfigurationProvider.getCloudConfigurationProvider();
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
@@ -363,11 +360,6 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
       }
     }
 
-    // Do not filter launching cloud devices as they are not selectable progress markers
-    // that are replaced with the actual cloud devices as soon as they are up and the actual cloud devices will be filtered above.
-    if (myCloudConfigurationProvider != null) {
-      filteredDevices.addAll(myCloudConfigurationProvider.getLaunchingCloudDevices());
-    }
     return filteredDevices.toArray(new IDevice[filteredDevices.size()]);
   }
 

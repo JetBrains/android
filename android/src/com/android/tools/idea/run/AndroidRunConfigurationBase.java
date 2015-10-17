@@ -17,7 +17,6 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.cloud.*;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -229,13 +228,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Store the chosen target on the execution environment so before-run tasks can access it.
     env.putCopyableUserData(DEPLOY_TARGET_KEY, deployTarget);
 
-    if (deployTarget instanceof CloudMatrixTarget) {
-      return new CloudMatrixTestRunningState(env, facet, this, (CloudMatrixTarget)deployTarget);
-    }
-    else if (deployTarget instanceof CloudDeviceLaunchTarget) {
-      return new CloudDeviceLaunchRunningState(facet, (CloudDeviceLaunchTarget)deployTarget);
-    }
-
     assert deployTarget instanceof DeviceTarget : "Unknown target type: " + deployTarget.getClass().getCanonicalName();
     DeviceTarget deviceTarget = (DeviceTarget)deployTarget;
     if (deviceTarget.getDeviceFutures().isEmpty()) {
@@ -276,13 +268,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         return new EmulatorTargetChooser(facet, Strings.emptyToNull(PREFERRED_AVD));
       case USB_DEVICE:
         return new UsbDeviceTargetChooser(facet);
-      case CLOUD_DEVICE_DEBUGGING:
-        return new CloudDebuggingTargetChooser(CLOUD_DEVICE_SERIAL_NUMBER);
-      case CLOUD_MATRIX_TEST:
-        ManualTargetChooser fallback = new ManualTargetChooser(this, facet);
-        return new CloudMatrixTargetChooser(facet, SELECTED_CLOUD_MATRIX_CONFIGURATION_ID, SELECTED_CLOUD_MATRIX_PROJECT_ID, fallback);
-      case CLOUD_DEVICE_LAUNCH:
-        return new CloudDeviceTargetChooser(facet, SELECTED_CLOUD_DEVICE_CONFIGURATION_ID, SELECTED_CLOUD_DEVICE_PROJECT_ID);
       default:
         throw new IllegalStateException("Unknown target selection mode " + TARGET_SELECTION_MODE);
     }

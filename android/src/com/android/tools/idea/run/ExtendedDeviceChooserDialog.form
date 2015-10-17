@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.run.ExtendedDeviceChooserDialog">
-  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="8" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="5" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="500" height="400"/>
@@ -18,74 +18,10 @@
       </grid>
       <component id="c053c" class="javax.swing.JCheckBox" binding="myReuseSelectionCheckbox">
         <constraints>
-          <grid row="7" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Use same device for future launches"/>
-        </properties>
-      </component>
-      <component id="e46e4" class="javax.swing.JRadioButton" binding="myRunTestsInGoogleCloudRadioButton">
-        <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <label value="Choose a cloud device matrix"/>
-          <text value="Choose a cloud device &amp;matrix"/>
-        </properties>
-      </component>
-      <component id="8d22a" class="javax.swing.JLabel" binding="myCloudConfigurationLabel">
-        <constraints>
-          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="&amp;Matrix configuration:"/>
-        </properties>
-      </component>
-      <component id="2bb29" class="com.android.tools.idea.run.cloud.CloudConfigurationComboBox" binding="myCloudConfigurationCombo" custom-create="true">
-        <constraints>
-          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties/>
-      </component>
-      <component id="6b597" class="javax.swing.JLabel" binding="myCloudProjectLabel">
-        <constraints>
-          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Cloud project:"/>
-        </properties>
-      </component>
-      <grid id="f582d" layout-manager="BorderLayout" hgap="0" vgap="0">
-        <constraints>
-          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties/>
-        <border type="none"/>
-        <children>
-          <grid id="ef991" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
-            <constraints border-constraint="West"/>
-            <properties/>
-            <border type="none"/>
-            <children>
-              <component id="9e816" class="com.android.tools.idea.run.cloud.CloudProjectIdLabel" binding="myCloudProjectIdLabel" custom-create="true">
-                <constraints/>
-                <properties/>
-              </component>
-              <component id="816b" class="com.intellij.openapi.actionSystem.impl.ActionButton" binding="myCloudProjectIdUpdateButton" custom-create="true">
-                <constraints/>
-                <properties/>
-              </component>
-            </children>
-          </grid>
-        </children>
-      </grid>
-      <component id="2bea0" class="javax.swing.JButton" binding="myLaunchEmulatorButton">
-        <constraints>
-          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value=""/>
-          <toolTipText value="Launch a Device"/>
         </properties>
       </component>
       <component id="dc052" class="javax.swing.JRadioButton" binding="myChooserRunningDeviceRadioButton">
@@ -120,19 +56,6 @@
         <properties/>
         <border type="none"/>
         <children/>
-      </grid>
-      <grid id="f2124" layout-manager="BorderLayout" hgap="0" vgap="0">
-        <constraints>
-          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties/>
-        <border type="none"/>
-        <children>
-          <component id="816b2" class="com.intellij.openapi.actionSystem.impl.ActionButton" binding="myCloudMatrixHelpButton" custom-create="true">
-            <constraints border-constraint="East"/>
-            <properties/>
-          </component>
-        </children>
       </grid>
     </children>
   </grid>
