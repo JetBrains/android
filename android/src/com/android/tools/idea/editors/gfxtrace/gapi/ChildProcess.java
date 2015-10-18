@@ -127,7 +127,7 @@ public abstract class ChildProcess {
             int port = Integer.parseInt(matcher.group(1));
             seenPort = true;
             portF.set(port);
-            LOG.warn("Detected server " + myName + " startup on port " + port);
+            LOG.info("Detected server " + myName + " startup on port " + port);
           }
         }
         LOG.info(myName + ": " + line);
