@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.activity;
+package com.android.tools.idea.run.editor;
 
-import com.android.ddmlib.IDevice;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Key;
+import org.jetbrains.annotations.Nullable;
 
-public class EmptyActivityLocator extends ActivityLocator {
-  @Override
-  public void validate() {
-  }
+public interface LaunchOptionConfigurableContext {
+  Key<LaunchOptionConfigurableContext> KEY = Key.create("LaunchConfigurableContext");
 
-  @NotNull
-  @Override
-  public String getQualifiedActivityName(@NotNull IDevice device) {
-    return "";
-  }
+  @Nullable
+  Module getModule();
 }

@@ -19,43 +19,30 @@ package com.android.tools.idea.run.editor;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.compiler.options.CompileStepBeforeRunNoErrorCheck;
 import com.intellij.execution.BeforeRunTask;
-import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.util.TreeClassChooser;
-import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.editor.ex.EditorEx;
-import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.options.ex.ConfigurableCardPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.ComponentWithBrowseButton;
-import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.packaging.impl.run.BuildArtifactsBeforeRunTaskProvider;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.ProjectScope;
-import com.intellij.ui.EditorTextField;
-import com.intellij.ui.LanguageTextField;
+import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ListCellRendererWrapper;
-import com.intellij.ui.components.JBRadioButton;
+import com.intellij.ui.components.JBTextField;
 import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
-import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -64,98 +51,200 @@ import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 
-public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T> {
-  public static final Key<ApplicationRunParameters> ACTIVITY_CLASS_TEXT_FIELD_KEY = Key.create("ActivityClassTextField");
-
-  private ComponentWithBrowseButton<EditorTextField> myActivityField;
-  private JTextField myActivityExtraFlagsField;
-  private JRadioButton myLaunchDefaultButton;
-  private JRadioButton myLaunchCustomButton;
+public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T>, ActionListener {
   private JPanel myPanel;
-  private JRadioButton myDoNothingButton;
-  private JBRadioButton myDeployDefaultApkRadio;
-  private JBRadioButton myDeployArtifactRadio;
-  private JBRadioButton myDoNotDeployRadio;
-  private ComboBox myArtifactCombo;
+
+  // Deploy options
+  private ComboBox myDeployOptionCombo;
+  private LabeledComponent<ComboBox> myCustomArtifactLabeledComponent;
+  private final ComboBox myArtifactCombo;
+  private LabeledComponent<JBTextField> myPmOptionsLabeledComponent;
+
+  // Launch options
+  private ComboBox myLaunchOptionCombo;
+  private ConfigurableCardPanel myLaunchOptionsCardPanel;
+  private LabeledComponent<JBTextField> myAmOptionsLabeledComponent;
+
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
   private Artifact myLastSelectedArtifact;
+
+  private final ImmutableMap<String, LaunchConfigurableWrapper> myConfigurables;
 
   public ApplicationRunParameters(final Project project, final ConfigurationModuleSelector moduleSelector) {
     myProject = project;
     myModuleSelector = moduleSelector;
 
-    myActivityField.addActionListener(new ActionListener() {
+    myDeployOptionCombo.setModel(new CollectionComboBoxModel(Arrays.asList(DeployOption.values())));
+    myDeployOptionCombo.setRenderer(new DeployOption.Renderer());
+    myDeployOptionCombo.addActionListener(this);
+    myDeployOptionCombo.setSelectedItem(DeployOption.DEFAULT_APK);
+
+    myArtifactCombo = myCustomArtifactLabeledComponent.getComponent();
+    myArtifactCombo.setRenderer(new ArtifactRenderer());
+    myArtifactCombo.setModel(new DefaultComboBoxModel(getAndroidArtifacts().toArray()));
+    myArtifactCombo.addActionListener(this);
+
+    myPmOptionsLabeledComponent.getComponent().getEmptyText().setText("Options to 'pm install' command");
+
+    myLaunchOptionCombo.setModel(new CollectionComboBoxModel(AndroidRunConfiguration.LAUNCH_OPTIONS));
+    myLaunchOptionCombo.setRenderer(new LaunchOption.Renderer());
+    myLaunchOptionCombo.addActionListener(this);
+
+    myAmOptionsLabeledComponent.getComponent().getEmptyText().setText("Options to 'am start' command");
+
+    LaunchOptionConfigurableContext context = new LaunchOptionConfigurableContext() {
+      @Nullable
       @Override
-      public void actionPerformed(ActionEvent e) {
-        if (!project.isInitialized()) {
-          return;
-        }
-        final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-        PsiClass activityBaseClass = facade.findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, ProjectScope.getAllScope(project));
-        if (activityBaseClass == null) {
-          Messages.showErrorDialog(myPanel, AndroidBundle.message("cant.find.activity.class.error"));
-          return;
-        }
-        Module module = moduleSelector.getModule();
-        if (module == null) {
-          Messages.showErrorDialog(myPanel, ExecutionBundle.message("module.not.specified.error.text"));
-          return;
-        }
-        PsiClass initialSelection = facade.findClass(myActivityField.getChildComponent().getText(), module.getModuleWithDependenciesScope());
-        TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project)
-          .createInheritanceClassChooser("Select Activity Class", module.getModuleWithDependenciesScope(), activityBaseClass,
-                                         initialSelection, null);
-        chooser.showDialog();
-        PsiClass selClass = chooser.getSelected();
-        if (selClass != null) {
-          myActivityField.getChildComponent().setText(selClass.getQualifiedName());
-        }
-      }
-    });
-    ActionListener listener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        myActivityField.setEnabled(myLaunchCustomButton.isSelected());
-        myActivityExtraFlagsField.setEnabled(!myDoNothingButton.isSelected());
+      public Module getModule() {
+        return myModuleSelector.getModule();
       }
     };
-    myLaunchCustomButton.addActionListener(listener);
-    myLaunchDefaultButton.addActionListener(listener);
-    myDoNothingButton.addActionListener(listener);
 
-    final ActionListener listener1 = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        myArtifactCombo.setEnabled(myDeployArtifactRadio.isSelected());
+    ImmutableMap.Builder<String, LaunchConfigurableWrapper> builder = ImmutableMap.builder();
+    for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
+      builder.put(option.getId(), new LaunchConfigurableWrapper(project, context, option));
+    }
+    myConfigurables = builder.build();
+
+    myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
+  }
+
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    Object source = e.getSource();
+    if (source == myDeployOptionCombo) {
+      DeployOption option = (DeployOption)myDeployOptionCombo.getSelectedItem();
+      myCustomArtifactLabeledComponent.setVisible(option == DeployOption.CUSTOM_ARTIFACT);
+      myPmOptionsLabeledComponent.setVisible(option != DeployOption.NOTHING);
+
+      if (option == DeployOption.CUSTOM_ARTIFACT) {
         updateBuildArtifactBeforeRunSetting();
       }
-    };
-    myDeployDefaultApkRadio.addActionListener(listener1);
-    myDoNotDeployRadio.addActionListener(listener1);
-    myDeployArtifactRadio.addActionListener(listener1);
+    }
+    else if (source == myArtifactCombo) {
+      updateBuildArtifactBeforeRunSetting();
+    }
+    else if (source == myLaunchOptionCombo) {
+      LaunchOption option = (LaunchOption)myLaunchOptionCombo.getSelectedItem();
+      myAmOptionsLabeledComponent.setVisible(option != NoLaunch.INSTANCE);
+      myLaunchOptionsCardPanel.select(myConfigurables.get(option.getId()), true);
+    }
+  }
 
-    myArtifactCombo.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        updateBuildArtifactBeforeRunSetting();
+  @Nullable
+  public Module getModule() {
+    return myModuleSelector.getModule();
+  }
+
+  @NotNull
+  private static DeployOption getDeployOption(boolean deploy, @Nullable String artifactName) {
+    if (!deploy) {
+      return DeployOption.NOTHING;
+    }
+
+    return StringUtil.isEmpty(artifactName) ? DeployOption.DEFAULT_APK : DeployOption.CUSTOM_ARTIFACT;
+  }
+
+  @Override
+  public void resetFrom(@NotNull AndroidRunConfiguration configuration) {
+    DeployOption deployOption = getDeployOption(configuration.DEPLOY, configuration.ARTIFACT_NAME);
+    myDeployOptionCombo.setSelectedItem(deployOption);
+
+    if (deployOption == DeployOption.CUSTOM_ARTIFACT) {
+      String artifactName = StringUtil.notNullize(configuration.ARTIFACT_NAME);
+      List<Artifact> artifacts = Lists.newArrayList(getAndroidArtifacts());
+      Artifact selectedArtifact = findArtifactByName(artifacts, artifactName);
+
+      if (selectedArtifact != null) {
+        myArtifactCombo.setModel(new DefaultComboBoxModel(artifacts.toArray()));
+        myArtifactCombo.setSelectedItem(selectedArtifact);
       }
-    });
+      else {
+        List<Object> items = Lists.newArrayList(artifacts.toArray());
+        items.add(artifactName);
+        myArtifactCombo.setModel(new DefaultComboBoxModel(items.toArray()));
+        myArtifactCombo.setSelectedItem(artifactName);
+      }
+    }
+
+    myPmOptionsLabeledComponent.getComponent().setText(configuration.PM_INSTALL_OPTIONS);
+
+    for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
+      LaunchOptionState state = configuration.getLaunchOptionState(option.getId());
+      assert state != null : "State is null for option: " + option.getDisplayName();
+      myConfigurables.get(option.getId()).resetFrom(state);
+    }
+
+    LaunchOption launchOption = getLaunchOption(configuration.MODE);
+    myLaunchOptionCombo.setSelectedItem(launchOption);
+    myAmOptionsLabeledComponent.getComponent().setText(configuration.ACTIVITY_EXTRA_FLAGS);
+  }
+
+  @NotNull
+  private static LaunchOption getLaunchOption(@Nullable String mode) {
+    if (StringUtil.isEmpty(mode)) {
+      mode = DefaultActivityLaunch.INSTANCE.getId();
+    }
+
+    for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
+      if (option.getId().equals(mode)) {
+        return option;
+      }
+    }
+
+    throw new IllegalStateException("Unexpected error determining launch mode");
+  }
+
+  @Override
+  public void applyTo(@NotNull AndroidRunConfiguration configuration) {
+    DeployOption deployOption = (DeployOption)myDeployOptionCombo.getSelectedItem();
+    configuration.DEPLOY = deployOption != DeployOption.NOTHING;
+    configuration.ARTIFACT_NAME = "";
+    if (deployOption == DeployOption.CUSTOM_ARTIFACT) {
+      Object item = myCustomArtifactLabeledComponent.getComponent().getSelectedItem();
+      if (item instanceof Artifact) {
+        configuration.ARTIFACT_NAME = ((Artifact)item).getName();
+      }
+    }
+    configuration.PM_INSTALL_OPTIONS = StringUtil.notNullize(myPmOptionsLabeledComponent.getComponent().getText());
+
+    for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
+      LaunchOptionState state = configuration.getLaunchOptionState(option.getId());
+      assert state != null : "State is null for option: " + option.getDisplayName();
+      myConfigurables.get(option.getId()).applyTo(state);
+    }
+
+    LaunchOption launchOption = (LaunchOption)myLaunchOptionCombo.getSelectedItem();
+    configuration.MODE = launchOption.getId();
+    configuration.ACTIVITY_EXTRA_FLAGS = StringUtil.notNullize(myAmOptionsLabeledComponent.getComponent().getText());
+  }
+
+  @Override
+  public Component getComponent() {
+    return myPanel;
+  }
+
+  @Override
+  public JComponent getAnchor() {
+    return null;
+  }
+
+  @Override
+  public void setAnchor(JComponent anchor) {
   }
 
   private void updateBuildArtifactBeforeRunSetting() {
     Artifact newArtifact = null;
-
-    if (myDeployArtifactRadio.isSelected()) {
-      final Object item = myArtifactCombo.getSelectedItem();
-
-      if (item instanceof Artifact) {
-        newArtifact = (Artifact)item;
-      }
+    final Object item = myArtifactCombo.getSelectedItem();
+    if (item instanceof Artifact) {
+      newArtifact = (Artifact)item;
     }
+
     if (Comparing.equal(newArtifact, myLastSelectedArtifact)) {
       return;
     }
+
     if (myLastSelectedArtifact != null) {
       BuildArtifactsBeforeRunTaskProvider.setBuildArtifactBeforeRunOption(myPanel, myProject, myLastSelectedArtifact, false);
     }
@@ -201,154 +290,36 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     }
   }
 
-  @Nullable
-  public Module getModule() {
-    return myModuleSelector.getModule();
-  }
-
-  @Override
-  public void resetFrom(AndroidRunConfiguration configuration) {
-    boolean launchSpecificActivity = configuration.MODE.equals(AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY);
-    if (configuration.MODE.equals(AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY)) {
-      myLaunchDefaultButton.setSelected(true);
-    }
-    else if (launchSpecificActivity) {
-      myLaunchCustomButton.setSelected(true);
-    }
-    else {
-      myDoNothingButton.setSelected(true);
-    }
-    myActivityField.setEnabled(launchSpecificActivity);
-    myActivityField.getChildComponent().setText(configuration.ACTIVITY_CLASS);
-
-    myActivityExtraFlagsField.setEnabled(!configuration.MODE.equals(AndroidRunConfiguration.DO_NOTHING));
-    myActivityExtraFlagsField.setText(configuration.ACTIVITY_EXTRA_FLAGS);
-
+  @NotNull
+  private Collection<? extends Artifact> getAndroidArtifacts() {
     final ArtifactManager artifactManager = ArtifactManager.getInstance(myProject);
-    final Collection<? extends Artifact> artifacts = artifactManager == null
-                                                     ? Collections.<Artifact>emptyList()
-                                                     : artifactManager.getArtifactsByType(AndroidApplicationArtifactType.getInstance());
-    final String artifactName = configuration.ARTIFACT_NAME;
-    Artifact artifactToSelect = null;
-
-    if (configuration.DEPLOY) {
-      myDoNotDeployRadio.setSelected(false);
-
-      if (!StringUtil.isEmpty(artifactName)) {
-        final Module module = getModule();
-
-        for (Artifact artifact : artifacts) {
-          if (artifactName.equals(artifact.getName()) &&
-              AndroidArtifactUtil.isRelatedArtifact(artifact, module)) {
-            artifactToSelect = artifact;
-            break;
-          }
-        }
-        myDeployArtifactRadio.setSelected(true);
-        myDeployDefaultApkRadio.setSelected(false);
-      }
-      else {
-        myDeployArtifactRadio.setSelected(false);
-        myDeployDefaultApkRadio.setSelected(true);
-      }
-    }
-    else {
-      myDeployArtifactRadio.setSelected(false);
-      myDeployDefaultApkRadio.setSelected(false);
-      myDoNotDeployRadio.setSelected(true);
-    }
-    myArtifactCombo.setEnabled(myDeployArtifactRadio.isSelected());
-
-    if (artifactToSelect != null || artifactName.length() == 0) {
-      myArtifactCombo.setModel(new DefaultComboBoxModel(artifacts.toArray()));
-
-      if (artifactToSelect != null) {
-        myArtifactCombo.setSelectedItem(artifactToSelect);
-      }
-    }
-    else {
-      final List<Object> list = new ArrayList<Object>();
-      list.add(artifactName);
-      list.addAll(Arrays.asList(artifacts));
-      myArtifactCombo.setModel(new DefaultComboBoxModel(list.toArray()));
-      myArtifactCombo.setSelectedItem(artifactName);
-    }
-    myArtifactCombo.setRenderer(new ListCellRendererWrapper() {
-      @Override
-      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof Artifact) {
-          final Artifact artifact = (Artifact)value;
-          setText(artifact.getName());
-          setIcon(artifact.getArtifactType().getIcon());
-        }
-        else if (value instanceof String) {
-          setText("<html><font color='red'>" + value + "</font></html>");
-        }
-      }
-    });
-    final Object item = myDeployArtifactRadio.isSelected() ? myArtifactCombo.getSelectedItem() : null;
-    myLastSelectedArtifact = item instanceof Artifact ? (Artifact)item : null;
+    return artifactManager == null
+           ? Collections.<Artifact>emptyList()
+           : artifactManager.getArtifactsByType(AndroidApplicationArtifactType.getInstance());
   }
 
-  @Override
-  public Component getComponent() {
-    return myPanel;
-  }
-
-  @Override
-  public void applyTo(AndroidRunConfiguration configuration) {
-    configuration.ACTIVITY_CLASS = myActivityField.getChildComponent().getText();
-    configuration.ACTIVITY_EXTRA_FLAGS = myActivityExtraFlagsField.getText();
-    if (myLaunchDefaultButton.isSelected()) {
-      configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
-    }
-    else if (myLaunchCustomButton.isSelected()) {
-      configuration.MODE = AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY;
-    }
-    else {
-      configuration.MODE = AndroidRunConfiguration.DO_NOTHING;
-    }
-    configuration.DEPLOY = !myDoNotDeployRadio.isSelected();
-
-    if (myDeployArtifactRadio.isSelected()) {
-      final Object item = myArtifactCombo.getSelectedItem();
-
-      if (item instanceof Artifact) {
-        final Artifact artifact = (Artifact)item;
-        configuration.ARTIFACT_NAME = artifact.getName();
-      }
-      else {
-        configuration.ARTIFACT_NAME = item != null ? item.toString() : "";
+  @Nullable
+  private static Artifact findArtifactByName(@NotNull List<Artifact> artifacts, @NotNull String artifactName) {
+    for (Artifact artifact : artifacts) {
+      if (artifactName.equals(artifact.getName())) {
+        return artifact;
       }
     }
-    else {
-      configuration.ARTIFACT_NAME = "";
-    }
-  }
 
-  @Override
-  public JComponent getAnchor() {
     return null;
   }
 
-  @Override
-  public void setAnchor(JComponent anchor) {
-  }
-
-  private void createUIComponents() {
-    final EditorTextField editorTextField = new LanguageTextField(PlainTextLanguage.INSTANCE, myProject, "") {
-      @Override
-      protected EditorEx createEditor() {
-        final EditorEx editor = super.createEditor();
-        final PsiFile file = PsiDocumentManager.getInstance(myProject).getPsiFile(editor.getDocument());
-
-        if (file != null) {
-          DaemonCodeAnalyzer.getInstance(myProject).setHighlightingEnabled(file, false);
-        }
-        editor.putUserData(ACTIVITY_CLASS_TEXT_FIELD_KEY, ApplicationRunParameters.this);
-        return editor;
+  private static class ArtifactRenderer extends ListCellRendererWrapper {
+    @Override
+    public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      if (value instanceof Artifact) {
+        final Artifact artifact = (Artifact)value;
+        setText(artifact.getName());
+        setIcon(artifact.getArtifactType().getIcon());
       }
-    };
-    myActivityField = new ComponentWithBrowseButton<EditorTextField>(editorTextField, null);
+      else if (value instanceof String) {
+        setText("<html><font color='red'>" + value + "</font></html>");
+      }
+    }
   }
 }

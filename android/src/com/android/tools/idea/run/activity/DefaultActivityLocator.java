@@ -194,7 +194,7 @@ public class DefaultActivityLocator extends ActivityLocator {
     public static ActivityWrapper get(@NotNull ActivityAlias activityAlias) {
       return new ActivityAliasWrapper(activityAlias);
     }
-  };
+  }
 
   private static class RealActivityWrapper extends ActivityWrapper {
     private final Activity myActivity;
