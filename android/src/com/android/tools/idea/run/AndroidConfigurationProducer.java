@@ -79,9 +79,8 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
     }
     sourceElement.set(activity);
 
-    configuration.ACTIVITY_CLASS = activityName;
-    configuration.MODE = AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY;
-    configuration.setName(JavaExecutionUtil.getPresentableClassName(configuration.ACTIVITY_CLASS));
+    configuration.setLaunchActivity(activityName);
+    configuration.setName(JavaExecutionUtil.getPresentableClassName(activityName));
     setupConfigurationModule(context, configuration);
 
     final TargetSelectionMode targetSelectionMode = AndroidUtils
@@ -96,22 +95,22 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
   @Override
   public boolean isConfigurationFromContext(AndroidRunConfiguration configuration, ConfigurationContext context) {
     final Location location = context.getLocation();
-
     if (location == null) {
       return false;
     }
-    final PsiClass activity = getActivityClass(location, context);
 
+    final PsiClass activity = getActivityClass(location, context);
     if (activity == null) {
       return false;
     }
-    final String activityName = activity.getQualifiedName();
 
+    final String activityName = activity.getQualifiedName();
     if (activityName == null) {
       return false;
     }
+
     final Module contextModule = AndroidUtils.getAndroidModule(context);
     final Module confModule = configuration.getConfigurationModule().getModule();
-    return Comparing.equal(contextModule, confModule) && activityName.equals(configuration.ACTIVITY_CLASS);
+    return Comparing.equal(contextModule, confModule) && configuration.isLaunchingActivity(activityName);
   }
 }
