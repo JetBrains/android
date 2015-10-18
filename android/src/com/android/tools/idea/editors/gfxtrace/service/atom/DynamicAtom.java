@@ -56,16 +56,20 @@ public class DynamicAtom extends Atom {
   }
 
   @Override
-  public int getObservationsIndex() {
-    return myMetadata.myObservationsIndex;
+  public int getExtrasIndex() {
+    return myMetadata.myExtrasIndex;
   }
 
   @Override
   public Observations getObservations() {
-    if (myMetadata.myObservationsIndex >= 0) {
-      Object value = getFieldValue(myMetadata.myObservationsIndex);
-      assert (value instanceof Observations);
-      return (Observations)value;
+    if (myMetadata.myExtrasIndex >= 0) {
+      Object extras = getFieldValue(myMetadata.myExtrasIndex);
+      assert (extras instanceof Object[]);
+      for (Object extra : (Object[])extras) {
+        if (extra instanceof Observations) {
+          return (Observations)extra;
+        }
+      }
     }
     return null;
   }

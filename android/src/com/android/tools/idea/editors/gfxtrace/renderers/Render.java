@@ -132,10 +132,10 @@ public final class Render {
   public static void render(@NotNull DynamicAtom atom, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
     component.append(atom.getName() + "(", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
     int resultIndex = atom.getResultIndex();
-    int observationsIndex = atom.getObservationsIndex();
+    int extrasIndex = atom.getExtrasIndex();
     boolean needComma = false;
     for (int i = 0; i < atom.getFieldCount(); ++i) {
-      if (i == resultIndex || i == observationsIndex) continue;
+      if (i == resultIndex || i == extrasIndex) continue;
       if (needComma) {
         component.append(", ", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       }
