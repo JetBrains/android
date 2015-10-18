@@ -23,7 +23,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
@@ -45,7 +44,7 @@ public final class AtomMetadata implements BinaryObject {
 
   boolean myIsPrepared = false;
   int myResultIndex = -1;
-  int myObservationsIndex = -1;
+  int myExtrasIndex = -1;
   @NotNull private static final Logger LOG = Logger.getInstance(AtomMetadata.class);
 
   private void prepare(Entity c) {
@@ -56,9 +55,12 @@ public final class AtomMetadata implements BinaryObject {
       if (field.getDeclared().equals("Result")) {
         myResultIndex = index;
       }
-      if (field.getType() instanceof Struct) {
-        if (((Struct)field.getType()).is(Observations.Klass.INSTANCE)) {
-          myObservationsIndex = index;
+      if (field.getType() instanceof Slice) {
+        Type vt = ((Slice)field.getType()).getValueType();
+        if (vt instanceof Interface) {
+          if ("atom.Extra".equals(((Interface)vt).name)) {
+            myExtrasIndex = index;
+          }
         }
       }
     }
