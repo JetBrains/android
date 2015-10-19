@@ -55,7 +55,6 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidOutputReceiver;
@@ -257,7 +256,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   // a new process handler and console. In such a scenario, control flow directly goes to #start().
   @Override
   public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
-    myProcessHandler = new DefaultDebugProcessHandler();
+    myProcessHandler = new AndroidMultiProcessHandler(getPackageName());
     AndroidProcessText.attach(myProcessHandler);
     myConsole = myConfiguration.attachConsole(this, executor);
     myPrinter.setProcessHandler(myProcessHandler);
@@ -323,7 +322,9 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
             if (startedCount.incrementAndGet() == myDeviceTarget.getDeviceFutures().size() && !isDebugMode()) {
               // All the devices have been started, and we don't need to wait to attach the debugger. We're done.
               myStopped.set(true);
-              getProcessHandler().destroyProcess();
+            }
+            if (myProcessHandler instanceof AndroidMultiProcessHandler) {
+              ((AndroidMultiProcessHandler)myProcessHandler).addTargetDevice(device);
             }
             fireExecutionStarted(device);
           } else {
