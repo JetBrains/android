@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
  * Tests for {@link AndroidModelView}.
  */
 public class AndroidModelViewTest extends TestCase {
-  private static final String projectBasePath = "/p/b/p";
+  private static final String projectBasePath = new File("/p/b/p").getPath();
 
   public void testCreateTreeNode() throws Exception {
     DefaultMutableTreeNode node = new DefaultMutableTreeNode("test");
@@ -61,11 +61,11 @@ public class AndroidModelViewTest extends TestCase {
 
     DefaultMutableTreeNode childAtZero = (DefaultMutableTreeNode)node.getChildAt(0);
     assertEquals(0, childAtZero.getChildCount());
-    assertEquals("File -> /a/sample/file", childAtZero.getUserObject());
+    assertEquals("File -> /a/sample/file", childAtZero.getUserObject().toString().replace('\\', '/'));
 
     DefaultMutableTreeNode childAtOne = (DefaultMutableTreeNode)node.getChildAt(1);
     assertEquals(0, childAtOne.getChildCount());
-    assertEquals("FileUnderProject -> b/sample/file", childAtOne.getUserObject());
+    assertEquals("FileUnderProject -> b/sample/file", childAtOne.getUserObject().toString().replace('\\', '/'));
 
     DefaultMutableTreeNode childAtTwo = (DefaultMutableTreeNode)node.getChildAt(2);
     assertEquals(0, childAtTwo.getChildCount());
@@ -446,9 +446,10 @@ public class AndroidModelViewTest extends TestCase {
 
   private static void verifySourceDirectoryPaths(@NotNull DefaultMutableTreeNode dirNode, @NotNull String dirType) {
     assertEquals(3, dirNode.getChildCount());
-    assertEquals("src1/" + dirType, ((DefaultMutableTreeNode)dirNode.getChildAt(0)).getUserObject().toString());
-    assertEquals("src2/" + dirType, ((DefaultMutableTreeNode)dirNode.getChildAt(1)).getUserObject().toString());
-    assertEquals("src3/" + dirType, ((DefaultMutableTreeNode)dirNode.getChildAt(2)).getUserObject().toString());
+    dirType = File.separator + dirType;
+    assertEquals("src1" + dirType, ((DefaultMutableTreeNode)dirNode.getChildAt(0)).getUserObject().toString());
+    assertEquals("src2" + dirType, ((DefaultMutableTreeNode)dirNode.getChildAt(1)).getUserObject().toString());
+    assertEquals("src3" + dirType, ((DefaultMutableTreeNode)dirNode.getChildAt(2)).getUserObject().toString());
   }
 
   @SuppressWarnings("unchecked")
