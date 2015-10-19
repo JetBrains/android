@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.templates.recipe;
 
-import com.android.tools.idea.templates.FreemarkerUtils.TemplatePostProcessor;
-import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -69,12 +67,15 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
   }
 
   @Override
-  public String processTemplate(@NotNull File recipe, @NotNull TemplatePostProcessor processor) {
-    return null;
+  public void updateAndSyncGradle() {
   }
 
   @Override
-  public void updateAndSyncGradle() {
+  public void pushFolder(@NotNull String folder) {
+  }
+
+  @Override
+  public void popFolder() {
   }
 
   public void addSourceFile(@NotNull File file) {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates.recipe;
 
-import com.android.tools.idea.templates.FreemarkerUtils.TemplatePostProcessor;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,13 +63,18 @@ public interface RecipeExecutor {
   void addDependency(@NotNull String mavenUrl);
 
   /**
-   * Process an recursive recipe.
-   */
-  String processTemplate(@NotNull File recipe, @NotNull TemplatePostProcessor processor) throws TemplateProcessingException;
-
-  /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.
    */
   void updateAndSyncGradle();
+
+  /**
+   * Set the current folder that relative paths will be resolved against.
+   */
+  void pushFolder(@NotNull String folder);
+
+  /**
+   * Restore the previous folder that relative paths will be resolved against.
+   */
+  void popFolder();
 }

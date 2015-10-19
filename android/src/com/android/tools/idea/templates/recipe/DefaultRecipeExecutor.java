@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.*;
-import com.android.tools.idea.templates.FreemarkerUtils.TemplatePostProcessor;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.intellij.diff.comparison.ComparisonManager;
@@ -244,11 +243,6 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     }
   }
 
-  @Override
-  public String processTemplate(@NotNull File recipe, @NotNull TemplatePostProcessor processor) throws TemplateProcessingException {
-    return FreemarkerUtils.processFreemarkerTemplate(myContext, recipe, processor);
-  }
-
   /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.
@@ -271,6 +265,21 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
         isBuildWithGradle(project)) {
       myIO.requestGradleSync(project);
     }
+  }
+
+  @Override
+  public void pushFolder(@NotNull String folder) {
+    try {
+      myContext.getLoader().pushTemplateFolder(folder);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void popFolder() {
+    myContext.getLoader().popTemplateFolder();
   }
 
   /**

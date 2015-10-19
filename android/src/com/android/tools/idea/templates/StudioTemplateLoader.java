@@ -58,6 +58,14 @@ public final class StudioTemplateLoader implements TemplateLoader {
   }
 
   /**
+   * Resolve the folderName and push the resulting folder as the last template folder.
+   * @param folderName the name of a folder (may start with "root://") used for resolving relative paths
+   */
+  public void pushTemplateFolder(@NotNull String folderName) throws IOException {
+    myLastTemplateFolders.push(resolveName(folderName));
+  }
+
+  /**
    * Pop the previous folder.
    * Use this value to restore a prior last template folder if we pushed a new folder explicitly.
    */
