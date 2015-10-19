@@ -23,12 +23,11 @@ import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
-import com.android.tools.idea.editors.gfxtrace.service.image.FmtRGBA;
+import com.android.tools.idea.editors.gfxtrace.service.image.Format;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +51,7 @@ public class TexturesController extends ImagePanelController {
       @Override
       public void selected(Data item) {
         setEmptyText(myList.isEmpty() ? GfxTraceEditor.NO_TEXTURES : GfxTraceEditor.SELECT_TEXTURE);
-        setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path.as(FmtRGBA.INSTANCE)));
+        setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path.as(Format.RGBA)));
       }
     }.myList, BorderLayout.NORTH);
     initToolbar(new DefaultActionGroup());
@@ -91,7 +90,7 @@ public class TexturesController extends ImagePanelController {
     @Override
     public void loadCell(Data cell, Runnable onLoad) {
       final ServiceClient client = myEditor.getClient();
-      final ThumbnailPath path = cell.path.thumbnail(REQUEST_SIZE, FmtRGBA.INSTANCE);
+      final ThumbnailPath path = cell.path.thumbnail(REQUEST_SIZE, Format.RGBA);
       loadCellImage(cell, client, path, onLoad);
     }
 
