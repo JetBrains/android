@@ -828,23 +828,26 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     @Override
     @SuppressWarnings("UseJBColor")
-    protected void paintComponent(Graphics g) {
+    protected void paintComponent(Graphics graphics) {
+      Graphics2D g = (Graphics2D)graphics;
       final Insets i = getInsets();
       final Rectangle r = getBounds();
       final int width = r.width - i.left - i.right;
       final int height = r.height - i.top - i.bottom;
       com.intellij.util.ui.GraphicsUtil.setupAntialiasing(g);
 
-      GraphicsUtil.paintCheckeredBackground(g, r);
+      Rectangle clipRectangle = new Rectangle(i.left, i.top, width, height);
+      GraphicsUtil.paintCheckeredBackground(g, clipRectangle);
 
       if (!myIsContrastPreview) {
         g.setColor(myColor);
-        g.fillRect(i.left, i.top, width, height);
+        g.fillRect(clipRectangle.x, clipRectangle.y, clipRectangle.width, clipRectangle.height);
         return;
       }
 
-      int colorCellWidth = width / myContrastColorSet.size();
-      Rectangle drawingRectangle = new Rectangle(r.x, r.y, colorCellWidth, r.height);
+      // 1 added for rounding up the division, so that all the rectangles will fill the entire width of the component
+      int colorCellWidth = width / myContrastColorSet.size() + 1;
+      Rectangle drawingRectangle = new Rectangle(clipRectangle.x, clipRectangle.y, colorCellWidth, clipRectangle.height);
       Font defaultFont = UIUtil.getLabelFont();
       Font textFont = defaultFont.deriveFont(defaultFont.getSize() * FONT_SIZE_RATIO);
 
@@ -859,6 +862,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         GraphicsUtil.drawCenteredString(g, drawingRectangle, TEXT);
         drawingRectangle.x += colorCellWidth;
       }
+
       if (!myErrorString.isEmpty()) {
         WARNING_ICON.paintIcon(this, g, width - PADDING, height - PADDING);
       }
@@ -1617,8 +1621,11 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       Color color = new Color(myColor.getRGB());
       Color transparent = ColorUtil.toAlpha(Color.WHITE, 0);
 
+      Rectangle clip = new Rectangle(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
+      GraphicsUtil.paintCheckeredBackground(g2d, clip);
+
       g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, getWidth(), 0f, color));
-      g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
+      g.fillRect(clip.x, clip.y, clip.width, clip.height);
 
       drawKnob(g2d, myPointerValue, JBUI.scale(7));
     }
