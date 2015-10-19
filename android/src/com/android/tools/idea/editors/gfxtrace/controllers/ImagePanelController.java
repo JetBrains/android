@@ -24,11 +24,18 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.LoadingDecorator;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.components.panels.NonOpaquePanel;
+import com.intellij.util.ui.AsyncProcessIcon;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,7 +44,7 @@ public abstract class ImagePanelController extends Controller {
   @NotNull private static final Logger LOG = Logger.getInstance(ImagePanelController.class);
 
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
-  @NotNull private final JBLoadingPanel myLoading;
+  @NotNull private final LoadingDecorator myLoading;
   @NotNull private final ImagePanel myImagePanel = new ImagePanel();
   @NotNull private final AtomicInteger imageLoadCount = new AtomicInteger();
   @NotNull private ListenableFuture<?> request = Futures.immediateFuture(0);
@@ -45,9 +52,18 @@ public abstract class ImagePanelController extends Controller {
   public ImagePanelController(@NotNull GfxTraceEditor editor, String emptyText) {
     super(editor);
     myImagePanel.getEmptyText().setText(emptyText);
-    myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject());
-    myLoading.add(myImagePanel, BorderLayout.CENTER);
-    myPanel.add(myLoading, BorderLayout.CENTER);
+    myLoading =  new LoadingDecorator(myImagePanel, myEditor.getProject(), -1) {
+      @Override
+      protected NonOpaquePanel customizeLoadingLayer(JPanel parent, JLabel text, AsyncProcessIcon icon) {
+        NonOpaquePanel result = super.customizeLoadingLayer(parent, text, icon);
+        result.setOpaque(true); // I regret nothing!
+        result.setBackground(UIUtil.getPanelBackground());
+        result.setBorder(JBUI.Borders.merge(JBUI.Borders.customLine(new JBColor(0, 0xffffff), 1), JBUI.Borders.empty(5), false));
+        return result;
+      }
+    };
+
+    myPanel.add(myLoading.getComponent(), BorderLayout.CENTER);
   }
 
   protected void initToolbar(DefaultActionGroup group) {
@@ -66,7 +82,7 @@ public abstract class ImagePanelController extends Controller {
     }
 
     final int imageRequest = newImageRequest(imageFuture);
-    myLoading.startLoading();
+    myLoading.startLoading(false);
 
     Futures.addCallback(imageFuture, new FutureCallback<FetchedImage>() {
       @Override
