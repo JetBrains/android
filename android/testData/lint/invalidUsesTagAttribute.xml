@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<automotiveApp>
+  <uses <error descr="Expecting one of `media` or `notification` for the name attribute in uses tag.">name="media<caret>session"</error>/>
+</automotiveApp>

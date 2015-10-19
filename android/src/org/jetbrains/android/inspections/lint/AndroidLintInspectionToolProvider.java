@@ -19,11 +19,13 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -1390,6 +1392,30 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintInvalidUsesTagAttributeInspection extends AndroidLintInspectionBase {
+    public AndroidLintInvalidUsesTagAttributeInspection() {
+      super(AndroidBundle.message("android.lint.inspections.invalid.uses.tag.attribute"), AndroidAutoDetector.INVALID_USES_TAG_ISSUE);
+    }
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      final XmlAttribute attribute = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class);
+      XmlAttributeValue attributeValue = attribute == null ? null : attribute.getValueElement();
+      if (attributeValue != null && attributeValue.getTextLength() != 0) {
+        String value = StringUtil.unquoteString(attributeValue.getText());
+        String regexp = "(" + value + ")";
+        String[] suggestions = AndroidAutoDetector.getAllowedAutomotiveAppTypes();
+        List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(suggestions.length);
+        for (String suggestion: suggestions) {
+          fixes.add(new ReplaceStringQuickFix("Replace with \"" + suggestion + "\"", regexp, suggestion));
+        }
+        return fixes.toArray(new AndroidLintQuickFix[fixes.size()]);
+      } else {
+        return AndroidLintQuickFix.EMPTY_ARRAY;
+      }
+    }
+  }
+
   public static class AndroidLintJavascriptInterfaceInspection extends AndroidLintInspectionBase {
     public AndroidLintJavascriptInterfaceInspection() {
       super(AndroidBundle.message("android.lint.inspections.javascript.interface"), JavaScriptInterfaceDetector.ISSUE);
@@ -1464,6 +1490,27 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       return new AndroidLintQuickFix[] { new SetAttributeQuickFix("Set id", ATTR_ID, null) };
+    }
+  }
+
+  public static class AndroidLintMissingIntentFilterForMediaSearchInspection extends AndroidLintInspectionBase {
+    public AndroidLintMissingIntentFilterForMediaSearchInspection() {
+      super(AndroidBundle.message("android.lint.inspections.missing.intent.filter.for.media.search"),
+            AndroidAutoDetector.MISSING_INTENT_FILTER_FOR_MEDIA_SEARCH);
+    }
+  }
+
+  public static class AndroidLintMissingMediaBrowserServiceIntentFilterInspection extends AndroidLintInspectionBase {
+    public AndroidLintMissingMediaBrowserServiceIntentFilterInspection() {
+      super(AndroidBundle.message("android.lint.inspections.missing.media.browser.service.intent.filter"),
+            AndroidAutoDetector.MISSING_MEDIA_BROWSER_SERVICE_ACTION_ISSUE);
+    }
+  }
+
+  public static class AndroidLintMissingOnPlayFromSearchInspection extends AndroidLintInspectionBase {
+    public AndroidLintMissingOnPlayFromSearchInspection() {
+      super(AndroidBundle.message("android.lint.inspections.missing.on.play.from.search"),
+            AndroidAutoDetector.MISSING_ON_PLAY_FROM_SEARCH);
     }
   }
 
