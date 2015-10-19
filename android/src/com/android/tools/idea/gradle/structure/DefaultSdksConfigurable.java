@@ -531,7 +531,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   @Nullable
   private String validateAndroidSdkPath() {
     WizardUtils.ValidationResult wizardValidationResult =
-      WizardUtils.validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false);
+      WizardUtils.validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false, false);
     if (!wizardValidationResult.isOk()) {
       return wizardValidationResult.getFormattedMessage();
     }
