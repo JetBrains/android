@@ -175,6 +175,10 @@ public class PostProjectSetupTasksExecutor {
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
 
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      TestArtifactSearchScopes.initializeScopes(myProject);
+    }
+
     updateGradleSyncState();
 
     if (myGenerateSourcesAfterSync) {
@@ -185,10 +189,6 @@ public class PostProjectSetupTasksExecutor {
     myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
-
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      TestArtifactSearchScopes.initializeScopes(myProject);
-    }
   }
 
   private void updateGradleSyncState() {

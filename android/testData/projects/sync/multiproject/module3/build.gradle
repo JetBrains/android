@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,4 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-include ':module1', ':module2', ':module3'
+apply plugin: 'android-library'
+
+android {
+  compileSdkVersion 19
+  buildToolsVersion '19.1.0'
+
+  defaultConfig {
+    minSdkVersion 15
+    targetSdkVersion 19
+  }
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compile 'com.google.guava:guava:18.0'
+}

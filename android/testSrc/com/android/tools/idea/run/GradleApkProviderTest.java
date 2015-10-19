@@ -16,7 +16,15 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestName;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
 
 import java.util.*;
@@ -24,8 +32,39 @@ import java.util.*;
 /**
  * Tests for {@link GradleApkProvider}.
  */
+@RunWith(Parameterized.class)
 public class GradleApkProviderTest extends AndroidGradleTestCase {
+  @Parameterized.Parameter
+  public boolean myLoadAllTestArtifacts;
 
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+      { false }, { true }
+    });
+  }
+
+  @Rule public TestName testName = new TestName();
+
+  @Override
+  public String getName() {
+    return testName.getMethodName();
+  }
+
+  @Before
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myLoadAllTestArtifacts;
+  }
+
+  @After
+  @Override
+  public void tearDown() throws Exception {
+    super.tearDown();
+  }
+
+  @Test
   public void testGetPackageName() throws Exception {
     if (!CAN_SYNC_PROJECTS) {
       System.err.println("GradleApkProviderTest.testGetPackageName temporarily disabled");
@@ -40,6 +79,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     assertEquals("from.gradle.debug.test", provider.getTestPackageName());
   }
 
+  @Test
   public void testGetApks() throws Exception {
     if (!CAN_SYNC_PROJECTS) {
       System.err.println("GradleApkProviderTest.testGetApks temporarily disabled");
@@ -54,9 +94,10 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     assertEquals(1, apks.size());
     ApkInfo apk = apks.iterator().next();
     assertEquals("from.gradle.debug", apk.getApplicationId());
-    assertTrue(apk.getFile().getPath().endsWith("testGetApks0-debug.apk"));
+    assertTrue(apk.getFile().getPath().endsWith(getName() + "0-debug.apk"));
   }
 
+  @Test
   public void testGetPackageNameForTest() throws Exception {
     if (!CAN_SYNC_PROJECTS) {
       System.err.println("GradleApkProviderTest.testGetPackageNameForTest temporarily disabled");
@@ -71,6 +112,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     assertEquals("from.gradle.debug.test", provider.getTestPackageName());
   }
 
+  @Test
   public void testGetApksForTest() throws Exception {
     if (!CAN_SYNC_PROJECTS) {
       System.err.println("GradleApkProviderTest.testGetApksForTest temporarily disabled");
@@ -94,8 +136,8 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     ApkInfo mainApk = apkList.get(0);
     ApkInfo testApk = apkList.get(1);
     assertEquals("from.gradle.debug", mainApk.getApplicationId());
-    assertTrue(mainApk.getFile().getPath().endsWith("testGetApksForTest0-debug.apk"));
+    assertTrue(mainApk.getFile().getPath().endsWith(getName() + "0-debug.apk"));
     assertEquals(testApk.getApplicationId(), "from.gradle.debug.test");
-    assertTrue(testApk.getFile().getPath().endsWith("testGetApksForTest0-debug-androidTest-unaligned.apk"));
+    assertTrue(testApk.getFile().getPath().endsWith(getName() + "0-debug-androidTest-unaligned.apk"));
   }
 }
