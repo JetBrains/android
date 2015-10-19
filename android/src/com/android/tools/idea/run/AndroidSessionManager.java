@@ -22,6 +22,7 @@ import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +32,7 @@ public class AndroidSessionManager {
                                                   @NotNull Executor executor,
                                                   @NotNull AndroidRunConfigurationBase configuration) {
     for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
-      final AndroidSessionInfo info = handler.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
+      AndroidSessionInfo info = handler.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
 
       if (info != null &&
           info.getState().getConfiguration().equals(configuration) &&
@@ -39,6 +40,23 @@ public class AndroidSessionManager {
         return info;
       }
     }
+    return null;
+  }
+
+  @Nullable
+  public static AndroidSessionInfo findOldSession(@NotNull Project project, @NotNull String configName) {
+    for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
+      if (handler.isProcessTerminated() || handler.isProcessTerminating()) {
+        continue;
+      }
+
+      AndroidSessionInfo info = handler.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
+
+      if (info != null && configName.equals(info.getState().getConfiguration().getName())) {
+        return info;
+      }
+    }
+
     return null;
   }
 }
