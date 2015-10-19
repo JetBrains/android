@@ -89,13 +89,16 @@ public class GradleSyncState {
   @GuardedBy("myLock")
   private boolean mySyncInProgress;
 
-  public static void subscribe(@NotNull Project project, @NotNull GradleSyncListener listener) {
-    subscribe(project, listener, project);
+  @NotNull
+  public static MessageBusConnection subscribe(@NotNull Project project, @NotNull GradleSyncListener listener) {
+    return subscribe(project, listener, project);
   }
 
-  public static void subscribe(@NotNull Project project, @NotNull GradleSyncListener listener, @NotNull Disposable parentDisposable) {
+  @NotNull
+  public static MessageBusConnection subscribe(@NotNull Project project, @NotNull GradleSyncListener listener, @NotNull Disposable parentDisposable) {
     MessageBusConnection connection = project.getMessageBus().connect(parentDisposable);
     connection.subscribe(GRADLE_SYNC_TOPIC, listener);
+    return connection;
   }
 
   @NotNull
