@@ -335,7 +335,6 @@
     <configurationType implementation="com.android.tools.idea.run.AndroidRunConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.testing.AndroidTestRunConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.AndroidDebugRunner" order="first"/>
-    <programRunner implementation="com.android.tools.idea.run.fd.PatchRunner" />
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.facet.AndroidGradleFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.facet.JavaGradleFacetType"/>

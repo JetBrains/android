@@ -54,9 +54,15 @@ public class PatchDeployState implements RunProfileState {
     myDevices = devices;
   }
 
+
   @Nullable
   @Override
   public ExecutionResult execute(Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
+    assert false : "Should not be called..";
+    return null;
+  }
+
+  public void start() throws ExecutionException {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
@@ -76,8 +82,6 @@ public class PatchDeployState implements RunProfileState {
         myProcessHandler.notifyTextAvailable("Incremental update complete.\n", ProcessOutputTypes.STDOUT);
       }
     });
-
-    return new DefaultExecutionResult(myDescriptor.getExecutionConsole(), myProcessHandler);
   }
 
   private static String join(Collection<IDevice> devices) {
@@ -92,9 +96,5 @@ public class PatchDeployState implements RunProfileState {
     }
 
     return sb.toString().trim();
-  }
-
-  public RunContentDescriptor getDescriptor() {
-    return myDescriptor;
   }
 }
