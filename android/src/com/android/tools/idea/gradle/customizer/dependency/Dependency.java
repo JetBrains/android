@@ -91,25 +91,21 @@ public abstract class Dependency {
   }
 
   @NotNull
-  public static DependencySet extractFrom(@NotNull AndroidGradleModel androidProject) {
+  public static DependencySet extractFrom(@NotNull AndroidGradleModel androidModel) {
     DependencySet dependencies = new DependencySet();
 
     if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      for (BaseArtifact testArtifact : androidProject.getSelectedVariant().getExtraAndroidArtifacts()) {
-        populate(dependencies, testArtifact, TEST);
-      }
-
-      for (BaseArtifact testArtifact : androidProject.getSelectedVariant().getExtraJavaArtifacts()) {
+      for (BaseArtifact testArtifact : androidModel.getTestArtifactsInSelectedVariant()) {
         populate(dependencies, testArtifact, TEST);
       }
     } else {
-      BaseArtifact testArtifact = androidProject.findSelectedTestArtifactInSelectedVariant();
+      BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
       if (testArtifact != null) {
         populate(dependencies, testArtifact, TEST);
       }
     }
 
-    AndroidArtifact mainArtifact = androidProject.getMainArtifact();
+    AndroidArtifact mainArtifact = androidModel.getMainArtifact();
     populate(dependencies, mainArtifact, COMPILE);
 
     return dependencies;
