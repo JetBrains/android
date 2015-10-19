@@ -255,6 +255,16 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   }
 
   @Override
+  public void onEnterStep() {
+    super.onEnterStep();
+    String resourceName = computeResourceName();
+    myResourceNameField.setEnabled(resourceName == null);
+    if (resourceName != null) {
+      myState.put(ATTR_ASSET_NAME, resourceName);
+    }
+  }
+
+  @Override
   public void init() {
     super.init();
 
@@ -418,6 +428,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     }
 
     // Asset Type Combo Box
+    // TODO: This doesn't look like it's used anywhere. Confirm...? (only used from Notification template?)
     AssetType assetType = myState.get(ATTR_ASSET_TYPE);
     if (assetType != null) {
       String name = myState.get(ATTR_ASSET_NAME);
@@ -569,6 +580,26 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
 
   @NotNull
   private String computeResourceName(AssetType assetType) {
+    String resourceName = computeResourceName();
+    if (resourceName == null) {
+      resourceName = String.format(assetType.getDefaultNameFormat(), "name");
+    }
+
+    // It's unusual to have > 1 launcher icon, don't fix the name for launcher icons.
+    if (drawableExists(resourceName) && assetType != AssetType.LAUNCHER) {
+      // While uniqueness isn't satisfied, increment number and add to end
+      int i = 2;
+      while (drawableExists(resourceName + i)) {
+        i++;
+      }
+      resourceName += i;
+    }
+
+    return resourceName;
+  }
+
+  @Nullable
+  private String computeResourceName() {
     String resourceName = null;
     TemplateEntry templateEntry = myState.get(myTemplateKey);
     String nameExpression;
@@ -584,21 +615,6 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
         resourceName = myStringEvaluator.evaluate(nameExpression, parameters);
       }
     }
-
-    if (resourceName == null) {
-      resourceName = String.format(assetType.getDefaultNameFormat(), "name");
-    }
-
-    // It's unusual to have > 1 launcher icon, don't fix the name for launcher icons.
-    if (drawableExists(resourceName) && assetType != AssetType.LAUNCHER) {
-      // While uniqueness isn't satisfied, increment number and add to end
-      int i = 2;
-      while (drawableExists(resourceName + Integer.toString(i))) {
-        i++;
-      }
-      resourceName += Integer.toString(i);
-    }
-
     return resourceName;
   }
 
