@@ -17,7 +17,7 @@
     <orderEntry type="module" module-name="android" />
     <orderEntry type="module" module-name="builder-model" />
     <orderEntry type="module-library">
-      <library>
+      <library name="Gradle">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-tooling-api-2.5.jar!/" />
           <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-core-2.5.jar!/" />
