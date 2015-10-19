@@ -35,7 +35,7 @@ public class LoadingIndicator {
   private static final long CYCLE_LENGTH = LOADING_ICONS.length * MS_PER_FRAME;
   private static final int MIN_SIZE = 3 * LOADING_ICONS[0].getIconWidth() / 2;
 
-  private static final Set<Component> componentsToRedraw = Sets.newIdentityHashSet();
+  private static final Set<Repaintable> componentsToRedraw = Sets.newIdentityHashSet();
   private static final ScheduledExecutorService tickerScheduler =
     ConcurrencyUtil.newSingleScheduledThreadExecutor("LoadingAnimation");
 
@@ -55,7 +55,7 @@ public class LoadingIndicator {
     return new Dimension(LOADING_ICONS[0].getIconWidth(), LOADING_ICONS[0].getIconHeight());
   }
 
-  public static void scheduleForRedraw(Component c) {
+  public static void scheduleForRedraw(Repaintable c) {
     synchronized (componentsToRedraw) {
       if (componentsToRedraw.add(c) && componentsToRedraw.size() == 1) {
         tickerScheduler.schedule(new Runnable() {
@@ -69,12 +69,12 @@ public class LoadingIndicator {
   }
 
   private static void redrawAll() {
-    Component[] components;
+    Repaintable[] components;
     synchronized (componentsToRedraw) {
-      components = componentsToRedraw.toArray(new Component[componentsToRedraw.size()]);
+      components = componentsToRedraw.toArray(new Repaintable[componentsToRedraw.size()]);
       componentsToRedraw.clear();
     }
-    for (Component c : components) {
+    for (Repaintable c : components) {
       c.repaint();
     }
   }
