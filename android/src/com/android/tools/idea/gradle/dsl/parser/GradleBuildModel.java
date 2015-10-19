@@ -24,7 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
@@ -136,8 +135,7 @@ public class GradleBuildModel {
       GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(myProject);
 
       // We need to add line separators, otherwise reformatting won't work.
-      String lineSeparator = SystemProperties.getLineSeparator();
-      String text = "dependencies {" + lineSeparator + configurationName + " '" + compactNotation + "'" + lineSeparator +  "}";
+      String text = "dependencies {\n" + configurationName + " '" + compactNotation + "'\n}";
       GrExpression expression = factory.createExpressionFromText(text);
 
       myPsiFile.add(expression);
