@@ -294,8 +294,8 @@ public class NetworkSampler extends DeviceSampler {
           }
         }
         catch (NumberFormatException e) {
-          LOG.warning(String.format("Expected int value, instead got uid %1$s, rxBytes %2$s, txBytes %3$s", values[INDEX_OF_UID],
-                                    values[INDEX_OF_RX_BYTES], values[INDEX_OF_TX_BYTES]));
+          LOG.warning(String.format("Expected int value, instead got uid %1$s, rxBytes %2$s, txBytes %3$s in %4$s", values[INDEX_OF_UID],
+                                    values[INDEX_OF_RX_BYTES], values[INDEX_OF_TX_BYTES], line));
         }
       }
     }
