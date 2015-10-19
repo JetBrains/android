@@ -345,6 +345,12 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Set banner attribute", "AndroidManifest.xml", "xml");
   }
 
+  public void testInvalidUsesTagAttribute() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintInvalidUsesTagAttributeInspection(),
+                  "Replace with \"media\"",
+                  "res/xml/automotive_app_desc.xml", "xml");
+  }
+
   /* Disabled: The mipmap check now only warns about mipmap usage in Gradle projects that use
    * density filtering. Re-enable this if we broaden the mipmap check, or if we update the AndroidLintTest
    * to also check Gradle projects.
