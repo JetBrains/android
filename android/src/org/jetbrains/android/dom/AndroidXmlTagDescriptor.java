@@ -24,6 +24,7 @@ import com.intellij.psi.meta.PsiPresentableMetaData;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.xml.XmlAttributeDescriptor;
@@ -37,10 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -118,6 +115,13 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresent
   @Override
   public XmlAttributeDescriptor[] getAttributesDescriptors(@Nullable XmlTag context) {
     final XmlAttributeDescriptor[] descriptors = myParentDescriptor.getAttributesDescriptors(context);
+
+    // The rest of the function below ensures that layout_width attribute descriptor comes before
+    // layout_height descriptor. Order of these is significant for automatic attribute insertion on
+    // tag autocompletion (commenting out ArrayUtil.swap below breaks a bunch of unit tests).
+
+    // Discussion of that on JetBrains issue tracker: https://youtrack.jetbrains.com/issue/IDEA-89857
+
     int layoutWidthIndex = -1;
     int layoutHeightIndex = -1;
 
@@ -131,13 +135,12 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresent
         layoutHeightIndex = i;
       }
     }
-    if (layoutWidthIndex < 0 ||layoutHeightIndex < 0 || layoutWidthIndex < layoutHeightIndex) {
-      return descriptors;
+    if (layoutWidthIndex >= 0 && layoutHeightIndex >= 0 && layoutWidthIndex > layoutHeightIndex) {
+      final XmlAttributeDescriptor[] result = descriptors.clone();
+      ArrayUtil.swap(result, layoutWidthIndex, layoutHeightIndex);
+      return result;
     }
-    final List<XmlAttributeDescriptor> newDescriptors = new ArrayList<XmlAttributeDescriptor>(Arrays.asList(descriptors));
-    final XmlAttributeDescriptor layoutWidthDescriptor = newDescriptors.remove(layoutWidthIndex);
-    newDescriptors.add(layoutHeightIndex, layoutWidthDescriptor);
-    return newDescriptors.toArray(new XmlAttributeDescriptor[newDescriptors.size()]);
+    return descriptors;
   }
 
   @Override
