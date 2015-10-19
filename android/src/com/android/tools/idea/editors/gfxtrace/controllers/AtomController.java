@@ -31,6 +31,7 @@ import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadingIndicator;
+import com.android.tools.idea.editors.gfxtrace.widgets.Repaintables;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.google.common.base.Objects;
@@ -299,7 +300,7 @@ public class AtomController extends TreeController {
           g.fillRect(0, 0, getWidth(), getHeight());
           if (image == null) {
             LoadingIndicator.paint(this, g, 0, 0, getWidth(), getHeight());
-            LoadingIndicator.scheduleForRedraw(this);
+            LoadingIndicator.scheduleForRedraw(Repaintables.forComponent(this));
           } else {
             RenderUtils.drawImage(this, g, image, 0, 0, getWidth(), getHeight());
           }
@@ -344,7 +345,7 @@ public class AtomController extends TreeController {
               public void paintIcon(Component component, Graphics g, int x, int y) {
                 if (image == null) {
                   LoadingIndicator.paint(tree, g, x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
-                  LoadingIndicator.scheduleForRedraw(tree);
+                  LoadingIndicator.scheduleForRedraw(Repaintables.forComponent(tree));
                 } else {
                   ImageIcon icon = image.icon;
                   RenderUtils.drawImage(tree, g, icon.getImage(), x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);

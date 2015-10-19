@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.renderers;
 
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadingIndicator;
+import com.android.tools.idea.editors.gfxtrace.widgets.Repaintable;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.util.ui.JBUI;
@@ -57,7 +58,7 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
   protected Component getRendererComponent(@NotNull JList list, @NotNull T cell) {
     myCellComponent.setCell(cell);
     if (cell.isLoading()) {
-      LoadingIndicator.scheduleForRedraw(list);
+      LoadingIndicator.scheduleForRedraw(getRepaintable(list));
     }
     return myCellComponent;
   }
