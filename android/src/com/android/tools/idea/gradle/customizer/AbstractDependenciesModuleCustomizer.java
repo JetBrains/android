@@ -92,10 +92,14 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
                                                @NotNull Collection<String> sourcePaths,
                                                @NotNull Collection<String> documentationPaths) {
     Library library = modelsProvider.getLibraryByName(libraryName);
+    final Library.ModifiableModel modifiableLibraryModel;
     if (library == null) {
       // Create library.
       library = modelsProvider.createLibrary(libraryName);
-      updateLibraryBinaryPaths(library, binaryPaths);
+      modifiableLibraryModel = modelsProvider.getModifiableLibraryModel(library);
+      updateLibraryBinaryPaths(modifiableLibraryModel, binaryPaths);
+    } else {
+      modifiableLibraryModel = modelsProvider.getModifiableLibraryModel(library);
     }
 
     // It is common that the same dependency is used by more than one module. Here we update the "sources" and "documentation" paths if they
@@ -108,8 +112,8 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     // If the 'Guava' library was already defined when setting up 'app', it won't have source attachments. When setting up 'util' we may
     // have source attachments, but the library may have been already created. Here we just add the "source" paths if they were not already
     // set.
-    updateLibrarySourcesIfAbsent(library, sourcePaths, OrderRootType.SOURCES);
-    updateLibrarySourcesIfAbsent(library, documentationPaths, JavadocOrderRootType.getInstance());
+    updateLibrarySourcesIfAbsent(modifiableLibraryModel, sourcePaths, OrderRootType.SOURCES);
+    updateLibrarySourcesIfAbsent(modifiableLibraryModel, documentationPaths, JavadocOrderRootType.getInstance());
 
     // Add external annotations.
     // TODO: Add this to the model instead!
@@ -118,7 +122,7 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
         binaryPath.charAt(binaryPath.length() - FD_RES.length() - 1) == separatorChar) {
         File annotations = new File(binaryPath.substring(0, binaryPath.length() - FD_RES.length()), FN_ANNOTATIONS_ZIP);
         if (annotations.isFile()) {
-          updateLibrarySourcesIfAbsent(library, Collections.singletonList(annotations.getPath()), AnnotationOrderRootType.getInstance());
+          updateLibrarySourcesIfAbsent(modifiableLibraryModel, Collections.singletonList(annotations.getPath()), AnnotationOrderRootType.getInstance());
         }
       }
     }
@@ -128,34 +132,21 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     orderEntry.setExported(true);
   }
 
-  private static void updateLibraryBinaryPaths(@NotNull Library library, @NotNull Collection<String> binaryPaths) {
-    Library.ModifiableModel libraryModel = library.getModifiableModel();
-    try {
-      for (String path : binaryPaths) {
-        String url = pathToUrl(path);
-        libraryModel.addRoot(url, OrderRootType.CLASSES);
-      }
-    }
-    finally {
-      libraryModel.commit();
+  private static void updateLibraryBinaryPaths(@NotNull Library.ModifiableModel libraryModel, @NotNull Collection<String> binaryPaths) {
+    for (String path : binaryPaths) {
+      String url = pathToUrl(path);
+      libraryModel.addRoot(url, OrderRootType.CLASSES);
     }
   }
 
-  private static void updateLibrarySourcesIfAbsent(@NotNull Library library,
+  private static void updateLibrarySourcesIfAbsent(@NotNull Library.ModifiableModel libraryModel,
                                                    @NotNull Collection<String> paths,
                                                    @NotNull OrderRootType pathType) {
-    if (paths.isEmpty() || library.getFiles(pathType).length > 0) {
+    if (paths.isEmpty() || libraryModel.getFiles(pathType).length > 0) {
       return;
     }
-    // We only update paths if the library does not have any already defined.
-    Library.ModifiableModel libraryModel = library.getModifiableModel();
-    try {
-      for (String path : paths) {
-        libraryModel.addRoot(pathToUrl(path), pathType);
-      }
-    }
-    finally {
-      libraryModel.commit();
+    for (String path : paths) {
+      libraryModel.addRoot(pathToUrl(path), pathType);
     }
   }
 
