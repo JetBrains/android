@@ -134,7 +134,7 @@ public final class GuiTests {
   }
 
   // Called by IdeTestApplication via reflection.
-  @SuppressWarnings("UnusedDeclaration")
+  @SuppressWarnings("unused")
   public static void setUpDefaultGeneralSettings() {
     setGuiTestingMode(true);
 
@@ -153,12 +153,12 @@ public final class GuiTests {
     }
     final File jdkPath = new File(jdkHome);
 
-    File currentAndroidSdkPath = IdeSdks.getAndroidSdkPath();
-    File currentJdkPath = IdeSdks.getJdkPath();
-    if (!filesEqual(androidSdkPath, currentAndroidSdkPath) || !filesEqual(jdkPath, currentJdkPath)) {
-      execute(new GuiTask() {
-        @Override
-        protected void executeInEDT() throws Throwable {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        File currentAndroidSdkPath = IdeSdks.getAndroidSdkPath();
+        File currentJdkPath = IdeSdks.getJdkPath();
+        if (!filesEqual(androidSdkPath, currentAndroidSdkPath) || !filesEqual(jdkPath, currentJdkPath)) {
           ApplicationManager.getApplication().runWriteAction(new Runnable() {
             @Override
             public void run() {
@@ -170,8 +170,9 @@ public final class GuiTests {
             }
           });
         }
-      });
-    }
+      }
+    });
+
   }
 
   @Nullable
