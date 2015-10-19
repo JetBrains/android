@@ -79,6 +79,8 @@ import java.util.List;
  * TODO: Display error message if not using correct Gradle model
  */
 public class FastDeployManager implements ProjectComponent {
+  public static final String MINIMUM_GRADLE_PLUGIN_VERSION = "1.6.0-alpha1";
+
   // -----------------------------------------------------------------------
   // NOTE: Keep all these communication constants (and message send/receive
   // logic) in sync with the corresponding values in the fast deploy runtime
