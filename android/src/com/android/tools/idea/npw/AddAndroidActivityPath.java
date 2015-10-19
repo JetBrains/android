@@ -30,6 +30,8 @@ import com.google.common.collect.*;
 import com.intellij.ide.projectView.impl.ProjectRootsUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -406,11 +408,20 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
 
     final List<File> filesToOpen = Lists.newArrayList();
     final List<File> filesToReformat = Lists.newArrayList();
-    if (!performFinishingOperation(false, filesToOpen, filesToReformat)) {
+
+    boolean success = new WriteCommandAction<Boolean>(project, "New Activity") {
+      @Override
+      protected void run(@NotNull Result<Boolean> result) throws Throwable {
+        boolean success = performFinishingOperation(false, filesToOpen, filesToReformat);
+        if (success) {
+          myAssetStudioStep.createAssets();
+        }
+        result.setResult(success);
+      }
+    }.execute().getResultObject();
+    if (!success) {
       return false;
     }
-
-    myAssetStudioStep.createAssets();
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
