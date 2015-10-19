@@ -16,20 +16,20 @@
 
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.run.cloud.*;
-import com.android.tools.idea.run.fd.PatchDeployState;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
+import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.diagnostic.Logger;
@@ -38,6 +38,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.*;
 import com.intellij.util.containers.ContainerUtil;
+import icons.AndroidIcons;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -45,11 +46,13 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
-public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> {
+public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements
+                                                                                                               RunnerIconProvider {
   private static final Logger LOG = Logger.getInstance(AndroidRunConfigurationBase.class);
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
@@ -200,6 +203,30 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return ourLastUsedDevices.get(getName());
   }
 
+  @Nullable
+  @Override
+  public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
+    Module module = getConfigurationModule().getModule();
+    if (module == null) {
+      return null;
+    }
+
+    if (!FastDeployManager.isPatchableApp(module)) {
+      return null;
+    }
+
+    AndroidSessionInfo info = AndroidSessionManager.findOldSession(getProject(), getName());
+    if (info == null) {
+      return null;
+    }
+
+    if (info.getExecutorId().equals(executor.getId())) {
+      return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
+    }
+
+    return null;
+  }
+
   @Override
   public RunProfileState getState(@NotNull final Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
     final Module module = getConfigurationModule().getModule();
@@ -221,26 +248,34 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    if (FastDeployManager.isPatchableApp(module)) {
-      // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
-      // we need to save the files a bit earlier than that here (turning the Gradle file save into
-      // a no-op) because we need to check whether the manifest file has been edited since an
-      // edited manifest changes what the incremental run build has to do.
-      GradleInvoker.saveAllFilesSafely();
+    AndroidSessionInfo info = AndroidSessionManager.findOldSession(project, getName());
+    if (info != null) {
+      if (!info.getExecutorId().equals(executor.getId())) {
+        // only run or debug of a config can be active at a time
+        info.getProcessHandler().detachProcess();
+      } else {
+        if (FastDeployManager.isPatchableApp(module)) {
+          // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
+          // we need to save the files a bit earlier than that here (turning the Gradle file save into
+          // a no-op) because we need to check whether the manifest file has been edited since an
+          // edited manifest changes what the incremental run build has to do.
+          GradleInvoker.saveAllFilesSafely();
 
-      // For incremental run, we don't want to show any dialogs and just redeploy directly to the last used devices
-      Collection<IDevice> fastDeployDevices = getFastDeployDevices(module);
-      if (!(executor instanceof DefaultDebugExecutor) && !fastDeployDevices.isEmpty()) {
-        if (FastDeployManager.isRebuildRequired(fastDeployDevices, module)) {
-          LOG.info("Cannot patch update since a full rebuild is required (typically because the manifest has changed)");
-        } else {
-          if (FastDeployManager.DISPLAY_STATISTICS) {
-            FastDeployManager.notifyBegin();
+          // For incremental run, we don't want to show any dialogs and just redeploy directly to the last used devices
+          Collection<IDevice> devices = info.getState().getDevices();
+          if (devices != null && canFastDeploy(module, devices)) {
+            if (FastDeployManager.isRebuildRequired(devices, module)) {
+              LOG.info("Cannot patch update since a full rebuild is required (typically because the manifest has changed)");
+            } else {
+              if (FastDeployManager.DISPLAY_STATISTICS) {
+                FastDeployManager.notifyBegin();
+              }
+
+              env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
+              env.putCopyableUserData(DEPLOY_DEVICES, devices);
+              return new PatchDeployState(info.getDescriptor(), facet, devices);
+            }
           }
-
-          env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
-          env.putCopyableUserData(DEPLOY_DEVICES, fastDeployDevices);
-          return new PatchDeployState(facet, fastDeployDevices);
         }
       }
     }
@@ -282,37 +317,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                    launchOptions, this);
   }
 
-  private Collection<IDevice> getFastDeployDevices(@NotNull Module module) {
-    // TODO: this may not be set properly the first time an emulator is launched
-    // TODO: eventually, this should look at the currently active configurations, and determine the devices from there
-    DeviceStateAtLaunch deviceStateAtLaunch = getDevicesUsedInLastLaunch();
-    if (deviceStateAtLaunch == null) {
-      LOG.info("Cannot patch update since we don't know the devices used in last launch");
-      return Collections.emptyList();
-    }
-
-    // Note: we assume adb has been properly setup since this can only happen after a launch has taken place
-    List<IDevice> devices = Lists.newArrayList(AndroidDebugBridge.getBridge().getDevices());
-    if (!deviceStateAtLaunch.matchesCurrentAvailableDevices(devices)) {
-      LOG.info("Cannot patch update since the list of devices has changed since the last launch");
-      return Collections.emptyList();
-    }
-
-    Collection<IDevice> usedDevices = deviceStateAtLaunch.filterByUsed(devices);
-    if (usedDevices.isEmpty()) {
-      LOG.info("Cannot patch update since the none of the devices from previous launch are online");
-      return Collections.emptyList();
-    }
-
+  private static boolean canFastDeploy(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
     for (IDevice device : usedDevices) {
       // TODO: we may eventually support a push to device even if the app isn't running
       if (!FastDeployManager.isAppRunning(device, module)) {
         LOG.info("Cannot patch update since the app is not running on device: " + device.getName());
-        return Collections.emptyList();
+        return false;
       }
     }
 
-    return usedDevices;
+    return true;
   }
 
   @Nullable

@@ -55,6 +55,11 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   @Override
   protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment environment)
     throws ExecutionException {
+    if (state instanceof PatchDeployState) {
+      ((PatchDeployState)state).start();
+      return null;
+    }
+
     if (!(state instanceof AndroidRunningState)) {
       return doExecSimple(state, environment);
     }
@@ -97,6 +102,12 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     throws ExecutionException {
     final RunContentDescriptor descriptor = super.doExecute(state, environment);
     if (descriptor != null) {
+      if (state instanceof AndroidRunningState) {
+        ProcessHandler handler = descriptor.getProcessHandler();
+        AndroidSessionInfo sessionInfo = new AndroidSessionInfo(handler, descriptor, (AndroidExecutionState)state, environment.getExecutor().getId());
+        handler.putUserData(ANDROID_SESSION_INFO, sessionInfo);
+      }
+
       // we want the run tool window to show up only for test runs
       boolean showRunContent = environment.getRunProfile() instanceof AndroidTestRunConfiguration;
       descriptor.setActivateToolWindowWhenAdded(showRunContent);
