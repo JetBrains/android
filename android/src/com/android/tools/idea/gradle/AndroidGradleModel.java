@@ -21,6 +21,7 @@ import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
@@ -56,6 +57,7 @@ import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.util.ArrayUtil.contains;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -64,6 +66,8 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
   private static final Logger LOG = Logger.getInstance(AndroidGradleModel.class);
+
+  private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
 
   @NotNull private ProjectSystemId myProjectSystemId;
   @NotNull private String myModuleName;
@@ -154,14 +158,14 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     return getSelectedVariant().getMainArtifact();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public SourceProvider getDefaultSourceProvider() {
     return getAndroidProject().getDefaultConfig().getSourceProvider();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public List<SourceProvider> getActiveSourceProviders() {
     return getMainSourceProviders(mySelectedVariantName);
   }
@@ -205,8 +209,19 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   }
 
   @NotNull
+  public Collection<SourceProvider> getTestSourceProviders(@NotNull Iterable<SourceProviderContainer> containers) {
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      return getSourceProvidersForArtifacts(containers, TEST_ARTIFACT_NAMES);
+    }
+    return getSourceProvidersForArtifacts(containers, mySelectedTestArtifactName);
+  }
+
   @Override
+  @NotNull
   public List<SourceProvider> getTestSourceProviders() {
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      getTestSourceProviders(mySelectedVariantName, TEST_ARTIFACT_NAMES);
+    }
     return getTestSourceProviders(mySelectedTestArtifactName);
   }
 
@@ -216,46 +231,71 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   }
 
   @NotNull
-  public List<SourceProvider> getTestSourceProviders(@NotNull String variantName, @NotNull String testArtifactName) {
-    if (!testArtifactName.equals(ARTIFACT_ANDROID_TEST) && !testArtifactName.equals(ARTIFACT_UNIT_TEST)) {
-      LOG.error("Unknown artifact name '" + testArtifactName + "' found in the module '" + myModuleName + "'");
-      return ImmutableList.of();
-    }
-
-    Variant variant = myVariantsByName.get(variantName);
-    if (variant == null) {
-      LOG.error("Unknown variant name '" + variantName + "' found in the module '" + myModuleName + "'");
-      return ImmutableList.of();
-    }
+  public List<SourceProvider> getTestSourceProviders(@NotNull String variantName, @NotNull String...testArtifactNames) {
+    validateTestArtifactNames(testArtifactNames);
 
     List<SourceProvider> providers = Lists.newArrayList();
     // Collect the default config test source providers.
-    Collection<SourceProviderContainer> extraSourceProviders =
-      getAndroidProject().getDefaultConfig().getExtraSourceProviders();
-    providers.addAll(getSourceProvidersForTestArtifact(extraSourceProviders, testArtifactName));
+    Collection<SourceProviderContainer> extraSourceProviders = getAndroidProject().getDefaultConfig().getExtraSourceProviders();
+    providers.addAll(getSourceProvidersForArtifacts(extraSourceProviders, testArtifactNames));
+
+    Variant variant = myVariantsByName.get(variantName);
+    assert variant != null;
 
     // Collect the product flavor test source providers.
     for (String flavor : variant.getProductFlavors()) {
       ProductFlavorContainer productFlavor = findProductFlavor(flavor);
       assert productFlavor != null;
-      providers.addAll(
-        getSourceProvidersForTestArtifact(productFlavor.getExtraSourceProviders(), testArtifactName));
+      providers.addAll(getSourceProvidersForArtifacts(productFlavor.getExtraSourceProviders(), testArtifactNames));
     }
-
-    // TODO: Does it make sense to add multi-flavor test source providers?
 
     // Collect the build type test source providers.
     BuildTypeContainer buildType = findBuildType(variant.getBuildType());
     assert buildType != null;
-    providers.addAll(getSourceProvidersForTestArtifact(buildType.getExtraSourceProviders(), testArtifactName));
+    providers.addAll(getSourceProvidersForArtifacts(buildType.getExtraSourceProviders(), testArtifactNames));
 
+    // TODO: Does it make sense to add multi-flavor test source providers?
     // TODO: Does it make sense to add variant test source providers?
-
     return providers;
   }
 
+  private static void validateTestArtifactNames(@NotNull String[] testArtifactNames) {
+    for (String name : testArtifactNames) {
+      if (!isTestArtifact(name)) {
+        String msg = String.format("'%1$s' is not a test artifact", name);
+        throw new IllegalArgumentException(msg);
+      }
+    }
+  }
+
   @NotNull
+  public Collection<BaseArtifact> getTestArtifactsInSelectedVariant() {
+    Set<BaseArtifact> testArtifacts = Sets.newHashSet();
+    Variant selectedVariant = getSelectedVariant();
+    for (BaseArtifact artifact : selectedVariant.getExtraAndroidArtifacts()) {
+      if (isTestArtifact(artifact)) {
+        testArtifacts.add(artifact);
+      }
+    }
+    for (BaseArtifact artifact : selectedVariant.getExtraJavaArtifacts()) {
+      if (isTestArtifact(artifact)) {
+        testArtifacts.add(artifact);
+      }
+    }
+    return testArtifacts;
+  }
+
+  public static boolean isTestArtifact(@NotNull BaseArtifact artifact) {
+    String artifactName = artifact.getName();
+    return isTestArtifact(artifactName);
+  }
+
+  private static boolean isTestArtifact(@Nullable String artifactName) {
+    return contains(artifactName, TEST_ARTIFACT_NAMES);
+  }
+
   @Override
+  @NotNull
   public List<SourceProvider> getAllSourceProviders() {
     Collection<Variant> variants = myAndroidProject.getVariants();
     List<SourceProvider> providers = Lists.newArrayList();
@@ -555,29 +595,18 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   }
 
   @NotNull
-  public Collection<SourceProvider> getSourceProvidersForSelectedTestArtifact(@NotNull Iterable<SourceProviderContainer> containers) {
-    return getSourceProvidersForTestArtifact(containers, mySelectedTestArtifactName);
-  }
-
-  @NotNull
-  public Collection<SourceProvider> getSourceProvidersForTestArtifact(@NotNull Iterable<SourceProviderContainer> containers,
-                                                                      @NotNull String testArtifactName) {
+  private static Collection<SourceProvider> getSourceProvidersForArtifacts(@NotNull Iterable<SourceProviderContainer> containers,
+                                                                           @NotNull String...artifactNames) {
     Set<SourceProvider> providers = Sets.newHashSet();
-
     for (SourceProviderContainer container : containers) {
-      if (testArtifactName.equals(container.getArtifactName())) {
-        providers.add(container.getSourceProvider());
+      for (String artifactName : artifactNames) {
+        if (artifactName.equals(container.getArtifactName())) {
+          providers.add(container.getSourceProvider());
+          break;
+        }
       }
     }
-
     return providers;
-  }
-
-  @NotNull
-  public Collection<SourceProvider> getSourceProvidersForAllTestArtifact(@NotNull Iterable<SourceProviderContainer> containers) {
-    Collection<SourceProvider> testSourceProviders = getSourceProvidersForTestArtifact(containers, ARTIFACT_UNIT_TEST);
-    testSourceProviders.addAll(getSourceProvidersForTestArtifact(containers, ARTIFACT_ANDROID_TEST));
-    return testSourceProviders;
   }
 
   @NotNull
