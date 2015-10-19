@@ -19,6 +19,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.PlatformLiteFixture;
 import org.jetbrains.android.run.DeviceReadyListener.Callback;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +48,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     SimpleLogger logger = mock(SimpleLogger.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener listener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener listener = createListener(logger, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
     // When there are more than 5 clients, the device listener believes the device is ready.
@@ -56,11 +57,20 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     verify(callback).onDeviceReady(device);
   }
 
+  @NotNull
+  protected DeviceReadyListener createListener(SimpleLogger logger,
+                                               Predicate<IDevice> devicePredicate,
+                                               Callback callback) {
+    DeviceReadyListener listener = new DeviceReadyListener(logger, devicePredicate, callback);
+    Disposer.register(getTestRootDisposable(), listener);
+    return listener;
+  }
+
   public void testDeviceChangedFiresCallbackOnlyOnce() {
     SimpleLogger logger = mock(SimpleLogger.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener listener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener listener = createListener(logger, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
     // When there are more than 5 clients, the device listener believes the device is ready.
@@ -74,7 +84,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     SimpleLogger logger = mock(SimpleLogger.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysFalse();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener listener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener listener = createListener(logger, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
     // When there are more than 5 clients, the device listener believes the device is ready.
@@ -87,7 +97,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     SimpleLogger logger = mock(SimpleLogger.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener listener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener listener = createListener(logger, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", false /* isOnline */);
     // When there are more than 5 clients, the device listener believes the device is ready.
@@ -100,7 +110,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     SimpleLogger logger = mock(SimpleLogger.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener listener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener listener = createListener(logger, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
     // When there are fewer than 5 clients, and the listener can't find certain clients, device is not ready.
@@ -113,7 +123,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     SimpleLogger logger = mock(SimpleLogger.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener listener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener listener = createListener(logger, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
 
@@ -127,7 +137,7 @@ public class DeviceReadyListenerTest extends PlatformLiteFixture {
     SimpleLogger logger = mock(SimpleLogger.class);
     Predicate<IDevice> devicePredicate = Predicates.alwaysTrue();
     Callback callback = mock(Callback.class);
-    DeviceReadyListener listener = new DeviceReadyListener(logger, devicePredicate, callback);
+    DeviceReadyListener listener = createListener(logger, devicePredicate, callback);
 
     IDevice device = createDeviceMock("device1", true /* isOnline */);
 
