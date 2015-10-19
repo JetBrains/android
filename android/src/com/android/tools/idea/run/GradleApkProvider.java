@@ -18,7 +18,6 @@ package com.android.tools.idea.run;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.SplitOutputMatcher;
@@ -75,9 +74,9 @@ public class GradleApkProvider implements ApkProvider {
     }
 
     if (myTest) {
-      BaseArtifact testArtifactInfo = androidModel.findSelectedTestArtifactInSelectedVariant();
-      if (testArtifactInfo instanceof AndroidArtifact) {
-        AndroidArtifactOutput output = GradleUtil.getOutput((AndroidArtifact)testArtifactInfo);
+      AndroidArtifact testArtifactInfo = androidModel.getAndroidTestArtifactInSelectedVariant();
+      if (testArtifactInfo != null) {
+        AndroidArtifactOutput output = GradleUtil.getOutput(testArtifactInfo);
         File testApk = output.getMainOutputFile().getOutputFile();
         String testPackageName = getTestPackageName();
         assert testPackageName != null; // Cannot be null if initialized.

@@ -26,10 +26,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -283,6 +280,36 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
       }
     }
     return testArtifacts;
+  }
+
+  @Nullable
+  public AndroidArtifact getAndroidTestArtifactInSelectedVariant() {
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      for (AndroidArtifact artifact : getSelectedVariant().getExtraAndroidArtifacts()) {
+        if (isTestArtifact(artifact)) {
+          return artifact;
+        }
+      }
+    }
+    else if (ARTIFACT_ANDROID_TEST.equals(getSelectedTestArtifactName())) {
+      return (AndroidArtifact)findSelectedTestArtifactInSelectedVariant();
+    }
+    return null;
+  }
+
+  @Nullable
+  public JavaArtifact getUnitTestArtifactInSelectedVariant() {
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      for (JavaArtifact artifact : getSelectedVariant().getExtraJavaArtifacts()) {
+        if (isTestArtifact(artifact)) {
+          return artifact;
+        }
+      }
+    }
+    else if (ARTIFACT_UNIT_TEST.equals(getSelectedTestArtifactName())) {
+      return (JavaArtifact)findSelectedTestArtifactInSelectedVariant();
+    }
+    return null;
   }
 
   public static boolean isTestArtifact(@NotNull BaseArtifact artifact) {
@@ -982,7 +1009,8 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     }
   }
 
-  private static @NotNull Set<String> getIdeSetupTasks(@NotNull BaseArtifact artifact) {
+  @NotNull
+  public static Set<String> getIdeSetupTasks(@NotNull BaseArtifact artifact) {
     try {
       // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.
       return artifact.getIdeSetupTaskNames();

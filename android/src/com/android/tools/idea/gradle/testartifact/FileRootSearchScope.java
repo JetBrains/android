@@ -51,6 +51,9 @@ public class FileRootSearchScope extends GlobalSearchScope {
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
+    if (myRoots.contains(file)) {
+      return true;
+    }
     if (myProjectFileIndex.isInContent(file)) {
       return myRoots.contains(myProjectFileIndex.getSourceRootForFile(file));
     }

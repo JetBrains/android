@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.run.testing;
 
-import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
@@ -102,7 +102,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     // Gradle only supports testing against a single build type (which could be anything, but is "debug" build type by default)
     // Currently, the only information the model exports that we can use to detect whether the current build type
     // is testable is by looking at the test task name and checking whether it is null.
-    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
+    AndroidArtifact testArtifact = androidModel.getAndroidTestArtifactInSelectedVariant();
     String testTask = testArtifact != null ? testArtifact.getAssembleTaskName() : null;
     return new Pair<Boolean, String>(testTask != null, AndroidBundle.message("android.cannot.run.library.project.in.this.buildtype"));
   }
@@ -207,7 +207,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     }
     return new NonGradleApkProvider(facet, null);
   }
-  
+
   private static int getTestSourceRootCount(@NotNull Module module) {
     final ModuleRootManager manager = ModuleRootManager.getInstance(module);
     return manager.getSourceRoots(true).length - manager.getSourceRoots(false).length;
