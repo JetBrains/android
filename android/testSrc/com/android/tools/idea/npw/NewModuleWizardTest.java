@@ -24,10 +24,9 @@ import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.externalSystem.test.ExternalSystemTestCase;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.Processor;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.HashSet;
 import icons.AndroidIcons;
@@ -52,19 +51,7 @@ public class NewModuleWizardTest extends AndroidTestCase {
     roots.addAll(jdkPaths);
 
     for (final String jdkPath : jdkPaths) {
-      FileUtil.processFilesRecursively(new File(jdkPath), new Processor<File>() {
-        @Override
-        public boolean process(File file) {
-          try {
-            String path = file.getCanonicalPath();
-            if (!FileUtil.isAncestor(jdkPath, path, false)) {
-              roots.add(path);
-            }
-          }
-          catch (IOException ignore) { }
-          return true;
-        }
-      });
+      roots.addAll(ExternalSystemTestCase.collectRootsInside(jdkPath));
     }
   }
 
