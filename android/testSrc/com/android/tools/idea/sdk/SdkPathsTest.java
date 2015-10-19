@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
  * Tests for {@link SdkPaths}.
  */
 public class SdkPathsTest extends TestCase {
+  public static final String DUMMY_PATH = new File("/dummy/path").getPath();
   @Nullable
   private File tmpDir;
 
@@ -51,7 +52,7 @@ public class SdkPathsTest extends TestCase {
 
   public void testInvalidSdkDirectory() throws Exception {
     File mockFile = mock(File.class);
-    when(mockFile.getPath()).thenReturn("/dummy/path");
+    when(mockFile.getPath()).thenReturn(DUMMY_PATH);
     when(mockFile.isDirectory()).thenReturn(false);
 
     ValidationResult result = validateAndroidSdk(mockFile, false);
@@ -60,7 +61,7 @@ public class SdkPathsTest extends TestCase {
 
     result = validateAndroidSdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals("The path\n'/dummy/path'\ndoes not belong to a directory.", result.message);
+    assertEquals("The path\n'" + DUMMY_PATH + "'\ndoes not belong to a directory.", result.message);
   }
 
   public void testNoPlatformsSdkDirectory() throws Exception {
@@ -88,8 +89,8 @@ public class SdkPathsTest extends TestCase {
 
   public void testInvalidNdkDirectory() throws Exception {
     File mockFile = mock(File.class);
-    when(mockFile.getPath()).thenReturn("/dummy/path");
-    when(mockFile.getAbsolutePath()).thenReturn("/dummy/path");
+    when(mockFile.getPath()).thenReturn(DUMMY_PATH);
+    when(mockFile.getAbsolutePath()).thenReturn(DUMMY_PATH);
     when(mockFile.isDirectory()).thenReturn(false);
 
     ValidationResult result = validateAndroidNdk(mockFile, false);
@@ -98,13 +99,13 @@ public class SdkPathsTest extends TestCase {
 
     result = validateAndroidNdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals("The path\n'/dummy/path'\ndoes not belong to a directory.", result.message);
+    assertEquals("The path\n'" + DUMMY_PATH + "'\ndoes not belong to a directory.", result.message);
   }
 
   public void testUnReadableNdkDirectory() throws Exception {
     File mockFile = mock(File.class);
-    when(mockFile.getPath()).thenReturn("/dummy/path");
-    when(mockFile.getAbsolutePath()).thenReturn("/dummy/path");
+    when(mockFile.getPath()).thenReturn(DUMMY_PATH);
+    when(mockFile.getAbsolutePath()).thenReturn(DUMMY_PATH);
     when(mockFile.isDirectory()).thenReturn(true);
     when(mockFile.canRead()).thenReturn(false);
 
@@ -114,7 +115,7 @@ public class SdkPathsTest extends TestCase {
 
     result = validateAndroidNdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals("The path\n'/dummy/path'\nis not readable.", result.message);
+    assertEquals("The path\n'" + DUMMY_PATH + "'\nis not readable.", result.message);
   }
 
   public void testNoPlatformsNdkDirectory() throws Exception {
