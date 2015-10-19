@@ -36,6 +36,9 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
   @NotNull private static final Border DEFAULT_BORDER = new RoundedLineBorder(UIUtil.getBoundsColor(), BORDER_SIZE, INNER_BORDER_SIZE);
   @NotNull private static final Border SELECTED_BORDER = new RoundedLineBorder(UIUtil.getListSelectionBackground(), BORDER_SIZE, BORDER_SIZE);
   @NotNull private static final Color TEXT_COLOR = new Color(255, 255, 255, 192); //noinspection UseJBColor
+  @NotNull private static final ImageCellList.Data NULL_CELL = new ImageCellList.Data(null) {{
+    loadingState = LoadingState.LOADED;
+  }};
 
   @NotNull private final ImageComponent myCellComponent = new ImageComponent(Layout.CENTERED_WITH_OVERLAY, getInitialCellSize());
   @NotNull private final Dimension myLargestKnownIconDimension = new Dimension(0, 0);
@@ -48,9 +51,7 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
 
   @Override
   protected T createNullCell() {
-    return (T)new ImageCellList.Data(null) {{
-      loadingState = LoadingState.LOADED;
-    }};
+    return (T)NULL_CELL;
   }
 
   @Override
@@ -124,6 +125,10 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
 
     @Override
     protected void paintComponent(Graphics graphics) {
+      if (myCell == NULL_CELL) {
+        return;
+      }
+
       if (getHeight() < MIN_HEIGHT) {
         graphics.setColor(UIUtil.getListBackground());
         graphics.fillRect(0, 0, getWidth(), getHeight());
