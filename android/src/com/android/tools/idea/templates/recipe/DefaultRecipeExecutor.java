@@ -384,7 +384,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
   private String readTextFile(@NotNull File file) {
     // TODO: Rename ATTR_IS_NEW_PROJECT to ATTR_IS_NEW_MODULE since that is what it means...
-    if (myContext.getParamMap().get(TemplateMetadata.ATTR_IS_NEW_PROJECT).equals(Boolean.TRUE)) {
+    if (Boolean.TRUE.equals(myContext.getParamMap().get(TemplateMetadata.ATTR_IS_NEW_PROJECT))) {
       return TemplateUtils.readTextFromDisk(file);
     }
     else {
@@ -394,7 +394,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
   private String readTextFile(@NotNull VirtualFile file) {
     // TODO: Rename ATTR_IS_NEW_PROJECT to ATTR_IS_NEW_MODULE since that is what it means...
-    if (myContext.getParamMap().get(TemplateMetadata.ATTR_IS_NEW_PROJECT).equals(Boolean.TRUE)) {
+    if (Boolean.TRUE.equals(myContext.getParamMap().get(TemplateMetadata.ATTR_IS_NEW_PROJECT))) {
       return TemplateUtils.readTextFromDisk(VfsUtilCore.virtualToIoFile(file));
     }
     else {
