@@ -77,7 +77,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   }
 
   @Override
-  protected void execute(@NotNull Project project) {
+  public void execute(@NotNull Project project) {
     if (myOpenMigrationGuide) {
       browse("http://tools.android.com/tech-docs/new-build-system/migrating-to-1-0-0");
     }
