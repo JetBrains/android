@@ -17,7 +17,6 @@ package com.android.tools.idea.run.cloud;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.*;
-import com.google.common.collect.Lists;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

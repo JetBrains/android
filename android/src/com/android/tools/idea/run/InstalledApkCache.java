@@ -18,7 +18,6 @@ package com.android.tools.idea.run;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Maps;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
@@ -30,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 

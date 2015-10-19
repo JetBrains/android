@@ -26,8 +26,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
+import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.diagnostic.Logger;
@@ -36,6 +38,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.*;
 import com.intellij.util.containers.ContainerUtil;
+import icons.AndroidIcons;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -43,11 +46,13 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
-public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> {
+public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements
+                                                                                                               RunnerIconProvider {
   private static final Logger LOG = Logger.getInstance(AndroidRunConfigurationBase.class);
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
@@ -196,6 +201,30 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Nullable
   public DeviceStateAtLaunch getDevicesUsedInLastLaunch() {
     return ourLastUsedDevices.get(getName());
+  }
+
+  @Nullable
+  @Override
+  public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
+    Module module = getConfigurationModule().getModule();
+    if (module == null) {
+      return null;
+    }
+
+    if (!FastDeployManager.isPatchableApp(module)) {
+      return null;
+    }
+
+    AndroidSessionInfo info = AndroidSessionManager.findOldSession(getProject(), getName());
+    if (info == null) {
+      return null;
+    }
+
+    if (info.getExecutorId().equals(executor.getId())) {
+      return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
+    }
+
+    return null;
   }
 
   @Override
