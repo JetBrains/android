@@ -24,8 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 final public class FmtRGBA extends Format {
-  public final static FmtRGBA INSTANCE = new FmtRGBA();
-
   //<<<Start:Java.ClassBody:1>>>
 
   // Constructs a default-initialized {@link FmtRGBA}.

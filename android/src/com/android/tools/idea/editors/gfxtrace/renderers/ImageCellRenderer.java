@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.renderers;
 
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadingIndicator;
+import com.android.tools.idea.editors.gfxtrace.widgets.Repaintable;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.util.ui.JBUI;
@@ -30,12 +31,14 @@ import java.awt.*;
 public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRenderer<T> {
   public static final int BORDER_SIZE = JBUI.scale(5);
   private static final int INNER_BORDER_SIZE = JBUI.scale(2);
-  private static final int CORNER_RADIUS = JBUI.scale(3);
+  private static final int CORNER_RADIUS = JBUI.scale(4);
   private static final int MIN_HEIGHT = JBUI.scale(30);
   @NotNull private static final Dimension INITIAL_SIZE = new Dimension(JBUI.scale(192) + BORDER_SIZE, JBUI.scale(108) + BORDER_SIZE);
   @NotNull private static final Border DEFAULT_BORDER = new RoundedLineBorder(UIUtil.getBoundsColor(), BORDER_SIZE, INNER_BORDER_SIZE);
   @NotNull private static final Border SELECTED_BORDER = new RoundedLineBorder(UIUtil.getListSelectionBackground(), BORDER_SIZE, BORDER_SIZE);
-  @NotNull private static final Color TEXT_COLOR = new Color(255, 255, 255, 192); //noinspection UseJBColor
+  @NotNull private static final ImageCellList.Data NULL_CELL = new ImageCellList.Data(null) {{
+    loadingState = LoadingState.LOADED;
+  }};
 
   @NotNull private final ImageComponent myCellComponent = new ImageComponent(Layout.CENTERED_WITH_OVERLAY, getInitialCellSize());
   @NotNull private final Dimension myLargestKnownIconDimension = new Dimension(0, 0);
@@ -48,16 +51,14 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
 
   @Override
   protected T createNullCell() {
-    return (T)new ImageCellList.Data(null) {{
-      loadingState = LoadingState.LOADED;
-    }};
+    return (T)NULL_CELL;
   }
 
   @Override
   protected Component getRendererComponent(@NotNull JList list, @NotNull T cell) {
     myCellComponent.setCell(cell);
     if (cell.isLoading()) {
-      LoadingIndicator.scheduleForRedraw(list);
+      LoadingIndicator.scheduleForRedraw(getRepaintable(list));
     }
     return myCellComponent;
   }
@@ -124,6 +125,10 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
 
     @Override
     protected void paintComponent(Graphics graphics) {
+      if (myCell == NULL_CELL) {
+        return;
+      }
+
       if (getHeight() < MIN_HEIGHT) {
         graphics.setColor(UIUtil.getListBackground());
         graphics.fillRect(0, 0, getWidth(), getHeight());
@@ -175,17 +180,17 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
 
     protected void paintLabel(Graphics g, int offset) {
       final int OFFSET = 7;
-      final int PADDING = 1;
+      final int PADDING = 2;
 
       FontMetrics metrics = g.getFontMetrics();
       int fontHeight = metrics.getHeight();
       int frameStringWidth = metrics.stringWidth(myCell.label);
 
       if (myLayout == Layout.CENTERED_WITH_OVERLAY) {
-        g.setColor(TEXT_COLOR);
+        g.setColor(UIUtil.getDecoratedRowColor());
         g.fillRoundRect(OFFSET, OFFSET, frameStringWidth + 2 * PADDING + 1, fontHeight + 2 * PADDING + 1, CORNER_RADIUS, CORNER_RADIUS);
         g.setColor(getForeground());
-        g.drawString(myCell.label, OFFSET + PADDING + 1, OFFSET - PADDING + fontHeight);
+        g.drawString(myCell.label, OFFSET + PADDING + 1, OFFSET + PADDING + fontHeight - metrics.getDescent());
       } else {
         g.setColor(getForeground());
         g.drawString(myCell.label, PADDING + offset, (getHeight() + fontHeight) / 2 - metrics.getDescent());
