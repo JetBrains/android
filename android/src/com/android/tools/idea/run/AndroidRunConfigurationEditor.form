@@ -65,7 +65,7 @@
                   <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
               </hspacer>
-              <grid id="e9e4a" layout-manager="GridLayoutManager" row-count="12" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="0">
+              <grid id="e9e4a" layout-manager="GridLayoutManager" row-count="6" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="0">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
                   <grid row="2" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -113,16 +113,6 @@
                       <text value="Use same device for future launches"/>
                     </properties>
                   </component>
-                  <component id="763d0" class="javax.swing.JRadioButton" binding="myRunTestsInGoogleCloudRadioButton">
-                    <constraints>
-                      <grid row="9" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                        <preferred-size width="23" height="17"/>
-                      </grid>
-                    </constraints>
-                    <properties>
-                      <text value="Cloud device matrix"/>
-                    </properties>
-                  </component>
                   <component id="86505" class="com.intellij.ui.components.JBLabel">
                     <constraints>
                       <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="2" indent="2" use-parent-layout="false"/>
@@ -139,107 +129,6 @@
                     </constraints>
                     <properties/>
                   </component>
-                  <component id="240e2" class="com.intellij.ui.components.JBLabel" binding="myCloudMatrixConfigLabel">
-                    <constraints>
-                      <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="2" indent="2" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text value="Matrix configuration:"/>
-                    </properties>
-                  </component>
-                  <component id="1bb6c" class="com.android.tools.idea.run.cloud.CloudConfigurationComboBox" binding="myCloudMatrixConfigurationCombo" custom-create="true">
-                    <constraints>
-                      <grid row="10" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="2039a" class="com.intellij.ui.components.JBLabel" binding="myCloudMatrixProjectLabel">
-                    <constraints>
-                      <grid row="11" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="2" indent="2" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text value="Cloud project:"/>
-                    </properties>
-                  </component>
-                  <grid id="4fbbe" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="0">
-                    <constraints>
-                      <grid row="11" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                    <border type="none"/>
-                    <children>
-                      <component id="dc95" class="com.android.tools.idea.run.cloud.CloudProjectIdLabel" binding="myCloudMatrixProjectIdLabel" custom-create="true">
-                        <constraints/>
-                        <properties/>
-                      </component>
-                      <component id="2741b" class="com.intellij.openapi.actionSystem.impl.ActionButton" binding="myCloudMatrixProjectIdUpdateButton" custom-create="true">
-                        <constraints/>
-                        <properties/>
-                      </component>
-                    </children>
-                  </grid>
-                  <component id="a2af4" class="javax.swing.JRadioButton" binding="myLaunchCloudDeviceRadioButton">
-                    <constraints>
-                      <grid row="6" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                        <preferred-size width="23" height="17"/>
-                      </grid>
-                    </constraints>
-                    <properties>
-                      <text value="Cloud &amp;device"/>
-                    </properties>
-                  </component>
-                  <component id="c1501" class="com.intellij.ui.components.JBLabel" binding="myCloudDeviceConfigLabel">
-                    <constraints>
-                      <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="2" indent="2" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text value="Device configuration:"/>
-                    </properties>
-                  </component>
-                  <component id="c2e21" class="com.android.tools.idea.run.cloud.CloudConfigurationComboBox" binding="myCloudDeviceConfigurationCombo" custom-create="true">
-                    <constraints>
-                      <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="23ff1" class="com.intellij.ui.components.JBLabel" binding="myCloudDeviceProjectLabel">
-                    <constraints>
-                      <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="2" indent="2" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text value="Cloud project:"/>
-                    </properties>
-                  </component>
-                  <grid id="84ada" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="0">
-                    <constraints>
-                      <grid row="8" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                    <border type="none"/>
-                    <children>
-                      <component id="283bf" class="com.android.tools.idea.run.cloud.CloudProjectIdLabel" binding="myCloudDeviceProjectIdLabel" custom-create="true">
-                        <constraints/>
-                        <properties/>
-                      </component>
-                      <component id="54a34" class="com.intellij.openapi.actionSystem.impl.ActionButton" binding="myCloudDeviceProjectIdUpdateButton" custom-create="true">
-                        <constraints/>
-                        <properties/>
-                      </component>
-                    </children>
-                  </grid>
-                  <grid id="bce38" layout-manager="BorderLayout" hgap="0" vgap="0">
-                    <constraints>
-                      <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                    <border type="none"/>
-                    <children>
-                      <component id="816b3" class="com.intellij.openapi.actionSystem.impl.ActionButton" binding="myCloudMatrixHelpButton" custom-create="true">
-                        <constraints border-constraint="East"/>
-                        <properties/>
-                      </component>
-                    </children>
-                  </grid>
                 </children>
               </grid>
             </children>
