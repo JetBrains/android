@@ -63,17 +63,18 @@ public class FrameBufferController extends ImagePanelController {
 
   private DefaultActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new FramebufferTypeAction(
-      this, BufferType.Color, "Color Buffer", "Display the color framebuffer", AndroidIcons.GfxTrace.ColorBuffer));
-    group.add(new FramebufferTypeAction(
-      this, BufferType.Depth, "Depth Buffer", "Display the depth framebuffer", AndroidIcons.GfxTrace.DepthBuffer));
+    group.add(new FramebufferTypeAction(this, BufferType.Color, "Color Buffer", "Display the color framebuffer",
+                                        AndroidIcons.GfxTrace.ColorBuffer));
+    group.add(new FramebufferTypeAction(this, BufferType.Depth, "Depth Buffer", "Display the depth framebuffer",
+                                        AndroidIcons.GfxTrace.DepthBuffer));
     group.add(new Separator());
-    group.add(new FramebufferWireframeAction(
-      this, WireframeMode.noWireframe(), "Shaded", "Display the frambuffer with shaded polygons", AndroidIcons.GfxTrace.WireframeNone));
+    group.add(new FramebufferWireframeAction(this, WireframeMode.noWireframe(), "Shaded", "Display the framebuffer with shaded polygons",
+                                             AndroidIcons.GfxTrace.WireframeNone));
     group.add(new FramebufferWireframeAction(this, WireframeMode.wireframeOverlay(), "Shaded + Wireframe",
-      "Display the frambuffer with shaded plygons and overlay the wireframe of the last draw call", AndroidIcons.GfxTrace.WireframeOverlay));
-    group.add(new FramebufferWireframeAction(
-      this, WireframeMode.allWireframe(), "Wireframe", "Display the framebuffer with wireframes", AndroidIcons.GfxTrace.WireframeAll));
+                                             "Display the framebuffer with shaded polygons and overlay the wireframe of the last draw call",
+                                             AndroidIcons.GfxTrace.WireframeOverlay));
+    group.add(new FramebufferWireframeAction(this, WireframeMode.allWireframe(), "Wireframe", "Display the framebuffer with wireframes",
+                                             AndroidIcons.GfxTrace.WireframeAll));
     group.add(new Separator());
     return group;
   }
