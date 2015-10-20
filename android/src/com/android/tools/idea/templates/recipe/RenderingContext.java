@@ -32,10 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-
-import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 
 /**
  * Use the {@link Builder} class for creating a {@link RenderingContext} instance.
@@ -69,7 +66,6 @@ public class RenderingContext {
   private final boolean myShowErrors;
 
   private RenderingContext(@Nullable Project project,
-                           @NotNull File templateRootPath,
                            @NotNull File initialTemplatePath,
                            @NotNull String commandName,
                            @NotNull Map<String, Object> paramMap,
@@ -92,7 +88,7 @@ public class RenderingContext {
     myFindOnlyReferences = findOnlyReferences;
     myDryRun = dryRun;
     myShowErrors = showErrors;
-    myLoader = new StudioTemplateLoader(templateRootPath, initialTemplatePath);
+    myLoader = new StudioTemplateLoader(initialTemplatePath);
     myFreemarker = new FreemarkerConfiguration();
     myFreemarker.setTemplateLoader(myLoader);
     mySourceFiles = outSourceFiles != null ? outSourceFiles : Lists.<File>newArrayList();
@@ -248,7 +244,6 @@ public class RenderingContext {
   }
 
   public static final class Builder {
-    private final File myTemplateRootPath;
     private final File myInitialTemplatePath;
     private final Project myProject;
     private String myCommandName;
@@ -264,8 +259,7 @@ public class RenderingContext {
     private Collection<File> myOpenFiles;
     private Collection<String> myDependencies;
 
-    private Builder(@NotNull File templateRootPath, @NotNull File initialTemplatePath, @NotNull Project project) {
-      myTemplateRootPath = templateRootPath;
+    private Builder(@NotNull File initialTemplatePath, @NotNull Project project) {
       myInitialTemplatePath = initialTemplatePath;
       myProject = project;
       myCommandName = "Instantiate Template";
@@ -283,11 +277,7 @@ public class RenderingContext {
      * Recommended version.
      */
     public static Builder newContext(@NotNull Template template, @NotNull Project project) {
-      File templateRoot = getTemplateRootFolder();
-      if (templateRoot == null) {
-        templateRoot = template.getRootPath();
-      }
-      return new Builder(templateRoot, template.getRootPath(), project);
+      return new Builder(template.getRootPath(), project);
     }
 
     /**
@@ -295,7 +285,7 @@ public class RenderingContext {
      * Use this version if there is no {@link Template} instance available.
      */
     public static Builder newContext(@NotNull File templateRootPath, @NotNull Project project) {
-      return new Builder(templateRootPath, templateRootPath, project);
+      return new Builder(templateRootPath, project);
     }
 
     /**
@@ -428,9 +418,8 @@ public class RenderingContext {
         myOpenFiles = null;
         myDependencies = null;
       }
-      return new RenderingContext(myProject, myTemplateRootPath, myInitialTemplatePath, myCommandName, myParams, myOutputRoot, myModuleRoot,
-                                  myGradleSync, myFindOnlyReferences, myDryRun, myShowErrors, mySourceFiles, myTargetFiles, myOpenFiles,
-                                  myDependencies);
+      return new RenderingContext(myProject, myInitialTemplatePath, myCommandName, myParams, myOutputRoot, myModuleRoot, myGradleSync,
+                                  myFindOnlyReferences, myDryRun, myShowErrors, mySourceFiles, myTargetFiles, myOpenFiles, myDependencies);
     }
   }
 }
