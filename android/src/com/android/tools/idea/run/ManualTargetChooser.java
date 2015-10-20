@@ -2,8 +2,6 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.cloud.CloudMatrixTarget;
-import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
@@ -54,10 +52,9 @@ public class ManualTargetChooser implements TargetChooser {
       return null;
     }
 
-    boolean showCloudTarget = myConfiguration instanceof AndroidTestRunConfiguration && !debug;
     final ExtendedDeviceChooserDialog chooser =
       new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), deviceCount.isMultiple(), true,
-                                      myConfiguration.USE_LAST_SELECTED_DEVICE, showCloudTarget);
+                                      myConfiguration.USE_LAST_SELECTED_DEVICE);
     chooser.show();
     if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
       // The user canceled.
@@ -71,9 +68,6 @@ public class ManualTargetChooser implements TargetChooser {
       }
       EmulatorTargetChooser emulatorChooser = new EmulatorTargetChooser(myFacet, selectedAvd);
       return emulatorChooser.getTarget(printer, deviceCount, debug);
-    }
-    else if (chooser.isCloudTestOptionSelected()) {
-      return new CloudMatrixTarget(chooser.getSelectedMatrixConfigurationId(), chooser.getChosenCloudProjectId());
     }
     else {
       final IDevice[] selectedDevices = chooser.getSelectedDevices();

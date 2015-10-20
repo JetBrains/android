@@ -20,20 +20,9 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.run.cloud.CloudConfiguration;
-import com.android.tools.idea.run.cloud.CloudConfiguration.Kind;
-import com.android.tools.idea.run.cloud.CloudConfigurationComboBox;
-import com.android.tools.idea.run.cloud.CloudConfigurationProvider;
-import com.android.tools.idea.run.cloud.CloudProjectIdLabel;
-import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.google.common.base.Predicate;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.openapi.actionSystem.impl.PresentationFactory;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
@@ -48,22 +37,14 @@ import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ThreeState;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.net.URI;
-
-import static com.android.tools.idea.run.cloud.CloudConfiguration.Kind.MATRIX;
-import static com.android.tools.idea.run.cloud.CloudConfiguration.Kind.SINGLE_DEVICE;
 
 public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase> extends SettingsEditor<T> implements PanelWithAnchor {
   private final Project myProject;
@@ -79,27 +60,12 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private ComboboxWithBrowseButton myAvdComboComponent;
   private JBLabel myMinSdkInfoMessageLabel;
   private JCheckBox myUseLastSelectedDeviceCheckBox;
-  private JRadioButton myRunTestsInGoogleCloudRadioButton;
 
   // Misc. options tab
   private JCheckBox myClearLogCheckBox;
   private JCheckBox myShowLogcatCheckBox;
   private JCheckBox mySkipNoOpApkInstallation;
   private JCheckBox myForceStopRunningApplicationCheckBox;
-
-  private CloudConfigurationComboBox myCloudMatrixConfigurationCombo;
-  private JBLabel myCloudMatrixProjectLabel;
-  private JBLabel myCloudMatrixConfigLabel;
-  private CloudProjectIdLabel myCloudMatrixProjectIdLabel;
-  private ActionButton myCloudMatrixProjectIdUpdateButton;
-  private JRadioButton myLaunchCloudDeviceRadioButton;
-  private JBLabel myCloudDeviceConfigLabel;
-  private JBLabel myCloudDeviceProjectLabel;
-  private CloudProjectIdLabel myCloudDeviceProjectIdLabel;
-  private ActionButton myCloudDeviceProjectIdUpdateButton;
-  private CloudConfigurationComboBox myCloudDeviceConfigurationCombo;
-  private ActionButton myCloudMatrixHelpButton;
-  @Nullable private final CloudConfigurationProvider myCloudConfigurationProvider;
 
   private AvdComboBox myAvdCombo;
   private String incorrectPreferredAvd;
@@ -118,8 +84,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator) {
     myProject = project;
     $$$setupUI$$$(); // Create UI components after myProject is available. Also see https://youtrack.jetbrains.com/issue/IDEA-67765
-
-    myCloudConfigurationProvider = CloudConfigurationProvider.getCloudConfigurationProvider();
 
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
       @Override
@@ -158,19 +122,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myModulesComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        Module module = getModuleSelector().getModule();
-        AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
-        if (facet == null) {
-          updateCloudMatrixTestEnabled(false);
-          updateCloudDeviceLaunchEnabled(false);
-        } else {
-          myCloudMatrixProjectIdLabel.setFacet(facet);
-          myCloudMatrixConfigurationCombo.setFacet(facet);
-          myCloudDeviceProjectIdLabel.setFacet(facet);
-          myCloudDeviceConfigurationCombo.setFacet(facet);
-          updateCloudMatrixTestEnabled(myRunTestsInGoogleCloudRadioButton.isSelected());
-          updateCloudDeviceLaunchEnabled(myLaunchCloudDeviceRadioButton.isSelected());
-        }
         myAvdCombo.startUpdatingAvds(ModalityState.current());
       }
     });
@@ -178,8 +129,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myEmulatorRadioButton.addActionListener(listener);
     myUsbDeviceRadioButton.addActionListener(listener);
     myUseLastSelectedDeviceCheckBox.addActionListener(listener);
-    myRunTestsInGoogleCloudRadioButton.addActionListener(listener);
-    myLaunchCloudDeviceRadioButton.addActionListener(listener);
 
     ActionListener actionListener = new ActionListener() {
       @Override
@@ -217,69 +166,14 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     });
 
     myAvdComboComponent = new ComboboxWithBrowseButton(myAvdCombo.getComboBox());
-
-    myCloudMatrixProjectIdLabel = new CloudProjectIdLabel(MATRIX);
-    myCloudMatrixConfigurationCombo = new CloudConfigurationComboBox(MATRIX);
-    AnAction cloudMatrixProjectAction = new SelectCloudProjectAction(myCloudMatrixProjectIdLabel, myCloudMatrixConfigurationCombo);
-    myCloudMatrixProjectIdUpdateButton = new ActionButton(
-      cloudMatrixProjectAction, new PresentationFactory().getPresentation(cloudMatrixProjectAction), "MyPlace", JBUI.size(25, 25));
-    Disposer.register(this, myCloudMatrixConfigurationCombo);
-
-    myCloudDeviceProjectIdLabel = new CloudProjectIdLabel(SINGLE_DEVICE);
-    myCloudDeviceConfigurationCombo = new CloudConfigurationComboBox(SINGLE_DEVICE);
-    AnAction cloudDeviceProjectAction = new SelectCloudProjectAction(myCloudDeviceProjectIdLabel, myCloudDeviceConfigurationCombo);
-    myCloudDeviceProjectIdUpdateButton = new ActionButton(
-      cloudDeviceProjectAction, new PresentationFactory().getPresentation(cloudDeviceProjectAction), "MyPlace", JBUI.size(25, 25));
-    AnAction cloudMatrixHelpAction = new CloudMatrixHelpAction();
-    myCloudMatrixHelpButton = new ActionButton(
-      cloudMatrixHelpAction, new PresentationFactory().getPresentation(cloudMatrixHelpAction), "MyPlace", JBUI.size(25, 25));
-
-    Disposer.register(this, myCloudDeviceConfigurationCombo);
-  }
-
-  private void updateGoogleCloudVisible(AndroidRunConfigurationBase configuration) {
-    boolean shouldShowCloudDevice = CloudConfigurationProvider.isEnabled();
-    myLaunchCloudDeviceRadioButton.setVisible(shouldShowCloudDevice);
-    myCloudDeviceConfigurationCombo.setVisible(shouldShowCloudDevice);
-    myCloudDeviceProjectLabel.setVisible(shouldShowCloudDevice);
-    myCloudDeviceConfigLabel.setVisible(shouldShowCloudDevice);
-    myCloudDeviceProjectIdLabel.setVisible(shouldShowCloudDevice);
-    myCloudDeviceProjectIdUpdateButton.setVisible(shouldShowCloudDevice);
-
-    boolean shouldShowCloudMatrix = configuration instanceof AndroidTestRunConfiguration && shouldShowCloudDevice;
-    myRunTestsInGoogleCloudRadioButton.setVisible(shouldShowCloudMatrix);
-    myCloudMatrixConfigurationCombo.setVisible(shouldShowCloudMatrix);
-    myCloudMatrixProjectLabel.setVisible(shouldShowCloudMatrix);
-    myCloudMatrixConfigLabel.setVisible(shouldShowCloudMatrix);
-    myCloudMatrixProjectIdLabel.setVisible(shouldShowCloudMatrix);
-    myCloudMatrixProjectIdUpdateButton.setVisible(shouldShowCloudMatrix);
-    myCloudMatrixHelpButton.setVisible(shouldShowCloudMatrix);
   }
 
   private void updateEnabled() {
     boolean emulatorSelected = myEmulatorRadioButton.isSelected();
     myAvdComboComponent.setEnabled(emulatorSelected);
-    updateCloudMatrixTestEnabled(myRunTestsInGoogleCloudRadioButton.isSelected());
-    updateCloudDeviceLaunchEnabled(myLaunchCloudDeviceRadioButton.isSelected());
 
     final String warning = emulatorSelected ? getAvdCompatibilityWarning() : null;
     resetAvdCompatibilityWarningLabel(warning);
-  }
-
-  private void updateCloudMatrixTestEnabled(boolean isEnabled) {
-    myCloudMatrixConfigurationCombo.setEnabled(isEnabled);
-    myCloudMatrixProjectLabel.setEnabled(isEnabled);
-    myCloudMatrixConfigLabel.setEnabled(isEnabled);
-    myCloudMatrixProjectIdLabel.setEnabled(isEnabled);
-    myCloudMatrixProjectIdUpdateButton.setEnabled(isEnabled);
-  }
-
-  private void updateCloudDeviceLaunchEnabled(boolean isEnabled) {
-    myCloudDeviceConfigurationCombo.setEnabled(isEnabled);
-    myCloudDeviceProjectLabel.setEnabled(isEnabled);
-    myCloudDeviceConfigLabel.setEnabled(isEnabled);
-    myCloudDeviceProjectIdLabel.setEnabled(isEnabled);
-    myCloudDeviceProjectIdUpdateButton.setEnabled(isEnabled);
   }
 
   private void resetAvdCompatibilityWarningLabel(@Nullable String warning) {
@@ -290,21 +184,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     else {
       myMinSdkInfoMessageLabel.setVisible(false);
     }
-  }
-
-  private CloudConfiguration getCloudConfigurationComboSelection(Kind configurationKind) {
-    if (configurationKind == Kind.MATRIX) {
-      return (CloudConfiguration)myCloudMatrixConfigurationCombo.getComboBox().getSelectedItem();
-    }
-    return (CloudConfiguration)myCloudDeviceConfigurationCombo.getComboBox().getSelectedItem();
-  }
-
-  private int getSelectedCloudConfigurationId(Kind configurationKind) {
-    CloudConfiguration selection = getCloudConfigurationComboSelection(configurationKind);
-    if (selection == null) {
-      return -1;
-    }
-    return selection.getId();
   }
 
   @Nullable
@@ -374,14 +253,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   @Override
   protected void resetEditorFrom(T configuration) {
     // Set configurations before resetting the module selector to avoid premature calls to setFacet.
-    myCloudMatrixProjectIdLabel.setConfiguration(configuration);
-    myCloudMatrixConfigurationCombo.setConfiguration(configuration);
-    myCloudDeviceProjectIdLabel.setConfiguration(configuration);
-    myCloudDeviceConfigurationCombo.setConfiguration(configuration);
-
     myModuleSelector.reset(configuration);
-
-    updateGoogleCloudVisible(configuration);
 
     final JComboBox combo = myAvdCombo.getComboBox();
     final String avd = configuration.PREFERRED_AVD;
@@ -402,14 +274,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myEmulatorRadioButton.setSelected(targetSelectionMode == TargetSelectionMode.EMULATOR);
     myUsbDeviceRadioButton.setSelected(targetSelectionMode == TargetSelectionMode.USB_DEVICE);
     myUseLastSelectedDeviceCheckBox.setSelected(configuration.USE_LAST_SELECTED_DEVICE);
-
-    myRunTestsInGoogleCloudRadioButton.setSelected(targetSelectionMode == TargetSelectionMode.CLOUD_MATRIX_TEST);
-    myCloudMatrixConfigurationCombo.selectConfiguration(configuration.SELECTED_CLOUD_MATRIX_CONFIGURATION_ID);
-    myCloudMatrixProjectIdLabel.updateCloudProjectId(configuration.SELECTED_CLOUD_MATRIX_PROJECT_ID);
-
-    myLaunchCloudDeviceRadioButton.setSelected(targetSelectionMode == TargetSelectionMode.CLOUD_DEVICE_LAUNCH);
-    myCloudDeviceConfigurationCombo.selectConfiguration(configuration.SELECTED_CLOUD_DEVICE_CONFIGURATION_ID);
-    myCloudDeviceProjectIdLabel.updateCloudProjectId(configuration.SELECTED_CLOUD_DEVICE_PROJECT_ID);
 
     myAvdComboComponent.setEnabled(targetSelectionMode == TargetSelectionMode.EMULATOR);
 
@@ -438,18 +302,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     else if (myUsbDeviceRadioButton.isSelected()) {
       configuration.setTargetSelectionMode(TargetSelectionMode.USB_DEVICE);
     }
-    else if (myRunTestsInGoogleCloudRadioButton.isSelected()) {
-      configuration.setTargetSelectionMode(TargetSelectionMode.CLOUD_MATRIX_TEST);
-    }
-    else if (myLaunchCloudDeviceRadioButton.isSelected()) {
-      configuration.setTargetSelectionMode(TargetSelectionMode.CLOUD_DEVICE_LAUNCH);
-    }
-
-    configuration.SELECTED_CLOUD_MATRIX_CONFIGURATION_ID = getSelectedCloudConfigurationId(MATRIX);
-    configuration.SELECTED_CLOUD_MATRIX_PROJECT_ID = myCloudMatrixProjectIdLabel.getProjectId();
-
-    configuration.SELECTED_CLOUD_DEVICE_CONFIGURATION_ID = getSelectedCloudConfigurationId(SINGLE_DEVICE);
-    configuration.SELECTED_CLOUD_DEVICE_PROJECT_ID = myCloudDeviceProjectIdLabel.getProjectId();
 
     configuration.USE_LAST_SELECTED_DEVICE = myUseLastSelectedDeviceCheckBox.isSelected();
     configuration.PREFERRED_AVD = "";
@@ -481,60 +333,4 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   public ConfigurationModuleSelector getModuleSelector() {
     return myModuleSelector;
   }
-
-  private class SelectCloudProjectAction extends AnAction {
-
-    private final CloudProjectIdLabel myLabel;
-    private final CloudConfigurationComboBox myComboBox;
-
-
-    public SelectCloudProjectAction(CloudProjectIdLabel label, CloudConfigurationComboBox comboBox) {
-      myLabel = label;
-      myComboBox = comboBox;
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      if (myCloudConfigurationProvider == null) {
-        return;
-      }
-
-      String selectedProjectId = myCloudConfigurationProvider.openCloudProjectConfigurationDialog(myProject, myLabel.getText());
-
-      if (selectedProjectId != null) {
-        myLabel.updateCloudProjectId(selectedProjectId);
-        // Simulate a change event such that it is picked up by the editor validation mechanisms.
-        for (ItemListener itemListener : myComboBox.getComboBox().getItemListeners()) {
-          itemListener.itemStateChanged(new ItemEvent(myComboBox.getComboBox(), ItemEvent.ITEM_STATE_CHANGED, myComboBox.getComboBox(),
-                                                      ItemEvent.SELECTED));
-        }
-      }
-    }
-
-    @Override
-    public void update(AnActionEvent event) {
-      Presentation presentation = event.getPresentation();
-      presentation.setIcon(AllIcons.General.Settings);
-    }
-  }
-
-  private static class CloudMatrixHelpAction extends AnAction {
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      try {
-        Desktop.getDesktop().browse(new URI("https://cloud.google.com/test-lab/android-studio"));
-      } catch (Exception ex) {
-        // ignore
-      }
-    }
-
-    @Override
-    public void update(AnActionEvent event) {
-      Presentation presentation = event.getPresentation();
-      presentation.setText("Learn about using Cloud Test Lab from Android Studio");
-      presentation.setIcon(AllIcons.Actions.Help);
-    }
-  }
-
 }
