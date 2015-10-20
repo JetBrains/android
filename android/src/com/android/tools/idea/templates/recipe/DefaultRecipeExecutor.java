@@ -388,7 +388,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       return TemplateUtils.readTextFromDisk(file);
     }
     else {
-      return TemplateUtils.readTextFromPsiFile(myContext.getProject(), file);
+      return TemplateUtils.readTextFromDocument(myContext.getProject(), file);
     }
   }
 
@@ -398,7 +398,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       return TemplateUtils.readTextFromDisk(VfsUtilCore.virtualToIoFile(file));
     }
     else {
-      return TemplateUtils.readTextFromPsiFile(myContext.getProject(), file);
+      return TemplateUtils.readTextFromDocument(myContext.getProject(), file);
     }
   }
 
