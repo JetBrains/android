@@ -24,9 +24,7 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.*;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
@@ -70,7 +68,14 @@ public final class Recipe {
   }
 
   private static Recipe unmarshal(@NotNull Reader xmlReader) throws JAXBException {
-    return (Recipe)JAXBContext.newInstance(Recipe.class).createUnmarshaller().unmarshal(xmlReader);
+    Unmarshaller unmarshaller = JAXBContext.newInstance(Recipe.class).createUnmarshaller();
+    unmarshaller.setEventHandler(new ValidationEventHandler() {
+      @Override
+      public boolean handleEvent(ValidationEvent event) {
+        throw new RuntimeException(event.getLinkedException());
+      }
+    });
+    return (Recipe)unmarshaller.unmarshal(xmlReader);
   }
 
   @NotNull
@@ -213,7 +218,10 @@ public final class Recipe {
    */
   @SuppressWarnings({"NullableProblems", "unused"})
   private static final class ExecuteInstruction extends RecipeInstruction {
-    @XmlJavaTypeAdapter(StringFileAdapter.class) @XmlAttribute(required = true) @NotNull private File file;
+    @XmlJavaTypeAdapter(StringFileAdapter.class)
+    @XmlAttribute(required = true)
+    @NotNull
+    private File file;
 
     @Override
     void execute(@NotNull final RecipeExecutor executor) throws TemplateProcessingException {
