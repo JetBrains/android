@@ -480,10 +480,19 @@ public class Template {
           RecipeExecutor recipeExecutor = context.getRecipeExecutor();
           TemplateMetadata metadata = getMetadata();
           assert metadata != null;
-          if (metadata.useImplicitRootFolder()) {
-            context.getLoader().setTemplateFolder(new File(context.getLoader().getTemplateFolder(), "root"));
+          if (!metadata.useImplicitRootFolder()) {
+            recipe.execute(recipeExecutor);
           }
-          recipe.execute(recipeExecutor);
+          else {
+            StudioTemplateLoader loader = context.getLoader();
+            try {
+              loader.pushTemplateFolder(new File(getRootPath(), "root"));
+              recipe.execute(recipeExecutor);
+            }
+            finally {
+              loader.popTemplateFolder();
+            }
+          }
         }
         catch (JAXBException ex) {
           throw new TemplateProcessingException(ex);

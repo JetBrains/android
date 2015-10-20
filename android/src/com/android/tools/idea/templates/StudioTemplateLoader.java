@@ -16,64 +16,182 @@
 package com.android.tools.idea.templates;
 
 import com.android.utils.SdkUtils;
+import com.intellij.openapi.util.io.FileUtil;
 import freemarker.cache.TemplateLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.util.Stack;
 
 /**
  * A custom {@link TemplateLoader} which locates templates on disk relative to a specified template folder.
  */
 public final class StudioTemplateLoader implements TemplateLoader {
-  private File myTemplateFolder;
+  // Root folder of a set of templates. The prefix "root://" refers to this folder.
+  private final File myTemplateRootFolder;
+  // The top element holds the folder of the previous loaded template file.
+  // Initially this is set to the folder of the main template.
+  private final Stack<File> myLastTemplateFolders;
+  // Specify the root folder as a prefix
+  private final static String ROOT = "root://";
 
-  public StudioTemplateLoader(@NotNull File folder) {
-    myTemplateFolder = folder;
+  /**
+   * A {@link TemplateLoader} that is loading files for FreeMarker template engine.
+   * @param rootFolder the top level folder with a set of templates
+   * @param templateFolder the folder that holds the template we are going to load first
+   */
+  public StudioTemplateLoader(@NotNull File rootFolder, @NotNull File templateFolder) {
+    myTemplateRootFolder = rootFolder;
+    myLastTemplateFolders = new Stack<File>();
+    myLastTemplateFolders.push(templateFolder);
   }
 
-  public void setTemplateFolder(@NotNull File folder) {
-    myTemplateFolder = folder;
+  /**
+   * Push the folder of the last template loaded as a temporary relative reference.
+   * This can be useful if we need to resolve other references that are (or could be) relative
+   * to the previous loaded template.
+   * @param folder the folder of a template used for resolving relative paths
+   */
+  public void pushTemplateFolder(@NotNull File folder) {
+    myLastTemplateFolders.push(folder);
   }
 
+  /**
+   * Pop the previous folder.
+   * Use this value to restore a prior last template folder if we pushed a new folder explicitly.
+   */
+  public void popTemplateFolder() {
+    myLastTemplateFolders.pop();
+  }
+
+  /**
+   * Return the name reference of a template given a file location.
+   * @param file is either an absolute file path, a relative path
+   * @return the name used to pass to FreeMarker
+   */
   @NotNull
-  public File getTemplateFolder() {
-    return myTemplateFolder;
+  public String findTemplate(@NotNull File file) throws IOException {
+    if (!file.isAbsolute()) {
+      file = resolveName(file.getPath());
+    }
+    String path = FileUtil.getRelativePath(myTemplateRootFolder, file);
+    if (path == null) {
+      throw new IOException("Absolute paths must start with: " + myTemplateRootFolder.getPath());
+    }
+    return ROOT + path;
   }
 
+  /**
+   * Return an absolute file reference given a file that may be relative to the last template.
+   * @param file is either an absolute file path or a relative path
+   * @return an absolute file path
+   */
   @NotNull
   public File getSourceFile(@NotNull File file) throws IOException {
-    if (file.isAbsolute()) {
-      return file;
-    }
-    file = new File(myTemplateFolder, file.getPath());
-    return file.getCanonicalFile();
+    String name = findTemplate(file);
+    return resolveName(name);
   }
 
-  @Override
-  @NotNull
-  public Reader getReader(@NotNull Object templateSource, @NotNull String encoding) throws IOException {
-    InputStream stream = (InputStream)templateSource;
-    return new InputStreamReader(stream, encoding);
-  }
-
-  @Override
-  public long getLastModified(Object templateSource) {
-    return -1;
-  }
-
+  /**
+   * This method is called directly from Freemarker
+   * @param name the name reference from {@link #findTemplate}
+   * @return an object representing the template
+   */
   @Override
   @Nullable
   public Object findTemplateSource(@NotNull String name) throws IOException {
-    File file = new File(myTemplateFolder, name);
-    if (file.exists()) {
-      return SdkUtils.fileToUrl(file).openStream();
-    }
-    return null;
+    File file = resolveName(name);
+    TemplateSource templateSource = TemplateSource.open(file);
+    pushTemplateFolder(file.getParentFile());
+    return templateSource;
   }
 
+  /**
+   * Return the last modified time for the current template file.
+   * @param source a {@link TemplateSource} instance
+   * @return the last time the file was modified
+   */
   @Override
-  public void closeTemplateSource(Object templateSource) throws IOException {
-    ((InputStream)templateSource).close();
+  public long getLastModified(Object source) {
+    TemplateSource templateSource = (TemplateSource) source;
+    return templateSource.getLastModified();
+  }
+
+  /**
+   * Return a reader for the current template file.
+   * @param source a {@link TemplateSource} instance
+   * @param encoding the encoding to use for reading the file
+   * @return a {@link Reader} instance for reading the file
+   */
+  @Override
+  @NotNull
+  public Reader getReader(@NotNull Object source, @NotNull String encoding) throws IOException {
+    TemplateSource templateSource = (TemplateSource) source;
+    return new InputStreamReader(templateSource.getInputStream(), encoding);
+  }
+
+  /**
+   * Close the underlying {@link InputStream} for the current template file.
+   * @param source a {@link TemplateSource} instance
+   */
+  @Override
+  public void closeTemplateSource(Object source) throws IOException {
+    TemplateSource templateSource = (TemplateSource) source;
+    popTemplateFolder();
+    templateSource.close();
+  }
+
+  /**
+   * Resolve a Freemarker name reference.
+   * @param name Freemarker name reference from {@link #findTemplate}
+   * @return an absolute file
+   */
+  @NotNull
+  private File resolveName(@NotNull String name) throws IOException {
+    File file;
+    if (name.startsWith(ROOT)) {
+      file = new File(myTemplateRootFolder, name.substring(ROOT.length()));
+    }
+    else if (myLastTemplateFolders != null) {
+      file = new File(myLastTemplateFolders.peek(), name);
+    }
+    else {
+      file = new File(myTemplateRootFolder, name);
+    }
+    return file.getCanonicalFile();
+  }
+
+  /**
+   * Helper class for handling template source files.
+   */
+  private final static class TemplateSource {
+    private final InputStream myInputStream;
+    private final long myLastModifiedTime;
+
+    private TemplateSource(@NotNull InputStream inputStream, long lastModified) {
+      myInputStream = inputStream;
+      myLastModifiedTime = lastModified;
+    }
+
+    public static TemplateSource open(@NotNull File file) throws IOException {
+      if (!file.exists() && !file.isFile()) {
+        return null;
+      }
+      return new TemplateSource(SdkUtils.fileToUrl(file).openStream(), file.lastModified());
+    }
+
+    @NotNull
+    public InputStream getInputStream() {
+      return myInputStream;
+    }
+
+    public long getLastModified() {
+      return myLastModifiedTime;
+    }
+
+    public void close() throws IOException {
+      myInputStream.close();
+    }
   }
 }
