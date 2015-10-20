@@ -84,18 +84,22 @@ public final class FreemarkerUtils {
   public static String processFreemarkerTemplate(@NotNull RenderingContext context,
                                                  @NotNull File file,
                                                  @Nullable TemplatePostProcessor processor) throws TemplateProcessingException {
-    StudioTemplateLoader loader = context.getLoader();
-    File previousFolder = loader.getTemplateFolder();
     try {
-      file = loader.getSourceFile(file);
-      loader.setTemplateFolder(file.getParentFile());
-      freemarker.template.Template template = context.getFreemarkerConfiguration().getTemplate(file.getName());
+      StudioTemplateLoader loader = context.getLoader();
+      String name = loader.findTemplate(file);
+      freemarker.template.Template template = context.getFreemarkerConfiguration().getTemplate(name);
       StringWriter out = new StringWriter();
       template.process(context.getParamMap(), out);
       out.flush();
       String content = out.toString().replace("\r", "");
       if (processor != null) {
-        processor.process(content);
+        try {
+          loader.pushTemplateFolder(loader.getSourceFile(file).getParentFile());
+          processor.process(content);
+        }
+        finally {
+          loader.popTemplateFolder();
+        }
       }
       return content;
     }
@@ -104,9 +108,6 @@ public final class FreemarkerUtils {
     }
     catch (IOException ex) {
       throw new TemplateProcessingException(ex);
-    }
-    finally {
-      loader.setTemplateFolder(previousFolder);
     }
   }
 
