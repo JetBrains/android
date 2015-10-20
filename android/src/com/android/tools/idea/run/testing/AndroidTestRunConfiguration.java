@@ -25,6 +25,8 @@ import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
+import com.android.tools.idea.run.editor.TestRunParameters;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
