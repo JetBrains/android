@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.dependencies;
 
 import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
-import com.android.tools.idea.gradle.dsl.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +36,7 @@ import java.util.List;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 
-public abstract class Dependency extends GradleDslElement {
+public abstract class Dependency extends GradlePsiElement {
   @NotNull private final Dependencies myParent;
 
   // This is the PSI element containing the whole dependency declaration.

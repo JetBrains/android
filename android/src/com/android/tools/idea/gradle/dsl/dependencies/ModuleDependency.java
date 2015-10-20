@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.dependencies;
 
-import com.android.tools.idea.gradle.dsl.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -119,6 +119,7 @@ public class ModuleDependency extends Dependency {
     return notNullize(getUnquotedText(myPathLiteral));
   }
 
+  @Override
   @NotNull
   public String getName() {
     List<String> pathSegments = getPathSegments(getPath());
@@ -172,7 +173,7 @@ public class ModuleDependency extends Dependency {
 
   @Override
   @NotNull
-  protected Collection<GradleDslElement> getChildren() {
+  protected Collection<GradlePsiElement> getChildren() {
     return ImmutableList.of();
   }
 }
