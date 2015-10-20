@@ -71,7 +71,7 @@ public class FrameBufferController extends ImagePanelController {
     group.add(new FramebufferWireframeAction(
       this, WireframeMode.noWireframe(), "Shaded", "Display the frambuffer with shaded polygons", AndroidIcons.GfxTrace.WireframeNone));
     group.add(new FramebufferWireframeAction(this, WireframeMode.wireframeOverlay(), "Shaded + Wireframe",
-      "Display the frambuffer with shaded plygons and overlay the wireframe of the last draw cal", AndroidIcons.GfxTrace.WireframeOverlay));
+      "Display the frambuffer with shaded plygons and overlay the wireframe of the last draw call", AndroidIcons.GfxTrace.WireframeOverlay));
     group.add(new FramebufferWireframeAction(
       this, WireframeMode.allWireframe(), "Wireframe", "Display the framebuffer with wireframes", AndroidIcons.GfxTrace.WireframeAll));
     group.add(new Separator());

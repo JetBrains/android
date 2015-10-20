@@ -23,10 +23,7 @@ import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
-import com.android.tools.idea.editors.gfxtrace.widgets.CellComboBox;
-import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
-import com.android.tools.idea.editors.gfxtrace.widgets.CellWidget;
-import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
+import com.android.tools.idea.editors.gfxtrace.widgets.*;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBList;
@@ -71,6 +68,11 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
         return new ImageCellRenderer<T>(loader, imageSize) {
           {
             setMinimumIconSize(imageSize);
+          }
+
+          @Override
+          protected Repaintable getRepaintable(JList list) {
+            return Repaintables.forComponents(list, myComponent);
           }
 
           @Override

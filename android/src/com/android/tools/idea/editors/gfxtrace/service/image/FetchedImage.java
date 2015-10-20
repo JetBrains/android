@@ -50,7 +50,7 @@ public class FetchedImage {
   }
 
   public static ListenableFuture<FetchedImage> load(final ServiceClient client, final Path imagePath) {
-    return Futures.transform(client.get(imagePath.as(FmtRGBA.INSTANCE)), new AsyncFunction<Object, FetchedImage>() {
+    return Futures.transform(client.get(imagePath.as(Format.RGBA)), new AsyncFunction<Object, FetchedImage>() {
       @Override
       public ListenableFuture<FetchedImage> apply(Object object) throws Exception {
         if (object instanceof ImageInfo) {
