@@ -28,7 +28,9 @@ import java.util.Stack;
  * A custom {@link TemplateLoader} which locates templates on disk relative to a specified template folder.
  */
 public final class StudioTemplateLoader implements TemplateLoader {
-  // Root folder of a set of templates. The prefix "root://" refers to this folder.
+  // Root folder of a set of templates. This is found by finding a parent folder of the original
+  // template folder with the name "templates". If no such folder exist use the template folder as root.
+  // The prefix "root://" refers to this folder.
   private final File myTemplateRootFolder;
   // The top element holds the folder of the previous loaded template file.
   // Initially this is set to the folder of the main template.
@@ -38,11 +40,10 @@ public final class StudioTemplateLoader implements TemplateLoader {
 
   /**
    * A {@link TemplateLoader} that is loading files for FreeMarker template engine.
-   * @param rootFolder the top level folder with a set of templates
    * @param templateFolder the folder that holds the template we are going to load first
    */
-  public StudioTemplateLoader(@NotNull File rootFolder, @NotNull File templateFolder) {
-    myTemplateRootFolder = rootFolder;
+  public StudioTemplateLoader(@NotNull File templateFolder) {
+    myTemplateRootFolder = findTemplateRootFolder(templateFolder);
     myLastTemplateFolders = new Stack<File>();
     myLastTemplateFolders.push(templateFolder);
   }
@@ -160,6 +161,15 @@ public final class StudioTemplateLoader implements TemplateLoader {
       file = new File(myTemplateRootFolder, name);
     }
     return file.getCanonicalFile();
+  }
+
+  @NotNull
+  private static File findTemplateRootFolder(@NotNull File templateFolder) {
+    File folder = templateFolder;
+    while (folder != null && !folder.getName().equals("templates")) {
+      folder = folder.getParentFile();
+    }
+    return folder != null ? folder : templateFolder;
   }
 
   /**
