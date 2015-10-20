@@ -725,9 +725,6 @@
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
 
-    <applicationConfigurable id="cloud.testing" groupId="build" groupWeight="200" instance="com.android.tools.idea.run.cloud.CloudTestingConfigurable"/>
-
-
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
 
@@ -851,8 +848,6 @@
                     interface="com.android.tools.idea.gradle.editor.parser.GradleEditorModelCustomizer"/>
     <extensionPoint qualifiedName="com.android.gradle.gradleEditorEntityUi"
                     interface="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUi"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.run.cloudConfigurationProvider"
-                    interface="com.android.tools.idea.run.cloud.CloudConfigurationProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceCreators"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
