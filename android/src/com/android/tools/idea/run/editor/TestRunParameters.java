@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.run.testing;
+package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
+import com.android.tools.idea.run.testing.*;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.configuration.BrowseModuleValueActionListener;
 import com.intellij.execution.junit.JUnitUtil;
@@ -44,14 +45,7 @@ import java.awt.event.ActionListener;
 
 import static com.android.tools.idea.run.testing.AndroidTestRunConfiguration.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 27, 2009
- * Time: 4:17:35 PM
- * To change this template use File | Settings | File Templates.
- */
-class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunConfiguration> {
+public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunConfiguration> {
   private JRadioButton myAllInPackageButton;
   private JRadioButton myClassButton;
   private JRadioButton myTestMethodButton;
@@ -69,7 +63,7 @@ class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunCon
   private final ConfigurationModuleSelector myModuleSelector;
   private JComponent anchor;
 
-  TestRunParameters(Project project, ConfigurationModuleSelector moduleSelector) {
+  public TestRunParameters(Project project, ConfigurationModuleSelector moduleSelector) {
     myProject = project;
     myModuleSelector = moduleSelector;
 

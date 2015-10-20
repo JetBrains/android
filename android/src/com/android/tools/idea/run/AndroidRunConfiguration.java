@@ -17,6 +17,8 @@ package com.android.tools.idea.run;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.activity.*;
+import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
+import com.android.tools.idea.run.editor.ApplicationRunParameters;
 import com.google.common.base.Predicates;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
