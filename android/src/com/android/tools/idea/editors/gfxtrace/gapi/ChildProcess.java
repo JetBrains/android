@@ -20,9 +20,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,7 +47,6 @@ public abstract class ChildProcess {
   public SettableFuture<Integer> start() {
     final ProcessBuilder pb = new ProcessBuilder();
     pb.directory(GapiPaths.base());
-    pb.redirectErrorStream(true);
     if (!prepare(pb)) {
       return null;
     }
@@ -76,51 +73,13 @@ public abstract class ChildProcess {
       portF.setException(e);
       return;
     }
-    final BufferedReader stdout = new BufferedReader(new InputStreamReader(myProcess.getInputStream(), Charset.forName("UTF-8")));
-    final BufferedReader stderr = new BufferedReader(new InputStreamReader(myProcess.getErrorStream(), Charset.forName("UTF-8")));
-    try {
-      // stderr handler thread
-      new Thread() {
-        @Override
-        public void run() {
-          try {
-            for (String line; (line = stderr.readLine()) != null; ) {
-              LOG.error(myName + ": " + line);
-            }
-          }
-          catch (IOException e) { /* ignore */ }
-        }
-      }.start();
-      // stdout handler thread
-      new Thread() {
-        @Override
-        public void run() {
-          processOutput(portF, stdout);
-        }
-      }.start();
-      try {
-        onExit(myProcess.waitFor());
-      }
-      catch (InterruptedException e) {
-        LOG.info("Killing " + myName);
-        portF.setException(e);
-        myProcess.destroy();
-      }
-    }
-    finally {
-      try {
-        stdout.close();
-        stderr.close();
-      }
-      catch (IOException ignored) {
-      }
-    }
-  }
 
-  private void processOutput(final SettableFuture<Integer> portF, final BufferedReader stdout) {
-    try {
-      boolean seenPort = false;
-      for (String line; (line = stdout.readLine()) != null; ) {
+    OutputHandler stdout = new OutputHandler(myProcess.getInputStream(), false) {
+      private boolean seenPort = false;
+
+      @Override
+      protected void processLine(String line) {
+        super.processLine(line);
         if (!seenPort) {
           Matcher matcher = PORT_PATTERN.matcher(line);
           if (matcher.matches()) {
@@ -130,15 +89,62 @@ public abstract class ChildProcess {
             LOG.info("Detected server " + myName + " startup on port " + port);
           }
         }
-        LOG.info(myName + ": " + line);
       }
+    };
+    OutputHandler stderr = new OutputHandler(myProcess.getErrorStream(), true);
+    try {
+      onExit(myProcess.waitFor());
     }
-    catch (IOException ignored) {
+    catch (InterruptedException e) {
+      LOG.info("Killing " + myName);
+      portF.setException(e);
+      myProcess.destroy();
+    }
+    finally {
+      stdout.close();
+      stderr.close();
     }
   }
 
   public void shutdown() {
     LOG.info("Shutting down " + myName);
     myServerThread.interrupt();
+  }
+
+  private class OutputHandler extends Thread implements Closeable {
+    private final BufferedReader reader;
+    private final boolean warn;
+
+    public OutputHandler(InputStream in, boolean warn) {
+      this.reader = new BufferedReader(new InputStreamReader(in, Charset.forName("UTF-8")));
+      this.warn = warn;
+      start();
+    }
+
+    @Override
+    public void run() {
+      try {
+        for (String line; (line = reader.readLine()) != null; ) {
+          processLine(line);
+        }
+      }
+      catch (IOException e) { /* ignore */ }
+    }
+
+    protected void processLine(String line) {
+      if (warn) {
+        LOG.warn(myName + ": " + line);
+      } else {
+        LOG.info(myName + ": " + line);
+      }
+    }
+
+    @Override
+    public void close() {
+      try {
+        reader.close();
+      }
+      catch (IOException e) { /* ignore */ }
+    }
   }
 }

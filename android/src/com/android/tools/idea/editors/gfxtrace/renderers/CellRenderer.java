@@ -16,6 +16,8 @@
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
 import com.android.tools.idea.editors.gfxtrace.widgets.CellWidget;
+import com.android.tools.idea.editors.gfxtrace.widgets.Repaintable;
+import com.android.tools.idea.editors.gfxtrace.widgets.Repaintables;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -53,6 +55,10 @@ public abstract class CellRenderer<T extends CellWidget.Data> implements ListCel
     }
     cell.isSelected = isSelected;
     return getRendererComponent(list, cell);
+  }
+
+  protected Repaintable getRepaintable(JList list) {
+    return Repaintables.forComponent(list);
   }
 
   protected void onCellLoaded(JList list, T cell) {

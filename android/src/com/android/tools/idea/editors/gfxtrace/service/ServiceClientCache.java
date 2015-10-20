@@ -17,9 +17,10 @@ package com.android.tools.idea.editors.gfxtrace.service;
 
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.rpclib.schema.Message;
+import com.google.common.base.Function;
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 
@@ -28,19 +29,13 @@ public class ServiceClientCache extends ServiceClientWrapper {
 
   private ListenableFuture<Message> mySchema;
   private final Object mySchemaLock = new Object();
-  private final LoadingCache<Path, ListenableFuture<Object>> myPathCache;
+  private final Cache<Path, Object> myPathCache;
 
   public ServiceClientCache(ServiceClient client) {
     super(client);
     myPathCache = CacheBuilder.newBuilder()
       .softValues()
-      .build(new CacheLoader<Path, ListenableFuture<Object>>() {
-        @Override
-        public ListenableFuture<Object> load(Path p) {
-          LOG.debug("Cache miss for " + p);
-          return myClient.get(p);
-        }
-      });
+      .build();
   }
 
   @Override
@@ -54,7 +49,18 @@ public class ServiceClientCache extends ServiceClientWrapper {
   }
 
   @Override
-  public ListenableFuture<Object> get(Path p) {
-    return myPathCache.getUnchecked(p);
+  public ListenableFuture<Object> get(final Path p) {
+    LOG.debug("Getting " + p);
+    Object result = myPathCache.getIfPresent(p);
+    if (result != null) {
+      return Futures.immediateFuture(result);
+    }
+    return Futures.transform(myClient.get(p), new Function<Object, Object>() {
+      @Override
+      public Object apply(Object result) {
+        myPathCache.put(p, result);
+        return result;
+      }
+    });
   }
 }
