@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.run.editor.ApplicationRunParameters;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Editor;
