@@ -209,7 +209,6 @@ public final class GapiPaths {
 
   private static class InternalHandler extends Handler {
     @NotNull private static final String SERVER_RELATIVE_PATH = "bin";
-    @NotNull private static final String GAPII_LIBRARY_FLAVOUR = "release";
 
     InternalHandler(File baseDir) {
       super(baseDir, new File(new File(baseDir, SERVER_RELATIVE_PATH), GAPIS_EXECUTABLE_NAME));
@@ -224,8 +223,7 @@ public final class GapiPaths {
       if (!abiPath.exists()) {
         throw new IOException("Unsupported gapii abi '" + abi + "'");
       }
-      File flavourPath = new File(abiPath, GAPII_LIBRARY_FLAVOUR);
-      return new File(flavourPath, GAPII_LIBRARY_NAME);
+      return new File(abiPath, GAPII_LIBRARY_NAME);
     }
 
     @Override
