@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.dsl.dependencies.external;
 
 import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
-import com.android.tools.idea.gradle.dsl.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.GradleBuildModelParserTestCase;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +33,7 @@ import static org.fest.assertions.Assertions.assertThat;
 /**
  * Tests for {@link ExternalDependency}.
  */
-public class ExternalDependencyTest extends GradleBuildModelParserTestCase {
+public class ExternalDependencyTest extends GradleFileModelTestCase {
   public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +

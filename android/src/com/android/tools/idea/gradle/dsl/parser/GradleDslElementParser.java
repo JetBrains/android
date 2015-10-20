@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
-import com.android.tools.idea.gradle.dsl.GradleBuildModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
@@ -29,8 +28,8 @@ public interface GradleDslElementParser {
    * Attempts to parse the given PSI element.
    *
    * @param e the PSI element to parse.
-   * @param buildModel represents the build.gradle file being parsed.
+   * @param gradlePsiFile represents the build.gradle file being parsed.
    * @return {@code true} if this parser was able to parse the given PSI element; {@code false} otherwise.
    */
-  boolean parse(@NotNull GroovyPsiElement e, @NotNull GradleBuildModel buildModel);
+  boolean parse(@NotNull GroovyPsiElement e, @NotNull GradlePsiFile gradlePsiFile);
 }
