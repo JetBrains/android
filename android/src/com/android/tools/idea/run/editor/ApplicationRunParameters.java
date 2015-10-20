@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.run;
+package com.android.tools.idea.run.editor;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.compiler.options.CompileStepBeforeRunNoErrorCheck;
