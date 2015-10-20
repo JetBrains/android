@@ -421,14 +421,14 @@ public class TemplateUtils {
    * @return the contents of the file as text, or null if for some reason it couldn't be read
    */
   @Nullable
-  public static String readTextFromPsiFile(@NotNull final Project project, @NotNull File file) {
+  public static String readTextFromDocument(@NotNull final Project project, @NotNull File file) {
     assert project.isInitialized();
     VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
     if (vFile == null) {
       LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
       return null;
     }
-    return readTextFromPsiFile(project, vFile);
+    return readTextFromDocument(project, vFile);
   }
 
   /**
@@ -438,19 +438,14 @@ public class TemplateUtils {
    * @return the contents of the file as text, or null if for some reason it couldn't be read
    */
   @Nullable
-  public static String readTextFromPsiFile(@NotNull final Project project, @NotNull final VirtualFile file) {
+  public static String readTextFromDocument(@NotNull final Project project, @NotNull final VirtualFile file) {
     assert project.isInitialized();
     return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
       @Nullable
       @Override
       public String compute() {
-        final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-        if (psiFile == null) {
-          return null;
-        }
-        else {
-          return psiFile.getText();
-        }
+        Document document = FileDocumentManager.getInstance().getDocument(file);
+        return document != null ? document.getText() : null;
       }
     });
   }
