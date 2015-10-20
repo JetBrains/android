@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
 import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
-import com.android.tools.idea.gradle.dsl.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependency;
 import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.intellij.openapi.command.WriteCommandAction;

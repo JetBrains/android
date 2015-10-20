@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.dependencies;
 
-import com.android.tools.idea.gradle.dsl.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.GradleBuildModelParserTestCase;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -28,7 +28,7 @@ import static org.fest.assertions.Assertions.assertThat;
 /**
  * Tests for {@link ModuleDependency}.
  */
-public class ModuleDependencyTest extends GradleBuildModelParserTestCase {
+public class ModuleDependencyTest extends GradleFileModelTestCase {
   public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(':javalib1')\n" +
