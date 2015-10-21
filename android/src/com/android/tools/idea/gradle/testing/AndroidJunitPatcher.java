@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle;
+package com.android.tools.idea.gradle.testing;
 
 import com.android.builder.model.JavaArtifact;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.gradle.testartifact.TestArtifactSearchScopes;
 import com.google.common.collect.Lists;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -78,9 +77,11 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
       // Filter the library / module dependencies that are in android test
       List<String> newClassPath = Lists.newArrayList();
+
+      GlobalSearchScope excludeScope = testScopes.getUnitTestExcludeScope();
       for (String path : classPath.getPathList()) {
-        VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(new File(path));
-        if (vFile != null && testScopes.getUnitTestExcludeScope().accept(vFile)) {
+        VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(new File(path));
+        if (file != null && excludeScope.accept(file)) {
           continue;
         }
         newClassPath.add(path);
@@ -88,9 +89,9 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
       // There is potential performance if we just call remove for all excluded items because every random remove operation has linear
       // complexity. TODO change the {@code PathList} API.
-      for (VirtualFile vFile : classPath.getVirtualFiles()) {
-        if (testScopes.getUnitTestExcludeScope().accept(vFile)) {
-          classPath.remove(vFile.getPath());
+      for (VirtualFile file : classPath.getVirtualFiles()) {
+        if (excludeScope.accept(file)) {
+          classPath.remove(file.getPath());
         }
       }
     }
@@ -176,7 +177,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
    * <p>We need to do this for every project dependency as well, since we're using classes and resources directories of these directly.
    *
    * @see <a href="http://b.android.com/172409">Bug 172409</a>
-   * @see com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer#customizeModule(Project, ModifiableRootModel, AndroidGradleModel)
+   * @see com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer
    */
   private static void handleJavaResources(@NotNull Module module,
                                           @NotNull AndroidGradleModel androidModel,

@@ -111,9 +111,14 @@ public abstract class Dependency {
     return dependencies;
   }
 
-  public static void populate(@NotNull DependencySet dependencies,
-                              @NotNull BaseArtifact artifact,
-                              @NotNull DependencyScope scope) {
+  @NotNull
+  public static DependencySet extractFrom(@NotNull BaseArtifact artifact, @NotNull DependencyScope scope) {
+    DependencySet dependencies = new DependencySet();
+    populate(dependencies, artifact, scope);
+    return dependencies;
+  }
+
+  private static void populate(@NotNull DependencySet dependencies, @NotNull BaseArtifact artifact, @NotNull DependencyScope scope) {
     addJavaLibraries(dependencies, artifact.getDependencies().getJavaLibraries(), scope);
 
     Set<File> unique = Sets.newHashSet();

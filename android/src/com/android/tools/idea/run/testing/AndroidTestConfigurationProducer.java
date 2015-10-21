@@ -17,10 +17,10 @@
 package com.android.tools.idea.run.testing;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.gradle.testartifact.TestArtifactSearchScopes;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
@@ -174,8 +174,8 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
       }
 
       if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-        TestArtifactSearchScopes searchScopes = TestArtifactSearchScopes.get(module);
-        if (searchScopes == null) {
+        TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+        if (testScopes == null) {
           return false;
         }
         PsiFile psiFile = element.getContainingFile();
@@ -186,7 +186,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
         if (virtualFile == null) {
           return false;
         }
-        if (!searchScopes.isAndroidTestSource(virtualFile)) {
+        if (!testScopes.isAndroidTestSource(virtualFile)) {
           return false;
         }
       }

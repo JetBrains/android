@@ -807,7 +807,7 @@
     <spellchecker.support language="Properties" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
-    <junitPatcher implementation="com.android.tools.idea.gradle.AndroidJunitPatcher" />
+    <junitPatcher implementation="com.android.tools.idea.gradle.testing.AndroidJunitPatcher" />
 
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapDrawableRenderer" />
@@ -823,8 +823,8 @@
     <codeInsight.unresolvedReferenceQuickFixProvider
         implementation="com.android.tools.idea.gradle.quickfix.AndroidUnresolvedReferenceQuickFixProvider"/>
     <projectModelModifier implementation="com.android.tools.idea.gradle.AndroidGradleJavaProjectModelModifier"/>
-    <resolveScopeProvider implementation="com.android.tools.idea.gradle.testartifact.TestArtifactResolveScopeProvider" order="first"/>
-    <useScopeOptimizer implementation="com.android.tools.idea.gradle.testartifact.TestArtifactUseScopeOptimizer"/>
+    <resolveScopeProvider implementation="com.android.tools.idea.gradle.testing.TestArtifactResolveScopeProvider" order="first"/>
+    <useScopeOptimizer implementation="com.android.tools.idea.gradle.testing.TestArtifactUseScopeOptimizer"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
