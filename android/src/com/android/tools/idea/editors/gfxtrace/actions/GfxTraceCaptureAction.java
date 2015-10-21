@@ -40,6 +40,7 @@ import javax.swing.*;
 
 public abstract class GfxTraceCaptureAction extends ToggleAction {
   @NotNull protected final GpuMonitorView myView;
+  @NotNull protected final String myText;
   private ListenableFuture<GfxTracer> myPending = null;
   private GfxTracer myActive = null;
 
@@ -144,6 +145,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
                                @Nullable final Icon icon) {
     super(text, description, icon);
     myView = view;
+    myText = text;
   }
 
   @Override
@@ -181,13 +183,16 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
   public final void update(AnActionEvent e) {
     super.update(e);
     Presentation presentation = e.getPresentation();
-    if (myPending == null && myActive == null) {
+    if (!GapiPaths.isValid()) {
+      presentation.setEnabled(false);
+      presentation.setText(myText + " : GPU debugger tools not installed");
+    } else if (myPending == null && myActive == null) {
       presentation.setEnabled(isEnabled());
-      presentation.setText("Start tracing");
+      presentation.setText(myText + " : start tracing");
     }
     else {
       presentation.setEnabled(true);
-      presentation.setText("Stop tracing");
+      presentation.setText(myText + " : stop tracing");
     }
   }
 
