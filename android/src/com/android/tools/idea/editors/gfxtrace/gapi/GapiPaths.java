@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
-import com.intellij.openapi.application.PluginPathManager;
+import com.android.sdklib.repository.local.LocalExtraPkgInfo;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.hash.HashMap;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Map;
 
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
@@ -47,12 +50,14 @@ public final class GapiPaths {
 
   @NotNull private static final String HOST_OS;
   @NotNull private static final String HOST_ARCH;
-  @NotNull private static final String HOST_DIR;
   @NotNull private static final String GAPIS_EXECUTABLE_NAME;
   @NotNull private static final String GAPIR_EXECUTABLE_NAME;
   @NotNull private static final String GAPII_LIBRARY_NAME;
   @NotNull private static final String PKG_INFO_NAME = "pkginfo.apk";
   @NotNull private static final String EXE_EXTENSION;
+  @NotNull private static final String SDK_VENDOR = "android";
+  @NotNull private static final String SDK_PATH = "gapid";
+  @NotNull private static final String OS_ANDROID = "android";
 
   static {
     if (SystemInfo.isWindows) {
@@ -71,42 +76,77 @@ public final class GapiPaths {
     HOST_ARCH = remap(ARCH_REMAP, SystemInfo.OS_ARCH);
     GAPIS_EXECUTABLE_NAME = "gapis" + EXE_EXTENSION;
     GAPIR_EXECUTABLE_NAME = "gapir" + EXE_EXTENSION;
-    HOST_DIR = abiName(HOST_OS, HOST_ARCH);
     GAPII_LIBRARY_NAME = "libgapii.so";
   }
 
   @NotNull private static final Object myPathLock = new Object();
-  private static Handler myHandler;
+  private static File myBaseDir;
+  private static File myGapisPath;
+  private static File myGapirPath;
+  private static File myPkgInfoPath;
 
   public static boolean isValid() {
-    return handler().isValid();
+    findTools();
+    return myGapisPath.exists();
   }
 
+  @NotNull
   public static File base() {
-    return handler().base();
+    findTools();
+    return myBaseDir;
   }
 
+  @NotNull
   public static File gapis() {
-    return handler().gapis();
+    findTools();
+    return myGapisPath;
   }
 
+  @NotNull
   public static File gapir() {
-    return handler().gapir();
+    findTools();
+    return myGapirPath;
   }
 
   @NotNull
   static public File findTraceLibrary(@NotNull String abi) throws IOException {
-    return handler().findTraceLibrary(abi);
+    findTools();
+    String remappedAbi = remap(ABI_REMAP, abi);
+    File lib = findPath(OS_ANDROID, remappedAbi, GAPII_LIBRARY_NAME);
+    if (lib.exists()) {
+      return lib;
+    }
+    remappedAbi = remap(ABI_TARGET, remappedAbi);
+    lib = findPath(OS_ANDROID, remappedAbi, GAPII_LIBRARY_NAME);
+    if (lib.exists()) {
+      return lib;
+    }
+    throw new IOException("Unsupported " + GAPII_LIBRARY_NAME + " abi '" + abi + "'");
   }
 
   @NotNull
   static public File findPkgInfoApk() {
-    return handler().findPkgInfoApk();
+    findTools();
+    return myPkgInfoPath;
   }
 
   @NotNull
-  private static String abiName(String os, String arch) {
-    return (os + '-' + arch).replace(' ', '-').toLowerCase(Locale.ENGLISH);
+  static private File findPath(@NotNull String os, String abi, @NotNull String binary) {
+    File test;
+    File osDir = new File(myBaseDir, os);
+    if (abi != null) {
+      // base/os/abi/name
+      test = new File(new File(osDir, abi), binary);
+      if (test.exists()) return test;
+      // base/abi/name
+      test = new File(new File(myBaseDir, abi), binary);
+      if (test.exists()) return test;
+    }
+    // base/os/name
+    test = new File(osDir, binary);
+    if (test.exists()) return test;
+    // base/name
+    return new File(myBaseDir, binary);
   }
 
   private static String remap(Map<String, String> map, String key) {
@@ -117,122 +157,43 @@ public final class GapiPaths {
     return value;
   }
 
-  private static Handler handler() {
+  public static File getSdkPath() {
+    final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData == null) { return null; }
+    final LocalExtraPkgInfo info = sdkData.getLocalSdk().getExtra(SDK_VENDOR, SDK_PATH);
+    if (info == null) { return null; }
+    return info.getLocalDir();
+  }
+
+  private static boolean checkForTools(File dir) {
+    if (dir == null) { return false; }
+    myBaseDir = dir;
+    myGapisPath = findPath(HOST_OS, HOST_ARCH, GAPIS_EXECUTABLE_NAME);
+    myGapirPath = findPath(HOST_OS, HOST_ARCH, GAPIR_EXECUTABLE_NAME);
+    myPkgInfoPath = findPath(OS_ANDROID, null, PKG_INFO_NAME);
+    return myGapisPath.exists();
+  }
+
+  private static void findTools() {
     synchronized (myPathLock) {
-      if (myHandler != null) {
-        return myHandler;
+      if (myGapisPath != null) {
+        return;
       }
-      File androidPlugin = PluginPathManager.getPluginHome("android");
-      File tools = androidPlugin.getParentFile().getParentFile().getParentFile();
       if (Boolean.getBoolean(IDEA_IS_INTERNAL_PROPERTY)) {
-        // Check the default build location for a standard repo checkout
-        myHandler = new InternalHandler(new File(tools, "gpu"));
-        if (myHandler.isValid()) {
-          return myHandler;
-        }
         // Check the system GOPATH for the binaries
         String gopath = System.getenv("GOPATH");
         if (gopath != null && gopath.length() > 0) {
-          myHandler = new InternalHandler(new File(gopath));
-          if (myHandler.isValid()) {
-            return myHandler;
+          if (checkForTools(new File(gopath, "bin"))) {
+            return;
           }
         }
-        // Check the standard prebuilts checkout for the binaries
-        myHandler = new PluginHandler(new File(tools, "adt/idea/android/gapi"));
-        if (myHandler.isValid()) {
-          return myHandler;
-        }
       }
-      // check the android plugin directory
-      myHandler = new PluginHandler(new File(androidPlugin, "gapi"));
-    }
-    return myHandler;
-  }
-
-  private static abstract class Handler {
-    private final File myBaseDirectory;
-    private final File myGapisPath;
-    private final File myGapirPath;
-
-    Handler(File baseDir, File gapisPath) {
-      myBaseDirectory = baseDir;
-      myGapisPath = gapisPath;
-      myGapirPath = new File(gapisPath.getParentFile(), GAPIR_EXECUTABLE_NAME);
-    }
-
-    public boolean isValid() {
-      return myGapisPath.exists();
-    }
-
-    @NotNull
-    public File base() {
-      return myBaseDirectory;
-    }
-
-    @NotNull
-    public File gapis() {
-      return myGapisPath;
-    }
-
-    @NotNull
-    public File gapir() {
-      return myGapirPath;
-    }
-
-    @NotNull
-    public abstract File findTraceLibrary(@NotNull String abi) throws IOException;
-
-    @NotNull
-    public abstract File  findPkgInfoApk();
-  }
-
-  private static class PluginHandler extends Handler {
-    PluginHandler(File baseDir) {
-      super(baseDir, new File(new File(baseDir, HOST_DIR), GAPIS_EXECUTABLE_NAME));
-    }
-
-    @Override
-    @NotNull
-    public File findTraceLibrary(@NotNull String abi) throws IOException {
-      abi = remap(ABI_REMAP, abi);
-      File abiPath = new File(base(), abiName("android", abi));
-      if (!abiPath.exists()) {
-        throw new IOException("Unsupported gapii abi '" + abi + "'");
+      // check for an installed sdk directory
+      if (checkForTools(getSdkPath())) {
+        return;
       }
-      return new File(abiPath, GAPII_LIBRARY_NAME);
-    }
-
-    @Override
-    @NotNull
-    public File findPkgInfoApk() {
-      return new File(new File(base(), "android"), PKG_INFO_NAME);
-    }
-  }
-
-  private static class InternalHandler extends Handler {
-    @NotNull private static final String SERVER_RELATIVE_PATH = "bin";
-
-    InternalHandler(File baseDir) {
-      super(baseDir, new File(new File(baseDir, SERVER_RELATIVE_PATH), GAPIS_EXECUTABLE_NAME));
-    }
-
-    @Override
-    @NotNull
-    public File findTraceLibrary(@NotNull String abi) throws IOException {
-      abi = remap(ABI_REMAP, abi);
-      String lib = remap(ABI_TARGET, abi);
-      File abiPath = new File(gapis().getParentFile(), lib);
-      if (!abiPath.exists()) {
-        throw new IOException("Unsupported gapii abi '" + abi + "'");
-      }
-      return new File(abiPath, GAPII_LIBRARY_NAME);
-    }
-
-    @Override
-    @NotNull
-    public File findPkgInfoApk() {
-      return new File(new File(base(), SERVER_RELATIVE_PATH), PKG_INFO_NAME);
+      // Fall back to the homedir/gapid and if that fails, leave it in a failing state
+      checkForTools(new File(new File(SystemProperties.getUserHome()), SDK_PATH));
     }
   }
 }
