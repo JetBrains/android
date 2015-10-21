@@ -82,7 +82,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.List;
 
 /**
  * Utility class for static methods which are used in different classes of theme editor
@@ -486,6 +485,7 @@ public class ThemeEditorUtils {
   public static String showCreateNewStyleDialog(@Nullable ThemeEditorStyle defaultParentStyle,
                                                 @NotNull final ThemeEditorContext themeEditorContext,
                                                 boolean isTheme,
+                                                boolean enableParentChoice,
                                                 @Nullable final String message,
                                                 @Nullable ThemeSelectionPanel.ThemeChangedListener themeChangedListener) {
     // if isTheme is true, defaultParentStyle shouldn't be null
@@ -499,6 +499,7 @@ public class ThemeEditorUtils {
 
     final NewStyleDialog dialog = new NewStyleDialog(isTheme, themeEditorContext, defaultParentStyleName,
                                                      (defaultParentStyle == null) ? null : defaultParentStyle.getName(), message);
+    dialog.enableParentChoice(enableParentChoice);
     if (themeChangedListener != null) {
       dialog.setThemeChangedListener(themeChangedListener);
     }

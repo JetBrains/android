@@ -578,7 +578,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
    */
   private void createNewTheme() {
     String newThemeName = ThemeEditorUtils
-      .showCreateNewStyleDialog(getSelectedTheme(), myThemeEditorContext, !isSubStyleSelected(), null, myThemeChangedListener);
+      .showCreateNewStyleDialog(getSelectedTheme(), myThemeEditorContext, !isSubStyleSelected(), true, null, myThemeChangedListener);
     if (newThemeName != null) {
       // We don't need to call reload here, because myResourceChangeListener will take care of it
       myThemeName = newThemeName;
@@ -716,7 +716,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
               isSubStyleSelected() ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getName());
 
     final String newStyleName =
-      ThemeEditorUtils.showCreateNewStyleDialog(selectedStyle, myThemeEditorContext, !isSubStyleSelected(), message, null);
+      ThemeEditorUtils.showCreateNewStyleDialog(selectedStyle, myThemeEditorContext, !isSubStyleSelected(), false, message, null);
 
     if (newStyleName == null) {
       return;
@@ -762,7 +762,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
                               "A new theme will be created to point to the modified style '%3$s'.<br/></html>",
                               selectedTheme.getQualifiedName(), rv.getName(), newStyleName);
 
-      final String newThemeName = ThemeEditorUtils.showCreateNewStyleDialog(selectedTheme, myThemeEditorContext, true, message, null);
+      final String newThemeName =
+        ThemeEditorUtils.showCreateNewStyleDialog(selectedTheme, myThemeEditorContext, true, false, message, null);
       if (newThemeName != null) {
         // We don't need to call reload, because myResourceChangeListener will take care of it
         myThemeName = newThemeName;
