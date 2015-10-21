@@ -452,7 +452,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   public void testTemplateFormatting() throws Exception {
-    Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")));
+    Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")).getCanonicalFile());
     RenderingContext context = RenderingContext.Builder.newContext(template, myFixture.getProject())
       .withOutputRoot(new File(myFixture.getTempDirPath())).withModuleRoot(new File("dummy")).build();
     template.render(context);
