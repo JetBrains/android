@@ -19,10 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.tools.idea.sdk.SdkLoadedCallback;
-import com.android.tools.idea.sdk.SdkLoggerIntegration;
-import com.android.tools.idea.sdk.SdkPackages;
-import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
@@ -46,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -101,6 +99,14 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
 
     if (sdkState == null) {
       myErrorLabel.setText("Error: can't get SDK instance.");
+      myErrorLabel.setForeground(JBColor.RED);
+      return;
+    }
+
+    File androidSdkPath = IdeSdks.getAndroidSdkPath();
+    if (androidSdkPath != null && androidSdkPath.exists() && !androidSdkPath.canWrite()) {
+      myErrorLabel.setText(String.format("SDK folder is read-only: '%1$s'", androidSdkPath.getPath()));
+      myErrorLabel.setForeground(JBColor.RED);
       return;
     }
 
