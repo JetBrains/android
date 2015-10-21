@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
 import com.intellij.openapi.application.PluginPathManager;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,18 +55,20 @@ public final class GapiPaths {
   @NotNull private static final String EXE_EXTENSION;
 
   static {
-    String os = System.getProperty("os.name");
-    if (os.startsWith("Windows")) {
+    if (SystemInfo.isWindows) {
       HOST_OS = "windows";
       EXE_EXTENSION = ".exe";
-    } else if (os.startsWith("Mac OS X")) {
+    } else if (SystemInfo.isMac) {
       HOST_OS = "osx";
       EXE_EXTENSION = "";
+    } else if (SystemInfo.isLinux) {
+      HOST_OS = "linux";
+      EXE_EXTENSION = "";
     } else {
-      HOST_OS = os;
+      HOST_OS = SystemInfo.OS_NAME;
       EXE_EXTENSION = "";
     }
-    HOST_ARCH = remap(ARCH_REMAP, System.getProperty("os.arch"));
+    HOST_ARCH = remap(ARCH_REMAP, SystemInfo.OS_ARCH);
     GAPIS_EXECUTABLE_NAME = "gapis" + EXE_EXTENSION;
     GAPIR_EXECUTABLE_NAME = "gapir" + EXE_EXTENSION;
     HOST_DIR = abiName(HOST_OS, HOST_ARCH);
