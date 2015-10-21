@@ -56,7 +56,7 @@ public abstract class Atom {
 
   public abstract Object getFieldValue(int index);
 
-  public abstract int getObservationsIndex();
+  public abstract int getExtrasIndex();
 
   public abstract Observations getObservations();
 
