@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.intellij.execution.KillableProcess;
 import com.intellij.execution.TaskExecutor;
 import com.intellij.execution.process.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,7 +37,7 @@ import java.util.concurrent.Future;
  * by waiting for the stdout and stderr streams to be closed (unlike the default handlers that wait for the process to terminate).
  * This works since the spawned emulator inherits stdout and stderr from the wrapper, and keeps them open for as long as it is alive.
  */
-public class EmulatorProcessHandler extends ProcessHandler implements TaskExecutor {
+public class EmulatorProcessHandler extends ProcessHandler implements TaskExecutor, KillableProcess {
   private static final Logger LOG = Logger.getInstance(EmulatorProcessHandler.class);
 
   @NotNull private final Process myProcess;
@@ -134,6 +135,15 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
   @Override
   public Future<?> executeTask(Runnable task) {
     return ApplicationManager.getApplication().executeOnPooledThread(task);
+  }
+
+  @Override
+  public boolean canKillProcess() {
+    return false;
+  }
+
+  @Override
+  public void killProcess() {
   }
 
   private class EmulatorOutputReader extends BaseDataReader {
