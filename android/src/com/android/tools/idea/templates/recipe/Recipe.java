@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.templates.recipe;
 
-import com.android.tools.idea.templates.FreemarkerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.parse.StringFileAdapter;
-import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +30,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.File;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.List;
 
 import static com.android.SdkConstants.DOT_FTL;
@@ -41,7 +38,7 @@ import static com.android.SdkConstants.DOT_FTL;
  * A recipe is a list of instructions which, when executed, modify a project.
  */
 @XmlRootElement(name = "recipe")
-public final class Recipe {
+public class Recipe implements RecipeInstruction {
   // @formatter:off
   @XmlElements({
     @XmlElement(name = "copy", type = CopyInstruction.class),
@@ -50,10 +47,20 @@ public final class Recipe {
     @XmlElement(name = "mkdir", type = MkDirInstruction.class),
     @XmlElement(name = "dependency", type = DependencyInstruction.class),
     @XmlElement(name = "open", type = OpenInstruction.class),
-    @XmlElement(name = "execute", type = ExecuteInstruction.class)
+    @XmlElement(name = "recipe", type = Recipe.class)
   })
   private List<RecipeInstruction> instructions = Lists.newArrayList();
   // @formatter:on
+
+  /**
+   * A "folder" attribute can be specified on a recipe tag to handle loading of relative files
+   * from a recipe that is included inside another recipe file.
+   * If not specified the value will be null.
+   */
+  @XmlAttribute(name="folder")
+  @Nullable
+  @SuppressWarnings("unused")
+  private String myFolder;
 
   /**
    * Handles parsing a recipe.xml file. A recipe file specifies a bunch of file-related actions
@@ -87,21 +94,30 @@ public final class Recipe {
   /**
    * Execute this recipe's instructions.
    */
-  public void execute(@NotNull RecipeExecutor recipeExecutor) throws TemplateProcessingException {
-    for (RecipeInstruction instruction : instructions) {
-      instruction.execute(recipeExecutor);
+  @Override
+  public void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
+    if (myFolder == null) {
+      executeInstructions(executor);
+    }
+    else {
+      executor.pushFolder(myFolder);
+      try {
+        executeInstructions(executor);
+      }
+      finally {
+        executor.popFolder();
+      }
     }
   }
 
-  /**
-   * A single instruction in a recipe. Each implementation corresponds to a tag in recipe.xml
-   */
-  private static abstract class RecipeInstruction {
-    abstract void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException;
+  private void executeInstructions(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
+    for (RecipeInstruction instruction : instructions) {
+      instruction.execute(executor);
+    }
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
-  private static final class CopyInstruction extends RecipeInstruction {
+  private static final class CopyInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
     @NotNull
@@ -113,7 +129,7 @@ public final class Recipe {
     private File to;
 
     @Override
-    void execute(@NotNull RecipeExecutor executor) {
+    public void execute(@NotNull RecipeExecutor executor) {
       assert to != null; // Will be non-null after afterUnmarshal is called
       executor.copy(from, to);
     }
@@ -126,7 +142,7 @@ public final class Recipe {
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
-  private static final class InstantiateInstruction extends RecipeInstruction {
+  private static final class InstantiateInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
     @NotNull
@@ -138,7 +154,7 @@ public final class Recipe {
     private File to;
 
     @Override
-    void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
+    public void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
       assert to != null; // Will be non-null after afterUnmarshal is called
       executor.instantiate(from, to);
     }
@@ -151,7 +167,7 @@ public final class Recipe {
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
-  private static final class MergeInstruction extends RecipeInstruction {
+  private static final class MergeInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
     @NotNull
@@ -163,7 +179,7 @@ public final class Recipe {
     private File to;
 
     @Override
-    void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
+    public void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
       assert to != null; // Will be non-null after afterUnmarshal is called
       executor.merge(from, to);
     }
@@ -176,76 +192,49 @@ public final class Recipe {
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
-  private static final class MkDirInstruction extends RecipeInstruction {
+  private static final class MkDirInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
     @NotNull
     private File at;
 
     @Override
-    void execute(@NotNull RecipeExecutor executor) {
+    public void execute(@NotNull RecipeExecutor executor) {
       executor.mkDir(at);
     }
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
-  private static final class OpenInstruction extends RecipeInstruction {
+  private static final class OpenInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
     @NotNull
     private File file;
 
     @Override
-    void execute(@NotNull RecipeExecutor executor) {
+    public void execute(@NotNull RecipeExecutor executor) {
       executor.addFilesToOpen(file);
     }
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
-  private static final class DependencyInstruction extends RecipeInstruction {
+  private static final class DependencyInstruction implements RecipeInstruction {
     @XmlAttribute(required = true)
     @NotNull
     private String mavenUrl;
 
     @Override
-    void execute(@NotNull RecipeExecutor executor) {
+    public void execute(@NotNull RecipeExecutor executor) {
       executor.addDependency(mavenUrl);
-    }
-  }
-
-  /**
-   * Execute another recipe file from within the current recipe file
-   */
-  @SuppressWarnings({"NullableProblems", "unused"})
-  private static final class ExecuteInstruction extends RecipeInstruction {
-    @XmlJavaTypeAdapter(StringFileAdapter.class)
-    @XmlAttribute(required = true)
-    @NotNull
-    private File file;
-
-    @Override
-    void execute(@NotNull final RecipeExecutor executor) throws TemplateProcessingException {
-      executor.processTemplate(file, new FreemarkerUtils.TemplatePostProcessor() {
-        @Override
-        public void process(@NotNull String content) throws TemplateProcessingException {
-          try {
-            Recipe child = unmarshal(new StringReader(XmlUtils.stripBom(content)));
-            child.execute(executor);
-          }
-          catch (JAXBException e) {
-            throw new TemplateProcessingException(e);
-          }
-        }
-      });
     }
   }
 
   /**
    * This should only be executed by the root recipe and only at the end.
    */
-  private static final class UpdateAndSyncGradleInstruction extends RecipeInstruction {
+  private static final class UpdateAndSyncGradleInstruction implements RecipeInstruction {
     @Override
-    void execute(@NotNull RecipeExecutor executor) {
+    public void execute(@NotNull RecipeExecutor executor) {
       executor.updateAndSyncGradle();
     }
   }
