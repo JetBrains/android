@@ -178,9 +178,6 @@ public class AndroidIcons {
 
     public static final Icon Play = load("/icons/run/play.png");
     public static final Icon Replay = load("/icons/run/play2.png");
-
-    public static final Icon PlayAlternate = load("/icons/run/playalt.png");
-    public static final Icon ReplayAlternate = load("/icons/run/playalt2.png");
   }
 
   public static class Views {
