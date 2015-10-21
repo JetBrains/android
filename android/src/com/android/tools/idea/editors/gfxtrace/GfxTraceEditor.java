@@ -82,7 +82,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private PathStore<Path> myLastActivatadPath = new PathStore<Path>();
 
   public static boolean isEnabled() {
-    return GapiPaths.isValid();
+    return true;
   }
 
   public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
@@ -99,6 +99,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
       public void run() {
         if (!isEnabled()) {
           setLoadingErrorTextOnEdt("GFX Trace System not enabled on this host");
+          return;
+        }
+
+        if (!GapiPaths.isValid()) {
+          setLoadingErrorTextOnEdt("GPU debugging SDK not installed");
           return;
         }
 
