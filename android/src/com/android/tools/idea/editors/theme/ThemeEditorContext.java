@@ -137,8 +137,14 @@ public class ThemeEditorContext implements Disposable {
     setConfiguration(ThemeEditorUtils.getConfigurationForModule(module));
   }
 
-  @Nullable
+  @Nullable("if there is no theme selected or the current selected module is not valid")
   public ResourceResolver getResourceResolver() {
+    if (getCurrentContextModule().isDisposed()) {
+      // In some cases we might be asked for a resolver when the module has been already been disposed.
+      // This could happen when we are refreshing the attributes table and the old one is still visible.
+      return null;
+    }
+
     return myConfiguration.getResourceResolver();
   }
 
