@@ -20,6 +20,7 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.ActivitySelector;
 import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
 import com.android.tools.idea.editors.gfxtrace.GfxTracer;
+import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -48,11 +49,6 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
     }
 
     @Override
-    boolean isEnabled() {
-      return myView.getDeviceContext().getSelectedDevice() != null;
-    }
-
-    @Override
     ListenableFuture<GfxTracer> start(AnActionEvent event) {
       final IDevice device = myView.getDeviceContext().getSelectedDevice();
       if (device == null) {
@@ -73,11 +69,6 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
 
     public Launch(@NotNull GpuMonitorView view) {
       super(view, "Launch", "Launch in GFX trace mode", AndroidIcons.GfxTrace.InjectSpy);
-    }
-
-    @Override
-    boolean isEnabled() {
-      return myView.getDeviceContext().getSelectedDevice() != null;
     }
 
     @Override
@@ -200,7 +191,9 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
     }
   }
 
-  abstract boolean isEnabled();
+  boolean isEnabled() {
+    return myView.getDeviceContext().getSelectedDevice() != null && GapiPaths.isValid();
+  }
 
   abstract ListenableFuture<GfxTracer> start(AnActionEvent event);
 }
