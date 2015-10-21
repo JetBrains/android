@@ -212,7 +212,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
     @Override
     public void smartActionPerformed(ActionEvent e) {
       ThemeEditorStyle style = myModel.getSelectedStyle();
-      ResourceResolver styleResourceResolver = myContext.getConfiguration().getResourceResolver();
+      ResourceResolver styleResourceResolver = myContext.getResourceResolver();
 
       assert styleResourceResolver != null;
 
@@ -240,7 +240,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
         @Override
         public void resourceChanged(final @Nullable String resource) {
           if (resource != null) {
-            ResourceResolver resourceResolver = myContext.getConfiguration().getResourceResolver();
+            ResourceResolver resourceResolver = myContext.getResourceResolver();
             assert resourceResolver != null;
 
             ResourceValue resValue = resourceResolver.findResValue(resource, false);

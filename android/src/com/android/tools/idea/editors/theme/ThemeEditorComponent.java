@@ -192,7 +192,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     });
 
     final Module selectedModule = myModuleComboModel.getSelected();
-    assert selectedModule != null;
+    assert selectedModule != null && !selectedModule.isDisposed();
 
     final Configuration configuration = ThemeEditorUtils.getConfigurationForModule(selectedModule);
 
@@ -480,6 +480,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
     Module defaultModule = null;
     for (Module module : modules) {
+      assert !module.isDisposed();
       if (module.getName().equals(defaultModuleName)) {
         defaultModule = module;
         break;
@@ -496,6 +497,31 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   }
 
   /**
+   * Unsubscribe {@link #myResourceChangeListener} from the from the {@link ResourceNotificationManager} for the given {@link AndroidFacet}
+   */
+  private void unsubscribeResourceNotification(@NotNull ResourceNotificationManager manager, @NotNull AndroidFacet facet) {
+    if (myIsSubscribedResourceNotification) {
+      manager.removeListener(myResourceChangeListener, facet, null, null);
+      myIsSubscribedResourceNotification = false;
+    }
+  }
+
+  /**
+   * Unsubscribe {@link #myResourceChangeListener}] from ResourceNotificationManager with current AndroidFacet.
+   */
+  private void unsubscribeResourceNotification() {
+    if (myThemeEditorContext.getCurrentContextModule().isDisposed()) {
+      // The subscription is automatically removed when the module is disposed.
+      return;
+    }
+
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
+    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentContextModule());
+    assert facet != null : myThemeEditorContext.getCurrentContextModule().getName() + " module doesn't have an AndroidFacet";
+    unsubscribeResourceNotification(manager, facet);
+  }
+
+  /**
    * Subscribes myResourceChangeListener to ResourceNotificationManager with current AndroidFacet.
    * By subscribing, myResourceChangeListener can track all internal and external changes in resources.
    */
@@ -505,24 +531,19 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       return;
     }
 
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
-    AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentContextModule());
+    final ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
+    final AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentContextModule());
     assert facet != null : myThemeEditorContext.getCurrentContextModule().getName() + " module doesn't have an AndroidFacet";
     manager.addListener(myResourceChangeListener, facet, null, null);
     myIsSubscribedResourceNotification = true;
-  }
 
-  /**
-   * Unsubscribes myResourceChangeListener from ResourceNotificationManager with current AndroidFacet.
-   */
-  private void unsubscribeResourceNotification() {
-    if (myIsSubscribedResourceNotification) {
-      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myThemeEditorContext.getProject());
-      AndroidFacet facet = AndroidFacet.getInstance(myThemeEditorContext.getCurrentContextModule());
-      assert facet != null : myThemeEditorContext.getCurrentContextModule().getName() + " module doesn't have an AndroidFacet";
-      manager.removeListener(myResourceChangeListener, facet, null, null);
-      myIsSubscribedResourceNotification = false;
-    }
+    Disposer.register(facet, new Disposable() {
+      @Override
+      public void dispose() {
+        // If the module is disposed, remove subscription
+        unsubscribeResourceNotification(manager, facet);
+      }
+    });
   }
 
   /**
