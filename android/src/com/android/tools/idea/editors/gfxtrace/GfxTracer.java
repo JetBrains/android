@@ -131,10 +131,18 @@ public class GfxTracer {
         captureAdbShell(myDevice, "setenforce 0");
       }
       try {
+        // The property name must have at most 31 characters and must not end with dot.
+        String propName = "wrap." + pkg.myName;
+        if (propName.length() > 31) {
+          propName = propName.substring(0, 31);
+        }
+        while (propName.endsWith(".")) {
+          propName = propName.substring(0, propName.length() - 1);
+        }
         // push the spy down to the device
         myDevice.pushFile(myGapii.getAbsolutePath(), PRELOAD_LIB);
         // Put gapii in the library preload
-        captureAdbShell(myDevice, "setprop wrap." + pkg.myName + " LD_PRELOAD=" + PRELOAD_LIB);
+        captureAdbShell(myDevice, "setprop " + propName + " LD_PRELOAD=" + PRELOAD_LIB);
         try {
           // Launch the app with the spy enabled
           captureAdbShell(myDevice, "am start -S -W -n " + component);
@@ -143,7 +151,7 @@ public class GfxTracer {
         }
         finally {
           // Undo the preload wrapping
-          captureAdbShell(myDevice, "setprop wrap." + pkg.myName + " \"\"");
+          captureAdbShell(myDevice, "setprop " + propName + " \"\"");
         }
       }
       finally {
