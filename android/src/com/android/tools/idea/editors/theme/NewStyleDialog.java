@@ -192,4 +192,8 @@ public class NewStyleDialog extends DialogWrapper {
   public void setThemeChangedListener(@NotNull ThemeSelectionPanel.ThemeChangedListener themeChangedListener) {
     myThemeChangedListener = themeChangedListener;
   }
+
+  public void enableParentChoice(boolean enable) {
+    myParentStyleComboBox.setEnabled(enable);
+  }
 }
