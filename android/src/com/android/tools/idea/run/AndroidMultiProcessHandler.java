@@ -67,7 +67,7 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
 
   @Override
   public boolean detachIsDefault() {
-    return true;
+    return false;
   }
 
   @Override
@@ -78,12 +78,25 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
   @Override
   protected void detachProcessImpl() {
     super.detachProcessImpl();
+    killProcesses();
     cleanup();
+  }
+
+  private void killProcesses() {
+    for (IDevice device : AndroidDebugBridge.getBridge().getDevices()) {
+      if (myDevices.contains(device.getSerialNumber())) {
+        Client client = device.getClient(myApplicationId);
+        if (client != null) {
+          client.kill();
+        }
+      }
+    }
   }
 
   @Override
   protected void destroyProcessImpl() {
     super.destroyProcessImpl();
+    killProcesses();
     cleanup();
   }
 
