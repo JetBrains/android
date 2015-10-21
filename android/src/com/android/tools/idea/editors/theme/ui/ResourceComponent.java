@@ -56,7 +56,6 @@ public class ResourceComponent extends JPanel {
 
     myNameLabel.setName(NAME_LABEL);
     myNameLabel.setForeground(ThemeEditorConstants.RESOURCE_ITEM_COLOR);
-    myNameLabel.setFont(myNameLabel.getFont().deriveFont(Font.BOLD));
 
     Box topRowPanel = new Box(BoxLayout.LINE_AXIS);
     topRowPanel.add(myNameLabel);
@@ -131,6 +130,9 @@ public class ResourceComponent extends JPanel {
     // We need a null check here as this can be called from the setUI that's called from the constructor.
     if (mySwatchComponent != null) {
       mySwatchComponent.setFont(font);
+    }
+    if (myNameLabel != null) {
+      myNameLabel.setFont(myNameLabel.getFont().deriveFont(font.getStyle()));
     }
   }
 
