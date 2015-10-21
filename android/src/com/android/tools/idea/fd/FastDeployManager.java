@@ -130,7 +130,7 @@ public class FastDeployManager implements ProjectComponent {
 
   /** Display instant run statistics */
   @SuppressWarnings("SimplifiableConditionalExpression")
-  public static final boolean DISPLAY_STATISTICS = System.getProperty("fd.stats") != null ? Boolean.getBoolean("fd.stats") : true;
+  public static final boolean DISPLAY_STATISTICS = System.getProperty("fd.stats") != null ? Boolean.getBoolean("fd.stats") : false;
 
   /** Local port on the desktop machine that we tunnel to the Android device via */
   public static final int STUDIO_PORT = 8888;
