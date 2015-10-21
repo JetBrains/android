@@ -20,6 +20,7 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.ActivitySelector;
 import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
 import com.android.tools.idea.editors.gfxtrace.GfxTracer;
+import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -39,17 +40,13 @@ import javax.swing.*;
 
 public abstract class GfxTraceCaptureAction extends ToggleAction {
   @NotNull protected final GpuMonitorView myView;
+  @NotNull protected final String myText;
   private ListenableFuture<GfxTracer> myPending = null;
   private GfxTracer myActive = null;
 
   public static class Listen extends GfxTraceCaptureAction {
     public Listen(@NotNull GpuMonitorView view) {
       super(view, "Listen", "Listen for GFX traces", AndroidIcons.GfxTrace.ListenForTrace);
-    }
-
-    @Override
-    boolean isEnabled() {
-      return myView.getDeviceContext().getSelectedDevice() != null;
     }
 
     @Override
@@ -73,11 +70,6 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
 
     public Launch(@NotNull GpuMonitorView view) {
       super(view, "Launch", "Launch in GFX trace mode", AndroidIcons.GfxTrace.InjectSpy);
-    }
-
-    @Override
-    boolean isEnabled() {
-      return myView.getDeviceContext().getSelectedDevice() != null;
     }
 
     @Override
@@ -153,6 +145,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
                                @Nullable final Icon icon) {
     super(text, description, icon);
     myView = view;
+    myText = text;
   }
 
   @Override
@@ -190,17 +183,22 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
   public final void update(AnActionEvent e) {
     super.update(e);
     Presentation presentation = e.getPresentation();
-    if (myPending == null && myActive == null) {
+    if (!GapiPaths.isValid()) {
+      presentation.setEnabled(false);
+      presentation.setText(myText + " : GPU debugger tools not installed");
+    } else if (myPending == null && myActive == null) {
       presentation.setEnabled(isEnabled());
-      presentation.setText("Start tracing");
+      presentation.setText(myText + " : start tracing");
     }
     else {
       presentation.setEnabled(true);
-      presentation.setText("Stop tracing");
+      presentation.setText(myText + " : stop tracing");
     }
   }
 
-  abstract boolean isEnabled();
+  boolean isEnabled() {
+    return myView.getDeviceContext().getSelectedDevice() != null && GapiPaths.isValid();
+  }
 
   abstract ListenableFuture<GfxTracer> start(AnActionEvent event);
 }
