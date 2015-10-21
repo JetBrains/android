@@ -56,10 +56,19 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
-            // If the SDK is changing we will not be able to reload anything as AndroidTargetData.getTargetData will be returning null;
-            if (ModuleRootManager.getInstance(myComponent.getSelectedModule()).getSdk() == null) return;
-            final ThemeEditorStyle theme = myComponent.getSelectedTheme();
-            final ThemeEditorStyle subStyle = myComponent.getCurrentSubStyle();
+            ThemeEditorStyle theme = null;
+            ThemeEditorStyle subStyle = null;
+
+            // If the currently selected module has been disposed we set everything to null to force a full reload.
+            // The current module can be disposed if, for example, it's renamed.
+            if (!myComponent.getSelectedModule().isDisposed()) {
+              // If the SDK is changing we will not be able to reload anything as AndroidTargetData.getTargetData will be returning null;
+              if (ModuleRootManager.getInstance(myComponent.getSelectedModule()).getSdk() == null) {
+                return;
+              }
+              theme = myComponent.getSelectedTheme();
+              subStyle = myComponent.getCurrentSubStyle();
+            }
 
             myComponent.reload((theme == null) ? null : theme.getQualifiedName(), (subStyle == null) ? null : subStyle.getQualifiedName());
           }
