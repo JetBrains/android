@@ -365,6 +365,7 @@ public abstract class IdeaSourceProvider {
     return Collections.emptyList();
   }
 
+  @NotNull
   private Collection<VirtualFile> getAllSourceFolders() {
     List<VirtualFile> srcDirectories = Lists.newArrayList();
     srcDirectories.addAll(getJavaDirectories());
@@ -377,7 +378,8 @@ public abstract class IdeaSourceProvider {
     return srcDirectories;
   }
 
-  public static Collection<File> getAllSourceFolders(SourceProvider provider) {
+  @NotNull
+  public static Collection<File> getAllSourceFolders(@NotNull  SourceProvider provider) {
     List<File> srcDirectories = Lists.newArrayList();
     srcDirectories.addAll(provider.getJavaDirectories());
     srcDirectories.addAll(provider.getResDirectories());
@@ -520,7 +522,6 @@ public abstract class IdeaSourceProvider {
     if (!facet.requiresAndroidModel() || facet.getAndroidModel() == null) {
       return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
-
     return createAll(getAllSourceProviders(facet));
   }
 
@@ -584,8 +585,6 @@ public abstract class IdeaSourceProvider {
   public static List<SourceProvider> getSourceProvidersForFile(@NotNull AndroidFacet facet, @Nullable VirtualFile targetFolder,
                                                                @Nullable SourceProvider defaultSourceProvider) {
     List<SourceProvider> sourceProviderList = Lists.newArrayList();
-
-
     if (targetFolder != null) {
       File targetIoFolder = VfsUtilCore.virtualToIoFile(targetFolder);
       // Add source providers that contain the file (if any) and any that have files under the given folder

@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.testartifact;
+package com.android.tools.idea.gradle.testing;
 
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -27,39 +24,32 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Control the search scope of finding usages of a PSI element.
+ * Controls the search scope for finding usages of a PSI element.
  */
 public class TestArtifactUseScopeOptimizer extends UseScopeOptimizer {
   @Nullable
   @Override
   public GlobalSearchScope getScopeToExclude(@NotNull PsiElement element) {
-    PsiFile psiFile = element.getContainingFile();
-    if (psiFile == null) {
-      return null;
-    }
-    VirtualFile file = psiFile.getVirtualFile();
+    VirtualFile file = findVirtualFile(element);
     if (file == null) {
       return null;
     }
-
-    ProjectRootManager projectRootManager = ProjectRootManager.getInstance(element.getProject());
-    ProjectFileIndex projectFileIndex = projectRootManager.getFileIndex();
-    Module module = projectFileIndex.getModuleForFile(file);
-    if (module == null) {
-      return null;
-    }
-
-    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(file, element.getProject());
     if (testScopes == null) {
       return null;
     }
-
     if (testScopes.isAndroidTestSource(file)) {
       return testScopes.getUnitTestSourceScope();
     }
-    else if (testScopes.isUnitTestSource(file)) {
+    if (testScopes.isUnitTestSource(file)) {
       return testScopes.getAndroidTestSourceScope();
     }
     return null;
+  }
+
+  @Nullable
+  private static VirtualFile findVirtualFile(@NotNull PsiElement element) {
+    PsiFile psiFile = element.getContainingFile();
+    return psiFile != null ? psiFile.getVirtualFile() : null;
   }
 }

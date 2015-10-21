@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.testartifact;
+package com.android.tools.idea.gradle.testing;
 
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -28,7 +28,10 @@ import gnu.trove.TObjectProcedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Set;
+
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Search scope to check if a file belong to specific file roots (could be jar file or source root).
@@ -36,28 +39,37 @@ import java.util.Set;
  * uses {@code ProjectFileIndex} to locate the file root of a file and then check if the root is included by this scope.
  */
 public class FileRootSearchScope extends GlobalSearchScope {
-  private final TObjectIntHashMap<VirtualFile> myRoots = new TObjectIntHashMap<VirtualFile>();
-  private final ProjectFileIndex myProjectFileIndex;
+  @NotNull private final TObjectIntHashMap<File> myDirRootPaths = new TObjectIntHashMap<File>();
+  @NotNull private final ProjectFileIndex myProjectFileIndex;
 
-  public FileRootSearchScope(@NotNull Project project, @NotNull Set<VirtualFile> roots) {
+  public FileRootSearchScope(@NotNull Project project, @NotNull Set<File> rootDirPaths) {
     super(project);
-
     int i = 1;
-    for (VirtualFile root : roots) {
-      myRoots.put(root, i++);
+    for (File root : rootDirPaths) {
+      myDirRootPaths.put(root, i++);
     }
     myProjectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
   }
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    if (myRoots.contains(file)) {
+    File path = virtualToIoFile(file);
+    if (myDirRootPaths.contains(path)) {
       return true;
     }
     if (myProjectFileIndex.isInContent(file)) {
-      return myRoots.contains(myProjectFileIndex.getSourceRootForFile(file));
+      VirtualFile sourceRootForFile = myProjectFileIndex.getSourceRootForFile(file);
+      if (sourceRootForFile != null) {
+        path = virtualToIoFile(sourceRootForFile);
+        return myDirRootPaths.contains(path);
+      }
     }
-    return myRoots.contains(myProjectFileIndex.getClassRootForFile(file));
+    VirtualFile classRootForFile = myProjectFileIndex.getClassRootForFile(file);
+    if (classRootForFile != null) {
+      path = virtualToIoFile(classRootForFile);
+      return myDirRootPaths.contains(path);
+    }
+    return false;
   }
 
   @Override
@@ -67,16 +79,14 @@ public class FileRootSearchScope extends GlobalSearchScope {
     if (Comparing.equal(r1, r2)) {
       return 0;
     }
-
     if (r1 == null) {
       return -1;
     }
     if (r2 == null) {
       return 1;
     }
-
-    int i1 = myRoots.get(r1);
-    int i2 = myRoots.get(r2);
+    int i1 = myDirRootPaths.get(virtualToIoFile(r1));
+    int i2 = myDirRootPaths.get(virtualToIoFile(r2));
     if (i1 == 0 && i2 == 0) {
       return 0;
     }
@@ -104,30 +114,33 @@ public class FileRootSearchScope extends GlobalSearchScope {
     return myProjectFileIndex.getClassRootForFile(file);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public GlobalSearchScope uniteWith(@NotNull GlobalSearchScope scope) {
-    if (scope == this) return scope;
-
+    if (scope == this) {
+      return scope;
+    }
     if (scope instanceof FileRootSearchScope) {
-      final Set<VirtualFile> roots = Sets.newHashSet();
-      myRoots.forEach(new TObjectProcedure<VirtualFile>() {
+      final Set<File> roots = Sets.newHashSet();
+      myDirRootPaths.forEach(new TObjectProcedure<File>() {
         @Override
-        public boolean execute(VirtualFile file) {
+        public boolean execute(File file) {
           roots.add(file);
           return true;
         }
       });
 
-      ((FileRootSearchScope)scope).myRoots.forEach(new TObjectProcedure<VirtualFile>() {
+      ((FileRootSearchScope)scope).myDirRootPaths.forEach(new TObjectProcedure<File>() {
         @Override
-        public boolean execute(VirtualFile file) {
+        public boolean execute(File file) {
           roots.add(file);
           return true;
         }
       });
 
-      return new FileRootSearchScope(getProject(), roots);
+      Project project = getProject();
+      assert project != null;
+      return new FileRootSearchScope(project, roots);
     }
     return super.uniteWith(scope);
   }

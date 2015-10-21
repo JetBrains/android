@@ -35,7 +35,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatf
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
-import com.android.tools.idea.gradle.testartifact.TestArtifactSearchScopes;
+import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;

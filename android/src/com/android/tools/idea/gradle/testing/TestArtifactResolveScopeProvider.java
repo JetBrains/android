@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.testartifact;
+package com.android.tools.idea.gradle.testing;
 
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.ResolveScopeProvider;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+
 /**
- * Extension to control the search scope of resolving a PSI element when multiple test artifacts loading is enabled.
+ * Extension to control the search scope of resolving a PSI element when multiple test artifacts are enabled simultaneously.
  * For a PSI element inside a unit test, it returns the (module scope) - (the android test source/library scope) and vice versa.
  */
 public class TestArtifactResolveScopeProvider extends ResolveScopeProvider {
@@ -36,20 +34,12 @@ public class TestArtifactResolveScopeProvider extends ResolveScopeProvider {
     if (project == null) {
       return null;
     }
-    ProjectRootManager projectRootManager = ProjectRootManager.getInstance(project);
-
-    ProjectFileIndex projectFileIndex = projectRootManager.getFileIndex();
-    Module module = projectFileIndex.getModuleForFile(file);
-    if (module == null) {
-      return null;
-    }
-
-    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(file, project);
     if (testScopes == null) {
       return null;
     }
 
-    GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, true);
+    GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(testScopes.getModule(), true);
     GlobalSearchScope excludedScope;
 
     if (testScopes.isAndroidTestSource(file)) {
