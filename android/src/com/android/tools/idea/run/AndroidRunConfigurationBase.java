@@ -236,6 +236,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     if (AndroidSdkUtils.getDebugBridge(getProject()) == null) {
+      LOG.warn("Quitting launch: Unable to obtain adb");
       return null;
     }
 
@@ -244,6 +245,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       if (!info.getExecutorId().equals(executor.getId())) {
         // only run or debug of a config can be active at a time
         info.getProcessHandler().detachProcess();
+        LOG.info("Disconnecting existing session with a different executor: " + info.getExecutorId());
       } else {
         if (FastDeployManager.isPatchableApp(module)) {
           // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
@@ -267,6 +269,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
               return new PatchDeployState(info.getDescriptor(), facet, devices);
             }
           }
+          LOG.info("Skipping fast deploy, devices from last run: " + (devices == null ? "none" : devices.size()));
         }
       }
     }

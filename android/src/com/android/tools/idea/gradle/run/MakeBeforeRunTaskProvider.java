@@ -261,6 +261,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       LOG.info("Unable to launch '" + TASK_NAME + "' task", t);
       return false;
     }
+    LOG.info("Gradle invocation complete, success = " + success.get());
     return success.get();
   }
 }
