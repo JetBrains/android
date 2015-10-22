@@ -20,6 +20,7 @@ import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElementDecorator;
+import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiClass;
@@ -39,6 +40,8 @@ import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animation.AnimationDomFileDescription;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.animator.AnimatorDomFileDescription;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.color.ColorDomFileDescription;
 import org.jetbrains.android.dom.converters.FlagConverter;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
@@ -54,6 +57,7 @@ import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SimpleClassMapConstructor;
+import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,6 +68,8 @@ import java.util.*;
  * @author coyote
  */
 public class AndroidCompletionContributor extends CompletionContributor {
+
+  private static final String LAYOUT_ATTRIBUTE_PREFIX = "layout_";
 
   private static void addAll(Collection<String> collection, CompletionResultSet set) {
     for (String s : collection) {
@@ -182,7 +188,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
         return;
       }
       addAndroidPrefixElement(position, parent, resultSet);
-      moveLayoutAttributeUp(parameters, (XmlAttribute)parent, resultSet);
+      customizeAddedAttributes(facet, parameters, (XmlAttribute)parent, resultSet);
     }
     else if (originalParent instanceof XmlAttributeValue) {
       completeTailsInFlagAttribute(parameters, resultSet, (XmlAttributeValue)originalParent);
@@ -194,18 +200,18 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return;
     }
 
-    final PsiElement gp = parent.getParent();
-    if (!(gp instanceof XmlTag)) {
+    final PsiElement grandparent = parent.getParent();
+    if (!(grandparent instanceof XmlTag)) {
       return;
     }
 
-    final DomElement element = DomManager.getDomManager(gp.getProject()).getDomElement((XmlTag)gp);
+    final DomElement element = DomManager.getDomManager(grandparent.getProject()).getDomElement((XmlTag)grandparent);
     if (!(element instanceof LayoutElement) &&
         !(element instanceof PreferenceElement)) {
       return;
     }
 
-    final String prefix = ((XmlTag)gp).getPrefixByNamespace(SdkConstants.NS_RESOURCES);
+    final String prefix = ((XmlTag)grandparent).getPrefixByNamespace(SdkConstants.NS_RESOURCES);
     if (prefix == null || prefix.length() < 3) {
       return;
     }
@@ -213,9 +219,10 @@ public class AndroidCompletionContributor extends CompletionContributor {
     resultSet.addElement(PrioritizedLookupElement.withPriority(e, Double.MAX_VALUE));
   }
 
-  private static void moveLayoutAttributeUp(CompletionParameters parameters,
-                                            XmlAttribute attribute,
-                                            final CompletionResultSet resultSet) {
+  private static void customizeAddedAttributes(final AndroidFacet facet,
+                                               CompletionParameters parameters,
+                                               final XmlAttribute attribute,
+                                               final CompletionResultSet resultSet) {
     final PsiElement gp = attribute.getParent();
 
     if (gp == null) {
@@ -255,10 +262,11 @@ public class AndroidCompletionContributor extends CompletionContributor {
 
         if (obj instanceof String) {
           final String s = (String)obj;
-          final int idx = s.indexOf(':');
+          final int index = s.indexOf(':');
 
-          if (idx > 0) {
-            final String prefix = s.substring(0, idx);
+          final String attributeName = s.substring(index + 1);
+          if (index > 0) {
+            final String prefix = s.substring(0, index);
             String ns = prefix2ns.get(prefix);
 
             if (ns == null) {
@@ -266,11 +274,12 @@ public class AndroidCompletionContributor extends CompletionContributor {
               prefix2ns.put(prefix, ns);
             }
             if (SdkConstants.NS_RESOURCES.equals(ns)) {
-              result = customizeLayoutAttributeLookupElement(s.substring(idx + 1), lookupElement, result);
+              final boolean deprecated = isFrameworkAttributeDeprecated(facet, attribute, attributeName);
+              result = customizeLayoutAttributeLookupElement(lookupElement, result, attributeName, deprecated);
             }
           }
           else if (localNameCompletion) {
-            result = customizeLayoutAttributeLookupElement(s.substring(idx + 1), lookupElement, result);
+            result = customizeLayoutAttributeLookupElement(lookupElement, result, attributeName, false);
           }
         }
         resultSet.passResult(result);
@@ -278,15 +287,38 @@ public class AndroidCompletionContributor extends CompletionContributor {
     });
   }
 
-  private static CompletionResult customizeLayoutAttributeLookupElement(String localName,
-                                                                        LookupElement lookupElement,
-                                                                        CompletionResult result) {
-    final String layoutPrefix = "layout_";
+  private static boolean isFrameworkAttributeDeprecated(AndroidFacet facet, XmlAttribute attribute, String attributeName) {
+    final ResourceManager manager = facet.getResourceManager(AndroidUtils.SYSTEM_RESOURCE_PACKAGE, attribute.getParent());
+    if (manager == null) {
+      return false;
+    }
 
-    if (!localName.startsWith(layoutPrefix)) {
+    final AttributeDefinitions attributes = manager.getAttributeDefinitions();
+    if (attributes == null) {
+      return false;
+    }
+
+    final AttributeDefinition attributeDefinition = attributes.getAttrDefByName(attributeName);
+    return attributeDefinition != null && attributeDefinition.isAttributeDeprecated();
+  }
+
+  private static CompletionResult customizeLayoutAttributeLookupElement(LookupElement lookupElement,
+                                                                        CompletionResult result,
+                                                                        String localName,
+                                                                        final boolean markDeprecated) {
+    if (!localName.startsWith(LAYOUT_ATTRIBUTE_PREFIX)) {
+      if (markDeprecated) {
+        return result.withLookupElement(PrioritizedLookupElement.withPriority(new LookupElementDecorator<LookupElement>(lookupElement) {
+          @Override
+          public void renderElement(LookupElementPresentation presentation) {
+            super.renderElement(presentation);
+            presentation.setStrikeout(true);
+          }
+        }, -1.0));
+      }
       return result;
     }
-    final String localSuffix = localName.substring(layoutPrefix.length());
+    final String localSuffix = localName.substring(LAYOUT_ATTRIBUTE_PREFIX.length());
 
     if (localSuffix.length() > 0) {
       final HashSet<String> lookupStrings = new HashSet<String>(lookupElement.getAllLookupStrings());
@@ -296,6 +328,12 @@ public class AndroidCompletionContributor extends CompletionContributor {
         @Override
         public Set<String> getAllLookupStrings() {
           return lookupStrings;
+        }
+
+        @Override
+        public void renderElement(LookupElementPresentation presentation) {
+          super.renderElement(presentation);
+          presentation.setStrikeout(markDeprecated);
         }
       };
     }
@@ -310,12 +348,12 @@ public class AndroidCompletionContributor extends CompletionContributor {
     if (currentValue == null || currentValue.length() == 0 || currentValue.endsWith("|")) {
       return;
     }
-    final PsiElement gp = parent.getParent();
+    final PsiElement grandparent = parent.getParent();
 
-    if (!(gp instanceof XmlAttribute)) {
+    if (!(grandparent instanceof XmlAttribute)) {
       return;
     }
-    final GenericAttributeValue domValue = DomManager.getDomManager(gp.getProject()).getDomElement((XmlAttribute)gp);
+    final GenericAttributeValue domValue = DomManager.getDomManager(grandparent.getProject()).getDomElement((XmlAttribute)grandparent);
     final Converter converter = domValue != null ? domValue.getConverter() : null;
 
     if (!(converter instanceof FlagConverter)) {
