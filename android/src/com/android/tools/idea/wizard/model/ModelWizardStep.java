@@ -19,7 +19,9 @@ import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.Collection;
 
 /**
@@ -28,11 +30,36 @@ import java.util.Collection;
  * and storing the user's data in the target model.
  */
 public abstract class ModelWizardStep<M extends WizardModel> {
+  @NotNull private final String myTitle;
 
   @NotNull private M myModel;
 
-  protected ModelWizardStep(@NotNull M model) {
+  protected ModelWizardStep(@NotNull M model, @NotNull String title) {
     myModel = model;
+    myTitle = title;
+  }
+
+  /**
+   * Returns the title of this step.
+   */
+  @NotNull
+  public String getTitle() {
+    return myTitle;
+  }
+
+  /**
+   * Returns the UI component that represents this step.
+   */
+  @NotNull
+  protected abstract JComponent getComponent();
+
+  /**
+   * Returns a component which should try and get focus when a step is first entered, or
+   * {@code null} if we're OK just letting Swing choose for us.
+   */
+  @Nullable
+  protected JComponent getPreferredFocusComponent() {
+    return null;
   }
 
   @NotNull
@@ -48,6 +75,16 @@ public abstract class ModelWizardStep<M extends WizardModel> {
   @NotNull
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     return ImmutableList.of();
+  }
+
+  /**
+   * Called once, when the wizard first starts up but before any step is shown. This is a good
+   * place to handle UI initialization that needs to interact with the parent wizard.
+   * <p/>
+   * Note: You should not store a reference to the wizard parameter. It's only meant to be used in
+   * the context of this method.
+   */
+  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
   }
 
   /**
@@ -73,7 +110,17 @@ public abstract class ModelWizardStep<M extends WizardModel> {
   /**
    * Called when the step is first entered, before it is shown. This method is not called when
    * returning back to a step.
+   * <p/>
+   * TODO: Should we pass the wizard parameter to this method? This TODO can be safely removed
+   * if the dynamic wizard migration is complete and we never needed it.
    */
   protected void onEnter() {
+  }
+
+  /**
+   * Called just before a step is about to move to the next step (or, if this is the last step, to
+   * the finished state). This is a good time to copy any relevant data out of the UI into a model.
+   */
+  protected void onProceeding() {
   }
 }

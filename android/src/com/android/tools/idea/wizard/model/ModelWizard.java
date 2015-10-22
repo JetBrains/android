@@ -19,18 +19,19 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.Observable;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.core.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.containers.Stack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import java.awt.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +48,8 @@ public final class ModelWizard {
 
   private final List<ModelWizardStep> mySteps;
 
+  private final Facade myFacade = new Facade();
+
   /**
    * When we check if we should show a step, we also check the step's ancestor chain, and make sure
    * all of those should be shown as well. In this way, skipping a parent step automatically will
@@ -60,6 +63,10 @@ public final class ModelWizard {
   private final BoolProperty myOnLastStep = new BoolValueProperty();
 
   private final Stack<ModelWizardStep> myPrevSteps = new Stack<ModelWizardStep>();
+
+  private final StringProperty myTitle = new StringValueProperty();
+  private final JPanel myContentPanel = new JPanel(new CardLayout());
+
   @Nullable SettableFuture<Boolean> myResult;
   private int myCurrIndex = -1;
 
@@ -123,6 +130,19 @@ public final class ModelWizard {
   }
 
   /**
+   * String property containing the active title of the current wizard on the current step.
+   * <p/>
+   * This class itself is not responsible for displaying the title; rather, this task is delegated
+   * to an external UI.
+   * <p/>
+   * The return type is an observable string so a UI can bind a label to its value.
+   */
+  @NotNull
+  public ObservableString title() {
+    return myTitle;
+  }
+
+  /**
    * Populates the wizard with an additional step (and any dependent steps it may have). No steps
    * can be added after {@link #start()} is called.
    */
@@ -131,6 +151,7 @@ public final class ModelWizard {
       throw new IllegalStateException("Attempting to add a step to a dialog that's already been started");
     }
 
+    myContentPanel.add(step.getComponent(), Integer.toString(mySteps.size()));
     mySteps.add(step);
 
     for (ModelWizardStep subStep : step.createDependentSteps()) {
@@ -153,6 +174,15 @@ public final class ModelWizard {
   }
 
   /**
+   * Returns the panel that will contain the UI for each step. It is up to an external UI class
+   * to decorate this with buttons (next, prev, etc.), titles, icons, etc.
+   */
+  @NotNull
+  public JPanel getContentPanel() {
+    return myContentPanel;
+  }
+
+  /**
    * Starts this wizard, indicating all steps have been added and navigation can begin via
    * {@link #goForward()} and {@link #goBack()}. Once started, the wizard will be pointed at the
    * first step.
@@ -169,6 +199,10 @@ public final class ModelWizard {
 
     if (mySteps.isEmpty()) {
       throw new IllegalStateException("Can't call start on a wizard with no steps");
+    }
+
+    for (ModelWizardStep step : mySteps) {
+      step.onWizardStarting(myFacade);
     }
 
     boolean atLeastOneVisibleStep = false;
@@ -207,6 +241,7 @@ public final class ModelWizard {
       }
 
       myPrevSteps.add(currStep);
+      currStep.onProceeding();
     }
 
     while (true) {
@@ -220,6 +255,7 @@ public final class ModelWizard {
       if (shouldShowStep(step)) {
         updateNavigationProperties();
         step.onEnter();
+        showCurrentStep();
         break;
       }
     }
@@ -240,6 +276,7 @@ public final class ModelWizard {
 
     myCurrIndex = mySteps.indexOf(myPrevSteps.pop());
     updateNavigationProperties();
+    showCurrentStep();
   }
 
   /**
@@ -301,6 +338,17 @@ public final class ModelWizard {
     myOnLastStep.set(false);
   }
 
+  private void showCurrentStep() {
+    ModelWizardStep step = mySteps.get(myCurrIndex);
+    myTitle.set(step.getTitle());
+    ((CardLayout)myContentPanel.getLayout()).show(myContentPanel, Integer.toString(myCurrIndex));
+
+    JComponent focusComponent = step.getPreferredFocusComponent();
+    if (focusComponent != null) {
+      IdeFocusManager.findInstanceByComponent(focusComponent).requestFocus(focusComponent, false);
+    }
+  }
+
   /**
    * Update the navigational properties (next, prev, etc.) given the state of the current step.
    * This should only be called if you're already on a step.
@@ -338,5 +386,29 @@ public final class ModelWizard {
     }
 
     return currPageIsLast;
+  }
+
+  @VisibleForTesting
+  Facade getFacade() {
+    return myFacade;
+  }
+
+  /**
+   * Class to provide an interface providing some limited subset of wizard functionality, useful
+   * to pass to steps so they can modify only the parts of the wizard that they should care about.
+   */
+  public final class Facade {
+
+    /**
+     * Update the properties driving next, back, and last page behavior. This is often handled
+     * automatically, but a step may modify a model that will cause a later step to skip itself,
+     * and there's no way the wizard can know that, so this method is provided as a way for a step
+     * to manually trigger the update.
+     */
+    public void updateNavigationProperties() {
+      if (!hasStarted()) return;
+
+      ModelWizard.this.updateNavigationProperties();
+    }
   }
 }
