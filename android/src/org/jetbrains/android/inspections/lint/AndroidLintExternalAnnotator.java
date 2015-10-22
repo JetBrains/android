@@ -3,6 +3,8 @@ package org.jetbrains.android.inspections.lint;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.PsiProjectListener;
+import com.android.tools.lint.checks.DeprecationDetector;
+import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -251,6 +253,10 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             annotation.registerFix(new SuppressLintIntentionAction(key.getID(), startElement));
             annotation.registerFix(new MyDisableInspectionFix(key));
             annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
+
+            if (issue == DeprecationDetector.ISSUE || issue == GradleDetector.DEPRECATED) {
+              annotation.setHighlightType(ProblemHighlightType.LIKE_DEPRECATED);
+            }
 
             if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
               final SuppressQuickFix[] suppressActions = inspection.getBatchSuppressActions(startElement);
