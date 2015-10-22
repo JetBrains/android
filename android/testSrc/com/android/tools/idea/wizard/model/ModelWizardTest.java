@@ -328,13 +328,29 @@ public class ModelWizardTest {
     }
   }
 
-  private static class DummyStep extends ModelWizardStep<DummyModel> {
+  /**
+   * None of these tests show UI so we just stub out the UI related methods in this helper base
+   * class.
+   */
+  private static abstract class NoUiStep<M extends WizardModel> extends ModelWizardStep<M> {
+    public NoUiStep(@NotNull M model) {
+      super(model, "");
+    }
+
+    @NotNull
+    @Override
+    protected final JComponent getComponent() {
+      return new JPanel();
+    }
+  }
+
+  private static class DummyStep extends NoUiStep<DummyModel> {
     public DummyStep(@NotNull DummyModel model) {
       super(model);
     }
   }
 
-  private static class ShouldSkipStep extends ModelWizardStep<DummyModel> {
+  private static class ShouldSkipStep extends NoUiStep<DummyModel> {
     private boolean myEntered;
 
     public ShouldSkipStep(@NotNull DummyModel model) {
@@ -356,7 +372,7 @@ public class ModelWizardTest {
     }
   }
 
-  private static class PreventProceedingStep extends ModelWizardStep<DummyModel> {
+  private static class PreventProceedingStep extends NoUiStep<DummyModel> {
     public PreventProceedingStep(@NotNull DummyModel model) {
       super(model);
     }
@@ -369,7 +385,6 @@ public class ModelWizardTest {
   }
 
   private static class RecordFinishedModel extends WizardModel {
-
     private final List<RecordFinishedModel> myRecordInto;
 
     public RecordFinishedModel(List<RecordFinishedModel> recordInto) {
@@ -382,7 +397,7 @@ public class ModelWizardTest {
     }
   }
 
-  private static class RecordFinishedStep extends ModelWizardStep<RecordFinishedModel> {
+  private static class RecordFinishedStep extends NoUiStep<RecordFinishedModel> {
     private boolean myShouldShow = true;
 
     public RecordFinishedStep(@NotNull RecordFinishedModel model) {
@@ -452,7 +467,7 @@ public class ModelWizardTest {
     }
   }
 
-  private static class NameStep extends ModelWizardStep<PersonModel> {
+  private static class NameStep extends NoUiStep<PersonModel> {
     private final String myName;
 
     public NameStep(PersonModel model, String name) {
@@ -466,7 +481,7 @@ public class ModelWizardTest {
     }
   }
 
-  private static class AgeStep extends ModelWizardStep<PersonModel> {
+  private static class AgeStep extends NoUiStep<PersonModel> {
     private final int myAge;
 
     public AgeStep(PersonModel model, int age) {
@@ -480,7 +495,7 @@ public class ModelWizardTest {
     }
   }
 
-  private static class TitleStep extends ModelWizardStep<OccupationModel> {
+  private static class TitleStep extends NoUiStep<OccupationModel> {
     private final String myTitle;
 
     public TitleStep(OccupationModel model, String title) {
@@ -494,13 +509,13 @@ public class ModelWizardTest {
     }
   }
 
-  private static class ChildStep extends ModelWizardStep<DummyModel> {
+  private static class ChildStep extends NoUiStep<DummyModel> {
     protected ChildStep(@NotNull DummyModel model) {
       super(model);
     }
   }
 
-  private static class ParentStep extends ModelWizardStep<DummyModel> {
+  private static class ParentStep extends NoUiStep<DummyModel> {
     protected ParentStep(@NotNull DummyModel model) {
       super(model);
     }
@@ -512,7 +527,7 @@ public class ModelWizardTest {
     }
   }
 
-  private static class GrandparentStep extends ModelWizardStep<DummyModel> {
+  private static class GrandparentStep extends NoUiStep<DummyModel> {
     @Nullable private List<ParentStep> myParentSteps;
     private boolean myShouldShow = true;
 
