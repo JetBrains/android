@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -711,12 +712,44 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     }
 
     // The current style is R/O so we need to propagate this change a new style.
+    boolean isSubStyleSelected = isSubStyleSelected();
     String message = String
       .format("<html>The %1$s '<code>%2$s</code>' is Read-Only.<br/>A new %1$s will be created to modify '<code>%3$s</code>'.<br/></html>",
-              isSubStyleSelected() ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getName());
+              isSubStyleSelected ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getName());
 
-    final String newStyleName =
-      ThemeEditorUtils.showCreateNewStyleDialog(selectedStyle, myThemeEditorContext, !isSubStyleSelected(), false, message, null);
+    final ItemResourceValue originalValue = rv.getSelectedValue();
+    ParentRendererEditor.ThemeParentChangedListener themeListener = new ParentRendererEditor.ThemeParentChangedListener() {
+      private ThemeEditorStyle myModifiedTheme;
+
+      @Override
+      public void themeChanged(@NotNull String name) {
+        if (myModifiedTheme != null) {
+          myModifiedTheme.getStyleResourceValue().addItem(originalValue);
+        }
+
+        myModifiedTheme = myThemeEditorContext.getThemeResolver().getTheme(name);
+        assert myModifiedTheme != null;
+        ItemResourceValue newSelectedValue =
+          new ItemResourceValue(originalValue.getName(), originalValue.isFrameworkAttr(), strValue, false);
+        myModifiedTheme.getStyleResourceValue().addItem(newSelectedValue);
+        myPreviewThemeName = null;
+        refreshPreviewPanel(name);
+      }
+
+      @Override
+      public void reset() {
+        myModifiedTheme.getStyleResourceValue().addItem(originalValue);
+        reload(myThemeName);
+      }
+    };
+
+    final String newStyleName = ThemeEditorUtils
+      .showCreateNewStyleDialog(selectedStyle, myThemeEditorContext, !isSubStyleSelected, false, message,
+                                isSubStyleSelected ? null : themeListener);
+
+    if (!isSubStyleSelected) {
+      themeListener.reset();
+    }
 
     if (newStyleName == null) {
       return;
@@ -733,7 +766,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       }
     });
 
-    if (!isSubStyleSelected()) {
+    if (!isSubStyleSelected) {
       // We changed a theme, so we are done.
       // We don't need to call reload, because myResourceChangeListener will take care of it
       myThemeName = newStyleName;
@@ -763,7 +796,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
                               selectedTheme.getQualifiedName(), rv.getName(), newStyleName);
 
       final String newThemeName =
-        ThemeEditorUtils.showCreateNewStyleDialog(selectedTheme, myThemeEditorContext, true, false, message, null);
+        ThemeEditorUtils.showCreateNewStyleDialog(selectedTheme, myThemeEditorContext, true, false, message, themeListener);
+      themeListener.reset();
       if (newThemeName != null) {
         // We don't need to call reload, because myResourceChangeListener will take care of it
         myThemeName = newThemeName;
