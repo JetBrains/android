@@ -80,6 +80,7 @@ import static com.android.tools.idea.gradle.project.LibraryAttachments.getStored
 import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
+import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.findSourceJarForLibrary;
 import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.*;
@@ -89,10 +90,7 @@ import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJd
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
-import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class PostProjectSetupTasksExecutor {
@@ -316,21 +314,6 @@ public class PostProjectSetupTasksExecutor {
     // null.
     File jarFilePath = getJarFromJarUrl(jarFile.getUrl());
     return jarFilePath != null ? findSourceJarForLibrary(jarFilePath) : null;
-  }
-
-
-  @Nullable
-  private static File getJarFromJarUrl(@NotNull String url) {
-    // URLs for jar file start with "jar://" and end with "!/".
-    if (!url.startsWith(JAR_PROTOCOL_PREFIX)) {
-      return null;
-    }
-    String path = url.substring(JAR_PROTOCOL_PREFIX.length());
-    int index = path.lastIndexOf(JAR_SEPARATOR);
-    if (index != -1) {
-      path = path.substring(0, index);
-    }
-    return new File(toSystemDependentName(path));
   }
 
   private void findAndShowVariantConflicts() {
