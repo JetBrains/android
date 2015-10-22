@@ -84,7 +84,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public String EXTRA_OPTIONS = "";
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
-    super(project, factory);
+    super(project, factory, true);
   }
 
   @Override
@@ -266,7 +266,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         public boolean apply(@Nullable AndroidFacet facet) {
           return facet != null && supportsRunningLibraryProjects(facet).getFirst();
         }
-      });
+      }, this);
     editor.setConfigurationSpecificEditor(new TestRunParameters(project, editor.getModuleSelector()));
     return editor;
   }
