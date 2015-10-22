@@ -226,6 +226,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     TemplateWizardState activityStateMock = spy(myWizardState.getActivityTemplateState());
     File templateRootMock = mock(File.class);
     Template activityTemplateMock = mock(Template.class);
+    when(templateRootMock.getName()).thenReturn("MockTemplate");
     when(activityTemplateMock.getRootPath()).thenReturn(templateRootMock);
     when(activityStateMock.getTemplate()).thenReturn(activityTemplateMock);
     when(spyState.getActivityTemplateState()).thenReturn(activityStateMock);
