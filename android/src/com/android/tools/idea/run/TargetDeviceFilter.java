@@ -16,23 +16,62 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.base.Predicate;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.ThreeState;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * A convenience class for device predicates based on a {@link TargetChooser}.
- */
-public class TargetDeviceFilter implements Predicate<IDevice> {
+import java.util.EnumSet;
+import java.util.Set;
 
-  @NotNull private final TargetChooser myTargetChooser;
-
-  public TargetDeviceFilter(@NotNull TargetChooser targetChooser) {
-    myTargetChooser = targetChooser;
+public abstract class TargetDeviceFilter implements Predicate<IDevice> {
+  @Override
+  public boolean apply(@Nullable IDevice device) {
+    return device != null && matchesDevice(device);
   }
 
-  @Override
-  public boolean apply(@Nullable IDevice input) {
-    return input != null && myTargetChooser.matchesDevice(input);
+  public abstract boolean matchesDevice(@NotNull IDevice device);
+
+  public static class EmulatorFilter extends TargetDeviceFilter {
+    @NotNull private final AndroidFacet myFacet;
+    @Nullable private final String myPreferredAvd;
+
+    public EmulatorFilter(@NotNull AndroidFacet facet, @Nullable String preferredAvd) {
+      myFacet = facet;
+      myPreferredAvd = preferredAvd;
+    }
+
+    @Override
+    public boolean matchesDevice(@NotNull IDevice device) {
+      if (!device.isEmulator()) {
+        return false;
+      }
+      String avdName = device.getAvdName();
+      if (myPreferredAvd != null) {
+        return myPreferredAvd.equals(avdName);
+      }
+
+      AndroidPlatform androidPlatform = myFacet.getConfiguration().getAndroidPlatform();
+      if (androidPlatform == null) {
+        Logger.getInstance(EmulatorFilter.class).warn("Target Android platform not set for module: " + myFacet.getModule().getName());
+        return false;
+      } else {
+        LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(AndroidModuleInfo.get(myFacet).getRuntimeMinSdkVersion(),
+                                                                               androidPlatform.getTarget(),
+                                                                               EnumSet.noneOf(IDevice.HardwareFeature.class), device, null);
+        return compatibility.isCompatible() != ThreeState.NO;
+      }
+    }
+  }
+
+  public static class UsbDeviceFilter extends TargetDeviceFilter {
+    @Override
+    public boolean matchesDevice(@NotNull IDevice device) {
+      return !device.isEmulator();
+    }
   }
 }

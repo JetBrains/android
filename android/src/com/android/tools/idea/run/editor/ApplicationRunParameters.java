@@ -75,10 +75,10 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myProject = project;
     myModuleSelector = moduleSelector;
 
-    myDeployOptionCombo.setModel(new CollectionComboBoxModel(Arrays.asList(DeployOption.values())));
-    myDeployOptionCombo.setRenderer(new DeployOption.Renderer());
+    myDeployOptionCombo.setModel(new CollectionComboBoxModel(Arrays.asList(InstallOption.values())));
+    myDeployOptionCombo.setRenderer(new InstallOption.Renderer());
     myDeployOptionCombo.addActionListener(this);
-    myDeployOptionCombo.setSelectedItem(DeployOption.DEFAULT_APK);
+    myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);
 
     myArtifactCombo = myCustomArtifactLabeledComponent.getComponent();
     myArtifactCombo.setRenderer(new ArtifactRenderer());
@@ -114,11 +114,11 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   public void actionPerformed(ActionEvent e) {
     Object source = e.getSource();
     if (source == myDeployOptionCombo) {
-      DeployOption option = (DeployOption)myDeployOptionCombo.getSelectedItem();
-      myCustomArtifactLabeledComponent.setVisible(option == DeployOption.CUSTOM_ARTIFACT);
-      myPmOptionsLabeledComponent.setVisible(option != DeployOption.NOTHING);
+      InstallOption option = (InstallOption)myDeployOptionCombo.getSelectedItem();
+      myCustomArtifactLabeledComponent.setVisible(option == InstallOption.CUSTOM_ARTIFACT);
+      myPmOptionsLabeledComponent.setVisible(option != InstallOption.NOTHING);
 
-      if (option == DeployOption.CUSTOM_ARTIFACT) {
+      if (option == InstallOption.CUSTOM_ARTIFACT) {
         updateBuildArtifactBeforeRunSetting();
       }
     }
@@ -138,20 +138,20 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   }
 
   @NotNull
-  private static DeployOption getDeployOption(boolean deploy, @Nullable String artifactName) {
+  private static InstallOption getDeployOption(boolean deploy, @Nullable String artifactName) {
     if (!deploy) {
-      return DeployOption.NOTHING;
+      return InstallOption.NOTHING;
     }
 
-    return StringUtil.isEmpty(artifactName) ? DeployOption.DEFAULT_APK : DeployOption.CUSTOM_ARTIFACT;
+    return StringUtil.isEmpty(artifactName) ? InstallOption.DEFAULT_APK : InstallOption.CUSTOM_ARTIFACT;
   }
 
   @Override
   public void resetFrom(@NotNull AndroidRunConfiguration configuration) {
-    DeployOption deployOption = getDeployOption(configuration.DEPLOY, configuration.ARTIFACT_NAME);
-    myDeployOptionCombo.setSelectedItem(deployOption);
+    InstallOption installOption = getDeployOption(configuration.DEPLOY, configuration.ARTIFACT_NAME);
+    myDeployOptionCombo.setSelectedItem(installOption);
 
-    if (deployOption == DeployOption.CUSTOM_ARTIFACT) {
+    if (installOption == InstallOption.CUSTOM_ARTIFACT) {
       String artifactName = StringUtil.notNullize(configuration.ARTIFACT_NAME);
       List<Artifact> artifacts = Lists.newArrayList(getAndroidArtifacts());
       Artifact selectedArtifact = findArtifactByName(artifacts, artifactName);
@@ -198,10 +198,10 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
   @Override
   public void applyTo(@NotNull AndroidRunConfiguration configuration) {
-    DeployOption deployOption = (DeployOption)myDeployOptionCombo.getSelectedItem();
-    configuration.DEPLOY = deployOption != DeployOption.NOTHING;
+    InstallOption installOption = (InstallOption)myDeployOptionCombo.getSelectedItem();
+    configuration.DEPLOY = installOption != InstallOption.NOTHING;
     configuration.ARTIFACT_NAME = "";
-    if (deployOption == DeployOption.CUSTOM_ARTIFACT) {
+    if (installOption == InstallOption.CUSTOM_ARTIFACT) {
       Object item = myCustomArtifactLabeledComponent.getComponent().getSelectedItem();
       if (item instanceof Artifact) {
         configuration.ARTIFACT_NAME = ((Artifact)item).getName();
