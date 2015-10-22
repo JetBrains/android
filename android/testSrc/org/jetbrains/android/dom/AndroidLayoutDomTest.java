@@ -89,6 +89,29 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
       "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft");
   }
 
+  // Deprecated attributes should be crossed out in the completion
+  // This test specifically checks for "android:editable" attribute on TextView
+  public void testDeprecatedAttributeNamesCompletion() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("text_view_editable.xml"));
+    myFixture.complete(CompletionType.BASIC);
+    LookupElement[] elements = myFixture.getLookupElements();
+    assertNotNull(elements);
+
+    // LookupElement that corresponds to "android:editable" attribute
+    LookupElement editableElement = null;
+    for (LookupElement element : elements) {
+      if ("android:editable".equals(element.getLookupString())) {
+        editableElement = element;
+      }
+    }
+    assertNotNull(editableElement);
+
+    assertEquals("android:editable", editableElement.getLookupString());
+    LookupElementPresentation presentation = new LookupElementPresentation();
+    editableElement.renderElement(presentation);
+    assertTrue(presentation.isStrikeout());
+  }
+
   // "contex" is completed to "tools:context", "xmlns:tools" with right value is inserted
   public void testToolsContextAttributeCompletion() throws Throwable {
     toTestCompletion("tools_context.xml", "tools_context_after.xml");
