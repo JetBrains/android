@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -46,6 +47,8 @@ public class CreateDeepLinkIntentionAction extends AbstractIntentionAction {
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) {
+    UsageTracker.getInstance().trackEvent(
+        UsageTracker.CATEGORY_APP_INDEXING, UsageTracker.ACTION_APP_INDEXING_DEEP_LINK_CREATED, null, null);
     addDeepLinkAtCaret(project, editor, file);
   }
 }
