@@ -174,6 +174,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateWizardSt
             .build();
           // @formatter:on
           projectTemplate.render(projectContext);
+          ConfigureAndroidProjectPath.setGradleWrapperExecutable(projectRoot);
         }
 
         final RenderingContext context = RenderingContext.Builder.newContext(wizardState.myTemplate, project)
