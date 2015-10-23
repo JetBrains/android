@@ -34,6 +34,8 @@ import com.android.tools.idea.run.AndroidRunningState;
 import com.android.tools.idea.run.ApkProviderUtil;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.InstalledPatchCache;
+import com.google.common.base.Objects;
+import com.google.common.hash.HashCode;
 import com.google.common.io.Files;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.ui.breakpoints.Breakpoint;
@@ -311,11 +313,21 @@ public class FastDeployManager implements ProjectComponent {
     long installedTimeStamp = cache.getInstalledManifestTimestamp(device, pkgName);
 
     if (currentTimeStamp <= installedTimeStamp) {
+      // See if the resources have changed.
+      // Since this method can be called before we've built, we're looking at the previous
+      // manifest now. However, the above timestamp check will already cause us to treat
+      // manifest edits as requiring restarts -- so the goal here is to look for the referenced
+      // resources from the manifest (when the manifest itself hasn't been edited) and see
+      // if any of *them* have changed.
+      HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
+      HashCode installedHash = cache.getInstalledManifestResourcesHash(device, pkgName);
+      if (installedHash != null && !installedHash.equals(currentHash)) {
+        // Yes, some resources have changed.
+        return true;
+      }
+
       return false;
     }
-
-    // TODO: File has been edited: here we can actually *update* the merged manifest and then compute hash
-    // codes to see if the contents are equivalent.
 
     return true;
   }
