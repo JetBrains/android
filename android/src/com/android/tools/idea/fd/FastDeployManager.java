@@ -228,6 +228,19 @@ public class FastDeployManager implements ProjectComponent {
   }
 
   /**
+   * Returns whether an update will result in a cold swap by looking at the results of a gradle build.
+   */
+  public static boolean isColdSwap(@NotNull AndroidGradleModel model) {
+    File restart = findStartDex(model);
+    if (restart == null) {
+      return false;
+    }
+
+    File incremental = findReloadDex(model);
+    return incremental == null;
+  }
+
+  /**
    * Performs an incremental update of the app associated with the given module on the given device
    *
    * @param device the device to apply the update to
