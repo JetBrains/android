@@ -170,11 +170,11 @@ public class ResourceResolverCache {
       if (target instanceof CompatibilityRenderTarget) {
         int apiLevel = target.getVersion().getFeatureLevel();
         if (apiLevel >= 21) {
-          resolver.setDeviceDefaults("Theme.Material.Light", "Theme.Material");
+          resolver.setDeviceDefaults("Material");
         } else if (apiLevel >= 14) {
-          resolver.setDeviceDefaults("Theme.Holo.Light", "Theme.Holo");
+          resolver.setDeviceDefaults("Holo");
         } else {
-          resolver.setDeviceDefaults("Theme.Light", "Theme");
+          resolver.setDeviceDefaults(ResourceResolver.LEGACY_THEME);
         }
       }
 
