@@ -79,4 +79,9 @@ public class AndroidXmlPolicy extends XmlPolicy {
     }
     return SourceTreeToPsiMap.treeElementToPsi(nextNode);
   }
+
+  @Override
+  public int getBlankLinesBeforeTag(XmlTag xmlTag) {
+    return 1;
+  }
 }
