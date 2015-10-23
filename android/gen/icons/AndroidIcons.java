@@ -35,6 +35,7 @@ public class AndroidIcons {
   public static final Icon RenderError = load("/icons/renderError.png");
   public static final Icon RefreshPreview = load("/icons/refreshPreview.png"); // 16x16
   public static final Icon ArrowDown = load("/icons/comboArrow.png"); // 16x16
+  public static final Icon GreyArrowDown = load("/icons/dropArrow.png"); // 20x20
   public static final Icon NotMatch = load("/icons/notMatch.png");
 
   public static final Icon AndroidFile = load("/icons/android_file.png"); // 16x16
@@ -68,6 +69,8 @@ public class AndroidIcons {
 
   public static final Icon AppModule = load("/icons/appModule.png");
   public static final Icon LibraryModule = load("/icons/libraryModule.png");
+
+  public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
 
   // Form factors
   public static class FormFactors {

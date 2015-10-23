@@ -301,7 +301,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 20, null));
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
-    // AppThemeParent is defined in v20 only but it's parent it's defoned in both v20 AND v19
+    // AppThemeParent is defined in v20 only but its parent is defined in both v20 AND v19
     ThemeEditorStyle style = themeResolver.getTheme("AppThemeParent");
     assertNotNull(style);
     Collection<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(style, new ThemeResolver(configuration));
