@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.run.editor.ApplicationRunParameters;
+import com.android.tools.idea.run.editor.LaunchOptionConfigurableContext;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Editor;
@@ -46,26 +46,23 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
     if (parameters.getCompletionType() != CompletionType.BASIC) {
       return;
     }
+
     final Editor editor = parameters.getEditor();
-
-    if (editor == null) {
+    LaunchOptionConfigurableContext context = editor.getUserData(LaunchOptionConfigurableContext.KEY);
+    if (context == null) {
       return;
     }
-    final ApplicationRunParameters runParameters = editor.getUserData(ApplicationRunParameters.ACTIVITY_CLASS_TEXT_FIELD_KEY);
 
-    if (runParameters == null) {
-      return;
-    }
-    final Module module = runParameters.getModule();
-
+    final Module module = context.getModule();
     if (module == null) {
       return;
     }
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
 
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return;
     }
+
     final String prefix = parameters.getEditor().getDocument().getText().substring(0, parameters.getOffset());
     result = result.withPrefixMatcher(prefix);
     final PsiClass activityClass = JavaPsiFacade.getInstance(module.getProject())
