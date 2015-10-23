@@ -17,8 +17,6 @@ package org.jetbrains.android.dom.transition;
 
 import com.intellij.util.xml.DefinesXml;
 
-import java.util.List;
-
 @DefinesXml
 public interface TransitionSet extends Transition {
 }

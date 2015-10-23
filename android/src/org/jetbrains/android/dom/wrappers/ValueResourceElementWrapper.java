@@ -234,6 +234,7 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
     return myWrappee.addAfter(element, anchor);
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void checkAdd(@NotNull PsiElement element) throws IncorrectOperationException {
     myWrappee.checkAdd(element);
@@ -260,6 +261,7 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
     myWrappee.delete();
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void checkDelete() throws IncorrectOperationException {
     myWrappee.checkDelete();
