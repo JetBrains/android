@@ -444,7 +444,13 @@ public class StateListPicker extends JPanel {
     else {
       final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, resValue, myModule.getProject());
       if (colors.isEmpty()) {
-        component.setValueIcon(SwatchComponent.WARNING_ICON);
+        Color colorValue = ResourceHelper.parseColor(resourceName);
+        if (colorValue != null) {
+          component.setValueIcon(new SwatchComponent.ColorIcon(colorValue));
+        }
+        else {
+          component.setValueIcon(SwatchComponent.WARNING_ICON);
+        }
       }
       else {
         component.setValueIcon(new SwatchComponent.ColorIcon(Iterables.getLast(colors)));
