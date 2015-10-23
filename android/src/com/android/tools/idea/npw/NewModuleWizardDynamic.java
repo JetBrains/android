@@ -19,32 +19,27 @@ import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription.WizardStepHeaderSettings;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
-import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.wizard.WizardConstants.*;
+import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
 
 /**
  * {@linkplain NewModuleWizardDynamic} guides the user through adding a new module to an existing project. It has a template-based flow and as the
@@ -78,33 +73,11 @@ public class NewModuleWizardDynamic extends DynamicWizard {
     ScopedStateStore state = getState();
     Project project = getProject();
 
-    // TODO(jbakermalone): move the setting of this state closer to where it is used, so it's clear what's needed.
-    state.put(WizardConstants.GRADLE_VERSION_KEY, GRADLE_LATEST_VERSION);
-    state.put(WizardConstants.GRADLE_PLUGIN_VERSION_KEY, determineGradlePluginVersion(project));
-    state.put(WizardConstants.USE_PER_MODULE_REPOS_KEY, false);
-    state.put(WizardConstants.IS_NEW_PROJECT_KEY, true);
-    state.put(WizardConstants.IS_GRADLE_PROJECT_KEY, true);
-    try {
-      state.put(WizardConstants.DEBUG_KEYSTORE_SHA_1_KEY, KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore()));
-    }
-    catch (Exception e) {
-      LOG.error("Could not create default debug keystore: " + e.getMessage());
-      state.put(WizardConstants.DEBUG_KEYSTORE_SHA_1_KEY, "");
-    }
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkData != null) {
-      state.put(WizardConstants.SDK_DIR_KEY, sdkData.getLocation().getPath());
-    }
-    String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
-    if (mavenUrl != null) {
-      state.put(WizardConstants.MAVEN_URL_KEY, mavenUrl);
-    }
-    if (project != null) {
-      state.put(PROJECT_LOCATION_KEY, project.getBasePath());
-    }
+    NewProjectWizardDynamic.initState(state, determineGradlePluginVersion(project));
 
-    state.put(WizardConstants.TARGET_FILES_KEY, new HashSet<File>());
-    state.put(WizardConstants.FILES_TO_OPEN_KEY, new ArrayList<File>());
+    if (project != null) {
+      state.put(WizardConstants.PROJECT_LOCATION_KEY, project.getBasePath());
+    }
   }
 
   @NotNull
