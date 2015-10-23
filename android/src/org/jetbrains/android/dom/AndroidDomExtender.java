@@ -856,6 +856,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element);
   }
 
+  @SuppressWarnings("ClassExplicitlyAnnotation")
   private static class MyRequired implements Required {
     @Override
     public boolean value() {
