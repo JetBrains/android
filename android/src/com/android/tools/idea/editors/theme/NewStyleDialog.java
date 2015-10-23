@@ -148,6 +148,14 @@ public class NewStyleDialog extends DialogWrapper {
     return super.doValidate();
   }
 
+  @Override
+  public void show() {
+    if (myThemeChangedListener != null) {
+      myThemeChangedListener.themeChanged((String)myParentStyleComboBox.getSelectedItem());
+    }
+    super.show();
+  }
+
   public String getStyleName() {
     return myStyleNameTextField.getText();
   }
