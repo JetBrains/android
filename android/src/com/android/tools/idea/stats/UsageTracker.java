@@ -98,6 +98,9 @@ public abstract class UsageTracker {
   public static final String CATEGORY_THEME_EDITOR = "themeEditor";
   public static final String ACTION_THEME_EDITOR_OPEN = "themeEditorOpened";
 
+  public static final String CATEGORY_APP_INDEXING = "appIndexing";
+  public static final String ACTION_APP_INDEXING_DEEP_LINK_CREATED = "deepLinkCreated";
+  public static final String ACTION_APP_INDEXING_API_CODE_CREATED = "apiCodeCreated";
 
   /**
    * When using the usage tracker, do NOT include any information that can identify the user
