@@ -133,8 +133,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       return;
     }
 
-    File moduleFilePath = new File(toSystemDependentName(ideModule.getData().getModuleFilePath()));
-    File moduleRootDirPath = moduleFilePath.getParentFile();
+    // do not derive module root dir based on *.xml file location
+    File moduleRootDirPath = new File(toSystemDependentName(ideModule.getData().getLinkedExternalProjectPath()));
 
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
 
