@@ -20,16 +20,12 @@ import com.android.ddmlib.*;
 import com.android.tools.idea.run.AndroidApplicationLauncher;
 import com.android.tools.idea.run.AndroidRunningState;
 import com.android.tools.idea.run.ErrorMatchingReceiver;
-import com.android.tools.idea.run.ValidationError;
-import com.google.common.collect.ImmutableList;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.List;
 
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
@@ -37,27 +33,12 @@ import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
 public class AndroidActivityLauncher extends AndroidApplicationLauncher {
   private static final Logger LOG = Logger.getInstance(AndroidActivityLauncher.class);
 
-  @NotNull private final AndroidFacet myFacet;
-  private final boolean myNeedsLaunch;
   @NotNull private final ActivityLocator myActivityLocator;
   @NotNull private final String myActivityExtraFlags;
 
-  public AndroidActivityLauncher(@NotNull AndroidFacet facet, boolean needsLaunch, @NotNull ActivityLocator locator, @NotNull String activityExtraFlags) {
-    myFacet = facet;
-    myNeedsLaunch = needsLaunch;
+  public AndroidActivityLauncher(@NotNull ActivityLocator locator, @NotNull String activityExtraFlags) {
     myActivityLocator = locator;
     myActivityExtraFlags = activityExtraFlags;
-  }
-
-  public List<ValidationError> checkConfiguration() {
-    try {
-      myActivityLocator.validate();
-    }
-    catch (ActivityLocator.ActivityLocatorException e) {
-      // The launch will probably fail, but we allow the user to continue in case we are looking at stale data.
-      return ImmutableList.of(ValidationError.warning(e.getMessage()));
-    }
-    return ImmutableList.of();
   }
 
   @Override
@@ -92,10 +73,6 @@ public class AndroidActivityLauncher extends AndroidApplicationLauncher {
   @Override
   public LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
     throws IOException, AdbCommandRejectedException, TimeoutException {
-    if (!myNeedsLaunch) {
-      return LaunchResult.NOTHING_TO_DO;
-    }
-
     ProcessHandler processHandler = state.getProcessHandler();
     String activityName;
     try {

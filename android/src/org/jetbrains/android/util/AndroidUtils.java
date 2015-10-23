@@ -253,8 +253,7 @@ public class AndroidUtils {
         configuration.setModule(module);
 
         if (activityClass != null) {
-          configuration.MODE = AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY;
-          configuration.ACTIVITY_CLASS = activityClass;
+          configuration.setLaunchActivity(activityClass);
         }
         else if (LaunchUtils.isWatchFaceApp(facet)) {
           // In case of a watch face app, there is only a service and no default activity that can be launched
