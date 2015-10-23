@@ -20,13 +20,15 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBViewport;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -66,6 +68,8 @@ public class ImagePanel extends JPanel {
     private static final double MAX_ZOOM_FACTOR = 8;
     private static final double MIN_ZOOM_WIDTH = 100.0;
     private static final BufferedImage EMPTY_IMAGE = UIUtil.createImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+    private static final int BORDER_SIZE = JBUI.scale(2);
+    private static final Border BORDER = new LineBorder(JBColor.border(), BORDER_SIZE);
 
     private final JViewport parent;
     private final StatusText emptyText;
@@ -218,7 +222,7 @@ public class ImagePanel extends JPanel {
     public Dimension getPreferredSize() {
       return (zoom == ZOOM_FIT)
              ? new Dimension(parent.getWidth(), parent.getHeight())
-             : new Dimension((int)(zoom * image.getWidth(this)), (int)(zoom * image.getHeight(this)));
+             : new Dimension((int)(zoom * image.getWidth(this)) + 2 * BORDER_SIZE, (int)(zoom * image.getHeight(this)) + 2 * BORDER_SIZE);
     }
 
     @Override
@@ -231,7 +235,9 @@ public class ImagePanel extends JPanel {
 
       double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
       int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
-      g.drawImage(image, (getWidth() - w) / 2, (getHeight() - h) / 2, w, h, this);
+      int x = (getWidth() - w) / 2, y = (getHeight() - h) / 2;
+      g.drawImage(image, x, y, w, h, this);
+      BORDER.paintBorder(this, g, x - BORDER_SIZE, y - BORDER_SIZE, w + 2 * BORDER_SIZE, h + 2 * BORDER_SIZE);
     }
 
     private void scrollBy(int dx, int dy) {
@@ -283,7 +289,8 @@ public class ImagePanel extends JPanel {
     }
 
     private double getFitRatio() {
-      return Math.min((double)getWidth() / image.getWidth(this), (double)getHeight() / image.getHeight(this));
+      return Math.min((double)(getWidth() - 2 * BORDER_SIZE) / image.getWidth(this),
+                      (double)(getHeight() - 2 * BORDER_SIZE) / image.getHeight(this));
     }
 
     private double getMinZoom() {
