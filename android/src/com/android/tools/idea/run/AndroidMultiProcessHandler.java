@@ -38,11 +38,16 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
                                                                                  AndroidDebugBridge.IClientChangeListener {
   private static final Logger LOG = Logger.getInstance(AndroidMultiProcessHandler.class);
 
+  // If the client is not present on the monitored devices after this time, then it is assumed to have died.
+  // We are keeping it so long because sometimes (for cold-swap) it seems to take a while..
+  private static final long TIMEOUT_MS = 10000;
+
   @NotNull private final String myApplicationId;
   @NotNull private final List<String> myDevices;
   @NotNull private final List<Client> myClients;
 
   private long myDeviceAdded;
+  private boolean myNoKill;
 
   public AndroidMultiProcessHandler(@NotNull String applicationId) {
     myApplicationId = applicationId;
@@ -83,6 +88,10 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
   }
 
   private void killProcesses() {
+    if (myNoKill) {
+      return;
+    }
+
     for (IDevice device : AndroidDebugBridge.getBridge().getDevices()) {
       if (myDevices.contains(device.getSerialNumber())) {
         Client client = device.getClient(myApplicationId);
@@ -98,6 +107,10 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
     super.destroyProcessImpl();
     killProcesses();
     cleanup();
+  }
+
+  public void setNoKill() {
+    myNoKill = true;
   }
 
   private void cleanup() {
@@ -143,7 +156,7 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
     }
 
     Client client = device.getClient(myApplicationId);
-    if (client == null && (System.currentTimeMillis() - myDeviceAdded) > 5000) {
+    if (client == null && (System.currentTimeMillis() - myDeviceAdded) > TIMEOUT_MS) {
       stopMonitoring(device);
     }
   }
