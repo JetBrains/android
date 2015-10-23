@@ -60,7 +60,7 @@ public class StateListPickerTest extends GuiTestCase {
     final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
     StateListPickerFixture stateListPicker = dialog.getStateListPicker();
     java.util.List<StateListComponentFixture> states = stateListPicker.getStateComponents();
-    assertThat(states).hasSize(2);
+    assertThat(states).hasSize(4);
 
     final StateListComponentFixture state0 = states.get(0);
     assertEquals("Not enabled", state0.getStateName());
@@ -71,10 +71,22 @@ public class StateListPickerTest extends GuiTestCase {
     assertFalse(state0.getAlphaComponent().hasWarningIcon());
 
     final StateListComponentFixture state1 = states.get(1);
-    assertEquals("Default", state1.getStateName());
-    assertEquals("?android:attr/colorForeground", state1.getValue());
+    assertEquals("Checked", state1.getStateName());
+    assertEquals("#5034FAB2", state1.getValue());
     assertFalse(state1.getValueComponent().hasWarningIcon());
     assertFalse(state1.isAlphaVisible());
+
+    final StateListComponentFixture state2 = states.get(2);
+    assertEquals("Pressed", state2.getStateName());
+    assertEquals("@color/invalidColor", state2.getValue());
+    assertTrue(state2.getValueComponent().hasWarningIcon());
+    assertFalse(state2.isAlphaVisible());
+
+    final StateListComponentFixture state3 = states.get(3);
+    assertEquals("Default", state3.getStateName());
+    assertEquals("?attr/myColorAttribute", state3.getValue());
+    assertFalse(state3.getValueComponent().hasWarningIcon());
+    assertFalse(state3.isAlphaVisible());
 
     dialog.clickCancel();
     stateListCell.stopEditing();
