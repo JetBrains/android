@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.status.InlineProgressIndicator;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +48,7 @@ public class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
 
     myThreeComponentsSplitter = new ThreeComponentsSplitter(false);
     myThreeComponentsSplitter.setHonorComponentsMinimumSize(true);
+    Disposer.register(editor, myThreeComponentsSplitter);
 
     if (startAsLoading) {
       TaskInfo taskInfo = new TaskInfo() {

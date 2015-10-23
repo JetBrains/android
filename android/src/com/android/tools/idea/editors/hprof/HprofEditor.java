@@ -95,7 +95,7 @@ public class HprofEditor extends CaptureEditor {
             myPanel.setEditorPanel(myView.getComponent(), delegate);
 
             Disposer.register(HprofEditor.this, myView);
-            Disposer.register(project, delegate);
+            Disposer.register(HprofEditor.this, delegate);
           }
         }
       }
