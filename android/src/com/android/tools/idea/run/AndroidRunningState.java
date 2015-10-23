@@ -23,6 +23,7 @@ import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Charsets;
+import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -467,6 +468,8 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
       InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
       patchCache.setInstalledArscTimestamp(device, pkgName, arscTimestamp);
       patchCache.setInstalledManifestTimestamp(device, pkgName, manifestTimeStamp);
+      HashCode currentHash = InstalledPatchCache.computeManifestResources(myFacet);
+      patchCache.setInstalledManifestResourcesHash(device, pkgName, currentHash);
     }
 
     return true;
