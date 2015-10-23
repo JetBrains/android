@@ -16,10 +16,9 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.run.activity.*;
-import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
-import com.android.tools.idea.run.editor.ApplicationRunParameters;
+import com.android.tools.idea.run.editor.*;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Maps;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -31,31 +30,51 @@ import com.intellij.execution.junit.RefactoringListeners;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.DefaultJDOMExternalizer;
+import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
+import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
   @NonNls public static final String DO_NOTHING = "do_nothing";
 
-  public String ACTIVITY_CLASS = "";
-  public String ACTIVITY_EXTRA_FLAGS = "";
-  public String MODE = LAUNCH_DEFAULT_ACTIVITY;
+  public static final List<? extends LaunchOption> LAUNCH_OPTIONS =
+    Arrays.asList(NoLaunch.INSTANCE, DefaultActivityLaunch.INSTANCE, SpecificActivityLaunch.INSTANCE);
+
+  // Deploy options
   public boolean DEPLOY = true;
   public String ARTIFACT_NAME = "";
+  public String PM_INSTALL_OPTIONS = "";
+
+  // Launch options
+  public String ACTIVITY_EXTRA_FLAGS = "";
+  public String MODE = LAUNCH_DEFAULT_ACTIVITY;
+
+  private final Map<String, LaunchOptionState> myLaunchOptionStates = Maps.newHashMap();
 
   public AndroidRunConfiguration(Project project, ConfigurationFactory factory) {
     super(project, factory);
+
+    for (LaunchOption option : LAUNCH_OPTIONS) {
+      myLaunchOptionStates.put(option.getId(), option.createState());
+    }
   }
 
   @Override
@@ -66,7 +85,12 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @NotNull
   @Override
   protected List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-    return getApplicationLauncher(facet).checkConfiguration();
+    LaunchOptionState launchOptionState = getLaunchOptionState(MODE);
+    if (launchOptionState == null) {
+      return Collections.emptyList();
+    }
+
+    return launchOptionState.checkConfiguration(facet);
   }
 
   @NotNull
@@ -100,21 +124,26 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Override
   @Nullable
   public RefactoringElementListener getRefactoringElementListener(PsiElement element) {
+    // TODO: This is a bit of a hack: Currently, refactoring only affects the specific activity launch, so we directly peek into it and
+    // change its state. The correct way of implementing this would be to delegate to all of the LaunchOptions and put the results into
+    // a RefactoringElementListenerComposite
+    final SpecificActivityLaunch.State state = (SpecificActivityLaunch.State)getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY);
+    assert state != null;
     return RefactoringListeners.getClassOrPackageListener(element, new RefactoringListeners.Accessor<PsiClass>() {
       @Override
       public void setName(String qualifiedName) {
-        ACTIVITY_CLASS = qualifiedName;
+        state.ACTIVITY_CLASS = qualifiedName;
       }
 
       @Nullable
       @Override
       public PsiClass getPsiElement() {
-        return getConfigurationModule().findClass(ACTIVITY_CLASS);
+        return getConfigurationModule().findClass(state.ACTIVITY_CLASS);
       }
 
       @Override
       public void setPsiElement(PsiClass psiClass) {
-        ACTIVITY_CLASS = JavaExecutionUtil.getRuntimeQualifiedName(psiClass);
+        state.ACTIVITY_CLASS = JavaExecutionUtil.getRuntimeQualifiedName(psiClass);
       }
     });
   }
@@ -136,29 +165,57 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @NotNull
   @Override
-  protected AndroidActivityLauncher getApplicationLauncher(@NotNull AndroidFacet facet) {
-    return new AndroidActivityLauncher(facet, needsLaunch(), getActivityLocator(facet), ACTIVITY_EXTRA_FLAGS);
-  }
-
-  @NotNull
-  protected ActivityLocator getActivityLocator(@NotNull AndroidFacet facet) {
-    if (MODE.equals(LAUNCH_DEFAULT_ACTIVITY)) {
-      if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
-        return new MavenDefaultActivityLocator(facet);
-      }
-      else {
-        return new DefaultActivityLocator(facet);
-      }
-    }
-    else if (MODE.equals(LAUNCH_SPECIFIC_ACTIVITY)) {
-      return new SpecificActivityLocator(facet, ACTIVITY_CLASS);
-    }
-    else {
-      return new EmptyActivityLocator();
-    }
+  protected AndroidApplicationLauncher getApplicationLauncher(@NotNull AndroidFacet facet) {
+    LaunchOptionState state = getLaunchOptionState(MODE);
+    assert state != null;
+    return state.getLauncher(facet, ACTIVITY_EXTRA_FLAGS);
   }
 
   protected boolean needsLaunch() {
     return LAUNCH_SPECIFIC_ACTIVITY.equals(MODE) || LAUNCH_DEFAULT_ACTIVITY.equals(MODE);
+  }
+
+  public void setLaunchActivity(@NotNull String activityName) {
+    MODE = LAUNCH_SPECIFIC_ACTIVITY;
+
+    // TODO: we probably need a better way to do this rather than peeking into the option state
+    // Possibly something like setLaunch(LAUNCH_SPECIFIC_ACTIVITY, SpecificLaunchActivity.state(className))
+    LaunchOptionState state = getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY);
+    assert state instanceof SpecificActivityLaunch.State;
+    ((SpecificActivityLaunch.State)state).ACTIVITY_CLASS = activityName;
+  }
+
+  public boolean isLaunchingActivity(@Nullable String activityName) {
+    if (!StringUtil.equals(MODE, LAUNCH_SPECIFIC_ACTIVITY)) {
+      return false;
+    }
+
+    // TODO: we probably need a better way to do this rather than peeking into the option state, possibly just delegate equals to the option
+    LaunchOptionState state = getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY);
+    assert state instanceof SpecificActivityLaunch.State;
+    return StringUtil.equals(((SpecificActivityLaunch.State)state).ACTIVITY_CLASS, activityName);
+  }
+
+  @Nullable
+  public LaunchOptionState getLaunchOptionState(@NotNull String launchOptionId) {
+    return myLaunchOptionStates.get(launchOptionId);
+  }
+
+  @Override
+  public void readExternal(Element element) throws InvalidDataException {
+    super.readExternal(element);
+
+    for (LaunchOptionState state : myLaunchOptionStates.values()) {
+      DefaultJDOMExternalizer.readExternal(state, element);
+    }
+  }
+
+  @Override
+  public void writeExternal(Element element) throws WriteExternalException {
+    super.writeExternal(element);
+
+    for (LaunchOptionState state : myLaunchOptionStates.values()) {
+      DefaultJDOMExternalizer.writeExternal(state, element);
+    }
   }
 }
