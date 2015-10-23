@@ -654,6 +654,16 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   }
 
   private void rescanImmediately(@NonNull final PsiFile psiFile, final @NonNull ResourceFolderType folderType) {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
+        public void run() {
+          rescanImmediately(psiFile, folderType);
+        }
+      });
+      return;
+    }
+
     PsiFile file = psiFile;
     if (folderType == VALUES) {
       // For unit test tracking purposes only
