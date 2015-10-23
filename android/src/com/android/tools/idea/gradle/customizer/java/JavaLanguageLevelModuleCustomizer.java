@@ -50,7 +50,7 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<IdeaJ
 
     if (isNotSupported(languageLevel)) {
       // Java language 1.8 is not supported, fall back to the minimum Java language level in dependent modules.
-      List<Module> dependents = getAllDependentModules(module);
+      List<Module> dependents = modelsProvider.getAllDependentModules(module);
       languageLevel = getMinimumLanguageLevelForAndroidModules(dependents.toArray(new Module[dependents.size()]));
     }
 
