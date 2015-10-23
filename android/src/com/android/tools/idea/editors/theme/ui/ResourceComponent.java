@@ -16,34 +16,30 @@
 package com.android.tools.idea.editors.theme.ui;
 
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
-import com.android.tools.swing.ui.ClickableLabel;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.List;
 
 /**
  * Component for displaying a color or a drawable resource with attribute name, type and value text.
  */
 public class ResourceComponent extends JPanel {
-
   /**
    * Maximum number of swatch icons to be displayed by default. See {@link SwatchComponent} constructor for more details.
    */
-  private static final short MAX_SWATCH_ICONS = 3;
   public static final String NAME_LABEL = "Name Label";
 
-  private final SwatchComponent mySwatchComponent = new SwatchComponent(MAX_SWATCH_ICONS);
-  private final ClickableLabel myNameLabel = new ClickableLabel();
-  protected final ClickableLabel myWarningLabel = new ClickableLabel();
+  private final SwatchComponent mySwatchComponent = new SwatchComponent();
+  private final JLabel myNameLabel = new JLabel();
+  protected final JLabel myWarningLabel = new JLabel();
 
   private final VariantsComboBox myVariantCombo = new VariantsComboBox();
 
@@ -65,8 +61,6 @@ public class ResourceComponent extends JPanel {
     topRowPanel.add(myVariantCombo);
     add(topRowPanel, BorderLayout.CENTER);
 
-    mySwatchComponent.setBackground(JBColor.WHITE);
-    mySwatchComponent.setForeground(null);
     add(mySwatchComponent, BorderLayout.SOUTH);
   }
 
@@ -85,8 +79,12 @@ public class ResourceComponent extends JPanel {
     return super.getPreferredSize();
   }
 
-  public void setSwatchIcons(@NotNull List<SwatchComponent.SwatchIcon> icons) {
-    mySwatchComponent.setSwatchIcons(icons);
+  public void setSwatchIcon(@NotNull SwatchComponent.SwatchIcon icon) {
+    mySwatchComponent.setSwatchIcon(icon);
+  }
+
+  public void showStack(boolean show) {
+    mySwatchComponent.showStack(show);
   }
 
   public void setNameText(@NotNull String name) {
@@ -132,7 +130,7 @@ public class ResourceComponent extends JPanel {
       mySwatchComponent.setFont(font);
     }
     if (myNameLabel != null) {
-      myNameLabel.setFont(myNameLabel.getFont().deriveFont(font.getStyle()));
+      myNameLabel.setFont(font);
     }
   }
 
@@ -140,22 +138,24 @@ public class ResourceComponent extends JPanel {
   public void setComponentPopupMenu(JPopupMenu popup) {
     super.setComponentPopupMenu(popup);
     myNameLabel.setComponentPopupMenu(popup);
+    myWarningLabel.setComponentPopupMenu(popup);
     mySwatchComponent.setComponentPopupMenu(popup);
   }
 
-  public void addActionListener(final ActionListener listener) {
-    myNameLabel.addActionListener(listener);
-    myWarningLabel.addActionListener(listener);
-    mySwatchComponent.addActionListener(listener);
-    addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        if (!contains(e.getPoint()) || !SwingUtilities.isLeftMouseButton(e)) {
-          return;
-        }
-        listener.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, null));
-      }
-    });
+  public void addSwatchListener(final ActionListener listener) {
+    mySwatchComponent.addSwatchListener(listener);
+  }
+
+  public void addTextListener(final ActionListener listener) {
+    mySwatchComponent.addTextListener(listener);
+  }
+
+  public void addTextDocumentListener(final DocumentListener listener) {
+    mySwatchComponent.addTextDocumentListener(listener);
+  }
+
+  public boolean hasWarningIcon() {
+    return mySwatchComponent.hasWarningIcon();
   }
 
   public void setVariantComboVisible(boolean isVisible) {

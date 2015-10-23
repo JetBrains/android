@@ -19,11 +19,12 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.swing.ui.ClickableLabel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JLabelFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import javax.swing.*;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -34,8 +35,13 @@ public class ResourceComponentFixture extends JPanelFixture {
   }
 
   @NotNull
-  private JButtonFixture getLabel() {
-    return new JButtonFixture(robot(), robot().finder().findByName(target(), ResourceComponent.NAME_LABEL, ClickableLabel.class));
+  private JLabelFixture getLabel() {
+    return new JLabelFixture(robot(), robot().finder().findByName(target(), ResourceComponent.NAME_LABEL, JLabel.class));
+  }
+
+  @NotNull
+  public JButtonFixture getSwatchButton() {
+    return new JButtonFixture(robot(), robot().finder().findByType(target(), ClickableLabel.class));
   }
 
   @NotNull
@@ -50,15 +56,12 @@ public class ResourceComponentFixture extends JPanelFixture {
     return labelValue;
   }
 
-  @NotNull
-  public Font getValueFont() {
-    Font font = getValueComponent().target().getFont();
-    assertNotNull(font);
-    return font;
-  }
-
   @Nullable
   public String getValueString() {
     return getValueComponent().getText();
+  }
+
+  public boolean hasWarningIcon() {
+    return getValueComponent().hasWarningIcon();
   }
 }
