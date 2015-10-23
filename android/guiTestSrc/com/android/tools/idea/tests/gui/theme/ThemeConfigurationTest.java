@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.AndroidThemePreviewPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
@@ -65,18 +66,19 @@ public class ThemeConfigurationTest extends GuiTestCase {
 
     newStyleDialog.clickOk();
     themeEditor.waitForThemeSelection("MyMaterialTheme");
-    themeEditor.getThemePreviewPanel().requirePreviewPanel();
+    AndroidThemePreviewPanelFixture themePreviewPanel = themeEditor.getThemePreviewPanel();
+    themePreviewPanel.requirePreviewPanel();
 
     JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
     myRobot.click(apiButton);
     clickPopupMenuItem("API 19", apiButton, myRobot);
 
-    themeEditor.getThemePreviewPanel().requireErrorPanel();
+    themePreviewPanel.requireErrorPanel();
 
     themesComboBox.selectItem("AppTheme");
-    themeEditor.getThemePreviewPanel().requirePreviewPanel();
+    themePreviewPanel.requirePreviewPanel();
 
     themesComboBox.selectItem("MyMaterialTheme");
-    themeEditor.getThemePreviewPanel().requireErrorPanel();
+    themePreviewPanel.requireErrorPanel();
   }
 }

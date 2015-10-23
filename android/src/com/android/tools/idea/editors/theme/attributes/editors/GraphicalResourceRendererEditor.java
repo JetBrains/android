@@ -48,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Comparator;
@@ -87,7 +88,6 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
   protected final AndroidThemePreviewPanel myPreviewPanel;
   protected AttributesTableModel myModel;
   protected EditedStyleItem myItem;
-  protected String myEditorValue;
 
   public GraphicalResourceRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
     myContext = context;
@@ -113,7 +113,13 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
           stopCellEditing();
         }
       });
-      myComponent.addActionListener(new EditorClickListener());
+      myComponent.addSwatchListener(new EditorClickListener());
+      myComponent.addTextListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          stopCellEditing();
+        }
+      });
     }
 
     myPreviewPanel = previewPanel;
@@ -168,6 +174,8 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
     myItem = obj;
 
     myComponent.setSize(table.getCellRect(row, column, false).getSize());
+    Font font = table.getFont();
+    myComponent.setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
     updateComponentInternal(myComponent, obj);
     updateComponent(myContext, myComponent, obj);
 
@@ -180,16 +188,17 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
     myItem = value;
 
     myComponent.setSize(table.getCellRect(row, column, false).getSize());
+    Font font = table.getFont();
+    myComponent.setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
     updateComponentInternal(myComponent, value);
     updateComponent(myContext, myComponent, value);
-    myEditorValue = null; // invalidate stored editor value
 
     return myComponent;
   }
 
   @Override
   public String getEditorValue() {
-    return myEditorValue;
+    return myComponent.getValueText();
   }
 
   /**
@@ -270,11 +279,11 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
       // Restore the old value in the properties model
       myItem.getSelectedValue().setValue(oldValue);
 
-      myEditorValue = null;
+      String editorValue = null;
       if (dialog.isOK()) {
         String value = dialog.getResourceName();
         if (value != null) {
-          myEditorValue = dialog.getResourceName();
+          editorValue = dialog.getResourceName();
         }
       }
       else {
@@ -282,10 +291,11 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
         myPreviewPanel.invalidateGraphicsRenderer();
       }
 
-      if (myEditorValue == null) {
+      if (editorValue == null) {
         GraphicalResourceRendererEditor.this.cancelCellEditing();
       }
       else {
+        myComponent.setValueText(editorValue);
         GraphicalResourceRendererEditor.this.stopCellEditing();
       }
     }
