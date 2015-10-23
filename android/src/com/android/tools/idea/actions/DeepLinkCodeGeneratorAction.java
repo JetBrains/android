@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -68,6 +69,8 @@ public class DeepLinkCodeGeneratorAction extends AnAction {
     final PsiFile file = e.getData(LangDataKeys.PSI_FILE);
 
     if (project != null && editor != null && file != null) {
+      UsageTracker.getInstance().trackEvent(
+          UsageTracker.CATEGORY_APP_INDEXING, UsageTracker.ACTION_APP_INDEXING_DEEP_LINK_CREATED, null, null);
       WriteCommandAction.runWriteCommandAction(project, new Runnable() {
         @Override
         public void run() {
