@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
@@ -24,8 +25,10 @@ import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -37,8 +40,11 @@ import java.util.Collection;
 import java.util.Locale;
 
 public class PatchDeployState implements RunProfileState {
+  private static final Logger LOG = Logger.getInstance(PatchDeployState.class);
+
   private final RunContentDescriptor myDescriptor;
-  private final ProcessHandler myProcessHandler;
+  private final String myApplicationId;
+  private ProcessHandler myProcessHandler;
   private final AndroidFacet myFacet;
   private final Collection<IDevice> myDevices;
 
@@ -47,6 +53,14 @@ public class PatchDeployState implements RunProfileState {
     myProcessHandler = descriptor.getProcessHandler();
     myFacet = facet;
     myDevices = devices;
+
+    try {
+      myApplicationId = ApkProviderUtil.computePackageName(myFacet);
+    }
+    catch (ApkProvisionException e) {
+      LOG.error("Unable to determine package name.");
+      throw new IllegalArgumentException(e);
+    }
   }
 
 
@@ -70,13 +84,59 @@ public class PatchDeployState implements RunProfileState {
         // @formatter:on
         myProcessHandler.notifyTextAvailable(msg, ProcessOutputTypes.STDOUT);
 
+        boolean coldSwap = FastDeployManager.isColdSwap(AndroidGradleModel.get(myFacet));
+        AndroidMultiProcessHandler newProcessHandler = null;
+        ProcessHandler oldProcessHandler = myProcessHandler;
+
+        if (coldSwap) {
+          LOG.info("Performing a cold swap, application will restart");
+          myProcessHandler.notifyTextAvailable("Performing a cold swap, application will restart\n", ProcessOutputTypes.STDOUT);
+          newProcessHandler = switchToNewProcessHandler();
+        }
+
         for (IDevice device : myDevices) {
           FastDeployManager.pushChanges(device, myFacet);
+
+          if (coldSwap) {
+            newProcessHandler.addTargetDevice(device);
+          }
         }
 
         myProcessHandler.notifyTextAvailable("Incremental update complete.\n", ProcessOutputTypes.STDOUT);
+
+        if (coldSwap && (oldProcessHandler instanceof AndroidMultiProcessHandler)) {
+          // We want to cleanup the existing process handler, but we don't want it to attempt to kill any clients
+          ((AndroidMultiProcessHandler)oldProcessHandler).setNoKill();
+          oldProcessHandler.destroyProcess();
+        }
       }
     });
+  }
+
+  @NotNull
+  private AndroidMultiProcessHandler switchToNewProcessHandler() {
+    AndroidMultiProcessHandler handler = new AndroidMultiProcessHandler(myApplicationId);
+    handler.startNotify();
+
+    AndroidSessionInfo info = myProcessHandler.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
+    if (info == null) {
+      throw new IllegalStateException("Unexpected error: Old state was not an instance of an Android run.");
+    }
+
+    AndroidSessionInfo newSession = new AndroidSessionInfo(handler, myDescriptor, info.getState(), info.getExecutorId());
+    handler.putUserData(AndroidDebugRunner.ANDROID_SESSION_INFO, newSession);
+
+    ConsoleView console = info.getState().getConsoleView();
+    if (console == null) {
+      throw new IllegalStateException("Unexpected error: Old state was not attached to a console.");
+    }
+
+    console.attachToProcess(handler);
+
+    myDescriptor.setProcessHandler(handler);
+    myProcessHandler = handler;
+
+    return handler;
   }
 
   private static String join(Collection<IDevice> devices) {
