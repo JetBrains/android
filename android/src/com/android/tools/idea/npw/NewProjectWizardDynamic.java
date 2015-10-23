@@ -26,7 +26,6 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.template.TemplateWizard;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -43,13 +42,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.tools.idea.wizard.WizardConstants.*;
+import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 
 /**
  * Presents a wizard to the user to create a new project.
@@ -92,31 +91,37 @@ public class NewProjectWizardDynamic extends DynamicWizard {
    * Populate our state store with some common configuration items, such as the SDK location and the Gradle configuration.
    */
   protected void initState() {
-    ScopedStateStore state = getState();
-    // TODO(jbakermalone): move the setting of this state closer to where it is used, so it's clear what's needed.
-    state.put(WizardConstants.GRADLE_VERSION_KEY, GRADLE_LATEST_VERSION);
-    state.put(WizardConstants.GRADLE_PLUGIN_VERSION_KEY, GRADLE_PLUGIN_RECOMMENDED_VERSION);
-    state.put(WizardConstants.USE_PER_MODULE_REPOS_KEY, false);
-    state.put(WizardConstants.IS_NEW_PROJECT_KEY, true);
+    initState(getState(), SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION);
+  }
+
+  static void initState(@NotNull ScopedStateStore state, @NotNull String gradlePluginVersion) {
+    state.put(WizardConstants.GRADLE_PLUGIN_VERSION_KEY, gradlePluginVersion);
+    state.put(WizardConstants.GRADLE_VERSION_KEY, SdkConstants.GRADLE_LATEST_VERSION);
     state.put(WizardConstants.IS_GRADLE_PROJECT_KEY, true);
+    state.put(WizardConstants.IS_NEW_PROJECT_KEY, true);
+    state.put(WizardConstants.TARGET_FILES_KEY, new HashSet<File>());
+    state.put(WizardConstants.FILES_TO_OPEN_KEY, new ArrayList<File>());
+    state.put(WizardConstants.USE_PER_MODULE_REPOS_KEY, false);
+
     try {
       state.put(WizardConstants.DEBUG_KEYSTORE_SHA_1_KEY, KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore()));
     }
-    catch (Exception e) {
-      LOG.error("Could not create default debug keystore: " + e.getMessage());
+    catch (Exception exception) {
+      LOG.warn("Could not create debug keystore", exception);
       state.put(WizardConstants.DEBUG_KEYSTORE_SHA_1_KEY, "");
     }
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkData != null) {
-      state.put(WizardConstants.SDK_DIR_KEY, sdkData.getLocation().getPath());
-    }
+
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
+
     if (mavenUrl != null) {
       state.put(WizardConstants.MAVEN_URL_KEY, mavenUrl);
     }
 
-    state.put(WizardConstants.TARGET_FILES_KEY, new HashSet<File>());
-    state.put(FILES_TO_OPEN_KEY, Lists.<File>newArrayList());
+    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
+
+    if (data != null) {
+      state.put(WizardConstants.SDK_DIR_KEY, data.getLocation().getPath());
+    }
   }
 
   @Override
