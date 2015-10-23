@@ -54,9 +54,10 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
   @NonNls public static final String DO_NOTHING = "do_nothing";
+  @NonNls public static final String LAUNCH_DEEP_LINK = "launch_deep_link";
 
   public static final List<? extends LaunchOption> LAUNCH_OPTIONS =
-    Arrays.asList(NoLaunch.INSTANCE, DefaultActivityLaunch.INSTANCE, SpecificActivityLaunch.INSTANCE);
+    Arrays.asList(NoLaunch.INSTANCE, DefaultActivityLaunch.INSTANCE, SpecificActivityLaunch.INSTANCE, DeepLinkLaunch.INSTANCE);
 
   // Deploy options
   public boolean DEPLOY = true;
