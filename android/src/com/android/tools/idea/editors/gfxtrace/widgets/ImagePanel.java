@@ -57,8 +57,8 @@ public class ImagePanel extends JPanel {
     setFocusable(true);
   }
 
-  public void addToolbarActions(DefaultActionGroup group) {
-    myImage.addToolbarActions(group);
+  public void addToolbarActions(DefaultActionGroup group, boolean enableVerticalFlip) {
+    myImage.addToolbarActions(group, enableVerticalFlip);
   }
 
   public StatusText getEmptyText() {
@@ -83,6 +83,7 @@ public class ImagePanel extends JPanel {
     private Image image = EMPTY_IMAGE;
     private double zoom;
     private boolean drawCheckerBoard = true;
+    private boolean flipped = false;
 
     public ImageComponent(JBScrollPane scrollPane) {
       scrollPane.setViewportView(this);
@@ -199,7 +200,7 @@ public class ImagePanel extends JPanel {
       repaint();
     }
 
-    public void addToolbarActions(DefaultActionGroup group) {
+    public void addToolbarActions(DefaultActionGroup group, boolean enableVerticalFlip) {
       group.add(new AnAction("Zoom to Fit", "Fit the image to the panel", AndroidIcons.ZoomFit) {
         @Override
         public void actionPerformed(AnActionEvent e) {
@@ -237,6 +238,20 @@ public class ImagePanel extends JPanel {
           repaint();
         }
       });
+      if (enableVerticalFlip) {
+        group.add(new ToggleAction("Flip Vertically", "Flip The image vertically", AndroidIcons.GfxTrace.FlipVertically) {
+          @Override
+          public boolean isSelected(AnActionEvent e) {
+            return flipped;
+          }
+
+          @Override
+          public void setSelected(AnActionEvent e, boolean state) {
+            flipped = state;
+            repaint();
+          }
+        });
+      }
     }
 
     @Override
@@ -263,7 +278,12 @@ public class ImagePanel extends JPanel {
         g.fillRect(x, y, w, h);
       }
 
+      AffineTransform transform = ((Graphics2D)g).getTransform();
+      if (flipped) {
+        ((Graphics2D)g).transform(new AffineTransform(1, 0, 0, -1, 0, getHeight() - 1));
+      }
       g.drawImage(image, x, y, w, h, this);
+      ((Graphics2D)g).setTransform(transform);
       BORDER.paintBorder(this, g, x - BORDER_SIZE, y - BORDER_SIZE, w + 2 * BORDER_SIZE, h + 2 * BORDER_SIZE);
     }
 
