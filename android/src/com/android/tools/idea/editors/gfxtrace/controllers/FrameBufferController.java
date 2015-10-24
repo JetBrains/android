@@ -58,7 +58,7 @@ public class FrameBufferController extends ImagePanelController {
     mySettings.setMaxWidth(MAX_SIZE);
     mySettings.setWireframeMode(WireframeMode.noWireframe());
 
-    initToolbar(getToolbarActions());
+    initToolbar(getToolbarActions(), false);
   }
 
   private DefaultActionGroup getToolbarActions() {
