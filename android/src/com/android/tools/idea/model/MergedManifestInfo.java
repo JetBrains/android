@@ -45,7 +45,7 @@ public class MergedManifestInfo extends ManifestInfo {
   @NotNull private final Module myModule;
   @NotNull private final AndroidFacet myAndroidFacet;
 
-  private Set<VirtualFile> myManifestFiles = Sets.newHashSet();
+  private Set<VirtualFile> myManifestFiles = Sets.newConcurrentHashSet();
   private final AtomicLong myLastChecked = new AtomicLong(0);
   private AtomicReference<List<Manifest>> myManifestsRef = new AtomicReference<List<Manifest>>(Collections.<Manifest>emptyList());
 
@@ -147,21 +147,18 @@ public class MergedManifestInfo extends ManifestInfo {
     return myManifestsRef.get();
   }
 
-  private void sync() {
+  private synchronized void sync() {
     boolean needsRefresh = false;
 
     // needs a refresh if the list of manifests changed due to a variant change or a sync with new build script
-    Set<VirtualFile> currentManifests = getAllManifests(myAndroidFacet);
+    final Set<VirtualFile> currentManifests = getAllManifests(myAndroidFacet);
     if (!currentManifests.equals(myManifestFiles)) {
-      myManifestFiles = currentManifests;
-      myLastChecked.set(0);
       needsRefresh = true;
     }
 
     // needs a refresh if one of the manifests has a newer timestamp
     long maxLastModified = getMaxLastModified();
     if (myLastChecked.get() < maxLastModified) {
-      myLastChecked.set(maxLastModified);
       needsRefresh = true;
     }
 
@@ -169,9 +166,21 @@ public class MergedManifestInfo extends ManifestInfo {
       ApplicationManager.getApplication().runReadAction(new Runnable() {
         @Override
         public void run() {
-          syncWithReadPermission();
+          syncWithReadPermission(currentManifests);
         }
       });
+    }
+
+    // Set the cache state after syncWithReadPermission() is complete, as this entire process could be called from
+    // a cancellable process, and if we had set this before, then we'd end up in an inconsistent state
+
+    if (!currentManifests.equals(myManifestFiles)) {
+      myManifestFiles = currentManifests;
+      myLastChecked.set(0);
+    }
+
+    if (myLastChecked.get() < maxLastModified) {
+      myLastChecked.set(maxLastModified);
     }
   }
 
@@ -186,11 +195,11 @@ public class MergedManifestInfo extends ManifestInfo {
     return max;
   }
 
-  private void syncWithReadPermission() {
+  private void syncWithReadPermission(Set<VirtualFile> files) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
-    List<Manifest> manifests = Lists.newArrayListWithExpectedSize(myManifestFiles.size());
-    for (VirtualFile f : myManifestFiles) {
+    List<Manifest> manifests = Lists.newArrayListWithExpectedSize(files.size());
+    for (VirtualFile f : files) {
       PsiFile psiFile = PsiManager.getInstance(myModule.getProject()).findFile(f);
       if (psiFile instanceof XmlFile) {
         Manifest m = AndroidUtils.loadDomElementWithReadPermission(myModule.getProject(), (XmlFile)psiFile, Manifest.class);
