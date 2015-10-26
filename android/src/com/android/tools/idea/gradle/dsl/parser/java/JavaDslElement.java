@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.java;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesPsiElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 /**
  * Holds the data in addition to the project element, which added by Java plugin
  */
-public class JavaPsiElement extends GradlePropertiesPsiElement {
+public class JavaDslElement extends GradlePropertiesDslElement {
   public static final String NAME = "java";
 
-  public JavaPsiElement(@Nullable GradlePsiElement parent) {
+  public JavaDslElement(@Nullable GradleDslElement parent) {
     super(parent, null, NAME);
   }
 

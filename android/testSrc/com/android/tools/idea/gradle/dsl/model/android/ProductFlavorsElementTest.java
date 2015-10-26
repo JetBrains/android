@@ -16,14 +16,14 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsPsiElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Collection;
 
 /**
- * Tests for {@link ProductFlavorsPsiElement}.
+ * Tests for {@link ProductFlavorsDslElement}.
  *
  * <p>Both {@code android.defaultConfig {}} and {@code android.productFlavors.xyz {}} uses the same structure with same attributes.
  * In this test, we only test the general structure of {@code android.productFlavors {}}. The product flavor structure defined by

@@ -33,72 +33,72 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Represents an element which consists a list of {@link GradlePsiLiteral}s.
+ * Represents an element which consists a list of {@link GradleDslLiteral}s.
  */
-public final class GradlePsiLiteralList extends GradlePsiElement {
-  @NotNull private final List<GradlePsiLiteral> myElements = Lists.newArrayList();
-  @NotNull private final List<GradlePsiLiteral> myToBeAddedElements = Lists.newArrayList();
-  @NotNull private final List<GradlePsiLiteral> myToBeRemovedElements = Lists.newArrayList();
+public final class GradleDslLiteralList extends GradleDslElement {
+  @NotNull private final List<GradleDslLiteral> myElements = Lists.newArrayList();
+  @NotNull private final List<GradleDslLiteral> myToBeAddedElements = Lists.newArrayList();
+  @NotNull private final List<GradleDslLiteral> myToBeRemovedElements = Lists.newArrayList();
 
-  public GradlePsiLiteralList(@Nullable GradlePsiElement parent, @NotNull String name) {
+  public GradleDslLiteralList(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
   }
 
-  public GradlePsiLiteralList(@NotNull GradlePsiElement parent, @NotNull String name, @NotNull GrListOrMap list) {
+  public GradleDslLiteralList(@NotNull GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap list) {
     super(parent, list, name);
     assert !list.isMap();
     for (GrExpression exp : list.getInitializers()) {
       if (exp instanceof GrLiteral) {
-        myElements.add(new GradlePsiLiteral(this, list, name, (GrLiteral)exp));
+        myElements.add(new GradleDslLiteral(this, list, name, (GrLiteral)exp));
       }
     }
   }
 
-  public GradlePsiLiteralList(@NotNull GradlePsiElement parent,
+  public GradleDslLiteralList(@NotNull GradleDslElement parent,
                               @NotNull GroovyPsiElement psiElement,
                               @NotNull String name,
                               @NotNull GrLiteral... literals) {
     super(parent, psiElement, name);
     for (GrLiteral literal : literals) {
-      myElements.add(new GradlePsiLiteral(this, psiElement, name, literal));
+      myElements.add(new GradleDslLiteral(this, psiElement, name, literal));
     }
   }
 
   void add(@NotNull GroovyPsiElement psiElement, @NotNull String name, @NotNull GrLiteral... literals) {
     setGroovyPsiElement(psiElement);
     for (GrLiteral literal : literals) {
-      myElements.add(new GradlePsiLiteral(this, psiElement, name, literal));
+      myElements.add(new GradleDslLiteral(this, psiElement, name, literal));
     }
   }
 
   @NotNull
-  public List<GradlePsiLiteral> getElements() {
+  public List<GradleDslLiteral> getElements() {
     if (myToBeAddedElements.isEmpty() && myToBeRemovedElements.isEmpty()) {
       return ImmutableList.copyOf(myElements);
     }
 
-    List<GradlePsiLiteral> result = Lists.newArrayList();
+    List<GradleDslLiteral> result = Lists.newArrayList();
     result.addAll(myElements);
     result.addAll(myToBeAddedElements);
-    for (GradlePsiLiteral element : myToBeRemovedElements) {
+    for (GradleDslLiteral element : myToBeRemovedElements) {
       result.remove(element);
     }
     return result;
   }
 
-  public void add(@NotNull GradlePsiLiteral... elements) {
+  public void add(@NotNull GradleDslLiteral... elements) {
     myToBeAddedElements.addAll(Arrays.asList(elements));
     setModified(true);
   }
 
   void add(@NotNull Object elementValue) {
-    GradlePsiLiteral element = new GradlePsiLiteral(this, myName);
+    GradleDslLiteral element = new GradleDslLiteral(this, myName);
     element.setValue(elementValue);
     myToBeAddedElements.add(element);
   }
 
   void remove(@NotNull Object elementValue) {
-    for (GradlePsiLiteral element : getElements()) {
+    for (GradleDslLiteral element : getElements()) {
       if (elementValue.equals(element.getValue())) {
         myToBeRemovedElements.add(element);
         setModified(true);
@@ -108,7 +108,7 @@ public final class GradlePsiLiteralList extends GradlePsiElement {
   }
 
   void replace(@NotNull Object oldElementValue, @NotNull Object newElementValue) {
-    for (GradlePsiLiteral element : getElements()) {
+    for (GradleDslLiteral element : getElements()) {
       if (oldElementValue.equals(element.getValue())) {
         element.setValue(newElementValue);
         return;
@@ -124,7 +124,7 @@ public final class GradlePsiLiteralList extends GradlePsiElement {
   @NotNull
   public <E> List<E> getValues(Class<E> clazz) {
     List<E> result = Lists.newArrayList();
-    for (GradlePsiLiteral element : getElements()) {
+    for (GradleDslLiteral element : getElements()) {
       E value = element.getValue(clazz);
       if (value != null) {
         result.add(value);
@@ -176,7 +176,7 @@ public final class GradlePsiLiteralList extends GradlePsiElement {
   protected void apply() {
     GroovyPsiElement psiElement = create();
     if (psiElement != null) {
-      for (GradlePsiLiteral element : myToBeAddedElements) {
+      for (GradleDslLiteral element : myToBeAddedElements) {
         element.setGroovyPsiElement(psiElement);
         element.applyChanges();
         myElements.add(element);
@@ -184,14 +184,14 @@ public final class GradlePsiLiteralList extends GradlePsiElement {
     }
     myToBeAddedElements.clear();
 
-    for (GradlePsiLiteral element : myToBeRemovedElements) {
+    for (GradleDslLiteral element : myToBeRemovedElements) {
       if (myElements.remove(element)) {
         element.delete();
       }
     }
     myToBeRemovedElements.clear();
 
-    for (GradlePsiLiteral element : myElements) {
+    for (GradleDslLiteral element : myElements) {
       if (element.isModified()) {
         element.applyChanges();
       }
@@ -202,7 +202,7 @@ public final class GradlePsiLiteralList extends GradlePsiElement {
   protected void reset() {
     myToBeAddedElements.clear();
     myToBeRemovedElements.clear();
-    for (GradlePsiLiteral element : myElements) {
+    for (GradleDslLiteral element : myElements) {
       if (element.isModified()) {
         element.resetState();
       }
@@ -211,7 +211,7 @@ public final class GradlePsiLiteralList extends GradlePsiElement {
 
   @Override
   @NotNull
-  protected Collection<GradlePsiElement> getChildren() {
+  protected Collection<GradleDslElement> getChildren() {
     return ImmutableList.of();
   }
 }

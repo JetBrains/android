@@ -17,15 +17,15 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtPsiElement;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaPsiElement;
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
+import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaProjectElementParser;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslElementParser;
-import com.android.tools.idea.gradle.dsl.parser.GradlePsiFile;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidPsiElement;
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -50,18 +50,18 @@ public class GradleBuildModel extends GradleFileModel {
 
   @NotNull
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    GradleBuildPsiFile buildPsiFile = new GradleBuildPsiFile(file, project, moduleName);
-    buildPsiFile.parse();
-    return new GradleBuildModel(buildPsiFile);
+    GradleBuildDslFile buildDslFile = new GradleBuildDslFile(file, project, moduleName);
+    buildDslFile.parse();
+    return new GradleBuildModel(buildDslFile);
   }
 
-  private GradleBuildModel(@NotNull GradleBuildPsiFile buildPsiFile) {
+  private GradleBuildModel(@NotNull GradleBuildDslFile buildPsiFile) {
     super(buildPsiFile);
   }
 
   @Nullable
   public AndroidModel android() {
-    AndroidPsiElement androidPsiElement = myGradlePsiFile.getProperty(AndroidPsiElement.NAME, AndroidPsiElement.class);
+    AndroidDslElement androidPsiElement = myGradleDslFile.getProperty(AndroidDslElement.NAME, AndroidDslElement.class);
     return androidPsiElement != null ? new AndroidModel(androidPsiElement) : null;
   }
 
@@ -70,26 +70,26 @@ public class GradleBuildModel extends GradleFileModel {
     if (android() != null) {
       return this;
     }
-    AndroidPsiElement androidPsiElement = new AndroidPsiElement(myGradlePsiFile);
-    myGradlePsiFile.setNewElement(AndroidPsiElement.NAME, androidPsiElement);
+    AndroidDslElement androidPsiElement = new AndroidDslElement(myGradleDslFile);
+    myGradleDslFile.setNewElement(AndroidDslElement.NAME, androidPsiElement);
     return this;
   }
 
   @NotNull
   public GradleBuildModel removeAndroidModel() {
-    myGradlePsiFile.removeProperty(AndroidPsiElement.NAME);
+    myGradleDslFile.removeProperty(AndroidDslElement.NAME);
     return this;
   }
 
   @NotNull
   public Dependencies dependencies() {
-    return ((GradleBuildPsiFile)myGradlePsiFile).myDependencies;
+    return ((GradleBuildDslFile)myGradleDslFile).myDependencies;
   }
 
   @Nullable
   public ExtModel ext() {
-    ExtPsiElement extPsiElement = myGradlePsiFile.getProperty(ExtPsiElement.NAME, ExtPsiElement.class);
-    return extPsiElement != null ? new ExtModel(extPsiElement) : null;
+    ExtDslElement extDslElement = myGradleDslFile.getProperty(ExtDslElement.NAME, ExtDslElement.class);
+    return extDslElement != null ? new ExtModel(extDslElement) : null;
   }
 
   @NotNull
@@ -97,21 +97,21 @@ public class GradleBuildModel extends GradleFileModel {
     if (ext() != null) {
       return this;
     }
-    ExtPsiElement extPsiElement = new ExtPsiElement(myGradlePsiFile);
-    myGradlePsiFile.setNewElement(ExtPsiElement.NAME, extPsiElement);
+    ExtDslElement extDslElement = new ExtDslElement(myGradleDslFile);
+    myGradleDslFile.setNewElement(ExtDslElement.NAME, extDslElement);
     return this;
   }
 
   @NotNull
   public GradleBuildModel removeExtModel() {
-    myGradlePsiFile.removeProperty(ExtPsiElement.NAME);
+    myGradleDslFile.removeProperty(ExtDslElement.NAME);
     return this;
   }
 
   @Nullable
   public JavaModel java() {
-    JavaPsiElement javaPsiElement = myGradlePsiFile.getProperty(JavaPsiElement.NAME, JavaPsiElement.class);
-    return javaPsiElement != null ? new JavaModel(javaPsiElement) : null;
+    JavaDslElement javaDslElement = myGradleDslFile.getProperty(JavaDslElement.NAME, JavaDslElement.class);
+    return javaDslElement != null ? new JavaModel(javaDslElement) : null;
   }
 
   @NotNull
@@ -119,24 +119,24 @@ public class GradleBuildModel extends GradleFileModel {
     if (java() != null) {
       return this;
     }
-    JavaPsiElement javaPsiElement = new JavaPsiElement(myGradlePsiFile);
-    myGradlePsiFile.setNewElement(JavaPsiElement.NAME, javaPsiElement);
+    JavaDslElement javaDslElement = new JavaDslElement(myGradleDslFile);
+    myGradleDslFile.setNewElement(JavaDslElement.NAME, javaDslElement);
     return this;
   }
 
   @NotNull
   public GradleBuildModel removeJavaModel() {
-    myGradlePsiFile.removeProperty(JavaPsiElement.NAME);
+    myGradleDslFile.removeProperty(JavaDslElement.NAME);
     return this;
   }
 
-  private static class GradleBuildPsiFile extends GradlePsiFile {
+  private static class GradleBuildDslFile extends GradleDslFile {
     @NotNull private Dependencies myDependencies = new Dependencies(this);
 
     private final GradleDslElementParser[] myParsers = {new JavaProjectElementParser()};
 
 
-    private GradleBuildPsiFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
+    private GradleBuildDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
       super(file, project, moduleName);
     }
 
@@ -172,13 +172,13 @@ public class GradleBuildModel extends GradleFileModel {
           boolean parsed = false;
           for (GradleDslElementParser parser : myParsers) {
             // If a parser was able to parse the given PSI element, stop. Otherwise give another parser the chance to parse the PSI element.
-            if (parser.parse(e, GradleBuildPsiFile.this)) {
+            if (parser.parse(e, GradleBuildDslFile.this)) {
               parsed = true;
               break;
             }
           }
           if (!parsed) {
-            GradleDslParser.parse(e, GradleBuildPsiFile.this);
+            GradleDslParser.parse(e, GradleBuildDslFile.this);
           }
         }
       }));
