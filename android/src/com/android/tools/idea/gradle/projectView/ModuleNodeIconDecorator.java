@@ -15,23 +15,29 @@
  */
 package com.android.tools.idea.gradle.projectView;
 
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ProjectViewNodeDecorator;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packageDependencies.ui.PackageDependenciesNode;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 
-/** Provides custom icons for modules based on the module type. */
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.intellij.ide.projectView.impl.ProjectRootsUtil.isSourceRoot;
+import static com.intellij.openapi.module.ModuleUtilCore.isModuleDir;
+
+/**
+ * Provides custom icons for modules based on the module type.
+ */
 public class ModuleNodeIconDecorator implements ProjectViewNodeDecorator {
   @Override
   public void decorate(ProjectViewNode node, PresentationData data) {
@@ -41,7 +47,7 @@ public class ModuleNodeIconDecorator implements ProjectViewNodeDecorator {
 
     final PsiDirectoryNode psiDirectoryNode = (PsiDirectoryNode)node;
     PsiDirectory psiDirectory = psiDirectoryNode.getValue();
-
+    assert psiDirectory != null;
     Project project = psiDirectory.getProject();
     if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
       return;
@@ -49,8 +55,16 @@ public class ModuleNodeIconDecorator implements ProjectViewNodeDecorator {
 
     VirtualFile folder = psiDirectory.getVirtualFile();
     Module module = ProjectRootManager.getInstance(project).getFileIndex().getModuleForFile(folder);
-    if (module != null && ModuleUtilCore.isModuleDir(module, folder)) {
-      data.setIcon(GradleUtil.getModuleIcon(module));
+    if (module != null) {
+      if (isModuleDir(module, folder)) {
+        data.setIcon(getModuleIcon(module));
+      }
+      else if (isSourceRoot(folder, project)) {
+        TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+        if (testScopes != null && testScopes.isAndroidTestSource(folder)) {
+          data.setIcon(AndroidIcons.AndroidTestRoot);
+        }
+      }
     }
   }
 
