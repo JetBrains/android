@@ -146,18 +146,20 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
       public void mouseReleased(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON3) {
           int i = myDeviceTable.rowAtPoint(e.getPoint());
-          Object serial = myDeviceTable.getValueAt(i, SERIAL_COLUMN_INDEX);
-          final String serialString = serial.toString();
-          // Add a menu to copy the serial key.
-          JBPopupMenu popupMenu = new JBPopupMenu();
-          Action action = new AbstractAction("Copy Serial Number") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-              CopyPasteManager.getInstance().setContents(new StringSelection(serialString));
-            }
-          };
-          popupMenu.add(action);
-          popupMenu.show(e.getComponent(), e.getX(), e.getY());
+          if (i >= 0) {
+            Object serial = myDeviceTable.getValueAt(i, SERIAL_COLUMN_INDEX);
+            final String serialString = serial.toString();
+            // Add a menu to copy the serial key.
+            JBPopupMenu popupMenu = new JBPopupMenu();
+            Action action = new AbstractAction("Copy Serial Number") {
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                CopyPasteManager.getInstance().setContents(new StringSelection(serialString));
+              }
+            };
+            popupMenu.add(action);
+            popupMenu.show(e.getComponent(), e.getX(), e.getY());
+          }
         }
         super.mouseReleased(e);
       }
