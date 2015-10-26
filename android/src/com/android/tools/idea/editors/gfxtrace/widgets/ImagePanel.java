@@ -15,21 +15,29 @@
  */
 package com.android.tools.idea.editors.gfxtrace.widgets;
 
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBViewport;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
+import icons.ImagesIcons;
 import org.jetbrains.annotations.NotNull;
+import sun.awt.image.IntegerComponentRaster;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
+import java.util.Arrays;
 
 public class ImagePanel extends JPanel {
   private static final int ZOOM_AMOUNT = 5;
@@ -49,8 +57,8 @@ public class ImagePanel extends JPanel {
     setFocusable(true);
   }
 
-  public void addToolbarActions(DefaultActionGroup group) {
-    myImage.addToolbarActions(group);
+  public void addToolbarActions(DefaultActionGroup group, boolean enableVerticalFlip) {
+    myImage.addToolbarActions(group, enableVerticalFlip);
   }
 
   public StatusText getEmptyText() {
@@ -66,11 +74,16 @@ public class ImagePanel extends JPanel {
     private static final double MAX_ZOOM_FACTOR = 8;
     private static final double MIN_ZOOM_WIDTH = 100.0;
     private static final BufferedImage EMPTY_IMAGE = UIUtil.createImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+    private static final int BORDER_SIZE = JBUI.scale(2);
+    private static final Border BORDER = new LineBorder(JBColor.border(), BORDER_SIZE);
+    private static final Paint CHECKER_PAINT = new CheckerboardPaint();
 
     private final JViewport parent;
     private final StatusText emptyText;
     private Image image = EMPTY_IMAGE;
     private double zoom;
+    private boolean drawCheckerBoard = true;
+    private boolean flipped = false;
 
     public ImageComponent(JBScrollPane scrollPane) {
       scrollPane.setViewportView(this);
@@ -187,7 +200,7 @@ public class ImagePanel extends JPanel {
       repaint();
     }
 
-    public void addToolbarActions(DefaultActionGroup group) {
+    public void addToolbarActions(DefaultActionGroup group, boolean enableVerticalFlip) {
       group.add(new AnAction("Zoom to Fit", "Fit the image to the panel", AndroidIcons.ZoomFit) {
         @Override
         public void actionPerformed(AnActionEvent e) {
@@ -212,13 +225,40 @@ public class ImagePanel extends JPanel {
           zoom(ZOOM_AMOUNT, getCenterPoint());
         }
       });
+      group.add(new Separator());
+      group.add(new ToggleAction("Show Checkerboard", "Toggle the checkerboard background", ImagesIcons.ToggleTransparencyChessboard) {
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+          return drawCheckerBoard;
+        }
+
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+          drawCheckerBoard = state;
+          repaint();
+        }
+      });
+      if (enableVerticalFlip) {
+        group.add(new ToggleAction("Flip Vertically", "Flip The image vertically", AndroidIcons.GfxTrace.FlipVertically) {
+          @Override
+          public boolean isSelected(AnActionEvent e) {
+            return flipped;
+          }
+
+          @Override
+          public void setSelected(AnActionEvent e, boolean state) {
+            flipped = state;
+            repaint();
+          }
+        });
+      }
     }
 
     @Override
     public Dimension getPreferredSize() {
       return (zoom == ZOOM_FIT)
              ? new Dimension(parent.getWidth(), parent.getHeight())
-             : new Dimension((int)(zoom * image.getWidth(this)), (int)(zoom * image.getHeight(this)));
+             : new Dimension((int)(zoom * image.getWidth(this)) + 2 * BORDER_SIZE, (int)(zoom * image.getHeight(this)) + 2 * BORDER_SIZE);
     }
 
     @Override
@@ -231,7 +271,20 @@ public class ImagePanel extends JPanel {
 
       double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
       int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
-      g.drawImage(image, (getWidth() - w) / 2, (getHeight() - h) / 2, w, h, this);
+      int x = (getWidth() - w) / 2, y = (getHeight() - h) / 2;
+
+      if (drawCheckerBoard) {
+        ((Graphics2D)g).setPaint(CHECKER_PAINT);
+        g.fillRect(x, y, w, h);
+      }
+
+      AffineTransform transform = ((Graphics2D)g).getTransform();
+      if (flipped) {
+        ((Graphics2D)g).transform(new AffineTransform(1, 0, 0, -1, 0, getHeight() - 1));
+      }
+      g.drawImage(image, x, y, w, h, this);
+      ((Graphics2D)g).setTransform(transform);
+      BORDER.paintBorder(this, g, x - BORDER_SIZE, y - BORDER_SIZE, w + 2 * BORDER_SIZE, h + 2 * BORDER_SIZE);
     }
 
     private void scrollBy(int dx, int dy) {
@@ -283,7 +336,8 @@ public class ImagePanel extends JPanel {
     }
 
     private double getFitRatio() {
-      return Math.min((double)getWidth() / image.getWidth(this), (double)getHeight() / image.getHeight(this));
+      return Math.min((double)(getWidth() - 2 * BORDER_SIZE) / image.getWidth(this),
+                      (double)(getHeight() - 2 * BORDER_SIZE) / image.getHeight(this));
     }
 
     private double getMinZoom() {
@@ -293,6 +347,94 @@ public class ImagePanel extends JPanel {
 
     private double getMaxZoom() {
       return Math.max(MAX_ZOOM_FACTOR, getFitRatio());
+    }
+
+    /**
+     * A {@link Paint} that will paint a checkerboard pattern. The current implementation aligns the pattern to the window (device)
+     * coordinates, so the checkerboard remains stationary, even when the panel and the image is scrolled.
+     */
+    private static class CheckerboardPaint implements Paint, PaintContext {
+      private static final int CHECKER_SIZE = JBUI.scale(15);
+      private static final int TWO_CHECKER_SIZE = 2 * CHECKER_SIZE;
+      private static final int LIGHT_COLOR = 0xFFFFFFFF;
+      private static final int DARK_COLOR = 0xFFC0C0C0;
+
+      // Cached raster and pixel values. They are re-allocated whenever a larger size is required. The raster's data is updated each time
+      // a raster is requested in #getRaster(int, int, int, int).
+      // A checkerboard can be broken down into rows of squares of alternating colors. There are two alternating rows: those that start with
+      // a dark color and those that start with the light color. We cache the pixel values of a single raster scan line for both types of
+      // rows, so they don't need to be computed every time.
+      private WritableRaster cachedRaster;
+      private int[] cachedEvenRow = new int[0];
+      private int[] cachedOddRow = new int[0];
+
+      @Override
+      public PaintContext createContext(
+          ColorModel cm, Rectangle deviceBounds, Rectangle2D userBounds, AffineTransform xform, RenderingHints hints) {
+        return this;
+      }
+
+      @Override
+      public void dispose() {
+        cachedRaster = null;
+      }
+
+      @Override
+      public ColorModel getColorModel() {
+        return ColorModel.getRGBdefault();
+      }
+
+      @Override
+      public Raster getRaster(int x, int y, int w, int h) {
+        WritableRaster raster = cachedRaster;
+        if (raster == null || w > raster.getWidth() || h > raster.getHeight()) {
+          cachedRaster = raster = getColorModel().createCompatibleWritableRaster(w, h);
+        }
+        w = raster.getWidth();
+        h = raster.getHeight();
+
+        // Compute the x & y pixel offsets into a 2x2 checker tile. The checkerboard is aligned to (0, 0).
+        int xOffset = x % TWO_CHECKER_SIZE, yOffset = y % TWO_CHECKER_SIZE;
+        int[] evenRow = cachedEvenRow, oddRow = cachedOddRow;
+        if (evenRow.length < xOffset + w || oddRow.length < xOffset + w) {
+          // The scan line caches are sized in multiples of 2 checker squares.
+          evenRow = new int[TWO_CHECKER_SIZE * ((xOffset + w + TWO_CHECKER_SIZE - 1) / TWO_CHECKER_SIZE)];
+          oddRow = new int[evenRow.length];
+          // Fill in the cached scan lines, two squares at a time.
+          for (int i = 0; i < evenRow.length; i += TWO_CHECKER_SIZE) {
+            // The even row is light, dark, light, dark, etc.
+            Arrays.fill(evenRow, i, i + CHECKER_SIZE, LIGHT_COLOR);
+            Arrays.fill(evenRow, i + CHECKER_SIZE, i + TWO_CHECKER_SIZE, DARK_COLOR);
+            // The odd row is dark, light, dark, light, etc.
+            Arrays.fill(oddRow, i, i + CHECKER_SIZE, DARK_COLOR);
+            Arrays.fill(oddRow, i + CHECKER_SIZE, i + TWO_CHECKER_SIZE, LIGHT_COLOR);
+          }
+        }
+
+        // The pixels array is a w * h row major storage backend of the raster data.
+        int[] pixels = ((IntegerComponentRaster)raster).getDataStorage();
+        int[][] rows = new int[][] { evenRow, oddRow };
+        // The current checker row being copied. Initialized to align to the requested (x, y) coordinates.
+        int curRowPointer = (yOffset < CHECKER_SIZE) ? 0 : 1;
+        int[] curRow = rows[curRowPointer];
+        // Copy the cached scan lines into the raster.
+        for (int i = 0, done = 0, tileY = yOffset % CHECKER_SIZE; i < h; i++, tileY++, done += w) {
+          if (tileY >= CHECKER_SIZE) {
+            // We've completed a row of checker squares, switch to the other row type.
+            tileY = 0;
+            curRowPointer = (curRowPointer + 1) & 1;
+            curRow = rows[curRowPointer];
+          }
+          // The scan lines are aligned to 2x2 checker tiles, so we copy starting at xOffset.
+          System.arraycopy(curRow, xOffset, pixels, done, w);
+        }
+        return raster;
+      }
+
+      @Override
+      public int getTransparency() {
+        return Transparency.OPAQUE;
+      }
     }
   }
 }
