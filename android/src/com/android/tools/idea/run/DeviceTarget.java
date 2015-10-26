@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutionException;
  * The target devices to use for a device-oriented run configuration launch.
  * We may be launching the devices, so they are stored as futures which resolve when each device is ready to use.
  */
-public final class DeviceTarget implements DeployTarget {
+public final class DeviceTarget {
 
   @NotNull
   private final Collection<ListenableFuture<IDevice>> myDeviceFutures;

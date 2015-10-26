@@ -15,30 +15,26 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public abstract class LaunchOption<S extends LaunchOptionState> {
-  @NotNull
-  public abstract String getId();
+public enum InstallOption {
+  DEFAULT_APK("Default APK"),
+  CUSTOM_ARTIFACT("Custom Artifact"),
+  NOTHING("Nothing");
 
-  @NotNull
-  public abstract String getDisplayName();
+  public final String displayName;
 
-  @NotNull
-  public abstract S createState();
+  InstallOption(@NotNull String displayName) {
+    this.displayName = displayName;
+  }
 
-  @NotNull
-  public abstract LaunchOptionConfigurable<S> createConfigurable(@NotNull Project project,
-                                                                 @NotNull LaunchOptionConfigurableContext context);
-
-  public static class Renderer extends ColoredListCellRenderer<LaunchOption> {
+  public static class Renderer extends ColoredListCellRenderer<InstallOption> {
     @Override
-    protected void customizeCellRenderer(JList list, LaunchOption value, int index, boolean selected, boolean hasFocus) {
-      append(value.getDisplayName());
+    protected void customizeCellRenderer(JList list, InstallOption option, int index, boolean selected, boolean hasFocus) {
+      append(option.displayName);
     }
   }
 }
