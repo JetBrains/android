@@ -116,7 +116,7 @@ public final class BindingsManager {
    * break bindings conditionally.
    */
   public <T> void bind(@NotNull SettableValue<T> dest, @NotNull ObservableValue<T> src) {
-    bind(dest, src, BooleanExpressions.TRUE);
+    bind(dest, src, BooleanExpressions.alwaysTrue());
   }
 
   /**
