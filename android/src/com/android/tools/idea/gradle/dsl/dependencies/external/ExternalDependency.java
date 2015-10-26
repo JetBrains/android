@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.dependencies.external;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependency;
 import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
@@ -287,7 +287,7 @@ public abstract class ExternalDependency extends Dependency {
 
   @Override
   @NotNull
-  protected Collection<GradlePsiElement> getChildren() {
+  protected Collection<GradleDslElement> getChildren() {
     return ImmutableList.of();
   }
 }

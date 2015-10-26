@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.dependencies;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -173,7 +173,7 @@ public class ModuleDependency extends Dependency {
 
   @Override
   @NotNull
-  protected Collection<GradlePsiElement> getChildren() {
+  protected Collection<GradleDslElement> getChildren() {
     return ImmutableList.of();
   }
 }

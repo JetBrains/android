@@ -20,9 +20,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public final class ProductFlavorPsiElement extends GradlePropertiesPsiElement {
+public final class ProductFlavorDslElement extends GradlePropertiesDslElement {
 
-  public ProductFlavorPsiElement(@NotNull GradlePsiElement parent, @NotNull String name) {
+  public ProductFlavorDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
   }
 
@@ -32,53 +32,53 @@ public final class ProductFlavorPsiElement extends GradlePropertiesPsiElement {
   }
 
   @Override
-  public void addPsiElement(@NotNull String property, @NotNull GradlePsiElement element) {
-    if (property.equals("consumerProguardFiles") && element instanceof GradlePsiLiteral) {
-      addAsPsiLiteralList(property, (GradlePsiLiteral)element);
+  public void addDslElement(@NotNull String property, @NotNull GradleDslElement element) {
+    if (property.equals("consumerProguardFiles") && element instanceof GradleDslLiteral) {
+      addAsDslLiteralList(property, (GradleDslLiteral)element);
       return;
     }
 
     if (property.equals("proguardFiles") || property.equals("proguardFile")) {
-      addToPsiLiteralList("proguardFiles", element);
+      addToDslLiteralList("proguardFiles", element);
       return;
     }
 
     if (property.equals("resConfigs") || property.equals("resConfig")) {
-      addToPsiLiteralList("resConfigs", element);
+      addToDslLiteralList("resConfigs", element);
       return;
     }
 
     if (property.equals("resValue")) {
-      if (!(element instanceof GradlePsiLiteralList)) {
+      if (!(element instanceof GradleDslLiteralList)) {
         return;
       }
-      GradlePsiLiteralList listElement = (GradlePsiLiteralList)element;
+      GradleDslLiteralList listElement = (GradleDslLiteralList)element;
       if (listElement.getElements().size() != 3 || listElement.getValues(String.class).size() != 3) {
         return;
       }
 
-      GradlePsiElementList elementList = getProperty("resValues", GradlePsiElementList.class);
+      GradleDslElementList elementList = getProperty("resValues", GradleDslElementList.class);
       if (elementList == null) {
-        elementList = new GradlePsiElementList(this, "resValues");
-        setPsiElement("resValues", elementList);
+        elementList = new GradleDslElementList(this, "resValues");
+        setDslElement("resValues", elementList);
       }
       elementList.addParsedElement(element);
     }
 
     if (property.equals("testInstrumentationRunnerArguments")) {
-      if (!(element instanceof GradlePsiLiteralMap)) {
+      if (!(element instanceof GradleDslLiteralMap)) {
         return;
       }
-      GradlePsiLiteralMap testInstrumentationRunnerArgumentsElement =
-        getProperty("testInstrumentationRunnerArguments", GradlePsiLiteralMap.class);
+      GradleDslLiteralMap testInstrumentationRunnerArgumentsElement =
+        getProperty("testInstrumentationRunnerArguments", GradleDslLiteralMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
-        setPsiElement("testInstrumentationRunnerArguments", element);
+        setDslElement("testInstrumentationRunnerArguments", element);
       } else {
-        GradlePsiLiteralMap elementsToAdd = (GradlePsiLiteralMap)element;
+        GradleDslLiteralMap elementsToAdd = (GradleDslLiteralMap)element;
         for (String key : elementsToAdd.getProperties()) {
-          GradlePsiElement elementToAdd = elementsToAdd.getPropertyElement(key);
+          GradleDslElement elementToAdd = elementsToAdd.getPropertyElement(key);
           if (elementToAdd != null) {
-            testInstrumentationRunnerArgumentsElement.setPsiElement(key, elementToAdd);
+            testInstrumentationRunnerArgumentsElement.setDslElement(key, elementToAdd);
           }
         }
       }
@@ -86,11 +86,11 @@ public final class ProductFlavorPsiElement extends GradlePropertiesPsiElement {
     }
 
     if (property.equals("testInstrumentationRunnerArgument")) {
-      if (!(element instanceof GradlePsiLiteralList)) {
+      if (!(element instanceof GradleDslLiteralList)) {
         return;
       }
-      GradlePsiLiteralList gradlePsiLiteralList = (GradlePsiLiteralList)element;
-      List<GradlePsiLiteral> elements = gradlePsiLiteralList.getElements();
+      GradleDslLiteralList gradlePsiLiteralList = (GradleDslLiteralList)element;
+      List<GradleDslLiteral> elements = gradlePsiLiteralList.getElements();
       if (elements.size() != 2) {
         return;
       }
@@ -99,17 +99,17 @@ public final class ProductFlavorPsiElement extends GradlePropertiesPsiElement {
       if (key == null) {
         return;
       }
-      GradlePsiLiteral value = elements.get(1);
+      GradleDslLiteral value = elements.get(1);
 
-      GradlePsiLiteralMap testInstrumentationRunnerArgumentsElement =
-        getProperty("testInstrumentationRunnerArguments", GradlePsiLiteralMap.class);
+      GradleDslLiteralMap testInstrumentationRunnerArgumentsElement =
+        getProperty("testInstrumentationRunnerArguments", GradleDslLiteralMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
-        testInstrumentationRunnerArgumentsElement = new GradlePsiLiteralMap(this, "testInstrumentationRunnerArguments");
+        testInstrumentationRunnerArgumentsElement = new GradleDslLiteralMap(this, "testInstrumentationRunnerArguments");
       }
-      testInstrumentationRunnerArgumentsElement.setPsiElement(key, value);
+      testInstrumentationRunnerArgumentsElement.setDslElement(key, value);
       return;
     }
 
-    super.addPsiElement(property, element);
+    super.addDslElement(property, element);
   }
 }

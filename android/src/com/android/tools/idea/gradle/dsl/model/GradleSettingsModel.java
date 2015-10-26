@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
-import com.android.tools.idea.gradle.dsl.parser.GradlePsiFile;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -38,12 +38,12 @@ public class GradleSettingsModel extends GradleFileModel {
 
   @NotNull
   public static GradleSettingsModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    GradleSettingsPsiFile settingsFile = new GradleSettingsPsiFile(file, project, moduleName);
+    GradleSettingsDslFile settingsFile = new GradleSettingsDslFile(file, project, moduleName);
     settingsFile.parse();
     return new GradleSettingsModel(settingsFile);
   }
 
-  private GradleSettingsModel(@NotNull GradleSettingsPsiFile parsedModel) {
+  private GradleSettingsModel(@NotNull GradleSettingsDslFile parsedModel) {
     super(parsedModel);
   }
 
@@ -55,7 +55,7 @@ public class GradleSettingsModel extends GradleFileModel {
    */
   @Nullable
   public List<String> modulePaths() {
-    return myGradlePsiFile.getListProperty(INCLUDE, String.class);
+    return myGradleDslFile.getListProperty(INCLUDE, String.class);
   }
 
   @NotNull
@@ -63,7 +63,7 @@ public class GradleSettingsModel extends GradleFileModel {
     if (!modulePath.startsWith(":")) {
       modulePath = ":" + modulePath;
     }
-    myGradlePsiFile.addToListProperty(INCLUDE, modulePath);
+    myGradleDslFile.addToListProperty(INCLUDE, modulePath);
     return this;
   }
 
@@ -71,9 +71,9 @@ public class GradleSettingsModel extends GradleFileModel {
   public GradleSettingsModel removeModulePath(@NotNull String modulePath) {
     // Try to remove the module path whether it has ":" prefix or not.
     if (!modulePath.startsWith(":")) {
-      myGradlePsiFile.removeFromListProperty(INCLUDE, ":" + modulePath);
+      myGradleDslFile.removeFromListProperty(INCLUDE, ":" + modulePath);
     }
-    myGradlePsiFile.removeFromListProperty(INCLUDE, modulePath);
+    myGradleDslFile.removeFromListProperty(INCLUDE, modulePath);
     return this;
   }
 
@@ -84,24 +84,24 @@ public class GradleSettingsModel extends GradleFileModel {
       newModulePath = ":" + newModulePath;
     }
     if (!oldModulePath.startsWith(":")) {
-      myGradlePsiFile.replaceInListProperty(INCLUDE, ":" + oldModulePath, newModulePath);
+      myGradleDslFile.replaceInListProperty(INCLUDE, ":" + oldModulePath, newModulePath);
     }
-    myGradlePsiFile.replaceInListProperty(INCLUDE, oldModulePath, newModulePath);
+    myGradleDslFile.replaceInListProperty(INCLUDE, oldModulePath, newModulePath);
     return this;
   }
 
-  private static class GradleSettingsPsiFile extends GradlePsiFile {
-    private GradleSettingsPsiFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
+  private static class GradleSettingsDslFile extends GradleDslFile {
+    private GradleSettingsDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
       super(file, project, moduleName);
     }
 
     @Override
-    public void addPsiElement(@NotNull String property, @NotNull GradlePsiElement element) {
+    public void addDslElement(@NotNull String property, @NotNull GradleDslElement element) {
       if (property.equals(INCLUDE)) {
-        addToPsiLiteralList(property, element);
+        addToDslLiteralList(property, element);
         return;
       }
-      super.addPsiElement(property, element);
+      super.addDslElement(property, element);
     }
   }
 }

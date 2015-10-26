@@ -30,15 +30,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Base class for {@link GradlePsiElement}s that represent a closure block or a map element. It provides the functionality to store the
+ * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
  * data as key value pairs and convenient methods to access the data.
  */
-public abstract class GradlePropertiesPsiElement extends GradlePsiElement {
-  @NotNull protected Map<String, GradlePsiElement> myProperties = Maps.newHashMap();
-  @NotNull protected Map<String, GradlePsiElement> myToBeAddedProperties = Maps.newHashMap();
+public abstract class GradlePropertiesDslElement extends GradleDslElement {
+  @NotNull protected Map<String, GradleDslElement> myProperties = Maps.newHashMap();
+  @NotNull protected Map<String, GradleDslElement> myToBeAddedProperties = Maps.newHashMap();
   @NotNull protected Set<String> myToBeRemovedProperties = Sets.newHashSet();
 
-  protected GradlePropertiesPsiElement(@Nullable GradlePsiElement parent, @Nullable GroovyPsiElement psiElement, @NotNull String name) {
+  protected GradlePropertiesDslElement(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement psiElement, @NotNull String name) {
     super(parent, psiElement, name);
   }
 
@@ -47,7 +47,7 @@ public abstract class GradlePropertiesPsiElement extends GradlePsiElement {
    *
    * <p>This method should be used when the given {@code property} is defined using an assigned statement.
    */
-  public void setPsiElement(@NotNull String property, @NotNull GradlePsiElement element) {
+  public void setDslElement(@NotNull String property, @NotNull GradleDslElement element) {
     myProperties.put(property, element);
   }
 
@@ -58,47 +58,47 @@ public abstract class GradlePropertiesPsiElement extends GradlePsiElement {
    * can have different meanings like append vs replace for list elements, the sub classes can override this method to do the right thing
    * for any given property.
    */
-  public void addPsiElement(@NotNull String property, @NotNull GradlePsiElement element) {
+  public void addDslElement(@NotNull String property, @NotNull GradleDslElement element) {
     myProperties.put(property, element);
   }
 
-  protected void addAsPsiLiteralList(@NotNull String property, GradlePsiLiteral psiLiteral) {
-    GroovyPsiElement psiElement = psiLiteral.getGroovyPsiElement();
+  protected void addAsDslLiteralList(@NotNull String property, GradleDslLiteral dslLiteral) {
+    GroovyPsiElement psiElement = dslLiteral.getGroovyPsiElement();
     if (psiElement == null) {
       return;
     }
-    GradlePsiLiteralList literalList = new GradlePsiLiteralList(this, psiElement, property, psiLiteral.getLiteral());
+    GradleDslLiteralList literalList = new GradleDslLiteralList(this, psiElement, property, dslLiteral.getLiteral());
     myProperties.put(property, literalList);
   }
 
-  public void addToPsiLiteralList(@NotNull String property, @NotNull GradlePsiElement element) {
+  public void addToDslLiteralList(@NotNull String property, @NotNull GradleDslElement element) {
     GroovyPsiElement psiElement = element.getGroovyPsiElement();
     if (psiElement == null) {
       return;
     }
 
     GrLiteral[] literalsToAdd =  null;
-    if (element instanceof GradlePsiLiteral) {
-      literalsToAdd = new GrLiteral[]{((GradlePsiLiteral)element).getLiteral()};
-    } else if (element instanceof GradlePsiLiteralList) {
-      List<GradlePsiLiteral> gradlePsiLiterals = ((GradlePsiLiteralList)element).getElements();
-      literalsToAdd = new GrLiteral[gradlePsiLiterals.size()];
-      for (int i = 0; i < gradlePsiLiterals.size(); i++) {
-        literalsToAdd[i] = gradlePsiLiterals.get(i).getLiteral();
+    if (element instanceof GradleDslLiteral) {
+      literalsToAdd = new GrLiteral[]{((GradleDslLiteral)element).getLiteral()};
+    } else if (element instanceof GradleDslLiteralList) {
+      List<GradleDslLiteral> gradleDslLiterals = ((GradleDslLiteralList)element).getElements();
+      literalsToAdd = new GrLiteral[gradleDslLiterals.size()];
+      for (int i = 0; i < gradleDslLiterals.size(); i++) {
+        literalsToAdd[i] = gradleDslLiterals.get(i).getLiteral();
       }
     }
     if (literalsToAdd == null) {
       return;
     }
 
-    GradlePsiLiteralList gradlePsiLiteralList = getProperty(property, GradlePsiLiteralList.class);
-    if (gradlePsiLiteralList != null) {
-      gradlePsiLiteralList.add(psiElement, property,literalsToAdd);
+    GradleDslLiteralList gradleDslLiteralList = getProperty(property, GradleDslLiteralList.class);
+    if (gradleDslLiteralList != null) {
+      gradleDslLiteralList.add(psiElement, property,literalsToAdd);
       return;
     }
 
-    gradlePsiLiteralList = new GradlePsiLiteralList(this, psiElement, property, literalsToAdd);
-    myProperties.put(property, gradlePsiLiteralList);
+    gradleDslLiteralList = new GradleDslLiteralList(this, psiElement, property, literalsToAdd);
+    myProperties.put(property, gradleDslLiteralList);
   }
 
   /**
@@ -106,7 +106,7 @@ public abstract class GradlePropertiesPsiElement extends GradlePsiElement {
    * or discarded when the {@lik #resetState()} method is invoked.
    */
   @NotNull
-  public GradlePropertiesPsiElement setNewElement(@NotNull String property, @NotNull GradlePsiElement newElement) {
+  public GradlePropertiesDslElement setNewElement(@NotNull String property, @NotNull GradleDslElement newElement) {
     myToBeAddedProperties.put(property, newElement);
     setModified(true);
     return this;
@@ -122,24 +122,24 @@ public abstract class GradlePropertiesPsiElement extends GradlePsiElement {
   }
 
   /**
-   * Returns the {@link GradlePsiElement} corresponding to the given {@code property}, or {@code null} if the given {@code property}
+   * Returns the {@link GradleDslElement} corresponding to the given {@code property}, or {@code null} if the given {@code property}
    * does not exist in this element.
    */
   @Nullable
-  public GradlePsiElement getPropertyElement(@NotNull String property) {
+  public GradleDslElement getPropertyElement(@NotNull String property) {
     if (!property.contains(".")) {
       if (myToBeRemovedProperties.contains(property)) {
         return null;
       }
-      GradlePsiElement toBeAddedElement = myToBeAddedProperties.get(property);
+      GradleDslElement toBeAddedElement = myToBeAddedProperties.get(property);
       return toBeAddedElement != null ? toBeAddedElement : myProperties.get(property);
     }
     List<String> propertyNameSegments = Splitter.on('.').splitToList(property);
-    GradlePropertiesPsiElement nestedElement = this;
+    GradlePropertiesDslElement nestedElement = this;
     for (int i = 0; i < propertyNameSegments.size() - 1; i++) {
-      GradlePsiElement element = nestedElement.getPropertyElement(propertyNameSegments.get(i));
-      if (element instanceof GradlePropertiesPsiElement) {
-        nestedElement = (GradlePropertiesPsiElement)element;
+      GradleDslElement element = nestedElement.getPropertyElement(propertyNameSegments.get(i));
+      if (element instanceof GradlePropertiesDslElement) {
+        nestedElement = (GradlePropertiesDslElement)element;
       } else {
         return null;
       }
@@ -153,38 +153,38 @@ public abstract class GradlePropertiesPsiElement extends GradlePsiElement {
    */
   @Nullable
   public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    GradlePsiElement propertyElement = getPropertyElement(property);
+    GradleDslElement propertyElement = getPropertyElement(property);
     if (propertyElement != null) {
       if (clazz.isInstance(propertyElement)) {
         return clazz.cast(propertyElement);
       }
-      else if (propertyElement instanceof GradlePsiLiteral) {
-        return ((GradlePsiLiteral)propertyElement).getValue(clazz);
+      else if (propertyElement instanceof GradleDslLiteral) {
+        return ((GradleDslLiteral)propertyElement).getValue(clazz);
       }
     }
     return null;
   }
 
   @NotNull
-  public GradlePropertiesPsiElement setLiteralProperty(@NotNull String property, @NotNull String value) {
+  public GradlePropertiesDslElement setLiteralProperty(@NotNull String property, @NotNull String value) {
     return setLiteralPropertyImpl(property, value);
   }
 
   @NotNull
-  public GradlePropertiesPsiElement setLiteralProperty(@NotNull String property, @NotNull Integer value) {
+  public GradlePropertiesDslElement setLiteralProperty(@NotNull String property, @NotNull Integer value) {
     return setLiteralPropertyImpl(property, value);
   }
 
   @NotNull
-  public GradlePropertiesPsiElement setLiteralProperty(@NotNull String property, @NotNull Boolean value) {
+  public GradlePropertiesDslElement setLiteralProperty(@NotNull String property, @NotNull Boolean value) {
     return setLiteralPropertyImpl(property, value);
   }
 
   @NotNull
-  private GradlePropertiesPsiElement setLiteralPropertyImpl(@NotNull String property, @NotNull Object value) {
-    GradlePsiLiteral literalElement = getProperty(property, GradlePsiLiteral.class);
+  private GradlePropertiesDslElement setLiteralPropertyImpl(@NotNull String property, @NotNull Object value) {
+    GradleDslLiteral literalElement = getProperty(property, GradleDslLiteral.class);
     if (literalElement == null) {
-      literalElement = new GradlePsiLiteral(this, property);
+      literalElement = new GradleDslLiteral(this, property);
       myToBeAddedProperties.put(property, literalElement);
     }
     literalElement.setValue(value);
@@ -192,81 +192,81 @@ public abstract class GradlePropertiesPsiElement extends GradlePsiElement {
   }
 
   @NotNull
-  public GradlePropertiesPsiElement addToListProperty(@NotNull String property, @NotNull String value) {
+  public GradlePropertiesDslElement addToListProperty(@NotNull String property, @NotNull String value) {
     return addToListPropertyImpl(property, value);
   }
 
   @NotNull
-  public GradlePropertiesPsiElement removeFromListProperty(@NotNull String property, @NotNull String value) {
+  public GradlePropertiesDslElement removeFromListProperty(@NotNull String property, @NotNull String value) {
     return removeFromListPropertyImpl(property, value);
   }
 
   @NotNull
-  public GradlePropertiesPsiElement replaceInListProperty(@NotNull String property, @NotNull String oldValue, @NotNull String newValue) {
+  public GradlePropertiesDslElement replaceInListProperty(@NotNull String property, @NotNull String oldValue, @NotNull String newValue) {
     return replaceInListPropertyImpl(property, oldValue, newValue);
   }
 
   @NotNull
-  private GradlePropertiesPsiElement addToListPropertyImpl(@NotNull String property, @NotNull Object value) {
-    GradlePsiLiteralList gradlePsiLiteralList = getProperty(property, GradlePsiLiteralList.class);
-    if (gradlePsiLiteralList == null) {
-      gradlePsiLiteralList = new GradlePsiLiteralList(this, property);
-      myToBeAddedProperties.put(property, gradlePsiLiteralList);
+  private GradlePropertiesDslElement addToListPropertyImpl(@NotNull String property, @NotNull Object value) {
+    GradleDslLiteralList gradleDslLiteralList = getProperty(property, GradleDslLiteralList.class);
+    if (gradleDslLiteralList == null) {
+      gradleDslLiteralList = new GradleDslLiteralList(this, property);
+      myToBeAddedProperties.put(property, gradleDslLiteralList);
     }
-    gradlePsiLiteralList.add(value);
+    gradleDslLiteralList.add(value);
     return this;
   }
 
   @NotNull
-  private GradlePropertiesPsiElement removeFromListPropertyImpl(@NotNull String property, @NotNull Object value) {
-    GradlePsiLiteralList gradlePsiLiteralList = getProperty(property, GradlePsiLiteralList.class);
-    if (gradlePsiLiteralList != null) {
-      gradlePsiLiteralList.remove(value);
+  private GradlePropertiesDslElement removeFromListPropertyImpl(@NotNull String property, @NotNull Object value) {
+    GradleDslLiteralList gradleDslLiteralList = getProperty(property, GradleDslLiteralList.class);
+    if (gradleDslLiteralList != null) {
+      gradleDslLiteralList.remove(value);
     }
     return this;
   }
 
   @NotNull
-  private GradlePropertiesPsiElement replaceInListPropertyImpl(@NotNull String property,
+  private GradlePropertiesDslElement replaceInListPropertyImpl(@NotNull String property,
                                                                @NotNull Object oldValue, @NotNull Object newValue) {
-    GradlePsiLiteralList gradlePsiLiteralList = getProperty(property, GradlePsiLiteralList.class);
-    if (gradlePsiLiteralList != null) {
-      gradlePsiLiteralList.replace(oldValue, newValue);
+    GradleDslLiteralList gradleDslLiteralList = getProperty(property, GradleDslLiteralList.class);
+    if (gradleDslLiteralList != null) {
+      gradleDslLiteralList.replace(oldValue, newValue);
     }
     return this;
   }
 
   @NotNull
-  public GradlePropertiesPsiElement setInMapProperty(@NotNull String property, @NotNull String name, @NotNull String value) {
+  public GradlePropertiesDslElement setInMapProperty(@NotNull String property, @NotNull String name, @NotNull String value) {
     return setInMapPropertyImpl(property, name, value);
   }
 
   @NotNull
-  public GradlePropertiesPsiElement setInMapProperty(@NotNull String property, @NotNull String name, @NotNull Integer value) {
+  public GradlePropertiesDslElement setInMapProperty(@NotNull String property, @NotNull String name, @NotNull Integer value) {
     return setInMapPropertyImpl(property, name, value);
   }
 
   @NotNull
-  public GradlePropertiesPsiElement setInMapProperty(@NotNull String property, @NotNull String name, @NotNull Boolean value) {
+  public GradlePropertiesDslElement setInMapProperty(@NotNull String property, @NotNull String name, @NotNull Boolean value) {
     return setInMapPropertyImpl(property, name, value);
   }
 
   @NotNull
-  private GradlePropertiesPsiElement setInMapPropertyImpl(@NotNull String property, @NotNull String name, @NotNull Object value) {
-    GradlePsiLiteralMap gradlePsiLiteralMap = getProperty(property, GradlePsiLiteralMap.class);
-    if (gradlePsiLiteralMap == null) {
-      gradlePsiLiteralMap = new GradlePsiLiteralMap(this, property);
-      myToBeAddedProperties.put(property, gradlePsiLiteralMap);
+  private GradlePropertiesDslElement setInMapPropertyImpl(@NotNull String property, @NotNull String name, @NotNull Object value) {
+    GradleDslLiteralMap gradleDslLiteralMap = getProperty(property, GradleDslLiteralMap.class);
+    if (gradleDslLiteralMap == null) {
+      gradleDslLiteralMap = new GradleDslLiteralMap(this, property);
+      myToBeAddedProperties.put(property, gradleDslLiteralMap);
     }
-    gradlePsiLiteralMap.put(name, value);
+    gradleDslLiteralMap.put(name, value);
     return this;
   }
 
   @NotNull
-  public GradlePropertiesPsiElement removeFromMapProperty(@NotNull String property, @NotNull String name) {
-    GradlePsiLiteralMap gradlePsiLiteralMap = getProperty(property, GradlePsiLiteralMap.class);
-    if (gradlePsiLiteralMap != null) {
-      gradlePsiLiteralMap.removeProperty(name);
+  public GradlePropertiesDslElement removeFromMapProperty(@NotNull String property, @NotNull String name) {
+    GradleDslLiteralMap gradleDslLiteralMap = getProperty(property, GradleDslLiteralMap.class);
+    if (gradleDslLiteralMap != null) {
+      gradleDslLiteralMap.removeProperty(name);
     }
     return this;
   }
@@ -284,48 +284,48 @@ public abstract class GradlePropertiesPsiElement extends GradlePsiElement {
   }
 
   /**
-   * Returns the list of values of type {@code clazz} when the given {@code property} corresponds to a {@link GradlePsiLiteralList}.
+   * Returns the list of values of type {@code clazz} when the given {@code property} corresponds to a {@link GradleDslLiteralList}.
    *
    * <p>Returns {@code null} when either the given {@code property} does not exists in this element or does not corresponds to a
-   * {@link GradlePsiLiteralList}.
+   * {@link GradleDslLiteralList}.
    *
-   * <p>Returns an empty list when the given {@code property} exists in this element and corresponds to a {@link GradlePsiLiteralList}, but either
+   * <p>Returns an empty list when the given {@code property} exists in this element and corresponds to a {@link GradleDslLiteralList}, but either
    * that list is empty or does not contain any element of type {@code clazz}.
    */
   @Nullable
   public <E> List<E> getListProperty(@NotNull String property, @NotNull Class<E> clazz) {
-    GradlePsiLiteralList gradlePsiLiteralList = getProperty(property, GradlePsiLiteralList.class);
-    if (gradlePsiLiteralList != null) {
-      return gradlePsiLiteralList.getValues(clazz);
+    GradleDslLiteralList gradleDslLiteralList = getProperty(property, GradleDslLiteralList.class);
+    if (gradleDslLiteralList != null) {
+      return gradleDslLiteralList.getValues(clazz);
     }
     return null;
   }
 
   /**
    * Returns the map from properties of the type {@link String} to the values of the type {@code clazz} when the given {@code property}
-   * corresponds to a {@link GradlePsiLiteralMap}.
+   * corresponds to a {@link GradleDslLiteralMap}.
    *
    * <p>Returns {@code null} when either the given {@code property} does not exists in this element or does not corresponds to a
-   * {@link GradlePsiLiteralMap}.
+   * {@link GradleDslLiteralMap}.
    *
-   * <p>Returns an empty map when the given {@code property} exists in this element and corresponds to a {@link GradlePsiLiteralMap}, but either that
+   * <p>Returns an empty map when the given {@code property} exists in this element and corresponds to a {@link GradleDslLiteralMap}, but either that
    * map is empty or does not contain any values of type {@code clazz}.
    */
   @Nullable
   public <V> Map<String, V> getMapProperty(@NotNull String property, @NotNull Class<V> clazz) {
-    GradlePsiLiteralMap gradlePsiLiteralMap = getProperty(property, GradlePsiLiteralMap.class);
-    if (gradlePsiLiteralMap != null) {
-      return gradlePsiLiteralMap.getValues(clazz);
+    GradleDslLiteralMap gradleDslLiteralMap = getProperty(property, GradleDslLiteralMap.class);
+    if (gradleDslLiteralMap != null) {
+      return gradleDslLiteralMap.getValues(clazz);
     }
     return null;
   }
 
   @Override
   @NotNull
-  protected Collection<GradlePsiElement> getChildren() {
-    List<GradlePsiElement> children = Lists.newArrayList();
+  protected Collection<GradleDslElement> getChildren() {
+    List<GradleDslElement> children = Lists.newArrayList();
     for (String property : getProperties()) {
-      GradlePsiElement element = getPropertyElement(property);
+      GradleDslElement element = getPropertyElement(property);
       if (element != null) {
         children.add(element);
       }
@@ -335,24 +335,24 @@ public abstract class GradlePropertiesPsiElement extends GradlePsiElement {
 
   @Override
   protected void apply() {
-    for (Map.Entry<String, GradlePsiElement> entry : myToBeAddedProperties.entrySet()) {
+    for (Map.Entry<String, GradleDslElement> entry : myToBeAddedProperties.entrySet()) {
       String property = entry.getKey();
-      GradlePsiElement element = entry.getValue();
+      GradleDslElement element = entry.getValue();
       if (element.create() != null) {
-        setPsiElement(property, element);
+        setDslElement(property, element);
       }
     }
     myToBeAddedProperties.clear();
 
     for (String property : myToBeRemovedProperties) {
-      GradlePsiElement element = myProperties.remove(property);
+      GradleDslElement element = myProperties.remove(property);
       if (element != null) {
         element.delete();
       }
     }
     myToBeRemovedProperties.clear();
 
-    for (GradlePsiElement element : myProperties.values()) {
+    for (GradleDslElement element : myProperties.values()) {
       if (element.isModified()) {
         element.applyChanges();
       }
@@ -363,7 +363,7 @@ public abstract class GradlePropertiesPsiElement extends GradlePsiElement {
   protected void reset() {
     myToBeRemovedProperties.clear();
     myToBeAddedProperties.clear();
-    for (GradlePsiElement element : myProperties.values()) {
+    for (GradleDslElement element : myProperties.values()) {
       if (element.isModified()) {
         element.resetState();
       }

@@ -31,5 +31,5 @@ public interface GradleDslElementParser {
    * @param gradlePsiFile represents the build.gradle file being parsed.
    * @return {@code true} if this parser was able to parse the given PSI element; {@code false} otherwise.
    */
-  boolean parse(@NotNull GroovyPsiElement e, @NotNull GradlePsiFile gradlePsiFile);
+  boolean parse(@NotNull GroovyPsiElement e, @NotNull GradleDslFile gradlePsiFile);
 }

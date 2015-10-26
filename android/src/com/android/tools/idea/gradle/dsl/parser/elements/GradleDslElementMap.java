@@ -22,18 +22,18 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Represents a map of {@link GradlePsiElement}s from their names.
+ * Represents a map of {@link GradleDslElement}s from their names.
  */
-public class GradlePsiElementMap extends GradlePropertiesPsiElement {
-  protected GradlePsiElementMap(@NotNull GradlePsiElement parent, @NotNull String name) {
+public class GradleDslElementMap extends GradlePropertiesDslElement {
+  protected GradleDslElementMap(@NotNull GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
   }
 
   @NotNull
-  protected <E extends GradlePsiElement> Collection<E> getValues(Class<E> clazz) {
+  protected <E extends GradleDslElement> Collection<E> getValues(Class<E> clazz) {
     List<E> result = Lists.newArrayList();
     for (String property : getProperties()) {
-      GradlePsiElement element = getPropertyElement(property);
+      GradleDslElement element = getPropertyElement(property);
       if (element != null && clazz.isInstance(element)) {
         result.add(clazz.cast(element));
       }

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.java;
 
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionPsiElement;
+import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 
@@ -107,10 +107,10 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
 
-    JavaVersionPsiElement targetVersionElement =
-      java.getGradlePsiElement().getProperty(JavaModel.TARGET_COMPATIBILITY_FIELD, JavaVersionPsiElement.class);
-    JavaVersionPsiElement sourceVersionElement =
-      java.getGradlePsiElement().getProperty(JavaModel.SOURCE_COMPATIBILITY_FIELD, JavaVersionPsiElement.class);
+    JavaVersionDslElement targetVersionElement =
+      java.getGradlePsiElement().getProperty(JavaModel.TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+    JavaVersionDslElement sourceVersionElement =
+      java.getGradlePsiElement().getProperty(JavaModel.SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
     assertNotNull(targetVersionElement);
     assertNotNull(sourceVersionElement);
 
