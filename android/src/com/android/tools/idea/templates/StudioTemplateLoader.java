@@ -88,7 +88,7 @@ public final class StudioTemplateLoader implements TemplateLoader {
     if (path == null) {
       throw new IOException("Absolute paths must start with: " + myTemplateRootFolder.getPath());
     }
-    return ROOT + path;
+    return ROOT + FileUtil.toSystemIndependentName(path);
   }
 
   /**
