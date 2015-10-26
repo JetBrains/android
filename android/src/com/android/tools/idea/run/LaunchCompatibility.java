@@ -78,7 +78,7 @@ public class LaunchCompatibility {
    * @param requiredFeatures required list of hardware features
    * @param device           the device to check compatibility against
    * @param avdTarget        the target platform corresponding to the AVD, if the device happens to be an emulator
-   * @return a {@link com.intellij.util.ThreeState} indicating whether the application can be run on the device, and a reason if it isn't
+   * @return a {@link ThreeState} indicating whether the application can be run on the device, and a reason if it isn't
    * compatible.
    */
   @NotNull
