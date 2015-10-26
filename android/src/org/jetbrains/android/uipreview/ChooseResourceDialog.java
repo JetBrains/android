@@ -294,12 +294,14 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     doValidate();
   }
 
-  public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithWarning, boolean isBackground) {
+  public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription,
+                                    boolean isBackground,
+                                    boolean displayWarning) {
     if (myColorPicker != null) {
-      myColorPicker.setContrastParameters(contrastColorsWithWarning, isBackground);
+      myColorPicker.setContrastParameters(contrastColorsWithDescription, isBackground, displayWarning);
     }
     if (myStateListPicker != null) {
-      myStateListPicker.setContrastParameters(contrastColorsWithWarning, isBackground);
+      myStateListPicker.setContrastParameters(contrastColorsWithDescription, isBackground);
     }
   }
 

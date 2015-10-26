@@ -258,8 +258,10 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     return myColor;
   }
 
-  public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithWarning, boolean isBackground) {
-    myPreviewComponent.setContrastParameters(contrastColorsWithWarning, isBackground);
+  public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription,
+                                    boolean isBackground,
+                                    boolean displayWarning) {
+    myPreviewComponent.setContrastParameters(contrastColorsWithDescription, isBackground, displayWarning);
   }
 
   @Override
@@ -777,7 +779,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private ImmutableSet<Color> myContrastColorSet;
     private boolean myIsBackgroundColor;
     private String myErrorString;
-    private ImmutableMap<String, Color> myContrastColorsWithWarning;
+    private ImmutableMap<String, Color> myContrastColorsWithDescription;
+    private boolean myDisplayWarning;
 
     private ColorPreviewComponent() {
       setBorder(JBUI.Borders.empty(0, 2));
@@ -791,16 +794,20 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     /**
      * Adds text to the preview so the user can see the contrast of two colors
      *
-     * @param contrastColorsWithWarning the colors we are testing the contrast against, and their associate warning for potential display.
+     * @param contrastColorsWithDescription the colors we are testing the contrast against, and their associate description.
      *                                  If the user is editing a state list, this might be more than 1.
      * @param isBackgroundColor true if it's a background color, of false if it's a text color
+     * @param displayWarning whether or not to display a warning for contrast issues
      */
-    public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithWarning, boolean isBackgroundColor) {
+    public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription,
+                                      boolean isBackgroundColor,
+                                      boolean displayWarning) {
       myIsContrastPreview = true;
-      myContrastColorsWithWarning = contrastColorsWithWarning;
-      myContrastColorSet = ImmutableSet.copyOf(contrastColorsWithWarning.values());
+      myContrastColorsWithDescription = contrastColorsWithDescription;
+      myContrastColorSet = ImmutableSet.copyOf(contrastColorsWithDescription.values());
       myIsBackgroundColor = isBackgroundColor;
-      setErrorString(ColorUtils.getContrastWarningMessage(myContrastColorsWithWarning, myColor, myIsBackgroundColor));
+      myDisplayWarning = displayWarning;
+      setErrorString(displayWarning ? ColorUtils.getContrastWarningMessage(contrastColorsWithDescription, myColor, isBackgroundColor) : "");
     }
 
     private void setErrorString(@NotNull String error) {
@@ -820,8 +827,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     public void setColor(Color c) {
       myColor = c;
-      if (myIsContrastPreview) {
-        setErrorString(ColorUtils.getContrastWarningMessage(myContrastColorsWithWarning, c, myIsBackgroundColor));
+      if (myIsContrastPreview && myDisplayWarning) {
+        setErrorString(ColorUtils.getContrastWarningMessage(myContrastColorsWithDescription, c, myIsBackgroundColor));
       }
       repaint();
     }
