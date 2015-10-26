@@ -341,6 +341,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
         }
         final List<Object> result = new ArrayList<Object>(classes.size());
 
+        //noinspection ForLoopReplaceableByForEach
         for (int i = 0, n = classes.size(); i < n; i++) {
           final PsiClass psiClass = classes.get(i);
           final String prefix = myElement.getText().substring(myStart, getRangeInElement().getStartOffset());
