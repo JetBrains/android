@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class SystemInfoCaptureType extends FileCaptureType {
   protected SystemInfoCaptureType() {
-    super("System Information", AndroidIcons.Ddms.SysInfo, "SystemInfo_", SdkConstants.DOT_TXT);
+    super("System Information", AndroidIcons.Ddms.SysInfo, SdkConstants.DOT_TXT);
   }
 
   @NotNull
