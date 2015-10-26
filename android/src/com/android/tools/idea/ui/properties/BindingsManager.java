@@ -99,7 +99,7 @@ public final class BindingsManager {
   private final InvokeStrategy myInvokeStrategy;
 
   public BindingsManager() {
-    this(APPLICATION_INVOKE_LATER_STRATEGY);
+    this(ApplicationManager.getApplication() != null ? APPLICATION_INVOKE_LATER_STRATEGY : SWING_INVOKE_LATER_STRATEGY);
   }
 
   public BindingsManager(InvokeStrategy invokeStrategy) {
