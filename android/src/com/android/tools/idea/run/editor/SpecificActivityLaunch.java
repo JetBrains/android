@@ -19,6 +19,7 @@ import com.android.tools.idea.run.AndroidApplicationLauncher;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.ActivityLocator;
+import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.tools.idea.run.activity.AndroidActivityLauncher;
 import com.android.tools.idea.run.activity.SpecificActivityLocator;
 import com.google.common.collect.ImmutableList;
@@ -150,7 +151,7 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
           chooser.showDialog();
           PsiClass selClass = chooser.getSelected();
           if (selClass != null) {
-            myActivityField.getChildComponent().setText(selClass.getQualifiedName());
+            myActivityField.getChildComponent().setText(ActivityLocatorUtils.getQualifiedActivityName(selClass));
           }
         }
       });
