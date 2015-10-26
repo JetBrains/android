@@ -54,7 +54,7 @@ public class TexturesController extends ImagePanelController {
         setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path.as(Format.RGBA)));
       }
     }.myList, BorderLayout.NORTH);
-    initToolbar(new DefaultActionGroup());
+    initToolbar(new DefaultActionGroup(), true);
   }
 
   @Override

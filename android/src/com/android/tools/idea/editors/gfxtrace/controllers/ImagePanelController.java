@@ -66,8 +66,8 @@ public abstract class ImagePanelController extends Controller {
     myPanel.add(myLoading.getComponent(), BorderLayout.CENTER);
   }
 
-  protected void initToolbar(DefaultActionGroup group) {
-    myImagePanel.addToolbarActions(group);
+  protected void initToolbar(DefaultActionGroup group, boolean enableVerticalFlip) {
+    myImagePanel.addToolbarActions(group, enableVerticalFlip);
     myPanel.add(ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, false).getComponent(), BorderLayout.WEST);
   }
 
