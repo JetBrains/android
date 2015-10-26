@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.gfxtrace;
+package com.android.tools.idea.editors.gfxtrace.forms;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.logcat.RegexFilterComponent;
+import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
