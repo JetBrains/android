@@ -99,6 +99,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   protected LaunchOptions.Builder getLaunchOptions() {
     return super.getLaunchOptions()
       .setDeploy(DEPLOY)
+      .setPmInstallOptions(PM_INSTALL_OPTIONS)
       .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
   }
 
@@ -170,10 +171,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
     return state.getLauncher(facet, ACTIVITY_EXTRA_FLAGS);
-  }
-
-  protected boolean needsLaunch() {
-    return LAUNCH_SPECIFIC_ACTIVITY.equals(MODE) || LAUNCH_DEFAULT_ACTIVITY.equals(MODE);
   }
 
   public void setLaunchActivity(@NotNull String activityName) {
