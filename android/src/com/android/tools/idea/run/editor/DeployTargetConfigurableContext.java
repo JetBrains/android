@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.run.editor;
 
-/**
- * The target for use in an Android run configuration (e.g. devices, or a cloud matrix).
- */
-public interface DeployTarget {
+import com.intellij.openapi.module.Module;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.awt.event.ActionListener;
+
+public interface DeployTargetConfigurableContext {
+  @Nullable
+  Module getModule();
+
+  void addModuleChangeListener(@NotNull ActionListener listener);
+  void removeModuleChangeListener(@NotNull ActionListener listener);
 }

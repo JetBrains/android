@@ -16,10 +16,12 @@
 package com.android.tools.idea.run.activity;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.ClientData;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.TimeoutException;
 import com.android.tools.idea.run.AndroidApplicationLauncher;
 import com.android.tools.idea.run.AndroidRunningState;
-import com.android.tools.idea.run.ErrorMatchingReceiver;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
-import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
 
 public class AndroidActivityLauncher extends AndroidApplicationLauncher {

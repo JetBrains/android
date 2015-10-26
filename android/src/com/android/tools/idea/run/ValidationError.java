@@ -23,10 +23,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A validation error encountered when checking a configuration.
  * Within the Android run configurations, we collect validation errors rather than using
- * {@link com.intellij.execution.configurations.RuntimeConfigurationException} and subclasses, to
+ * {@link RuntimeConfigurationException} and subclasses, to
  * avoid the common mistake of throwing an exception with a warning before getting the chance to
  * check for some fatal error.
- * See {@link com.android.tools.idea.run.AndroidRunConfigurationBase#checkConfiguration}.
+ * See {@link AndroidRunConfigurationBase#checkConfiguration}.
  */
 public final class ValidationError implements Comparable<ValidationError> {
   /** Severity levels in ascending order. */
