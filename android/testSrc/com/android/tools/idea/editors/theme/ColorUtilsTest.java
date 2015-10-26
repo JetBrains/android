@@ -47,8 +47,8 @@ public class ColorUtilsTest extends AndroidTestCase {
     ThemeEditorContext context = new ThemeEditorContext(configuration);
     context.setCurrentTheme(context.getThemeResolver().getTheme("MyTheme"));
 
-    ImmutableMap<String, Color> textColorContrastColors = ColorUtils.getContrastColorsWithWarning(context, "textColor");
-    ImmutableMap<String, Color> colorPrimaryContrastColors = ColorUtils.getContrastColorsWithWarning(context, "colorPrimary");
+    ImmutableMap<String, Color> textColorContrastColors = ColorUtils.getContrastColorsWithDescription(context, "textColor");
+    ImmutableMap<String, Color> colorPrimaryContrastColors = ColorUtils.getContrastColorsWithDescription(context, "colorPrimary");
 
     assertEquals("<html>Not enough contrast with <b>colorPrimary</b>", ColorUtils
       .getContrastWarningMessage(textColorContrastColors, Color.WHITE, ColorUtils.isBackgroundAttribute("textColor")));
@@ -58,8 +58,8 @@ public class ColorUtilsTest extends AndroidTestCase {
     assertEquals("", ColorUtils.getContrastWarningMessage(colorPrimaryContrastColors, Color.BLACK, ColorUtils.isBackgroundAttribute("colorPrimary")));
 
     // Test non existing attribute names
-    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, ""), Color.WHITE, false));
-    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithWarning(context, "invented"), Color.WHITE, true));
+    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithDescription(context, ""), Color.WHITE, false));
+    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithDescription(context, "invented"), Color.WHITE, true));
 
     // Test transparent colors
     assertEquals("<html>Not enough contrast with <b>colorPrimary</b>", ColorUtils
@@ -67,17 +67,17 @@ public class ColorUtilsTest extends AndroidTestCase {
     assertEquals("", ColorUtils
       .getContrastWarningMessage(textColorContrastColors, new Color(0, 0, 0, 250), ColorUtils.isBackgroundAttribute("textColor")));
 
-    HashMap<String, Color> colorsWithWarning = new HashMap<String, Color>();
-    colorsWithWarning.put("color very transparent", new Color(0, 0, 0, 50));
-    colorsWithWarning.put("color a little transparent", new Color(0, 0, 0, 200));
+    HashMap<String, Color> colorsWithDescription = new HashMap<String, Color>();
+    colorsWithDescription.put("color very transparent", new Color(0, 0, 0, 50));
+    colorsWithDescription.put("color a little transparent", new Color(0, 0, 0, 200));
     assertEquals("<html>Not enough contrast with color very transparent",
-                 ColorUtils.getContrastWarningMessage(colorsWithWarning, new Color(255, 255, 255, 200), false));
+                 ColorUtils.getContrastWarningMessage(colorsWithDescription, new Color(255, 255, 255, 200), false));
     assertEquals("<html>Not enough contrast with color very transparent and color a little transparent",
-                 ColorUtils.getContrastWarningMessage(colorsWithWarning, new Color(255, 0, 0, 200), false));
+                 ColorUtils.getContrastWarningMessage(colorsWithDescription, new Color(255, 0, 0, 200), false));
     assertEquals("<html>Not enough contrast with color very transparent",
-                 ColorUtils.getContrastWarningMessage(colorsWithWarning, new Color(255, 0, 0), false));
+                 ColorUtils.getContrastWarningMessage(colorsWithDescription, new Color(255, 0, 0), false));
     assertEquals("<html>Not enough contrast with color very transparent",
-                 ColorUtils.getContrastWarningMessage(colorsWithWarning, new Color(0, 255, 0, 200), false));
+                 ColorUtils.getContrastWarningMessage(colorsWithDescription, new Color(0, 255, 0, 200), false));
   }
 
   public void testContrastColors() {
@@ -87,16 +87,16 @@ public class ColorUtilsTest extends AndroidTestCase {
     context.setCurrentTheme(context.getThemeResolver().getTheme("MyTheme"));
 
     Collection<Color>
-      color = ColorUtils.getContrastColorsWithWarning(context, "colorPrimary").values();
+      color = ColorUtils.getContrastColorsWithDescription(context, "colorPrimary").values();
     assertThat(color)
       .containsOnly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
-    color = ColorUtils.getContrastColorsWithWarning(context, "colorPrimary").values();
+    color = ColorUtils.getContrastColorsWithDescription(context, "colorPrimary").values();
     assertThat(color)
       .containsOnly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
 
-    color = ColorUtils.getContrastColorsWithWarning(context, "").values();
+    color = ColorUtils.getContrastColorsWithDescription(context, "").values();
     assertThat(color).isEmpty();
-    color = ColorUtils.getContrastColorsWithWarning(context, "notExistent").values();
+    color = ColorUtils.getContrastColorsWithDescription(context, "notExistent").values();
     assertThat(color).isEmpty();
   }
 
