@@ -71,7 +71,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   private final Map<String, LaunchOptionState> myLaunchOptionStates = Maps.newHashMap();
 
   public AndroidRunConfiguration(Project project, ConfigurationFactory factory) {
-    super(project, factory);
+    super(project, factory, false);
 
     for (LaunchOption option : LAUNCH_OPTIONS) {
       myLaunchOptionStates.put(option.getId(), option.createState());
@@ -117,7 +117,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
     AndroidRunConfigurationEditor<AndroidRunConfiguration> editor =
-      new AndroidRunConfigurationEditor<AndroidRunConfiguration>(project, Predicates.<AndroidFacet>alwaysFalse());
+      new AndroidRunConfigurationEditor<AndroidRunConfiguration>(project, Predicates.<AndroidFacet>alwaysFalse(), this);
     editor.setConfigurationSpecificEditor(new ApplicationRunParameters(project, editor.getModuleSelector()));
     return editor;
   }

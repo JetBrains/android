@@ -695,6 +695,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.messages.ProjectSyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewConfiguration"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.DeviceStateAtLaunchService" />
 
     <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
@@ -706,6 +707,7 @@
                     serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
                     serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
+
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
     <psi.referenceProvider language="XML" providerClass="org.jetbrains.android.dom.AndroidXmlReferenceProvider">
       <pattern type="xml">xmlTag()</pattern>
@@ -860,6 +862,7 @@
                     interface="com.android.tools.idea.stats.UsageUploader" />
     <extensionPoint qualifiedName="com.android.ide.developerServiceBuildSystemOperations"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceBuildSystemOperations"/>
+    <extensionPoint qualifiedName="com.android.run.deployTarget" interface="com.android.tools.idea.run.editor.DeployTarget" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -907,12 +910,17 @@
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer"/>
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer"/>
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer"/>
-
   </extensions>
 
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.sdk.GradleAndroidSdkEventListener"/>
     <developerServiceBuildSystemOperations implementation="com.android.tools.idea.gradle.structure.services.GradleOperations"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.run">
+    <deployTarget implementation="com.android.tools.idea.run.editor.ShowChooserTarget" />
+    <deployTarget implementation="com.android.tools.idea.run.editor.UsbDeviceTarget" />
+    <deployTarget implementation="com.android.tools.idea.run.editor.EmulatorTarget" />
   </extensions>
 
   <!-- Layout editor -->

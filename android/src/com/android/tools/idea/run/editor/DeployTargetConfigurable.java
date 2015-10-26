@@ -15,26 +15,14 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.intellij.ui.ColoredListCellRenderer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public enum DeployOption {
-  DEFAULT_APK("Default APK"),
-  CUSTOM_ARTIFACT("Custom Artifact"),
-  NOTHING("Nothing");
-
-  public final String displayName;
-
-  DeployOption(@NotNull String displayName) {
-    this.displayName = displayName;
-  }
-
-  public static class Renderer extends ColoredListCellRenderer<DeployOption> {
-    @Override
-    protected void customizeCellRenderer(JList list, DeployOption option, int index, boolean selected, boolean hasFocus) {
-      append(option.displayName);
-    }
-  }
+public interface DeployTargetConfigurable<S> {
+  @Nullable
+  JComponent createComponent();
+  void resetFrom(@NotNull S state, int uniqueID);
+  void applyTo(@NotNull S state, int uniqueID);
 }

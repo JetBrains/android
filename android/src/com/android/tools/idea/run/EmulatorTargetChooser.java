@@ -21,7 +21,6 @@ import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
@@ -30,22 +29,19 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
-import com.intellij.util.ThreeState;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AvdsNotSupportedException;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AvdManagerLog;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
 
-public class EmulatorTargetChooser implements TargetChooser {
-  private static final Logger LOG = Logger.getInstance(TargetChooser.class);
+public class EmulatorTargetChooser {
+  private static final Logger LOG = Logger.getInstance(EmulatorTargetChooser.class);
 
   private final String myAvd;
   @NotNull private final AndroidFacet myFacet;
@@ -56,32 +52,10 @@ public class EmulatorTargetChooser implements TargetChooser {
     myAvd = avd;
   }
 
-  @Override
-  public boolean matchesDevice(@NotNull IDevice device) {
-    if (!device.isEmulator()) {
-      return false;
-    }
-    String avdName = device.getAvdName();
-    if (myAvd != null) {
-      return myAvd.equals(avdName);
-    }
-
-    AndroidPlatform androidPlatform = myFacet.getConfiguration().getAndroidPlatform();
-    if (androidPlatform == null) {
-      LOG.error("Target Android platform not set for module: " + myFacet.getModule().getName());
-      return false;
-    } else {
-      LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(AndroidModuleInfo.get(myFacet).getRuntimeMinSdkVersion(),
-                                                                             androidPlatform.getTarget(),
-                                                                             EnumSet.noneOf(IDevice.HardwareFeature.class), device, null);
-      return compatibility.isCompatible() != ThreeState.NO;
-    }
-  }
-
   @Nullable
-  @Override
-  public DeployTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
-    Collection<IDevice> runningDevices = DeviceSelectionUtils.chooseRunningDevice(myFacet, new TargetDeviceFilter(this), deviceCount);
+  public DeviceTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
+    TargetDeviceFilter deviceFilter = new TargetDeviceFilter.EmulatorFilter(myFacet, myAvd);
+    Collection<IDevice> runningDevices = DeviceSelectionUtils.chooseRunningDevice(myFacet, deviceFilter, deviceCount);
     if (runningDevices == null) {
       // The user canceled.
       return null;
@@ -165,7 +139,6 @@ public class EmulatorTargetChooser implements TargetChooser {
   }
 
   @NotNull
-  @Override
   public List<ValidationError> validate() {
     if (myAvd == null) {
       return ImmutableList.of();
