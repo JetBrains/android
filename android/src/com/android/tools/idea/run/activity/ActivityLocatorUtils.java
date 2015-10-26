@@ -19,6 +19,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.dom.AndroidDomUtil;
+import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -78,6 +79,19 @@ public class ActivityLocatorUtils {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
     PsiClass c = activity.getActivityClass().getValue();
-    return c == null ? null : c.getQualifiedName();
+    if (c == null) {
+      return null;
+    }
+
+    return getQualifiedActivityName(c);
+  }
+
+  /**
+   * Returns a fully qualified activity name as accepted by "am start" command: In particular, rather than return "com.foo.Bar.Inner",
+   * this will return "com.foo.Bar$Inner" for inner classes.
+   */
+  @Nullable
+  public static String getQualifiedActivityName(@NotNull PsiClass c) {
+    return PackageClassConverter.getQualifiedName(c);
   }
 }
