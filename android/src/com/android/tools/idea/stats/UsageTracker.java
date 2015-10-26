@@ -83,6 +83,12 @@ public abstract class UsageTracker {
   public static final String CATEGORY_PROFILING = "profiling";
   public static final String ACTION_PROFILING_CAPTURE = "captureCreated";
   public static final String ACTION_PROFILING_OPEN = "captureOpened";
+  public static final String ACTION_PROFILING_CONVERT_HPROF = "hprofConversion";
+  public static final String ACTION_PROFILING_ANALYSIS_RUN = "analysisRan";
+
+  public static final String CATEGORY_MONITOR = "monitors";
+  public static final String ACTION_MONITOR_ACTIVATED = "activateMonitor";
+  public static final String ACTION_MONITOR_RUNNING = "runningMonitor";
 
   public static final String CATEGORY_SDK_MANAGER = "sdkManager";
   public static final String ACTION_SDK_MANAGER_TOOLBAR_CLICKED = "toolbarButtonClicked";
