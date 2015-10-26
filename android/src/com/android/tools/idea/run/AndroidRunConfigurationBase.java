@@ -19,8 +19,10 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.google.common.base.Strings;
+import com.android.tools.idea.run.editor.DeployTarget;
+import com.android.tools.idea.run.editor.DeployTargetState;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.intellij.execution.ExecutionException;
@@ -36,7 +38,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.*;
-import com.intellij.util.containers.ContainerUtil;
 import icons.AndroidIcons;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -46,7 +47,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
@@ -56,28 +60,36 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 
-  /**
-   * A map from launch configuration name to the state of devices at the time of the launch.
-   * We want this list of devices persisted across launches, but not across invocations of studio, so we use a static variable.
-   */
-  private static Map<String, DeviceStateAtLaunch> ourLastUsedDevices = ContainerUtil.newConcurrentMap();
+  /** The key used to store the selected device target as copyable user data on each execution environment. */
+  public static final Key<DeviceTarget> DEVICE_TARGET_KEY = Key.create("android.device.target");
 
-  /** The key used to store the selected deploy target as copyable user data on each execution environment. */
-  public static final Key<DeployTarget> DEPLOY_TARGET_KEY = Key.create("android.deploy.target");
   public static final Key<Collection<IDevice>> DEPLOY_DEVICES = Key.create("android.deploy.devices");
   public static final Key<Boolean> FAST_DEPLOY = Key.create("android.fast.deploy");
 
-  public String TARGET_SELECTION_MODE = TargetSelectionMode.EMULATOR.name();
-  public boolean USE_LAST_SELECTED_DEVICE = false;
+  public String TARGET_SELECTION_MODE = TargetSelectionMode.SHOW_DIALOG.name();
   public String PREFERRED_AVD = "";
+
+  private final List<DeployTarget> myDeployTargets; // all available deploy targets
+  private final List<DeployTarget> myApplicableDeployTargets; // deploy targets valid for this configuration
+
+  private final Map<String, DeployTargetState> myDeployTargetStates;
 
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
   public boolean SKIP_NOOP_APK_INSTALLATIONS = true; // skip installation if the APK hasn't hasn't changed
   public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
 
-  public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory) {
+  public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
+
+    myDeployTargets = DeployTarget.getDeployTargets();
+    myApplicableDeployTargets = ImmutableList.copyOf(getApplicableDeployTargets(myDeployTargets, androidTests));
+
+    ImmutableMap.Builder<String, DeployTargetState> builder = ImmutableMap.builder();
+    for (DeployTarget target : myDeployTargets) {
+      builder.put(target.getId(), target.createState());
+    }
+    myDeployTargetStates = builder.build();
   }
 
   @Override
@@ -135,7 +147,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (facet.getManifest() == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
     }
-    errors.addAll(getTargetChooser(facet).validate());
+    errors.addAll(getCurrentDeployTargetState().validate(facet));
+
     errors.addAll(getApkProvider(facet).validate());
 
     errors.addAll(checkConfiguration(facet));
@@ -181,17 +194,62 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
   }
 
+  private static List<DeployTarget> getApplicableDeployTargets(@NotNull List<DeployTarget> allTargets, boolean androidTests) {
+    List<DeployTarget> targets = Lists.newArrayList();
+
+    for (DeployTarget target : allTargets) {
+      if (target.isApplicable(androidTests)) {
+        targets.add(target);
+      }
+    }
+
+    return targets;
+  }
+
+  @NotNull
+  public List<DeployTarget> getApplicableDeployTargets() {
+    return myApplicableDeployTargets;
+  }
+
+  @NotNull
+  public DeployTarget getCurrentDeployTarget() {
+    DeployTarget target = getDeployTarget(TARGET_SELECTION_MODE);
+    if (target == null) {
+      target = getDeployTarget(TargetSelectionMode.SHOW_DIALOG.name());
+    }
+
+    assert target != null;
+    return target;
+  }
+
+  @Nullable
+  private DeployTarget getDeployTarget(@NotNull String id) {
+    for (DeployTarget target : myDeployTargets) {
+      if (target.getId().equals(id)) {
+        return target;
+      }
+    }
+
+    return null;
+  }
+
+  @NotNull
+  private DeployTargetState getCurrentDeployTargetState() {
+    DeployTarget currentTarget = getCurrentDeployTarget();
+    return myDeployTargetStates.get(currentTarget.getId());
+  }
+
+  @NotNull
+  public DeployTargetState getDeployTargetState(@NotNull DeployTarget target) {
+    return myDeployTargetStates.get(target.getId());
+  }
+
   public void setTargetSelectionMode(@NotNull TargetSelectionMode mode) {
     TARGET_SELECTION_MODE = mode.name();
   }
 
-  public void setDevicesUsedInLaunch(@NotNull Set<IDevice> usedDevices, @NotNull Set<IDevice> availableDevices) {
-    ourLastUsedDevices.put(getName(), new DeviceStateAtLaunch(usedDevices, availableDevices));
-  }
-
-  @Nullable
-  public DeviceStateAtLaunch getDevicesUsedInLastLaunch() {
-    return ourLastUsedDevices.get(getName());
+  public void setTargetSelectionMode(@NotNull DeployTarget target) {
+    TARGET_SELECTION_MODE = target.getId();
   }
 
   @Nullable
@@ -230,14 +288,20 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     boolean debug = false;
     if (executor instanceof DefaultDebugExecutor) {
       if (!AndroidSdkUtils.activateDdmsIfNecessary(facet.getModule().getProject())) {
-        return null;
+        throw new ExecutionException("Unable to obtain debug bridge. Please check if there is a different tool using adb that is active.");
       }
       debug = true;
     }
 
+    DeployTarget currentTarget = getCurrentDeployTarget();
+    DeployTargetState deployTargetState = getCurrentDeployTargetState();
+
+    if (currentTarget.hasCustomRunProfileState(executor)) {
+      return currentTarget.getRunProfileState(executor, env, deployTargetState);
+    }
+
     if (AndroidSdkUtils.getDebugBridge(getProject()) == null) {
-      LOG.warn("Quitting launch: Unable to obtain adb");
-      return null;
+      throw new ExecutionException("Unable to obtain debug bridge");
     }
 
     AndroidSessionInfo info = AndroidSessionManager.findOldSession(project, getName());
@@ -275,23 +339,21 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
-    TargetChooser targetChooser = getTargetChooser(facet);
 
     // If there is a session that we will embed to, we need to re-use the devices from that session.
-    DeployTarget deployTarget = getOldSessionTarget(project, executor, targetChooser);
-    if (deployTarget == null) {
-      deployTarget = targetChooser.getTarget(printer, getDeviceCount(debug), debug);
-      if (deployTarget == null) {
+    // TODO: this means that if the deployment target is changed between sessions, we still use the one from the old session?
+    DeviceTarget deviceTarget = getOldSessionTarget(project, executor);
+    if (deviceTarget == null) {
+      deviceTarget = currentTarget.getTarget(deployTargetState, facet, getDeviceCount(debug), debug, getName(), printer);
+      if (deviceTarget == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
         return null;
       }
     }
 
     // Store the chosen target on the execution environment so before-run tasks can access it.
-    env.putCopyableUserData(DEPLOY_TARGET_KEY, deployTarget);
+    env.putCopyableUserData(DEVICE_TARGET_KEY, deviceTarget);
 
-    assert deployTarget instanceof DeviceTarget : "Unknown target type: " + deployTarget.getClass().getCanonicalName();
-    DeviceTarget deviceTarget = (DeviceTarget)deployTarget;
     if (deviceTarget.getDeviceFutures().isEmpty()) {
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
@@ -317,34 +379,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Nullable
-  private DeviceTarget getOldSessionTarget(@NotNull Project project,
-                                           @NotNull Executor executor,
-                                           @NotNull TargetChooser targetChooser) {
+  private DeviceTarget getOldSessionTarget(@NotNull Project project, @NotNull Executor executor) {
     AndroidSessionInfo sessionInfo = AndroidSessionManager.findOldSession(project, executor, this);
     if (sessionInfo != null) {
       if (sessionInfo.isEmbeddable()) {
         Collection<IDevice> oldDevices = sessionInfo.getState().getDevices();
-        Collection<IDevice> currentDevices = DeviceSelectionUtils.getAllCompatibleDevices(new TargetDeviceFilter(targetChooser));
-        if (currentDevices.equals(oldDevices)) {
-          return DeviceTarget.forDevices(oldDevices);
+        Collection<IDevice> online = DeviceSelectionUtils.getOnlineDevices(oldDevices);
+        if (!online.isEmpty()) {
+          return DeviceTarget.forDevices(online);
         }
       }
     }
     return null;
-  }
-
-  @NotNull
-  protected TargetChooser getTargetChooser(@NotNull AndroidFacet facet) {
-    switch (getTargetSelectionMode()) {
-      case SHOW_DIALOG:
-        return new ManualTargetChooser(this, facet);
-      case EMULATOR:
-        return new EmulatorTargetChooser(facet, Strings.emptyToNull(PREFERRED_AVD));
-      case USB_DEVICE:
-        return new UsbDeviceTargetChooser(facet);
-      default:
-        throw new IllegalStateException("Unknown target selection mode " + TARGET_SELECTION_MODE);
-    }
   }
 
   @NotNull
@@ -369,6 +415,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     super.readExternal(element);
     readModule(element);
     DefaultJDOMExternalizer.readExternal(this, element);
+
+    for (DeployTargetState state : myDeployTargetStates.values()) {
+      DefaultJDOMExternalizer.readExternal(state, element);
+    }
   }
 
   @Override
@@ -376,6 +426,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     super.writeExternal(element);
     writeModule(element);
     DefaultJDOMExternalizer.writeExternal(this, element);
+
+    for (DeployTargetState state : myDeployTargetStates.values()) {
+      DefaultJDOMExternalizer.writeExternal(state, element);
+    }
   }
 
   public boolean usesSimpleLauncher() {
