@@ -92,6 +92,15 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
     return group;
   }
 
+  /**
+   * Used by {@link GfxTraceCaptureAction} as an argument to {@link JDialog.setLocationRelativeTo}
+   * so that dialogs opened, centred on the same monitor as this panel.
+   * @return the panel used by the GPU monitor view.
+   */
+  public JPanel getPanel() {
+    return myPanel;
+  }
+
   @Override
   public void clientSelected(@Nullable final Client client) {
     if (client != mySampler.getClient()) {
