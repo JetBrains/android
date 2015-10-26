@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -33,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -92,6 +94,21 @@ public class DeviceSelectionUtils {
       }
     }
     return compatibleDevices;
+  }
+
+  @NotNull
+  public static Collection<IDevice> getOnlineDevices(@Nullable Collection<IDevice> devices) {
+    if (devices == null) {
+      return Collections.emptyList();
+    }
+
+    final List<IDevice> online = Lists.newArrayListWithExpectedSize(devices.size());
+    for (IDevice device : devices) {
+      if (device.isOnline()) {
+        online.add(device);
+      }
+    }
+    return online;
   }
 
   @NotNull
