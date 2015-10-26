@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
 import com.android.sdklib.AndroidVersion;
@@ -26,6 +27,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -252,7 +254,7 @@ public class ApkInstaller {
 
     ErrorMatchingReceiver receiver = new ErrorMatchingReceiver(cancelInstallation);
 
-    String command = "pm install -r \"" + remotePath + "\"";
+    String command = getPmInstallCommand(remotePath, myLaunchOptions.getPmInstallOptions());
     myPrinter.stdout(AndroidRunningState.DEVICE_COMMAND_PREFIX + command);
     try {
       device.executeShellCommand(command, receiver);
@@ -263,6 +265,22 @@ public class ApkInstaller {
     }
 
     return InstallResult.forLaunchOutput(receiver);
+  }
+
+  @NotNull
+  private static String getPmInstallCommand(@NotNull String remotePath, @Nullable String pmInstallOptions) {
+    StringBuilder sb = new StringBuilder(30);
+    sb.append("pm install ");
+
+    if (!StringUtil.isEmpty(pmInstallOptions)) {
+      sb.append(pmInstallOptions);
+      sb.append(' ');
+    }
+
+    sb.append("-r \"");
+    sb.append(remotePath);
+    sb.append("\"");
+    return sb.toString();
   }
 
   /** Opens the project structure dialog and selects the flavors tab. */
