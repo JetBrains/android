@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A collection of options governing Android run configuration launch behavior.
@@ -24,6 +25,7 @@ public final class LaunchOptions {
 
   public static final class Builder {
     private boolean myDeploy = true;
+    private String myPmInstallOptions = null;
     private boolean myDebug = false;
     private boolean myOpenLogcatAutomatically = false;
     private boolean myClearLogcatBeforeStart = false;
@@ -36,6 +38,7 @@ public final class LaunchOptions {
     @NotNull
     public LaunchOptions build() {
       return new LaunchOptions(myDeploy,
+                               myPmInstallOptions,
                                myDebug,
                                myOpenLogcatAutomatically,
                                myClearLogcatBeforeStart,
@@ -46,6 +49,12 @@ public final class LaunchOptions {
     @NotNull
     public Builder setDeploy(boolean deploy) {
       myDeploy = deploy;
+      return this;
+    }
+
+    @NotNull
+    public Builder setPmInstallOptions(@Nullable String options) {
+      myPmInstallOptions = options;
       return this;
     }
 
@@ -86,6 +95,7 @@ public final class LaunchOptions {
   }
 
   private final boolean myDeploy;
+  private final String myPmInstallOptions;
   private final boolean myDebug;
   private final boolean myOpenLogcatAutomatically;
   private final boolean myClearLogcatBeforeStart;
@@ -93,12 +103,14 @@ public final class LaunchOptions {
   private final boolean myForceStopRunningApp;
 
   private LaunchOptions(boolean deploy,
+                        @Nullable String pmInstallOptions,
                         boolean debug,
                         boolean openLogcatAutomatically,
                         boolean clearLogcatBeforeStart,
                         boolean skipNoopApkInstallations,
                         boolean forceStopRunningApp) {
     myDeploy = deploy;
+    myPmInstallOptions = pmInstallOptions;
     myDebug = debug;
     myOpenLogcatAutomatically = openLogcatAutomatically;
     myClearLogcatBeforeStart = clearLogcatBeforeStart;
@@ -108,6 +120,11 @@ public final class LaunchOptions {
 
   public boolean isDeploy() {
     return myDeploy;
+  }
+
+  @Nullable
+  public String getPmInstallOptions() {
+    return myPmInstallOptions;
   }
 
   public boolean isDebug() {
