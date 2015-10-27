@@ -55,14 +55,14 @@ public class GradleBuildModel extends GradleFileModel {
     return new GradleBuildModel(buildDslFile);
   }
 
-  private GradleBuildModel(@NotNull GradleBuildDslFile buildPsiFile) {
-    super(buildPsiFile);
+  private GradleBuildModel(@NotNull GradleBuildDslFile buildDslFile) {
+    super(buildDslFile);
   }
 
   @Nullable
   public AndroidModel android() {
-    AndroidDslElement androidPsiElement = myGradleDslFile.getProperty(AndroidDslElement.NAME, AndroidDslElement.class);
-    return androidPsiElement != null ? new AndroidModel(androidPsiElement) : null;
+    AndroidDslElement androidDslElement = myGradleDslFile.getProperty(AndroidDslElement.NAME, AndroidDslElement.class);
+    return androidDslElement != null ? new AndroidModel(androidDslElement) : null;
   }
 
   @NotNull
@@ -70,8 +70,8 @@ public class GradleBuildModel extends GradleFileModel {
     if (android() != null) {
       return this;
     }
-    AndroidDslElement androidPsiElement = new AndroidDslElement(myGradleDslFile);
-    myGradleDslFile.setNewElement(AndroidDslElement.NAME, androidPsiElement);
+    AndroidDslElement androidDslElement = new AndroidDslElement(myGradleDslFile);
+    myGradleDslFile.setNewElement(AndroidDslElement.NAME, androidDslElement);
     return this;
   }
 
