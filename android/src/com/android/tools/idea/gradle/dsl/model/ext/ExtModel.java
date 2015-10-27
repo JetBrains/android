@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtPsiElement;
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,13 +26,13 @@ import org.jetbrains.annotations.NotNull;
  * </p>
  */
 public final class ExtModel {
-  @NotNull private final ExtPsiElement myPsiElement;
+  @NotNull private final ExtDslElement myDslElement;
 
-  public ExtModel(@NotNull ExtPsiElement psiElement) {
-    myPsiElement = psiElement;
+  public ExtModel(@NotNull ExtDslElement dslElement) {
+    myDslElement = dslElement;
   }
 
   public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    return myPsiElement.getProperty(property, clazz);
+    return myDslElement.getProperty(property, clazz);
   }
 }

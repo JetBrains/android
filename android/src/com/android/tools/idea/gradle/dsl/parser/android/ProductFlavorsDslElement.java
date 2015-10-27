@@ -16,18 +16,18 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElementMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
 
-public final class ProductFlavorsPsiElement extends GradlePsiElementMap {
+public final class ProductFlavorsDslElement extends GradleDslElementMap {
   public static final String NAME = "productFlavors";
 
-  public ProductFlavorsPsiElement(@NotNull GradlePsiElement parent) {
+  public ProductFlavorsDslElement(@NotNull GradleDslElement parent) {
     super(parent, NAME);
   }
 
@@ -39,8 +39,8 @@ public final class ProductFlavorsPsiElement extends GradlePsiElementMap {
   @NotNull
   public Collection<ProductFlavorModel> get() {
     List<ProductFlavorModel> result = Lists.newArrayList();
-    for (ProductFlavorPsiElement parsedElement : getValues(ProductFlavorPsiElement.class)) {
-      result.add(new ProductFlavorModel(parsedElement));
+    for (ProductFlavorDslElement dslElement : getValues(ProductFlavorDslElement.class)) {
+      result.add(new ProductFlavorModel(dslElement));
     }
     return result;
   }

@@ -32,14 +32,14 @@ import java.util.Map;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 
 /**
- * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradlePsiLiteral}.
+ * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslLiteral}.
  */
-public final class GradlePsiLiteralMap extends GradlePropertiesPsiElement {
-  public GradlePsiLiteralMap(@Nullable GradlePsiElement parent, @NotNull String name) {
+public final class GradleDslLiteralMap extends GradlePropertiesDslElement {
+  public GradleDslLiteralMap(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
   }
 
-  public GradlePsiLiteralMap(@NotNull GradlePsiElement parent, @NotNull String name, @NotNull GrListOrMap map) {
+  public GradleDslLiteralMap(@NotNull GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap map) {
     super(parent, map, name);
     assert map.isMap();
     for (GrNamedArgument argument : map.getNamedArguments()) {
@@ -47,13 +47,13 @@ public final class GradlePsiLiteralMap extends GradlePropertiesPsiElement {
       if (literal != null) {
         String argName = argument.getLabelName();
         if (argName != null) {
-          setPsiElement(argName, new GradlePsiLiteral(this, map, name, literal));
+          setDslElement(argName, new GradleDslLiteral(this, map, name, literal));
         }
       }
     }
   }
 
-  public GradlePsiLiteralMap(@Nullable GradlePsiElement parent,
+  public GradleDslLiteralMap(@Nullable GradleDslElement parent,
                              @NotNull GroovyPsiElement psiElement,
                              @NotNull String name,
                              @NotNull GrNamedArgument... namedArguments) {
@@ -63,21 +63,21 @@ public final class GradlePsiLiteralMap extends GradlePropertiesPsiElement {
       if (literal != null) {
         String argName = argument.getLabelName();
         if (argName != null) {
-          setPsiElement(argName, new GradlePsiLiteral(this, psiElement, name, literal));
+          setDslElement(argName, new GradleDslLiteral(this, psiElement, name, literal));
         }
       }
     }
   }
 
   void put(String key, Object value) {
-    GradlePsiElement propertyElement = getPropertyElement(key);
-    if (propertyElement instanceof GradlePsiLiteral) {
-      ((GradlePsiLiteral)propertyElement).setValue(value);
+    GradleDslElement propertyElement = getPropertyElement(key);
+    if (propertyElement instanceof GradleDslLiteral) {
+      ((GradleDslLiteral)propertyElement).setValue(value);
       return;
     }
-    GradlePsiLiteral gradlePsiLiteral = new GradlePsiLiteral(this, key);
-    setNewElement(key, gradlePsiLiteral);
-    gradlePsiLiteral.setValue(value);
+    GradleDslLiteral gradleDslLiteral = new GradleDslLiteral(this, key);
+    setNewElement(key, gradleDslLiteral);
+    gradleDslLiteral.setValue(value);
   }
 
   /**
@@ -89,9 +89,9 @@ public final class GradlePsiLiteralMap extends GradlePropertiesPsiElement {
   <V> Map<String, V> getValues(@NotNull Class<V> clazz) {
     Map<String, V> result = Maps.newHashMap();
     for (String key : getProperties()) {
-      GradlePsiElement propertyElement = getPropertyElement(key);
-      if (propertyElement instanceof GradlePsiLiteral) {
-        V value = ((GradlePsiLiteral)propertyElement).getValue(clazz);
+      GradleDslElement propertyElement = getPropertyElement(key);
+      if (propertyElement instanceof GradleDslLiteral) {
+        V value = ((GradleDslLiteral)propertyElement).getValue(clazz);
         if (value != null) {
           result.put(key, value);
         }
@@ -103,9 +103,9 @@ public final class GradlePsiLiteralMap extends GradlePropertiesPsiElement {
   @Override
   @Nullable
   public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    GradlePsiElement propertyElement = getPropertyElement(property);
-    if (propertyElement instanceof GradlePsiLiteral) {
-      return ((GradlePsiLiteral)propertyElement).getValue(clazz);
+    GradleDslElement propertyElement = getPropertyElement(property);
+    if (propertyElement instanceof GradleDslLiteral) {
+      return ((GradleDslLiteral)propertyElement).getValue(clazz);
     }
     return null;
   }
