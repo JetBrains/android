@@ -63,7 +63,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   protected void addAsDslLiteralList(@NotNull String property, GradleDslLiteral dslLiteral) {
-    GroovyPsiElement psiElement = dslLiteral.getGroovyPsiElement();
+    GroovyPsiElement psiElement = dslLiteral.getPsiElement();
     if (psiElement == null) {
       return;
     }
@@ -72,7 +72,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   public void addToDslLiteralList(@NotNull String property, @NotNull GradleDslElement element) {
-    GroovyPsiElement psiElement = element.getGroovyPsiElement();
+    GroovyPsiElement psiElement = element.getPsiElement();
     if (psiElement == null) {
       return;
     }

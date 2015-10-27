@@ -89,8 +89,8 @@ public final class ProductFlavorDslElement extends GradlePropertiesDslElement {
       if (!(element instanceof GradleDslLiteralList)) {
         return;
       }
-      GradleDslLiteralList gradlePsiLiteralList = (GradleDslLiteralList)element;
-      List<GradleDslLiteral> elements = gradlePsiLiteralList.getElements();
+      GradleDslLiteralList gradleDslLiteralList = (GradleDslLiteralList)element;
+      List<GradleDslLiteral> elements = gradleDslLiteralList.getElements();
       if (elements.size() != 2) {
         return;
       }

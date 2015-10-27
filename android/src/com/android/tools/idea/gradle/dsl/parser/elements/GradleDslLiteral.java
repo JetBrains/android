@@ -112,7 +112,7 @@ public final class GradleDslLiteral extends GradleDslElement {
       return null;
     }
 
-    setGroovyPsiElement(parentPsiElement);
+    setPsiElement(parentPsiElement);
     GrLiteral newLiteral = createLiteral();
     if (newLiteral == null) {
       return null;
@@ -127,7 +127,7 @@ public final class GradleDslLiteral extends GradleDslElement {
       if (literal != null) {
         myLiteral = literal;
         setModified(false);
-        return getGroovyPsiElement();
+        return getPsiElement();
       }
     }
     return null;
@@ -175,7 +175,7 @@ public final class GradleDslLiteral extends GradleDslElement {
 
   @Override
   protected void apply() {
-    GroovyPsiElement psiElement = getGroovyPsiElement();
+    GroovyPsiElement psiElement = getPsiElement();
     if (psiElement == null) {
       return;
     }
@@ -221,7 +221,7 @@ public final class GradleDslLiteral extends GradleDslElement {
       return null;
     }
 
-    GroovyPsiElement psiElement = getGroovyPsiElement();
+    GroovyPsiElement psiElement = getPsiElement();
     if (psiElement == null) {
       return null;
     }

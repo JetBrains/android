@@ -49,16 +49,16 @@ public class JavaVersionDslElement extends GradleDslElement {
   }
 
   @Override
-  public void setGroovyPsiElement(@Nullable GroovyPsiElement psiElement) {
-    super.setGroovyPsiElement(psiElement);
+  public void setPsiElement(@Nullable GroovyPsiElement psiElement) {
+    super.setPsiElement(psiElement);
     if (psiElement != null) {
       myText = psiElement.getText();
     }
   }
 
   @Override
-  public GrExpression getGroovyPsiElement() {
-    return (GrExpression)super.getGroovyPsiElement();
+  public GrExpression getPsiElement() {
+    return (GrExpression)super.getPsiElement();
   }
 
   @NotNull
@@ -85,12 +85,12 @@ public class JavaVersionDslElement extends GradleDslElement {
 
   @Override
   protected void apply() {
-    if (myUnsavedValue == null || getGroovyPsiElement() == null) {
+    if (myUnsavedValue == null || getPsiElement() == null) {
       return;
     }
     String groovyString = convertToGradleString(myUnsavedValue, myText);
-    GrExpression expression = GroovyPsiElementFactory.getInstance(getGroovyPsiElement().getProject()).createExpressionFromText(groovyString);
-    setGroovyPsiElement((GrExpression)getGroovyPsiElement().replace(expression));
+    GrExpression expression = GroovyPsiElementFactory.getInstance(getPsiElement().getProject()).createExpressionFromText(groovyString);
+    setPsiElement((GrExpression)getPsiElement().replace(expression));
   }
 
   @Override
@@ -115,14 +115,14 @@ public class JavaVersionDslElement extends GradleDslElement {
     GrExpression value = null;
     JavaVersionDslElement javaVersionElement = java.getProperty(JavaModel.SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
     if (javaVersionElement != null) {
-      anchor = javaVersionElement.getGroovyPsiElement();
-      value = javaVersionElement.getGroovyPsiElement();
+      anchor = javaVersionElement.getPsiElement();
+      value = javaVersionElement.getPsiElement();
     }
     if (anchor == null) {
       javaVersionElement = java.getProperty(JavaModel.TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
       if (javaVersionElement != null) {
-        anchor = javaVersionElement.getGroovyPsiElement();
-        value = javaVersionElement.getGroovyPsiElement();
+        anchor = javaVersionElement.getPsiElement();
+        value = javaVersionElement.getPsiElement();
       }
     }
     if (anchor == null) {
@@ -132,13 +132,13 @@ public class JavaVersionDslElement extends GradleDslElement {
 
     GrAssignmentExpression expression = (GrAssignmentExpression)factory.createExpressionFromText(myName + " = " + value.getText());
     GrAssignmentExpression added = (GrAssignmentExpression)javaPsiElement.addAfter(expression, anchor == null ? null : anchor.getParent());
-    setGroovyPsiElement(added.getRValue());
-    return getGroovyPsiElement();
+    setPsiElement(added.getRValue());
+    return getPsiElement();
   }
 
   @Override
   protected void delete() {
-    PsiElement psiElement = getGroovyPsiElement();
+    PsiElement psiElement = getPsiElement();
     if (psiElement == null) {
       return;
     }
