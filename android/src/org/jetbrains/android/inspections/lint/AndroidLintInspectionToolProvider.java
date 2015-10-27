@@ -11,6 +11,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
@@ -240,15 +241,63 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
-  public static class AndroidLintAppIndexingApiErrorInspection extends AndroidLintInspectionBase {
-    public AndroidLintAppIndexingApiErrorInspection() {
-      super(AndroidBundle.message("android.lint.inspections.appindexing.error"), AppIndexingApiDetector.ISSUE_ERROR);
+  private static AndroidLintQuickFix[] getAppIndexingQuickFix(PsiElement startElement, PsiElement endElement, String message) {
+    AppIndexingApiDetector.IssueType type = AppIndexingApiDetector.IssueType.parse(message);
+    switch (type) {
+      case SCHEME_MISSING:
+      case URL_MISSING:
+        return new AndroidLintQuickFix[]{ new SetAttributeQuickFix("Set scheme", SdkConstants.ATTR_SCHEME, "http")};
+      case HOST_MISSING:
+        return new AndroidLintQuickFix[]{ new SetAttributeQuickFix("Set host", SdkConstants.ATTR_HOST, null)};
+      case MISSING_SLASH:
+        PsiElement parent = startElement.getParent();
+        if (parent instanceof XmlAttribute) {
+          XmlAttribute attr = (XmlAttribute) parent;
+          String path = attr.getValue();
+          if (path != null) {
+            return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with /" + path, path, "/" + path)};
+          }
+        }
+        break;
+      default:
+        break;
+    }
+    return AndroidLintQuickFix.EMPTY_ARRAY;
+  }
+
+  public static class AndroidLintGoogleAppIndexingDeepLinkErrorInspection extends AndroidLintInspectionBase {
+    public AndroidLintGoogleAppIndexingDeepLinkErrorInspection() {
+      super(AndroidBundle.message("android.lint.inspections.appindexing.deeplink.error"), AppIndexingApiDetector.ISSUE_DEEP_LINK_ERROR);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return getAppIndexingQuickFix(startElement, endElement, message);
     }
   }
 
-  public static class AndroidLintAppIndexingApiWarningInspection extends AndroidLintInspectionBase {
-    public AndroidLintAppIndexingApiWarningInspection() {
-      super(AndroidBundle.message("android.lint.inspections.appindexing.warning"), AppIndexingApiDetector.ISSUE_WARNING);
+  public static class AndroidLintGoogleAppIndexingWarningInspection extends AndroidLintInspectionBase {
+    public AndroidLintGoogleAppIndexingWarningInspection() {
+      super(AndroidBundle.message("android.lint.inspections.appindexing.warning"), AppIndexingApiDetector.ISSUE_APP_INDEXING);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return getAppIndexingQuickFix(startElement, endElement, message);
+    }
+  }
+
+  public static class AndroidLintGoogleAppIndexingApiWarningInspection extends AndroidLintInspectionBase {
+    public AndroidLintGoogleAppIndexingApiWarningInspection() {
+      super(AndroidBundle.message("android.lint.inspections.appindexing.api.warning"), AppIndexingApiDetector.ISSUE_APP_INDEXING_API);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return getAppIndexingQuickFix(startElement, endElement, message);
     }
   }
 
