@@ -37,13 +37,13 @@ public abstract class GradleDslElement {
 
   @NotNull protected final String myName;
 
-  @Nullable private GroovyPsiElement myGroovyPsiElement;
+  @Nullable private GroovyPsiElement myPsiElement;
 
   private volatile boolean myModified;
 
-  protected GradleDslElement(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement groovyPsiElement, @NotNull String name) {
+  protected GradleDslElement(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement psiElement, @NotNull String name) {
     myParent = parent;
-    myGroovyPsiElement = groovyPsiElement;
+    myPsiElement = psiElement;
     myName = name;
   }
 
@@ -53,25 +53,25 @@ public abstract class GradleDslElement {
   }
 
   @Nullable
-  public GroovyPsiElement getGroovyPsiElement() {
-    return myGroovyPsiElement;
+  public GroovyPsiElement getPsiElement() {
+    return myPsiElement;
   }
 
-  public void setGroovyPsiElement(@Nullable GroovyPsiElement groovyPsiElement) {
-    myGroovyPsiElement = groovyPsiElement;
+  public void setPsiElement(@Nullable GroovyPsiElement psiElement) {
+    myPsiElement = psiElement;
   }
 
   /**
    * Creates the {@link GroovyPsiElement} by adding this element to the .gradle file.
    *
-   * <p>It creates a new {@link GroovyPsiElement} only when {@link #getGroovyPsiElement()} return {@code null}.
+   * <p>It creates a new {@link GroovyPsiElement} only when {@link #getPsiElement()} return {@code null}.
    *
    * <p>Returns the final {@link GroovyPsiElement} corresponds to this element or {@code null} when failed to create the
    * {@link GroovyPsiElement}.
    */
   @Nullable
   public GroovyPsiElement create() {
-    GroovyPsiElement psiElement = getGroovyPsiElement();
+    GroovyPsiElement psiElement = getPsiElement();
     if (psiElement != null) {
       return psiElement;
     }
@@ -97,16 +97,16 @@ public abstract class GradleDslElement {
     if (isBlockElement()) {
       GrClosableBlock closableBlock = getClosableBlock(addedElement);
       if (closableBlock != null) {
-        setGroovyPsiElement(closableBlock);
+        setPsiElement(closableBlock);
       }
     } else {
       if (addedElement instanceof GrApplicationStatement) {
-        setGroovyPsiElement((GrApplicationStatement)addedElement);
+        setPsiElement((GrApplicationStatement)addedElement);
       }
     }
     PsiElement lineTerminator = factory.createLineTerminator(1);
     parentPsiElement.addAfter(lineTerminator, addedElement);
-    return getGroovyPsiElement();
+    return getPsiElement();
   }
 
   /**
@@ -116,11 +116,11 @@ public abstract class GradleDslElement {
     for (GradleDslElement element : getChildren()) {
       element.delete();
     }
-    GroovyPsiElement psiElement = getGroovyPsiElement();
+    GroovyPsiElement psiElement = getPsiElement();
     if (psiElement != null && psiElement.isValid()) {
       psiElement.delete();
     }
-    setGroovyPsiElement(null);
+    setPsiElement(null);
   }
 
   protected void setModified(boolean modified) {

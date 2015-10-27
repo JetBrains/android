@@ -32,7 +32,7 @@ public class JavaDslElement extends GradlePropertiesDslElement {
 
   @Override
   @Nullable
-  public GroovyPsiElement getGroovyPsiElement() {
+  public GroovyPsiElement getPsiElement() {
     return null; // This class just act as an intermediate class for java properties and doesn't represent any real element on the file.
   }
 
@@ -43,6 +43,6 @@ public class JavaDslElement extends GradlePropertiesDslElement {
   }
 
   @Override
-  public void setGroovyPsiElement(@Nullable GroovyPsiElement psiElement) {
+  public void setPsiElement(@Nullable GroovyPsiElement psiElement) {
   }
 }

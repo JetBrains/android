@@ -64,7 +64,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     if (myPsiFile == null) {
       return;
     }
-    setGroovyPsiElement(myPsiFile);
+    setPsiElement(myPsiFile);
 
     parse(myPsiFile);
   }

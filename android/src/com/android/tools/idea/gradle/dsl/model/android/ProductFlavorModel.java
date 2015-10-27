@@ -329,14 +329,14 @@ public final class ProductFlavorModel {
     GradleDslElementList elementList = myDslElement.getProperty(RES_VALUES, GradleDslElementList.class);
     if (elementList != null) {
       for (GradleDslLiteralList element : elementList.getElements(GradleDslLiteralList.class)) {
-        List<GradleDslLiteral> gradlePsiLiterals = element.getElements();
-        if (gradlePsiLiterals.size() == 3
-            && oldResValue.type().equals(gradlePsiLiterals.get(0).getValue())
-            && oldResValue.name().equals(gradlePsiLiterals.get(1).getValue())
-            && oldResValue.value().equals(gradlePsiLiterals.get(2).getValue())) {
-          gradlePsiLiterals.get(0).setValue(newResValue.type());
-          gradlePsiLiterals.get(1).setValue(newResValue.name());
-          gradlePsiLiterals.get(2).setValue(newResValue.value());
+        List<GradleDslLiteral> gradleDslLiterals = element.getElements();
+        if (gradleDslLiterals.size() == 3
+            && oldResValue.type().equals(gradleDslLiterals.get(0).getValue())
+            && oldResValue.name().equals(gradleDslLiterals.get(1).getValue())
+            && oldResValue.value().equals(gradleDslLiterals.get(2).getValue())) {
+          gradleDslLiterals.get(0).setValue(newResValue.type());
+          gradleDslLiterals.get(1).setValue(newResValue.name());
+          gradleDslLiterals.get(2).setValue(newResValue.value());
         }
       }
     }
@@ -579,9 +579,9 @@ public final class ProductFlavorModel {
       GradleDslLiteral valueElement = new GradleDslLiteral(parent, NAME);
       valueElement.setValue(myValue);
 
-      GradleDslLiteralList gradlePsiLiteralList = new GradleDslLiteralList(parent, NAME);
-      gradlePsiLiteralList.add(typeElement, nameElement, valueElement);
-      return gradlePsiLiteralList;
+      GradleDslLiteralList gradleDslLiteralList = new GradleDslLiteralList(parent, NAME);
+      gradleDslLiteralList.add(typeElement, nameElement, valueElement);
+      return gradleDslLiteralList;
     }
   }
 }
