@@ -108,14 +108,14 @@ public class JavaModelTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
 
     JavaVersionDslElement targetVersionElement =
-      java.getGradlePsiElement().getProperty(JavaModel.TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+      java.getGradleDslElement().getProperty(JavaModel.TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
     JavaVersionDslElement sourceVersionElement =
-      java.getGradlePsiElement().getProperty(JavaModel.SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+      java.getGradleDslElement().getProperty(JavaModel.SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
     assertNotNull(targetVersionElement);
     assertNotNull(sourceVersionElement);
 
-    PsiElement targetPsi = targetVersionElement.getGroovyPsiElement();
-    PsiElement sourcePsi = sourceVersionElement.getGroovyPsiElement();
+    PsiElement targetPsi = targetVersionElement.getPsiElement();
+    PsiElement sourcePsi = sourceVersionElement.getPsiElement();
 
     assertNotNull(targetPsi);
     assertNotNull(sourcePsi);
