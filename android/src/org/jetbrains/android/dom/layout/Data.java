@@ -20,7 +20,7 @@ import com.intellij.util.xml.DefinesXml;
 import java.util.List;
 
 @DefinesXml
-public interface Data extends LayoutElement {
+public interface Data extends LayoutElement, DataBindingElement {
   List<Variable> getVariables();
   List<Import> getImports();
 }
