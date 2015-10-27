@@ -18,6 +18,7 @@ package com.android.tools.idea.run.editor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.openapi.module.Module;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase> extends SettingsEditor<T> implements PanelWithAnchor {
   private JPanel myPanel;
@@ -62,6 +64,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private ConfigurationSpecificEditor<T> myConfigurationSpecificEditor;
 
   private final ImmutableMap<String, DeployTargetConfigurableWrapper> myDeployTargetConfigurables;
+  private final List<DeployTarget> myApplicableDeployTargets;
 
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator, T config) {
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
@@ -80,14 +83,15 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       }
     };
 
+    myApplicableDeployTargets = ImmutableList.copyOf(config.getApplicableDeployTargets());
     DeployTargetConfigurableContext context = new RunConfigurationEditorContext(myModuleSelector, myModulesComboBox);
     ImmutableMap.Builder<String, DeployTargetConfigurableWrapper> builder = ImmutableMap.builder();
-    for (DeployTarget target : config.getApplicableDeployTargets()) {
+    for (DeployTarget target : myApplicableDeployTargets) {
       builder.put(target.getId(), new DeployTargetConfigurableWrapper(project, this, context, target));
     }
     myDeployTargetConfigurables = builder.build();
 
-    myDeploymentTargetCombo.setModel(new CollectionComboBoxModel(config.getApplicableDeployTargets()));
+    myDeploymentTargetCombo.setModel(new CollectionComboBoxModel(myApplicableDeployTargets));
     myDeploymentTargetCombo.setRenderer(new DeployTarget.Renderer());
     myDeploymentTargetCombo.addActionListener(new ActionListener() {
       @Override
@@ -132,7 +136,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myModuleSelector.reset(configuration);
 
     myDeploymentTargetCombo.setSelectedItem(configuration.getCurrentDeployTarget());
-    for (DeployTarget target : configuration.getApplicableDeployTargets()) {
+    for (DeployTarget target : myApplicableDeployTargets) {
       DeployTargetState state = configuration.getDeployTargetState(target);
       myDeployTargetConfigurables.get(target.getId()).resetFrom(state, configuration.getUniqueID());
     }
@@ -150,7 +154,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myModuleSelector.applyTo(configuration);
 
     configuration.setTargetSelectionMode((DeployTarget)myDeploymentTargetCombo.getSelectedItem());
-    for (DeployTarget target : configuration.getApplicableDeployTargets()) {
+    for (DeployTarget target : myApplicableDeployTargets) {
       DeployTargetState state = configuration.getDeployTargetState(target);
       myDeployTargetConfigurables.get(target.getId()).applyTo(state, configuration.getUniqueID());
     }
