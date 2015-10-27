@@ -129,7 +129,7 @@ public final class GradleDslLiteralMap extends GradlePropertiesDslElement {
       PsiElement added = psiElement.addAfter(argumentList, psiElement.getLastChild());
       if (added instanceof GrArgumentList) {
         GrArgumentList addedArgumentList = (GrArgumentList)added;
-        setGroovyPsiElement(addedArgumentList);
+        setPsiElement(addedArgumentList);
         return addedArgumentList;
       }
     }

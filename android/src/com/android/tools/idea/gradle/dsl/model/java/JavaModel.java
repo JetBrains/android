@@ -77,7 +77,7 @@ public class JavaModel {
 
   @VisibleForTesting
   @NotNull
-  JavaDslElement getGradlePsiElement() {
+  JavaDslElement getGradleDslElement() {
     return myDslElement;
   }
 }
