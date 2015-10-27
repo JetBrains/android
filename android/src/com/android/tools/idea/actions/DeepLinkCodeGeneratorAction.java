@@ -20,6 +20,7 @@ import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -29,7 +30,9 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlComment;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -44,14 +47,19 @@ import java.util.Locale;
  */
 public class DeepLinkCodeGeneratorAction extends AnAction {
   private static final String IF_CONTENT_FORMAT =
-    "\n<action %1$s:name=\"android.intent.action.VIEW\" />" +
-    "\n<category %1$s:name=\"android.intent.category.DEFAULT\" />" +
-    "\n<category %1$s:name=\"android.intent.category.BROWSABLE\" />" +
-    "\n<data " +
-    "\n%1$s:host=\"%2$s\"" +
-    "\n%1$s:pathPrefix=\"%3$s\"" +
-    "\n%1$s:scheme=\"http\"/>";
-
+      "\n<action %1$s:name=\"android.intent.action.VIEW\" />" +
+      "\n<category %1$s:name=\"android.intent.category.DEFAULT\" />" +
+      "\n<category %1$s:name=\"android.intent.category.BROWSABLE\" />" +
+      "\n<data " +
+      "\n%1$s:host=\"%2$s\"" +
+      "\n%1$s:pathPrefix=\"%3$s\"" +
+      "\n%1$s:scheme=\"http\"/>";
+  private static final String IF_COMMENT_TEXT =
+      "<!-- ATTENTION: This intent was auto-generated. Follow instructions at\n" +
+      "  https://g.co/AppIndexing/AndroidStudio to publish your Android app deep links. -->";
+  private static final String DATA_COMMENT_TEXT =
+      "<!-- ATTENTION: This data URL was auto-generated. We recommend that you use the HTTP scheme.\n" +
+      "  TODO: Change the host or pathPrefix as necessary. -->";
   private static final String ACTIVITY_STRING = "activity";
 
   @Override
@@ -139,7 +147,7 @@ public class DeepLinkCodeGeneratorAction extends AnAction {
     PsiElement psiElement = file.findElementAt(editor.getCaretModel().getOffset());
     if (psiElement != null) {
       XmlTag activity = findXmlTagByName(psiElement, SdkConstants.TAG_ACTIVITY);
-      XmlTag manifest = ((XmlFile) file).getRootTag();
+      XmlTag manifest = ((XmlFile)file).getRootTag();
       if (activity != null && manifest != null) {
         String prefix = manifest.getPrefixByNamespace(SdkConstants.ANDROID_URI);
         String packageName = manifest.getAttributeValue(SdkConstants.ATTR_PACKAGE);
@@ -150,12 +158,23 @@ public class DeepLinkCodeGeneratorAction extends AnAction {
         String tagContent =
             String.format(IF_CONTENT_FORMAT, prefix != null ? prefix : SdkConstants.ANDROID_NS_NAME, host, pathPrefix);
 
-        XmlTag intentFilter =
-            activity.createChildTag(SdkConstants.TAG_INTENT_FILTER, null, tagContent, false);
-        PsiElement tagAdded = activity.addSubTag(intentFilter, false);
-        CodeStyleManager.getInstance(project).reformat(tagAdded);
+        XmlTag intentFilter = activity.createChildTag(SdkConstants.TAG_INTENT_FILTER, null, tagContent, false);
+        XmlTag tagAdded = activity.addSubTag(intentFilter, false);
+        activity.addBefore(createXmlComment(project, IF_COMMENT_TEXT), tagAdded);
+        XmlTag dataTag  = tagAdded.findFirstSubTag(SdkConstants.TAG_DATA);
+        if (dataTag != null) {
+          tagAdded.addBefore(createXmlComment(project, DATA_COMMENT_TEXT), dataTag);
+        }
       }
     }
+  }
+
+  private static XmlComment createXmlComment(@NotNull Project project, @NotNull String text) {
+    // XmlElementFactory does not provide API for creating comment.
+    // So we create a tag wrapping the comment, and extract comment from the created tag.
+    XmlTag commentElement = XmlElementFactory.getInstance(project)
+      .createTagFromText("<foo>" + text + "</foo>", XMLLanguage.INSTANCE);
+    return PsiTreeUtil.getChildOfType(commentElement, XmlComment.class);
   }
 
   private static String reversePackageName(String packageName) {
