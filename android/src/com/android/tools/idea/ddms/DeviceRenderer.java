@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.ColoredTextContainer;
@@ -104,17 +105,30 @@ public class DeviceRenderer {
   }
 
   public static class DeviceNameRenderer extends ColoredTableCellRenderer {
+    private static final ExtensionPointName<DeviceNameRendererEx> EP_NAME = ExtensionPointName.create("com.android.run.deviceNameRenderer");
+    private final DeviceNameRendererEx[] myRenderers = EP_NAME.getExtensions();
+
     private final AvdManager myAvdManager;
+
     public DeviceNameRenderer(@Nullable AvdManager avdManager) {
       myAvdManager = avdManager;
     }
 
     @Override
     protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
-      if (value instanceof IDevice) {
-        IDevice device = (IDevice)value;
-        renderDeviceName(device, this, myAvdManager);
+      if (!(value instanceof IDevice)) {
+        return;
       }
+
+      IDevice device = (IDevice)value;
+      for (DeviceNameRendererEx renderer : myRenderers) {
+        if (renderer.isApplicable(device)) {
+          renderer.render(device, this);
+          return;
+        }
+      }
+
+      renderDeviceName(device, this, myAvdManager);
     }
   }
 }
