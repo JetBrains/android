@@ -37,7 +37,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.WindowManagerImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
-import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
@@ -52,7 +51,6 @@ import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
@@ -145,14 +143,6 @@ public abstract class GuiTestCase {
       myRobot.cleanUpWithoutDisposingWindows();
     }
     ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
-  }
-
-  @AfterClass
-  public static void tearDownPerClass() {
-    boolean inSuite = SystemProperties.getBooleanProperty(GUI_TESTS_RUNNING_IN_SUITE_PROPERTY, false);
-    if (!inSuite) {
-      IdeTestApplication.disposeInstance();
-    }
   }
 
   @NotNull
