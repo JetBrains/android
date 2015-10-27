@@ -921,7 +921,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.ide">
-    <sdkEventListener implementation="com.android.tools.idea.sdk.GradleAndroidSdkEventListener"/>
+    <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
     <developerServiceBuildSystemOperations implementation="com.android.tools.idea.gradle.structure.services.GradleOperations"/>
   </extensions>
 
