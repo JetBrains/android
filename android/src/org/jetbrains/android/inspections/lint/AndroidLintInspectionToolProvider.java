@@ -1736,6 +1736,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintSetWorldReadableInspection extends AndroidLintInspectionBase {
+    public AndroidLintSetWorldReadableInspection() {
+      super(AndroidBundle.message("android.lint.inspections.set.world.readable"), SecurityDetector.SET_READABLE);
+    }
+  }
+
+  public static class AndroidLintSetWorldWritableInspection extends AndroidLintInspectionBase {
+    public AndroidLintSetWorldWritableInspection() {
+      super(AndroidBundle.message("android.lint.inspections.set.world.writable"), SecurityDetector.SET_WRITABLE);
+    }
+  }
+
   public static class AndroidLintShiftFlagsInspection extends AndroidLintInspectionBase {
     public AndroidLintShiftFlagsInspection() {
       super(AndroidBundle.message("android.lint.inspections.shift.flags"), AnnotationDetector.FLAG_STYLE);
