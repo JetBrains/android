@@ -15,35 +15,35 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.parser.GradlePsiFile;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GradleFileModel {
-  @NotNull protected GradlePsiFile myGradlePsiFile;
+  @NotNull protected GradleDslFile myGradleDslFile;
 
-  public GradleFileModel(@NotNull GradlePsiFile gradlePsiFile) {
-    myGradlePsiFile = gradlePsiFile;
+  public GradleFileModel(@NotNull GradleDslFile gradleDslFile) {
+    myGradleDslFile = gradleDslFile;
   }
 
   @NotNull
   public Project getProject() {
-    return myGradlePsiFile.getProject();
+    return myGradleDslFile.getProject();
   }
 
   public void reparse() {
-    myGradlePsiFile.reparse();
+    myGradleDslFile.reparse();
   }
 
   public boolean isModified() {
-    return myGradlePsiFile.isModified();
+    return myGradleDslFile.isModified();
   }
 
   public void resetState() {
-    myGradlePsiFile.resetState();
+    myGradleDslFile.resetState();
   }
 
   public void applyChanges() {
-    myGradlePsiFile.applyChanges();
+    myGradleDslFile.applyChanges();
   }
 }

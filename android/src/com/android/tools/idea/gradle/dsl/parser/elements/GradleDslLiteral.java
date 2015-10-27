@@ -35,15 +35,15 @@ import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 /**
  * Represents a {@link GrLiteral} element.
  */
-public final class GradlePsiLiteral extends GradlePsiElement {
+public final class GradleDslLiteral extends GradleDslElement {
   @Nullable private GrLiteral myLiteral;
   @Nullable private Object myUnsavedValue;
 
-  public GradlePsiLiteral(@NotNull GradlePsiElement parent, @NotNull String name) {
+  public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
   }
 
-  public GradlePsiLiteral(@NotNull GradlePsiElement parent,
+  public GradleDslLiteral(@NotNull GradleDslElement parent,
                           @NotNull GroovyPsiElement psiElement,
                           @NotNull String name,
                           @NotNull GrLiteral literal) {
@@ -96,14 +96,14 @@ public final class GradlePsiLiteral extends GradlePsiElement {
 
   @Override
   @NotNull
-  protected Collection<GradlePsiElement> getChildren() {
+  protected Collection<GradleDslElement> getChildren() {
     return ImmutableList.of();
   }
 
   @Override
   @Nullable
   public GroovyPsiElement create() {
-    if (!(myParent instanceof GradlePsiLiteralMap)) {
+    if (!(myParent instanceof GradleDslLiteralMap)) {
       return super.create();
     }
     // This is a value in the map element we need to create a named argument for it.
