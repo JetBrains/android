@@ -16,7 +16,7 @@
 package com.android.tools.idea.monitor.actions;
 
 import com.android.tools.idea.monitor.BaseMonitorView;
-import com.android.tools.idea.monitor.DeviceSampler;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -53,6 +53,10 @@ public class RecordingAction extends ToggleAction {
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
+    if (myMonitorView.isPaused() != state) {
+      UsageTracker.getInstance()
+        .trackEvent(UsageTracker.CATEGORY_PROFILING, UsageTracker.ACTION_MONITOR_RUNNING, myMonitorView.getDescription(), state ? 0 : 1);
+    }
     myMonitorView.setPaused(state);
   }
 }
