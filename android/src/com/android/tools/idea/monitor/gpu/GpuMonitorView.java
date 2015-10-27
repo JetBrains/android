@@ -26,6 +26,7 @@ import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
