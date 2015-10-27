@@ -16,6 +16,7 @@
 package com.android.tools.idea.profiling.view;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.perflib.analyzer.AnalysisReport;
 import com.android.tools.perflib.analyzer.AnalysisResultEntry;
 import com.android.tools.perflib.analyzer.AnalyzerTask;
@@ -204,6 +205,8 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
    */
   public void performAnalysis() {
     myCanRunAnalysis = false;
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_PROFILING, UsageTracker.ACTION_PROFILING_ANALYSIS_RUN, null, null);
 
     final DefaultTreeModel model = (DefaultTreeModel)myResultsTree.getModel();
     final DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
