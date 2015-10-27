@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidPsiElement;
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorPsiElement;
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsPsiElement;
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,63 +35,63 @@ public final class AndroidModel {
   private static final String RESOURCE_PREFIX = "resourcePrefix";
   // TODO: Add support for useLibrary
 
-  private final AndroidPsiElement myPsiElement;
+  private final AndroidDslElement myDslElement;
 
-  public AndroidModel(@NotNull AndroidPsiElement psiElement) {
-    myPsiElement = psiElement;
+  public AndroidModel(@NotNull AndroidDslElement dslElement) {
+    myDslElement = dslElement;
   }
 
   @Nullable
   public String buildToolsVersion() {
-    Integer intValue = myPsiElement.getProperty(BUILD_TOOLS_VERSION, Integer.class);
-    return intValue != null ? intValue.toString() : myPsiElement.getProperty(BUILD_TOOLS_VERSION, String.class);
+    Integer intValue = myDslElement.getProperty(BUILD_TOOLS_VERSION, Integer.class);
+    return intValue != null ? intValue.toString() : myDslElement.getProperty(BUILD_TOOLS_VERSION, String.class);
   }
 
   @NotNull
   public AndroidModel setBuildToolsVersion(int buildToolsVersion) {
-    myPsiElement.setLiteralProperty(BUILD_TOOLS_VERSION, buildToolsVersion);
+    myDslElement.setLiteralProperty(BUILD_TOOLS_VERSION, buildToolsVersion);
     return this;
   }
 
   @NotNull
   public AndroidModel setBuildToolsVersion(@NotNull String buildToolsVersion) {
-    myPsiElement.setLiteralProperty(BUILD_TOOLS_VERSION, buildToolsVersion);
+    myDslElement.setLiteralProperty(BUILD_TOOLS_VERSION, buildToolsVersion);
     return this;
   }
 
   @NotNull
   public AndroidModel removeBuildToolsVersion() {
-    myPsiElement.removeProperty(BUILD_TOOLS_VERSION);
+    myDslElement.removeProperty(BUILD_TOOLS_VERSION);
     return this;
   }
 
   @Nullable
   public String compileSdkVersion() {
-    Integer intValue = myPsiElement.getProperty(COMPILE_SDK_VERSION, Integer.class);
-    return intValue != null ? intValue.toString() : myPsiElement.getProperty(COMPILE_SDK_VERSION, String.class);
+    Integer intValue = myDslElement.getProperty(COMPILE_SDK_VERSION, Integer.class);
+    return intValue != null ? intValue.toString() : myDslElement.getProperty(COMPILE_SDK_VERSION, String.class);
   }
 
   @NotNull
   public AndroidModel setCompileSdkVersion(int compileSdkVersion) {
-    myPsiElement.setLiteralProperty(COMPILE_SDK_VERSION, compileSdkVersion);
+    myDslElement.setLiteralProperty(COMPILE_SDK_VERSION, compileSdkVersion);
     return this;
   }
 
   @NotNull
   public AndroidModel setCompileSdkVersion(@NotNull String compileSdkVersion) {
-    myPsiElement.setLiteralProperty(COMPILE_SDK_VERSION, compileSdkVersion);
+    myDslElement.setLiteralProperty(COMPILE_SDK_VERSION, compileSdkVersion);
     return this;
   }
 
   @NotNull
   public AndroidModel removeCompileSdkVersion() {
-    myPsiElement.removeProperty(COMPILE_SDK_VERSION);
+    myDslElement.removeProperty(COMPILE_SDK_VERSION);
     return this;
   }
 
   @Nullable
   public ProductFlavorModel defaultConfig() {
-    ProductFlavorPsiElement parsedDefaultConfig = myPsiElement.getProperty(DEFAULT_CONFIG, ProductFlavorPsiElement.class);
+    ProductFlavorDslElement parsedDefaultConfig = myDslElement.getProperty(DEFAULT_CONFIG, ProductFlavorDslElement.class);
     return parsedDefaultConfig != null ? new ProductFlavorModel(parsedDefaultConfig) : null;
   }
 
@@ -100,99 +100,99 @@ public final class AndroidModel {
     if (defaultConfig() != null) {
       return this;
     }
-    ProductFlavorPsiElement defaultConfig = new ProductFlavorPsiElement(myPsiElement, DEFAULT_CONFIG);
-    myPsiElement.setNewElement(DEFAULT_CONFIG, defaultConfig);
+    ProductFlavorDslElement defaultConfig = new ProductFlavorDslElement(myDslElement, DEFAULT_CONFIG);
+    myDslElement.setNewElement(DEFAULT_CONFIG, defaultConfig);
     return this;
   }
 
   @NotNull
   public AndroidModel removeDefaultConfig() {
-    myPsiElement.removeProperty(DEFAULT_CONFIG);
+    myDslElement.removeProperty(DEFAULT_CONFIG);
     return this;
   }
 
   @Nullable
   public String defaultPublishConfig() {
-    return myPsiElement.getProperty(DEFAULT_PUBLISH_CONFIG, String.class);
+    return myDslElement.getProperty(DEFAULT_PUBLISH_CONFIG, String.class);
   }
 
   @NotNull
   public AndroidModel setDefaultPublishConfig(@NotNull String defaultPublishConfig) {
-    myPsiElement.setLiteralProperty(DEFAULT_PUBLISH_CONFIG, defaultPublishConfig);
+    myDslElement.setLiteralProperty(DEFAULT_PUBLISH_CONFIG, defaultPublishConfig);
     return this;
   }
 
   @NotNull
   public AndroidModel removeDefaultPublishConfig() {
-    myPsiElement.removeProperty(DEFAULT_PUBLISH_CONFIG);
+    myDslElement.removeProperty(DEFAULT_PUBLISH_CONFIG);
     return this;
   }
 
   @Nullable
   public List<String> flavorDimensions() {
-    return myPsiElement.getListProperty(FLAVOR_DIMENSIONS, String.class);
+    return myDslElement.getListProperty(FLAVOR_DIMENSIONS, String.class);
   }
 
   @NotNull
   public AndroidModel addFlavorDimension(@NotNull String flavorDimension) {
-    myPsiElement.addToListProperty(FLAVOR_DIMENSIONS, flavorDimension);
+    myDslElement.addToListProperty(FLAVOR_DIMENSIONS, flavorDimension);
     return this;
   }
 
   @NotNull
   public AndroidModel removeFlavorDimension(@NotNull String flavorDimension) {
-    myPsiElement.removeFromListProperty(FLAVOR_DIMENSIONS, flavorDimension);
+    myDslElement.removeFromListProperty(FLAVOR_DIMENSIONS, flavorDimension);
     return this;
   }
 
   @NotNull
   public AndroidModel removeAllFlavorDimensions() {
-    myPsiElement.removeProperty(FLAVOR_DIMENSIONS);
+    myDslElement.removeProperty(FLAVOR_DIMENSIONS);
     return this;
   }
 
   @NotNull
   public AndroidModel replaceFlavorDimension(@NotNull String oldFlavorDimension, @NotNull String newFlavorDimension) {
-    myPsiElement.replaceInListProperty(FLAVOR_DIMENSIONS, oldFlavorDimension, newFlavorDimension);
+    myDslElement.replaceInListProperty(FLAVOR_DIMENSIONS, oldFlavorDimension, newFlavorDimension);
     return this;
   }
 
   @Nullable
   public Boolean generatePureSplits() {
-    return myPsiElement.getProperty(GENERATE_PURE_SPLITS, Boolean.class);
+    return myDslElement.getProperty(GENERATE_PURE_SPLITS, Boolean.class);
   }
 
   @NotNull
   public AndroidModel setGeneratePureSplits(boolean generatePureSplits) {
-    myPsiElement.setLiteralProperty(GENERATE_PURE_SPLITS, generatePureSplits);
+    myDslElement.setLiteralProperty(GENERATE_PURE_SPLITS, generatePureSplits);
     return this;
   }
 
   @NotNull
   public AndroidModel removeGeneratePureSplits() {
-    myPsiElement.removeProperty(GENERATE_PURE_SPLITS);
+    myDslElement.removeProperty(GENERATE_PURE_SPLITS);
     return this;
   }
 
   @Nullable
   public Collection<ProductFlavorModel> productFlavors() {
-    ProductFlavorsPsiElement productFlavors =
-      myPsiElement.getProperty(ProductFlavorsPsiElement.NAME, ProductFlavorsPsiElement.class);
+    ProductFlavorsDslElement productFlavors =
+      myDslElement.getProperty(ProductFlavorsDslElement.NAME, ProductFlavorsDslElement.class);
     return productFlavors == null ? null : productFlavors.get();
   }
 
   @NotNull
   public AndroidModel addProductFlavor(@NotNull String flavor) {
-    ProductFlavorsPsiElement productFlavors =
-      myPsiElement.getProperty(ProductFlavorsPsiElement.NAME, ProductFlavorsPsiElement.class);
+    ProductFlavorsDslElement productFlavors =
+      myDslElement.getProperty(ProductFlavorsDslElement.NAME, ProductFlavorsDslElement.class);
     if (productFlavors == null) {
-      productFlavors = new ProductFlavorsPsiElement(myPsiElement);
-      myPsiElement.setNewElement(ProductFlavorsPsiElement.NAME, productFlavors);
+      productFlavors = new ProductFlavorsDslElement(myDslElement);
+      myDslElement.setNewElement(ProductFlavorsDslElement.NAME, productFlavors);
     }
 
-    ProductFlavorPsiElement flavorElement = productFlavors.getProperty(flavor, ProductFlavorPsiElement.class);
+    ProductFlavorDslElement flavorElement = productFlavors.getProperty(flavor, ProductFlavorDslElement.class);
     if (flavorElement == null) {
-      flavorElement = new ProductFlavorPsiElement(productFlavors, flavor);
+      flavorElement = new ProductFlavorDslElement(productFlavors, flavor);
       productFlavors.setNewElement(flavor, flavorElement);
     }
     return this;
@@ -200,8 +200,8 @@ public final class AndroidModel {
 
   @NotNull
   public AndroidModel removeProductFlavor(@NotNull String flavor) {
-    ProductFlavorsPsiElement productFlavors =
-      myPsiElement.getProperty(ProductFlavorsPsiElement.NAME, ProductFlavorsPsiElement.class);
+    ProductFlavorsDslElement productFlavors =
+      myDslElement.getProperty(ProductFlavorsDslElement.NAME, ProductFlavorsDslElement.class);
     if (productFlavors != null) {
       productFlavors.removeProperty(flavor);
     }
@@ -210,35 +210,35 @@ public final class AndroidModel {
 
   @Nullable
   public Boolean publishNonDefault() {
-    return myPsiElement.getProperty(PUBLISH_NON_DEFAULT, Boolean.class);
+    return myDslElement.getProperty(PUBLISH_NON_DEFAULT, Boolean.class);
   }
 
   @NotNull
   public AndroidModel setPublishNonDefault(boolean publishNonDefault) {
-    myPsiElement.setLiteralProperty(PUBLISH_NON_DEFAULT, publishNonDefault);
+    myDslElement.setLiteralProperty(PUBLISH_NON_DEFAULT, publishNonDefault);
     return this;
   }
 
   @NotNull
   public AndroidModel removePublishNonDefault() {
-    myPsiElement.removeProperty(PUBLISH_NON_DEFAULT);
+    myDslElement.removeProperty(PUBLISH_NON_DEFAULT);
     return this;
   }
 
   @Nullable
   public String resourcePrefix() {
-    return myPsiElement.getProperty(RESOURCE_PREFIX, String.class);
+    return myDslElement.getProperty(RESOURCE_PREFIX, String.class);
   }
 
   @NotNull
   public AndroidModel setResourcePrefix(@NotNull String resourcePrefix) {
-    myPsiElement.setLiteralProperty(RESOURCE_PREFIX, resourcePrefix);
+    myDslElement.setLiteralProperty(RESOURCE_PREFIX, resourcePrefix);
     return this;
   }
 
   @NotNull
   public AndroidModel removeResourcePrefix() {
-    myPsiElement.removeProperty(RESOURCE_PREFIX);
+    myDslElement.removeProperty(RESOURCE_PREFIX);
     return this;
   }
 }

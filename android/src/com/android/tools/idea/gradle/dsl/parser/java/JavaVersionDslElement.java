@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.java;
 
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
@@ -33,18 +33,18 @@ import java.util.Collections;
 import static com.android.tools.idea.gradle.dsl.parser.java.LanguageLevelUtil.convertToGradleString;
 import static com.android.tools.idea.gradle.dsl.parser.java.LanguageLevelUtil.parseFromGradleString;
 
-public class JavaVersionPsiElement extends GradlePsiElement {
+public class JavaVersionDslElement extends GradleDslElement {
   @Nullable private String myText; // Cached myText of the element
   @Nullable private LanguageLevel myUnsavedValue;
 
-  public JavaVersionPsiElement(@Nullable GradlePsiElement parent, @Nullable GrExpression psiElement, @NotNull String name) {
+  public JavaVersionDslElement(@Nullable GradleDslElement parent, @Nullable GrExpression psiElement, @NotNull String name) {
     super(parent, psiElement, name);
     if (psiElement != null) {
       myText = psiElement.getText();
     }
   }
 
-  public JavaVersionPsiElement(@Nullable GradlePsiElement parent, @NotNull String name) {
+  public JavaVersionDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
     this(parent, null, name);
   }
 
@@ -63,7 +63,7 @@ public class JavaVersionPsiElement extends GradlePsiElement {
 
   @NotNull
   @Override
-  protected Collection<GradlePsiElement> getChildren() {
+  protected Collection<GradleDslElement> getChildren() {
     return Collections.emptyList();
   }
 
@@ -101,7 +101,7 @@ public class JavaVersionPsiElement extends GradlePsiElement {
   @Override
   @Nullable
   public GroovyPsiElement create() {
-    JavaPsiElement java = (JavaPsiElement)myParent;
+    JavaDslElement java = (JavaDslElement)myParent;
     assert java != null;
     GroovyPsiElement javaPsiElement = java.create();
     assert javaPsiElement != null;
@@ -113,13 +113,13 @@ public class JavaVersionPsiElement extends GradlePsiElement {
     // Also, tries to copy the value from targetCompatibility or sourceCompatibility if possible to keep consistency.
     PsiElement anchor = null;
     GrExpression value = null;
-    JavaVersionPsiElement javaVersionElement = java.getProperty(JavaModel.SOURCE_COMPATIBILITY_FIELD, JavaVersionPsiElement.class);
+    JavaVersionDslElement javaVersionElement = java.getProperty(JavaModel.SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
     if (javaVersionElement != null) {
       anchor = javaVersionElement.getGroovyPsiElement();
       value = javaVersionElement.getGroovyPsiElement();
     }
     if (anchor == null) {
-      javaVersionElement = java.getProperty(JavaModel.TARGET_COMPATIBILITY_FIELD, JavaVersionPsiElement.class);
+      javaVersionElement = java.getProperty(JavaModel.TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
       if (javaVersionElement != null) {
         anchor = javaVersionElement.getGroovyPsiElement();
         value = javaVersionElement.getGroovyPsiElement();

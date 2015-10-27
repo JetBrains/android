@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesPsiElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -33,11 +33,11 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 /**
  * Provides Gradle specific abstraction over a {@link GroovyFile}.
  */
-public abstract class GradlePsiFile extends GradlePropertiesPsiElement {
+public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
 
-  protected GradlePsiFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
+  protected GradleDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     super(null, null, moduleName);
     myFile = file;
     myProject = project;
@@ -87,7 +87,7 @@ public abstract class GradlePsiFile extends GradlePropertiesPsiElement {
       }
 
       void process(GroovyPsiElement e) {
-        GradleDslParser.parse(e, GradlePsiFile.this);
+        GradleDslParser.parse(e, GradleDslFile.this);
       }
     }));
   }
