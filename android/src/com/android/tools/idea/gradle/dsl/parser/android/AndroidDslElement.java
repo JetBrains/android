@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesPsiElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import org.jetbrains.annotations.NotNull;
 
-public final class AndroidPsiElement extends GradlePropertiesPsiElement {
+public final class AndroidDslElement extends GradlePropertiesDslElement {
   public static final String NAME = "android";
 
-  public AndroidPsiElement(@NotNull GradlePsiElement parent) {
+  public AndroidDslElement(@NotNull GradleDslElement parent) {
     super(parent, null, NAME);
   }
 
@@ -33,11 +33,11 @@ public final class AndroidPsiElement extends GradlePropertiesPsiElement {
   }
 
   @Override
-  public void addPsiElement(@NotNull String property, @NotNull GradlePsiElement element) {
-    if (property.equals("flavorDimensions") && element instanceof GradlePsiLiteral) {
-      addAsPsiLiteralList(property, (GradlePsiLiteral)element);
+  public void addDslElement(@NotNull String property, @NotNull GradleDslElement element) {
+    if (property.equals("flavorDimensions") && element instanceof GradleDslLiteral) {
+      addAsDslLiteralList(property, (GradleDslLiteral)element);
       return;
     }
-    super.addPsiElement(property, element);
+    super.addDslElement(property, element);
   }
 }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.dependencies;
 
 import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -42,7 +42,7 @@ import java.util.Map;
 import static com.android.tools.idea.gradle.dsl.parser.PsiElements.findClosableBlock;
 import static com.intellij.psi.util.PsiTreeUtil.getChildrenOfType;
 
-public class Dependencies extends GradlePsiElement {
+public class Dependencies extends GradleDslElement {
   @Nullable private PsiFile myPsiFile;
   @Nullable private GrClosableBlock myClosureBlock;
 
@@ -53,13 +53,13 @@ public class Dependencies extends GradlePsiElement {
 
   @NotNull private final Multimap<String, ExternalDependencySpec> myNewExternal = HashMultimap.create();
 
-  public Dependencies(@NotNull GradlePsiElement parent) {
+  public Dependencies(@NotNull GradleDslElement parent) {
     super(parent, null, "dependencies"); // TODO: Pass the correct psiElement when moved to using the new parser API.
   }
 
   @Override
   @NotNull
-  protected Collection<GradlePsiElement> getChildren() {
+  protected Collection<GradleDslElement> getChildren() {
     return ImmutableList.of();
   }
 

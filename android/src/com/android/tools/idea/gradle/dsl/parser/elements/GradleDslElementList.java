@@ -25,27 +25,27 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Represents a list of {@link GradlePsiElement}s.
+ * Represents a list of {@link GradleDslElement}s.
  */
-public class GradlePsiElementList extends GradlePsiElement {
-  @NotNull private final List<GradlePsiElement> myElements = Lists.newArrayList();
-  @NotNull private final List<GradlePsiElement> myToBeAddedElements = Lists.newArrayList();
-  @NotNull private final List<GradlePsiElement> myToBeRemovedElements = Lists.newArrayList();
+public class GradleDslElementList extends GradleDslElement {
+  @NotNull private final List<GradleDslElement> myElements = Lists.newArrayList();
+  @NotNull private final List<GradleDslElement> myToBeAddedElements = Lists.newArrayList();
+  @NotNull private final List<GradleDslElement> myToBeRemovedElements = Lists.newArrayList();
 
-  public GradlePsiElementList(@NotNull GradlePsiElement parent, @NotNull String name) {
+  public GradleDslElementList(@NotNull GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
   }
 
-  public void addParsedElement(@NotNull GradlePsiElement element) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
     myElements.add(element);
   }
 
-  public void addNewElement(@NotNull GradlePsiElement element) {
+  public void addNewElement(@NotNull GradleDslElement element) {
     myToBeAddedElements.add(element);
     setModified(true);
   }
 
-  public void removeElement(@NotNull GradlePsiElement element) {
+  public void removeElement(@NotNull GradleDslElement element) {
     if (myElements.contains(element)) {
       myToBeRemovedElements.add(element);
       setModified(true);
@@ -53,24 +53,24 @@ public class GradlePsiElementList extends GradlePsiElement {
   }
 
   @NotNull
-  public List<GradlePsiElement> getElements() {
+  public List<GradleDslElement> getElements() {
     if (myToBeAddedElements.isEmpty() && myToBeRemovedElements.isEmpty()) {
       return ImmutableList.copyOf(myElements);
     }
 
-    List<GradlePsiElement> result = Lists.newArrayList();
+    List<GradleDslElement> result = Lists.newArrayList();
     result.addAll(myElements);
     result.addAll(myToBeAddedElements);
-    for (GradlePsiElement element : myToBeRemovedElements) {
+    for (GradleDslElement element : myToBeRemovedElements) {
       result.remove(element);
     }
     return result;
   }
 
   @NotNull
-  public <E extends GradlePsiElement> List<E> getElements(Class<E> clazz) {
+  public <E extends GradleDslElement> List<E> getElements(Class<E> clazz) {
     List<E> result = Lists.newArrayList();
-    for (GradlePsiElement element : getElements()) {
+    for (GradleDslElement element : getElements()) {
       if (clazz.isInstance(element)) {
         result.add(clazz.cast(element));
       }
@@ -96,27 +96,27 @@ public class GradlePsiElementList extends GradlePsiElement {
 
   @Override
   @NotNull
-  protected Collection<GradlePsiElement> getChildren() {
+  protected Collection<GradleDslElement> getChildren() {
     return ImmutableList.copyOf(getElements());
   }
 
   @Override
   protected void apply() {
-    for (GradlePsiElement element : myToBeAddedElements) {
+    for (GradleDslElement element : myToBeAddedElements) {
       if (element.create() != null) {
         myElements.add(element);
       }
     }
     myToBeAddedElements.clear();
 
-    for (GradlePsiElement element : myToBeRemovedElements) {
+    for (GradleDslElement element : myToBeRemovedElements) {
       if (myElements.remove(element)) {
         element.delete();
       }
     }
     myToBeRemovedElements.clear();
 
-    for (GradlePsiElement element : myElements) {
+    for (GradleDslElement element : myElements) {
       if (element.isModified()) {
         element.applyChanges();
       }

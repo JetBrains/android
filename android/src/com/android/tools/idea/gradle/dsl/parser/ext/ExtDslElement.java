@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.ext;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePsiElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesPsiElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -26,10 +26,10 @@ import org.jetbrains.annotations.Nullable;
  * <a href="https://docs.gradle.org/current/userguide/writing_build_scripts.html#sec:extra_properties">Extra Properties</a>.
  * </p>
  */
-public final class ExtPsiElement extends GradlePropertiesPsiElement {
+public final class ExtDslElement extends GradlePropertiesDslElement {
   public static final String NAME = "ext";
 
-  public ExtPsiElement(@Nullable GradlePsiElement parent) {
+  public ExtDslElement(@Nullable GradleDslElement parent) {
     super(parent, null, NAME);
   }
 

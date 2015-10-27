@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.java;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslElementParser;
-import com.android.tools.idea.gradle.dsl.parser.GradlePsiFile;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
@@ -28,12 +28,12 @@ import static com.android.tools.idea.gradle.dsl.model.java.JavaModel.TARGET_COMP
 // TODO move it to GradleDslProperty parser?
 public class JavaProjectElementParser implements GradleDslElementParser {
   @Override
-  public boolean parse(@NotNull GroovyPsiElement psi, @NotNull GradlePsiFile gradlePsiFile) {
-    JavaPsiElement element = gradlePsiFile.getProperty(JavaPsiElement.NAME, JavaPsiElement.class);
+  public boolean parse(@NotNull GroovyPsiElement psi, @NotNull GradleDslFile gradleDslFile) {
+    JavaDslElement element = gradleDslFile.getProperty(JavaDslElement.NAME, JavaDslElement.class);
     if (element == null) {
-      element = new JavaPsiElement(gradlePsiFile);
-      gradlePsiFile.setPsiElement(JavaPsiElement.NAME, element);
-      element.setGroovyPsiElement(gradlePsiFile.getGroovyPsiElement());
+      element = new JavaDslElement(gradleDslFile);
+      gradleDslFile.setDslElement(JavaDslElement.NAME, element);
+      element.setGroovyPsiElement(gradleDslFile.getGroovyPsiElement());
     }
     if (psi instanceof GrAssignmentExpression) {
       GrAssignmentExpression assignmentExpression = (GrAssignmentExpression)psi;
@@ -41,7 +41,7 @@ public class JavaProjectElementParser implements GradleDslElementParser {
       if (SOURCE_COMPATIBILITY_FIELD.equals(property) || TARGET_COMPATIBILITY_FIELD.equals(property)) {
         GrExpression rValue = assignmentExpression.getRValue();
         if (rValue != null) {
-          element.setPsiElement(property, new JavaVersionPsiElement(element, rValue, property));
+          element.setDslElement(property, new JavaVersionDslElement(element, rValue, property));
         }
         return true;
       }
