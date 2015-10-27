@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.refactoring;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependency;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.google.common.collect.Lists;
@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.parser.GradleSettingsFile.getModuleGradlePath;
+import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 /**
@@ -62,7 +63,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   @Override
   public boolean isAvailableOnDataContext(@NotNull DataContext dataContext) {
-    Module module = LangDataKeys.MODULE_CONTEXT.getData(dataContext);
+    Module module = getGradleModule(dataContext);
     return module != null && getModuleRootDir(module) != null;
   }
 
@@ -83,10 +84,19 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
   @Override
   public void invoke(@NotNull final Project project, @NotNull PsiElement[] elements, @NotNull DataContext dataContext) {
-    Module module = LangDataKeys.MODULE_CONTEXT.getData(dataContext);
+    Module module = getGradleModule(dataContext);
     assert module != null;
     Messages.showInputDialog(project, IdeBundle.message("prompt.enter.new.module.name"), IdeBundle.message("title.rename.module"),
                              Messages.getQuestionIcon(), module.getName(), new MyInputValidator(module));
+  }
+
+  @Nullable
+  private static Module getGradleModule(@NotNull DataContext dataContext) {
+    Module module = LangDataKeys.MODULE_CONTEXT.getData(dataContext);
+    if (module != null && isGradleProjectModule(module)) {
+      return module;
+    }
+    return null;
   }
 
   @Override
@@ -145,10 +155,9 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         }
       }
 
-      WriteCommandAction<Boolean> action =
-        new WriteCommandAction<Boolean>(project, IdeBundle.message("command.renaming.module", myModule.getName()),
-                                        settingsFile.getPsiFile()) {
-          @Override
+      String msg = IdeBundle.message("command.renaming.module", myModule.getName());
+      WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, msg, settingsFile.getPsiFile()) {
+        @Override
           protected void run(@NotNull Result<Boolean> result) throws Throwable {
             result.setResult(true);
 
