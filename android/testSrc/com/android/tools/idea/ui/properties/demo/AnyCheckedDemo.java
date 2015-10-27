@@ -46,19 +46,20 @@ public final class AnyCheckedDemo {
   private JCheckBox myCheckBox3;
   private JCheckBox myCheckBox4;
 
-  private BindingsManager myBindings = new BindingsManager(BindingsManager.SWING_INVOKE_LATER_STRATEGY);
+  private BindingsManager myBindings = new BindingsManager();
 
   public static void main(String[] args) {
     //noinspection SSBasedInspection
     SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run() {
-        final JFrame frame = new JFrame("SyncFieldsDemo");
+        final JFrame frame = new JFrame("AnyCheckedDemo");
         final AnyCheckedDemo demo = new AnyCheckedDemo();
         frame.setContentPane(demo.myRootPanel);
         demo.init();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.pack();
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         frame.addWindowListener(new WindowAdapter() {
           @Override
