@@ -32,8 +32,8 @@ import java.util.Collection;
 /**
  * Provide Gradle specific abstraction over a {@link GroovyPsiElement}.
  */
-public abstract class GradlePsiElement {
-  @Nullable protected final GradlePsiElement myParent;
+public abstract class GradleDslElement {
+  @Nullable protected final GradleDslElement myParent;
 
   @NotNull protected final String myName;
 
@@ -41,7 +41,7 @@ public abstract class GradlePsiElement {
 
   private volatile boolean myModified;
 
-  protected GradlePsiElement(@Nullable GradlePsiElement parent, @Nullable GroovyPsiElement groovyPsiElement, @NotNull String name) {
+  protected GradleDslElement(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement groovyPsiElement, @NotNull String name) {
     myParent = parent;
     myGroovyPsiElement = groovyPsiElement;
     myName = name;
@@ -113,7 +113,7 @@ public abstract class GradlePsiElement {
    * Deletes this element and all it's children from the .gradle file.
    */
   protected void delete() {
-    for (GradlePsiElement element : getChildren()) {
+    for (GradleDslElement element : getChildren()) {
       element.delete();
     }
     GroovyPsiElement psiElement = getGroovyPsiElement();
@@ -143,7 +143,7 @@ public abstract class GradlePsiElement {
   }
 
   @NotNull
-  protected abstract Collection<GradlePsiElement> getChildren();
+  protected abstract Collection<GradleDslElement> getChildren();
 
   public final void applyChanges() {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
