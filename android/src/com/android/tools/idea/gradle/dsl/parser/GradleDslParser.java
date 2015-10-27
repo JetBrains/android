@@ -48,18 +48,18 @@ import static com.intellij.psi.util.PsiTreeUtil.*;
  * by this parser.
  */
 public final class GradleDslParser {
-  public static boolean parse(@NotNull GroovyPsiElement groovyPsiElement, @NotNull GradleDslFile gradlePsiFile) {
-    if (groovyPsiElement instanceof GrMethodCallExpression) {
-      return parse((GrMethodCallExpression)groovyPsiElement, (GradlePropertiesDslElement)gradlePsiFile);
-    } else if (groovyPsiElement instanceof GrAssignmentExpression) {
-      return parse((GrAssignmentExpression)groovyPsiElement, (GradlePropertiesDslElement)gradlePsiFile);
-    } else if (groovyPsiElement instanceof GrApplicationStatement) {
-      return parse((GrApplicationStatement)groovyPsiElement, (GradlePropertiesDslElement)gradlePsiFile);
+  public static boolean parse(@NotNull GroovyPsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
+    if (psiElement instanceof GrMethodCallExpression) {
+      return parse((GrMethodCallExpression)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+    } else if (psiElement instanceof GrAssignmentExpression) {
+      return parse((GrAssignmentExpression)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+    } else if (psiElement instanceof GrApplicationStatement) {
+      return parse((GrApplicationStatement)psiElement, (GradlePropertiesDslElement)gradleDslFile);
     }
     return false;
   }
 
-  private static boolean parse(@NotNull GrMethodCallExpression expression, @NotNull GradlePropertiesDslElement gradlePsiElement) {
+  private static boolean parse(@NotNull GrMethodCallExpression expression, @NotNull GradlePropertiesDslElement dslElement) {
     GrReferenceExpression referenceExpression = findChildOfType(expression, GrReferenceExpression.class);
     if (referenceExpression == null) {
       return false;
@@ -77,12 +77,12 @@ public final class GradleDslParser {
     }
 
     List<String> nameSegments = Splitter.on('.').splitToList(blockName);
-    GradlePropertiesDslElement blockElement = getElement(nameSegments, gradlePsiElement);
+    GradlePropertiesDslElement blockElement = getElement(nameSegments, dslElement);
     if (blockElement == null) {
       return false;
     }
 
-    blockElement.setGroovyPsiElement(closableBlock);
+    blockElement.setPsiElement(closableBlock);
     parse(closableBlock, blockElement);
     return true;
   }
