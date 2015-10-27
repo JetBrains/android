@@ -28,15 +28,15 @@ import static com.android.tools.idea.gradle.dsl.model.java.JavaModel.TARGET_COMP
 // TODO move it to GradleDslProperty parser?
 public class JavaProjectElementParser implements GradleDslElementParser {
   @Override
-  public boolean parse(@NotNull GroovyPsiElement psi, @NotNull GradleDslFile gradleDslFile) {
+  public boolean parse(@NotNull GroovyPsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
     JavaDslElement element = gradleDslFile.getProperty(JavaDslElement.NAME, JavaDslElement.class);
     if (element == null) {
       element = new JavaDslElement(gradleDslFile);
       gradleDslFile.setDslElement(JavaDslElement.NAME, element);
-      element.setGroovyPsiElement(gradleDslFile.getGroovyPsiElement());
+      element.setPsiElement(gradleDslFile.getPsiElement());
     }
-    if (psi instanceof GrAssignmentExpression) {
-      GrAssignmentExpression assignmentExpression = (GrAssignmentExpression)psi;
+    if (psiElement instanceof GrAssignmentExpression) {
+      GrAssignmentExpression assignmentExpression = (GrAssignmentExpression)psiElement;
       String property = assignmentExpression.getLValue().getText();
       if (SOURCE_COMPATIBILITY_FIELD.equals(property) || TARGET_COMPATIBILITY_FIELD.equals(property)) {
         GrExpression rValue = assignmentExpression.getRValue();

@@ -65,7 +65,7 @@ public final class GradleDslLiteralList extends GradleDslElement {
   }
 
   void add(@NotNull GroovyPsiElement psiElement, @NotNull String name, @NotNull GrLiteral... literals) {
-    setGroovyPsiElement(psiElement);
+    setPsiElement(psiElement);
     for (GrLiteral literal : literals) {
       myElements.add(new GradleDslLiteral(this, psiElement, name, literal));
     }
@@ -149,7 +149,7 @@ public final class GradleDslLiteralList extends GradleDslElement {
       if (((GrArgumentList)psiElement).getAllArguments().length == 1) {
         // Sometimes it's not possible to append to the arguments list with one item. eg. proguardFile "xyz".
         // Set the psiElement to null and create a new psiElement of an empty application statement.
-        setGroovyPsiElement(null);
+        setPsiElement(null);
         psiElement = super.create();
       }
       else {
@@ -164,7 +164,7 @@ public final class GradleDslLiteralList extends GradleDslElement {
       PsiElement added = psiElement.addAfter(argumentList, psiElement.getLastChild());
       if (added instanceof GrArgumentList) {
         GrArgumentList addedArgumentList = (GrArgumentList)added;
-        setGroovyPsiElement(addedArgumentList);
+        setPsiElement(addedArgumentList);
         return addedArgumentList;
       }
     }
@@ -177,7 +177,7 @@ public final class GradleDslLiteralList extends GradleDslElement {
     GroovyPsiElement psiElement = create();
     if (psiElement != null) {
       for (GradleDslLiteral element : myToBeAddedElements) {
-        element.setGroovyPsiElement(psiElement);
+        element.setPsiElement(psiElement);
         element.applyChanges();
         myElements.add(element);
       }

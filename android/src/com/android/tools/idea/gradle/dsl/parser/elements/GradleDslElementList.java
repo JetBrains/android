@@ -80,7 +80,7 @@ public class GradleDslElementList extends GradleDslElement {
 
   @Override
   @Nullable
-  public GroovyPsiElement getGroovyPsiElement() {
+  public GroovyPsiElement getPsiElement() {
     return null; // This class just act as a group of elements and doesn't represent any real elements on the file.
   }
 
@@ -91,7 +91,7 @@ public class GradleDslElementList extends GradleDslElement {
   }
 
   @Override
-  public void setGroovyPsiElement(@Nullable GroovyPsiElement psiElement) {
+  public void setPsiElement(@Nullable GroovyPsiElement psiElement) {
   }
 
   @Override
