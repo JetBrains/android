@@ -97,11 +97,6 @@ public abstract class UsageTracker {
 
   public static final String CATEGORY_THEME_EDITOR = "themeEditor";
   public static final String ACTION_THEME_EDITOR_OPEN = "themeEditorOpened";
-  /**
-   * Tracking AppIndexing feature usage
-   */
-  public static final String CATEGORY_APP_INDEXING = "appIndexing";
-  public static final String ACTION_TRIGGER_QUICKFIX = "triggerQuickfix";
 
   /**
    * Tracking category for AppIndexing
@@ -110,6 +105,7 @@ public abstract class UsageTracker {
   public static final String ACTION_APP_INDEXING_DEEP_LINK_CREATED = "deepLinkCreated";
   public static final String ACTION_APP_INDEXING_API_CODE_CREATED = "apiCodeCreated";
   public static final String ACTION_APP_INDEXING_DEEP_LINK_LAUNCHED = "deepLinkLaunched";
+  public static final String ACTION_APP_INDEXING_TRIGGER_QUICKFIX = "triggerQuickfix";
 
   /**
    * When using the usage tracker, do NOT include any information that can identify the user
