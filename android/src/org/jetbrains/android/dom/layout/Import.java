@@ -20,7 +20,7 @@ import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 
 @DefinesXml
-public interface Import extends LayoutElement {
+public interface Import extends LayoutElement, DataBindingElement {
   @Attribute("type")
   @Required
   @Convert(value=PackageClassConverter.class, soft=true)

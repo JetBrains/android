@@ -18,6 +18,7 @@ package org.jetbrains.android.dom;
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -73,6 +74,7 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
  * @author Eugene.Kudelevsky
  */
 public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
+  private static final Logger LOG = Logger.getInstance(AndroidDomExtender.class);
   private static final String[] LAYOUT_ATTRIBUTES_SUFS = new String[]{"_Layout", "_MarginLayout", "_Cell"};
   private static final MyAttributeProcessor ourLayoutAttrsProcessor = new MyAttributeProcessor() {
     @Override
@@ -629,6 +631,28 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       }
       else if (element instanceof LayoutElement) {
         registerExtensionsForLayout(facet, tag, (LayoutElement)element, callback, registeredSubtags, skippedAttributes);
+
+        // Add tools namespace attributes to layout tags, but not those that are databinding-specific ones
+        if (!(element instanceof DataBindingElement)) {
+          registerToolsAttribute(SdkConstants.ATTR_TARGET_API, callback);
+          if (tag.getParentTag() == null) {
+            registerToolsAttribute(ATTR_CONTEXT, callback);
+            registerToolsAttribute(ATTR_MENU, callback);
+            registerToolsAttribute(ATTR_ACTION_BAR_NAV_MODE, callback);
+            registerToolsAttribute(ATTR_SHOW_IN, callback);
+          }
+
+          final Map<String, PsiClass> classMap = getViewClassMap(facet);
+
+          // AdapterView resides in android.widget package and thus is acquired from class map by short name
+          final PsiClass adapterView = classMap.get(ADAPTER_VIEW);
+          final PsiClass psiClass = classMap.get(tag.getName());
+          if (adapterView != null && psiClass != null && psiClass.isInheritor(adapterView, true)) {
+            registerToolsAttribute(ATTR_LISTITEM, callback);
+            registerToolsAttribute(ATTR_LISTHEADER, callback);
+            registerToolsAttribute(ATTR_LISTFOOTER, callback);
+          }
+        }
       }
       else if (element instanceof AnimationElement) {
         registerExtensionsForAnimation(facet, tagName, (AnimationElement)element, callback, registeredSubtags, skippedAttributes);
@@ -657,6 +681,20 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       }
     }
     catch (MyStopException ignored) {
+    }
+  }
+
+  private static void registerToolsAttribute(@NotNull String attributeName, @NotNull MyCallback callback) {
+    final AttributeDefinition definition = ToolsAttributeUtil.getAttrDefByName(attributeName);
+    if (definition != null) {
+      final XmlName name = new XmlName(attributeName, SdkConstants.TOOLS_URI);
+      final DomExtension domExtension = callback.processAttribute(name, definition, null);
+      final ResolvingConverter converter = ToolsAttributeUtil.getConverter(definition);
+      if (domExtension != null && converter != null) {
+        domExtension.setConverter(converter);
+      }
+    } else {
+      LOG.warn("No attribute definition for tools attribute " + attributeName);
     }
   }
 

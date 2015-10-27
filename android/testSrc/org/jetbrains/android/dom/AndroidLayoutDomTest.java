@@ -89,6 +89,21 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
       "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft");
   }
 
+  // "contex" is completed to "tools:context", "xmlns:tools" with right value is inserted
+  public void testToolsContextAttributeCompletion() throws Throwable {
+    toTestCompletion("tools_context.xml", "tools_context_after.xml");
+  }
+
+  // "tools:" inside tag should autocomplete to available tools attributes, only "tools:targetApi" in this case
+  public void testToolsPrefixedAttributeCompletion() throws Throwable {
+    toTestCompletion("tools_namespace_attrs.xml", "tools_namespace_attrs_after.xml");
+  }
+
+  // ListView has some specific autocompletion attributes, like "listfooter", they should be autocompleted as well
+  public void testToolsListViewAttributes() throws Throwable {
+    doTestCompletionVariants("tools_listview_attrs.xml", "tools:targetApi", "tools:listfooter", "tools:listheader", "tools:listitem");
+  }
+
   public void testCommonPrefixIdea63531() throws Throwable {
     VirtualFile file = copyFileToProject("commonPrefixIdea63531.xml");
     myFixture.configureFromExistingVirtualFile(file);
@@ -262,7 +277,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testCustomAttributeNameCompletion1() throws Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
-    doTestCompletionVariants("can1.xml", "text", "textAlignment", "textColor", "textDirection", "textSize");
+    doTestCompletionVariants("can1.xml", "context", "text", "textAlignment", "textColor", "textDirection", "textSize");
   }
 
   public void testCustomAttributeNameCompletion2() throws Throwable {
