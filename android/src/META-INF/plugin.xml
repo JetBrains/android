@@ -866,6 +866,8 @@
     <extensionPoint qualifiedName="com.android.ide.developerServiceBuildSystemOperations"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceBuildSystemOperations"/>
     <extensionPoint qualifiedName="com.android.run.deployTarget" interface="com.android.tools.idea.run.editor.DeployTarget" />
+    <extensionPoint qualifiedName="com.android.run.deviceNameRenderer"
+                    interface="com.android.tools.idea.ddms.DeviceNameRendererEx"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
