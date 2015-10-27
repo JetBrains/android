@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.java;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaPsiElement;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionPsiElement;
+import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
+import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,15 +29,15 @@ public class JavaModel {
   public static String SOURCE_COMPATIBILITY_FIELD = "sourceCompatibility";
   public static String TARGET_COMPATIBILITY_FIELD = "targetCompatibility";
 
-  private final JavaPsiElement myPsiElement;
+  private final JavaDslElement myDslElement;
 
-  public JavaModel(@NotNull JavaPsiElement psiElement) {
-    myPsiElement = psiElement;
+  public JavaModel(@NotNull JavaDslElement dslElement) {
+    myDslElement = dslElement;
   }
 
   @Nullable
   public LanguageLevel sourceCompatibility() {
-    JavaVersionPsiElement javaVersionElement = myPsiElement.getProperty(SOURCE_COMPATIBILITY_FIELD, JavaVersionPsiElement.class);
+    JavaVersionDslElement javaVersionElement = myDslElement.getProperty(SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
     return javaVersionElement == null ? null : javaVersionElement.getVersion();
   }
 
@@ -46,13 +46,13 @@ public class JavaModel {
   }
 
   public JavaModel removeSourceCompatibility() {
-    myPsiElement.removeProperty(SOURCE_COMPATIBILITY_FIELD);
+    myDslElement.removeProperty(SOURCE_COMPATIBILITY_FIELD);
     return this;
   }
 
   @Nullable
   public LanguageLevel targetCompatibility() {
-    JavaVersionPsiElement javaVersionElement = myPsiElement.getProperty(TARGET_COMPATIBILITY_FIELD, JavaVersionPsiElement.class);
+    JavaVersionDslElement javaVersionElement = myDslElement.getProperty(TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
     return javaVersionElement == null ? null : javaVersionElement.getVersion();
   }
 
@@ -61,15 +61,15 @@ public class JavaModel {
   }
 
   public JavaModel removeTargetCompatibility() {
-    myPsiElement.removeProperty(TARGET_COMPATIBILITY_FIELD);
+    myDslElement.removeProperty(TARGET_COMPATIBILITY_FIELD);
     return this;
   }
 
   private JavaModel setLanguageLevel(@NotNull String type, @NotNull LanguageLevel languageLevel) {
-    JavaVersionPsiElement element = myPsiElement.getProperty(type, JavaVersionPsiElement.class);
+    JavaVersionDslElement element = myDslElement.getProperty(type, JavaVersionDslElement.class);
     if (element == null) {
-      element = new JavaVersionPsiElement(myPsiElement, type);
-      myPsiElement.setNewElement(type, element);
+      element = new JavaVersionDslElement(myDslElement, type);
+      myDslElement.setNewElement(type, element);
     }
     element.setVersion(languageLevel);
     return this;
@@ -77,7 +77,7 @@ public class JavaModel {
 
   @VisibleForTesting
   @NotNull
-  JavaPsiElement getGradlePsiElement() {
-    return myPsiElement;
+  JavaDslElement getGradlePsiElement() {
+    return myDslElement;
   }
 }
