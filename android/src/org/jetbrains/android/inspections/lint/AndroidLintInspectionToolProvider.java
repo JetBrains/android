@@ -963,6 +963,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintSSLCertificateSocketFactoryCreateSocketInspection extends AndroidLintInspectionBase {
+    public AndroidLintSSLCertificateSocketFactoryCreateSocketInspection() {
+      super(AndroidBundle.message("android.lint.inspections.sslcertificate.socket.factory.create.socket"), SslCertificateSocketFactoryDetector.CREATE_SOCKET);
+    }
+  }
+
+  public static class AndroidLintSSLCertificateSocketFactoryGetInsecureInspection extends AndroidLintInspectionBase {
+    public AndroidLintSSLCertificateSocketFactoryGetInsecureInspection() {
+      super(AndroidBundle.message("android.lint.inspections.sslcertificate.socket.factory.get.insecure"), SslCertificateSocketFactoryDetector.GET_INSECURE);
+    }
+  }
+
   public static class AndroidLintStateListReachableInspection extends AndroidLintInspectionBase {
     public AndroidLintStateListReachableInspection() {
       super(AndroidBundle.message("android.lint.inspections.state.list.reachable"), StateListDetector.ISSUE);
