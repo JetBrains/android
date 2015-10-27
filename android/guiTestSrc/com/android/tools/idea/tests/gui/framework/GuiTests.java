@@ -69,6 +69,7 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
@@ -79,6 +80,7 @@ import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
 import static org.junit.Assert.*;
 
 public final class GuiTests {
+  public static final Timeout THIRTY_SEC_TIMEOUT = timeout(30, SECONDS);
   public static final Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
   public static final Timeout LONG_TIMEOUT = timeout(5, MINUTES);
 
