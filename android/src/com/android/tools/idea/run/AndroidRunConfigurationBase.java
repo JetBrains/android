@@ -60,7 +60,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public String PREFERRED_AVD = "";
 
   private final List<DeployTarget> myDeployTargets; // all available deploy targets
-  private final List<DeployTarget> myApplicableDeployTargets; // deploy targets valid for this configuration
+  private final boolean myAndroidTests;
 
   private final Map<String, DeployTargetState> myDeployTargetStates;
 
@@ -73,7 +73,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     super(new JavaRunConfigurationModule(project, false), factory);
 
     myDeployTargets = DeployTarget.getDeployTargets();
-    myApplicableDeployTargets = ImmutableList.copyOf(getApplicableDeployTargets(myDeployTargets, androidTests));
+    myAndroidTests = androidTests;
 
     ImmutableMap.Builder<String, DeployTargetState> builder = ImmutableMap.builder();
     for (DeployTarget target : myDeployTargets) {
@@ -184,21 +184,17 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
   }
 
-  private static List<DeployTarget> getApplicableDeployTargets(@NotNull List<DeployTarget> allTargets, boolean androidTests) {
+  @NotNull
+  public List<DeployTarget> getApplicableDeployTargets() {
     List<DeployTarget> targets = Lists.newArrayList();
 
-    for (DeployTarget target : allTargets) {
-      if (target.isApplicable(androidTests)) {
+    for (DeployTarget target : myDeployTargets) {
+      if (target.isApplicable(myAndroidTests)) {
         targets.add(target);
       }
     }
 
     return targets;
-  }
-
-  @NotNull
-  public List<DeployTarget> getApplicableDeployTargets() {
-    return myApplicableDeployTargets;
   }
 
   @NotNull
