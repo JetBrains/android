@@ -72,6 +72,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
+import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -1135,9 +1136,6 @@ public final class GradleUtil {
   @Nullable
   static File addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
     try {
-      File file = createTempFile("asLocalRepo", DOT_GRADLE);
-      file.deleteOnExit();
-
       String contents = "allprojects {\n" +
                         "  buildscript {\n" +
                         "    repositories {\n" +
@@ -1145,9 +1143,8 @@ public final class GradleUtil {
                         "    }\n" +
                         "  }\n" +
                         "}\n";
-      writeToFile(file, contents);
+      File file = GradleExecutionHelper.writeToFileGradleInitScript(contents, "asLocalRepo");
       addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, file.getAbsolutePath());
-
       return file;
     }
     catch (IOException e) {
