@@ -18,7 +18,6 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.WizardStepHeaderPanel;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
 import com.intellij.util.ui.UIUtil;
@@ -43,14 +42,7 @@ public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoPr
     myAvdDisplayList = new AvdDisplayList(this, project);
     myAvdDisplayList.setBorder(new EmptyBorder(UIUtil.PANEL_REGULAR_INSETS));
     setTitle("Android Virtual Device Manager");
-
-    Window window = getFrame();
-    if (window == null) {
-      assert ApplicationManager.getApplication().isUnitTestMode();
-    }
-    else {
-      window.setPreferredSize(WizardConstants.DEFAULT_WIZARD_WINDOW_SIZE);
-    }
+    setDimensionKey(getClass().getName());
   }
 
   public void init() {
