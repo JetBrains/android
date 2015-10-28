@@ -21,6 +21,7 @@ import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -273,7 +274,7 @@ public class GradleSpecificInitializer implements Runnable {
 
     if (androidHome != null) {
       WizardUtils.ValidationResult sdkValidationResult =
-        WizardUtils.validateLocation(androidHome.getAbsolutePath(), "Android SDK location", false, false);
+        WizardUtils.validateLocation(androidHome.getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
       if (sdkValidationResult.isError()) {
         notifyInvalidSdk();
       }
