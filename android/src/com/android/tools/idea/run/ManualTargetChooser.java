@@ -28,13 +28,13 @@ public class ManualTargetChooser {
 
   @NotNull private final ShowChooserTarget.State myShowChooserState;
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final String myRunConfigName;
+  private final int myRunConfigId;
   @NotNull private final Project myProject;
 
-  public ManualTargetChooser(@NotNull ShowChooserTarget.State state, @NotNull AndroidFacet facet, @NotNull String runConfigName) {
+  public ManualTargetChooser(@NotNull ShowChooserTarget.State state, @NotNull AndroidFacet facet, int runConfigId) {
     myShowChooserState = state;
     myFacet = facet;
-    myRunConfigName = runConfigName;
+    myRunConfigId = runConfigId;
     myProject = facet.getModule().getProject();
   }
 
@@ -74,7 +74,7 @@ public class ManualTargetChooser {
         return null;
       }
       DeviceStateAtLaunchService.getInstance(myProject)
-        .setDevicesUsedInLaunch(myRunConfigName, Sets.newHashSet(selectedDevices), getOnlineDevices());
+        .setDevicesUsedInLaunch(myRunConfigId, Sets.newHashSet(selectedDevices), getOnlineDevices());
       myShowChooserState.USE_LAST_SELECTED_DEVICE = chooser.useSameDevicesAgain();
       return DeviceTarget.forDevices(Arrays.asList(selectedDevices));
     }
@@ -83,7 +83,7 @@ public class ManualTargetChooser {
   /** Re-use the last used devices if we are configured to do so and the online devices have not changed. */
   @NotNull
   private Collection<IDevice> getReusableDevices(@NotNull DeviceCount deviceCount) {
-    DeviceStateAtLaunch devicesToReuse = DeviceStateAtLaunchService.getInstance(myProject).getDevicesUsedInLastLaunch(myRunConfigName);
+    DeviceStateAtLaunch devicesToReuse = DeviceStateAtLaunchService.getInstance(myProject).getDevicesUsedInLastLaunch(myRunConfigId);
     if (!myShowChooserState.USE_LAST_SELECTED_DEVICE || devicesToReuse == null) {
       return ImmutableList.of();
     }

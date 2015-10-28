@@ -255,24 +255,30 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       debug = true;
     }
 
+    if (AndroidSdkUtils.getDebugBridge(getProject()) == null) {
+      throw new ExecutionException("Unable to obtain debug bridge");
+    }
+
     DeployTarget currentTarget = getCurrentDeployTarget();
     DeployTargetState deployTargetState = getCurrentDeployTargetState();
+    ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
+
+    if (currentTarget.requiresRuntimePrompt(deployTargetState)) {
+      if (!currentTarget
+        .showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID(), printer)) {
+        return null; // user cancelled
+      }
+    }
 
     if (currentTarget.hasCustomRunProfileState(executor)) {
       return currentTarget.getRunProfileState(executor, env, deployTargetState);
     }
 
-    if (AndroidSdkUtils.getDebugBridge(getProject()) == null) {
-      throw new ExecutionException("Unable to obtain debug bridge");
-    }
-
-    ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
-
     // If there is a session that we will embed to, we need to re-use the devices from that session.
     // TODO: this means that if the deployment target is changed between sessions, we still use the one from the old session?
     DeviceTarget deviceTarget = getOldSessionTarget(project, executor);
     if (deviceTarget == null) {
-      deviceTarget = currentTarget.getTarget(deployTargetState, facet, getDeviceCount(debug), debug, getName(), printer);
+      deviceTarget = currentTarget.getTarget(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID(), printer);
       if (deviceTarget == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
         return null;

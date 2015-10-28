@@ -18,6 +18,7 @@ package com.android.tools.idea.run.editor;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeviceCount;
 import com.android.tools.idea.run.DeviceTarget;
+import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
@@ -33,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link DeployTarget} corresponds to an object that can either provide a custom {@link RunProfileState} and manage its own
@@ -59,11 +61,34 @@ public abstract class DeployTarget<S extends DeployTargetState> {
   public abstract S createState();
 
   public abstract DeployTargetConfigurable<S> createConfigurable(@NotNull Project project,
-                                                                 Disposable parentDisposable,
+                                                                 @NotNull Disposable parentDisposable,
                                                                  @NotNull DeployTargetConfigurableContext ctx);
+
+  public boolean showInDevicePicker() {
+    return false;
+  }
 
   public boolean isApplicable(boolean isTestConfig) {
     return true;
+  }
+
+  /**
+   * Returns whether the current deploy target needs to ask for user input on every launch.
+   * If this method is overridden to return true, then {@link #showPrompt(Executor, ExecutionEnvironment, AndroidFacet, DeviceCount, boolean, Map, int, ProcessHandlerConsolePrinter)} must also be overridden.
+   */
+  public boolean requiresRuntimePrompt(@NotNull S deployTargetState) {
+    return false;
+  }
+
+  /**
+   * Prompt the user for whatever input might be required at the time of the launch.
+   * @param uniqueID a unique ID identifying the run configuration context from which this is being invoked
+   */
+  public boolean showPrompt(Executor executor,
+                            ExecutionEnvironment env, AndroidFacet facet, DeviceCount deviceCount, boolean androidTests,
+                            @NotNull Map<String, DeployTargetState> deployTargetStates,
+                            int uniqueId, ProcessHandlerConsolePrinter printer) {
+    throw new IllegalStateException();
   }
 
   public boolean hasCustomRunProfileState(@NotNull Executor executor) {
@@ -84,7 +109,7 @@ public abstract class DeployTarget<S extends DeployTargetState> {
                                          @NotNull AndroidFacet facet,
                                          @NotNull DeviceCount deviceCount,
                                          boolean debug,
-                                         @NotNull String runConfigName,
+                                         int runConfigId,
                                          @NotNull ConsolePrinter printer);
 
   public static class Renderer extends ColoredListCellRenderer<DeployTarget> {
