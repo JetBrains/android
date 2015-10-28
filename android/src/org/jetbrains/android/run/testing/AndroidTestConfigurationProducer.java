@@ -18,6 +18,7 @@ package org.jetbrains.android.run.testing;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
@@ -230,6 +231,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
   @Override
   public boolean shouldReplace(ConfigurationFromContext self, ConfigurationFromContext other) {
+    if (!Projects.isBuildWithGradle(self.getConfiguration().getProject())) return false;
     // If we decided the context is for an instrumentation test (see {@link #setupConfigurationFromContext}), it should replace
     // other test configurations, as they won't work anyway.
     return other.isProducedBy(JUnitConfigurationProducer.class);
