@@ -63,6 +63,22 @@ public class ThemeEditorTableFixture extends JTableFixture {
     });
   }
 
+  public boolean hasWarningIconAt(@NotNull final TableCell cell) {
+    //noinspection ConstantConditions: this will never return null
+    return execute(new GuiQuery<Boolean>() {
+      @Override
+      protected Boolean executeInEDT() throws Throwable {
+        Component renderer = rendererComponentAt(cell);
+        if (!(renderer instanceof ResourceComponent)) {
+          return false;
+        }
+
+        ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
+        return resourceComponent.hasWarningIcon();
+      }
+    });
+  }
+
   @Nullable
   public List<String> getComboBoxContentsAt(@NotNull final TableCell cell) {
     return execute(new GuiQuery<List<String>>() {
