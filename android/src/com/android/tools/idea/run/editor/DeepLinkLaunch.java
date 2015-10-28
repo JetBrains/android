@@ -78,51 +78,5 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
   public LaunchOptionConfigurable<State> createConfigurable(@NotNull Project project, @NotNull LaunchOptionConfigurableContext context) {
     return new DeepLinkConfigurable(project, context);
   }
-
-  private static class DeepLinkConfigurable implements LaunchOptionConfigurable<State> {
-    private final ComponentWithBrowseButton<EditorTextField> myDeepLinkField;
-
-    public DeepLinkConfigurable(@NotNull final Project project, @NotNull final LaunchOptionConfigurableContext context) {
-      myDeepLinkField = new ComponentWithBrowseButton<EditorTextField>(new EditorTextField(), null);
-
-      myDeepLinkField.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          if (!project.isInitialized()) {
-            return;
-          }
-          Module module = context.getModule();
-          if (module == null) {
-            Messages.showErrorDialog(project, ExecutionBundle.message("module.not.specified.error.text"), "Deep Link Launcher");
-            return;
-          }
-          DeepLinkChooserDialog dialog = new DeepLinkChooserDialog(project, module);
-          dialog.setTitle("Select Deep Link");
-          dialog.show();
-
-          String deepLinkSelected = dialog.getSelectedDeepLink();
-          if (deepLinkSelected != null && !deepLinkSelected.isEmpty()) {
-            myDeepLinkField.getChildComponent().setText(deepLinkSelected);
-          }
-        }
-      });
-    }
-
-    @Nullable
-    @Override
-    public JComponent createComponent() {
-      return myDeepLinkField;
-    }
-
-    @Override
-    public void resetFrom(@NotNull State state) {
-      myDeepLinkField.getChildComponent().setText(StringUtil.notNullize(state.DEEP_LINK));
-    }
-
-    @Override
-    public void applyTo(@NotNull State state) {
-      state.DEEP_LINK = StringUtil.notNullize(myDeepLinkField.getChildComponent().getText());
-    }
-  }
 }
 
