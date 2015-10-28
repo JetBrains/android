@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFi
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.google.common.collect.Lists;
 import com.intellij.android.designer.AndroidDesignerEditor;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -48,7 +49,6 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
-import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +62,7 @@ import java.awt.event.KeyEvent;
 import java.awt.font.TextHitInfo;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
@@ -871,12 +872,19 @@ public class EditorFixture {
    * @return this
    */
   @NotNull
-  public EditorFixture requireCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
-    VirtualFile currentFile = getCurrentFile();
-    assertNotNull("Expected a file to be open", currentFile);
-    FileFixture file = new FileFixture(myFrame.getProject(), currentFile);
+  public EditorFixture requireCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
+    FileFixture file = getCurrentFileFixture();
     file.requireCodeAnalysisHighlightCount(severity, expected);
+    return this;
+  }
 
+  @NotNull
+  public EditorFixture requireHighlights(HighlightSeverity severity, String... highlights) {
+    List<String> infos = Lists.newArrayList();
+    for (HighlightInfo info : getCurrentFileFixture().getHighlightInfos(severity)) {
+      infos.add(info.getDescription());
+    }
+    assertThat(infos).containsOnly(highlights);
     return this;
   }
 
@@ -891,21 +899,23 @@ public class EditorFixture {
    */
   @NotNull
   public EditorFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
-    VirtualFile currentFile = getCurrentFile();
-    assertNotNull("Expected a file to be open", currentFile);
-    FileFixture file = new FileFixture(myFrame.getProject(), currentFile);
+    FileFixture file = getCurrentFileFixture();
     file.waitForCodeAnalysisHighlightCount(severity, expected);
-
     return this;
   }
 
   @NotNull
   public EditorFixture waitUntilErrorAnalysisFinishes() {
-    VirtualFile currentFile = getCurrentFile();
-    assertNotNull("Expected a file to be open", currentFile);
-    FileFixture file = new FileFixture(myFrame.getProject(), currentFile);
+    FileFixture file = getCurrentFileFixture();
     file.waitUntilErrorAnalysisFinishes();
     return this;
+  }
+
+  @NotNull
+  private FileFixture getCurrentFileFixture() {
+    VirtualFile currentFile = getCurrentFile();
+    assertNotNull("Expected a file to be open", currentFile);
+    return new FileFixture(myFrame.getProject(), currentFile);
   }
 
   /**
@@ -1081,6 +1091,7 @@ public class EditorFixture {
       assertEquals(name, parent.getName());
     }
   }
+
 
   /**
    * Common editor actions, invokable via {@link #invokeAction(EditorAction)}
