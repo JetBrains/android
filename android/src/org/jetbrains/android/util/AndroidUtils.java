@@ -90,9 +90,10 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.content.impl.ContentImpl;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
-import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.graph.Graph;
+import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
@@ -115,9 +116,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.utils.SdkUtils.endsWithIgnoreCase;
 
 /**
  * @author yole, coyote
@@ -985,23 +983,14 @@ public class AndroidUtils {
 
   @NotNull
   public static Set<Module> getSetWithBackwardDependencies(@NotNull Collection<Module> modules) {
+    if (modules.isEmpty()) return Collections.emptySet();
+    Module next = modules.iterator().next();
+    Graph<Module> graph = ModuleManager.getInstance(next.getProject()).moduleGraph();
     final Set<Module> set = new HashSet<Module>();
-
     for (Module module : modules) {
-      collectModules(module, set, ModuleManager.getInstance(module.getProject()).getModules());
+      GraphAlgorithms.getInstance().collectOutsRecursively(graph, module, set);
     }
     return set;
-  }
-
-  private static void collectModules(Module module, Set<Module> result, Module[] allModules) {
-    if (!result.add(module)) {
-      return;
-    }
-    for (Module otherModule : allModules) {
-      if (ModuleRootManager.getInstance(otherModule).isDependsOn(module)) {
-        collectModules(otherModule, result, allModules);
-      }
-    }
   }
 
   @NotNull
