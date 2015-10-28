@@ -22,6 +22,7 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.awt.*;
+import java.util.List;
 
 import static com.android.tools.idea.rendering.ResourceHelper.getResourceName;
 import static com.android.tools.idea.rendering.ResourceHelper.getResourceUrl;
@@ -192,5 +193,24 @@ public class ResourceHelperTest extends AndroidTestCase {
     stateList.addState(selected);
     stateList.addState(notFocused);
     assertThat(stateList.getDisabledStates()).containsExactly(selected, notFocused);
+  }
+
+  public void testGetCompletionFromTypes() {
+    myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml");
+    myFixture.copyFileToProject("resourceHelper/my_state_list.xml", "res/color/my_state_list.xml");
+
+    List<String> colorOnly = ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.COLOR});
+    List<String> drawableOnly = ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.DRAWABLE});
+    List<String> colorAndDrawable =
+      ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.COLOR, ResourceType.DRAWABLE});
+    List<String> dimenOnly = ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.DIMEN});
+
+    assertThat(colorOnly).containsExactly("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list");
+    assertThat(drawableOnly)
+      .containsExactly("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@android:drawable/menuitem_background");
+    assertThat(colorAndDrawable)
+      .containsExactly("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list",
+                       "@android:drawable/menuitem_background");
+    assertThat(dimenOnly).containsExactly("@dimen/myAlpha", "@dimen/myDimen");
   }
 }
