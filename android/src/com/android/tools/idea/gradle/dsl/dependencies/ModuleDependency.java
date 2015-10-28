@@ -139,7 +139,12 @@ public class ModuleDependency extends Dependency {
     if (myConfigurationLiteral == null) {
       return null;
     }
-    return getUnquotedText(myConfigurationLiteral);
+    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Override
+      public String compute() {
+        return getUnquotedText(myConfigurationLiteral);
+      }
+    });
   }
 
   public void setName(@NotNull String newName) {
