@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
@@ -140,37 +139,7 @@ public final class GradleDslLiteral extends GradleDslElement {
     }
     PsiElement parent = myLiteral.getParent();
     myLiteral.delete();
-    if (parent instanceof GrAssignmentExpression) {
-      parent.delete(); // Delete the empty assignment statement without any value.
-    }
-    if (parent instanceof GrCommandArgumentList) {
-      deleteIfEmpty((GrCommandArgumentList)parent);
-    }
-    else if (parent instanceof GrListOrMap) {
-      deleteIfEmpty((GrListOrMap)parent);
-    }
-  }
-
-  private static void deleteIfEmpty(@NotNull GrCommandArgumentList commandArgumentList) {
-    if (commandArgumentList.getAllArguments().length > 0) {
-      return;
-    }
-    PsiElement parent = commandArgumentList.getParent();
-    commandArgumentList.delete();
-    if (parent instanceof GrApplicationStatement) {
-      parent.delete(); // Delete the empty application statement without any arguments.
-    }
-  }
-
-  private static void deleteIfEmpty(@NotNull GrListOrMap listOrMap) {
-    if ((listOrMap.isMap() && listOrMap.getNamedArguments().length > 0) || (!listOrMap.isMap() && listOrMap.getInitializers().length > 0) ) {
-      return;
-    }
-    PsiElement parent = listOrMap.getParent();
-    listOrMap.delete();
-    if (parent instanceof GrAssignmentExpression) {
-      parent.delete(); // Delete the empty assignment statement without any arguments.
-    }
+    deleteIfEmpty(parent);
   }
 
   @Override
