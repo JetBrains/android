@@ -26,6 +26,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class ShowChooserTarget extends DeployTarget<ShowChooserTarget.State> {
+  // Note: we only maintain the state that is persisted along with the run configuration here.
+  // Any other state that is necessary for the dialog itself should be maintained separately, possibly indexed by the run configuration
+  // context in which getTarget() is invoked.
   public static final class State extends DeployTargetState {
     public boolean USE_LAST_SELECTED_DEVICE;
   }

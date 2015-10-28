@@ -26,7 +26,7 @@
       </component>
       <component id="9fdd5" class="com.intellij.openapi.ui.LabeledComponent" binding="myCustomArtifactLabeledComponent">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="4" use-parent-layout="false"/>
+          <grid row="2" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="2" use-parent-layout="false"/>
         </constraints>
         <properties>
           <componentClass value="com.intellij.openapi.ui.ComboBox"/>
@@ -66,7 +66,7 @@
       </component>
       <component id="38c16" class="com.intellij.openapi.ui.LabeledComponent" binding="myPmOptionsLabeledComponent">
         <constraints>
-          <grid row="3" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="4" use-parent-layout="false"/>
+          <grid row="3" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="false"/>
         </constraints>
         <properties>
           <componentClass value="com.intellij.ui.components.JBTextField"/>
@@ -86,7 +86,7 @@
       </hspacer>
       <component id="44f4e" class="com.intellij.openapi.options.ex.ConfigurableCardPanel" binding="myLaunchOptionsCardPanel">
         <constraints>
-          <grid row="6" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="4" use-parent-layout="false"/>
+          <grid row="6" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="false"/>
         </constraints>
         <properties/>
       </component>
@@ -97,7 +97,7 @@
       </vspacer>
       <component id="9e85d" class="com.intellij.openapi.ui.LabeledComponent" binding="myAmOptionsLabeledComponent">
         <constraints>
-          <grid row="7" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="4" use-parent-layout="false"/>
+          <grid row="7" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="false"/>
         </constraints>
         <properties>
           <componentClass value="com.intellij.ui.components.JBTextField"/>
