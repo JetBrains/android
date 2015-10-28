@@ -40,6 +40,11 @@ public class DevicePropertyUtil {
 
   public static String getManufacturer(IDevice d, String unknown) {
     String m = d.getProperty(IDevice.PROP_DEVICE_MANUFACTURER);
+    if (d.isEmulator() && "unknown".equals(m)) {
+      // use argument provided to method rather than the "unknown" hardcoded into the emulator system image
+      m = unknown;
+    }
+
     return m != null ? fixManufacturerName(m) : unknown;
   }
 
@@ -58,7 +63,7 @@ public class DevicePropertyUtil {
 
     v = d.getProperty(IDevice.PROP_BUILD_API_LEVEL);
     if (v != null) {
-      sb.append(String.format(" (API %1$s)", v));
+      sb.append(String.format(", API %1$s", v));
     }
 
     return sb.toString();
