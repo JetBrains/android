@@ -20,6 +20,8 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
@@ -116,7 +118,12 @@ public class ModuleDependency extends Dependency {
 
   @NotNull
   public String getPath() {
-    return notNullize(getUnquotedText(myPathLiteral));
+    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Override
+      public String compute() {
+        return notNullize(getUnquotedText(myPathLiteral));
+      }
+    });
   }
 
   @Override
