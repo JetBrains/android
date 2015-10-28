@@ -41,18 +41,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.util.Comparator;
-import java.util.TreeSet;
+import java.awt.event.*;
+import java.util.*;
 
 /**
  * Abstract class that implements a {@link JTable} renderer and editor for attributes based on the {@link ResourceComponent} component.
@@ -89,10 +86,12 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
   protected AttributesTableModel myModel;
   protected EditedStyleItem myItem;
 
-  public GraphicalResourceRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
+  public GraphicalResourceRendererEditor(@NotNull ThemeEditorContext context,
+                                         @NotNull AndroidThemePreviewPanel previewPanel,
+                                         boolean isEditor) {
     myContext = context;
     // Override isShowing because of the use of a {@link CellRendererPane}
-    myComponent = new ResourceComponent() {
+    myComponent = new ResourceComponent(context.getProject()) {
       @Override
       public boolean isShowing() {
         return true;
@@ -192,6 +191,10 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
     myComponent.setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
     updateComponentInternal(myComponent, value);
     updateComponent(myContext, myComponent, value);
+
+    AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
+    assert facet != null;
+    myComponent.setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, getAllowedResourceTypes()));
 
     return myComponent;
   }

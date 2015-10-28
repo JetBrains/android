@@ -1,0 +1,6 @@
+<resources>
+    <color name="myColor1">#123456</color>
+    <color name="myColor2">#FFEEDDCC</color>
+    <dimen name="myDimen">21dp</dimen>
+    <item name="myAlpha" type="dimen" format="float">0.2</item>
+</resources>
