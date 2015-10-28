@@ -52,9 +52,8 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
     // TODO: Change the initial unit to B/s after fixing the window frozen problem.
     myTimelineComponent.configureUnits("KB/s");
     myTimelineComponent.configureStream(0, "Rx", new JBColor(0xff8000, 0xff8000));
-    myTimelineComponent.configureStream(1, "Tx", new JBColor(0xffcc99, 0xffcc99));
+    myTimelineComponent.configureStream(1, "Tx", new JBColor(0xffcc99, 0xffcc99), true);
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
-    myTimelineComponent.setStackStreams(false);
 
     // Some system images do not have the network stats file, it is a bug; we show a label before the bug is fixed.
     addOverlayText(MISSING_LABEL, PAUSED_LABEL_PRIORITY - 1);
