@@ -45,7 +45,11 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorUtil;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ResourceManager;
+import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -777,6 +781,41 @@ public class ResourceHelper {
 
   public static int clamp(int i, int min, int max) {
     return Math.max(min, Math.min(i, max));
+  }
+
+  /**
+   * Returns the list of all resource names that can be used as a value for one of the {@link ResourceType} in completionTypes
+   */
+  @NotNull
+  public static List<String> getCompletionFromTypes(@NotNull AndroidFacet facet, @NotNull ResourceType[] completionTypes) {
+    ResourceManager systemManager = facet.getResourceManager(AndroidUtils.SYSTEM_RESOURCE_PACKAGE);
+    ResourceManager localManager = facet.getResourceManager(null);
+    ImmutableList.Builder<String> resourceNamesList = ImmutableList.builder();
+    EnumSet<ResourceType> types = Sets.newEnumSet(Arrays.asList(completionTypes), ResourceType.class);
+
+    boolean completionTypesContainsColor = types.contains(ResourceType.COLOR);
+    if (types.contains(ResourceType.DRAWABLE)) {
+      // The Drawable type accepts colors as value but not color state lists.
+      types.add(ResourceType.COLOR);
+    }
+
+    for (ResourceType type : types) {
+      // If type == ResourceType.COLOR, we want to include file resources (i.e. color state lists) only in the case where
+      // color was present in completionTypes, and not if we added it because of the presence of ResourceType.DRAWABLES.
+      // For any other ResourceType, we always include file resources.
+      boolean includeFileResources = (type != ResourceType.COLOR) || completionTypesContainsColor;
+      ChooseResourceDialog.ResourceGroup group = new ChooseResourceDialog.ResourceGroup(type, systemManager, includeFileResources);
+      for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
+        resourceNamesList.add(SdkConstants.ANDROID_PREFIX  + item.getName());
+      }
+
+      group = new ChooseResourceDialog.ResourceGroup(type, localManager, includeFileResources);
+      for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
+        resourceNamesList.add(SdkConstants.PREFIX_RESOURCE_REF + item.getName());
+      }
+    }
+
+    return resourceNamesList.build();
   }
 
   /**

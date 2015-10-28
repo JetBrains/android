@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -1127,7 +1126,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
     // We calculate the size of the resource cell (drawable and color cells) by creating a ResourceComponent that
     // we use to measure the preferred size.
-    ResourceComponent sampleComponent = new ResourceComponent();
+    ResourceComponent sampleComponent = new ResourceComponent(myProject);
     int bigCellSize = sampleComponent.getPreferredSize().height;
     myAttributesTable.setClassHeights(ImmutableMap.of(
       Object.class, regularFontSize + REGULAR_CELL_PADDING,
