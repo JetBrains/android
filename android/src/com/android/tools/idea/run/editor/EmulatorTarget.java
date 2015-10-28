@@ -93,7 +93,7 @@ public class EmulatorTarget extends DeployTarget<EmulatorTarget.State> {
                                 @NotNull AndroidFacet facet,
                                 @NotNull DeviceCount deviceCount,
                                 boolean debug,
-                                @NotNull String runConfigName,
+                                int runConfigId,
                                 @NotNull ConsolePrinter printer) {
     return new EmulatorTargetChooser(facet, Strings.emptyToNull(state.PREFERRED_AVD)).getTarget(printer, deviceCount, debug);
   }

@@ -15,22 +15,15 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidApplicationLauncher;
+import com.android.tools.idea.run.AndroidDeepLinkLauncher;
+import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.ValidationError;
 import com.google.common.collect.ImmutableList;
-import com.intellij.execution.ExecutionBundle;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComponentWithBrowseButton;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.EditorTextField;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
