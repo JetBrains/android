@@ -25,10 +25,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.gradle.dsl.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
@@ -215,7 +217,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    ExternalDependencySpec expected = new ExternalDependencySpec("org.jetbrains", "annotations", "13.0");
+    ExternalDependencySpec expected = new ExternalDependencySpec("annotations", "org.jetbrains", "13.0");
     appBuildModel.requireDependency(COMPILE, expected);
 
     editor.invokeAction(UNDO); // Undo the import statement first
