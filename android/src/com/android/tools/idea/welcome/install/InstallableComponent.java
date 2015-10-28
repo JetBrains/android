@@ -102,10 +102,13 @@ public abstract class InstallableComponent extends ComponentTreeNode {
 
   @Override
   public void updateState(@Nullable SdkManager manager) {
-    boolean isSelected;
+    boolean sdkDirectoryWritable = manager == null || new File(manager.getLocation()).canWrite();
+
     // If we don't have anything to install, show as unchecked and not editable.
-    boolean nothingToInstall = getRequiredSdkPackages(null).isEmpty();
+    boolean nothingToInstall = !sdkDirectoryWritable || getRequiredSdkPackages(null).isEmpty();
     myIsOptional = !nothingToInstall && isOptionalForSdkLocation(manager);
+
+    boolean isSelected;
 
     if (!myIsOptional) {
       isSelected = !nothingToInstall;

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.CharMatcher;
 import com.intellij.ide.RecentProjectsManager;
@@ -140,7 +139,7 @@ public class WizardUtils {
       WHITESPACE("%1$s should not contain whitespace, as this can cause problems with the NDK tools."),
       NON_ASCII_CHARS_WARNING("Your %1$s contains non-ASCII characters, which can cause problems. Proceed with caution."),
       NON_ASCII_CHARS_ERROR("Your %1$s contains non-ASCII characters."),
-      PATH_NOT_WRITEABLE("The path '%2$s' is not writeable. Please choose a new location."),
+      PATH_NOT_WRITABLE("The path '%2$s' is not writable. Please choose a new location."),
       PROJECT_LOC_IS_FILE("There must not already be a file at the %1$s."),
       NON_EMPTY_DIR("A non-empty directory already exists at the specified %1$s. Existing files may be overwritten. Proceed with caution."),
       PROJECT_IS_FILE_SYSTEM_ROOT("The %1$s can not be at the filesystem root"),
@@ -181,10 +180,16 @@ public class WizardUtils {
       return new ValidationResult(Status.ERROR, message, field, params);
     }
 
-    @Nullable
-    @VisibleForTesting
-    Message getMessage() {
-      return myMessage;
+    @NotNull
+    private static ValidationResult pathNotWritable(@NotNull WritableCheckMode mode, @NotNull String field, @NotNull File file) {
+      switch (mode) {
+        case NOT_WRITABLE_IS_ERROR:
+          return error(Message.PATH_NOT_WRITABLE, field, file.getPath());
+        case NOT_WRITABLE_IS_WARNING:
+          return warn(Message.PATH_NOT_WRITABLE, field, file.getPath());
+        default:
+          throw new IllegalArgumentException(mode.toString());
+      }
     }
 
     public String getFormattedMessage() {
@@ -219,14 +224,16 @@ public class WizardUtils {
 
   @NotNull
   public static ValidationResult validateLocation(@Nullable String projectLocation, @NotNull String fieldName, boolean checkEmpty) {
-    return validateLocation(projectLocation, fieldName, checkEmpty, true);
+    return validateLocation(projectLocation, fieldName, checkEmpty, WritableCheckMode.NOT_WRITABLE_IS_ERROR);
   }
+
+  public enum WritableCheckMode {DO_NOT_CHECK, NOT_WRITABLE_IS_ERROR, NOT_WRITABLE_IS_WARNING}
 
   @NotNull
   public static ValidationResult validateLocation(@Nullable String projectLocation,
                                                   @NotNull String fieldName,
                                                   boolean checkEmpty,
-                                                  boolean checkWriteable) {
+                                                  @NotNull WritableCheckMode writableCheckMode) {
     ValidationResult warningResult = null;
     if (projectLocation == null || projectLocation.isEmpty()) {
       return ValidationResult.error(ValidationResult.Message.NO_LOCATION_SPECIFIED, fieldName);
@@ -258,12 +265,17 @@ public class WizardUtils {
         }
       }
       // Check that we can write to that location: make sure we can write into the first extant directory in the path.
-      if (checkWriteable && !testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
-        if (!testFile.getParentFile().canWrite()) {
-          return ValidationResult.error(ValidationResult.Message.PATH_NOT_WRITEABLE, fieldName, testFile.getParentFile().getPath());
-        }
+      File parent = testFile.getParentFile();
+
+      if (!writableCheckMode.equals(WritableCheckMode.DO_NOT_CHECK) &&
+          !testFile.exists() &&
+          parent != null &&
+          parent.exists() &&
+          !parent.canWrite()) {
+        return ValidationResult.pathNotWritable(writableCheckMode, fieldName, parent);
       }
-      testFile = testFile.getParentFile();
+
+      testFile = parent;
     }
 
     if (SystemInfo.isWindows && projectLocation.length() > WINDOWS_PATH_LENGTH_LIMIT) {
@@ -280,8 +292,9 @@ public class WizardUtils {
     if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
       return ValidationResult.error(ValidationResult.Message.PARENT_NOT_DIR, fieldName);
     }
-    if (checkWriteable && file.exists() && !file.canWrite()) {
-      return ValidationResult.error(ValidationResult.Message.PATH_NOT_WRITEABLE, fieldName, file.getPath());
+
+    if (!writableCheckMode.equals(WritableCheckMode.DO_NOT_CHECK) && file.exists() && !file.canWrite()) {
+      return ValidationResult.pathNotWritable(writableCheckMode, fieldName, file);
     }
 
     String installLocation = PathManager.getHomePathFor(Application.class);
