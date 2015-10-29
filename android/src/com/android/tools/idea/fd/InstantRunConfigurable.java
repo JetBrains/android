@@ -41,7 +41,9 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.fd.FastDeployManager.MINIMUM_GRADLE_PLUGIN_VERSION;
+import static com.android.tools.idea.fd.FastDeployManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
 
 public class InstantRunConfigurable
     implements SearchableConfigurable, Configurable.NoScroll, HyperlinkListener, GradleSyncListener, Disposable {
@@ -135,7 +137,7 @@ public class InstantRunConfigurable
     myOldVersionLabel.addHyperlinkListener(this);
   }
 
-  private void setSyncLinkMessage(@NotNull  String syncMessage) {
+  private void setSyncLinkMessage(@NotNull String syncMessage) {
     myOldVersionLabel.setHyperlinkText("Instant Run requires a newer version of the Gradle plugin. ", "Update Project", syncMessage);
   }
 
@@ -150,7 +152,9 @@ public class InstantRunConfigurable
         String version = model.getAndroidProject().getModelVersion();
         try {
           FullRevision modelVersion = FullRevision.parseRevision(version);
-          if (modelVersion.getMajor() > 1 || modelVersion.getMinor() >= 6) {
+
+          // Supported in version 1.6 of the Gradle plugin and up
+          if (modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0) {
             isCurrentPlugin = true;
             break;
           }
@@ -172,7 +176,13 @@ public class InstantRunConfigurable
 
   @Override
   public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
-    new FixGradleModelVersionHyperlink(MINIMUM_GRADLE_PLUGIN_VERSION, GRADLE_LATEST_VERSION, false).execute(myProject);
+    String version = MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
+    // Pick max version of "recommended Gradle plugin" and "minimum required for instant run"
+    if (FullRevision.parseRevision(GRADLE_PLUGIN_RECOMMENDED_VERSION).compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) > 0) {
+      version = GRADLE_PLUGIN_RECOMMENDED_VERSION;
+    }
+
+    new FixGradleModelVersionHyperlink(version, GRADLE_LATEST_VERSION, false).execute(myProject);
 
     myConnection = GradleSyncState.subscribe(myProject, this, this);
   }
