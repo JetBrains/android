@@ -24,8 +24,6 @@ import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -74,12 +72,12 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       }
 
       // Filter the library / module dependencies that are in android test
-      GlobalSearchScope excludeScope = testScopes.getUnitTestExcludeScope();
+      FileRootSearchScope excludeScope = testScopes.getUnitTestExcludeScope();
       // There is potential performance if we just call remove for all excluded items because every random remove operation has linear
       // complexity. TODO change the {@code PathList} API.
-      for (VirtualFile file : classPath.getVirtualFiles()) {
-        if (excludeScope.accept(file)) {
-          classPath.remove(file.getPath());
+      for (String path : classPath.getPathList()) {
+        if (excludeScope.accept(new File(path))) {
+          classPath.remove(path);
         }
       }
     }
@@ -184,6 +182,13 @@ public class AndroidJunitPatcher extends JUnitPatcher {
         // Java resources were not present in older versions of the gradle plugin.
       }
     }
+    FileRootSearchScope excludeScope = null;
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+      if (testScopes != null) {
+        excludeScope = testScopes.getUnitTestExcludeScope();
+      }
+    }
 
     for (Module affectedModule : scope.getAffectedModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(affectedModule);
@@ -191,7 +196,11 @@ public class AndroidJunitPatcher extends JUnitPatcher {
         AndroidGradleModel affectedAndroidModel = AndroidGradleModel.get(facet);
         if (affectedAndroidModel != null) {
           try {
-            classPath.add(affectedAndroidModel.getMainArtifact().getJavaResourcesFolder());
+            File resourceFolder = affectedAndroidModel.getMainArtifact().getJavaResourcesFolder();
+            if (excludeScope != null && excludeScope.accept(resourceFolder)) {
+              continue;
+            }
+            classPath.add(resourceFolder);
           }
           catch (UnsupportedMethodException ignored) {
             // Java resources were not present in older versions of the gradle plugin.
