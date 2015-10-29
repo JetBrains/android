@@ -21,7 +21,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import gnu.trove.TObjectIntHashMap;
@@ -30,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -44,7 +44,7 @@ public class FileRootSearchScope extends GlobalSearchScope {
   @NotNull private final TObjectIntHashMap<File> myDirRootPaths = new TObjectIntHashMap<File>();
   @NotNull private final ProjectFileIndex myProjectFileIndex;
 
-  public FileRootSearchScope(@NotNull Project project, @NotNull Set<File> rootDirPaths) {
+  public FileRootSearchScope(@NotNull Project project, @NotNull Collection<File> rootDirPaths) {
     super(project);
     int i = 1;
     for (File root : rootDirPaths) {
