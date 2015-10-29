@@ -19,32 +19,38 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.Variant;
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
+import com.android.ddmlib.*;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.run.AndroidRunningState;
-import com.android.tools.idea.run.ApkProviderUtil;
-import com.android.tools.idea.run.ApkProvisionException;
-import com.android.tools.idea.run.InstalledPatchCache;
-import com.google.common.base.Objects;
+import com.android.tools.idea.run.*;
+import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.google.common.io.Files;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.ui.breakpoints.Breakpoint;
+import com.intellij.execution.ExecutionManager;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -53,6 +59,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.awt.RelativePoint;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -62,6 +69,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -76,13 +84,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * TODO: Handle edits in assets
- * TODO: Handle manifest edits
- * TODO: Display error message if not using correct Gradle model
+ * The {@linkplain FastDeployManager} is responsible for handling Instant Run related functionality
+ * in the IDE: determining if an app is running with the fast deploy runtime, whether it's up to date, communicating with it, etc.
  */
 public class FastDeployManager implements ProjectComponent {
   public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "1.6.0-alpha2";
   public static final FullRevision MINIMUM_GRADLE_PLUGIN_VERSION = FullRevision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+  private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
 
   // -----------------------------------------------------------------------
   // NOTE: Keep all these communication constants (and message send/receive
@@ -97,7 +105,7 @@ public class FastDeployManager implements ProjectComponent {
   /**
    * Version of the protocol
    */
-  public static final int PROTOCOL_VERSION = 2;
+  public static final int PROTOCOL_VERSION = 3;
 
   /**
    * Message: sending patches
@@ -108,6 +116,32 @@ public class FastDeployManager implements ProjectComponent {
    * Message: ping, send ack back
    */
   public static final int MESSAGE_PING = 2;
+
+  /**
+   * Message: look up a very quick checksum of the given path; this
+   * may not pick up on edits in the middle of the file but should be a
+   * quick way to determine if a path exists and some basic information
+   * about it.
+   */
+  public static final int MESSAGE_PATH_EXISTS = 3;
+
+  /**
+   * Message: query whether the app has a given file and if so return
+   * its checksum. (This is used to determine whether the app can receive
+   * a small delta on top of a (typically resource ) file instead of resending the whole
+   * file over again.)
+   */
+  public static final int MESSAGE_PATH_CHECKSUM = 4;
+
+  /**
+   * Message: restart activities
+   */
+  public static final int MESSAGE_RESTART_ACTIVITY = 5;
+
+  /**
+   * Done transmitting
+   */
+  public static final int MESSAGE_EOF = 6;
 
   /**
    * No updates
@@ -164,6 +198,29 @@ public class FastDeployManager implements ProjectComponent {
     return project.getComponent(FastDeployManager.class);
   }
 
+  /** Finds the devices associated with run configurations for the given project */
+  @NotNull
+  public static List<IDevice> findDevices(@Nullable Project project) {
+    if (project == null) {
+      return Collections.emptyList();
+    }
+
+    List<RunContentDescriptor> runningProcesses = ExecutionManager.getInstance(project).getContentManager().getAllDescriptors();
+    if (runningProcesses.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<IDevice> devices = Lists.newArrayList();
+    for (RunContentDescriptor descriptor : runningProcesses) {
+      ProcessHandler processHandler = descriptor.getProcessHandler();
+      if (processHandler instanceof AndroidMultiProcessHandler) {
+        AndroidMultiProcessHandler handler = (AndroidMultiProcessHandler)processHandler;
+        devices.addAll(handler.getDevices());
+      }
+    }
+
+    return devices;
+  }
+
   /**
    * The application state on device/emulator: the app is not running (or we cannot find it due to
    * connection problems etc), or it's in the foreground or background.
@@ -171,6 +228,8 @@ public class FastDeployManager implements ProjectComponent {
   public enum AppState {
     /** The app is not running (or we cannot find it due to connection problems etc) */
     NOT_RUNNING,
+    /** The app is running an obsolete/older version of the runtime library */
+    OBSOLETE,
     /** The app is actively running in the foreground */
     FOREGROUND,
     /** The app is running, but is not in the foreground */
@@ -190,6 +249,27 @@ public class FastDeployManager implements ProjectComponent {
     // TODO: Use appState != AppState.NOT_RUNNING instead when we automatically
     // handle fronting background activities here
     return appState == AppState.FOREGROUND;
+  }
+
+  /**
+   * Restart the activity on this device, if it's running and is in the foreground
+   * @param device the device to apply the change to
+   * @param module a module context, normally the main app module (but if it's a library module
+   *               the infrastructure will look for other app modules
+   */
+  public static void restartActivity(@NotNull IDevice device, @NotNull  Module module) {
+    AppState appState = getAppState(device, module);
+    if (appState == AppState.FOREGROUND || appState == AppState.BACKGROUND) {
+      final AndroidFacet facet = findAppModule(module, module.getProject());
+      talkToApp(device, facet, new Communicator<Boolean>() {
+        @Override
+        public Boolean communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException {
+          output.writeInt(MESSAGE_RESTART_ACTIVITY);
+          writeToken(facet, output);
+          return false;
+        }
+      }, true);
+    }
   }
 
   /**
@@ -265,11 +345,8 @@ public class FastDeployManager implements ProjectComponent {
   }
 
   private static long getLastInstalledArscTimestamp(@NotNull IDevice device, @NotNull AndroidFacet facet) {
-    String pkgName;
-    try {
-      pkgName = ApkProviderUtil.computePackageName(facet);
-    }
-    catch (ApkProvisionException e) {
+    String pkgName = getPackageName(facet);
+    if (pkgName == null) {
       return 0;
     }
 
@@ -300,11 +377,8 @@ public class FastDeployManager implements ProjectComponent {
       return false;
     }
 
-    String pkgName;
-    try {
-      pkgName = ApkProviderUtil.computePackageName(facet);
-    }
-    catch (ApkProvisionException e) {
+    String pkgName = getPackageName(facet);
+    if (pkgName == null) {
       return true;
     }
 
@@ -565,12 +639,8 @@ public class FastDeployManager implements ProjectComponent {
 
     push(device, facet.getModule(), changes, updateMode);
 
-    String pkgName;
-    try {
-      pkgName = ApkProviderUtil.computePackageName(facet);
-    }
-    catch (ApkProvisionException e) {
-      LOG.error(e);
+    String pkgName = getPackageName(facet);
+    if (pkgName == null) {
       return;
     }
     File resourceArsc = findResourceArsc(facet);
@@ -699,10 +769,6 @@ public class FastDeployManager implements ProjectComponent {
     return "debug";
   }
 
-  void postBalloon(@NotNull MessageType type, @NotNull String message) {
-    postBalloon(type, message, myProject);
-  }
-
   static void postBalloon(@NotNull final MessageType type, @NotNull final String message, @NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
@@ -725,14 +791,21 @@ public class FastDeployManager implements ProjectComponent {
     });
   }
 
+  private static void writeToken(
+    // we'll need this when really looking up the token from the build area
+    @SuppressWarnings("UnusedParameters") @NotNull AndroidFacet facet, @NotNull DataOutputStream output) throws IOException {
+    // TODO: Look up persistent token here
+    long token = 0L;
+    output.writeLong(token);
+  }
+
   private void push(@Nullable IDevice device,
-                    @Nullable Module module,
-                    @NotNull List<ApplicationPatch> changes,
+                    @Nullable final Module module,
+                    @NotNull final List<ApplicationPatch> changes,
                     @NotNull UpdateMode updateMode) {
     if (changes.isEmpty() || updateMode == UpdateMode.NO_CHANGES) {
-      if (DISPLAY_STATISTICS) {
-        postBalloon(MessageType.INFO, "Instant Run: No Changes");
-      }
+      Notification notification = NOTIFICATION_GROUP.createNotification("Instant Run:", "No Changes.", NotificationType.INFORMATION, null);
+      notification.notify(myProject);
       return;
     }
 
@@ -741,43 +814,97 @@ public class FastDeployManager implements ProjectComponent {
     }
 
     if (device != null) {
-      writeChanges(module, device, changes, updateMode);
+      final UpdateMode updateMode1 = updateMode;
+      final AndroidFacet facet = findAppModule(module);
+      talkToApp(device, facet, new Communicator<Boolean>() {
+        @Override
+        public Boolean communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException {
+          output.writeInt(MESSAGE_PATCHES);
+          writeToken(facet, output);
+          ApplicationPatch.write(output, changes, updateMode1);
+
+          // Finally read a boolean back from the other side; this has the net effect of
+          // waiting until applying/verifying code on the other side is done. (It doesn't
+          // count the actual restart time, but for activity restarts it's typically instant,
+          // and for cold starts we have no easy way to handle it (the process will die and a
+          // new process come up; to measure that we'll need to work a lot harder.)
+          input.readBoolean();
+
+          return false;
+        }
+
+        @Override
+        int getTimeout() {
+          return 8000; // allow up to 8 seconds for resource push
+        }
+      }, true);
     }
     if (DISPLAY_STATISTICS) {
       notifyEnd(myProject);
     }
+
+    if (updateMode == UpdateMode.HOT_SWAP && !isRestartActivity(myProject) && !ourHideRestartTip) {
+      StringBuilder sb = new StringBuilder(300);
+      sb.append("<html>");
+      sb.append("Instant Run applied code changes.\n");
+      sb.append("You can restart the current activity by clicking <a href=\"restart\">here</a>");
+      Shortcut[] shortcuts = ActionManager.getInstance().getAction("Android.RestartActivity").getShortcutSet().getShortcuts();
+      String shortcut;
+      if (shortcuts.length > 0) {
+        shortcut = KeymapUtil.getShortcutText(shortcuts[0]);
+        sb.append(" or pressing ").append(shortcut).append(" anytime");
+      }
+      sb.append(".\n");
+
+      sb.append("You can also <a href=\"configure\">configure</a> restarts to happen automatically. ");
+      sb.append("(<a href=\"dismiss\">Dismiss</a>, <a href=\"dismiss_all\">Dismiss All</a>)");
+      sb.append("</html>");
+      String message = sb.toString();
+      final Ref<Notification> notificationRef = Ref.create();
+      NotificationListener listener = new NotificationListener() {
+        @Override
+        public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+          if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            String action = event.getDescription();
+            if ("restart".equals(action)) {
+              RestartActivityAction.restartActivity(module);
+            }
+            else if ("configure".equals(action)) {
+              InstantRunConfigurable configurable = new InstantRunConfigurable(myProject);
+              ShowSettingsUtil.getInstance().editConfigurable(myProject, configurable);
+            }
+            else if ("dismiss".equals(action)) {
+              notificationRef.get().hideBalloon();
+            }
+            else if ("dismiss_all".equals(action)) {
+              ourHideRestartTip = true;
+              notificationRef.get().hideBalloon();
+            }
+            else {
+              assert false : action;
+            }
+          }
+        }
+      };
+      Notification notification = NOTIFICATION_GROUP.createNotification("Instant Run", message, NotificationType.INFORMATION, listener);
+      notificationRef.set(notification);
+      notification.notify(myProject);
+    }
   }
 
-  public void writeChanges(@Nullable Module module, @NotNull IDevice device, @Nullable List<ApplicationPatch> changes,
-                           @NotNull UpdateMode updateMode) {
-    String packageName = getPackageName(module);
-    try {
-      device.createForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-      try {
-        writeChanges(changes, updateMode);
-      }
-      finally {
-        device.removeForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-      }
-    }
-    catch (TimeoutException e) {
-      LOG.warn(e);
-    }
-    catch (AdbCommandRejectedException e) {
-      LOG.warn(e);
-    }
-    catch (IOException e) {
-      LOG.warn(e);
-    }
-  }
+  private static boolean ourHideRestartTip;
 
   @Nullable
-  String getPackageName(@Nullable Module module) {
-    AndroidFacet facet = findAppModule(module);
+  static String getPackageName(@Nullable AndroidFacet facet) {
     if (facet != null) {
-      AndroidModuleInfo info = AndroidModuleInfo.get(facet);
-      if (info.getPackage() != null) {
-        return info.getPackage();
+      try {
+        return ApkProviderUtil.computePackageName(facet);
+      }
+      catch (ApkProvisionException e) {
+        AndroidModuleInfo info = AndroidModuleInfo.get(facet);
+        if (info.getPackage() != null) {
+          return info.getPackage();
+        }
       }
     }
 
@@ -786,8 +913,13 @@ public class FastDeployManager implements ProjectComponent {
 
   @Nullable
   AndroidFacet findAppModule(@Nullable Module module) {
+    return findAppModule(module, myProject);
+  }
+
+  @Nullable
+  static AndroidFacet findAppModule(@Nullable Module module, @NotNull Project project) {
     if (module != null) {
-      assert module.getProject() == myProject;
+      assert module.getProject() == project;
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && !facet.isLibraryProject()) {
         return facet;
@@ -798,7 +930,7 @@ public class FastDeployManager implements ProjectComponent {
     // on the given module (if non null), not just use the first app
     // module we find.
 
-    for (Module m : ModuleManager.getInstance(myProject).getModules()) {
+    for (Module m : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(m);
       if (facet != null && !facet.isLibraryProject()) {
         return facet;
@@ -807,68 +939,47 @@ public class FastDeployManager implements ProjectComponent {
     return null;
   }
 
-  public void writeChanges(@Nullable List<ApplicationPatch> changes, @NotNull UpdateMode updateMode) {
-    try {
-      Socket socket = new Socket(LOCAL_HOST, STUDIO_PORT);
-      try {
-        DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-        try {
-          output.writeLong(PROTOCOL_IDENTIFIER);
-          output.writeInt(PROTOCOL_VERSION);
-          output.writeInt(MESSAGE_PATCHES);
-          ApplicationPatch.write(output, changes, updateMode);
-
-          // Finally read a boolean back from the other side; this has the net effect of
-          // waiting until applying/verifying code on the other side is done. (It doesn't
-          // count the actual restart time, but for activity restarts it's typically instant,
-          // and for cold starts we have no easy way to handle it (the process will die and a
-          // new process come up; to measure that we'll need to work a lot harder.)
-          DataInputStream input = new DataInputStream(socket.getInputStream());
-          try {
-            input.readBoolean();
-          }
-          finally {
-            input.close();
-          }
-        } finally {
-          output.close();
-        }
-      } finally {
-        socket.close();
-      }
-    }
-    catch (UnknownHostException e) {
-      LOG.warn(e);
-    }
-    catch (SocketException e) {
-      if (e.getMessage().equals("Broken pipe")) {
-        postBalloon(MessageType.ERROR, "No connection to app; cannot sync resource changes");
-        return;
-      }
-      LOG.warn(e);
-    }
-    catch (IOException e) {
-      LOG.warn(e);
-    }
-  }
-
   /**
    * Attempts to connect to a given device and sees if an instant run enabled app is running there.
    */
   @NotNull
   public static AppState getAppState(@NotNull IDevice device, @NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
+    try {
+      return talkToApp(device, findAppModule(module, module.getProject()), new Communicator<AppState>() {
+        @Override
+        public AppState communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException {
+          output.writeInt(MESSAGE_PING);
+          // Wait for "pong"
+          boolean foreground = input.readBoolean();
+          LOG.info("Ping sent and replied successfully, application seems to be running. Foreground=" + foreground);
+          return foreground ? AppState.FOREGROUND : AppState.BACKGROUND;
+        }
+      }, AppState.NOT_RUNNING);
+    }
+    catch (Throwable e) {
       return AppState.NOT_RUNNING;
+    }
+  }
+
+  private static abstract class Communicator <T> {
+    abstract T communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException;
+    int getTimeout() {
+      return 2000;
+    }
+  }
+
+  @NotNull
+  private static <T> T talkToApp(@NotNull IDevice device,
+                                 @Nullable AndroidFacet facet,
+                                 @NotNull Communicator<T> communicator,
+                                 @NotNull T errorValue) {
+    if (facet == null) {
+      return errorValue;
     }
 
-    String packageName;
-    try {
-      packageName = ApkProviderUtil.computePackageName(facet);
-    }
-    catch (ApkProvisionException e) {
-      LOG.warn("Unable to identify package name for app in module: " + facet.getModule().getName());
-      return AppState.NOT_RUNNING;
+    String packageName = getPackageName(facet);
+    if (packageName == null) {
+      return errorValue;
     }
 
     try {
@@ -877,17 +988,25 @@ public class FastDeployManager implements ProjectComponent {
       try {
         Socket socket = new Socket(LOCAL_HOST, STUDIO_PORT);
         try {
+          socket.setSoTimeout(8*1000); // Allow up to 8 second before timing out
           DataOutputStream output = new DataOutputStream(socket.getOutputStream());
           try {
-            output.writeLong(PROTOCOL_IDENTIFIER);
-            output.writeInt(PROTOCOL_VERSION);
-            output.writeInt(MESSAGE_PING);
-            // Wait for "pong"
             DataInputStream input = new DataInputStream(socket.getInputStream());
             try {
-              boolean foreground = input.readBoolean();
-              LOG.info("Ping sent and replied successfully, application seems to be running. Foreground=" + foreground);
-              return foreground ? AppState.FOREGROUND : AppState.BACKGROUND;
+              output.writeLong(PROTOCOL_IDENTIFIER);
+              output.writeInt(PROTOCOL_VERSION);
+
+              int version = input.readInt();
+              if (version != PROTOCOL_VERSION) {
+                return errorValue;
+              }
+
+              socket.setSoTimeout(communicator.getTimeout());
+              T value = communicator.communicate(input, output);
+
+              output.writeInt(MESSAGE_EOF);
+
+              return value;
             }
             finally {
               input.close();
@@ -899,16 +1018,38 @@ public class FastDeployManager implements ProjectComponent {
           socket.close();
         }
       }
+      catch (UnknownHostException e) {
+        LOG.warn(e);
+      }
+      catch (SocketException e) {
+        if (e.getMessage().equals("Broken pipe")) {
+          postBalloon(MessageType.ERROR, "No connection to app; cannot sync changes", facet.getModule().getProject());
+          return errorValue;
+        }
+        LOG.warn(e);
+      }
+      catch (IOException e) {
+        LOG.warn(e);
+      }
       catch (Throwable e) {
-        return AppState.NOT_RUNNING;
+        LOG.warn(e);
+        return errorValue;
       }
       finally {
         device.removeForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
       }
     }
-    catch (Throwable e) {
-      return AppState.NOT_RUNNING;
+    catch (TimeoutException e) {
+      LOG.warn(e);
     }
+    catch (AdbCommandRejectedException e) {
+      LOG.warn(e);
+    }
+    catch (Throwable e) {
+      LOG.warn(e);
+    }
+
+    return errorValue;
   }
 
   /**

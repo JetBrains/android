@@ -18,11 +18,13 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.SmartList;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -175,5 +177,15 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
     if (name != null && myApplicationId.equals(name) && !client.isValid()) {
       stopMonitoring(client.getDevice());
     }
+  }
+
+  @NotNull
+  public Collection<IDevice> getDevices() {
+    List<IDevice> devices = Lists.newArrayListWithExpectedSize(myClients.size());
+    for (Client client : myClients) {
+      devices.add(client.getDevice());
+    }
+
+    return devices;
   }
 }
