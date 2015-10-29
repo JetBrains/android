@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,10 @@ package com.android.tools.idea.wizard.model;
 
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 /**
  * A step is a single page in a wizard. It is responsible for creating a single pane of UI to
@@ -33,7 +36,19 @@ public abstract class ModelWizardStep<M extends WizardModel> {
   }
 
   @NotNull
-  protected M getModel() { return myModel; }
+  protected M getModel() {
+    return myModel;
+  }
+
+  /**
+   * When this step is added to a wizard, it is given a chance to add subsequent steps that it is
+   * willing to take responsibility for. This is useful for steps which contain toggles that
+   * enable/disable following steps.
+   */
+  @NotNull
+  protected Collection<? extends ModelWizardStep> createDependentSteps() {
+    return ImmutableList.of();
+  }
 
   /**
    * Returns {@code true} to indicate the that this step should be shown, or {@code false} if it

@@ -17,10 +17,13 @@ package com.android.tools.idea.wizard.model;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.ui.properties.BindingsManager;
+import com.android.tools.idea.ui.properties.InvalidationListener;
+import com.android.tools.idea.ui.properties.Observable;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -29,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -42,6 +46,13 @@ import java.util.Set;
 public final class ModelWizard {
 
   private final List<ModelWizardStep> mySteps;
+
+  /**
+   * When we check if we should show a step, we also check the step's ancestor chain, and make sure
+   * all of those should be shown as well. In this way, skipping a parent step automatically will
+   * skip any child steps as well (recursively).
+   */
+  private final Map<ModelWizardStep, ModelWizardStep> myStepOwners = Maps.newHashMap();
 
   private final BindingsManager myBindings = new BindingsManager();
   private final BoolProperty myCanGoBack = new BoolValueProperty();
@@ -65,6 +76,18 @@ public final class ModelWizard {
     for (ModelWizardStep step : steps) {
       addStep(step);
     }
+
+    myCanGoForward.addListener(new InvalidationListener() {
+      @Override
+      protected void onInvalidated(@NotNull Observable sender) {
+        if (myCanGoForward.get()) {
+          // Make double sure that, when we switch from blocked to can proceed, we check that no
+          // no future steps also became visible or hidden at some point. Otherwise, we might think
+          // we're on the last step when we're not (or vice versa).
+          myOnLastStep.set(isOnLastVisibleStep());
+        }
+      }
+    });
   }
 
   /**
@@ -100,15 +123,20 @@ public final class ModelWizard {
   }
 
   /**
-   * Populates the wizard with an additional step. All steps must be added before {@link #start()}
-   * is called.
+   * Populates the wizard with an additional step (and any dependent steps it may have). No steps
+   * can be added after {@link #start()} is called.
    */
-  public void addStep(@NotNull ModelWizardStep step) {
+  public void addStep(@NotNull ModelWizardStep<?> step) {
     if (hasStarted()) {
       throw new IllegalStateException("Attempting to add a step to a dialog that's already been started");
     }
 
     mySteps.add(step);
+
+    for (ModelWizardStep subStep : step.createDependentSteps()) {
+      myStepOwners.put(subStep, step);
+      addStep(subStep);
+    }
   }
 
   /**
@@ -141,6 +169,18 @@ public final class ModelWizard {
 
     if (mySteps.isEmpty()) {
       throw new IllegalStateException("Can't call start on a wizard with no steps");
+    }
+
+    boolean atLeastOneVisibleStep = false;
+    for (ModelWizardStep step : mySteps) {
+      if (shouldShowStep(step)) {
+        atLeastOneVisibleStep = true;
+        break;
+      }
+    }
+
+    if (!atLeastOneVisibleStep) {
+      throw new IllegalStateException("Can't start a wizard with no visible steps");
     }
 
     myResult = SettableFuture.create();
@@ -177,7 +217,7 @@ public final class ModelWizard {
       }
 
       ModelWizardStep step = mySteps.get(myCurrIndex);
-      if (step.shouldShow()) {
+      if (shouldShowStep(step)) {
         updateNavigationProperties();
         step.onEnter();
         break;
@@ -238,7 +278,7 @@ public final class ModelWizard {
 
     myResult.set(success);
     Set<WizardModel> seenModels = Sets.newHashSet();
-    for (ModelWizardStep step : mySteps) {
+    for (ModelWizardStep step : myPrevSteps) {
       WizardModel model = step.getModel();
       if (seenModels.contains(model)) {
         continue;
@@ -272,12 +312,26 @@ public final class ModelWizard {
     myBindings.bind(myCanGoForward, step.canProceed());
   }
 
+  private boolean shouldShowStep(ModelWizardStep step) {
+    ModelWizardStep currStep = step;
+    do {
+      if (!currStep.shouldShow()) {
+        return false;
+      }
+
+      currStep = myStepOwners.get(currStep);
+    }
+    while (currStep != null);
+
+    return true;
+  }
+
   private boolean isOnLastVisibleStep() {
     float size = mySteps.size();
     boolean currPageIsLast = true;
     for (int i = myCurrIndex + 1; i < size; i++) {
       ModelWizardStep step = mySteps.get(i);
-      if (step.shouldShow()) {
+      if (shouldShowStep(step)) {
         currPageIsLast = false;
         break;
       }
