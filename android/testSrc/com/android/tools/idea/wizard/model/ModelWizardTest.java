@@ -21,9 +21,12 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import javax.swing.*;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -259,6 +262,66 @@ public class ModelWizardTest {
     modelWizard.goForward();
   }
 
+  @Test
+  public void stepCanCreateSubsteps() throws Exception {
+    DummyModel model = new DummyModel();
+    ModelWizard modelWizard = new ModelWizard();
+    // Creates parent, which creates child
+    modelWizard.addStep(new GrandparentStep(model));
+
+    modelWizard.start();
+    assertThat(modelWizard.getCurrentStep().getClass()).isEqualTo(GrandparentStep.class);
+    modelWizard.goForward();
+    assertThat(modelWizard.getCurrentStep().getClass()).isEqualTo(ParentStep.class);
+    modelWizard.goForward();
+    assertThat(modelWizard.getCurrentStep().getClass()).isEqualTo(ChildStep.class);
+  }
+
+  @Test
+  public void hidingAStepHidesItsSubstepsRecursively() throws Exception {
+    DummyModel model = new DummyModel();
+    ModelWizard modelWizard = new ModelWizard();
+    // Creates parent, which creates child
+    GrandparentStep grandparentStep = new GrandparentStep(model);
+    grandparentStep.setShouldSkip();
+
+    // Add at least one visible step or the wizard will be fail to start
+    modelWizard.addStep(new DummyStep(model));
+    modelWizard.addStep(grandparentStep);
+
+    modelWizard.start();
+    assertThat(modelWizard.onLastStep().get()).isTrue();
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void startingAWizardWithNoVisibleStepsThrowsException() throws Exception {
+    DummyModel model = new DummyModel();
+    ModelWizard modelWizard = new ModelWizard();
+    // Creates parent, which creates child
+    GrandparentStep grandparentStep = new GrandparentStep(model);
+    grandparentStep.setShouldSkip();
+
+    modelWizard.addStep(grandparentStep);
+    modelWizard.start();
+  }
+
+  @Test
+  public void finishedWizardsSkipModelsOfHiddenSteps() throws Exception {
+    List<RecordFinishedModel> finishList = Lists.newArrayList();
+    RecordFinishedModel recordModel = new RecordFinishedModel(finishList);
+    RecordFinishedStep recordStep = new RecordFinishedStep(recordModel);
+    recordStep.setShouldSkip();
+    ModelWizard modelWizard = new ModelWizard(recordStep);
+    modelWizard.addStep(new DummyStep(new DummyModel())); // Ensure we have at least one shown step
+
+    modelWizard.start();
+    modelWizard.goForward();
+
+    assertThat(modelWizard.isFinished()).isTrue();
+
+    assertThat(finishList).isEmpty();
+  }
+
   private static class DummyModel extends WizardModel {
     @Override
     public void handleFinished() {
@@ -320,8 +383,19 @@ public class ModelWizardTest {
   }
 
   private static class RecordFinishedStep extends ModelWizardStep<RecordFinishedModel> {
+    private boolean myShouldShow = true;
+
     public RecordFinishedStep(@NotNull RecordFinishedModel model) {
       super(model);
+    }
+
+    @Override
+    protected boolean shouldShow() {
+      return myShouldShow;
+    }
+
+    public void setShouldSkip() {
+      myShouldShow = false;
     }
   }
 
@@ -417,6 +491,49 @@ public class ModelWizardTest {
     @Override
     protected void onEnter() {
       getModel().setTitle(myTitle);
+    }
+  }
+
+  private static class ChildStep extends ModelWizardStep<DummyModel> {
+    protected ChildStep(@NotNull DummyModel model) {
+      super(model);
+    }
+  }
+
+  private static class ParentStep extends ModelWizardStep<DummyModel> {
+    protected ParentStep(@NotNull DummyModel model) {
+      super(model);
+    }
+
+    @NotNull
+    @Override
+    protected Collection<? extends ModelWizardStep> createDependentSteps() {
+      return Collections.singletonList(new ChildStep(getModel()));
+    }
+  }
+
+  private static class GrandparentStep extends ModelWizardStep<DummyModel> {
+    @Nullable private List<ParentStep> myParentSteps;
+    private boolean myShouldShow = true;
+
+    protected GrandparentStep(@NotNull DummyModel model) {
+      super(model);
+    }
+
+    @NotNull
+    @Override
+    protected Collection<? extends ModelWizardStep> createDependentSteps() {
+      myParentSteps = Collections.singletonList(new ParentStep(getModel()));
+      return myParentSteps;
+    }
+
+    @Override
+    protected boolean shouldShow() {
+      return myShouldShow;
+    }
+
+    public void setShouldSkip() {
+      myShouldShow = false;
     }
   }
 }
