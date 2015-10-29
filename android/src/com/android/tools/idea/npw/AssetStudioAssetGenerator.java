@@ -26,11 +26,9 @@ import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.Density;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.io.Files;
 import com.intellij.ide.fileTemplates.impl.UrlUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
@@ -39,11 +37,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 import javax.imageio.ImageIO;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -593,32 +588,6 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   }
 
   /**
-   * Parse the VectorDrawable's XML file into a document object.
-   *
-   * @param xmlFileContent the content of the VectorDrawable's XML file.
-   * @param errorLog when errors were found, log them in this builder if it is not null.
-   * @return parsed document or null if errors happened.
-   */
-  @Nullable
-  public static Document parseVdStringIntoDocument(@NotNull String xmlFileContent,
-                                                   @Nullable StringBuilder errorLog) {
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    DocumentBuilder db;
-    Document document;
-    try {
-      db = dbf.newDocumentBuilder();
-      document = db.parse(new InputSource(new StringReader(xmlFileContent)));
-    }
-    catch (Exception e) {
-      if (errorLog != null) {
-        errorLog.append("Exception while parsing XML file:\n").append(e.getMessage());
-      }
-      return null;
-    }
-    return document;
-  }
-
-  /**
    * Convert the input file into the VectorDrawable's XML, and then generate
    * a BufferedImage according to the XML content.
    *
@@ -647,7 +616,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       return null;
     }
     BufferedImage image = null;
-    Document vdDocument = parseVdStringIntoDocument(xmlFileContent, errorLog);
+    Document vdDocument = VdPreview.parseVdStringIntoDocument(xmlFileContent, errorLog);
     if (vdDocument != null) {
       // Get the original file's size info here, and save it into context.
       VdPreview.SourceSize vdSrcSize = VdPreview.getVdOriginalSize(vdDocument);
@@ -746,7 +715,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       xmlFileContent = readXmlFile(myContext.getVectorLibIconPath());
     }
 
-    Document vdDocument = parseVdStringIntoDocument(xmlFileContent, null);
+    Document vdDocument = VdPreview.parseVdStringIntoDocument(xmlFileContent, null);
     if (vdDocument == null) {
       LOG.error("Error in parsing vector drawable's XML");
       return;
