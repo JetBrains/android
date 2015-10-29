@@ -21,9 +21,8 @@ import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.io.IFileOp;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.repository.io.FileOp;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
@@ -72,7 +71,7 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
 
     mMinApiLevel = RemotePackageParserUtils.getXmlInt(packageNode, SdkRepoConstants.NODE_MIN_API_LEVEL, MIN_API_LEVEL_NOT_SPECIFIED);
 
-    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newSample(version, new MajorRevision(getRevision()), getMinToolsRevision());
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newSample(version, getRevision(), getMinToolsRevision());
     pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), version, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
     pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, version, isObsolete()));
@@ -143,7 +142,7 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, AndroidVersion version, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, AndroidVersion version, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
@@ -266,7 +265,7 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
    * (samples are copied if using the NPW > Create from sample.)
    */
   @Override
-  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, IFileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
+  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, FileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
     super.postUnzipFileHook(archive, monitor, fileOp, unzippedFile, zipEntry);
 
     if (fileOp.isFile(unzippedFile) && !SdkConstants.FN_SOURCE_PROP.equals(unzippedFile.getName())) {

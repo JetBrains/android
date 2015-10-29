@@ -133,7 +133,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       message.beginList();
       for (UpdatablePkgInfo item : toDelete) {
         message.listItem().add(item.getPkgDesc(myIncludePreview).getListDescription()).add(", Revision: ")
-          .add(item.getPkgDesc(myIncludePreview).getPreciseRevision().toString());
+          .add(item.getPkgDesc(myIncludePreview).getRevision().toString());
       }
       message.endList();
     }
@@ -143,7 +143,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       message.beginList();
       for (IPkgDesc item : requestedPackages) {
         message.listItem().add(String.format("%1$s %2$s %3$s", item.getListDescription(), item.hasAndroidVersion() ? "revision" : "version",
-                                             item.getPreciseRevision()));
+                                             item.getRevision()));
       }
       message.endList();
     }

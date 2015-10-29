@@ -20,8 +20,6 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.prefs.AndroidLocation;
-import com.android.sdklib.io.FileOp;
-import com.android.sdklib.io.IFileOp;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.utils.ILogger;
 import com.intellij.openapi.components.*;
