@@ -21,16 +21,20 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.Revision;
 import com.android.repository.io.FileOp;
+import com.android.repository.api.License;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.impl.meta.CommonFactory;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.License;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.packages.RemotePackageParserUtils;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
 import com.google.common.base.Objects;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.w3c.dom.Node;
@@ -156,11 +160,11 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
    */
   public void saveProperties(@NonNull Properties props) {
     if (mLicense != null) {
-      String license = mLicense.getLicense();
+      String license = mLicense.getValue();
       if (license != null && license.length() > 0) {
         props.setProperty(PkgProps.PKG_LICENSE, license);
       }
-      String licenseRef = mLicense.getLicenseRef();
+      String licenseRef = mLicense.getId();
       if (licenseRef != null && licenseRef.length() > 0) {
         props.setProperty(PkgProps.PKG_LICENSE_REF, licenseRef);
       }
@@ -195,7 +199,12 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
       Node ref = usesLicense.getAttributes().getNamedItem(SdkRepoConstants.ATTR_REF);
       if (ref != null) {
         String licenseRef = ref.getNodeValue();
-        return new License(licenses.get(licenseRef), licenseRef);
+        ProgressIndicator progress = new RepoProgressIndicatorAdapter(null);
+        CommonFactory f = (CommonFactory)AndroidSdkHandler.getInstance().getSdkManager(progress).getCommonModule().createLatestFactory();
+        License l = f.createLicenseType();
+        l.setId(licenseRef);
+        l.setValue(licenses.get(licenseRef));
+        return l;
       }
     }
     return null;
