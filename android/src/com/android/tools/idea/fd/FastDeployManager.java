@@ -433,7 +433,7 @@ public class FastDeployManager implements ProjectComponent {
     };
     reference.set(task);
     invoker.addAfterGradleInvocationTask(task);
-    String taskName = getIncrementalDexTask(model);
+    String taskName = getIncrementalDexTask(model, facet.getModule());
     invoker.executeTasks(Collections.singletonList(taskName));
   }
 
@@ -519,11 +519,14 @@ public class FastDeployManager implements ProjectComponent {
 
   // TODO: This should be provided as part of the model!
   @NotNull
-  public static String getIncrementalDexTask(@NotNull AndroidGradleModel model) {
+  public static String getIncrementalDexTask(@NotNull AndroidGradleModel model, @NotNull Module module) {
     final String variantName = getVariantName(model);
-
-    // TODO: Add in task for resources too!
-    return "incremental" + StringUtil.capitalize(variantName) + "SupportDex";
+    String taskName = "incremental" + StringUtil.capitalize(variantName) + "SupportDex";
+    String gradlePath = GradleUtil.getGradlePath(module);
+    if (gradlePath != null) {
+      taskName = gradlePath + ":" + taskName;
+    }
+    return taskName;
   }
 
   @Nullable
