@@ -33,7 +33,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenu
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 
-
 /**
  * Unit test for the layout theme editor
  */
@@ -56,7 +55,7 @@ public class ThemeEditorTest extends GuiTestCase {
     ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
     // Search is empty
-    themeEditor.getThemePreviewPanel().getSearchTextField().requireText("");
+    themeEditor.getSearchTextField().requireText("");
 
     // Check the theme combo is populated correctly
     List<String> themeList = themeEditor.getThemesList();
