@@ -24,6 +24,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -65,6 +66,11 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   }
 
   @Override
+  protected CompositeException checkForSettingsDamage() throws Exception {
+    return new CompositeException();
+  }
+
+  @Override
   protected void tearDown() throws Exception {
     if (myAndroidProject != null) {
       myAndroidProject.dispose();
@@ -89,7 +95,6 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   }
 
   public void testCustomizeModule() throws Exception {
-
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
     try {
@@ -113,7 +118,6 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     ContentRootSourcePaths expectedPaths = new ContentRootSourcePaths();
     expectedPaths.storeExpectedSourcePaths(myAndroidProject);
-
 
     List<String> allExpectedPaths = Lists.newArrayList();
     allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.SOURCE));
