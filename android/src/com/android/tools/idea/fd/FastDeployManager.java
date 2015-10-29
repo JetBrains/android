@@ -81,7 +81,8 @@ import java.util.List;
  * TODO: Display error message if not using correct Gradle model
  */
 public class FastDeployManager implements ProjectComponent {
-  public static final String MINIMUM_GRADLE_PLUGIN_VERSION = "1.6.0-alpha1";
+  public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "1.6.0-alpha2";
+  public static final FullRevision MINIMUM_GRADLE_PLUGIN_VERSION = FullRevision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
 
   // -----------------------------------------------------------------------
   // NOTE: Keep all these communication constants (and message send/receive
@@ -223,7 +224,7 @@ public class FastDeployManager implements ProjectComponent {
       FullRevision revision = FullRevision.parseRevision(version);
 
       // Supported in version 1.6 of the Gradle plugin and up
-      return revision.getMajor() > 1 || revision.getMinor() >= 6;
+      return revision.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
     } catch (NumberFormatException ignore) {
       return false;
     }
