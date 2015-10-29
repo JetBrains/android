@@ -16,8 +16,7 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.SdkConstants;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -197,8 +196,8 @@ public class BuildVariantsTest extends GuiTestCase {
   }
 
   private static int compareVersions(@NotNull String lhs, @NotNull String rhs) {
-    return PreciseRevision.parseRevision(lhs).compareTo(PreciseRevision.parseRevision(rhs),
+    return Revision.parseRevision(lhs).compareTo(Revision.parseRevision(rhs),
                                                         // Treat 1.3.0-beta3 as 1.3:
-                                                        FullRevision.PreviewComparison.IGNORE);
+                                                        Revision.PreviewComparison.IGNORE);
   }
 }

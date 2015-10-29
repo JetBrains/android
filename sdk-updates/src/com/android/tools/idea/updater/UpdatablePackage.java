@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.updater;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 
@@ -45,7 +45,7 @@ public class UpdatablePackage implements UpdatableExternalComponent {
       return false;
     }
     // Ignore preview since we will only have created remote UpdatablePackages if previews were enabled
-    return myPackage.isUpdateFor((IPkgDesc)otherKey, FullRevision.PreviewComparison.IGNORE);
+    return myPackage.isUpdateFor((IPkgDesc)otherKey, Revision.PreviewComparison.IGNORE);
   }
 
   @Override

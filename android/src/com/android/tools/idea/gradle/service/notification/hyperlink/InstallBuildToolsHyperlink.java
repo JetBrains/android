@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
@@ -53,7 +53,7 @@ public class InstallBuildToolsHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     List<IPkgDesc> requested = Lists.newArrayList();
-    FullRevision minBuildToolsRev = FullRevision.parseRevision(myVersion);
+    Revision minBuildToolsRev = Revision.parseRevision(myVersion);
     requested.add(PkgDesc.Builder.newBuildTool(minBuildToolsRev).create());
     SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
     wizard.init();

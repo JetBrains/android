@@ -17,7 +17,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.annotations.NonNull;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
@@ -127,7 +127,7 @@ public final class SdkPackages {
     for (UpdatablePkgInfo info : updatablePkgInfos) {
       IPkgDesc localDesc = info.getLocalInfo().getDesc();
       for (RemotePkgInfo remote : myRemotePkgInfos.get(localDesc.getType())) {
-        if (remote.getPkgDesc().isUpdateFor(localDesc, FullRevision.PreviewComparison.IGNORE)) {
+        if (remote.getPkgDesc().isUpdateFor(localDesc, Revision.PreviewComparison.IGNORE)) {
           info.addRemote(remote);
           myUpdatedPkgs.add(info);
           updates.add(remote);
@@ -147,8 +147,8 @@ public final class SdkPackages {
       IPkgDesc remoteDesc = remote.getPkgDesc();
       for (UpdatablePkgInfo info : updatablePkgInfos) {
         IPkgDesc localDesc = info.getLocalInfo().getDesc();
-        if (remoteDesc.compareTo(localDesc) == 0 || remoteDesc.isUpdateFor(localDesc, FullRevision.PreviewComparison.IGNORE) ||
-            localDesc.isUpdateFor(remoteDesc, FullRevision.PreviewComparison.IGNORE) /* shouldn't happen in the normal case */) {
+        if (remoteDesc.compareTo(localDesc) == 0 || remoteDesc.isUpdateFor(localDesc, Revision.PreviewComparison.IGNORE) ||
+            localDesc.isUpdateFor(remoteDesc, Revision.PreviewComparison.IGNORE) /* shouldn't happen in the normal case */) {
           // if package is same as an installed or is an update for an installed
           // one, then it's not new.
           continue nextRemote;

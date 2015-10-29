@@ -17,8 +17,7 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.NoPreviewRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
@@ -81,7 +80,7 @@ public final class Haxm extends InstallableComponent {
    * @return the version of haxm that is currently installed
    * @throws WizardException If haxm is not currently installed, or there is a problem running the installer.
    */
-  public static FullRevision getInstalledVersion(@NotNull File sdk) throws WizardException {
+  public static Revision getInstalledVersion(@NotNull File sdk) throws WizardException {
     GeneralCommandLine command;
     String path = FileUtil.join(SdkConstants.FD_EXTRAS, ID_INTEL.getId(), COMPONENT_PATH);
     File sourceLocation = new File(sdk, path);
@@ -98,11 +97,11 @@ public final class Haxm extends InstallableComponent {
     }
     try {
       CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(command);
-      return FullRevision.parseRevision(process.runProcess().getStdout());
+      return Revision.parseRevision(process.runProcess().getStdout());
     }
     catch (NumberFormatException e) {
       LOG.warn("Invalid HAXM version found.", e);
-      return new FullRevision(0);
+      return Revision.NOT_SPECIFIED;
     }
     catch (ExecutionException e) {
       throw new WizardException("Failed to get HAXM version", e);
@@ -235,7 +234,7 @@ public final class Haxm extends InstallableComponent {
 
   @NotNull
   private static IPkgDesc createExtra(@NotNull IdDisplay vendor, @NotNull String path) {
-    return PkgDesc.Builder.newExtra(vendor, path, "", null, new NoPreviewRevision(FullRevision.MISSING_MAJOR_REV)).create();
+    return PkgDesc.Builder.newExtra(vendor, path, "", null, new Revision(Revision.MISSING_MAJOR_REV)).create();
   }
 
   @Override

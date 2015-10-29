@@ -137,7 +137,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       if (groupId == null || artifactId == null) {
         return null;
       }
-      return new Artifact(groupId, artifactId, gradleCoordinate.getFullRevision(), libraryId);
+      return new Artifact(groupId, artifactId, gradleCoordinate.getRevision(), libraryId);
     }
 
     @NotNull

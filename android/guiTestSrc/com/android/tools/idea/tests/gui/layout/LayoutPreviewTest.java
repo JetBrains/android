@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
@@ -406,7 +406,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     AndroidGradleModel androidModel = myProjectFrame.getAndroidModel("app");
     String modelVersion = androidModel.getAndroidProject().getModelVersion();
     assertNotNull(modelVersion);
-    FullRevision version = FullRevision.parseRevision(modelVersion);
+    Revision version = Revision.parseRevision(modelVersion);
     assertNotNull("Could not parse version " + modelVersion, version);
     if (version.getMajor() == 0 && version.getMinor() < 14) {
       // This test tests behavior that starts working in 0.14.+

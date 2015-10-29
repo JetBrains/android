@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 
 /**
@@ -35,7 +35,7 @@ public interface IMinPlatformToolsDependency {
    * Since this is a required attribute in the XML schema, it can only happen when dealing
    * with an invalid repository XML.
    */
-  FullRevision MIN_PLATFORM_TOOLS_REV_INVALID = new FullRevision(FullRevision.MISSING_MAJOR_REV);
+  Revision MIN_PLATFORM_TOOLS_REV_INVALID = new Revision(Revision.MISSING_MAJOR_REV);
 
   /**
    * The minimal revision of the tools package required by this package if > 0,
@@ -44,6 +44,6 @@ public interface IMinPlatformToolsDependency {
    * This attribute is mandatory and should not be normally missing.
    * It can only happen when dealing with an invalid repository XML.
    */
-  FullRevision getMinPlatformToolsRevision();
+  Revision getMinPlatformToolsRevision();
 
 }

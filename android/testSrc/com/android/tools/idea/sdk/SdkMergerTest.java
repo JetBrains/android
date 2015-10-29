@@ -127,9 +127,7 @@ public class SdkMergerTest extends AndroidTestCase {
       IPkgDesc desc = pkg.getDesc();
       s.append(desc.getInstallId());
       s.append(',');
-      s.append(desc.getFullRevision());
-      s.append(',');
-      s.append(desc.getMajorRevision());
+      s.append(desc.getRevision());
       s.append('\n');
     }
     return s.toString();

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.*;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
@@ -150,14 +150,14 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
   private static boolean modelVersionIsAtLeast(@NotNull AndroidGradleModel androidModel, @NotNull String revision) {
     String original = androidModel.getAndroidProject().getModelVersion();
-    FullRevision modelVersion;
+    Revision modelVersion;
     try {
-      modelVersion = FullRevision.parseRevision(original);
+      modelVersion = Revision.parseRevision(original);
     } catch (NumberFormatException e) {
       Logger.getInstance(AndroidGradleModel.class).warn("Failed to parse '" + original + "'", e);
       return false;
     }
-    return modelVersion.compareTo(FullRevision.parseRevision(revision), FullRevision.PreviewComparison.IGNORE) >= 0;
+    return modelVersion.compareTo(Revision.parseRevision(revision), Revision.PreviewComparison.IGNORE) >= 0;
   }
 
   private void addSourceFolder(@NotNull AndroidGradleModel androidModel,

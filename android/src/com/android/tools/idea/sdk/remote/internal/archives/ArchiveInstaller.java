@@ -20,9 +20,10 @@ import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.io.FileOp;
-import com.android.sdklib.io.IFileOp;
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOp;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
@@ -61,13 +62,13 @@ public class ArchiveInstaller {
   /**
    * The current {@link FileOp} to use. Never null.
    */
-  private final IFileOp mFileOp;
+  private final FileOp mFileOp;
 
   /**
    * Generates an {@link ArchiveInstaller} that relies on the default {@link FileOp}.
    */
   public ArchiveInstaller() {
-    mFileOp = new FileOp();
+    mFileOp = FileOpUtils.create();
   }
 
   /**
@@ -709,7 +710,7 @@ public class ArchiveInstaller {
 
     assert SdkConstants.CURRENT_PLATFORM == SdkConstants.PLATFORM_WINDOWS;
 
-    File findLockExe = FileOp.append(osSdkRoot, SdkConstants.FD_TOOLS, SdkConstants.FD_LIB, SdkConstants.FN_FIND_LOCK);
+    File findLockExe = FileOpUtils.append(osSdkRoot, SdkConstants.FD_TOOLS, SdkConstants.FD_LIB, SdkConstants.FN_FIND_LOCK);
 
     if (mFileOp.exists(findLockExe)) {
       try {

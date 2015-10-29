@@ -98,11 +98,11 @@ class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
       String revision;
       UpdatablePkgInfo p = myMaxVersionNode.getItem();
       if (p.hasRemote(myIncludePreview)) {
-        revision = p.getRemote(myIncludePreview).getPkgDesc().getPreciseRevision().toString();
+        revision = p.getRemote(myIncludePreview).getPkgDesc().getRevision().toString();
       }
       else {
         assert false;
-        revision = p.getLocalInfo().getDesc().getPreciseRevision().toString();
+        revision = p.getLocalInfo().getDesc().getRevision().toString();
       }
       return "Update Available: " + revision;
     }

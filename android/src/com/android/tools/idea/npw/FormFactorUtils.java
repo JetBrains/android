@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.IPkgDescAddon;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.configurations.DeviceMenuAction;
@@ -252,8 +251,7 @@ public class FormFactorUtils {
 
   private static boolean filterPkgDesc(IPkgDesc pkgDesc, FormFactor formFactor, int minSdkLevel) {
     if (pkgDesc.getType() == PkgType.PKG_ADDON) {
-      IPkgDescAddon addon = (IPkgDescAddon)pkgDesc;
-      return doFilter(formFactor, minSdkLevel, addon.getName().getId(), addon.getAndroidVersion().getFeatureLevel());
+      return doFilter(formFactor, minSdkLevel, pkgDesc.getName().getId(), pkgDesc.getAndroidVersion().getFeatureLevel());
     }
     // TODO: add other package types
     return false;

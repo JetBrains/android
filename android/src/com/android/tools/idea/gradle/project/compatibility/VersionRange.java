@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.compatibility;
 
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.FullRevision.PreviewComparison;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.repository.Revision;
+import com.android.repository.Revision.PreviewComparison;
 import com.google.common.base.Splitter;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -41,10 +40,10 @@ class VersionRange {
   @NonNls private static final char END_EXCLUSIVE = ')';
 
   @NotNull private final String myMinVersion;
-  @Nullable private final FullRevision myMinRevision;
+  @Nullable private final Revision myMinRevision;
   private final boolean myMinVersionInclusive;
 
-  @Nullable private final FullRevision myMaxRevision;
+  @Nullable private final Revision myMaxRevision;
   @Nullable private final String myMaxVersion;
   private final boolean myMaxVersionInclusive;
 
@@ -95,7 +94,7 @@ class VersionRange {
   boolean contains(@NotNull String value) {
     if (myMinRevision != null) {
       boolean contains = false;
-      FullRevision revision = asRevision(value);
+      Revision revision = asRevision(value);
       if (revision != null) {
         if (myMinVersionInclusive) {
           contains = revision.compareTo(myMinRevision, PreviewComparison.IGNORE) >= 0;
@@ -118,10 +117,10 @@ class VersionRange {
   }
 
   @Nullable
-  private static FullRevision asRevision(@Nullable String version) {
+  private static Revision asRevision(@Nullable String version) {
     if (version != null) {
       try {
-        return PreciseRevision.parseRevision(version);
+        return Revision.parseRevision(version);
       }
       catch (NumberFormatException ignored) {
       }
