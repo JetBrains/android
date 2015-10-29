@@ -48,15 +48,13 @@ import java.util.Set;
  * PsiShortNames cache that finds classes generated for layout files.
  */
 public class DataBindingShortNamesCache extends PsiShortNamesCache {
-  private DataBindingProjectComponent myComponent;
-  private CachedValue<Map<String, List<DataBindingInfo>>> myNameCache;
-  private CachedValue<String[]> myAllClassNamesCache;
-  private CachedValue<Map<String, List<PsiMethod>>> myMethodsByNameCache;
-  private CachedValue<Map<String, List<PsiField>>> myFieldsByNameCache;
-  private CachedValue<String[]> myAllMethodNamesCache;
-  private CachedValue<String[]> myAllFieldNamesCache;
-
-
+  private final DataBindingProjectComponent myComponent;
+  private final CachedValue<Map<String, List<DataBindingInfo>>> myNameCache;
+  private final CachedValue<String[]> myAllClassNamesCache;
+  private final CachedValue<Map<String, List<PsiMethod>>> myMethodsByNameCache;
+  private final CachedValue<Map<String, List<PsiField>>> myFieldsByNameCache;
+  private final CachedValue<String[]> myAllMethodNamesCache;
+  private final CachedValue<String[]> myAllFieldNamesCache;
 
   public DataBindingShortNamesCache(DataBindingProjectComponent dataBindingProjectComponent) {
     myComponent = dataBindingProjectComponent;
