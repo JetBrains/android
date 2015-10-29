@@ -70,10 +70,11 @@ public class GradleInvokerOptions {
 
     final Module[] modules = getModules(project, context, configuration);
     if (Boolean.TRUE.equals(env.getCopyableUserData(AndroidRunConfigurationBase.FAST_DEPLOY))) {
-      LOG.info(String.format("Module %1$s can be updated incrementally.", modules[0].getName()));
-      AndroidGradleModel model = AndroidGradleModel.get(modules[0]);
+      Module module = modules[0];
+      LOG.info(String.format("Module %1$s can be updated incrementally.", module.getName()));
+      AndroidGradleModel model = AndroidGradleModel.get(module);
       assert model != null : "Module selected for fast deploy, but doesn't seem to have the right gradle model";
-      String dexTask = FastDeployManager.getIncrementalDexTask(model);
+      String dexTask = FastDeployManager.getIncrementalDexTask(model, module);
       return new GradleInvokerOptions(Collections.singletonList(dexTask), null, Collections.<String>emptyList());
     }
 
