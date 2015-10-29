@@ -19,7 +19,10 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.Variant;
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
@@ -47,11 +50,16 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.GeneratedSourcesFilter;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.BalloonBuilder;
@@ -59,12 +67,18 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.awt.RelativePoint;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidOutputReceiver;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,14 +97,19 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.EXT_PNG;
+
 /**
  * The {@linkplain FastDeployManager} is responsible for handling Instant Run related functionality
  * in the IDE: determining if an app is running with the fast deploy runtime, whether it's up to date, communicating with it, etc.
  */
-public class FastDeployManager implements ProjectComponent {
+public final class FastDeployManager implements ProjectComponent, BulkFileListener {
   public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "1.6.0-alpha2";
   public static final FullRevision MINIMUM_GRADLE_PLUGIN_VERSION = FullRevision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
+  private static final Object INSTANCE_LOCK = new Object();
 
   // -----------------------------------------------------------------------
   // NOTE: Keep all these communication constants (and message send/receive
@@ -189,10 +208,27 @@ public class FastDeployManager implements ProjectComponent {
 
   @NotNull private final Project myProject;
 
+  /**
+   * Whether, since the last build, we've seen changes to any files <b>other</b> than Java or XML files (since Java-only changes
+   * can be processed faster by Gradle by skipping portions of the dependency graph, and similarly for resource files)
+   */
+  private boolean mySeenNonJavaChanges = true; // Initially true: on IDE start we don't know what you've done outside the IDE
+
+  private boolean mySeenLocalJavaChanges;
+  private boolean mySeenLocalResourceChanges;
+
+  /** File listener connection */
+  @Nullable private MessageBusConnection myConnection;
+
+  /** Don't call directly: this is a project component instantiated by the IDE; use {@link #get(Project)} instead! */
   public FastDeployManager(@NotNull Project project) {
     myProject = project;
+    if (isInstantRunEnabled(project)) {
+      startFileListener();
+    }
   }
 
+  /** Returns the per-project instance of the fast deploy manager */
   @NotNull
   public static FastDeployManager get(@NotNull Project project) {
     return project.getComponent(FastDeployManager.class);
@@ -219,6 +255,158 @@ public class FastDeployManager implements ProjectComponent {
     }
 
     return devices;
+  }
+
+  /**
+   * Updates the command line arguments for launching a Gradle task to enable instant run. This method should
+   * only be called when instant run is enabled.
+   */
+  @NotNull
+  public List<String> updateGradleCommandLine(@NotNull List<String> original) {
+    assert isInstantRunEnabled(myProject);
+    List<String> arguments = Lists.newArrayListWithExpectedSize(original.size() + 1);
+    arguments.addAll(original);
+    String property = "-Pandroid.optional.compilation=INSTANT_DEV";
+    synchronized (INSTANCE_LOCK) {
+      if (mySeenNonJavaChanges) {
+        mySeenNonJavaChanges = false;
+        // Start the file listener again: We turn it off as soon as we see the first non java change
+        startFileListener();
+      }
+      else {
+        if (mySeenLocalResourceChanges) {
+          property += ",LOCAL_RES_ONLY";
+        }
+
+        if (mySeenLocalJavaChanges) {
+          property += ",LOCAL_JAVA_ONLY";
+        }
+      }
+
+      mySeenLocalJavaChanges = false;
+      mySeenLocalResourceChanges = false;
+      mySeenNonJavaChanges = false;
+    }
+
+    arguments.add(property);
+    return arguments;
+  }
+
+  public void startFileListener() {
+    synchronized (INSTANCE_LOCK) {
+      if (myConnection == null) {
+        myConnection = ApplicationManager.getApplication().getMessageBus().connect();
+        myConnection.subscribe(VirtualFileManager.VFS_CHANGES, this);
+      }
+    }
+  }
+
+  public void stopFileListener() {
+    synchronized (INSTANCE_LOCK) {
+      if (myConnection != null) {
+        myConnection.disconnect();
+        myConnection = null;
+      }
+    }
+  }
+
+  // ---- Implements BulkFileListener ----
+
+  @Override
+  public void before(@NotNull List<? extends VFileEvent> events) {
+  }
+
+  @Override
+  public void after(@NotNull List<? extends VFileEvent> events) {
+    if (myProject.isDisposed()) {
+      return;
+    }
+
+    for (VFileEvent event : events) {
+      VirtualFile file = event.getFile();
+
+      // Determines whether changing the given file constitutes a "simple Java change" that Gradle
+      // can process without involving the full dex dependency chain. This is true for changes to
+      // Java files in an app module. It's also true for files <b>not</b> related to compilation.
+      // Similarly, it tracks local resource changes.
+
+      if (file == null) {
+        continue;
+      }
+
+      ProjectFileIndex projectIndex = ProjectFileIndex.SERVICE.getInstance(myProject);
+      if (!projectIndex.isInSource(file)) {
+        // Ignore common file events -- such as workspace.xml on Window focus loss etc
+        if (file.getName().endsWith(DOT_GRADLE)) {
+          // build.gradle at the root level is not part of the project
+          recordNonLocalChange();
+          return;
+        }
+        continue;
+      }
+
+      // Make sure it's not something like for example
+      //    .AndroidStudioX.Y/config/options/statistics.application.usages.xml
+      Module module = projectIndex.getModuleForFile(file, false);
+      if (module == null) {
+        continue;
+      }
+
+      if (GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(file, myProject)) {
+        // This filters out edits like .dex files in build etc
+        continue;
+      }
+
+      // Make sure the editing is in an Android app module
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && !facet.isLibraryProject()) {
+        FileType fileType = file.getFileType();
+        if (fileType == StdFileTypes.JAVA) {
+          recordSimpleJavaEdit();
+          continue;
+        }
+        else if (fileType == StdFileTypes.XML &&
+                 !file.getName().equals(ANDROID_MANIFEST_XML) &&
+                 AndroidResourceUtil.isResourceFile(file, facet)) {
+          recordSimpleResourceEdit();
+          continue;
+        }
+        else if (fileType.isBinary() &&
+                 fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG) &&
+                 AndroidResourceUtil.isResourceFile(file, facet)) {
+          // Drawable resource
+          recordSimpleResourceEdit();
+          continue;
+        } // else: It's possible that it's an edit to a resource of an arbitrary file type in res/raw*/ or other assets;
+        // for now, these will result in full incremental rebuilds.
+      } // else: edit in a non-Android module or a library: these require full incremental builds
+
+      recordNonLocalChange();
+      break;
+    }
+  }
+
+  /** Called when we've noticed an edit of a Java file that is in an app module */
+  private void recordSimpleJavaEdit() {
+    synchronized (INSTANCE_LOCK) {
+      mySeenLocalJavaChanges = true;
+    }
+  }
+
+  /** Called when we've noticed an edit of a resource file that is in an app module */
+  private void recordSimpleResourceEdit() {
+    synchronized (INSTANCE_LOCK) {
+      mySeenLocalResourceChanges = true;
+    }
+  }
+
+  /** Called when we've noticed an edit outside of an app module, or in something other than a resource file or a Java file */
+  private void recordNonLocalChange() {
+    synchronized (INSTANCE_LOCK) {
+      mySeenNonJavaChanges = true;
+      // We no longer need to listen for changes to files while the user continues editing until the next build
+      stopFileListener();
+    }
   }
 
   /**
@@ -453,6 +641,19 @@ public class FastDeployManager implements ProjectComponent {
   public static boolean isInstantRunEnabled(@NotNull Project project) {
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     return buildConfiguration.INSTANT_RUN;
+  }
+
+  /** Synchronizes the file listening state with whether instant run is enabled */
+  static void updateFileListener(@NotNull Project project) {
+    FastDeployManager manager = get(project);
+    boolean listening = manager.myConnection != null;
+    if (isInstantRunEnabled(project)) {
+      if (!listening) {
+        manager.startFileListener();
+      }
+    } else if (listening) {
+      manager.stopFileListener();
+    }
   }
 
   /** Assuming instant run is enabled, does code patching require an activity restart in the given project? */
