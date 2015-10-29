@@ -111,6 +111,12 @@
       <separator/>
     </group>
 
+    <action id="Android.InstantRunNoRestart" class="com.android.tools.idea.fd.InstantRunWithoutRestart"/>
+    <action id="Android.InstantRunRestart" class="com.android.tools.idea.fd.InstantRunWithRestart"/>
+    <action id="Android.RestartActivity" class="com.android.tools.idea.fd.RestartActivityAction">
+      <add-to-group group-id="DebugMainMenu" anchor="before" relative-to-action="StepOver"/>
+    </action>
+
     <action id="LegacyNewAndroidComponent" class="com.android.tools.idea.actions.LegacyNewAndroidComponentAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
