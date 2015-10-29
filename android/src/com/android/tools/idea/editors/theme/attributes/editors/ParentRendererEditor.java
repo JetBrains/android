@@ -205,7 +205,7 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorSty
     final ThemeEditorStyle parent = value.getParent();
 
     Font font = table.getFont();
-    Font scaledFont = font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE);
+    Font scaledFont = ThemeEditorUtils.scaleFontForAttribute(font);
     myParentComboBox.setFont(scaledFont);
     myLabel.setFont(scaledFont);
     myParentComboBox.setEnabled(model.isCellEditable(row, column));
@@ -227,7 +227,7 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorSty
   @Override
   public Component getEditorComponent(JTable table, ThemeEditorStyle value, boolean isSelected, int row, int column) {
     Font font = table.getFont();
-    Font scaledFont = font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE);
+    Font scaledFont = ThemeEditorUtils.scaleFontForAttribute(font);
     myParentComboBox.setFont(scaledFont);
     myLabel.setFont(scaledFont);
 
