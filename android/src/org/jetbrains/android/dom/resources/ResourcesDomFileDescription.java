@@ -34,6 +34,10 @@ public class ResourcesDomFileDescription extends DomFileDescription<Resources> {
 
   @Override
   public boolean isMyFile(@NotNull final XmlFile file, @Nullable Module module) {
+    return isResourcesFile(file);
+  }
+
+  public static boolean isResourcesFile(@NotNull final XmlFile file) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override
       public Boolean compute() {

@@ -71,6 +71,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.android.SdkConstants.ATTR_TYPE;
+import static com.android.SdkConstants.TAG_ITEM;
 import static com.android.resources.ResourceType.ATTR;
 import static com.android.resources.ResourceType.STYLEABLE;
 
@@ -1162,6 +1164,29 @@ public class AndroidResourceUtil {
 
   public static boolean ensureFilesWritable(@NotNull Project project, @NotNull Collection<VirtualFile> files) {
     return !ReadonlyStatusHandler.getInstance(project).ensureFilesWritable(files).hasReadonlyFiles();
+  }
+
+  /**
+   * Returns the type of the ResourceItem based on a node's attributes.
+   * @param node the node
+   * @return the ResourceType or null if it could not be inferred.
+   */
+  @Nullable
+  public static ResourceType getType(@NotNull XmlTag node) {
+    String nodeName = node.getLocalName();
+    String typeString = null;
+
+    if (TAG_ITEM.equals(nodeName)) {
+      String attribute = node.getAttributeValue(ATTR_TYPE);
+      if (attribute != null) {
+        typeString = attribute;
+      }
+    } else {
+      // the type is the name of the node.
+      typeString = nodeName;
+    }
+
+    return typeString == null ? null : ResourceType.getEnum(typeString);
   }
 
   public static class MyReferredResourceFieldInfo {
