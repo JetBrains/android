@@ -125,11 +125,11 @@ public class BuildVariantsTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void generatedFolders_1_3() throws IOException {
-    doTestGeneratedFolders("1.3.0-beta3", "2.4");
+    doTestGeneratedFolders("1.3.0", "2.4");
   }
 
   private void doTestGeneratedFolders(@NotNull String pluginVersion, @NotNull String gradleVersion) throws IOException {
-    myProjectFrame = importSimpleApplication();
+    myProjectFrame = importMultiModule();
     myProjectFrame.updateAndroidModelVersion(pluginVersion);
     myProjectFrame.updateGradleWrapperVersion(gradleVersion);
 
