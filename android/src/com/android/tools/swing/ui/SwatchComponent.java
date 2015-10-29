@@ -181,7 +181,7 @@ public class SwatchComponent extends Box {
     if (!isPreferredSizeSet()) {
       // Since the text may be bold or not, we make sure to use the bold version of the font to compute the size
       // That way we ensure all components will have the same size
-      FontMetrics fm = getFontMetrics(getFont().deriveFont(Font.BOLD));
+      FontMetrics fm = getFontMetrics(getFont());
       return new Dimension(0, fm.getHeight() + 2 * TEXT_PADDING);
     }
     return super.getPreferredSize();

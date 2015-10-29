@@ -521,7 +521,7 @@ public class StateListPicker extends JPanel {
       add(myAlphaComponent);
 
       Font font = StateListPicker.this.getFont();
-      setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
+      setFont(ThemeEditorUtils.scaleFontForAttribute(font));
       myAlphaComponent.setMaximumSize(new Dimension(myAlphaComponent.getMaximumSize().width, myAlphaComponent.getPreferredSize().height));
 
       Box alphaErrorComponent = new Box(BoxLayout.LINE_AXIS);
