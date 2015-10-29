@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.ProjectDependencyElement;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -62,9 +63,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   @Override
   public boolean isAvailableOnDataContext(@NotNull DataContext dataContext) {
     Module module = LangDataKeys.MODULE_CONTEXT.getData(dataContext);
-    return module != null &&
-           LocalFileSystem.getInstance().findFileByIoFile((new File(module.getModuleFilePath())).getParentFile()) !=
-           null;
+    return AndroidStudioInitializer.isAndroidStudio() && module != null &&
+           LocalFileSystem.getInstance().findFileByIoFile((new File(module.getModuleFilePath())).getParentFile()) != null;
   }
 
   @Override
