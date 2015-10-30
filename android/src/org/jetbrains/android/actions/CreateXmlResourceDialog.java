@@ -16,7 +16,6 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
@@ -34,7 +33,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.JComponent;
+import javax.swing.*;
 import java.util.List;
 
 /**
@@ -136,10 +135,10 @@ public class CreateXmlResourceDialog extends DialogWrapper {
 
   @Nullable
   public static ValidationInfo checkIfResourceAlreadyExists(@NotNull Module selectedModule,
-                                                             @NotNull String resourceName,
-                                                             @NotNull ResourceType resourceType,
-                                                             @NotNull List<String> dirNames,
-                                                             @NotNull String fileName) {
+                                                            @NotNull String resourceName,
+                                                            @NotNull ResourceType resourceType,
+                                                            @NotNull List<String> dirNames,
+                                                            @NotNull String fileName) {
     if (resourceName.length() == 0 ||
         dirNames.size() == 0 ||
         fileName.length() == 0) {

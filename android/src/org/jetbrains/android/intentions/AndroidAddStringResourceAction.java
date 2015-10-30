@@ -200,10 +200,16 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       return;
     }
 
-    if (resName == null) {
+    if (resName != null && ApplicationManager.getApplication().isUnitTestMode()) {
+      String fileName = AndroidResourceUtil.getDefaultResourceFileName(type);
+      assert fileName != null;
+      AndroidResourceUtil.createValueResource(facet.getModule(), resName, type, fileName,
+                                              Collections.singletonList(ResourceFolderType.VALUES.getName()), value);
+    }
+    else {
       Module facetModule = facet.getModule();
-      boolean chooseName = ResourceHelper.prependResourcePrefix(facetModule, null) != null;
-      final CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(facetModule, type, null, value, chooseName);
+      boolean chooseName = resName != null || ResourceHelper.prependResourcePrefix(facetModule, null) != null;
+      final CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(facetModule, type, resName, value, chooseName);
       dialog.setTitle("Extract Resource");
       if (!dialog.showAndGet()) {
         return;
@@ -219,13 +225,6 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
         .createValueResource(module, resName, type, dialog.getFileName(), dialog.getDirNames(), value)) {
         return;
       }
-    }
-    else {
-      String fileName = AndroidResourceUtil.getDefaultResourceFileName(type);
-      assert ApplicationManager.getApplication().isUnitTestMode();
-      assert fileName != null;
-      AndroidResourceUtil.createValueResource(facet.getModule(), resName, type, fileName,
-                                              Collections.singletonList(ResourceFolderType.VALUES.getName()), value);
     }
 
     if (file instanceof PsiJavaFile) {
