@@ -28,13 +28,13 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.net.URL;
 import java.util.ArrayList;
@@ -53,6 +53,8 @@ public class IconPicker extends JPanel {
   private final List<VdIcon> mIconList = new ArrayList<VdIcon>();
 
   private VdIcon mSelectedIcon = null;
+
+  private JBColor mIconBackground = new JBColor(UIUtil.getListBackground().getRGB(), 0x6F6F6F);
 
   // Note that "All" is a virtual category. All icons will be marked as a
   // specific category except "All". This is the reason when we reference this
@@ -99,7 +101,7 @@ public class IconPicker extends JPanel {
     }
   };
 
-  private TableCellRenderer mTableRenderer = new DefaultTableCellRenderer() {
+  private DefaultTableCellRenderer mTableRenderer = new DefaultTableCellRenderer() {
     @Override
     public void setValue(Object value) {
       if (value == null) {
@@ -149,6 +151,7 @@ public class IconPicker extends JPanel {
     super(new BorderLayout(20, 20));
 
     // Now on the right hand side, setup the table for icons.
+    mTableRenderer.setBackground(mIconBackground);
     mTable.setDefaultRenderer(VdIcon.class, mTableRenderer);
     mTable.setRowHeight(48);
     mTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -173,7 +176,7 @@ public class IconPicker extends JPanel {
     // Setup the picking interaction for the table.
     final ListSelectionModel selModel = mTable.getSelectionModel();
     mTable.getColumnModel().setColumnSelectionAllowed(true);
-    mTable.setGridColor(JBColor.background());
+    mTable.setGridColor(mIconBackground);
     mTable.setIntercellSpacing(new Dimension(0, 0));
     mTable.setRowMargin(0);
     ListSelectionListener listener = new ListSelectionListener() {
