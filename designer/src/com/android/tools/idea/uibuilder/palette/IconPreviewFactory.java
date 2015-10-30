@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceFolderType;
@@ -28,13 +29,14 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.io.CharStreams;
+import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
@@ -49,11 +51,12 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
+import static com.android.tools.idea.uibuilder.palette.NlPaletteModel.ANDROID_PALETTE;
+import static com.android.tools.idea.uibuilder.palette.NlPaletteModel.PALETTE_VERSION;
 
 /**
  * IconPreviewFactory generates a preview of certain palette components.
@@ -62,15 +65,18 @@ import static com.android.SdkConstants.*;
  */
 public class IconPreviewFactory {
   private static final Logger LOG = Logger.getInstance(IconPreviewFactory.class);
+  private static final int PREVIEW_LIMIT = 4000;
   private static final String DEFAULT_THEME = "AppTheme";
   private static final String PREVIEW_PLACEHOLDER_FILE = "preview.xml";
-  private static final String[] PREVIEW_FILES = {"preview1.xml", "preview2.xml", "preview3.xml", "preview4.xml"};
+  private static final String CONTAINER_ID = "TopLevelContainer";
   private static final String LINEAR_LAYOUT = "<LinearLayout\n" +
                                               "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                              "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                                              "    android:id=\"@+id/%1$s\"\n" +
                                               "    android:layout_width=\"wrap_content\"\n" +
                                               "    android:layout_height=\"wrap_content\"\n" +
                                               "    android:orientation=\"vertical\">\n" +
-                                              "  %1$s\n" +
+                                              "  %2$s\n" +
                                               "</LinearLayout>\n";
 
   private static IconPreviewFactory ourInstance;
@@ -87,12 +93,12 @@ public class IconPreviewFactory {
   }
 
   @Nullable
-  public BufferedImage getImage(@NonNull NlPaletteItem item, @NonNull Configuration configuration, double scale) {
+  public BufferedImage getImage(@NonNull Palette.Item item, @NonNull Configuration configuration, double scale) {
     BufferedImage image = readImage(item.getId(), configuration);
     if (image == null) {
       return null;
     }
-    return ImageUtils.scale(image, scale, scale);
+    return scaleAndAdjustForRetina(image, scale);
   }
 
   /**
@@ -100,13 +106,13 @@ public class IconPreviewFactory {
    * Return null if such an image cannot be rendered. The palette must provide a fallback in this case.
    */
   @Nullable
-  public BufferedImage renderDragImage(@NonNull NlPaletteItem item, @NonNull ScreenView screenView, double scale) {
+  public BufferedImage renderDragImage(@NonNull Palette.Item item, @NonNull ScreenView screenView) {
     XmlElementFactory elementFactory = XmlElementFactory.getInstance(screenView.getModel().getProject());
-    String xml = item.getRepresentation();
-    if (xml.isEmpty()) {
+    String xml = item.getDragPreviewXml();
+    if (xml.equals(NO_PREVIEW)) {
       return null;
     }
-    xml = addAndroidNamespaceIfMissing(item.getRepresentation());
+    xml = addAndroidNamespaceIfMissing(xml);
     XmlTag tag = null;
     try {
       tag = elementFactory.createTagFromText(xml);
@@ -122,7 +128,7 @@ public class IconPreviewFactory {
     }
 
     // Some components require a parent to render correctly.
-    xml = String.format(LINEAR_LAYOUT, component.getTag().getText());
+    xml = String.format(LINEAR_LAYOUT, CONTAINER_ID, component.getTag().getText());
     RenderResult result = renderImage(xml, model.getConfiguration());
     if (result == null) {
       return null;
@@ -144,8 +150,17 @@ public class IconPreviewFactory {
       view.getBottom() <= view.getTop() || view.getRight() <= view.getLeft()) {
       return null;
     }
-    image = image.getSubimage(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
-    return ImageUtils.scale(image, scale, scale);
+    return image.getSubimage(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
+  }
+
+  @NonNull
+  public static BufferedImage scaleAndAdjustForRetina(@NonNull BufferedImage image, double scale) {
+    if (!ImageUtils.supportsRetina()) {
+      return ImageUtils.scale(image, scale, scale);
+    }
+    image = ImageUtils.scale(image, scale, scale);
+    BufferedImage retina = ImageUtils.convertToRetina(image);
+    return retina != null ? retina : image;
   }
 
   private static String addAndroidNamespaceIfMissing(@NonNull String xml) {
@@ -193,60 +208,102 @@ public class IconPreviewFactory {
     return null;
   }
 
-  public void load(@NonNull final Configuration configuration, @NonNull final Runnable callback) {
+  /**
+   * Load preview images for each component into a file cache.
+   * Each combination of theme, device density, and API level will have its own cache.
+   *
+   * @param configuration a hardware configuration to generate previews for
+   * @param palette a palette will the components to generate previews of
+   * @param reload if true replace the existing preview images
+   */
+  public void load(@NonNull final Configuration configuration,
+                   @NonNull final Palette palette,
+                   boolean reload) {
+    load(configuration, palette, reload, null, null);
+  }
+
+  /**
+   * Load preview images for each component into a file cache.
+   * Each combination of theme, device density, and API level will have its own cache.
+   *
+   * @param configuration a hardware configuration to generate previews for
+   * @param palette a palette with the components to generate previews of
+   * @param reload if true replace the existing preview images
+   * @param requestedIds for testing only: gather the IDs of the components whose previews were requested
+   * @param generatedIds for testing only: gather the IDs of the components whose preview images where generated
+   */
+  @VisibleForTesting
+  void load(@NonNull final Configuration configuration,
+            @NonNull final Palette palette,
+            boolean reload,
+            @Nullable final List<String> requestedIds,
+            @Nullable final List<String> generatedIds) {
     File cacheDir = getPreviewCacheDir(configuration);
     String[] files = cacheDir.list();
     if (files != null && files.length > 0) {
       // The previews have already been generated.
-      callback.run();
-      return;
+      if (!reload) {
+        return;
+      }
+      FileUtil.delete(cacheDir);
     }
     ApplicationManager.getApplication().runReadAction(new Computable<Void>() {
       @Override
       public Void compute() {
-      for (String previewFileName : PREVIEW_FILES) {
-        String preview = loadPreviews(previewFileName);
-        assert preview != null;
-        RenderResult result = renderImage(preview, configuration);
-        addResultToCache(result, configuration);
-      }
-      callback.run();
-      return null;
+        List<StringBuilder> sources = Lists.newArrayList();
+        loadSources(sources, requestedIds, palette.getItems());
+        for (StringBuilder source : sources) {
+          String preview = String.format(LINEAR_LAYOUT, CONTAINER_ID, source);
+          RenderResult result = renderImage(preview, configuration);
+          addResultToCache(result, generatedIds, configuration);
+        }
+        return null;
       }
     });
   }
 
-  @Nullable
-  private String loadPreviews(@NonNull String previewFile) {
-    try {
-      InputStream stream = getClass().getResourceAsStream(previewFile);
-      try {
-        return CharStreams.toString(new InputStreamReader(stream));
+  private static void loadSources(@NonNull List<StringBuilder> sources, @Nullable List<String> ids, List<Palette.BaseItem> items) {
+    boolean previousRenderedSeparately = false;
+    for (Palette.BaseItem base : items) {
+      if (base instanceof Palette.Group) {
+        Palette.Group group = (Palette.Group) base;
+        loadSources(sources, ids, group.getItems());
       }
-      finally {
-        stream.close();
+      else if (base instanceof Palette.Item) {
+        Palette.Item item = (Palette.Item) base;
+        String preview = item.getPreviewXml();
+        if (!preview.equals(NO_PREVIEW)) {
+          StringBuilder last = sources.isEmpty() ? null : sources.get(sources.size() - 1);
+          if (last == null ||
+              last.length() > PREVIEW_LIMIT ||
+              (last.length() > 0 && (item.isPreviewRenderedSeparately() || previousRenderedSeparately))) {
+            last = new StringBuilder();
+            sources.add(last);
+          }
+          previousRenderedSeparately = item.isPreviewRenderedSeparately();
+          last.append(preview);
+          if (ids != null) {
+            ids.add(item.getId());
+          }
+        }
       }
-    }
-    catch (IOException ex) {
-      LOG.error(ex);
-      return null;
     }
   }
 
   @NonNull
   private static File getPreviewCacheDir(@NonNull Configuration configuration) {
-    final String path = PathUtil.getCanonicalPath(PathManager.getSystemPath());
+    String path = PathUtil.getCanonicalPath(PathManager.getSystemPath());
     int density = configuration.getDensity().getDpiValue();
     String theme = getTheme(configuration);
     int apiVersion = getApiVersion(configuration);
     //noinspection StringBufferReplaceableByString
     String cacheFolder = new StringBuilder()
       .append(path).append(File.separator)
-      .append("android-palette").append(File.separator)
-      .append("v1").append(File.separator)
+      .append(ANDROID_PALETTE).append(File.separator)
+      .append(PALETTE_VERSION).append(File.separator)
+      .append("image-cache").append(File.separator)
       .append(theme).append(File.separator)
-      .append(density).append("-").append(apiVersion)
-      .toString();
+      .append(density).append("-").append(apiVersion).toString();
     return new File(cacheFolder);
   }
 
@@ -268,12 +325,12 @@ public class IconPreviewFactory {
     return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API : target.getVersion().getApiLevel();
   }
 
-  private static void addResultToCache(@Nullable RenderResult result, @NonNull Configuration configuration) {
+  private static void addResultToCache(@Nullable RenderResult result, @Nullable List<String> ids, @NonNull Configuration configuration) {
     if (result == null || result.getRenderedImage() == null || result.getRootViews() == null || result.getRootViews().isEmpty()) {
       return;
     }
-    ImageAccumulator accumulator = new ImageAccumulator(result.getRenderedImage(), configuration);
-    accumulator.run(result.getRootViews(), 0);
+    ImageAccumulator accumulator = new ImageAccumulator(result.getRenderedImage(), ids, configuration);
+    accumulator.run(result.getRootViews(), 0, null);
   }
 
   @Nullable
@@ -301,39 +358,61 @@ public class IconPreviewFactory {
 
   private static class ImageAccumulator {
     private final BufferedImage myImage;
+    private final List<String> myIds;
     private final File myCacheDir;
     private final int myHeight;
     private final int myWidth;
 
-    private ImageAccumulator(@NonNull BufferedImage image, @NonNull Configuration configuration) {
+    private ImageAccumulator(@NonNull BufferedImage image, @Nullable List<String> ids, @NonNull Configuration configuration) {
       myImage = image;
+      myIds = ids;
       myCacheDir = getPreviewCacheDir(configuration);
       myHeight = image.getRaster().getHeight();
       myWidth = image.getRaster().getWidth();
     }
 
-    private void run(@NonNull List<ViewInfo> views, int top) {
+    private void run(@NonNull List<ViewInfo> views, int top, @Nullable String parentId) {
       for (ViewInfo info : views) {
+        String id = null;
         if (info.getCookie() instanceof XmlTag) {
           XmlTag tag = (XmlTag)info.getCookie();
-          String id = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
-          if (id != null && !id.startsWith(PREFIX_RESOURCE_REF)) {
+          id = getId(tag.getAttributeValue(ATTR_ID, ANDROID_URI));
+          if (CONTAINER_ID.equals(parentId)) {
             if (info.getBottom() + top <= myHeight && info.getRight() <= myWidth && info.getBottom() > info.getTop()) {
               Rectangle bounds =
                 new Rectangle(info.getLeft(), info.getTop() + top, info.getRight() - info.getLeft(), info.getBottom() - info.getTop());
               BufferedImage image = myImage.getSubimage(bounds.x, bounds.y, bounds.width, bounds.height);
+              if (id == null) {
+                id = tag.getName();
+              }
               saveImage(id, image);
+              if (myIds != null) {
+                myIds.add(id);
+              }
             }
             else {
               LOG.warn(String.format("Dimensions of %1$s is out of range", id));
             }
           }
         }
-        if (!info.getChildren().isEmpty()) {
-          run(info.getChildren(), top + info.getTop());
+        if (!info.getChildren().isEmpty() && !CONTAINER_ID.equals(parentId)) {
+          run(info.getChildren(), top + info.getTop(), id);
         }
       }
     }
+
+    @Nullable
+    private static String getId(@Nullable String id) {
+      if (id != null) {
+        if (id.startsWith(NEW_ID_PREFIX)) {
+          return id.substring(NEW_ID_PREFIX.length());
+        } else if (id.startsWith(ID_PREFIX)) {
+          return id.substring(ID_PREFIX.length());
+        }
+      }
+      return id;
+    }
+
 
     private void saveImage(@NonNull String id, @NonNull BufferedImage image) {
       //noinspection ResultOfMethodCallIgnored

@@ -780,13 +780,21 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         tag = parentTag.addSubTag(tag, false);
       }
 
-      // Required for all views; drop handlers can adjust as necessary
-      tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT);
-      tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT);
+      // Required attribute for all views; drop handlers can adjust as necessary
+      if (tag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) == null) {
+        tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT);
+      }
+      if (tag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) == null) {
+        tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT);
+      }
     } else {
       // No namespace yet: use the default prefix instead
-      tag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
-      tag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+      if (tag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH) == null) {
+        tag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+      }
+      if (tag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT) == null) {
+        tag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+      }
     }
 
     NlComponent child = new NlComponent(this, tag);

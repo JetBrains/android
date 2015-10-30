@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.*;
@@ -36,13 +35,14 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.Insets;
-import java.util.*;
 import java.awt.dnd.DropTarget;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -67,7 +67,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private InsertionPoint myInsertionPoint;
 
   public NlComponentTree(@NonNull DesignSurface designSurface) {
-    myDecorator = StructureTreeDecorator.get();
+    myDecorator = new StructureTreeDecorator(designSurface.getProject());
     myComponent2Node = new HashMap<NlComponent, DefaultMutableTreeNode>();
     myId2Node = new HashMap<String, DefaultMutableTreeNode>();
     mySelectionIsUpdating = new AtomicBoolean(false);
@@ -243,7 +243,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       for (NlComponent child : root.getChildren()) {
         if (!child.getTagName().equals(APP_BAR_LAYOUT) && child.getTag().getAttribute(ATTR_LAYOUT_ANCHOR, AUTO_URI) == null) {
           // If this is a NestedScrollView look inside:
-          if (child.getTagName().equals(SdkConstants.CLASS_NESTED_SCROLL_VIEW) && child.children != null && !child.children.isEmpty()) {
+          if (child.getTagName().equals(CLASS_NESTED_SCROLL_VIEW) && child.children != null && !child.children.isEmpty()) {
             child = child.getChild(0);
           }
           childOfInterest = child;
