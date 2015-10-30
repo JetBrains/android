@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
@@ -46,8 +47,18 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.BeforeRunTaskProvider;
+import com.intellij.execution.ExecutionBundle;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.impl.RunManagerImpl;
+import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -84,6 +95,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -95,10 +107,14 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class PostProjectSetupTasksExecutor {
 
-  /** Whether a message indicating that "a new SDK Tools version is available" is already shown.  */
+  /**
+   * Whether a message indicating that "a new SDK Tools version is available" is already shown.
+   */
   private static boolean ourNewSdkVersionToolsInfoAlreadyShown;
 
-  /** Whether we've checked for build expiration */
+  /**
+   * Whether we've checked for build expiration
+   */
   private static boolean ourCheckedExpiration;
 
   private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
@@ -165,6 +181,10 @@ public class PostProjectSetupTasksExecutor {
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
 
+    // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
+    // For IDEA, use regular "Make".
+    String taskName = isAndroidStudio() ? MakeBeforeRunTaskProvider.TASK_NAME : ExecutionBundle.message("before.launch.compile.step");
+    setMakeStepInJunitRunConfigurations(taskName);
     updateGradleSyncState();
 
     if (myGenerateSourcesAfterSync) {
@@ -175,25 +195,6 @@ public class PostProjectSetupTasksExecutor {
     myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
-  }
-
-  private void updateGradleSyncState() {
-    if (!myUsingCachedProjectData) {
-      // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
-      // previous sync, and not the one from the sync that just ended.
-      GradleSyncState.getInstance(myProject).syncEnded();
-      GradleProjectSyncData.save(myProject);
-    } else {
-      long lastSyncTimestamp = myLastSyncTimestamp;
-      if (lastSyncTimestamp == DEFAULT_LAST_SYNC_TIMESTAMP) {
-        lastSyncTimestamp = System.currentTimeMillis();
-      }
-      GradleSyncState.getInstance(myProject).syncSkipped(lastSyncTimestamp);
-    }
-
-    // set default value back.
-    myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
-    myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
   }
 
   private void adjustModuleStructures() {
@@ -222,7 +223,7 @@ public class PostProjectSetupTasksExecutor {
       }
     }
 
-    for (Sdk sdk: androidSdks) {
+    for (Sdk sdk : androidSdks) {
       refreshLibrariesIn(sdk);
     }
 
@@ -397,8 +398,8 @@ public class PostProjectSetupTasksExecutor {
       Calendar now = Calendar.getInstance();
       if (now.after(expirationDate)) {
         OpenUrlHyperlink hyperlink = new OpenUrlHyperlink("http://tools.android.com/download/studio/", "Show Available Versions");
-        String message = String.format("This preview build (%1$s) is old; please update to a newer preview or a stable version",
-                                       fullVersion);
+        String message =
+          String.format("This preview build (%1$s) is old; please update to a newer preview or a stable version", fullVersion);
         AndroidGradleNotification.getInstance(project).showBalloon("Old Preview Build", message, INFORMATION, hyperlink);
         // If we show an expiration message, don't also show a second balloon regarding available SDKs
         ourNewSdkVersionToolsInfoAlreadyShown = true;
@@ -531,6 +532,64 @@ public class PostProjectSetupTasksExecutor {
       Message msg = new Message(group, Message.Type.ERROR, text);
       messages.add(msg, new InstallPlatformHyperlink(versionsToInstall.toArray(new AndroidVersion[versionsToInstall.size()])));
     }
+  }
+
+  private void setMakeStepInJunitRunConfigurations(@NotNull String makeTaskName) {
+    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
+    ConfigurationType junitConfigurationType = JUnitConfigurationType.getInstance();
+    BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, myProject);
+
+    BeforeRunTaskProvider targetProvider = null;
+    for (BeforeRunTaskProvider<? extends BeforeRunTask> provider : taskProviders) {
+      if (makeTaskName.equals(provider.getName())) {
+        targetProvider = provider;
+        break;
+      }
+    }
+
+    if (targetProvider != null) {
+      // Set the correct "Make step" in the "JUnit Run Configuration" template.
+      for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
+        RunnerAndConfigurationSettings template = runManager.getConfigurationTemplate(configurationFactory);
+        RunConfiguration runConfiguration = template.getConfiguration();
+        setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
+      }
+
+      // Set the correct "Make step" in existing JUnit Configurations.
+      RunConfiguration[] junitRunConfigurations = runManager.getConfigurations(junitConfigurationType);
+      for (RunConfiguration runConfiguration : junitRunConfigurations) {
+        setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
+      }
+    }
+  }
+
+  private void setMakeStepInJUnitConfiguration(@NotNull BeforeRunTaskProvider targetProvider, @NotNull RunConfiguration runConfiguration) {
+    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
+    BeforeRunTask task = targetProvider.createTask(runConfiguration);
+    if (task != null) {
+      task.setEnabled(true);
+      runManager.setBeforeRunTasks(runConfiguration, Collections.singletonList(task), false);
+    }
+  }
+
+  private void updateGradleSyncState() {
+    if (!myUsingCachedProjectData) {
+      // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
+      // previous sync, and not the one from the sync that just ended.
+      GradleSyncState.getInstance(myProject).syncEnded();
+      GradleProjectSyncData.save(myProject);
+    }
+    else {
+      long lastSyncTimestamp = myLastSyncTimestamp;
+      if (lastSyncTimestamp == DEFAULT_LAST_SYNC_TIMESTAMP) {
+        lastSyncTimestamp = System.currentTimeMillis();
+      }
+      GradleSyncState.getInstance(myProject).syncSkipped(lastSyncTimestamp);
+    }
+
+    // set default value back.
+    myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
+    myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
   }
 
   public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
