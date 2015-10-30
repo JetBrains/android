@@ -25,7 +25,9 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.psi.xml.XmlTag;
+import icons.AndroidIcons;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +38,29 @@ import static com.android.tools.idea.uibuilder.model.Coordinates.getSwingX;
 import static com.android.tools.idea.uibuilder.model.Coordinates.getSwingY;
 import static com.android.utils.XmlUtils.formatFloatAttribute;
 
-/** Handler for the {@code <LinearLayout>} layout */
+/**
+ * Handler for the {@code <LinearLayout>} layout
+ */
 public class LinearLayoutHandler extends ViewGroupHandler {
+
+  @NonNull
+  @Override
+  public String getTitleAttributes(@NonNull NlComponent component) {
+    if (!component.getTagName().equals(LINEAR_LAYOUT)) {
+      return super.getTitleAttributes(component);
+    }
+    return isVertical(component) ? "(vertical)" : "(horizontal)";
+  }
+
+  @Override
+  @NonNull
+  public Icon getIcon(@NonNull NlComponent component) {
+    if (!component.getTagName().equals(LINEAR_LAYOUT)) {
+      return super.getIcon(component);
+    }
+    return isVertical(component) ? AndroidIcons.Views.VerticalLinearLayout : AndroidIcons.Views.LinearLayout;
+  }
+
   @Override
   public boolean paintConstraints(@NonNull ScreenView screenView, @NonNull Graphics2D graphics, @NonNull NlComponent component) {
     NlComponent prev = null;

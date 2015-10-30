@@ -18,13 +18,32 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import org.intellij.lang.annotations.Language;
 
 import static com.android.SdkConstants.COORDINATOR_LAYOUT;
 
+/**
+ * Handler for the {@code <android.support.design.widget.FloatingActionButton>} widget.
+ */
 public class FloatingActionButtonHandler extends ImageViewHandler {
 
   @Override
+  @NonNull
+  @Language("XML")
+  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+    return String.format("<%1$s\n" +
+                         "  android:src=\"%2$s\"\n" +
+                         "  android:layout_width=\"wrap_content\"\n" +
+                         "  android:layout_height=\"wrap_content\"\n" +
+                         "  android:clickable=\"true\"\n" +
+                         "  app:fabSize=\"mini\">\n" +
+                         "</%1$s>\n", tagName, getSampleImageSrc());
+  }
+
+  @Override
+  @NonNull
   public String getSampleImageSrc() {
     // Builtin graphics available since v1:
     return "@android:drawable/ic_input_add"; //$NON-NLS-1$

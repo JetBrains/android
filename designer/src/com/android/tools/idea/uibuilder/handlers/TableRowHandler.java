@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.TABLE_ROW;
 
 /**
  * Handler for the {@code <TableRow>} widget

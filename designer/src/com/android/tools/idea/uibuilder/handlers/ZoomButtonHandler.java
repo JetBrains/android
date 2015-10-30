@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.annotations.NonNull;
 
 /**
- * Handler for the {@code <ImageButton>} widget
+ * Handler for the {@code <ZoomButtom>} widget
  */
-public class ImageButtonHandler extends ImageViewHandler {
-
+public class ZoomButtonHandler extends ImageButtonHandler {
   @Override
   @NonNull
   public String getSampleImageSrc() {
     // Builtin graphics available since v1:
-    return "@android:drawable/btn_star"; //$NON-NLS-1$
+    return "@android:drawable/btn_plus"; //$NON-NLS-1$
   }
 }

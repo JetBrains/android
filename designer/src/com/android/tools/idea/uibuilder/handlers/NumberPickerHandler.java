@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,35 +22,19 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.google.common.collect.Sets;
 import org.intellij.lang.annotations.Language;
 
-import static com.android.SdkConstants.*;
-
 /**
- * Handler for the {@code <view>} tag
+ * Handler for the {@code <NumberPicker>} widget
  */
-public class ViewTagHandler extends ViewHandler {
-
-  @Override
-  @NonNull
-  public String getTitle(@NonNull String tagName) {
-    return "View";
-  }
-
-  @Override
-  @NonNull
-  public String getTitle(@NonNull NlComponent component) {
-    return "View";
-  }
+@SuppressWarnings("unused") // Loaded by reflection
+public class NumberPickerHandler extends ViewHandler {
 
   @Override
   @Language("XML")
   @NonNull
   public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
     switch (xmlType) {
-      case COMPONENT_CREATION:
-        return "<view/>";
       case PREVIEW_ON_PALETTE:
       case DRAG_PREVIEW:
         return NO_PREVIEW;
@@ -64,18 +48,7 @@ public class ViewTagHandler extends ViewHandler {
                           @Nullable NlComponent parent,
                           @NonNull NlComponent newChild,
                           @NonNull InsertType insertType) {
-    if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayClassInput(Sets.newHashSet(CLASS_VIEW), null);
-      if (src != null) {
-        newChild.setAttribute(null, ATTR_NAME, src);
-        return true;
-      }
-      else {
-        // Remove the view; the insertion was canceled
-        return false;
-      }
-    }
-
+    // TODO: modify the code to set min, max, etc
     return true;
   }
 }

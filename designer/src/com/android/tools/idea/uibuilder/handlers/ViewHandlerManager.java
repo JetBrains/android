@@ -19,9 +19,18 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.google.AdViewHandler;
+import com.android.tools.idea.uibuilder.handlers.google.MapFragmentHandler;
+import com.android.tools.idea.uibuilder.handlers.google.MapViewHandler;
 import com.android.tools.idea.uibuilder.handlers.grid.GridLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.grid.GridLayoutV7Handler;
+import com.android.tools.idea.uibuilder.handlers.leanback.BrowseFragmentHandler;
+import com.android.tools.idea.uibuilder.handlers.leanback.DetailsFragmentHandler;
+import com.android.tools.idea.uibuilder.handlers.leanback.PlaybackOverlayFragmentHandler;
+import com.android.tools.idea.uibuilder.handlers.leanback.SearchFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
@@ -31,6 +40,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.util.Map;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
 
@@ -42,10 +52,15 @@ public class ViewHandlerManager implements ProjectComponent {
    * View handlers are named the same as the class for the view they represent, plus this suffix
    */
   public static final String HANDLER_CLASS_SUFFIX = "Handler";
+  public static final Set<String> NO_PREFIX_PACKAGES = ImmutableSet
+    .of(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG, ANDROID_WEBKIT_PKG, ANDROID_APP_PKG);
 
   private final Project myProject;
   private final Map<String, ViewHandler> myHandlers = Maps.newHashMap();
   private static final ViewHandler NONE = new ViewHandler();
+  private static final ViewHandler STANDARD_HANDLER = new ViewHandler();
+  private static final ViewHandler TEXT_HANDLER = new TextViewHandler();
+  private static final ViewHandler NO_PREVIEW_HANDLER = new NoPreviewHandler();
 
   @NonNull
   public static ViewHandlerManager get(@NonNull Project project) {
@@ -130,7 +145,14 @@ public class ViewHandlerManager implements ProjectComponent {
 
   private ViewHandler createHandler(@NonNull String viewTag) {
     // Builtin view. Don't bother with reflection for the common cases.
-    if (FRAME_LAYOUT.equals(viewTag)) {
+    if (FRAME_LAYOUT.equals(viewTag) ||
+        IMAGE_SWITCHER.equals(viewTag) ||
+        TEXT_SWITCHER.equals(viewTag) ||
+        VIEW_SWITCHER.equals(viewTag) ||
+        VIEW_FLIPPER.equals(viewTag) ||
+        VIEW_ANIMATOR.equals(viewTag) ||
+        GESTURE_OVERLAY_VIEW.equals(viewTag) ||
+        NESTED_SCROLL_VIEW.equals(viewTag)) {
       return new FrameLayoutHandler();
     }
     if (COORDINATOR_LAYOUT.equals(viewTag)) {
@@ -151,7 +173,10 @@ public class ViewHandlerManager implements ProjectComponent {
     if (GRID_LAYOUT.equals(viewTag)) {
       return new GridLayoutHandler();
     }
-    if (RELATIVE_LAYOUT.equals(viewTag) || FQCN_RELATIVE_LAYOUT.equals(viewTag)) {
+    if (GRID_LAYOUT_V7.equals(viewTag)) {
+      return new GridLayoutV7Handler();
+    }
+    if (RELATIVE_LAYOUT.equals(viewTag) || FQCN_RELATIVE_LAYOUT.equals(viewTag) || DIALER_FILTER.equals(viewTag)) {
       return new RelativeLayoutHandler();
     }
     if (SCROLL_VIEW.equals(viewTag)) {
@@ -166,16 +191,25 @@ public class ViewHandlerManager implements ProjectComponent {
     if (IMAGE_VIEW.equals(viewTag)) {
       return new ImageViewHandler();
     }
+    if (ZOOM_BUTTON.equals(viewTag)) {
+      return new ZoomButtonHandler();
+    }
     if (VIEW_INCLUDE.equals(viewTag)) {
       return new IncludeHandler();
     }
     if (VIEW_FRAGMENT.equals(viewTag)) {
       return new FragmentHandler();
     }
+    if (REQUEST_FOCUS.equals(viewTag)) {
+      return new RequestFocusHandler();
+    }
     if (VIEW_TAG.equals(viewTag)) {
       return new ViewTagHandler();
     }
-    if (ADAPTER_VIEW.equals(viewTag)) {
+    if (VIEW_STUB.equals(viewTag)) {
+      return new ViewStubHandler();
+    }
+    if (ADAPTER_VIEW.equals(viewTag) || STACK_VIEW.equals(viewTag)) {
       return new AdapterViewHandler();
     }
     if (ABSOLUTE_LAYOUT.equals(viewTag)) {
@@ -183,6 +217,61 @@ public class ViewHandlerManager implements ProjectComponent {
     }
     if (FLOATING_ACTION_BUTTON.equals(viewTag)) {
       return new FloatingActionButtonHandler();
+    }
+    if (PROGRESS_BAR.equals(viewTag)) {
+      return new ProgressBarHandler();
+    }
+    if (TEXT_INPUT_LAYOUT.equals(viewTag)) {
+      return new TextInputLayoutHandler();
+    }
+    if (AD_VIEW.equals(viewTag)) {
+      return new AdViewHandler();
+    }
+    if (MAP_FRAGMENT.equals(viewTag)) {
+      return new MapFragmentHandler();
+    }
+    if (MAP_VIEW.equals(viewTag)) {
+      return new MapViewHandler();
+    }
+    if (CARD_VIEW.equals(viewTag)) {
+      return new CardViewHandler();
+    }
+    if (RECYCLER_VIEW.equals(viewTag)) {
+      return new RecyclerViewHandler();
+    }
+    if (TOOLBAR_V7.equals(viewTag)) {
+      return new ToolbarHandler();
+    }
+    if (BROWSE_FRAGMENT.equals(viewTag)) {
+      return new BrowseFragmentHandler();
+    }
+    if (DETAILS_FRAGMENT.equals(viewTag)) {
+      return new DetailsFragmentHandler();
+    }
+    if (PLAYBACK_OVERLAY_FRAGMENT.equals(viewTag)) {
+      return new PlaybackOverlayFragmentHandler();
+    }
+    if (SEARCH_FRAGMENT.equals(viewTag)) {
+      return new SearchFragmentHandler();
+    }
+    if (TAB_HOST.equals(viewTag)) {
+      return new TabHostHandler();
+    }
+    if (EXPANDABLE_LIST_VIEW.equals(viewTag)) {
+      // TODO: Find out why this fails to load by class name
+      return new ListViewHandler();
+    }
+    if (SPINNER.equals(viewTag)) {
+      return new SpinnerHandler();
+    }
+    if (CHRONOMETER.equals(viewTag) || TEXT_CLOCK.equals(viewTag) || QUICK_CONTACT_BADGE.equals(viewTag)) {
+      return STANDARD_HANDLER;
+    }
+    if (TextViewHandler.hasTextAttribute(viewTag)) {
+      return TEXT_HANDLER;
+    }
+    if (NoPreviewHandler.hasNoPreview(viewTag)) {
+      return NO_PREVIEW_HANDLER;
     }
 
     // Look for other handlers via reflection; first built into the IDE:
@@ -195,7 +284,8 @@ public class ViewHandlerManager implements ProjectComponent {
     catch (Exception ignore) {
     }
 
-    if (viewTag.indexOf('.') != -1) {
+    String qualifiedClassName = getFullyQualifiedClassName(viewTag);
+    if (qualifiedClassName != null) {
       String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
       JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
       PsiClass[] classes = facade.findClasses(handlerName, GlobalSearchScope.allScope(myProject));
@@ -205,7 +295,7 @@ public class ViewHandlerManager implements ProjectComponent {
         // parent view instead. For example, if you've customized a LinearLayout by subclassing it, then
         // if you don't provide a ViewHandler for the subclass, we dall back to the LinearLayout's
         // ViewHandler instead.
-        classes = facade.findClasses(viewTag, GlobalSearchScope.allScope(myProject));
+        classes = facade.findClasses(qualifiedClassName, GlobalSearchScope.allScope(myProject));
         for (PsiClass cls : classes) {
           PsiClass superClass = cls.getSuperClass();
           if (superClass != null) {
@@ -227,6 +317,21 @@ public class ViewHandlerManager implements ProjectComponent {
     }
 
     return NONE;
+  }
+
+  @Nullable
+  private String getFullyQualifiedClassName(@NonNull String viewTag) {
+    if (viewTag.indexOf('.') > 0) {
+      return viewTag;
+    }
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
+    for (String packageName : NO_PREFIX_PACKAGES) {
+      PsiClass[] classes = facade.findClasses(packageName + viewTag, GlobalSearchScope.allScope(myProject));
+      if (classes.length > 0) {
+        return packageName + viewTag;
+      }
+    }
+    return null;
   }
 
   @Override
