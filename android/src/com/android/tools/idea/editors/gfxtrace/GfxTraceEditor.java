@@ -27,13 +27,12 @@ import com.android.tools.rpclib.schema.ConstantSet;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Message;
 import com.android.tools.rpclib.schema.Entity;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.*;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.concurrency.JobScheduler;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -47,7 +46,10 @@ import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.panels.NonOpaquePanel;
+import com.intellij.util.ui.AsyncProcessIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,7 +74,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
 
   @NotNull private final Project myProject;
-  @NotNull private LoadingDecorator myLoadingDecorator;
+  @NotNull private TraceLoadingDecorator myLoadingDecorator;
   @NotNull private JBPanel myView = new JBPanel(new BorderLayout());
   @NotNull private final ListeningExecutorService myExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
   private GapisConnection myGapisConnection;
@@ -87,7 +89,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
     myProject = project;
-    myLoadingDecorator = new LoadingDecorator(myView, this, 0);
+    myLoadingDecorator = new TraceLoadingDecorator(myView, this, 0);
     myLoadingDecorator.setLoadingText("Initializing GFX Trace System");
     myLoadingDecorator.startLoading(false);
 
@@ -147,17 +149,25 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           final ListenableFuture<CapturePath> captureF;
           if (file.getFileSystem().getProtocol().equals(StandardFileSystems.FILE_PROTOCOL)) {
             LOG.info("Load gfxtrace in " + file.getPresentableName());
+            if (file.getLength() == 0) {
+              setLoadingErrorTextOnEdt("Empty trace file");
+              return;
+            }
             captureF = myClient.loadCapture(file.getCanonicalPath());
           }
           else {
             // Upload the trace file
             byte[] data = file.contentsToByteArray();
             LOG.info("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
+            if (data.length == 0) {
+              setLoadingErrorTextOnEdt("Empty trace file");
+              return;
+            }
             captureF = myClient.importCapture(file.getPresentableName(), data);
           }
 
           // When both steps are complete, activate the capture path
-          Futures.addCallback(Futures.allAsList(schemaF, captureF), new LoadingCallback<List<BinaryObject>>(LOG) {
+          Futures.addCallback(Futures.allAsList(schemaF, captureF), new FutureCallback<List<BinaryObject>>() {
             @Override
             public void onSuccess(@Nullable final List<BinaryObject> all) {
               CapturePath path = (CapturePath)all.get(1);
@@ -176,6 +186,12 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
                   myLoadingDecorator.stopLoading();
                 }
               });
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+              LOG.error("Trace fail load failure", t);
+              setLoadingErrorTextOnEdt("Error reading gfxtrace file");
             }
           });
         }
@@ -340,8 +356,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        myLoadingDecorator.setLoadingText(error);
-        myLoadingDecorator.startLoading(false);
+        myLoadingDecorator.setErrorMessage(error);
       }
     });
   }
@@ -353,5 +368,32 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     }
 
     myExecutor.shutdown();
+  }
+
+  private static class TraceLoadingDecorator extends LoadingDecorator {
+    private JPanel iconPanel;
+
+    public TraceLoadingDecorator(JComponent content, Disposable parent, int startDelayMs) {
+      super(content, parent, startDelayMs);
+    }
+
+    @Override
+    protected NonOpaquePanel customizeLoadingLayer(JPanel parent, JLabel text, final AsyncProcessIcon icon) {
+      NonOpaquePanel result = super.customizeLoadingLayer(parent, text, icon);
+
+      // Replace the icon with a panel where we can switch it out.
+      result.remove(0);
+      result.add(iconPanel = new JPanel(), 0);
+      iconPanel.add(icon);
+
+      return result;
+    }
+
+    public void setErrorMessage(String text) {
+      iconPanel.removeAll();
+      iconPanel.add(new JBLabel(AllIcons.General.ErrorDialog));
+      setLoadingText(text);
+      startLoading(false);
+    }
   }
 }
