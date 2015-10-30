@@ -16,8 +16,8 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.android.tests">
+          package="com.android.tests">
   <application>
-    <activity android:name=".MainActivity" />
+    <activity android:name=".TestActivity" />
   </application>
 </manifest>
