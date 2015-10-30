@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.repository.api.SettingsController;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
-import com.android.tools.idea.sdk.remote.internal.updater.SettingsController;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.ui.AnActionButton;
@@ -41,7 +42,7 @@ public class UpdateSitesPanel {
   private AsyncProcessIcon mySourcesLoadingIcon;
   private JCheckBox myForceHttp;
   private SourcesTableModel mySourcesTableModel;
-  private static SettingsController ourSettingsController = SettingsController.getInstance();
+  private static SettingsController ourSettingsController = StudioSettingsController.getInstance();
 
   private void createUIComponents() {
     mySourcesLoadingIcon = new AsyncProcessIcon("Loading...");

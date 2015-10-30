@@ -20,13 +20,14 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.repository.api.SettingsController;
 import com.android.tools.idea.sdk.remote.internal.AddonsListFetcher;
 import com.android.tools.idea.sdk.remote.internal.AddonsListFetcher.Site;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.NullTaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.sources.*;
-import com.android.tools.idea.sdk.remote.internal.updater.SettingsController;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.utils.ILogger;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -51,7 +52,7 @@ public class RemoteSdk {
   private DownloadCache mDownloadCache;
 
   public RemoteSdk() {
-    mSettingsController = SettingsController.getInstance();
+    mSettingsController = StudioSettingsController.getInstance();
   }
 
   /**
@@ -196,8 +197,7 @@ public class RemoteSdk {
   @VisibleForTesting(visibility = Visibility.PRIVATE)
   protected DownloadCache getDownloadCache() {
     if (mDownloadCache == null) {
-      mDownloadCache = new DownloadCache(
-        mSettingsController.getUseDownloadCache() ? DownloadCache.Strategy.FRESH_CACHE : DownloadCache.Strategy.DIRECT);
+      mDownloadCache = new DownloadCache(DownloadCache.Strategy.FRESH_CACHE);
     }
     return mDownloadCache;
   }

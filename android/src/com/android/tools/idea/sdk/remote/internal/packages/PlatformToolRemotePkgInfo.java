@@ -17,15 +17,16 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.sdklib.SdkManager;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.AdbWrapper;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -120,7 +121,8 @@ public class PlatformToolRemotePkgInfo extends RemotePkgInfo {
    * @return A new {@link File} corresponding to the directory to use to install this package.
    */
   @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
+  @NotNull
+  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
     return new File(osSdkRoot, SdkConstants.FD_PLATFORM_TOOLS);
   }
 

@@ -16,13 +16,19 @@
 package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.meta.CommonFactory;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdkv2.LegacyRemoteRepoLoader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
@@ -272,7 +278,12 @@ public class GradleSpecificInitializer implements Runnable {
   private static void setupSdks() {
     File androidHome = IdeSdks.getAndroidSdkPath();
 
+    final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance();
+    sdkHandler.setRemoteFallback(new LegacyRemoteRepoLoader(StudioSettingsController.getInstance(),
+                                                            (CommonFactory)RepoManager.getCommonModule().createLatestFactory()));
+
     if (androidHome != null) {
+      sdkHandler.setLocation(androidHome);
       WizardUtils.ValidationResult sdkValidationResult =
         WizardUtils.validateLocation(androidHome.getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
       if (sdkValidationResult.isError()) {
@@ -292,6 +303,7 @@ public class GradleSpecificInitializer implements Runnable {
     Sdk sdk = findFirstCompatibleAndroidSdk();
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
+      sdkHandler.setLocation(new File(sdk.getHomePath()));
       assert sdkHomePath != null;
       IdeSdks.createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
       return;
@@ -305,6 +317,7 @@ public class GradleSpecificInitializer implements Runnable {
         if (androidSdkPath == null) {
           return;
         }
+        sdkHandler.setLocation(androidSdkPath);
 
         FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
         // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.

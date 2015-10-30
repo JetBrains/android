@@ -14,49 +14,35 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.sdk.remote.internal.updater;
+package com.android.tools.idea.sdkv2;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
-import com.android.annotations.VisibleForTesting.Visibility;
-import com.android.prefs.AndroidLocation;
-import com.android.tools.idea.sdk.remote.internal.DownloadCache;
-import com.android.utils.ILogger;
+import com.android.repository.api.SettingsController;
 import com.intellij.openapi.components.*;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.net.URL;
-import java.util.Map.Entry;
-import java.util.Properties;
 
 /**
  * Controller class to get settings values using intellij persistent data mechanism.
  * Compare to {@link com.android.sdklib.internal.repository.updater.SettingsController}
  * which uses a file maintained separately.
+ *
+ * TODO: reevaluate the need for each setting after repo adoption is complete.
  */
 @State(
-  name = "SettingsController",
+  name = "StudioSettingsController",
   storages = {
-    @Storage(file = StoragePathMacros.APP_CONFIG + "/remotesdk.xml", roamingType = RoamingType.DISABLED),
+    @Storage(file = StoragePathMacros.APP_CONFIG + "/remotesdk.xml", roamingType = RoamingType.DISABLED)
   }
 )
-public class SettingsController implements PersistentStateComponent<SettingsController.PersistentState> {
+public class StudioSettingsController implements PersistentStateComponent<StudioSettingsController.PersistentState>, SettingsController {
 
   private PersistentState myState = new PersistentState();
 
+  @Override
   public boolean getForceHttp() {
     return myState.myForceHttp;
   }
 
-  public boolean getAskBeforeAdbRestart() {
-    return myState.myAskBeforeAdbRestart;
-  }
-
-  public boolean getUseDownloadCache() {
-    return myState.myAskBeforeAdbRestart;
-  }
-
+  @Override
   public void setForceHttp(boolean forceHttp) {
     myState.myForceHttp = forceHttp;
   }
@@ -73,14 +59,12 @@ public class SettingsController implements PersistentStateComponent<SettingsCont
   }
 
   public static SettingsController getInstance() {
-    return ServiceManager.getService(SettingsController.class);
+    return ServiceManager.getService(StudioSettingsController.class);
   }
 
   public static class PersistentState {
     public boolean myForceHttp;
-    public boolean myAskBeforeAdbRestart;
-    public boolean myUseDownloadCache;
   }
 
-  private SettingsController() {}
+  private StudioSettingsController() {}
 }

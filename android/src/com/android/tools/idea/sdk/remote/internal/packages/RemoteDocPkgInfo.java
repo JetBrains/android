@@ -17,15 +17,15 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkManager;
 import com.android.repository.Revision;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -82,7 +82,7 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
    * Can be 0 if this is a local package of unknown api-level.
    */
   @Override
-  @NonNull
+  @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
   }
@@ -140,7 +140,8 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
    * @return A new {@link File} corresponding to the directory to use to install this package.
    */
   @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
+  @NotNull
+  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
     return new File(osSdkRoot, SdkConstants.FD_DOCS);
   }
 

@@ -17,8 +17,6 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.Nullable;
-import com.android.sdklib.SdkManager;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.*;
@@ -28,6 +26,8 @@ import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -346,11 +346,11 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
    *                   Not used in this implementation.
    * @return A new {@link File} corresponding to the directory to use to install this package.
    */
+  @NotNull
   @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
+  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
     // First find if this extra is already installed. If so, reuse the same directory.
-    LocalSdk sdk = sdkManager.getLocalSdk();
-    for (LocalPkgInfo info : sdk.getPkgsInfos(PkgType.PKG_EXTRA)) {
+    for (LocalPkgInfo info : localSdk.getPkgsInfos(PkgType.PKG_EXTRA)) {
       if (PkgDescExtra.compatibleVendorAndPath((IPkgDescExtra)mPkgDesc, (IPkgDescExtra)info.getDesc())) {
         return info.getLocalDir();
       }

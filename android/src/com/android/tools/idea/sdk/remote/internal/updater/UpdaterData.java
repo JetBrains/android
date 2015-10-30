@@ -37,6 +37,7 @@ import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoSource;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSourceCategory;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.utils.ILogger;
 import com.android.utils.IReaderLogger;
 import com.google.common.base.Charsets;
@@ -45,7 +46,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -100,8 +100,7 @@ public class UpdaterData {
 
   public DownloadCache getDownloadCache() {
     if (mDownloadCache == null) {
-      mDownloadCache = new DownloadCache(
-        SettingsController.getInstance().getUseDownloadCache() ? DownloadCache.Strategy.FRESH_CACHE : DownloadCache.Strategy.DIRECT);
+      mDownloadCache = new DownloadCache(DownloadCache.Strategy.FRESH_CACHE);
     }
     return mDownloadCache;
   }
@@ -206,7 +205,7 @@ public class UpdaterData {
     // this will accumulate all the packages installed.
     final List<Archive> newlyInstalledArchives = new ArrayList<Archive>();
 
-    final boolean forceHttp = SettingsController.getInstance().getForceHttp();
+    final boolean forceHttp = StudioSettingsController.getInstance().getForceHttp();
 
     // sort all archives based on their dependency level.
     Collections.sort(archives, new InstallOrderComparator());
@@ -410,12 +409,12 @@ public class UpdaterData {
    * now is a good time to restart ADB.
    */
   protected void askForAdbRestart(ITaskMonitor monitor) {
-    // Restart ADB if we don't need to ask.
-    if (!SettingsController.getInstance().getAskBeforeAdbRestart()) {
-      AdbWrapper adb = new AdbWrapper(getOsSdkRoot(), monitor);
-      adb.stopAdb();
-      adb.startAdb();
-    }
+    // Restart ADB.
+    // Note that in the swt SDK manager we could optionally prompt before restarting, but this functionality was never ported over
+    // to Studio. In the future we might consider adding it in SettingsController/StudioSettingsController, with an appropriate UI.
+    AdbWrapper adb = new AdbWrapper(getOsSdkRoot(), monitor);
+    adb.stopAdb();
+    adb.startAdb();
   }
 
   protected void notifyToolsNeedsToBeRestarted(int flags) {

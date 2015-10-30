@@ -17,19 +17,19 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkManager;
-import com.android.repository.io.FileOp;
 import com.android.repository.Revision;
+import com.android.repository.io.FileOp;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -84,7 +84,7 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
    * Returns the android version of this package.
    */
   @Override
-  @NonNull
+  @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
   }
@@ -147,7 +147,8 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
    * @return A new {@link File} corresponding to the directory to use to install this package.
    */
   @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
+  @NotNull
+  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
     File folder = new File(osSdkRoot, SdkConstants.FD_PKG_SOURCES);
     folder = new File(folder, "android-" + getPkgDesc().getAndroidVersion().getApiString());    //$NON-NLS-1$
     return folder;

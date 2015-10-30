@@ -16,8 +16,8 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.PkgProps;
 import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.utils.Pair;
@@ -97,5 +97,17 @@ public class LayoutlibVersionMixin {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Gets the {@link com.android.sdklib.SdkManager.LayoutlibVersion} from {@code this}.
+   * @return The {@link com.android.sdklib.SdkManager.LayoutlibVersion}, or {@code null} if both the api and revision are unspecified.
+   */
+  @Nullable
+  public SdkManager.LayoutlibVersion getLayoutlibVersion() {
+    if (mLayoutlibVersion.getFirst() != LAYOUTLIB_API_NOT_SPECIFIED || mLayoutlibVersion.getSecond() != LAYOUTLIB_REV_NOT_SPECIFIED) {
+      return new SdkManager.LayoutlibVersion(mLayoutlibVersion.getFirst(), mLayoutlibVersion.getSecond());
+    }
+    return null;
   }
 }

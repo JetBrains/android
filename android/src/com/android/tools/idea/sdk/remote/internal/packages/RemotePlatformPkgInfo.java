@@ -17,7 +17,6 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
@@ -25,8 +24,11 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -110,7 +112,7 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
    * Returns the package version, for platform, add-on and doc packages.
    */
   @Override
-  @NonNull
+  @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
   }
@@ -186,10 +188,11 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
    * @return A new {@link File} corresponding to the directory to use to install this package.
    */
   @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
+  @NotNull
+  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
 
     // First find if this platform is already installed. If so, reuse the same directory.
-    for (IAndroidTarget target : sdkManager.getTargets()) {
+    for (IAndroidTarget target : localSdk.getTargets()) {
       if (target.isPlatform() && target.getVersion().equals(getAndroidVersion())) {
         return new File(target.getLocation());
       }
@@ -240,5 +243,10 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
       return false;
     }
     return true;
+  }
+
+  @Nullable
+  public SdkManager.LayoutlibVersion getLayoutLibVersion() {
+    return mLayoutlibVersion.getLayoutlibVersion();
   }
 }
