@@ -55,6 +55,7 @@ public class InstantRunConfigurable
   private JCheckBox myCrashHandlerCheckBox;
   private JBLabel myGradleLabel;
   private HyperlinkLabel myOldVersionLabel;
+  private JCheckBox myShowToastCheckBox;
   private MessageBusConnection myConnection;
 
   public InstantRunConfigurable(@NotNull Project project) {
@@ -97,7 +98,8 @@ public class InstantRunConfigurable
   public boolean isModified() {
     return myBuildConfiguration.INSTANT_RUN != isInstantRunEnabled() ||
            myBuildConfiguration.RESTART_ACTIVITY != isRestartActivity() ||
-           myBuildConfiguration.CRASH_HANDLER != isCrashHandlerEnabled();
+           myBuildConfiguration.CRASH_HANDLER != isCrashHandlerEnabled() ||
+           myBuildConfiguration.SHOW_TOAST != isShowToast();
 
   }
 
@@ -106,6 +108,7 @@ public class InstantRunConfigurable
     myBuildConfiguration.INSTANT_RUN = isInstantRunEnabled();
     myBuildConfiguration.RESTART_ACTIVITY = isRestartActivity();
     myBuildConfiguration.CRASH_HANDLER = isCrashHandlerEnabled();
+    myBuildConfiguration.SHOW_TOAST = isShowToast();
 
     FastDeployManager.updateFileListener(myProject);
   }
@@ -115,6 +118,7 @@ public class InstantRunConfigurable
     myInstantRunCheckBox.setSelected(myBuildConfiguration.INSTANT_RUN);
     myRestartActivityCheckBox.setSelected(myBuildConfiguration.RESTART_ACTIVITY);
     myCrashHandlerCheckBox.setSelected(myBuildConfiguration.CRASH_HANDLER);
+    myShowToastCheckBox.setSelected(myBuildConfiguration.SHOW_TOAST);
   }
 
   @Override
@@ -131,6 +135,10 @@ public class InstantRunConfigurable
 
   private boolean isCrashHandlerEnabled() {
     return myCrashHandlerCheckBox.isSelected();
+  }
+
+  private boolean isShowToast() {
+    return myShowToastCheckBox.isSelected();
   }
 
   private void createUIComponents() {
@@ -174,6 +182,7 @@ public class InstantRunConfigurable
     myInstantRunCheckBox.setEnabled(enabled);
     myRestartActivityCheckBox.setEnabled(enabled);
     myCrashHandlerCheckBox.setEnabled(enabled);
+    myShowToastCheckBox.setEnabled(enabled);
   }
 
   @Override

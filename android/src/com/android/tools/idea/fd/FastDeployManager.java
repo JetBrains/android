@@ -97,9 +97,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
-import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.SdkConstants.EXT_PNG;
+import static com.android.SdkConstants.*;
 
 /**
  * The {@linkplain FastDeployManager} is responsible for handling Instant Run related functionality
@@ -124,7 +122,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   /**
    * Version of the protocol
    */
-  public static final int PROTOCOL_VERSION = 3;
+  public static final int PROTOCOL_VERSION = 4;
 
   /**
    * Message: sending patches
@@ -158,9 +156,14 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   public static final int MESSAGE_RESTART_ACTIVITY = 5;
 
   /**
+   * Message: show toast
+   */
+  public static final int MESSAGE_SHOW_TOAST = 6;
+
+  /**
    * Done transmitting
    */
-  public static final int MESSAGE_EOF = 6;
+  public static final int MESSAGE_EOF = 7;
 
   /**
    * No updates
@@ -643,6 +646,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     return buildConfiguration.INSTANT_RUN;
   }
 
+  /** Is showing toasts enabled in the given project */
+  public static boolean isShowToastEnabled(@NotNull Project project) {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    return buildConfiguration.SHOW_TOAST;
+  }
+
   /** Synchronizes the file listening state with whether instant run is enabled */
   static void updateFileListener(@NotNull Project project) {
     FastDeployManager manager = get(project);
@@ -1024,6 +1033,9 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
           writeToken(facet, output);
           ApplicationPatch.write(output, changes, updateMode1);
 
+          // Let the app know whether it should show toasts
+          output.writeBoolean(isShowToastEnabled(myProject));
+
           // Finally read a boolean back from the other side; this has the net effect of
           // waiting until applying/verifying code on the other side is done. (It doesn't
           // count the actual restart time, but for activity restarts it's typically instant,
@@ -1138,6 +1150,23 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       }
     }
     return null;
+  }
+
+  @NotNull
+  public static void showToast(@NotNull IDevice device, @NotNull Module module, @NotNull final String message) {
+    try {
+      talkToApp(device, findAppModule(module, module.getProject()), new Communicator<Boolean>() {
+        @Override
+        public Boolean communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException {
+          output.writeInt(MESSAGE_SHOW_TOAST);
+          output.writeUTF(message);
+          return false;
+        }
+      }, true);
+    }
+    catch (Throwable e) {
+      LOG.warn(e);
+    }
   }
 
   /**
