@@ -48,26 +48,11 @@ import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
  */
 public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<AndroidGradleModel>
   implements BuildVariantModuleCustomizer<AndroidGradleModel> {
-  // TODO This is a temporary solution. The real fix is in the Android Gradle plug-in we need to take exploded-aar/${library}/${version}/res
-  // folder somewhere else out of "exploded-aar" so the IDE can index it, but we need to exclude everything else in "exploded-aar"
-  // (e.g. jar files) to avoid unnecessary indexing.
-  private static final String[] EXCLUDED_INTERMEDIATE_FOLDER_NAMES = {"assets", "bundles", "classes", "coverage-instrumented-classes",
-    "dependency-cache", "dex-cache", "dex", "incremental", "jacoco", "javaResources", "libs", "lint", "manifests", "ndk", "pre-dexed",
-    "proguard", "res", "rs", "symbols"};
-
-  @NotNull public static final List<String> EXCLUDED_OUTPUT_FOLDER_NAMES = Lists.newArrayList(FD_OUTPUTS);
-
-  static {
-    for (String name : EXCLUDED_INTERMEDIATE_FOLDER_NAMES) {
-      EXCLUDED_OUTPUT_FOLDER_NAMES.add(join(FD_INTERMEDIATES, name));
-    }
-  }
 
   @Override
   @NotNull
   protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel moduleModel,
                                                                 @NotNull AndroidGradleModel androidModel) {
-
     List<ContentEntry> contentEntries = Lists.newArrayList(moduleModel.addContentEntry(androidModel.getRootDir()));
     File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
     if (!isAncestor(androidModel.getRootDirPath(), buildFolderPath, false)) {
@@ -77,7 +62,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   @Override
-  protected void setUpContentEntries(@NotNull ModifiableRootModel ideaModuleModel,
+  protected void setUpContentEntries(@NotNull ModifiableRootModel moduleModel,
                                      @NotNull Collection<ContentEntry> contentEntries,
                                      @NotNull AndroidGradleModel androidModel,
                                      @NotNull List<RootSourceFolder> orphans) {
@@ -237,21 +222,10 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull AndroidGradleModel androidModel) {
     File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
     ContentEntry parentContentEntry = findParentContentEntry(buildFolderPath, contentEntries);
-    if (parentContentEntry == null) {
-      return;
-    }
-
-    // Explicitly exclude the output folders created by the Android Gradle plug-in
-    for (String folderName : EXCLUDED_OUTPUT_FOLDER_NAMES) {
-      File excludedFolderPath = new File(buildFolderPath, folderName);
-      addExcludedFolder(parentContentEntry, excludedFolderPath);
-    }
-
-    // Iterate through the build folder's children, excluding any folders that are not "generated" and haven't been already excluded.
-    File[] children = notNullize(buildFolderPath.listFiles());
-    for (File child : children) {
-      if (androidModel.shouldManuallyExclude(child)) {
-        addExcludedFolder(parentContentEntry, child);
+    if (parentContentEntry != null) {
+      List<File> excludedFolderPaths = androidModel.getExcludedFolderPaths();
+      for (File folderPath : excludedFolderPaths) {
+        addExcludedFolder(parentContentEntry, folderPath);
       }
     }
   }
