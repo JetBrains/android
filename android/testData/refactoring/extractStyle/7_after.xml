@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
     <Button
-            android:text="Hello" style="@style/myStyle"/>
+            android:text="Hello"
+            style="@style/myStyle"/>
 </LinearLayout>
