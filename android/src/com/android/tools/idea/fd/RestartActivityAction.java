@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -48,8 +49,12 @@ public class RestartActivityAction extends AnAction {
 
   /** Restarts the activity associated with the given module */
   public static void restartActivity(@NotNull Module module) {
-    for (IDevice device : FastDeployManager.findDevices(module.getProject())) {
+    Project project = module.getProject();
+    for (IDevice device : FastDeployManager.findDevices(project)) {
       if (FastDeployManager.isAppRunning(device, module)) {
+        if (FastDeployManager.isShowToastEnabled(project)) {
+          FastDeployManager.showToast(device, module, "Activity Restarted");
+        }
         FastDeployManager.restartActivity(device, module);
       }
     }
