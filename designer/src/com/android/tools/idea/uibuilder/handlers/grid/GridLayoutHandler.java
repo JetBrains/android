@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.model.SegmentType;
 
 import java.util.List;
 
-public final class GridLayoutHandler extends ViewGroupHandler {
+public class GridLayoutHandler extends ViewGroupHandler {
   @Override
   public DragHandler createDragHandler(@NonNull ViewEditor editor,
                                        @NonNull NlComponent layout,

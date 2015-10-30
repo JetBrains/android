@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,31 +17,41 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.google.common.collect.Sets;
+import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 
-import static com.android.SdkConstants.*;
+import javax.swing.*;
 
 /**
- * Handler for the {@code <view>} tag
+ * Handler for the {@code requestFocus} tag.
  */
-public class ViewTagHandler extends ViewHandler {
+public class RequestFocusHandler extends ViewHandler {
 
   @Override
   @NonNull
   public String getTitle(@NonNull String tagName) {
-    return "View";
+    return "<requestFocus>";
   }
 
   @Override
   @NonNull
   public String getTitle(@NonNull NlComponent component) {
-    return "View";
+    return "<requestFocus>";
+  }
+
+  @Override
+  @NonNull
+  public Icon getIcon(@NonNull String tagName) {
+    return AndroidIcons.Views.RequestFocus;
+  }
+
+  @Override
+  @NonNull
+  public Icon getIcon(@NonNull NlComponent component) {
+    return AndroidIcons.Views.RequestFocus;
   }
 
   @Override
@@ -50,32 +60,9 @@ public class ViewTagHandler extends ViewHandler {
   public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
     switch (xmlType) {
       case COMPONENT_CREATION:
-        return "<view/>";
-      case PREVIEW_ON_PALETTE:
-      case DRAG_PREVIEW:
-        return NO_PREVIEW;
+        return "<requestFocus/>";
       default:
-        return super.getXml(tagName, xmlType);
+        return NO_PREVIEW;
     }
-  }
-
-  @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
-                          @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
-    if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayClassInput(Sets.newHashSet(CLASS_VIEW), null);
-      if (src != null) {
-        newChild.setAttribute(null, ATTR_NAME, src);
-        return true;
-      }
-      else {
-        // Remove the view; the insertion was canceled
-        return false;
-      }
-    }
-
-    return true;
   }
 }

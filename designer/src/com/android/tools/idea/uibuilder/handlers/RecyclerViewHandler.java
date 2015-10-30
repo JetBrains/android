@@ -16,16 +16,18 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+
+import static com.android.SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT;
 
 /**
- * Handler for the {@code <ImageButton>} widget
+ * Handler for the {@code <RecyclerView>} layout
  */
-public class ImageButtonHandler extends ImageViewHandler {
+public class RecyclerViewHandler extends ViewGroupHandler {
 
   @Override
   @NonNull
-  public String getSampleImageSrc() {
-    // Builtin graphics available since v1:
-    return "@android:drawable/btn_star"; //$NON-NLS-1$
+  public String getGradleCoordinate(@NonNull String tagName) {
+    return RECYCLER_VIEW_LIB_ARTIFACT;
   }
 }
