@@ -17,13 +17,13 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.sdklib.SdkManager;
 import com.android.repository.Revision;
 import com.android.repository.Revision.PreviewComparison;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalBuildToolPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.jetbrains.annotations.NotNull;
@@ -113,7 +113,7 @@ public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
    */
   @NotNull
   @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
+  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
     File folder = new File(osSdkRoot, SdkConstants.FD_BUILD_TOOLS);
     StringBuilder sb = new StringBuilder();
 

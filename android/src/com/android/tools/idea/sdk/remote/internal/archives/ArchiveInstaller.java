@@ -604,7 +604,7 @@ public class ArchiveInstaller {
     try {
       // -0- Compute destination directory and check install pre-conditions
 
-      destFolder = pkg.getInstallFolder(osSdkRoot, sdkManager);
+      destFolder = pkg.getInstallFolder(osSdkRoot, sdkManager.getLocalSdk());
 
       if (destFolder == null) {
         // this should not seriously happen.

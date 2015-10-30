@@ -98,5 +98,6 @@
     <orderEntry type="library" scope="TEST" name="Mocks" level="project" />
     <orderEntry type="library" scope="TEST" name="hamcrest" level="project" />
     <orderEntry type="library" name="jgraphx-3.4.0.1" level="project" />
+    <orderEntry type="module" module-name="repository" scope="TEST" />
   </component>
 </module>

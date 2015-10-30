@@ -20,14 +20,14 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.Revision;
-import com.android.repository.io.FileOp;
 import com.android.repository.api.License;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.CommonFactory;
-import com.android.sdklib.SdkManager;
+import com.android.repository.io.FileOp;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
@@ -37,6 +37,7 @@ import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
 import com.google.common.base.Objects;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -411,8 +412,8 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
    * @param sdkManager An existing SDK manager to list current platforms and addons.
    * @return A new {@link File} corresponding to the directory to use to install this package.
    */
-  @NonNull
-  public abstract File getInstallFolder(String osSdkRoot, SdkManager sdkManager);
+  @NotNull
+  public abstract File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk);
 
 
   /**

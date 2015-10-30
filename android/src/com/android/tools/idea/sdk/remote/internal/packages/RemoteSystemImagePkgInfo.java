@@ -17,20 +17,20 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repository.local.LocalSysImgPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSysImgConstants;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -147,7 +147,7 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
    * <p/>
    * A system-image has the same {@link AndroidVersion} as the platform it depends on.
    */
-  @NonNull
+  @NotNull
   @Override
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
@@ -211,7 +211,8 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
    * @return A new {@link File} corresponding to the directory to use to install this package.
    */
   @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
+  @NotNull
+  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
     File folder = new File(osSdkRoot, SdkConstants.FD_SYSTEM_IMAGES);
     folder = new File(folder, AndroidTargetHash.getPlatformHashString(getAndroidVersion()));
 

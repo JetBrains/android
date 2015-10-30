@@ -17,19 +17,19 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
+import com.android.repository.Revision;
+import com.android.repository.io.FileOp;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
-import com.android.repository.io.FileOp;
-import com.android.repository.Revision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.*;
@@ -108,7 +108,7 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
    * Returns the matching platform version.
    */
   @Override
-  @NonNull
+  @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
   }
@@ -166,13 +166,14 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
    * @return A new {@link File} corresponding to the directory to use to install this package.
    */
   @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
+  @NotNull
+  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
 
     // The /samples dir at the root of the SDK
     File samplesRoot = new File(osSdkRoot, SdkConstants.FD_SAMPLES);
 
     // First find if this sample is already installed. If so, reuse the same directory.
-    for (IAndroidTarget target : sdkManager.getTargets()) {
+    for (IAndroidTarget target : localSdk.getTargets()) {
       if (target.isPlatform() && target.getVersion().equals(getAndroidVersion())) {
         String p = target.getPath(IAndroidTarget.SAMPLES);
         File f = new File(p);

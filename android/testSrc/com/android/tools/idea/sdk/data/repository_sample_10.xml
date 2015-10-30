@@ -1,0 +1,489 @@
+<?xml version="1.0"?>
+<!--
+ * Copyright (C) 2013 The Android Open Source Project
+ *
+ * Licensed under the Apache License, version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<sdk:sdk-repository
+    xmlns:sdk="http://schemas.android.com/sdk/android/repository/10">
+
+    <!-- Define a couple of licenses. These will be referenced by uses-license later. -->
+
+    <sdk:license type="text" id="license1">
+        This is the license
+        for this platform.
+    </sdk:license>
+
+    <sdk:license id="license2">
+        Licenses are only of type 'text' right now, so this is implied.
+    </sdk:license>
+
+    <!-- Inner elements must be either platform, add-on, doc or tool.
+         There can be 0 or more of each, in any order. -->
+
+    <sdk:platform>
+        <sdk:list-display>The first Android platform ever</sdk:list-display>
+        <sdk:version>1.0</sdk:version>
+        <sdk:api-level>1</sdk:api-level>
+        <sdk:revision>3</sdk:revision>
+        <sdk:uses-license ref="license1" />
+        <sdk:description>Some optional description</sdk:description>
+        <sdk:desc-url>http://www.example.com/platform1.html</sdk:desc-url>
+        <sdk:release-note>This is an optional release note
+            for this package. It's a free multi-line text.
+        </sdk:release-note>
+        <sdk:release-url>http://some/url/for/the/release/note.html</sdk:release-url>
+        <sdk:min-tools-rev>
+            <sdk:major>2</sdk:major>
+            <!-- minor is missing and equivalent to 0 -->
+            <sdk:micro>1</sdk:micro>
+        </sdk:min-tools-rev>
+        <!-- The archives node is mandatory and it cannot be empty. -->
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>http://www.example.com/files/plat1.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+        <sdk:layoutlib>
+            <sdk:api>5</sdk:api>
+            <sdk:revision>0</sdk:revision>
+        </sdk:layoutlib>
+        <sdk:included-abi>armeabi</sdk:included-abi>
+    </sdk:platform>
+
+    <sdk:doc>
+        <sdk:list-display>Doc for first platform</sdk:list-display>
+        <sdk:api-level>1</sdk:api-level>
+        <sdk:revision>1</sdk:revision>
+        <!-- the license element is not mandatory. -->
+        <sdk:description>Some optional description</sdk:description>
+        <sdk:desc-url>http://www.example.com/docs.html</sdk:desc-url>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>http://www.example.com/docs/docs1.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:doc>
+
+    <sdk:source>
+        <sdk:list-display>Sources for first platform</sdk:list-display>
+        <sdk:api-level>1</sdk:api-level>
+        <sdk:revision>1</sdk:revision>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>65535</sdk:size>
+                <sdk:checksum type="sha1">1234ae37115ebf13412bbef91339ee0d94541234</sdk:checksum>
+                <sdk:url>http://www.example.com/plat1/sources1.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:source>
+
+    <sdk:platform>
+        <sdk:version>1.1</sdk:version>
+        <sdk:api-level>2</sdk:api-level>
+        <sdk:revision>12</sdk:revision>
+        <sdk:uses-license ref="license1" />
+        <!-- sdk:description and sdk:desc-url are optional -->
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:host-bits>32</sdk:host-bits>
+                <sdk:jvm-bits>32</sdk:jvm-bits>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d94545251</sdk:checksum>
+                <sdk:url>distrib/platform-2-12-win32.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:host-bits>64</sdk:host-bits>
+                <sdk:jvm-bits>32</sdk:jvm-bits>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d94545252</sdk:checksum>
+                <sdk:url>distrib/platform-2-12-win32+64.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:host-bits>64</sdk:host-bits>
+                <sdk:jvm-bits>64</sdk:jvm-bits>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d94545253</sdk:checksum>
+                <sdk:url>distrib/platform-2-12-win64.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:host-bits>64</sdk:host-bits>
+                <sdk:jvm-bits>64</sdk:jvm-bits>
+                <sdk:min-jvm-version>1.6</sdk:min-jvm-version>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d94545254</sdk:checksum>
+                <sdk:url>distrib/platform-2-12-win64-jvm6.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:host-bits>64</sdk:host-bits>
+                <sdk:jvm-bits>64</sdk:jvm-bits>
+                <sdk:min-jvm-version>1.7</sdk:min-jvm-version>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d94545255</sdk:checksum>
+                <sdk:url>distrib/platform-2-12-win64-jvm7.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>macosx</sdk:host-os>
+                <sdk:min-jvm-version>1.6</sdk:min-jvm-version>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d94545256</sdk:checksum>
+                <sdk:url>distrib/platform-2-12-mac.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>linux</sdk:host-os>
+                <sdk:host-bits>32</sdk:host-bits>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d94545257</sdk:checksum>
+                <sdk:url>distrib/platform-2-12-linux.tar.bz2</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>linux</sdk:host-os>
+                <sdk:host-bits>64</sdk:host-bits>
+                <sdk:min-jvm-version>1.7</sdk:min-jvm-version>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d94545258</sdk:checksum>
+                <sdk:url>distrib/platform-2-12-linux.tar.bz2</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+        <sdk:layoutlib>
+            <sdk:api>5</sdk:api>
+            <sdk:revision>31415</sdk:revision>
+        </sdk:layoutlib>
+        <sdk:included-abi>x86</sdk:included-abi>
+    </sdk:platform>
+
+    <sdk:source>
+        <sdk:api-level>2</sdk:api-level>
+        <sdk:revision>2</sdk:revision>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>65534</sdk:size>
+                <sdk:checksum type="sha1">1234ae37115ebf13412bbef91339ee0d94541234</sdk:checksum>
+                <sdk:url>http://www.example.com/plat1/sources2.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:source>
+
+   <sdk:platform>
+        <sdk:version>Pastry</sdk:version>
+        <sdk:api-level>5</sdk:api-level>
+        <sdk:codename>Pastry</sdk:codename>
+        <sdk:revision>3</sdk:revision>
+        <sdk:uses-license ref="license1" />
+        <sdk:description>Preview version for Pastry</sdk:description>
+        <sdk:desc-url>http://www.example.com/platform1.html</sdk:desc-url>
+        <!-- The archives node is mandatory and it cannot be empty. -->
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>http://www.example.com/files/plat1.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+        <sdk:layoutlib>
+            <sdk:api>1</sdk:api>
+        </sdk:layoutlib>
+    </sdk:platform>
+
+    <sdk:tool>
+        <sdk:list-display>Tools in version 1.2.3.4</sdk:list-display>
+        <sdk:revision>
+            <sdk:major>1</sdk:major>
+            <sdk:minor>2</sdk:minor>
+            <sdk:micro>3</sdk:micro>
+            <sdk:preview>4</sdk:preview>
+        </sdk:revision>
+        <sdk:description>Some optional description</sdk:description>
+        <sdk:desc-url>http://www.example.com/tools.html</sdk:desc-url>
+        <sdk:uses-license ref="license1" />
+        <sdk:min-platform-tools-rev>
+            <sdk:major>4</sdk:major>
+        </sdk:min-platform-tools-rev>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>http://www.example.com/files/tools1.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:tool>
+
+    <sdk:build-tool>
+        <sdk:list-display>Build tools v3 (preview 5)</sdk:list-display>
+        <sdk:revision>
+            <sdk:major>3</sdk:major>
+            <sdk:minor>0</sdk:minor>
+            <sdk:micro>0</sdk:micro>
+            <sdk:preview>5</sdk:preview>
+        </sdk:revision>
+        <sdk:uses-license ref="license1" />
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b122ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools/2.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>linux</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b222ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools2-linux.tar.bz2</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>macosx</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b322ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools2-mac.tar.bz2</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:build-tool>
+
+    <sdk:build-tool>
+        <sdk:revision>
+            <sdk:major>3</sdk:major>
+            <sdk:minor>0</sdk:minor>
+            <sdk:micro>1</sdk:micro>
+        </sdk:revision>
+        <sdk:uses-license ref="license1" />
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b122ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools/2.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>linux</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b222ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools2-linux.tar.bz2</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>macosx</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b322ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools2-mac.tar.bz2</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:build-tool>
+
+    <sdk:doc>
+        <sdk:api-level>2</sdk:api-level>
+        <sdk:revision>42</sdk:revision>
+        <sdk:uses-license ref="license2" />
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/docs/2.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>linux</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/docs2-linux.tar.bz2</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>macosx</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/docs2-mac.tar.bz2</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:doc>
+
+    <sdk:tool>
+        <sdk:revision>
+            <sdk:major>42</sdk:major>
+        </sdk:revision>
+        <sdk:uses-license ref="license1" />
+        <sdk:min-platform-tools-rev>
+            <sdk:major>4</sdk:major>
+            <sdk:minor>0</sdk:minor>
+            <sdk:micro>0</sdk:micro>
+            <sdk:preview>5</sdk:preview>
+        </sdk:min-platform-tools-rev>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/tools/2.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>linux</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/tools2-linux.tar.bz2</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>macosx</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/tools2-mac.tar.bz2</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:tool>
+
+    <sdk:platform-tool>
+        <sdk:revision>
+            <sdk:major>3</sdk:major>
+            <sdk:minor>0</sdk:minor>
+            <sdk:micro>0</sdk:micro>
+            <sdk:preview>5</sdk:preview>
+        </sdk:revision>
+        <sdk:uses-license ref="license1" />
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">3822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/platform-tools/2.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>linux</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">3822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/platform-tools2-linux.tar.bz2</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>macosx</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">3822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/platform-tools2-mac.tar.bz2</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:platform-tool>
+
+    <sdk:build-tool>
+        <sdk:revision>
+            <sdk:major>3</sdk:major>
+            <sdk:minor>0</sdk:minor>
+            <sdk:micro>0</sdk:micro>
+        </sdk:revision>
+        <sdk:uses-license ref="license1" />
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b122ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools/3.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>linux</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b222ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools3-linux.tar.bz2</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>macosx</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b322ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools3-mac.tar.bz2</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:build-tool>
+
+    <sdk:sample>
+        <sdk:list-display>Samples from Android 14</sdk:list-display>
+        <sdk:api-level>14</sdk:api-level>
+        <sdk:revision>24</sdk:revision>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>65537</sdk:size>
+                <sdk:checksum type="sha1">3822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/sample_duff.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+        <sdk:description>Some sample package</sdk:description>
+        <sdk:desc-url>http://www.example.com/sample.html</sdk:desc-url>
+        <sdk:min-tools-rev>
+            <sdk:major>5</sdk:major>
+        </sdk:min-tools-rev>
+        <sdk:obsolete>This is obsolete</sdk:obsolete>
+    </sdk:sample>
+
+    <sdk:sample>
+        <sdk:api-level>14</sdk:api-level>
+        <sdk:revision>25</sdk:revision>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>65537</sdk:size>
+                <sdk:checksum type="sha1">3822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/sample_duff.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+        <sdk:description>Some sample package</sdk:description>
+        <sdk:desc-url>http://www.example.com/sample.html</sdk:desc-url>
+        <sdk:min-tools-rev>
+            <sdk:major>5</sdk:major>
+            <sdk:minor>1</sdk:minor>
+            <sdk:micro>2</sdk:micro>
+            <sdk:preview>3</sdk:preview>
+        </sdk:min-tools-rev>
+        <sdk:obsolete>This is obsolete</sdk:obsolete>
+    </sdk:sample>
+
+    <sdk:source>
+        <sdk:api-level>42</sdk:api-level>
+        <sdk:revision>12</sdk:revision>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>1234</sdk:size>
+                <sdk:checksum type="sha1">12345637115ebf13412bbef91339ee0d94541234</sdk:checksum>
+                <sdk:url>http://www.example.com/plat42/source12.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:source>
+
+    <sdk:build-tool>
+        <sdk:revision>
+            <sdk:major>12</sdk:major>
+            <sdk:minor>13</sdk:minor>
+            <sdk:micro>14</sdk:micro>
+        </sdk:revision>
+        <sdk:uses-license ref="license1" />
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b122ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools/12.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>linux</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b222ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools12-linux.tar.bz2</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>macosx</sdk:host-os>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">b322ae37115ebf13412bbef91339ee0d9454525b</sdk:checksum>
+                <sdk:url>distrib/build-tools12-mac.tar.bz2</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+    </sdk:build-tool>
+
+</sdk:sdk-repository>
