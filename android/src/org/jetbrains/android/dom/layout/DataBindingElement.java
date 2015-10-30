@@ -15,12 +15,11 @@
  */
 package org.jetbrains.android.dom.layout;
 
-import com.intellij.util.xml.DefinesXml;
-
-import java.util.List;
-
-@DefinesXml
-public interface Layout extends LayoutElement, DataBindingElement {
-  @SuppressWarnings("SpellCheckingInspection")
-  List<Data> getDatas();
+/**
+ * Marker interface with no methods, used to distinguish plain LayoutElements from those that are
+ * databiding-related, for now used in {@link org.jetbrains.android.dom.AndroidDomExtender} to
+ * avoid adding completion of tools namespace attributes that should be available on views but
+ * not on databiding tags.
+ */
+public interface DataBindingElement {
 }
