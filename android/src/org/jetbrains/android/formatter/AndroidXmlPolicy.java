@@ -1,6 +1,7 @@
 package org.jetbrains.android.formatter;
 
 import com.intellij.formatting.FormattingDocumentModel;
+import com.intellij.formatting.Indent;
 import com.intellij.formatting.WrapType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -83,5 +84,10 @@ public class AndroidXmlPolicy extends XmlPolicy {
   @Override
   public int getBlankLinesBeforeTag(XmlTag xmlTag) {
     return 1;
+  }
+
+  @Override
+  public Indent getTagEndIndent() {
+    return null;
   }
 }
