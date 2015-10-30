@@ -22,6 +22,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -32,6 +33,8 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Query;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -115,6 +118,21 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     return psiClass;
   }
 
+  /**
+   * Returns whether the given file is contained within the test sources
+   */
+  private static boolean isTestFile(@NotNull AndroidFacet facet, @Nullable VirtualFile file) {
+    if (file != null) {
+      for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentTestSourceProviders(facet)) {
+        if (sourceProvider.containsFile(file)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   @NotNull
   @Override
   public PsiReference[] createReferences(GenericDomValue<PsiClass> value, PsiElement element, ConvertContext context) {
@@ -134,6 +152,10 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
                                         : myExtendClassesNames;
     final boolean inModuleOnly = domElement.getAnnotation(CompleteNonModuleClass.class) == null;
 
+    AndroidFacet facet = AndroidFacet.getInstance(context);
+    // If the source XML file is contained within the test folders, we'll also allow to resolve test classes
+    boolean isTestFile = facet != null && isTestFile(facet, element.getContainingFile().getVirtualFile());
+
     List<PsiReference> result = new ArrayList<PsiReference>();
     final String[] nameParts = strValue.split("\\.");
     if (nameParts.length == 0) {
@@ -149,7 +171,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
       if (packageName.length() > 0) {
         offset += packageName.length();
         final TextRange range = new TextRange(offset - packageName.length(), offset);
-        result.add(new MyReference(element, range, basePackage, startsWithPoint, start, true, module, extendClassesNames, inModuleOnly));
+        result.add(
+          new MyReference(element, range, basePackage, startsWithPoint, start, true, module, extendClassesNames, inModuleOnly, isTestFile));
       }
       offset++;
     }
@@ -162,7 +185,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
         offset += s.length();
 
         final TextRange range = new TextRange(offset - s.length(), offset);
-        result.add(new MyReference(element, range, basePackage, startsWithPoint, start, false, module, extendClassesNames, inModuleOnly));
+        result.add(new MyReference(element, range, basePackage, startsWithPoint, start, false, module, extendClassesNames, inModuleOnly,
+                                   isTestFile));
       }
       offset++;
     }
@@ -258,6 +282,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     private final Module myModule;
     private final String[] myExtendsClasses;
     private final boolean myCompleteOnlyModuleClasses;
+    private final boolean myIncludeTests;
 
     public MyReference(PsiElement element,
                        TextRange range,
@@ -267,7 +292,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
                        boolean isPackage,
                        Module module,
                        String[] extendsClasses,
-                       boolean completeOnlyModuleClasses) {
+                       boolean completeOnlyModuleClasses,
+                       boolean includeTests) {
       super(element, range, true);
       myBasePackage = basePackage;
       myStartsWithPoint = startsWithPoint;
@@ -276,6 +302,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
       myModule = module;
       myExtendsClasses = extendsClasses;
       myCompleteOnlyModuleClasses = completeOnlyModuleClasses;
+      myIncludeTests = includeTests;
     }
 
     @Override
@@ -298,7 +325,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
         final PsiElement element = myIsPackage ?
                                    facade.findPackage(value) :
                                    facade.findClass(value, myModule != null
-                                                           ? myModule.getModuleWithDependenciesAndLibrariesScope(false)
+                                                           ? myModule.getModuleWithDependenciesAndLibrariesScope(myIncludeTests)
                                                            : myElement.getResolveScope());
 
         if (element != null) {
@@ -311,7 +338,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
         return myIsPackage ?
                facade.findPackage(absName) :
                facade.findClass(absName, myModule != null
-                                         ? myModule.getModuleWithDependenciesAndLibrariesScope(false)
+                                         ? myModule.getModuleWithDependenciesAndLibrariesScope(myIncludeTests)
                                          : myElement.getResolveScope());
       }
       return null;
