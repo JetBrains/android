@@ -34,6 +34,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -45,6 +46,7 @@ import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,6 +64,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected AndroidFacet myFacet;
 
   private List<String> myAllowedRoots = new ArrayList<String>();
+  private boolean myUseCustomSettings;
 
   public AndroidTestCase(boolean createManifest) {
     this.myCreateManifest = createManifest;
@@ -140,6 +143,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ArrayList<String> allowedRoots = new ArrayList<String>();
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, myTestRootDisposable);
+    myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
+    getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
+
   }
 
   protected void collectAllowedRoots(List<String> roots) throws IOException {
@@ -246,6 +252,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       myFixture.tearDown();
       myFixture = null;
       myFacet = null;
+      getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
       if (RenderSecurityManager.RESTRICT_READS) {
         RenderSecurityManager.sEnabled = true;
       }
@@ -253,6 +260,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     finally {
       super.tearDown();
     }
+  }
+
+  protected AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
+    return AndroidXmlCodeStyleSettings.getInstance(CodeStyleSchemes.getInstance().getDefaultScheme().getCodeStyleSettings());
   }
 
   public static AndroidFacet addAndroidFacet(Module module, String sdkPath, String platformDir) {
