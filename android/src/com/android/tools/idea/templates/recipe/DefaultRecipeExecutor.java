@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
+import com.google.common.base.Joiner;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonPolicy;
 import com.intellij.openapi.editor.Document;
@@ -299,13 +300,6 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   private void mergeDependenciesIntoGradle() throws Exception {
     File gradleBuildFile = GradleUtil.getGradleBuildFilePath(myContext.getModuleRoot());
 
-    File templateRootFolder = TemplateManager.getTemplateRootFolder();
-    assert templateRootFolder != null;
-
-    String templateRoot = templateRootFolder.getPath();
-    File gradleTemplate = new File(templateRoot, FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
-    myContext.getParamMap().put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, myContext.getDependencies());
-    String contents = processFreemarkerTemplate(myContext, gradleTemplate, null);
     String destinationContents = null;
     if (gradleBuildFile.exists()) {
       destinationContents = readTextFile(gradleBuildFile);
@@ -314,9 +308,19 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       destinationContents = "";
     }
     String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
-    String result = GradleFileMerger.mergeGradleFiles(contents, destinationContents, myContext.getProject(), compileSdkVersion);
+    String result = GradleFileMerger.mergeGradleFiles(formatDependencies(), destinationContents, myContext.getProject(), compileSdkVersion);
     myIO.writeFile(this, result, gradleBuildFile);
     myNeedsGradleSync = true;
+  }
+
+  private String formatDependencies() {
+    StringBuilder dependencies = new StringBuilder();
+    dependencies.append("dependencies {\n");
+    for (String dependency : myContext.getDependencies()) {
+      dependencies.append("  compile '").append(dependency).append("'\n");
+    }
+    dependencies.append("}\n");
+    return dependencies.toString();
   }
 
   /**
