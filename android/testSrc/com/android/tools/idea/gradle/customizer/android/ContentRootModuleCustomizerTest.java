@@ -68,10 +68,14 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    if (myAndroidProject != null) {
-      myAndroidProject.dispose();
+    try {
+      if (myAndroidProject != null) {
+        myAndroidProject.dispose();
+      }
     }
-    super.tearDown();
+    finally {
+      super.tearDown();
+    }
   }
 
   private void addContentEntry() {
@@ -91,7 +95,6 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   }
 
   public void testCustomizeModule() throws Exception {
-
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
       myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
@@ -118,7 +121,6 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     ContentRootSourcePaths expectedPaths = new ContentRootSourcePaths();
     expectedPaths.storeExpectedSourcePaths(myAndroidProject);
-
 
     List<String> allExpectedPaths = Lists.newArrayList();
     allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.SOURCE));

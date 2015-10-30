@@ -49,9 +49,9 @@ import java.util.concurrent.CountDownLatch;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
-import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.util.ArrayUtil.contains;
@@ -60,6 +60,9 @@ import static com.intellij.util.ArrayUtil.contains;
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class AndroidGradleModel implements AndroidModel, Serializable {
+  public static final String EXPLODED_BUNDLES = "exploded-bundles";
+  public static final String EXPLODED_AAR = "exploded-aar";
+
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
   private static final Logger LOG = Logger.getInstance(AndroidGradleModel.class);
@@ -700,45 +703,39 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     myExtraGeneratedSourceFolders.add(folderPath);
   }
 
-  /**
-   * Indicates whether the given path should be manually excluded in the IDE, to minimize file indexing.
-   * <p>
-   * This method returns {@code false} if:
-   * <ul>
-   *   <li>the given path does not belong to a folder</li>
-   *   <li>the path belongs to the "generated sources" root folder (${buildDir}/generated)</li>
-   *   <li>the path belongs to the standard output folders (${buildDir}/intermediates and ${buildDir}/outputs)</li>
-   *   <li>or if the path belongs to a generated source folder that has been placed at the wrong location (e.g. by a 3rd-party Gradle
-   *   plug-in)</li>
-   * </ul>
-   * </p>
-   *
-   * @param path the given path
-   * @return {@code true} if the path should be manually excluded in the IDE, {@code false otherwise}.
-   */
-  public boolean shouldManuallyExclude(@NotNull File path) {
-    if (!path.isDirectory()) {
-      return false;
-    }
-    String name = path.getName();
-    if (FD_INTERMEDIATES.equals(name) || EXCLUDED_OUTPUT_FOLDER_NAMES.contains(name)) {
-      // already excluded.
-      return false;
-    }
-    boolean hasGeneratedFolders = FD_GENERATED.equals(name) || containsExtraGeneratedSourceFolder(path);
-    return !hasGeneratedFolders;
-  }
+  @NotNull
+  public List<File> getExcludedFolderPaths() {
+    File buildFolderPath = getAndroidProject().getBuildFolder();
+    List<File> excludedFolderPaths = Lists.newArrayList();
 
-  private boolean containsExtraGeneratedSourceFolder(@NotNull File folderPath) {
-    if (!folderPath.isDirectory()) {
-      return false;
-    }
-    for (File generatedSourceFolder : myExtraGeneratedSourceFolders) {
-      if (FileUtil.isAncestor(folderPath, generatedSourceFolder, false)) {
-        return true;
+    if (buildFolderPath.isDirectory()) {
+      for (File folderPath : notNullize(buildFolderPath.listFiles())) {
+        String folderName = folderPath.getName();
+        if (folderName.equals(FD_INTERMEDIATES) || folderName.equals(FD_GENERATED)) {
+          // Folders 'intermediates' and 'generated' are never excluded (some children of 'intermediates' are excluded though.)
+          continue;
+        }
+        excludedFolderPaths.add(folderPath);
+      }
+      File intermediates = new File(buildFolderPath, FD_INTERMEDIATES);
+      if (intermediates.isDirectory()) {
+        for (File folderPath : notNullize(intermediates.listFiles())) {
+          String folderName = folderPath.getName();
+          // 'exploded-aar' is the new name of 'exploded-bundles' in plugin version 0.8.2+.
+          if (folderName.equals(EXPLODED_AAR) || folderName.equals(EXPLODED_BUNDLES) || folderName.equals("manifest")) {
+            continue;
+          }
+          excludedFolderPaths.add(folderPath);
+        }
       }
     }
-    return false;
+    else {
+      // We know these folders have to be always excluded
+      excludedFolderPaths.add(new File(buildFolderPath, FD_OUTPUTS));
+      excludedFolderPaths.add(new File(buildFolderPath, "tmp"));
+    }
+
+    return excludedFolderPaths;
   }
 
   /**

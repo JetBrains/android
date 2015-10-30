@@ -50,7 +50,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlElement;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
 import com.intellij.refactoring.rename.RenameJavaVariableProcessor;
@@ -64,7 +67,6 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceElement;
-import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
@@ -83,8 +85,8 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.DECLARE_STYLEABLE;
 import static com.android.resources.ResourceType.STYLEABLE;
-import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
-import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_BUNDLES;
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_BUNDLES;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -672,7 +674,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     return null;
   }
 
-  /** Writes into the given {@link com.android.utils.HtmlBuilder} a set of references
+  /** Writes into the given {@link HtmlBuilder} a set of references
    * that are defined in a library (and may or may not also be defined locally) */
   private static void appendUnhandledReferences(@NotNull Project project,
                                                 @NotNull AndroidFacet facet,
