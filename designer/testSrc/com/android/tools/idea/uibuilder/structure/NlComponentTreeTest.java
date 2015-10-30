@@ -51,6 +51,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     when(myScreen.getModel()).thenReturn(myModel);
     when(myScreen.getSelectionModel()).thenReturn(myModel.getSelectionModel());
     when(mySurface.getCurrentScreenView()).thenReturn(myScreen);
+    when(mySurface.getProject()).thenReturn(getProject());
     myTree = new NlComponentTree(mySurface);
   }
 

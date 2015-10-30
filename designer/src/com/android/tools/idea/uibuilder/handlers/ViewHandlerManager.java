@@ -91,6 +91,26 @@ public class ViewHandlerManager implements ProjectComponent {
   }
 
   /**
+   * Gets the {@link ViewHandler} associated with a given component.
+   * If there is no custom handler found returns an instance of {@link TextViewHandler}.
+   */
+  @NonNull
+  public ViewHandler getHandlerOrDefault(@NonNull NlComponent component) {
+    ViewHandler handler = getHandler(component);
+    return handler != null ? handler : NONE;
+  }
+
+  /**
+   * Gets the {@link ViewHandler} associated with the given XML tag.
+   * If there is no custom handler found returns an instance of {@link TextViewHandler}.
+   */
+  @NonNull
+  public ViewHandler getHandlerOrDefault(@NonNull String viewTag) {
+    ViewHandler handler = getHandler(viewTag);
+    return handler != null ? handler : NONE;
+  }
+
+  /**
    * Gets the {@link ViewHandler} associated with the given XML tag, if any
    *
    * @param viewTag the tag to look up

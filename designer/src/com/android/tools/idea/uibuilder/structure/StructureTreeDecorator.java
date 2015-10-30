@@ -15,35 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.palette.NlPaletteItem;
-import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
-import icons.AndroidIcons;
-
-import javax.swing.*;
-
-import static com.android.SdkConstants.*;
 
 public class StructureTreeDecorator {
-  private final NlPaletteModel myPaletteModel;
+  private final ViewHandlerManager myViewHandlerManager;
 
-  private static StructureTreeDecorator ourInstance;
-
-  @NonNull
-  public static StructureTreeDecorator get() {
-    if (ourInstance == null) {
-      ourInstance = new StructureTreeDecorator();
-    }
-    return ourInstance;
-  }
-
-  private StructureTreeDecorator() {
-    myPaletteModel = NlPaletteModel.get();
+  public StructureTreeDecorator(@NonNull Project project) {
+    myViewHandlerManager = ViewHandlerManager.get(project);
   }
 
   public void decorate(@NonNull NlComponent component, @NonNull SimpleColoredComponent renderer, boolean full) {
@@ -51,90 +38,33 @@ public class StructureTreeDecorator {
     id = LintUtils.stripIdPrefix(id);
     id = StringUtil.nullize(id);
 
-    String tagName = component.getTagName();
-    NlPaletteItem item = myPaletteModel.getItemByTagName(component.getTagName());
-    if (item == null) {
-      item = myPaletteModel.getItemByTagName(VIEW_TAG);
-    }
-    String type = null;
-    if (item != null) {
-      type = item.getStructureTitle();
-
-      // Don't display <Fragment> etc for special XML tags like <requestFocus>
-      if (tagName.equals(VIEW_INCLUDE) ||
-          tagName.equals(VIEW_MERGE) ||
-          tagName.equals(VIEW_FRAGMENT) ||
-          tagName.equals(REQUEST_FOCUS)) {
-        type = null;
-      }
-    }
+    ViewHandler handler = myViewHandlerManager.getHandlerOrDefault(component);
+    String title = handler.getTitle(component);
+    String attrs = handler.getTitleAttributes(component);
 
     if (id != null) {
       renderer.append(id, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
     }
 
-    if (id == null && type == null)  {
-      type = tagName;
+    if (component.isRoot()) {
+      String shownIn = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_SHOW_IN);
+      if (shownIn != null) {
+        title = "Shown in " + shownIn;
+      }
     }
 
-    //todo: Add this special case later:
-    // For the root node, show the including layout when rendering in included contexts
-    //if (ROOT_NODE_TAG.equals(tagName)) {
-    //  IncludeReference includeContext = component.getClientProperty(ATTR_RENDER_IN);
-    //  if (includeContext != null && includeContext != IncludeReference.NONE) {
-    //    type = "Shown in " + includeContext.getFromResourceUrl();
-    //  }
-    //}
-
-    // Don't display the type if it's obvious from the id (e.g.
+    // Don't display the type title if it's obvious from the id (e.g.
     // if the id is button1, don't display (Button) as the type)
-    if (type != null && (id == null || !StringUtil.startsWithIgnoreCase(id, type))) {
-      renderer.append(id != null ? String.format(" (%1$s)", type) : type, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    if (id == null || !StringUtil.startsWithIgnoreCase(id, title)) {
+      renderer.append(id != null ? " (" + title + ")" : title, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
 
-    // Display typical arguments
-    StringBuilder fullTitle = new StringBuilder();
-    if (item != null && item.getStructureFormat() != null) {
-      String format = item.getStructureFormat();
-      int start = format.indexOf('%');
-      if (start != -1) {
-        int end = format.indexOf('%', start + 1);
-        if (end != -1) {
-          String variable = format.substring(start + 1, end);
-
-          String value = component.getAttribute(ANDROID_URI, variable);
-          if (!StringUtil.isEmpty(value)) {
-            value = StringUtil.shortenTextWithEllipsis(value, 30, 5);
-          }
-
-          if (!StringUtil.isEmpty(value)) {
-            String prefix = format.substring(0, start);
-            String suffix = format.substring(end + 1);
-            if ((value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF))
-                && prefix.length() > 0 && suffix.length() > 0 &&
-                prefix.charAt(prefix.length() - 1) == '"' &&
-                suffix.charAt(0) == '"') {
-              // If the value is a resource, don't surround it with quotes
-              prefix = prefix.substring(0, prefix.length() - 1);
-              suffix = suffix.substring(1);
-            }
-            fullTitle.append(prefix).append(value).append(suffix);
-          }
-        }
-      }
+    if (!StringUtil.isEmpty(attrs)) {
+      renderer.append(String.format(" %1$s", attrs), SimpleTextAttributes.GRAYED_ATTRIBUTES);
     }
 
-    if (fullTitle.length() > 0) {
-      renderer.append(fullTitle.toString(), SimpleTextAttributes.GRAY_ATTRIBUTES);
-    }
-
-    if (full && item != null) {
-      //todo: Annotate icons with lint warnings or errors, if applicable
-      Icon icon = item.getIcon();
-      if (tagName.equals(LINEAR_LAYOUT) && VALUE_VERTICAL.equals(component.getAttribute(ANDROID_URI, ATTR_ORIENTATION))) {
-        icon = AndroidIcons.Views.VerticalLinearLayout;
-      }
-      renderer.setIcon(icon);
+    if (full) {
+      renderer.setIcon(handler.getIcon(component));
     }
   }
 }

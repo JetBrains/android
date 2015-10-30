@@ -16,212 +16,122 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.intellij.openapi.diagnostic.Logger;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.PathUtil;
+import com.intellij.util.containers.HashSet;
 
-import java.io.InputStream;
-import java.util.*;
+import javax.xml.bind.JAXBException;
+import java.io.*;
+import java.util.List;
+import java.util.Set;
 
 public class NlPaletteModel {
-  private static final Logger LOG = Logger.getInstance(NlPaletteModel.class);
+  public static final String ANDROID_PALETTE = "android-palette";
+  public static final String PALETTE_VERSION = "v1";
+  public static final String METADATA = "palette.xml";
 
-  private static final String METADATA = "palette.xml";
-
-  private static final String ELEM_ITEM = "item";
-  private static final String ELEM_PALETTE = "palette";
-  private static final String ELEM_CREATION = "creation";
-  private static final String ELEM_PRESENTATION = "presentation";
-
-  private static final String ATTR_TAG = "tag";
-  private static final String ATTR_ID = "id";
-  private static final String ATTR_NAME = "name";
-  private static final String ATTR_TITLE = "title";
-  private static final String ATTR_TOOLTIP = "tooltip";
-  private static final String ATTR_ICON = "icon";
-  private static final String ATTR_LIBRARY = "library";
-
-  private final List<NlPaletteGroup> myGroups;
-  private final Map<String, NlPaletteItem> myTag2Item;
+  private final Project myProject;
   private final Set<String> myLibrariesUsed;
-  private static NlPaletteModel ourInstance;
 
-  @NonNull
-  public static NlPaletteModel get() {
-    if (ourInstance == null) {
-      ourInstance = new NlPaletteModel();
-      ourInstance.loadPalette();
+  private Palette myPalette;
+
+  public static NlPaletteModel get(@NonNull Project project) {
+    return project.getComponent(NlPaletteModel.class);
+  }
+
+  /**
+   * Use the {@link #get} method for getting a {@link NlPaletteModel} instance.<br>
+   * This constructor is meant to be used by Intellij's plugin injector. It is not meant for normal use of this class.
+   */
+  public NlPaletteModel(@NonNull Project project) {
+    myProject = project;
+    myLibrariesUsed = new HashSet<String>();
+  }
+
+  public Palette getPalette() {
+    if (myPalette == null) {
+      loadPalette();
     }
-    return ourInstance;
+    return myPalette;
   }
 
-  @NonNull
-  public List<NlPaletteGroup> getGroups() {
-    return myGroups;
-  }
-
-  @NonNull
   public Set<String> getLibrariesUsed() {
     return myLibrariesUsed;
   }
 
-  @Nullable
-  public NlPaletteItem getItemByTagName(@NonNull String tagName) {
-    return myTag2Item.get(tagName);
-  }
-
-  @VisibleForTesting
-  NlPaletteModel() {
-    myGroups = new ArrayList<NlPaletteGroup>();
-    myTag2Item = new HashMap<String, NlPaletteItem>();
-    myLibrariesUsed = new HashSet<String>();
-  }
-
   private void loadPalette() {
-    Document document = loadDocument(METADATA);
-    if (document != null) {
-      loadPalette(document);
-    }
-  }
-
-  @Nullable
-  private Document loadDocument(String metadata) {
     try {
-      InputStream stream = getClass().getResourceAsStream(metadata);
-      Document document = new SAXBuilder().build(stream);
-      stream.close();
-      return document;
+      File file = getPaletteFile(METADATA);
+      Reader reader = new InputStreamReader(new FileInputStream(file));
+      try {
+        loadPalette(reader);
+      }
+      finally {
+        reader.close();
+      }
     }
-    catch (Throwable e) {
-      LOG.error(e);
-      return null;
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    catch (JAXBException e) {
+      throw new RuntimeException(e);
     }
   }
 
   @VisibleForTesting
-  void loadPalette(@NonNull Document document) {
-    ModelLoader loader = new ModelLoader();
-    loader.loadPalette(document);
+  void loadPalette(@NonNull Reader reader) throws IOException, JAXBException {
+    ViewHandlerManager manager = ViewHandlerManager.get(myProject);
+    myLibrariesUsed.clear();
+    myPalette = Palette.parse(reader, manager);
+    findLibrariesUsed(myPalette.getItems());
   }
 
-  private class ModelLoader {
-
-    @VisibleForTesting
-    void loadPalette(@NonNull Document document) {
-      loadModels(document);
-      Element palette = document.getRootElement().getChild(ELEM_PALETTE);
-      if (palette == null) {
-        LOG.warn("Missing palette tag");
-        return;
-      }
-      for (Element groupElement : palette.getChildren()) {
-        NlPaletteGroup group = loadGroup(groupElement);
-        if (group != null) {
-          myGroups.add(group);
-        }
-      }
+  private static File getPaletteFile(@NonNull String metadata) throws IOException {
+    String path = FileUtil.toCanonicalPath(PathManager.getSystemPath());
+    // @formatter:off
+    //noinspection StringBufferReplaceableByString
+    File paletteFile = new File(new StringBuilder()
+                                    .append(path).append(File.separator)
+                                    .append(ANDROID_PALETTE).append(File.separator)
+                                    .append(PALETTE_VERSION).append(File.separator)
+                                    .append(METADATA).toString());
+    // @formatter:on
+    if (!paletteFile.exists()) {
+      copyPredefinedPalette(paletteFile, metadata);
     }
+    return paletteFile;
+  }
 
-    @Nullable
-    private NlPaletteGroup loadGroup(@NonNull Element groupElement) {
-      String name = groupElement.getAttributeValue(ATTR_NAME);
-      if (name == null) {
-        LOG.warn("Group element without a name");
-        return null;
-      }
-      NlPaletteGroup group = new NlPaletteGroup(name);
-      for (Element itemElement : groupElement.getChildren(ELEM_ITEM)) {
-        String tag = itemElement.getAttributeValue(ATTR_TAG);
-        if (tag == null) {
-          LOG.warn(String.format("Item without a tag for group: %s", name));
-          continue;
-        }
-        NlPaletteItem base = myTag2Item.get(tag);
-        if (base == null) {
-          LOG.warn(String.format("Model not found for group: %s with tag: %s", name, tag));
-          continue;
-        }
-        NlPaletteItem item = loadItem(tag, itemElement, null, base);
-        if (item == null) {
-          continue;
-        }
-        group.add(item);
-        myLibrariesUsed.addAll(item.getLibraries());
-        for (Element subItemElement : itemElement.getChildren(ELEM_ITEM)) {
-          NlPaletteItem subItem = loadItem(tag, subItemElement, null, item);
-          if (subItem == null) {
-            continue;
-          }
-          group.add(subItem);
-        }
-      }
-      return group;
+  private static void copyPredefinedPalette(@NonNull File paletteFile, @NonNull String metadata) throws IOException {
+    InputStream stream = NlPaletteModel.class.getResourceAsStream(metadata);
+    File folder = paletteFile.getParentFile();
+    if (!folder.isDirectory() && !folder.mkdirs()) {
+      throw new IOException("Could not create directory: " + folder);
     }
-
-    @Nullable
-    private NlPaletteItem loadItem(@NonNull String tagName, @NonNull Element itemElement, @Nullable Element modelElement,
-                                   @Nullable NlPaletteItem base) {
-      assert modelElement != null ^ base != null;
-      String title = getAttributeValue(itemElement, ATTR_TITLE, base != null ? base.getTitle() : "");
-      String tooltip = getAttributeValue(itemElement, ATTR_TOOLTIP, base != null ? base.getTooltip() : "");
-      String iconPath = getAttributeValue(itemElement, ATTR_ICON, base != null ? base.getIconPath() : "");
-      String id = getAttributeValue(itemElement, ATTR_ID, base != null ? base.getId() : "");
-      String libraries = base != null
-                         ? Joiner.on(",").join(base.getLibraries())
-                         : getAttributeValue(modelElement, ATTR_LIBRARY, "");
-      String creation = base != null
-                        ? getElementValue(itemElement, ELEM_CREATION, base.getRepresentation())
-                        : getElementValue(modelElement, ELEM_CREATION, "");
-      String structureTitle = base != null ? base.getStructureTitle() : title;
-      String format = base != null ? base.getStructureFormat() : getFormatValue(modelElement);
-      if (title.isEmpty()) {
-        LOG.warn(String.format("No title found for item with tag: %s", tagName));
-        return null;
-      }
-      if (creation.isEmpty()) {
-        creation = "<" + tagName +"/>";
-      }
-      if (id.isEmpty()) {
-        id = tagName;
-      }
-      return new NlPaletteItem(title, iconPath, tooltip, creation, id, libraries, structureTitle, format);
+    FileOutputStream output = new FileOutputStream(paletteFile);
+    try {
+      FileUtil.copy(stream, output);
     }
-
-    @NonNull
-    private String getAttributeValue(@NonNull Element itemElement, @NonNull String attributeName, @NonNull String defaultValue) {
-      String value = itemElement.getAttributeValue(attributeName);
-      return value != null ? value : defaultValue;
+    finally {
+      stream.close();
+      output.close();
     }
+  }
 
-    @Nullable
-    private String getFormatValue(@NonNull Element modelElement) {
-      Element presentationElement = modelElement.getChild(ELEM_PRESENTATION);
-      if (presentationElement == null) {
-        return null;
+  private void findLibrariesUsed(@NonNull List<Palette.BaseItem> items) {
+    for (Palette.BaseItem item : items) {
+      if (item instanceof Palette.Group) {
+        Palette.Group group = (Palette.Group) item;
+        findLibrariesUsed(group.getItems());
       }
-      return presentationElement.getAttributeValue(ATTR_TITLE);
-    }
-
-    @NonNull
-    private String getElementValue(@NonNull Element fromElement, @NonNull String tagName, @NonNull String defaultValue) {
-      Element element = fromElement.getChild(tagName);
-      return element != null ? element.getText() : defaultValue;
-    }
-
-    private void loadModels(@NonNull Document document) {
-      for (Element element : document.getRootElement().getChildren()) {
-        String tag = element.getAttributeValue(ATTR_TAG);
-        if (tag != null) {
-          Element paletteElement = element.getChild(ELEM_PALETTE);
-          if (paletteElement == null) {
-            LOG.warn(String.format("Palette not found on model with tag: %s", tag));
-          } else {
-            myTag2Item.put(tag, loadItem(tag, paletteElement, element, null));
-          }
+      else if (item instanceof Palette.Item) {
+        Palette.Item paletteItem = (Palette.Item) item;
+        if (paletteItem.getGradleCoordinate() != null) {
+          myLibrariesUsed.add(paletteItem.getGradleCoordinate());
         }
       }
     }
