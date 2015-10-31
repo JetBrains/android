@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ import static org.junit.Assert.assertNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
+@Ignore("Bug http://b.android.com/192130")
 public class GradleRenameModuleTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testRenameModule() throws IOException {
