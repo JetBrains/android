@@ -3,7 +3,7 @@
   "name": "Gingerbread",
   "version": "2.3",
   "apiLevel": 10,
-  "distributionPercentage": 0.029,
+  "distributionPercentage": 0.038,
   "url": "https://developer.android.com/about/versions/android-2.3.3.html",
   "descriptionBlocks" :[
                            {
@@ -25,7 +25,7 @@
   "name": "Ice Cream Sandwich",
   "version": "4.0",
   "apiLevel": 15,
-  "distributionPercentage": 0.035,
+  "distributionPercentage": 0.034,
   "url": "https://developer.android.com/about/versions/android-4.0.html",
   "descriptionBlocks" : [
                           {
@@ -74,7 +74,7 @@
   "name": "Jelly Bean",
   "version": "4.1",
   "apiLevel": 16,
-  "distributionPercentage": 0.116,
+  "distributionPercentage": 0.114,
   "url": "https://developer.android.com/about/versions/android-4.1.html",
   "descriptionBlocks" : [
                           {
@@ -123,7 +123,7 @@
   "name": "Jelly Bean",
   "version": "4.2",
   "apiLevel": 17,
-  "distributionPercentage": 0.146,
+  "distributionPercentage": 0.145,
   "url": "https://developer.android.com/about/versions/android-4.2.html",
   "descriptionBlocks" : [
                           {
@@ -213,7 +213,7 @@
   "name": "KitKat",
   "version": "4.4",
   "apiLevel": 19,
-  "distributionPercentage": 0.382,
+  "distributionPercentage": 0.389,
   "url": "https://developer.android.com/about/versions/android-4.4.html",
   "descriptionBlocks" : [
                             {
@@ -254,7 +254,7 @@
   "name": "Lollipop",
   "version": "5.0",
   "apiLevel": 21,
-  "distributionPercentage": 0.222,
+  "distributionPercentage": 0.156,
   "url": "https://developer.android.com/about/versions/android-5.0.html",
   "descriptionBlocks" : [
 
@@ -311,5 +311,26 @@
                                 "body": "Declarable required features<br>User permissions"
                             }
                         ]
+},
+{
+  "name": "Lollipop",
+  "version": "5.1",
+  "apiLevel": 21,
+  "distributionPercentage": 0.079,
+  "url": "http://developer.android.com/about/versions/android-5.1.html",
+  "descriptionBlocks" : [
+                            {
+                              "title": "Multiple SIM Card Support",
+                              "body": "Android 5.1 adds support for using more than one cellular carrier SIM card at a time.<br>This feature lets users activate and use additional SIMs on devices that have two or more SIM card slots."
+                            },
+                            {
+                              "title": "Deprecated HTTP Classes",
+                              "body": "The org.apache.http classes and the android.net.http.AndroidHttpClient class have been deprecated in Android 5.1. "
+                            },
+                            {
+                              "title": "Carrier Services",
+                              "body": "Android 5.1 provides support for telecommunication service providers to create apps that can perform carrier provisioning tasks on an Android device."
+                            }
+  ]
 }
 ]
