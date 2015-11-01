@@ -134,6 +134,22 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testBundleTest() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=78495
+    // Without this fix, the required API level for getString would be 21 instead of 12
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
+  public void testBundleTestOk() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=78495
+    // Checks that if the API level is higher than the base level, the error is filtered out
+    deleteManifest();
+    myFixture.copyFileToProject("formatter/xml/manifest1.xml", "AndroidManifest.xml");
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   public void testReflectiveOperationException() throws Exception {
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (sdkData == null || !ConfigureAndroidModuleStep.isJdk7Supported(sdkData)) {
