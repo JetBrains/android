@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.npw.WrapArchiveWizardPath;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
@@ -68,7 +67,7 @@ public class CreateModuleFromArchiveAction extends WriteCommandAction<Object> {
 
   @VisibleForTesting
   protected static String getBuildGradleText(File jarName) {
-    return String.format("configurations.create(\"default\")\n" + "artifacts.add(\"default\", file('%1$s'))", jarName.getName());
+    return String.format("configurations.maybeCreate(\"default\")\n" + "artifacts.add(\"default\", file('%1$s'))", jarName.getName());
   }
 
   private void addDependency(@NotNull Module module, String gradlePath) throws IOException {
