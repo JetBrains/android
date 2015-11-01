@@ -150,6 +150,12 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testAnonymousInherited() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=172621
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   public void testReflectiveOperationException() throws Exception {
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (sdkData == null || !ConfigureAndroidModuleStep.isJdk7Supported(sdkData)) {
