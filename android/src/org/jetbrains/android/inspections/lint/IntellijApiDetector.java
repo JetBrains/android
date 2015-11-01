@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.MethodSignatureUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.ast.AstVisitor;
@@ -635,7 +636,22 @@ public class IntellijApiDetector extends ApiDetector {
                 // If it's an unqualified call in an anonymous class, we need to rely on the
                 // resolve method to find out whether the method is picked up from the anonymous
                 // class chain or any outer classes
-                break;
+                boolean found = false;
+                PsiClassType anonymousBaseType = ((PsiAnonymousClass)cls).getBaseClassType();
+                PsiClass anonymousBase = anonymousBaseType.resolve();
+                if (anonymousBase != null && anonymousBase.isInheritor(containingClass, true)) {
+                  cls = anonymousBase;
+                  found = true;
+                } else {
+                  PsiClass surroundingBaseType = PsiTreeUtil.getParentOfType(cls, PsiClass.class, true);
+                  if (surroundingBaseType != null && surroundingBaseType.isInheritor(containingClass, true)) {
+                    cls = surroundingBaseType;
+                    found = true;
+                  }
+                }
+                if (!found) {
+                  break;
+                }
               }
               String expressionOwner = IntellijLintUtils.getInternalName(cls);
               if (expressionOwner == null) {
@@ -649,6 +665,11 @@ public class IntellijApiDetector extends ApiDetector {
               } else if (specificApi <= minSdk) {
                 return;
               } else {
+                if (specificApi < api) {
+                  api = specificApi;
+                  fqcn = expressionOwner.replace('/', '.');
+                }
+                api = Math.min(specificApi, api);
                 break;
               }
               cls = cls.getSuperClass();
