@@ -21,10 +21,12 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+
+import static com.intellij.openapi.util.text.StringUtil.decapitalize;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class JavaHeapSpaceErrorHandler extends AbstractSyncErrorHandler {
   @Override
@@ -58,12 +60,11 @@ public class JavaHeapSpaceErrorHandler extends AbstractSyncErrorHandler {
         if (!cause.endsWith(".")) {
           cause += ".";
         }
-        StringUtil.decapitalize(cause);
-        newMsg = firstLine + ": " + StringUtil.decapitalize(cause);
+        newMsg = firstLine + ": " + decapitalize(cause);
       }
     }
 
-    if (StringUtil.isNotEmpty(newMsg)) {
+    if (isNotEmpty(newMsg)) {
       List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
       newMsg += "\nPlease assign more memory to Gradle in the project's gradle.properties file.\n" +
                 "For example, the following line, in the gradle.properties file, sets the maximum Java heap size to 1,024 MB:\n" +
