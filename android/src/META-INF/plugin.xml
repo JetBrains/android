@@ -190,7 +190,7 @@
     </action>
     <action id="Android.TraceViewSearch" text="TraceView Search" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find"/>
     <action class="com.android.tools.idea.actions.ShowLicensesUsedAction" id="Android.ShowLicenses">
-      <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
+      <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="About" />
     </action>
     <action class="com.android.tools.idea.actions.AndroidShowThemeEditor" id="Android.ShowThemeEditor">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
