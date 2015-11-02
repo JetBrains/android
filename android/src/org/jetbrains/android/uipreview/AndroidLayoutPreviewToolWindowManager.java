@@ -684,13 +684,22 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
   @Nullable
   private TextEditor getActiveLayoutXmlEditor() {
-    FileEditor[] fileEditors = myFileEditorManager.getSelectedEditors();
-    if (fileEditors.length > 0 && fileEditors[0] instanceof TextEditor) {
-      final TextEditor textEditor = (TextEditor)fileEditors[0];
-      if (isApplicableEditor(textEditor)) {
-        return textEditor;
+    // selectedEditor will be the current active text editor. If we are in a split view, that means the one that currently has the caret.
+    Editor selectedEditor = myFileEditorManager.getSelectedTextEditor();
+    if (selectedEditor != null) {
+      // FileEditorManager.getSelectedEditors will return all the editors that are currently visible. If we have a split view, it will return
+      // all the editors in the split.
+      // We use selectedEditor to find the one that currently has the caret.
+      for (FileEditor fileEditor : myFileEditorManager.getSelectedEditors()) {
+        if (fileEditor instanceof TextEditor) {
+          TextEditor textEditor = (TextEditor)fileEditor;
+          if (isApplicableEditor(textEditor) && (textEditor.getEditor() == selectedEditor)) {
+            return (TextEditor)fileEditor;
+          }
+        }
       }
     }
+
     return null;
   }
 
