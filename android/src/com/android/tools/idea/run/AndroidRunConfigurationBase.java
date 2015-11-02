@@ -69,6 +69,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public boolean SKIP_NOOP_APK_INSTALLATIONS = true; // skip installation if the APK hasn't hasn't changed
   public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
 
+  private final NativeRunParameters myNativeRunParameters = new NativeRunParameters();
+
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
 
@@ -335,6 +337,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     for (DeployTargetState state : myDeployTargetStates.values()) {
       DefaultJDOMExternalizer.readExternal(state, element);
     }
+    myNativeRunParameters.readExternal(element);
   }
 
   @Override
@@ -346,9 +349,15 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     for (DeployTargetState state : myDeployTargetStates.values()) {
       DefaultJDOMExternalizer.writeExternal(state, element);
     }
+    myNativeRunParameters.writeExternal(element);
   }
 
   public boolean usesSimpleLauncher() {
     return true;
+  }
+
+  @NotNull
+  public NativeRunParameters getNativeRunParameters() {
+    return myNativeRunParameters;
   }
 }
