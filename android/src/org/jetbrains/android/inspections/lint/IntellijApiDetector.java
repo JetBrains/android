@@ -602,6 +602,15 @@ public class IntellijApiDetector extends ApiDetector {
                   }
                 } else if (specificApi <= minSdk) {
                   return;
+                } else {
+                  // For example, for Bundle#getString(String,String) the API level is 12, whereas for
+                  // BaseBundle#getString(String,String) the API level is 21. If the code specified a Bundle instead of
+                  // a BaseBundle, reported the Bundle level in the error message instead.
+                  if (specificApi < api) {
+                    api = specificApi;
+                    fqcn = expressionOwner.replace('/', '.');
+                  }
+                  api = Math.min(specificApi, api);
                 }
               }
             }
