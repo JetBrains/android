@@ -16,8 +16,8 @@
 package org.jetbrains.android.dom.attrs;
 
 import com.android.resources.ResourceType;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.converters.LightFlagConverter;
@@ -29,9 +29,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static java.util.Collections.singletonList;
 
 /**
  * Class containing utility methods to handle XML attributes in the "tools" namespace.
@@ -45,28 +47,28 @@ public class ToolsAttributeUtil {
   private static final ResolvingConverter ACTION_BAR_MODE_FLAGS_CONVERTER = new LightFlagConverter("standard", "list", "tabs");
 
   /** List of all the tools namespace attributes and its attribute format */
-  private static final ImmutableMultimap<String, AttributeFormat> ATTRIBUTES = ImmutableMultimap.<String, AttributeFormat>builder()
-    .putAll("actionBarMode", AttributeFormat.Flag)
-    .putAll(ATTR_CONTEXT, AttributeFormat.Reference, AttributeFormat.String)
-    .putAll(ATTR_IGNORE, Collections.<AttributeFormat>emptyList())
-    .putAll("listfooter", AttributeFormat.Reference)
-    .putAll("listheader", AttributeFormat.Reference)
-    .putAll("listitem", AttributeFormat.Reference)
-    .putAll(ATTR_LAYOUT, AttributeFormat.Reference)
-    .putAll(ATTR_LOCALE, Collections.<AttributeFormat>emptyList())
-    .putAll("menu", Collections.<AttributeFormat>emptyList())
-    .putAll("showIn", AttributeFormat.Reference)
-    .putAll(ATTR_TARGET_API, Collections.<AttributeFormat>emptyList())
+  private static final ImmutableMap<String, List<AttributeFormat>> ATTRIBUTES = ImmutableMap.<String, List<AttributeFormat>>builder()
+    .put(ATTR_ACTION_BAR_NAV_MODE, singletonList(AttributeFormat.Flag))
+    .put(ATTR_CONTEXT, ImmutableList.of(AttributeFormat.Reference, AttributeFormat.String))
+    .put(ATTR_IGNORE, Collections.<AttributeFormat>emptyList())
+    .put(ATTR_LISTFOOTER, singletonList(AttributeFormat.Reference))
+    .put(ATTR_LISTHEADER, singletonList(AttributeFormat.Reference))
+    .put(ATTR_LISTITEM, singletonList(AttributeFormat.Reference))
+    .put(ATTR_LAYOUT, singletonList(AttributeFormat.Reference))
+    .put(ATTR_LOCALE, Collections.<AttributeFormat>emptyList())
+    .put(ATTR_MENU, Collections.<AttributeFormat>emptyList())
+    .put(ATTR_SHOW_IN, singletonList(AttributeFormat.Reference))
+    .put(ATTR_TARGET_API, Collections.<AttributeFormat>emptyList())
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, ResolvingConverter> CONVERTERS = ImmutableMap.<String, ResolvingConverter>builder()
-    .put("actionBarMode", ACTION_BAR_MODE_FLAGS_CONVERTER)
+    .put(ATTR_ACTION_BAR_NAV_MODE, ACTION_BAR_MODE_FLAGS_CONVERTER)
     .put(ATTR_CONTEXT, ACTIVITY_CLASS_CONVERTER)
-    .put("listfooter", LAYOUT_REFERENCE_CONVERTER)
-    .put("listheader", LAYOUT_REFERENCE_CONVERTER)
-    .put("listitem", LAYOUT_REFERENCE_CONVERTER)
+    .put(ATTR_LISTFOOTER, LAYOUT_REFERENCE_CONVERTER)
+    .put(ATTR_LISTHEADER, LAYOUT_REFERENCE_CONVERTER)
+    .put(ATTR_LISTITEM, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_LAYOUT, LAYOUT_REFERENCE_CONVERTER)
-    .put("showIn", LAYOUT_REFERENCE_CONVERTER)
+    .put(ATTR_SHOW_IN, LAYOUT_REFERENCE_CONVERTER)
     .build();
 
   /**

@@ -20,7 +20,7 @@ import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 
 @DefinesXml
-public interface Variable extends LayoutElement {
+public interface Variable extends LayoutElement, DataBindingElement {
   @Attribute("name")
   @Required
   GenericAttributeValue<String> getName();
