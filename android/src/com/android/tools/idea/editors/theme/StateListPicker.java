@@ -85,7 +85,7 @@ public class StateListPicker extends JPanel {
   private @Nullable final RenderTask myRenderTask;
 
   private boolean myIsBackgroundStateList;
-  /** If not null, it contains colors to compare with the state list items colors to find out any possible contrast problems,
+  /** If not empty, it contains colors to compare with the state list items colors to find out any possible contrast problems,
    *  and descriptions to use in case there is a problem. */
   private @NotNull ImmutableMap<String, Color> myContrastColorsWithDescription = ImmutableMap.of();
 
@@ -240,8 +240,8 @@ public class StateListPicker extends JPanel {
   }
 
   /**
-   * Returns a {@Link ValidationInfo} specifying which of the state list component has a value which is a framework value,
-   * but either does not exist, or is private;
+   * Returns a {@Link ValidationInfo} in the case one of the state list state has a value that does not resolve to a valid resource,
+   * or a value that is a private framework value.
    */
   @Nullable("if there is no error")
   public ValidationInfo getFrameworkResourceError() {

@@ -34,9 +34,6 @@ import java.util.List;
  * Component for displaying a color or a drawable resource with attribute name, type and value text.
  */
 public class ResourceComponent extends JPanel {
-  /**
-   * Maximum number of swatch icons to be displayed by default. See {@link SwatchComponent} constructor for more details.
-   */
   public static final String NAME_LABEL = "Name Label";
 
   private final SwatchComponent mySwatchComponent;
