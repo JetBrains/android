@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.fd.FastDeployManager;
@@ -26,6 +27,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceTarget;
+import com.google.common.collect.Iterables;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -39,6 +41,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -120,27 +123,37 @@ public class GradleInvokerOptions {
   // These are defined in AndroidProject in the builder model for 1.5+; remove and reference directly
   // when Studio is updated to use the new model
   private static final String PROPERTY_BUILD_API = "android.injected.build.api";
+  private static final String PROPERTY_BUILD_DENSITY = "android.injected.build.density";
 
   @NotNull
   private static List<String> getGradleArgumentsToTarget(Collection<IDevice> devices) {
-    if (!devices.isEmpty()) {
-      // Find the minimum value o the build API level and pass it to Gradle as a property
-      AndroidVersion min = null;
+    if (devices.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<String> properties = new ArrayList<String>(2);
+    // Find the minimum value of the build API level and pass it to Gradle as a property
+    AndroidVersion min = null;
 
-      for (IDevice device : devices) {
-        AndroidVersion version = DevicePropertyUtil.getDeviceVersion(device);
-        if (version != AndroidVersion.DEFAULT && (min == null || version.getFeatureLevel() < min.getFeatureLevel())) {
-          min = version;
-        }
-      }
-
-      if (min != null) {
-        String property = AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, min.getApiString());
-        return Collections.singletonList(property);
+    for (IDevice device : devices) {
+      AndroidVersion version = DevicePropertyUtil.getDeviceVersion(device);
+      if (version != AndroidVersion.DEFAULT && (min == null || version.getFeatureLevel() < min.getFeatureLevel())) {
+        min = version;
       }
     }
 
-    return Collections.emptyList();
+    if (min != null) {
+      properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, min.getApiString()));
+    }
+
+    // If we are building for only one device, pass the density.
+    if (devices.size() == 1) {
+      int densityInteger = Iterables.getOnlyElement(devices).getDensity();
+      Density density = Density.getEnum(densityInteger);
+      if (density != null) {
+        properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
+      }
+    }
+    return properties;
   }
 
   @NotNull
