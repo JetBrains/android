@@ -25,9 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
 import static java.io.File.separatorChar;
-import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 
 public class FileResourceRepositoryTest extends TestCase {
   public void test() throws IOException {
