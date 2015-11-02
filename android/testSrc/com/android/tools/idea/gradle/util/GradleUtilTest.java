@@ -152,6 +152,21 @@ public class GradleUtilTest extends TestCase {
     assertEquals(FullRevision.parseRevision("2.0"), gradleVersion);
   }
 
+  public void testRc() {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=179838
+    File jarFile = new File("gradle-messaging-2.5-rc-1.jar");
+    FullRevision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
+    assertNotNull(gradleVersion);
+    assertEquals(FullRevision.parseRevision("2.5"), gradleVersion);
+  }
+
+  public void testNightly() {
+    File jarFile = new File("gradle-messaging-2.10-20151029230024+0000.jar");
+    FullRevision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
+    assertNotNull(gradleVersion);
+    assertEquals(FullRevision.parseRevision("2.10"), gradleVersion);
+  }
+
   public void testGetGradleVersionFromJarUsingGradleLibraryJarWithoutVersion() {
     File jarFile = new File("gradle-core-two.jar");
     FullRevision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
