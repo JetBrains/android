@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.refactoring;
 
 import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependency;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.google.common.collect.Lists;
@@ -93,7 +94,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   @Nullable
   private static Module getGradleModule(@NotNull DataContext dataContext) {
     Module module = LangDataKeys.MODULE_CONTEXT.getData(dataContext);
-    if (module != null && isGradleProjectModule(module)) {
+    if (module != null && (AndroidGradleFacet.getInstance(module) != null || isGradleProjectModule(module))) {
       return module;
     }
     return null;
@@ -129,7 +130,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
       final VirtualFile moduleRoot = getModuleRootDir(myModule);
       assert moduleRoot != null;
 
-      if (myModule.getProject().getBaseDir().equals(moduleRoot)) {
+      if (isGradleProjectModule(myModule)) {
         Messages.showErrorDialog(project, "Can't rename root module", IdeBundle.message("title.rename.module"));
         return true;
       }
