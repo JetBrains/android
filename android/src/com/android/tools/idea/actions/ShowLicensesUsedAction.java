@@ -40,7 +40,7 @@ import java.io.IOException;
 public class ShowLicensesUsedAction extends DumbAwareAction {
 
   public ShowLicensesUsedAction() {
-    super("Show Licenses...");
+    super("_Licenses");
   }
 
   @Override
