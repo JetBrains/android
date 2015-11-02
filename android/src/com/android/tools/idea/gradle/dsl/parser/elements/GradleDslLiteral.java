@@ -52,7 +52,7 @@ public final class GradleDslLiteral extends GradleDslElement {
   }
 
   @Nullable
-  GrLiteral getLiteral() {
+  public GrLiteral getLiteral() {
     return myLiteral;
   }
 
