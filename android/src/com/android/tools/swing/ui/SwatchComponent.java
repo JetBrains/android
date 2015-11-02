@@ -46,17 +46,11 @@ import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
  * Component that displays a list of icons and a label
  */
 public class SwatchComponent extends Box {
-  /**
-   * Padding used vertically and horizontally
-   */
+  /** Padding used between the icon and the text field */
   private static final int PADDING = JBUI.scale(3);
-  /**
-   * Additional padding from the top for the value label. The text padding from the top will be PADDING + TEXT_PADDING
-   */
+  /** Padding around the text in the text field */
   private static final int TEXT_PADDING = JBUI.scale(8);
-  /**
-   * Separation between states
-   */
+  /** Size of rounded corners for the icon and the text field */
   private static final int ARC_SIZE = ThemeEditorConstants.ROUNDED_BORDER_ARC_SIZE;
   private static final Color DEFAULT_BORDER_COLOR = Gray._170;
   private static final Color WARNING_BORDER_COLOR = JBColor.ORANGE;
@@ -78,9 +72,7 @@ public class SwatchComponent extends Box {
   private Color myBorderColor;
 
   /**
-   * Constructs a SwatchComponent with a maximum number of icons. If the number of icons is greater than maxIcons
-   * the component will display a text with the number of icons left to display. When the user clicks that icon the
-   * icons will expand until the user leaves the control area.
+   * Constructs a SwatchComponent that is composed of a clickable icon and a text field with autocompletion
    */
   public SwatchComponent(@NotNull Project project) {
     super(BoxLayout.LINE_AXIS);
