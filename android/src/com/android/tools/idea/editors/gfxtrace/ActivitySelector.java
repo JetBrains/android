@@ -16,7 +16,9 @@
 package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -26,12 +28,15 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.event.*;
+import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * ActivityLauncher is a selection dialog that lists all the packages installed on
@@ -43,6 +48,7 @@ public class ActivitySelector extends JDialog {
   private JButton buttonCancel;
   private JTree myTree;
   private JBLabel myStatus;
+  private RegexFilterComponent mySearchBox;
 
   private DeviceInfo.Package mySelectedPackage;
   private DeviceInfo.Activity mySelectedActivity;
@@ -110,7 +116,7 @@ public class ActivitySelector extends JDialog {
           return;
         }
         myStatus.setVisible(false);
-        myTree.setModel(new DeviceTreeModel(deviceInfo));
+        myTree.setModel(new DeviceTreeModel(mySearchBox, deviceInfo));
         myTree.setVisible(true);
         pack();
       }
@@ -172,6 +178,10 @@ public class ActivitySelector extends JDialog {
     pack();
   }
 
+  private void createUIComponents() {
+    mySearchBox = new RegexFilterComponent(ActivitySelector.class.getName(), 10, false);
+  }
+
   /**
    * getDeviceInfo returns a {@link ListenableFuture<DeviceInfo>} derived from the
    * {@link DeviceInfo.Provider}. All packages with no activities will be stripped
@@ -203,10 +213,22 @@ public class ActivitySelector extends JDialog {
    * DeviceTreeModel implements a {@link TreeModel} for the given {@link DeviceInfo}.
    */
   private static class DeviceTreeModel implements TreeModel {
+    private final RegexFilterComponent myFilter;
     private final DeviceInfo myDevice;
+    private DeviceInfo myFilteredDevice;
+    private final List<TreeModelListener> listeners = Lists.newArrayList();
 
-    public DeviceTreeModel(DeviceInfo device) {
+    public DeviceTreeModel(RegexFilterComponent filter, DeviceInfo device) {
+      myFilter = filter;
       myDevice = device;
+      filter();
+      filter.addRegexListener(new RegexFilterComponent.Listener() {
+        @Override
+        public void filterChanged(RegexFilterComponent filter) {
+          filter();
+          fireTreeChanged();
+        }
+      });
     }
 
     @Override
@@ -217,7 +239,7 @@ public class ActivitySelector extends JDialog {
     @Override
     public Object getChild(Object o, int i) {
       if (o == myDevice) {
-        return myDevice.myPackages[i];
+        return myFilteredDevice.myPackages[i];
       }
       return ((DeviceInfo.Package)o).myActivities[i];
     }
@@ -225,7 +247,7 @@ public class ActivitySelector extends JDialog {
     @Override
     public int getChildCount(Object o) {
       if (o == myDevice) {
-        return myDevice.myPackages.length;
+        return myFilteredDevice.myPackages.length;
       }
       return ((DeviceInfo.Package)o).myActivities.length;
     }
@@ -237,18 +259,17 @@ public class ActivitySelector extends JDialog {
 
     @Override
     public void valueForPathChanged(TreePath treePath, Object o) {
-
     }
 
     @Override
     public int getIndexOfChild(Object o, Object o1) {
       if (o == myDevice) {
-        for (int i = 0; i < myDevice.myPackages.length; i++) {
-          if (myDevice.myPackages[i].equals(o1)) {
+        for (int i = 0; i < myFilteredDevice.myPackages.length; i++) {
+          if (myFilteredDevice.myPackages[i].equals(o1)) {
             return i;
           }
         }
-        return myDevice.myPackages.length;
+        return myFilteredDevice.myPackages.length;
       }
 
       DeviceInfo.Package pkg = (DeviceInfo.Package)o;
@@ -263,12 +284,44 @@ public class ActivitySelector extends JDialog {
 
     @Override
     public void addTreeModelListener(TreeModelListener treeModelListener) {
-
+      synchronized (listeners) {
+        listeners.add(treeModelListener);
+      }
     }
 
     @Override
     public void removeTreeModelListener(TreeModelListener treeModelListener) {
+      synchronized (listeners) {
+        listeners.remove(treeModelListener);
+      }
+    }
 
+    private void filter() {
+      final Pattern pattern = myFilter.getPattern();
+      if (pattern == null) {
+        myFilteredDevice = myDevice;
+        return;
+      }
+
+      myFilteredDevice = myDevice.transform(new DeviceInfo.Transform<DeviceInfo.Package>() {
+        @Override
+        public DeviceInfo.Package transform(DeviceInfo.Package obj) {
+          if (pattern.matcher(obj.myName).find()) {
+            return obj;
+          }
+          return null;
+        }
+      });
+    }
+
+    private void fireTreeChanged() {
+      List<TreeModelListener> ls;
+      synchronized (listeners) {
+        ls = Lists.newArrayList(listeners);
+      }
+      for (TreeModelListener l : ls) {
+        l.treeStructureChanged(new TreeModelEvent(this, new Object[] { myDevice }));
+      }
     }
   }
 }
