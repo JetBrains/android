@@ -104,8 +104,26 @@ public class SwatchComponent extends Box {
 
       @Override
       protected void updateBorder(@NotNull EditorEx editor) {
-        // Necessary to not have any border when not in a JTable
-        editor.setBorder(null);
+        editor.setBorder(new RoundedLineBorder(myBorderColor, ARC_SIZE) {
+          @Override
+          public Insets getBorderInsets(Component c) {
+            return new Insets(TEXT_PADDING, TEXT_PADDING, TEXT_PADDING, TEXT_PADDING);
+          }
+
+          @Override
+          public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            g.setColor(JBColor.WHITE);
+            g.fillRoundRect(x, y, width - 1, height - 1, ARC_SIZE, ARC_SIZE);
+            super.paintBorder(c, g, x, y, width, height);
+          }
+        });
+      }
+
+      @Override
+      protected EditorEx createEditor() {
+        EditorEx editor = super.createEditor();
+        editor.getScrollPane().setOpaque(false);
+        return editor;
       }
 
       @Override
@@ -120,38 +138,11 @@ public class SwatchComponent extends Box {
       }
     };
     myTextField.setOneLineMode(true);
-
-    final JPanel textFieldWrapper = new JPanel(new BorderLayout()) {
-      @Override
-      protected void paintComponent(Graphics graphics) {
-        setupAAPainting(graphics);
-        Graphics2D g = (Graphics2D)graphics;
-
-        Shape savedClip = g.getClip();
-        RoundRectangle2D clipRectangle = new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), ARC_SIZE, ARC_SIZE);
-
-        g.clip(clipRectangle);
-        super.paintComponent(g);
-        g.setClip(savedClip);
-      }
-    };
-    textFieldWrapper.setBorder(new RoundedLineBorder(myBorderColor, ARC_SIZE, 1) {
-      @Override
-      public Insets getBorderInsets(Component c) {
-        return new Insets(0, 0, 0, 0);
-      }
-    });
-    textFieldWrapper.setBackground(JBColor.WHITE);
-
-    textFieldWrapper.add(Box.createVerticalStrut(TEXT_PADDING), BorderLayout.PAGE_START);
-    textFieldWrapper.add(Box.createHorizontalStrut(TEXT_PADDING), BorderLayout.LINE_START);
-    textFieldWrapper.add(myTextField, BorderLayout.CENTER);
-    textFieldWrapper.add(Box.createHorizontalStrut(TEXT_PADDING), BorderLayout.LINE_END);
-    textFieldWrapper.add(Box.createVerticalStrut(TEXT_PADDING), BorderLayout.PAGE_END);
+    myTextField.setBackground(JBColor.WHITE);
 
     add(mySwatchButton);
     add(Box.createHorizontalStrut(PADDING));
-    add(textFieldWrapper);
+    add(myTextField);
   }
 
   public void setSwatchIcon(@NotNull SwatchIcon icon) {
