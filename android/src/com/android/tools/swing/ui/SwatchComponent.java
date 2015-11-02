@@ -18,6 +18,7 @@ package com.android.tools.swing.ui;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentListener;
@@ -249,7 +250,10 @@ public class SwatchComponent extends Box {
   }
 
   public void setText(@NotNull String text) {
+    // No need to register this action for undoing, and it conflicts with other undo actions if we do
+    myTextField.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
     myTextField.setText(text);
+    myTextField.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, false);
   }
 
   @NotNull
