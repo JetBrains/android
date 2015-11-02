@@ -160,6 +160,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
       }
       else if (propertyElement instanceof GradleDslLiteral) {
         return ((GradleDslLiteral)propertyElement).getValue(clazz);
+      } else if (propertyElement instanceof GradleDslReference) {
+        return ((GradleDslReference)propertyElement).getResolvedValue(clazz);
       }
     }
     return null;
