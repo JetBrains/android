@@ -174,7 +174,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
 
     myComponent.setSize(table.getCellRect(row, column, false).getSize());
     Font font = table.getFont();
-    myComponent.setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
+    myComponent.setFont(ThemeEditorUtils.scaleFontForAttribute(font));
     updateComponentInternal(myComponent, obj);
     updateComponent(myContext, myComponent, obj);
 
@@ -188,7 +188,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
 
     myComponent.setSize(table.getCellRect(row, column, false).getSize());
     Font font = table.getFont();
-    myComponent.setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
+    myComponent.setFont(ThemeEditorUtils.scaleFontForAttribute(font));
     updateComponentInternal(myComponent, value);
     updateComponent(myContext, myComponent, value);
 
