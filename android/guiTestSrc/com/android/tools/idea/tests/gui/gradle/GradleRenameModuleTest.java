@@ -20,7 +20,10 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.InputDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.SelectRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Test;
 
@@ -55,7 +58,7 @@ public class GradleRenameModuleTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testRenameModuleAlsoChangeReferencesInBuildFile() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    myProjectFrame = importMultiModule();
 
     ProjectViewFixture.PaneFixture paneFixture = myProjectFrame.getProjectView().selectProjectPane();
     paneFixture.selectByPath("MultiModule", "library");
@@ -83,8 +86,7 @@ public class GradleRenameModuleTest extends GuiTestCase {
     buildModel.requireDependency(expected);
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testCannotRenameRootModule() throws IOException {
     myProjectFrame = importSimpleApplication();
 
@@ -99,10 +101,9 @@ public class GradleRenameModuleTest extends GuiTestCase {
     errorMessage.requireMessageContains("Can't rename root module");
   }
 
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testCannotRenameToExistedFile() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    myProjectFrame = importMultiModule();
 
     ProjectViewFixture.PaneFixture paneFixture = myProjectFrame.getProjectView().selectProjectPane();
     paneFixture.selectByPath("MultiModule", "app");
@@ -122,5 +123,4 @@ public class GradleRenameModuleTest extends GuiTestCase {
   private void invokeRefactor() {
     myProjectFrame.invokeMenuPath("Refactor", "Rename...");
   }
-
 }
