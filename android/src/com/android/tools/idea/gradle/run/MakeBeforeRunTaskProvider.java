@@ -63,7 +63,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull public static final Key<MakeBeforeRunTask> ID = Key.create("Android.Gradle.BeforeRunTask");
 
   private static final Logger LOG = Logger.getInstance(MakeBeforeRunTask.class);
-  private static final String TASK_NAME = "Gradle-aware Make";
+  public static final String TASK_NAME = "Gradle-aware Make";
 
   @NotNull private final Project myProject;
 
