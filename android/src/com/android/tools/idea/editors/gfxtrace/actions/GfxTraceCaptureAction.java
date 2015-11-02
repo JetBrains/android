@@ -25,6 +25,7 @@ import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.concurrency.JobScheduler;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.concurrent.TimeUnit;
 
 public abstract class GfxTraceCaptureAction extends ToggleAction {
   @NotNull protected final GpuMonitorView myView;
@@ -81,19 +83,54 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
 
       final SettableFuture<GfxTracer> future = SettableFuture.create();
       ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+        private static final int ROOT_QUERY_TIMEOUT = 3000;
+        private static final int ROOT_QUERY_INTERVAL = 250;
+
         @Override
         public void run() {
           try {
             if (device.root()) {
-              showLauncher(device, future);
-              return;
+              rootingSucceeded();
             }
+            else {
+              rootingFailed();
+            }
+            return;
           }
-          catch (Exception e) { /* assume non-root. */ }
+          catch (Exception ignored) {
+          }
 
+          // adb root may need some time to restart. Keep on trying to query for a few seconds.
+          new Runnable() {
+            long start = System.currentTimeMillis();
+
+            @Override
+            public void run() {
+              try {
+                if (device.isRoot()) {
+                  rootingSucceeded();
+                }
+                else {
+                  rootingFailed();
+                }
+              }
+              catch (Exception ignored) {
+                if ((System.currentTimeMillis() - start) < ROOT_QUERY_TIMEOUT) {
+                  JobScheduler.getScheduler().schedule(this, ROOT_QUERY_INTERVAL, TimeUnit.MILLISECONDS);
+                }
+                else {
+                  rootingFailed();
+                }
+              }
+            }
+          }.run();
+        }
+
+
+        private void rootingFailed() {
           // Failed to restart adb as root.
           // Display message and abort.
-          EdtExecutor.INSTANCE.execute(new Runnable() {
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
               Notifications.Bus.notify(
@@ -101,12 +138,17 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
                                  NotificationType.ERROR));
             }
           });
-
           future.set(null);
+        }
+
+        private void rootingSucceeded() {
+          showLauncher(device, future);
         }
       });
       return future;
     }
+
+
 
     private ListenableFuture<GfxTracer> showLauncher(final IDevice device, final SettableFuture<GfxTracer> future) {
       DeviceInfo.Provider provider = new DeviceInfo.PkgInfoProvider(device);
