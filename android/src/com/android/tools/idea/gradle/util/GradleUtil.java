@@ -129,7 +129,7 @@ public final class GradleUtil {
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
-  private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-(.*)-(.*)\\.jar");
+  private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-([^-]*)-(.*)\\.jar");
   private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
 
   /**
