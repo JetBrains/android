@@ -106,6 +106,8 @@ public class InstantRunConfigurable
     myBuildConfiguration.INSTANT_RUN = isInstantRunEnabled();
     myBuildConfiguration.RESTART_ACTIVITY = isRestartActivity();
     myBuildConfiguration.CRASH_HANDLER = isCrashHandlerEnabled();
+
+    FastDeployManager.updateFileListener(myProject);
   }
 
   @Override

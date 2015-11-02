@@ -42,7 +42,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
@@ -220,11 +223,9 @@ public class GradleInvoker {
                            @NotNull final ExternalSystemTaskId taskId,
                            @Nullable final ExternalSystemTaskNotificationListener taskListener,
                            final boolean waitForCompletion) {
+    // Inject instant run attributes?
     if (FastDeployManager.isInstantRunEnabled(myProject)) {
-      List<String> merged = Lists.newArrayListWithExpectedSize(commandLineArguments.size() + 1);
-      merged.addAll(commandLineArguments);
-      merged.add("-Pandroid.optional.compilation=INSTANT_DEV");
-      commandLineArguments = merged;
+      commandLineArguments = FastDeployManager.get(myProject).updateGradleCommandLine(commandLineArguments);
     }
 
     LOG.info("About to execute Gradle tasks: " + gradleTasks);
