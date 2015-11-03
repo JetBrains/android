@@ -34,9 +34,9 @@ import java.util.Set;
  * data as key value pairs and convenient methods to access the data.
  */
 public abstract class GradlePropertiesDslElement extends GradleDslElement {
-  @NotNull protected Map<String, GradleDslElement> myProperties = Maps.newHashMap();
-  @NotNull protected Map<String, GradleDslElement> myToBeAddedProperties = Maps.newHashMap();
-  @NotNull protected Set<String> myToBeRemovedProperties = Sets.newHashSet();
+  @NotNull private Map<String, GradleDslElement> myProperties = Maps.newHashMap();
+  @NotNull private Map<String, GradleDslElement> myToBeAddedProperties = Maps.newHashMap();
+  @NotNull private Set<String> myToBeRemovedProperties = Sets.newHashSet();
 
   protected GradlePropertiesDslElement(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement psiElement, @NotNull String name) {
     super(parent, psiElement, name);
