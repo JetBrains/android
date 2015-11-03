@@ -15,12 +15,13 @@
  */
 package org.jetbrains.android.dom;
 
+import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.completion.XmlTagInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.xml.TagNameVariantCollector;
+import com.intellij.psi.meta.PsiPresentableMetaData;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.XmlElementDescriptor;
@@ -30,6 +31,7 @@ import com.intellij.xml.util.XmlUtil;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -69,25 +71,56 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
       }
 
       final String simpleName = AndroidUtils.getUnqualifiedName(qualifiedName);
-      if (simpleName == null) {
-        // If tag name is not a qualified name, we're not interested in it.
-        // It would be handled by DefaultXmlTagNameProvider and shown nonetheless
-        continue;
-      }
 
       // Creating LookupElementBuilder with PsiElement gives an ability to show documentation during completion time
       PsiElement declaration = descriptor.getDeclaration();
       LookupElementBuilder lookupElement =
         declaration == null ? LookupElementBuilder.create(qualifiedName) : LookupElementBuilder.create(declaration, qualifiedName);
 
-      lookupElement = lookupElement.withLookupString(simpleName);
+      final boolean isDeprecated = isDeclarationDeprecated(declaration);
+      if (isDeprecated) {
+        lookupElement = lookupElement.withStrikeoutness(true);
+      }
+
+      if (simpleName != null) {
+        lookupElement = lookupElement.withLookupString(simpleName);
+      }
+
+      // For some standard widgets available by short names, icons are available.
+      // This statement preserves them in autocompletion.
+      if (descriptor instanceof PsiPresentableMetaData) {
+        lookupElement = lookupElement.withIcon(((PsiPresentableMetaData)descriptor).getIcon());
+      }
 
       // Using insert handler is required for, e.g. automatic insertion of required fields in Android layout XMLs
       if (xmlExtension.useXmlTagInsertHandler()) {
         lookupElement = lookupElement.withInsertHandler(XmlTagInsertHandler.INSTANCE);
       }
 
-      elements.add(lookupElement);
+      int priority = 1;
+      if (isDeprecated) {
+        // Deprecated tag names are supposed to be shown below non-deprecated tags
+        priority = 0;
+      } else if (simpleName == null) {
+        // Tag name is a unqualified name from one of Android framework packages, should be higher in completion
+        priority = 2;
+      }
+
+      elements.add(PrioritizedLookupElement.withPriority(lookupElement, priority));
     }
+  }
+
+  private static boolean isDeclarationDeprecated(@Nullable PsiElement declaration) {
+    if (!(declaration instanceof PsiClass)) {
+      return false;
+    }
+
+    final PsiClass aClass = (PsiClass)declaration;
+    final PsiModifierList modifierList = aClass.getModifierList();
+    if (modifierList == null) {
+      return false;
+    }
+
+    return modifierList.findAnnotation("java.lang.Deprecated") != null;
   }
 }
