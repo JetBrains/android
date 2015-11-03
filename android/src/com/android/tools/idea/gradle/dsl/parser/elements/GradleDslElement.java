@@ -53,6 +53,11 @@ public abstract class GradleDslElement {
   }
 
   @Nullable
+  public GradleDslElement getParent() {
+    return myParent;
+  }
+
+  @Nullable
   public GroovyPsiElement getPsiElement() {
     return myPsiElement;
   }
