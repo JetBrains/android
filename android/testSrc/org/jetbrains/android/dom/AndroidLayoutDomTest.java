@@ -469,6 +469,15 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     toTestCompletion("tn11.xml", "tn11_after.xml");
   }
 
+  public void testDeprecatedTagsAreLastInCompletion() throws Throwable {
+    VirtualFile file = copyFileToProject("tagName_letter_G.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+
+    // Gallery is deprecated and thus should be the last in completion list
+    myFixture.assertPreferredCompletionItems(0, "GridLayout", "GridView", "android.gesture.GestureOverlayView", "android.opengl.GLSurfaceView", "Gallery");
+  }
+
   // Completion by simple class name in layouts should work, inserting fully-qualified names
   // http://b.android.com/179380
   public void testTagNameCompletionBySimpleName() throws Throwable {
