@@ -30,7 +30,7 @@ public final class LanguageLevelUtil {
       digitalVersion = gradleString.substring("JavaVersion.VERSION_".length()).replace('_', '.');
     } else if (gradleString.startsWith("VERSION_")) {
       digitalVersion = gradleString.substring("VERSION_".length()).replace('_', '.');
-    } else if (gradleString.startsWith("'")) {
+    } else if (gradleString.startsWith("'") || gradleString.startsWith("\"")) {
       digitalVersion = gradleString.substring(1, gradleString.length() - 1);
     } else {
       digitalVersion = gradleString;
@@ -51,8 +51,12 @@ public final class LanguageLevelUtil {
       }
       else if (sampleGradleString.startsWith("VERSION_")) {
         return "VERSION_" + underscoreVersion;
-      } else if (sampleGradleString.startsWith("'")) {
+      }
+      else if (sampleGradleString.startsWith("'")) {
         return "'" + dotVersion + "'";
+      }
+      else if (sampleGradleString.startsWith("\"")) {
+        return "\"" + dotVersion + "\"";
       }
     }
     return dotVersion;

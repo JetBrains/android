@@ -56,8 +56,9 @@ public abstract class Dependency extends GradleDslElement {
     return myConfigurationName;
   }
 
+  @Override
   @NotNull
-  protected Dependencies getParent() {
+  public Dependencies getParent() {
     return myParent;
   }
 

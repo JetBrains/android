@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.java;
 
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
@@ -29,6 +29,94 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
  * Tests for {@link JavaModel}
  */
 public class JavaModelTest extends GradleFileModelTestCase {
+  public void testReadJavaVersionsAsNumbers() throws IOException {
+    String text = "sourceCompatibility = 1.5\n" +
+                  "targetCompatibility = 1.6";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    JavaModel java = buildModel.java();
+    assertNotNull(java);
+
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionsAsSingleQuoteStrings() throws IOException {
+    String text = "sourceCompatibility = \"1.5\"\n" +
+                  "targetCompatibility = \"1.6\"";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    JavaModel java = buildModel.java();
+    assertNotNull(java);
+
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionsAsDoubleQuoteStrings() throws IOException {
+    String text = "sourceCompatibility = '1.5'\n" +
+                  "targetCompatibility = '1.6'";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    JavaModel java = buildModel.java();
+    assertNotNull(java);
+
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionsAsReferenceString() throws IOException {
+    String text = "sourceCompatibility = VERSION_1_5\n" +
+                  "targetCompatibility = VERSION_1_6";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    JavaModel java = buildModel.java();
+    assertNotNull(java);
+
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionsAsQualifiedReferenceString() throws IOException {
+    String text = "sourceCompatibility = JavaVersion.VERSION_1_5\n" +
+                  "targetCompatibility = JavaVersion.VERSION_1_6";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    JavaModel java = buildModel.java();
+    assertNotNull(java);
+
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionLiteralFromExtProperty() throws IOException {
+    String text = "ext.JAVA_VERSION = 1.5\n" +
+                  "sourceCompatibility = JAVA_VERSION\n" +
+                  "targetCompatibility = JAVA_VERSION";
+
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    JavaModel java = buildModel.java();
+    assertNotNull(java);
+
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionReferenceFromExtProperty() throws IOException {
+    String text = "ext.JAVA_VERSION = JavaVersion.VERSION_1_5\n" +
+                  "sourceCompatibility = JAVA_VERSION\n" +
+                  "targetCompatibility = JAVA_VERSION";
+
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    JavaModel java = buildModel.java();
+    assertNotNull(java);
+
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
+  }
+
   public void testSetSourceCompatibility() throws IOException {
     String text = "sourceCompatibility = 1.5\n" +
                   "targetCompatibility = 1.5";
@@ -121,7 +209,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
     assertNotNull(sourcePsi);
 
     // targetCompatibility should be next to sourceCompatibility
-    assertEquals(targetPsi.getParent(), sourcePsi.getParent().getNextSibling().getNextSibling());
+    assertEquals(targetPsi, sourcePsi.getNextSibling().getNextSibling());
   }
 
   public void testAddNonExistedLanguageLevel() throws Exception {
