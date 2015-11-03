@@ -26,6 +26,7 @@ import com.google.common.base.Optional;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +69,7 @@ public final class ModelWizardDialog extends DialogWrapper {
   }
 
   private void init(@NotNull ModelWizard wizard, @NotNull String title, @Nullable CustomLayout customLayout) {
+    Disposer.register(getDisposable(), wizard);
     myWizard = wizard;
     myCustomLayout = customLayout;
     setTitle(title);
