@@ -143,6 +143,7 @@ public class AndroidIcons {
      */
     public static final Icon LogcatAutoFilterSelectedPid = load("/icons/ddms/logcat_filter_pid.png"); // 16x16
     public static final Icon RealDevice = load("/icons/ddms/real_device.png"); // 16x16
+    public static final Icon EmulatorDevice = load("/icons/ddms/emulator_device.png"); // 16x16
     public static final Icon ScreenCapture = load("/icons/ddms/screen_capture.png"); // 16x16
     public static final Icon StartMethodProfiling = load("/icons/ddms/start_method_profiling.png"); // 16x16
     public static final Icon Threads = load("/icons/ddms/threads.png"); // 16x16

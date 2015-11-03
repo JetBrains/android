@@ -58,7 +58,6 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
   public ExtendedDeviceChooserDialog(@NotNull final AndroidFacet facet,
                                      @NotNull IAndroidTarget projectTarget,
                                      boolean multipleSelection,
-                                     boolean showReuseDevicesCheckbox,
                                      boolean selectReuseDevicesCheckbox) {
     super(facet.getModule().getProject(), true, IdeModalityType.PROJECT);
 
@@ -151,7 +150,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
       myAvdCombo.getComboBox().setSelectedIndex(0);
     }
 
-    myReuseSelectionCheckbox.setVisible(showReuseDevicesCheckbox);
+    myReuseSelectionCheckbox.setVisible(true);
     myReuseSelectionCheckbox.setSelected(selectReuseDevicesCheckbox);
 
     updateEnabled();
