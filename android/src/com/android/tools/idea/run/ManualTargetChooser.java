@@ -52,8 +52,7 @@ public class ManualTargetChooser {
     }
 
     final ExtendedDeviceChooserDialog chooser =
-      new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), deviceCount.isMultiple(), true,
-                                      myShowChooserState.USE_LAST_SELECTED_DEVICE);
+      new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), deviceCount.isMultiple(), myShowChooserState.USE_LAST_SELECTED_DEVICE);
     chooser.show();
     if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
       // The user canceled.
@@ -73,7 +72,7 @@ public class ManualTargetChooser {
       if (selectedDevices.length == 0) {
         return null;
       }
-      DeviceStateAtLaunchService.getInstance(myProject)
+      DevicePickerStateService.getInstance(myProject)
         .setDevicesUsedInLaunch(myRunConfigId, Sets.newHashSet(selectedDevices), getOnlineDevices());
       myShowChooserState.USE_LAST_SELECTED_DEVICE = chooser.useSameDevicesAgain();
       return DeviceTarget.forDevices(Arrays.asList(selectedDevices));
@@ -83,7 +82,7 @@ public class ManualTargetChooser {
   /** Re-use the last used devices if we are configured to do so and the online devices have not changed. */
   @NotNull
   private Collection<IDevice> getReusableDevices(@NotNull DeviceCount deviceCount) {
-    DeviceStateAtLaunch devicesToReuse = DeviceStateAtLaunchService.getInstance(myProject).getDevicesUsedInLastLaunch(myRunConfigId);
+    DeviceStateAtLaunch devicesToReuse = DevicePickerStateService.getInstance(myProject).getDevicesUsedInLastLaunch(myRunConfigId);
     if (!myShowChooserState.USE_LAST_SELECTED_DEVICE || devicesToReuse == null) {
       return ImmutableList.of();
     }
