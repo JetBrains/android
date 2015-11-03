@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.actions;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.editors.gfxtrace.ActivitySelector;
+import com.android.tools.idea.editors.gfxtrace.forms.ActivitySelector;
 import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
 import com.android.tools.idea.editors.gfxtrace.GfxTracer;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
