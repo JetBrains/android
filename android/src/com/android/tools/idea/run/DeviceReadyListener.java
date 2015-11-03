@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * A device change listener which calls a callback when a matching device is ready for use
  * (is online and ready to install APKs).
  */
-final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChangeListener, Disposable {
+public final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChangeListener, Disposable {
 
   interface Callback {
     void onDeviceReady(@NotNull IDevice device);
