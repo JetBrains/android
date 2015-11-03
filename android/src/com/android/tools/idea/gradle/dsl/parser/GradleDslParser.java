@@ -145,6 +145,9 @@ public final class GradleDslParser {
       if (element instanceof GrLiteral) { // ex: compileSdkVersion 23
         propertyElement = new GradleDslLiteral(blockElement, argumentList, propertyName, (GrLiteral)element);
       }
+      else if (element instanceof GrReferenceExpression) {
+        propertyElement = new GradleDslReference(blockElement, argumentList, propertyName, (GrReferenceExpression)element);
+      }
       else if (element instanceof GrNamedArgument) { // ex: manifestPlaceholders activityLabel:"defaultName"
         GrNamedArgument namedArgument = (GrNamedArgument)element;
         propertyElement = new GradleDslLiteralMap(blockElement, argumentList, propertyName, namedArgument);
@@ -202,6 +205,9 @@ public final class GradleDslParser {
     GrExpression right = assignment.getRValue();
     if (right instanceof GrLiteral) { // ex: compileSdkVersion = "android-23"
       propertyElement = new GradleDslLiteral(blockElement, assignment, propertyName, (GrLiteral)right);
+    }
+    else if (right instanceof GrReferenceExpression) {
+      propertyElement = new GradleDslReference(blockElement, assignment, propertyName, (GrReferenceExpression)right);
     }
     else if (right instanceof GrListOrMap) {
       GrListOrMap listOrMap = (GrListOrMap)right;
