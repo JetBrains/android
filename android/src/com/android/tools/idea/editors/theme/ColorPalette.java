@@ -301,8 +301,14 @@ public class ColorPalette extends JComponent implements Scrollable, ItemSelectab
   }
 
   private void itemStateChanged(int position, int stateChange) {
-    for (ItemListener itemListener : getItemListeners()) {
-      itemListener.itemStateChanged(new ItemEvent(this, ItemEvent.ITEM_STATE_CHANGED, myColorListModel.getColorAt(position), stateChange));
+    ItemListener[] listeners = getItemListeners();
+    if (listeners == null || listeners.length == 0) {
+      return;
+    }
+
+    ItemEvent itemEvent = new ItemEvent(this, ItemEvent.ITEM_STATE_CHANGED, myColorListModel.getColorAt(position), stateChange);
+    for (ItemListener itemListener : listeners) {
+      itemListener.itemStateChanged(itemEvent);
     }
   }
 }

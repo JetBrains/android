@@ -1108,11 +1108,6 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   }
 
   private void updateUiParameters() {
-    Font regularFont = UIUtil.getLabelFont();
-
-    int regularFontSize = getFontMetrics(regularFont).getHeight();
-    Font headerFont = regularFont.deriveFont(regularFontSize * ThemeEditorConstants.ATTRIBUTES_HEADER_FONT_SCALE);
-
     // The condition below isn't constant, because updateUiParameters() is triggered during
     // construction: constructor of ThemeEditorComponent calls constructor of Splitter, which
     // calls setUI at some point. If this condition is removed, theme editor would fail with
@@ -1121,6 +1116,11 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     if (myAttributesTable == null) {
       return;
     }
+
+    Font regularFont = UIUtil.getLabelFont();
+
+    int regularFontSize = getFontMetrics(regularFont).getHeight();
+    Font headerFont = regularFont.deriveFont(regularFontSize * ThemeEditorConstants.ATTRIBUTES_HEADER_FONT_SCALE);
 
     int headerFontSize = getFontMetrics(headerFont).getHeight();
 
