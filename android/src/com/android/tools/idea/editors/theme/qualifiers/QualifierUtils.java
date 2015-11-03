@@ -64,8 +64,6 @@ public class QualifierUtils {
   }
 
   private static <E extends Enum<E>, Q extends ResourceQualifier> ResourceQualifier getIncompatibleEnum(Class<E> enumType, Class<Q> resourceQualifierType, Collection<ResourceQualifier> resourceQualifiers) {
-    List<E> currentValues = Lists.newArrayList();
-
     // TODO: Remove the use of reflection here by improving the Qualifiers hierarchy
     Method getValueMethod;
     try {
@@ -76,6 +74,7 @@ public class QualifierUtils {
       return null;
     }
 
+    List<E> currentValues = Lists.newArrayList();
     for (ResourceQualifier qualifier : resourceQualifiers) {
       // Type check to make sure the passed class type matches the passed resources
       if (qualifier.getClass() != resourceQualifierType) {

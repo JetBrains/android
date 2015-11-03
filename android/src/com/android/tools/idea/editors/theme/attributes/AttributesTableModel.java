@@ -289,8 +289,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public Class<?> getCellClass(int column) {
-      EditedStyleItem item = myAttributes.get(myRowIndex);
-
       ResourceResolver resolver = myContext.getResourceResolver();
       if (resolver == null) {
         // The resolver might be null if the configuration doesn't have a theme selected
@@ -298,6 +296,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return null;
       }
 
+      EditedStyleItem item = myAttributes.get(myRowIndex);
       ResourceValue resourceValue = resolver.resolveResValue(item.getSelectedValue());
       if (resourceValue == null) {
         LOG.error("Unable to resolve " + item.getValue());
@@ -305,7 +304,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       ResourceType urlType = resourceValue.getResourceType();
-      String value = resourceValue.getValue();
 
       if (urlType == ResourceType.DRAWABLE) {
         return DrawableDomElement.class;
@@ -342,6 +340,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return Integer.class;
       }
 
+      String value = resourceValue.getValue();
       if (urlType == ResourceType.BOOL
           || (("true".equals(value) || "false".equals(value))
               && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Boolean))) {
