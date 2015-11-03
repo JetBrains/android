@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.SourceProvider;
@@ -505,13 +506,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    * Returns whether an update will result in a cold swap by looking at the results of a gradle build.
    */
   public static boolean isColdSwap(@NotNull AndroidGradleModel model) {
-    File restart = findStartDex(model);
-    if (restart == null) {
+    File restart = DexFileType.RESTART_DEX.getFile(model);
+    if (!restart.exists()) {
       return false;
     }
 
-    File incremental = findReloadDex(model);
-    return incremental == null;
+    return DexFileType.RELOAD_DEX.getFile(model).exists();
   }
 
   /**
@@ -721,23 +721,6 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     invoker.executeTasks(Collections.singletonList(taskName));
   }
 
-  // TODO: Get the intermediates folder from the model itself!
-  @Nullable
-  private static File findIntermediatesFolder(@NotNull AndroidGradleModel model) {
-    Variant variant = model.getSelectedVariant();
-    Collection<AndroidArtifactOutput> outputs = variant.getMainArtifact().getOutputs();
-    for (AndroidArtifactOutput output : outputs) {
-      File apk = output.getMainOutputFile().getOutputFile();
-      File intermediates = new File(apk.getParentFile().getParentFile().getParentFile(), "intermediates");
-      if (intermediates.exists()) {
-        return intermediates;
-      }
-    }
-
-    return null;
-  }
-
-  // TODO: Get the build folder from the model itself!
   @Nullable
   private static File findBuildFolder(@NotNull AndroidFacet facet) {
     String rootPath = AndroidRootUtil.getModuleDirPath(facet.getModule());
@@ -801,11 +784,10 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     return null;
   }
 
-  // TODO: This should be provided as part of the model!
   @NotNull
   public static String getIncrementalDexTask(@NotNull AndroidGradleModel model, @NotNull Module module) {
-    final String variantName = getVariantName(model);
-    String taskName = "incremental" + StringUtil.capitalize(variantName) + "SupportDex";
+
+    String taskName = model.getSelectedVariant().getMainArtifact().getInstantRun().getIncrementalAssembleTaskName();
     String gradlePath = GradleUtil.getGradlePath(module);
     if (gradlePath != null) {
       taskName = gradlePath + ":" + taskName;
@@ -813,28 +795,32 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     return taskName;
   }
 
-  @Nullable
-  private static File findReloadDex(final AndroidGradleModel model) {
-    return findDexPatch(model, "reload-dex");
-  }
-
-  @Nullable
-  private static File findStartDex(final AndroidGradleModel model) {
-    return findDexPatch(model, "restart-dex");
-  }
-
-  @Nullable
-  private static File findDexPatch(@NotNull AndroidGradleModel model, @NotNull String dexTypeFolder) {
-    File intermediates = findIntermediatesFolder(model);
-    if (intermediates != null) {
-      final String variantName = getVariantName(model);
-      File dexFile = new File(intermediates, dexTypeFolder + File.separator + variantName + File.separator + "classes.dex");
-      if (dexFile.exists()) {
-        return dexFile;
+  /**
+   * Dex file types produced by the build system.
+   */
+  enum DexFileType {
+    RELOAD_DEX {
+      @NotNull
+      @Override
+      File getFile(AndroidGradleModel model) {
+        return model.getSelectedVariant().getMainArtifact().getInstantRun().getReloadDexFile();
       }
-    }
+    },
+    RESTART_DEX {
+      @NotNull
+      @Override
+      File getFile(AndroidGradleModel model) {
+        return model.getSelectedVariant().getMainArtifact().getInstantRun().getRestartDexFile();
+      }
+    };
 
-    return null;
+    /**
+     * Returns the dex file location for this dex file type.
+     * @param model gradle model
+     * @return a file location for a possibly existing file.
+     */
+    @NotNull
+    abstract File getFile(AndroidGradleModel model);
   }
 
   private void afterBuild(@NotNull IDevice device,
@@ -912,14 +898,14 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   private static UpdateMode gatherGradleCodeChanges(AndroidGradleModel model,
                                                     List<ApplicationPatch> changes,
                                                     @NotNull UpdateMode updateMode) {
-    File restart = findStartDex(model);
-    if (restart != null) {
+    File restart = DexFileType.RESTART_DEX.getFile(model);
+    if (restart.exists()) {
       try {
         byte[] bytes = Files.toByteArray(restart);
         changes.add(new ApplicationPatch("classes.dex", bytes));
 
-        File incremental = findReloadDex(model);
-        if (incremental != null) {
+        File incremental = DexFileType.RELOAD_DEX.getFile(model);
+        if (incremental.exists()) {
           bytes = Files.toByteArray(incremental);
           changes.add(new ApplicationPatch("classes.dex.3", bytes));
           boolean deleted = incremental.delete();
@@ -949,15 +935,15 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   }
 
   private static void removeOldPatches(AndroidGradleModel model) {
-    File restart = findStartDex(model);
-    if (restart != null) {
+    File restart = DexFileType.RESTART_DEX.getFile(model);
+    if (restart.exists()) {
       boolean deleted = restart.delete();
       if (!deleted) {
         Logger.getInstance(FastDeployManager.class).error("Couldn't delete " + restart);
       }
     }
-    File incremental = findReloadDex(model);
-    if (incremental != null) {
+    File incremental = DexFileType.RELOAD_DEX.getFile(model);
+    if (incremental.exists()) {
       boolean deleted = incremental.delete();
       if (!deleted) {
         Logger.getInstance(FastDeployManager.class).error("Couldn't delete " + incremental);
