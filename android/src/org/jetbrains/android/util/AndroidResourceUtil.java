@@ -31,6 +31,7 @@ import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -857,11 +858,23 @@ public class AndroidResourceUtil {
     return true;
   }
 
+  /**
+   * Sets a new value for a color.
+   * @param facet {@link AndroidFacet} instance
+   * @param colorName the name of the color to be modified
+   * @param newValue the new color value
+   * @param fileName the color values file name
+   * @param dirNames list of values directories where the color should be changed
+   * @param useGlobalCommand if true, the undo will be registered globally. This allows the command to be undone from anywhere in the IDE
+   *                         and not only the XML editor
+   * @return true if the color value was changed
+   */
   public static boolean changeColorResource(@NotNull AndroidFacet facet,
                                             @NotNull final String colorName,
                                             @NotNull final String newValue,
                                             @NotNull String fileName,
-                                            @NotNull List<String> dirNames) {
+                                            @NotNull List<String> dirNames,
+                                            final boolean useGlobalCommand) {
     if (dirNames.isEmpty()) {
       return false;
     }
@@ -889,7 +902,7 @@ public class AndroidResourceUtil {
     }
 
     List<PsiFile> psiFiles = Lists.newArrayListWithExpectedSize(resFiles.size());
-    Project project = facet.getModule().getProject();
+    final Project project = facet.getModule().getProject();
     PsiManager manager = PsiManager.getInstance(project);
     for (VirtualFile file : resFiles) {
       PsiFile psiFile = manager.findFile(file);
@@ -901,6 +914,10 @@ public class AndroidResourceUtil {
     WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, "Change Color Resource", files) {
       @Override
       protected void run(@NotNull Result<Boolean> result) throws Throwable {
+        if (useGlobalCommand) {
+          CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+        }
+
         result.setResult(false);
         for (Resources resources : resourcesElements) {
           for (ScalarResourceElement colorElement : resources.getColors()) {

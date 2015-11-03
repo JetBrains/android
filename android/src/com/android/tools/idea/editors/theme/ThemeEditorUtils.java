@@ -792,8 +792,11 @@ public class ThemeEditorUtils {
     }
     nameSuggestion = getDefaultResourceName(context, nameSuggestion);
 
-    return new ChooseResourceDialog(module, configuration, allowedTypes, value, isFrameworkValue,
-                                    ChooseResourceDialog.ResourceNameVisibility.FORCE, nameSuggestion);
+    ChooseResourceDialog dialog = new ChooseResourceDialog(module, configuration, allowedTypes, value, isFrameworkValue,
+                                                           ChooseResourceDialog.ResourceNameVisibility.FORCE, nameSuggestion);
+    dialog.setUseGlobalUndo(true);
+
+    return dialog;
   }
 
   /**
