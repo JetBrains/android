@@ -119,15 +119,14 @@ public class LaunchCompatibilityTest extends TestCase {
     assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
   }
 
-  private static IDevice createMockDevice(int api, @Nullable String codeName) {
+  private static AndroidDevice createMockDevice(int api, @Nullable String codeName) {
     return createMockDevice(api, codeName, false);
   }
 
-  private static IDevice createMockDevice(int api, @Nullable String codeName, boolean supportsFeature) {
-    IDevice device = mock(IDevice.class);
+  private static AndroidDevice createMockDevice(int api, @Nullable String codeName, boolean supportsFeature) {
+    AndroidDevice device = mock(AndroidDevice.class);
     try {
-      when(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)).thenReturn(Integer.toString(api));
-      when(device.getProperty(IDevice.PROP_BUILD_CODENAME)).thenReturn(codeName);
+      when(device.getVersion()).thenReturn(new AndroidVersion(api, codeName));
       when(device.supportsFeature(any(IDevice.HardwareFeature.class))).thenReturn(supportsFeature);
     }
     catch (Exception ignored) {
