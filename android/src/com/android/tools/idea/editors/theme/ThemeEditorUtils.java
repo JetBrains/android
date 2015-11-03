@@ -520,13 +520,13 @@ public class ThemeEditorUtils {
       VersionQualifier qualifier = new VersionQualifier(minAcceptableApi);
       config.setVersionQualifier(qualifier);
     }
-    final List<String> dirNames = Collections.singletonList(config.getFolderName(ResourceFolderType.VALUES));
 
     if (fileName == null) {
       LOG.error("Couldn't find a default filename for ResourceType.STYLE");
       return null;
     }
 
+    final List<String> dirNames = Collections.singletonList(config.getFolderName(ResourceFolderType.VALUES));
     String parentStyleName = dialog.getStyleParentName();
     boolean isCreated = createNewStyle(
       themeEditorContext.getCurrentContextModule(), dialog.getStyleName(), parentStyleName, fileName, dirNames);
