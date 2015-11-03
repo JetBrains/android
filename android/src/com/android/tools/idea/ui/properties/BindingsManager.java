@@ -110,18 +110,20 @@ public final class BindingsManager {
    * Binds one value to another. Whenever the source value changes, the destination value will
    * be updated to reflect it.
    * <p/>
-   * Setting a bound value is allowed but discouraged, as it will be overwritten as soon as the
-   * target value changes, and this may be hard to debug. If you are careful and know what you're
-   * doing, this can still be useful - for example, you might also wish to add a listener
-   * to the bound value and, detecting an external change, release the binding.
+   * If you ever rebind a value, its old binding will be discarded.
+   * <p/>
+   * Use {@link #bind(SettableValue, ObservableValue, ObservableValue)} instead if you need to
+   * break bindings conditionally.
    */
   public <T> void bind(@NotNull SettableValue<T> dest, @NotNull ObservableValue<T> src) {
-    bind(dest, src, BooleanExpressions.TRUE);
+    bind(dest, src, BooleanExpressions.alwaysTrue());
   }
 
   /**
    * Like {@link #bind(SettableValue, ObservableValue)}, but takes an additional observable boolean
    * which, while set to false, disables the binding.
+   * <p/>
+   * If you ever rebind a value, its old binding will be discarded.
    * <p/>
    * This can be useful for UI fields that are initially linked to each other but which may break
    * that link later on.
