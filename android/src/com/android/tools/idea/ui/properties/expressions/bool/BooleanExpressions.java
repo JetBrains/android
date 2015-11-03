@@ -24,21 +24,26 @@ import org.jetbrains.annotations.NotNull;
  * chained expressions.
  */
 public final class BooleanExpressions {
-  public static final ObservableBool TRUE = new BooleanExpression() {
-    @NotNull
-    @Override
-    public Boolean get() {
-      return true;
-    }
-  };
 
-  public static final ObservableBool FALSE = new BooleanExpression() {
-    @NotNull
-    @Override
-    public Boolean get() {
-      return false;
-    }
-  };
+  public static ObservableBool alwaysTrue() {
+    return new BooleanExpression() {
+      @NotNull
+      @Override
+      public Boolean get() {
+        return true;
+      }
+    };
+  }
+
+  public static ObservableBool alwaysFalse() {
+    return new BooleanExpression() {
+      @NotNull
+      @Override
+      public Boolean get() {
+        return false;
+      }
+    };
+  }
 
   public static ObservableBool any(ObservableValue<Boolean>... values) {
     return new AnyExpression(values);
