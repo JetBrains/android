@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -29,8 +30,15 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.ui.components.JBList;
+import org.fest.swing.cell.JListCellReader;
+import org.fest.swing.core.*;
+import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.Collection;
 import java.util.Set;
 
@@ -75,5 +83,28 @@ public class ThemeEditorTestUtils {
         return localAttributes.contains(input.getQualifiedName());
       }
     });
+  }
+
+  /**
+   * Returns a {@link JListFixture} for the auto-completion popup
+   */
+  @NotNull
+  public static JListFixture getCompletionPopup(@NotNull Robot robot) {
+    JBList list = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JBList>(JBList.class) {
+      @Override
+      protected boolean isMatching(@NotNull JBList component) {
+        ListModel listModel = component.getModel();
+        return listModel.getSize() > 0 && listModel.getElementAt(0) instanceof LookupElement;
+      }
+    });
+    JListFixture listFixture = new JListFixture(robot, list);
+    listFixture.replaceCellReader(new JListCellReader() {
+      @Nullable
+      @Override
+      public String valueAt(@NotNull JList list, int index) {
+        return ((LookupElement)list.getModel().getElementAt(index)).getLookupString();
+      }
+    });
+    return listFixture;
   }
 }
