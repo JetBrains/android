@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
@@ -91,6 +93,12 @@ public class GradleBuildModel extends GradleFileModel {
   }
 
   @Nullable
+  public DependenciesModel dependenciesV2() {
+    DependenciesDslElement dependenciesDslElement = myGradleDslFile.getProperty(DependenciesDslElement.NAME, DependenciesDslElement.class);
+    return dependenciesDslElement != null ? new DependenciesModel(dependenciesDslElement) : null;
+  }
+
+  @Nullable
   public ExtModel ext() {
     ExtDslElement extDslElement = myGradleDslFile.getProperty(ExtDslElement.NAME, ExtDslElement.class);
     return extDslElement != null ? new ExtModel(extDslElement) : null;
@@ -153,9 +161,7 @@ public class GradleBuildModel extends GradleFileModel {
       psiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
         @Override
         public void visitMethodCallExpression(GrMethodCallExpression e) {
-          if (myDependencies.parse(e)) {
-            return;
-          }
+          myDependencies.parse(e);
           process(e);
         }
 
