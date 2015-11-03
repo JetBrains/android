@@ -27,8 +27,8 @@ public final class BooleanExpressionsTest {
 
   @Test
   public void testInvariants() throws Exception {
-    Assertions.assertThat(BooleanExpressions.TRUE.get()).isTrue();
-    Assertions.assertThat(BooleanExpressions.FALSE.get()).isFalse();
+    Assertions.assertThat(BooleanExpressions.alwaysTrue().get()).isTrue();
+    Assertions.assertThat(BooleanExpressions.alwaysFalse().get()).isFalse();
   }
 
   @Test
