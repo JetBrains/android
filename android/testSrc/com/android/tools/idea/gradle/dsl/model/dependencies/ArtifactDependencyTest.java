@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.dependencies.CommonConfigurationNames;
-import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -36,18 +35,109 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     checkReadAndModify(text);
   }
 
+  public void testCompactNotation() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile 'com.google.code.guice:guice:1.0'\n" +
+                  "}";
+    checkReadAndModify(text);
+  }
+
+  public void testAddingDependency() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile 'com.google.code.guice:guice:1.0'\n" +
+                  "}";
+    writeToBuildFile(text);
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
+    assertNotNull(dependenciesModel);
+
+    assertEquals("com.google.code.guice:guice:1.0", getDependency(dependenciesModel).getCompactNotation());
+
+    dependenciesModel.addArtifactDependency("compile", "com.google.guava:guava:19.0");
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+    buildModel.reparse();
+
+    dependenciesModel = buildModel.dependenciesV2();
+    assertNotNull(dependenciesModel);
+
+    List<ArtifactDependencyModel> artifacts = dependenciesModel.artifactDependencies("compile");
+    assertSize(2, artifacts);
+
+    assertEquals("com.google.code.guice:guice:1.0", artifacts.get(0).getCompactNotation());
+    assertEquals("com.google.guava:guava:19.0", artifacts.get(1).getCompactNotation());
+  }
+
+  public void testAddingDependencyForEmptyFile() throws Exception {
+    writeToBuildFile("");
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
+    assertNull(dependenciesModel);
+    dependenciesModel = buildModel.addDependenciesModelV2().dependenciesV2();
+    assertNotNull(dependenciesModel);
+
+    dependenciesModel.addArtifactDependency("compile", "com.google.code.guice:guice:1.0");
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+    buildModel.reparse();
+
+    dependenciesModel = buildModel.dependenciesV2();
+    assertNotNull(dependenciesModel);
+
+    assertEquals("com.google.code.guice:guice:1.0", getDependency(dependenciesModel).getCompactNotation());
+  }
+
+  public void testAddingInvalidDependency() throws Exception {
+    String text = "dependencies {\n" +
+                  "}";
+    writeToBuildFile(text);
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
+    assertNotNull(dependenciesModel);
+
+    try {
+      dependenciesModel.addArtifactDependency("compile", "1:2:3:4:5:6");
+      fail();
+    } catch (IllegalArgumentException e) {
+      // ingore
+    }
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+    buildModel.reparse();
+
+    dependenciesModel = buildModel.dependenciesV2();
+    assertNotNull(dependenciesModel);
+    assertEmpty(dependenciesModel.artifactDependencies("compile"));
+  }
+
   private void checkReadAndModify(@NotNull String text) throws IOException {
     writeToBuildFile(text);
     final GradleBuildModel buildModel = getGradleBuildModel();
     ArtifactDependencyModel dependencyModel = getDependency(buildModel.dependenciesV2());
 
     // Test Read
-    assertEquals(new ExternalDependencySpec("guice", "com.google.code.guice", "1.0"), dependencyModel.getDependencySpec());
+    assertEquals("com.google.code.guice:guice:1.0", dependencyModel.getCompactNotation());
 
     // Test reset
     dependencyModel.setVersion("1.1");
     assertEquals("1.1", dependencyModel.version());
     buildModel.resetState();
+    dependencyModel = getDependency(buildModel.dependenciesV2());
     assertEquals("1.0", dependencyModel.version());
 
     // Test Read after write
@@ -65,8 +155,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertNotNull(dependenciesModel);
     dependencyModel = getDependency(dependenciesModel);
 
-    assertEquals(new ExternalDependencySpec("guice", "com.google.code.guice", "1.2"),
-                 dependencyModel.getDependencySpec());
+    assertEquals("com.google.code.guice:guice:1.2", dependencyModel.getCompactNotation());
 
     // Test Remove
     dependenciesModel.remove(dependencyModel);

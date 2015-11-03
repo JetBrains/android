@@ -55,7 +55,7 @@ public class CompactNotationTest {
 
   @Test
   public void parseCompactNotation() {
-    ExternalDependencySpec spec = CompactNotation.parse(myNotationValue);
+    ExternalDependencySpec spec = ExternalDependencySpec.create(myNotationValue);
     assertEquals(myDependencySpec, spec);
     if (spec != null) {
       assertEquals(myNotationValue, spec.toString());
