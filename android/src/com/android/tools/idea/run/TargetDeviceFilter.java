@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
-import java.util.Set;
 
 public abstract class TargetDeviceFilter implements Predicate<IDevice> {
   @Override
@@ -62,7 +61,9 @@ public abstract class TargetDeviceFilter implements Predicate<IDevice> {
       } else {
         LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(AndroidModuleInfo.get(myFacet).getRuntimeMinSdkVersion(),
                                                                                androidPlatform.getTarget(),
-                                                                               EnumSet.noneOf(IDevice.HardwareFeature.class), device, null);
+                                                                               EnumSet.noneOf(IDevice.HardwareFeature.class),
+                                                                               new ConnectedAndroidDevice(device, null),
+                                                                               null);
         return compatibility.isCompatible() != ThreeState.NO;
       }
     }
