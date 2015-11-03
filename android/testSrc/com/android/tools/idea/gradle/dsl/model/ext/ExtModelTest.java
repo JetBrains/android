@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 
 import java.io.IOException;
 
@@ -75,5 +77,81 @@ public class ExtModelTest extends GradleFileModelTestCase {
     String guavaLibrary = extModel.getProperty("libraries.guava", String.class);
     assertNotNull(guavaLibrary);
     assertEquals("com.google.guava:guava:19.0-rc1", guavaLibrary);
+  }
+
+  public void testResolveExtProperty() throws IOException {
+    String text = "ext.COMPILE_SDK_VERSION = 21\n" +
+                  "android {\n" +
+                  "  compileSdkVersion COMPILE_SDK_VERSION\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertNotNull(buildModel);
+
+    ExtModel extModel = buildModel.ext();
+    assertNotNull(extModel);
+
+    Integer compileSdkVersion = extModel.getProperty("COMPILE_SDK_VERSION", Integer.class);
+    assertNotNull(compileSdkVersion);
+    assertEquals(21, compileSdkVersion.intValue());
+
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion());
+  }
+
+  public void testResolveQualifiedExtProperty() throws IOException {
+    String text = "ext.constants = [\n" +
+                  "  COMPILE_SDK_VERSION : 21\n" +
+                  "]\n" +
+                  "android {\n" +
+                  "  compileSdkVersion constants.COMPILE_SDK_VERSION\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertNotNull(buildModel);
+
+    ExtModel extModel = buildModel.ext();
+    assertNotNull(extModel);
+
+    Integer compileSdkVersion = extModel.getProperty("constants.COMPILE_SDK_VERSION", Integer.class);
+    assertNotNull(compileSdkVersion);
+    assertEquals(21, compileSdkVersion.intValue());
+
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion());
+  }
+
+  public void testResolveMultiLevelExtProperty() throws IOException {
+    String text = "ext.SDK_VERSION = 21\n" +
+                  "ext.COMPILE_SDK_VERSION = SDK_VERSION\n" +
+                  "android {\n" +
+                  "  compileSdkVersion COMPILE_SDK_VERSION\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertNotNull(buildModel);
+
+    ExtModel extModel = buildModel.ext();
+    assertNotNull(extModel);
+
+    Integer sdkVersion = extModel.getProperty("SDK_VERSION", Integer.class);
+    assertNotNull(sdkVersion);
+    assertEquals(21, sdkVersion.intValue());
+
+    Integer compileSdkVersion = extModel.getProperty("COMPILE_SDK_VERSION", Integer.class);
+    assertNotNull(compileSdkVersion);
+    assertEquals(21, compileSdkVersion.intValue());
+
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion());
   }
 }
