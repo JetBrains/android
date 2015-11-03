@@ -98,6 +98,16 @@ public class GradleBuildModel extends GradleFileModel {
     return dependenciesDslElement != null ? new DependenciesModel(dependenciesDslElement) : null;
   }
 
+  @NotNull
+  public GradleBuildModel addDependenciesModelV2() {
+    if (dependenciesV2() != null) {
+      return this;
+    }
+    DependenciesDslElement dependenciesDslElement = new DependenciesDslElement(myGradleDslFile);
+    myGradleDslFile.setNewElement(DependenciesDslElement.NAME, dependenciesDslElement);
+    return this;
+  }
+
   @Nullable
   public ExtModel ext() {
     ExtDslElement extDslElement = myGradleDslFile.getProperty(ExtDslElement.NAME, ExtDslElement.class);
