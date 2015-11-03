@@ -299,17 +299,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     DeployTargetState deployTargetState = getCurrentDeployTargetState();
     ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
 
-    if (currentTarget.requiresRuntimePrompt(deployTargetState)) {
-      if (!currentTarget
-        .showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID(), printer)) {
-        return null; // user cancelled
-      }
-    }
-
-    if (currentTarget.hasCustomRunProfileState(executor)) {
-      return currentTarget.getRunProfileState(executor, env, deployTargetState);
-    }
-
     AndroidSessionInfo info = AndroidSessionManager.findOldSession(project, getName());
     if (info != null) {
       if (!info.getExecutorId().equals(executor.getId())) {
@@ -342,6 +331,17 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
           LOG.info("Skipping fast deploy, devices from last run: " + (devices == null ? "none" : devices.size()));
         }
       }
+    }
+
+    if (currentTarget.requiresRuntimePrompt(deployTargetState)) {
+      if (!currentTarget
+        .showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID(), printer)) {
+        return null; // user cancelled
+      }
+    }
+
+    if (currentTarget.hasCustomRunProfileState(executor)) {
+      return currentTarget.getRunProfileState(executor, env, deployTargetState);
     }
 
     // If there is a session that we will embed to, we need to re-use the devices from that session.
