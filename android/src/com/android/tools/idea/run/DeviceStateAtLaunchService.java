@@ -16,31 +16,28 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
 import java.util.Set;
 
 public class DeviceStateAtLaunchService {
-  /**
-   * A map from launch configuration name to the state of devices at the time of the launch.
-   */
-  private Map<String, DeviceStateAtLaunch> myLastUsedDevices = Maps.newConcurrentMap();
+  /** A map from launch configuration id to the state of devices at the time of the launch. */
+  private TIntObjectHashMap<DeviceStateAtLaunch> myLastUsedDevices = new TIntObjectHashMap<DeviceStateAtLaunch>();
 
   public static DeviceStateAtLaunchService getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, DeviceStateAtLaunchService.class);
   }
 
-  public void setDevicesUsedInLaunch(@NotNull String name, @NotNull Set<IDevice> usedDevices, @NotNull Set<IDevice> availableDevices) {
-    myLastUsedDevices.put(name, new DeviceStateAtLaunch(usedDevices, availableDevices));
+  public void setDevicesUsedInLaunch(int id, @NotNull Set<IDevice> usedDevices, @NotNull Set<IDevice> availableDevices) {
+    myLastUsedDevices.put(id, new DeviceStateAtLaunch(usedDevices, availableDevices));
   }
 
   @Nullable
-  public DeviceStateAtLaunch getDevicesUsedInLastLaunch(@NotNull String name) {
-    return myLastUsedDevices.get(name);
+  public DeviceStateAtLaunch getDevicesUsedInLastLaunch(int id) {
+    return myLastUsedDevices.get(id);
   }
 }
