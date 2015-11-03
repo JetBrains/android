@@ -50,8 +50,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 
 import javax.swing.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -291,55 +289,14 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       severity = HighlightSeverity.WARNING;
     }
 
-    // Attempt to mark up as HTML? Only if available
-    Method createHtmlAnnotation = getCreateHtmlAnnotation();
-    if (createHtmlAnnotation != null) {
-      // Based on LocalInspectionsPass#createHighlightInfo
-      String link = " <a "
-          +"href=\"#lint/" + issue.getId() + "\""
-          + (UIUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
-          +">" + DaemonBundle.message("inspection.extended.description")
-          +"</a> " + getShowMoreShortCut();
-      String tooltip = XmlStringUtil.wrapInHtml(RAW.convertTo(message, HTML) + link);
+    String link = " <a "
+        +"href=\"#lint/" + issue.getId() + "\""
+        + (UIUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
+        +">" + DaemonBundle.message("inspection.extended.description")
+        +"</a> " + getShowMoreShortCut();
+    String tooltip = XmlStringUtil.wrapInHtml(RAW.convertTo(message, HTML) + link);
 
-      try {
-        return (Annotation)createHtmlAnnotation.invoke(holder, severity, range, message, tooltip);
-      }
-      catch (IllegalAccessException ignored) {
-        ourCreateHtmlAnnotationMethod = null;
-        //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourCreateHtmlAnnotationMethodFailed = true;
-      }
-      catch (InvocationTargetException e) {
-        ourCreateHtmlAnnotationMethod = null;
-        //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourCreateHtmlAnnotationMethodFailed = true;
-      }
-    }
-
-    return holder.createAnnotation(severity, range, message);
-  }
-
-  private static boolean ourCreateHtmlAnnotationMethodFailed;
-  private static Method ourCreateHtmlAnnotationMethod;
-
-  @Nullable
-  private static Method getCreateHtmlAnnotation() {
-    if (ourCreateHtmlAnnotationMethod != null) {
-      return ourCreateHtmlAnnotationMethod;
-    }
-    if (ourCreateHtmlAnnotationMethodFailed) {
-      return null;
-    } else {
-      ourCreateHtmlAnnotationMethodFailed = true;
-      try {
-        ourCreateHtmlAnnotationMethod = AnnotationHolder.class.getMethod("createAnnotation", HighlightSeverity.class,
-                                                                        TextRange.class, String.class, String.class);
-      }
-      catch (NoSuchMethodException ignore) {
-      }
-      return ourCreateHtmlAnnotationMethod;
-    }
+    return holder.createAnnotation(severity, range, message, tooltip);
   }
 
   // Based on similar code in the LocalInspectionsPass constructor
