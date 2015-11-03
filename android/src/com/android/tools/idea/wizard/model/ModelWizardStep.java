@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard.model;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +30,8 @@ import java.util.Collection;
  * present to the user, determining if the information on the page is valid in order to progress,
  * and storing the user's data in the target model.
  */
-public abstract class ModelWizardStep<M extends WizardModel> {
+public abstract class ModelWizardStep<M extends WizardModel> implements Disposable {
+
   @NotNull private final String myTitle;
 
   @NotNull private M myModel;
@@ -122,5 +124,9 @@ public abstract class ModelWizardStep<M extends WizardModel> {
    * the finished state). This is a good time to copy any relevant data out of the UI into a model.
    */
   protected void onProceeding() {
+  }
+
+  @Override
+  public void dispose() {
   }
 }

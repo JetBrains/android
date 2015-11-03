@@ -25,6 +25,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.containers.Stack;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +46,7 @@ import java.util.Set;
  * In this way, users of this framework can design steps which handle the UI logic while putting
  * all non-UI business logic in a data model class.
  */
-public final class ModelWizard {
+public final class ModelWizard implements Disposable {
 
   private final List<ModelWizardStep> mySteps;
 
@@ -153,6 +155,7 @@ public final class ModelWizard {
 
     myContentPanel.add(step.getComponent(), Integer.toString(mySteps.size()));
     mySteps.add(step);
+    Disposer.register(this, step);
 
     for (ModelWizardStep subStep : step.createDependentSteps()) {
       myStepOwners.put(subStep, step);
@@ -331,7 +334,6 @@ public final class ModelWizard {
     }
 
     myCurrIndex = mySteps.size() + 1; // Magic value indicates done. See: isFinished
-    myBindings.releaseAll();
     myPrevSteps.clear();
     myCanGoBack.set(false);
     myCanGoForward.set(false);
@@ -391,6 +393,11 @@ public final class ModelWizard {
   @VisibleForTesting
   Facade getFacade() {
     return myFacade;
+  }
+
+  @Override
+  public void dispose() {
+    myBindings.releaseAll();
   }
 
   /**

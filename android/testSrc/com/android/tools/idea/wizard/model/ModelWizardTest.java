@@ -19,6 +19,7 @@ import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -322,6 +323,21 @@ public class ModelWizardTest {
     assertThat(finishList).isEmpty();
   }
 
+  @Test
+  public void stepGetsDisposedWhenWizardGetsDisposed() throws Exception {
+    DisposedStep disposedStep = new DisposedStep(new DummyModel());
+    ModelWizard wizard = new ModelWizard(disposedStep);
+    wizard.start();
+    wizard.goForward();
+
+    assertThat(wizard.isFinished()).isTrue();
+
+    Disposer.dispose(wizard);
+
+    assertThat(disposedStep.isDisposed()).isTrue();
+
+  }
+
   private static class DummyModel extends WizardModel {
     @Override
     public void handleFinished() {
@@ -381,6 +397,23 @@ public class ModelWizardTest {
     @Override
     protected ObservableBool canProceed() {
       return BooleanExpressions.alwaysFalse();
+    }
+  }
+
+  private static class DisposedStep extends NoUiStep<DummyModel> {
+    private boolean myDisposed;
+
+    public DisposedStep(@NotNull DummyModel model) {
+      super(model);
+    }
+
+    @Override
+    public void dispose() {
+      myDisposed = true;
+    }
+
+    public boolean isDisposed() {
+      return myDisposed;
     }
   }
 
