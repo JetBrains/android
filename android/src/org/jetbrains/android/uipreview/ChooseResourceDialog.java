@@ -21,7 +21,10 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.*;
+import com.android.tools.idea.editors.theme.MaterialColorUtils;
+import com.android.tools.idea.editors.theme.MaterialColors;
+import com.android.tools.idea.editors.theme.StateListPicker;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
@@ -149,6 +152,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   private boolean myOverwriteResource = false;
   private ResourceNameVisibility myResourceNameVisibility;
+  private boolean myUseGlobalUndo;
 
   public interface ResourcePickerListener {
     void resourceChanged(String resource);
@@ -553,7 +557,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null;
 
-      if (!AndroidResourceUtil.changeColorResource(facet, colorName, myResultResourceName, fileName, dirNames)) {
+      if (!AndroidResourceUtil.changeColorResource(facet, colorName, myResultResourceName, fileName, dirNames, myUseGlobalUndo)) {
         // Changing color resource has failed, one possible reason is that color isn't defined in the project.
         // Trying to create the color instead.
         AndroidResourceUtil.createValueResource(module, colorName, ResourceType.COLOR, fileName, dirNames, myResultResourceName);
@@ -622,6 +626,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       panel.showPreview(element);
     }
     notifyResourcePickerListeners(myResultResourceName);
+  }
+
+  public void setUseGlobalUndo(boolean useGlobalUndo) {
+    myUseGlobalUndo = useGlobalUndo;
   }
 
   private class ResourcePanel {
