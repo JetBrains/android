@@ -85,12 +85,12 @@ public class LaunchCompatibility {
   public static LaunchCompatibility canRunOnDevice(@NotNull AndroidVersion minSdkVersion,
                                                    @NotNull IAndroidTarget projectTarget,
                                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
-                                                   @NotNull IDevice device,
+                                                   @NotNull AndroidDevice device,
                                                    @Nullable IAndroidTarget avdTarget) {
     // check if the device has the required minApi
     // note that in cases where targetSdk is a preview platform, gradle sets minsdk to be the same as targetsdk,
     // so as to only allow running on those systems
-    AndroidVersion deviceVersion = DevicePropertyUtil.getDeviceVersion(device);
+    AndroidVersion deviceVersion = device.getVersion();
     if (!deviceVersion.canRun(minSdkVersion)) {
       String reason = String.format("minSdk(%1$s) %3$s deviceSdk(%2$s)",
                                     minSdkVersion,
