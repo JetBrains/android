@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.google.common.base.Splitter;
@@ -239,6 +240,8 @@ public final class GradleDslParser {
           }
           else if (AndroidDslElement.NAME.equals(nestedElementName)) {
             newElement = new AndroidDslElement(resultElement);
+          } else if (DependenciesDslElement.NAME.equals(nestedElementName)) {
+            newElement = new DependenciesDslElement(resultElement);
           } else {
             return null;
           }
