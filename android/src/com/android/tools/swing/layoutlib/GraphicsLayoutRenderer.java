@@ -134,7 +134,6 @@ public class GraphicsLayoutRenderer {
                                                  @NotNull ILayoutPullParser parser,
                                                  @Nullable Color backgroundColor,
                                                  @NotNull SessionParams.RenderingMode renderingMode) throws InitializationException {
-    Module module = facet.getModule();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     LayoutLibrary layoutLib;
     try {
@@ -161,6 +160,7 @@ public class GraphicsLayoutRenderer {
 
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
 
+    Module module = facet.getModule();
     // Security token used to disable the security manager. Only objects that have a reference to it are allowed to disable it.
     Object credential = new Object();
     RenderLogger logger = new RenderLogger("theme_editor", module, credential);
