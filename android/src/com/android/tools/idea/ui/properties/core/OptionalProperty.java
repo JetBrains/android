@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +31,15 @@ public final class OptionalProperty<T> extends ObservableProperty<Optional<T>> {
 
   public static <T> OptionalProperty<T> of(@NotNull T value) {
     return new OptionalProperty<T>(value);
+  }
+
+  public static <T> OptionalProperty<T> fromNullable(@Nullable T value) {
+    if (value != null) {
+      return of(value);
+    }
+    else {
+      return absent();
+    }
   }
 
   public static <T> OptionalProperty<T> absent() {
@@ -67,6 +77,15 @@ public final class OptionalProperty<T> extends ObservableProperty<Optional<T>> {
     }
   }
 
+  public void setNullableValue(@Nullable T value) {
+    if (value != null) {
+      setValue(value);
+    }
+    else {
+      clear();
+    }
+  }
+
   @NotNull
   public T getValueOr(@NotNull T defaultValue) {
     return myOptional.or(defaultValue);
@@ -77,8 +96,14 @@ public final class OptionalProperty<T> extends ObservableProperty<Optional<T>> {
     return myOptional.orNull();
   }
 
-  public boolean isPresent() {
-    return myOptional.isPresent();
+  public ObservableBool isPresent() {
+    return new BooleanExpression(this) {
+      @NotNull
+      @Override
+      public Boolean get() {
+        return myOptional.isPresent();
+      }
+    };
   }
 
   @Override
