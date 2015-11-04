@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.dependencies;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.google.common.base.Strings.emptyToNull;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class ExternalDependencySpec {
   @NotNull public String name;
@@ -83,5 +85,61 @@ public class ExternalDependencySpec {
       s += "@" + extension;
     }
     return s;
+  }
+
+
+  @Nullable
+  public static ExternalDependencySpec create(@NotNull String notation) {
+    // Example: org.gradle.test.classifiers:service:1.0:jdk15@jar where
+    //   group: org.gradle.test.classifiers
+    //   name: service
+    //   version: 1.0
+    //   classifier: jdk15
+    //   extension: jar
+    List<String> segments = Splitter.on(':').trimResults().omitEmptyStrings().splitToList(notation);
+    int segmentCount = segments.size();
+    if (segmentCount > 0) {
+      segments = Lists.newArrayList(segments);
+      String lastSegment = segments.remove(segmentCount - 1);
+      String extension = null;
+      int indexOfAt = lastSegment.indexOf('@');
+      if (indexOfAt != -1) {
+        extension = lastSegment.substring(indexOfAt + 1, lastSegment.length());
+        lastSegment = lastSegment.substring(0, indexOfAt);
+      }
+      segments.add(lastSegment);
+      segmentCount = segments.size();
+
+      String group = null;
+      String name = null;
+      String version = null;
+      String classifier = null;
+
+      if (segmentCount == 1) {
+        name = segments.get(0);
+      }
+      else if (segmentCount == 2) {
+        if (!lastSegment.isEmpty() && Character.isDigit(lastSegment.charAt(0))) {
+          name = segments.get(0);
+          version = lastSegment;
+        }
+        else {
+          group = segments.get(0);
+          name = segments.get(1);
+        }
+      }
+      else if (segmentCount == 3 || segmentCount == 4) {
+        group = segments.get(0);
+        name = segments.get(1);
+        version = segments.get(2);
+        if (segmentCount == 4) {
+          classifier = segments.get(3);
+        }
+      }
+      if (isNotEmpty(name)) {
+        return new ExternalDependencySpec(name, group, version, classifier, extension);
+      }
+    }
+    return null;
   }
 }
