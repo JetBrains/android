@@ -29,4 +29,6 @@ public interface DeveloperServiceCreators {
 
   @NotNull
   Collection<? extends DeveloperServiceCreator> getCreators();
+
+  String getDeveloperServiceCreatorsId();
 }
