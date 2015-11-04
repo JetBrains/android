@@ -36,6 +36,8 @@ import java.io.File;
 
 /**
  * Static utility methods used by the New Project/New Module wizards
+ *
+ * TODO: Post wizard migration: Rename this to NpwUtils(?)
  */
 public class WizardUtils {
   private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(WizardConstants.INVALID_FILENAME_CHARS);
@@ -60,6 +62,10 @@ public class WizardUtils {
     return moduleName;
   }
 
+  /**
+   * @deprecated Use {@link com.android.tools.idea.ui.wizard.WizardUtils#getProjectLocationParent()} instead.
+   * TODO: Post wizard migration: delete
+   */
   @NotNull
   public static File getProjectLocationParent() {
     String parent = RecentProjectsManager.getInstance().getLastProjectCreationLocation();
@@ -100,6 +106,9 @@ public class WizardUtils {
    * @param dir the directory to list
    * @return the children, or empty if it has no children, is not a directory,
    * etc.
+   *
+   * @deprecated Use {@link com.android.tools.idea.ui.wizard.WizardUtils#listFiles(File)} instead.
+   * TODO: Post wizard migration: delete
    */
   @NotNull
   public static File[] listFiles(@Nullable File dir) {
@@ -114,6 +123,9 @@ public class WizardUtils {
 
   /**
    * A Validation Result for Wizard Validations, contains a status and a message
+   *
+   * @deprecated Use {@link com.android.tools.idea.ui.wizard.ValidationResult} instead.
+   * TODO: Post wizard migration: delete
    */
   public static class ValidationResult {
     public enum Status {
