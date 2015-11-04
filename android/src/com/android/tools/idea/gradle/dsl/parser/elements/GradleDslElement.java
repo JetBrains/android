@@ -20,14 +20,18 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
 
 import java.util.Collection;
 
@@ -123,14 +127,15 @@ public abstract class GradleDslElement {
     for (GradleDslElement element : getChildren()) {
       element.delete();
     }
+
     GroovyPsiElement psiElement = getPsiElement();
-    if(psiElement == null) {
+    if(psiElement == null || !psiElement.isValid()) {
       return;
     }
+
     PsiElement parent = psiElement.getParent();
-    if (psiElement.isValid()) {
-      psiElement.delete();
-    }
+    psiElement.delete();
+
     if (parent != null) {
       deleteIfEmpty(parent);
     }
@@ -190,53 +195,64 @@ public abstract class GradleDslElement {
   }
 
   protected static void deleteIfEmpty(@Nullable PsiElement element) {
-    if(element == null) {
+    if(element == null || !element.isValid()) {
       return;
     }
+
+    PsiElement parent = element.getParent();
+
     if (element instanceof GrAssignmentExpression) {
       if (((GrAssignmentExpression)element).getRValue() == null) {
         element.delete();
       }
     }
     else if (element instanceof GrApplicationStatement) {
-      if (((GrApplicationStatement)element).getArgumentList() != null) {
+      if (((GrApplicationStatement)element).getArgumentList() == null) {
+        element.delete();
+      }
+    }
+    else if (element instanceof GrClosableBlock) {
+      final Boolean[] isEmpty = new Boolean[]{true};
+      ((GrClosableBlock)element).acceptChildren(new GroovyElementVisitor() {
+        @Override
+        public void visitElement(GroovyPsiElement child) {
+          if (child instanceof GrParameterList) {
+            if (((GrParameterList)child).getParameters().length == 0) {
+              return; // Ignore the empty parameter list.
+            }
+          }
+          isEmpty[0] = false;
+        }
+      });
+      if (isEmpty[0]) {
         element.delete();
       }
     }
     else if (element instanceof GrMethodCallExpression) {
       GrMethodCallExpression call = ((GrMethodCallExpression)element);
-      if (call.getArgumentList() == null && call.getClosureArguments().length == 0) {
+      GrArgumentList argumentList = call.getArgumentList();
+      GrClosableBlock[] closureArguments = call.getClosureArguments();
+      if ((argumentList == null || argumentList.getAllArguments().length == 0)
+          && closureArguments.length == 0) {
         element.delete();
       }
     }
     else if (element instanceof GrCommandArgumentList) {
-      deleteIfEmpty((GrCommandArgumentList)element);
+      GrCommandArgumentList commandArgumentList = (GrCommandArgumentList)element;
+      if (commandArgumentList.getAllArguments().length == 0) {
+        commandArgumentList.delete();
+      }
     }
     else if (element instanceof GrListOrMap) {
-      deleteIfEmpty((GrListOrMap)element);
+      GrListOrMap listOrMap = (GrListOrMap)element;
+      if ((listOrMap.isMap() && listOrMap.getNamedArguments().length == 0)
+          || (!listOrMap.isMap() && listOrMap.getInitializers().length == 0) ) {
+        listOrMap.delete();
+      }
     }
-    // TODO consider continuously delete parent
-  }
 
-  private static void deleteIfEmpty(@NotNull GrCommandArgumentList commandArgumentList) {
-    if (commandArgumentList.getAllArguments().length > 0) {
-      return;
-    }
-    PsiElement parent = commandArgumentList.getParent();
-    commandArgumentList.delete();
-    if (parent instanceof GrApplicationStatement) {
-      parent.delete(); // Delete the empty application statement without any arguments.
-    }
-  }
-
-  private static void deleteIfEmpty(@NotNull GrListOrMap listOrMap) {
-    if ((listOrMap.isMap() && listOrMap.getNamedArguments().length > 0) || (!listOrMap.isMap() && listOrMap.getInitializers().length > 0) ) {
-      return;
-    }
-    PsiElement parent = listOrMap.getParent();
-    listOrMap.delete();
-    if (parent instanceof GrAssignmentExpression) {
-      parent.delete(); // Delete the empty assignment statement without any arguments.
+    if (!element.isValid()) { // If this element is deleted, also delete the parent if it is empty.
+      deleteIfEmpty(parent);
     }
   }
 }
