@@ -62,7 +62,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     buildModel.reparse();
 
     DependenciesModel dependenciesModel = buildModel.dependenciesV2();
-    assert(dependenciesModel != null);
+    assertNotNull(dependenciesModel);
     dependencyModel = getDependency(dependenciesModel);
 
     assertEquals(new ExternalDependencySpec("guice", "com.google.code.guice", "1.2"),
@@ -78,8 +78,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     });
     buildModel.reparse();
     dependenciesModel = buildModel.dependenciesV2();
-    assert(dependenciesModel != null);
-    assertEmpty(dependenciesModel.artifactDependencies("compile"));
+    assertNull(dependenciesModel);
   }
 
   private static ArtifactDependencyModel getDependency(@Nullable DependenciesModel dependenciesModel) {
