@@ -18,12 +18,6 @@ package com.android.tools.idea.npw;
 
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.wizard.WizardConstants;
-import com.intellij.ide.RecentProjectsManager;
-import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.util.SystemProperties;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -56,19 +50,5 @@ public class NewProjectWizardState extends NewModuleWizardState {
     setParameterDefaults();
 
     updateParameters();
-  }
-
-  /**
-   * Use WizardUtils.getProjectLocationParent instead.
-   */
-  @NotNull
-  public static String getProjectFileDirectory() {
-    final String lastProjectLocation = RecentProjectsManager.getInstance().getLastProjectCreationLocation();
-    if (lastProjectLocation != null) {
-      return lastProjectLocation.replace('/', File.separatorChar);
-    }
-    final String userHome = SystemProperties.getUserHome();
-    String productName = ApplicationNamesInfo.getInstance().getFullProductName();
-    return userHome.replace('/', File.separatorChar) + File.separator + productName.replace(" ", "") + "Projects";
   }
 }
