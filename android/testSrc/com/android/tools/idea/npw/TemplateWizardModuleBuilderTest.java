@@ -45,7 +45,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
     TemplateWizardModuleBuilder moduleBuilder1 =
       new TemplateWizardModuleBuilder(null, null, null, null, new ArrayList<ModuleWizardStep>(), getTestRootDisposable(), false);
     assertTrue(moduleBuilder1.myWizardState.getBoolean(ATTR_IS_LAUNCHER));
-    assertEquals(NewProjectWizardState.getProjectFileDirectory(), moduleBuilder1.myWizardState.get(ATTR_PROJECT_LOCATION));
+    assertEquals(WizardUtils.getProjectLocationParent().getPath(), moduleBuilder1.myWizardState.get(ATTR_PROJECT_LOCATION));
     assertDoesntContain(moduleBuilder1.myWizardState.myHidden, ATTR_MODULE_NAME);
 
     assertNotNull(moduleBuilder1.myWizardState.get(ATTR_GRADLE_VERSION));

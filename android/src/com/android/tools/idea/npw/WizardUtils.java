@@ -18,6 +18,7 @@ package com.android.tools.idea.npw;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.CharMatcher;
+import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
@@ -27,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,6 +58,19 @@ public class WizardUtils {
       moduleName += Integer.toString(i);
     }
     return moduleName;
+  }
+
+  @NotNull
+  public static File getProjectLocationParent() {
+    String parent = RecentProjectsManager.getInstance().getLastProjectCreationLocation();
+
+    if (parent == null) {
+      String child = ApplicationNamesInfo.getInstance().getFullProductName().replace(" ", "") + "Projects";
+      return new File(SystemProperties.getUserHome(), child);
+    }
+    else {
+      return new File(parent.replace('/', File.separatorChar));
+    }
   }
 
   /**
@@ -160,11 +175,6 @@ public class WizardUtils {
       return myMessage;
     }
 
-    @VisibleForTesting
-    Object[] getMessageParams() {
-      return myMessageParams;
-    }
-
     public String getFormattedMessage() {
       if (myMessage == null) {
         throw new IllegalStateException("Null message, are you trying to get the message of an OK?");
@@ -196,9 +206,7 @@ public class WizardUtils {
   }
 
   @NotNull
-  public static ValidationResult validateLocation(@Nullable String projectLocation,
-                                                  @NotNull String fieldName,
-                                                  boolean checkEmpty) {
+  public static ValidationResult validateLocation(@Nullable String projectLocation, @NotNull String fieldName, boolean checkEmpty) {
     return validateLocation(projectLocation, fieldName, checkEmpty, true);
   }
 
