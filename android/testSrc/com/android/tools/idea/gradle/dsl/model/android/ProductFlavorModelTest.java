@@ -1106,30 +1106,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
-    assertNull("applicationId", defaultConfig.applicationId());
-    assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
-    assertNull("dimension", defaultConfig.dimension());
-    assertNull("manifestPlaceholders", defaultConfig.manifestPlaceholders());
-    assertNull("maxSdkVersion", defaultConfig.maxSdkVersion());
-    assertNull("minSdkVersion", defaultConfig.minSdkVersion());
-    assertNull("multiDexEnabled", defaultConfig.multiDexEnabled());
-    assertNull("proguardFiles", defaultConfig.proguardFiles());
-    assertNull("resConfigs", defaultConfig.resConfigs());
-    assertNull("resValues", defaultConfig.resValues());
-    assertNull("targetSdkVersion", defaultConfig.targetSdkVersion());
-    assertNull("testApplicationId", defaultConfig.testApplicationId());
-    assertNull("testFunctionalTest", defaultConfig.testFunctionalTest());
-    assertNull("testHandleProfiling", defaultConfig.testHandleProfiling());
-    assertNull("testInstrumentationRunner", defaultConfig.testInstrumentationRunner());
-    assertNull("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments());
-    assertNull("useJack", defaultConfig.useJack());
-    assertNull("versionCode", defaultConfig.versionCode());
-    assertNull("versionName", defaultConfig.versionName());
+    assertNull(android);
   }
 
   public void testEditAndApplyLiteralElements() throws Exception {
