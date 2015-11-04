@@ -18,8 +18,10 @@ package com.android.tools.idea.wizard.dynamic;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.SwingHelper;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +56,7 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
   @Nullable private final Disposable myDisposable;
   private PropertyChangeListener myFocusListener;
   private JPanel myRootPane;
-  private JLabel myDescriptionLabel;
+  private JEditorPane myDescriptionPane;
   private JBLabel myErrorWarningLabel;
   private JPanel mySouthPanel;
   private Map<Component, String> myControlDescriptions = new WeakHashMap<Component, String>();
@@ -67,7 +69,7 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
     mySouthPanel.setBorder(new EmptyBorder(STUDIO_WIZARD_INSETS));
     myErrorWarningLabel.setForeground(JBColor.red);
     // Set to BLANK. If completely empty the height calculation is off and window resizing results.
-    myDescriptionLabel.setText(DynamicWizardStep.BLANK);
+    myDescriptionPane.setText(DynamicWizardStep.BLANK);
   }
 
   protected static CompoundBorder createBodyBorder() {
@@ -128,19 +130,33 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
 
   @Override
   public void init() {
-    register(KEY_DESCRIPTION, getDescriptionLabel(), new ComponentBinding<String, JLabel>() {
+    register(KEY_DESCRIPTION, getDescriptionPane(), new ComponentBinding<String, JEditorPane>() {
       @Override
-      public void setValue(String newValue, @NotNull JLabel label) {
-        label.setText(toHtml(newValue));
+      public void setValue(String newValue, @NotNull JEditorPane pane) {
+        if (newValue == null || newValue.trim().isEmpty()) {
+          setPaneInteractive(pane, false);
+        }
+        else {
+          setPaneInteractive(pane, true);
+          if (useHtmlViewer() && pane.getHyperlinkListeners().length == 0) {
+            pane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+          }
+          SwingHelper.setHtml(pane, newValue, UIUtil.getLabelForeground());
+        }
       }
     });
   }
 
+  private void setPaneInteractive(JEditorPane pane, boolean state){
+    pane.setVisible(state);
+    pane.setEnabled(state);
+  }
+
   /**
-   * Subclasses may override this method if they want to provide a custom description label.
+   * Subclasses may override this method if they want to provide a custom description pane.
    */
-  protected JLabel getDescriptionLabel() {
-    return myDescriptionLabel;
+  protected JEditorPane getDescriptionPane() {
+    return myDescriptionPane;
   }
 
   @NotNull
@@ -152,5 +168,19 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
   @Nullable
   protected Disposable getDisposable() {
     return myDisposable;
+  }
+
+  /**
+   * Subclasses may override this method if they wish to render HTML on their description.
+   */
+  protected boolean useHtmlViewer(){
+    return false;
+  }
+
+  private void createUIComponents() {
+    myDescriptionPane = useHtmlViewer()
+                        ? SwingHelper
+                          .createHtmlViewer(true, UIUtil.getLabelFont(), UIUtil.getLabelBackground(), UIUtil.getLabelForeground())
+                        : new JEditorPane();
   }
 }
