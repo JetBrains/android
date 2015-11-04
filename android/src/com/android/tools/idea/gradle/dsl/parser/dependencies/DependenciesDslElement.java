@@ -50,4 +50,9 @@ public class DependenciesDslElement extends GradlePropertiesDslElement {
       elementList.addParsedElement(dependency);
     }
   }
+
+  @Override
+  public boolean isBlockElement() {
+    return true;
+  }
 }
