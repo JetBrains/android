@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.properties.expressions.bool;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,25 +26,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class BooleanExpressions {
 
-  public static ObservableBool alwaysTrue() {
-    return new BooleanExpression() {
-      @NotNull
-      @Override
-      public Boolean get() {
-        return true;
-      }
-    };
-  }
+  public static ObservableBool alwaysTrue() { return new BoolValueProperty(true); }
 
-  public static ObservableBool alwaysFalse() {
-    return new BooleanExpression() {
-      @NotNull
-      @Override
-      public Boolean get() {
-        return false;
-      }
-    };
-  }
+  public static ObservableBool alwaysFalse() { return new BoolValueProperty(false); }
 
   public static ObservableBool any(ObservableValue<Boolean>... values) {
     return new AnyExpression(values);
