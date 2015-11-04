@@ -22,6 +22,7 @@ import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
 import com.android.tools.idea.ui.properties.swing.EnabledProperty;
 import com.intellij.ide.IdeBundle;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
@@ -71,7 +72,12 @@ public final class ModelWizardDialog extends DialogWrapper {
     myWizard = wizard;
     myCustomLayout = customLayout;
     setTitle(title);
+
     init();
+
+    if (customLayout != null) {
+      Disposer.register(wizard, customLayout);
+    }
   }
 
   @Override
@@ -91,6 +97,12 @@ public final class ModelWizardDialog extends DialogWrapper {
     // TODO: Why is this necessary? Why is DialogWrapper ignoring setSize unless I do this?
     getContentPanel().setMinimumSize(getSize());
     super.show();
+  }
+
+  @NotNull
+  @Override
+  protected DialogStyle getStyle() {
+    return DialogStyle.COMPACT; // Remove padding from this dialog, we'll fill it in ourselves
   }
 
   @Nullable
@@ -162,7 +174,7 @@ public final class ModelWizardDialog extends DialogWrapper {
    * By default, a wizard dialog simply displays the contents of a wizard, undecorated. However,
    * a custom look and feel lets you inject a custom theme and titlebar into your wizard.
    */
-  public interface CustomLayout {
+  public interface CustomLayout extends Disposable {
     @NotNull
     JPanel decorate(@NotNull ObservableString title, @NotNull JPanel innerPanel);
   }
