@@ -101,6 +101,10 @@ public class ResourceResolverCache {
       myAppResourceMap.clear();
     }
 
+    // Store the modification count as soon as possible. This ensures that if there is any modification of resources while the
+    // resolver is being created, it will be cleared subsequently.
+    myCachedGeneration = resources.getModificationCount();
+
     // When looking up the configured project and framework resources, the theme doesn't matter, so we look up only
     // by the configuration qualifiers; for example, here's a sample key:
     // -ldltr-sw384dp-w384dp-h640dp-normal-notlong-port-notnight-xhdpi-finger-keyssoft-nokeys-navhidden-nonav-1280x768-v17
@@ -179,7 +183,6 @@ public class ResourceResolverCache {
       }
 
       myResolverMap.put(resolverKey, resolver);
-      myCachedGeneration = resources.getModificationCount();
     }
 
     return resolver;
