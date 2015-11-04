@@ -305,12 +305,12 @@ public class TemplateUtils {
     psiDocumentManager.commitDocument(document);
 
     PsiFile psiFile = psiDocumentManager.getPsiFile(document);
-    assert psiFile != null;
+    if (psiFile != null) {
+      CodeStyleManager.getInstance(project).reformat(psiFile);
 
-    CodeStyleManager.getInstance(project).reformat(psiFile);
-
-    psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
-    ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(psiFile.getTextRange()));
+      psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
+      ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(psiFile.getTextRange()));
+    }
   }
 
   /**
