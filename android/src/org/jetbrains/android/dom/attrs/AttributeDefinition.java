@@ -116,6 +116,14 @@ public class AttributeDefinition {
     return myValueDoc.get(value);
   }
 
+  /**
+   * Checks whether attribute is deprecated by looking up "deprecated" in its documenting comment
+   */
+  public boolean isAttributeDeprecated() {
+    final String doc = getDocValue(null);
+    return doc != null && StringUtil.containsIgnoreCase(doc, "deprecated");
+  }
+
   public boolean isValueDeprecated(@NotNull String value) {
     final String doc = myValueDoc.get(value);
     return doc != null && StringUtil.containsIgnoreCase(doc, "deprecated");
