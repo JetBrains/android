@@ -30,6 +30,7 @@ import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
@@ -182,6 +183,10 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     name = name.replace('-', '_');
     name = name.replaceAll("[^a-zA-Z0-9_]", "");
     name = name.toLowerCase();
+    if (AndroidUtils.isReservedKeyword(name) != null) {
+      // Not using StringUtil.fixVariableNameDerivedFromPropertyName() because we want it to stay lower cased.
+      name = (StringUtil.isVowel(name.charAt(0)) ? "an" : "a") + name;
+    }
     return name;
   }
 
