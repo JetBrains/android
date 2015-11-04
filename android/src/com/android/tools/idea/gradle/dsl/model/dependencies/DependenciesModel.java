@@ -19,8 +19,10 @@ import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -43,15 +45,28 @@ public class DependenciesModel {
     return dependencies;
   }
 
-  public void add(@NotNull String configurationName, @NotNull ExternalDependencySpec artifact) {
-    // TODO implement this using compact notation
+  @NotNull
+  public DependenciesModel addArtifactDependency(@NotNull String configurationName, @NotNull String compactNotation) {
+    ExternalDependencySpec spec = ExternalDependencySpec.create(compactNotation);
+    if (spec == null) {
+      throw new IllegalArgumentException("'" + compactNotation + "' is not a valid dependency specification");
+    }
+    GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+    if (list == null) {
+      list = new GradleDslElementList(myDslElement, configurationName);
+      myDslElement.setNewElement(configurationName, list);
+    }
+    GradleDslLiteral literal = new GradleDslLiteral(list, configurationName);
+    literal.setValue(compactNotation);
+    list.addNewElement(literal);
+    return this;
   }
 
-  public void remove(@NotNull DependencyModel model) {
-    String configurationName = model.getConfigurationName();
+  public DependenciesModel remove(@NotNull DependencyModel model) {
     GradleDslElementList gradleDslElementList = myDslElement.getProperty(model.getConfigurationName(), GradleDslElementList.class);
     if (gradleDslElementList != null) {
       gradleDslElementList.removeElement(model.getDslElement());
     }
+    return this;
   }
 }
