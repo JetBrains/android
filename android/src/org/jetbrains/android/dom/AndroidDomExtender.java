@@ -47,6 +47,7 @@ import org.jetbrains.android.dom.layout.*;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
+import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.dom.menu.MenuElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.transition.*;
@@ -628,6 +629,16 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       if (element instanceof ManifestElement) {
         registerExtensionsForManifest(facet, tagName, (ManifestElement)element, callback, registeredSubtags,
                                       skippedAttributes, processStaticallyDefinedElements);
+        if (tag.getParentTag() != null) {
+          // Don't register attributes for root element
+          registerToolsAttribute(ToolsAttributeUtil.ATTR_NODE, callback);
+          registerToolsAttribute(ToolsAttributeUtil.ATTR_STRICT, callback);
+          registerToolsAttribute(ToolsAttributeUtil.ATTR_REMOVE, callback);
+          registerToolsAttribute(ToolsAttributeUtil.ATTR_REPLACE, callback);
+        }
+        if (element instanceof UsesSdk) {
+          registerToolsAttribute(ToolsAttributeUtil.ATTR_OVERRIDE_LIBRARY, callback);
+        }
       }
       else if (element instanceof LayoutElement) {
         registerExtensionsForLayout(facet, tag, (LayoutElement)element, callback, registeredSubtags, skippedAttributes);
