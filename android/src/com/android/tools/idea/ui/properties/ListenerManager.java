@@ -64,6 +64,24 @@ public final class ListenerManager {
   }
 
   /**
+   * A convenience method which both registers the target listener and then fires it with the
+   * observable's latest value.
+   */
+  public <T> void listenAndFire(@NotNull ObservableValue<T> src, @NotNull InvalidationListener listener) {
+    listen(src, listener);
+    listener.onInvalidated(src);
+  }
+
+  /**
+   * A convenience method which both registers the target listener and then fires it with the
+   * observable's latest value.
+   */
+  public <T> void listenAndFire(@NotNull final ObservableValue<T> src, @NotNull final Consumer<T> listener) {
+    listen(src, listener);
+    listener.consume(src.get());
+  }
+
+  /**
    * Releases a listener previously registered via
    * {@link #listen(ObservableValue, InvalidationListener)}. If the listener was registered with
    * multiple observables, they will all be released.
