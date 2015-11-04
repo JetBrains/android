@@ -514,14 +514,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
-    assertNotNull(android);
-    assertNull("buildToolsVersion", android.buildToolsVersion());
-    assertNull("compileSdkVersion", android.compileSdkVersion());
-    assertNull("defaultPublishConfig", android.defaultPublishConfig());
-    assertNull("flavorDimensions", android.flavorDimensions());
-    assertNull("generatePureSplits", android.generatePureSplits());
-    assertNull("publishNonDefault", android.publishNonDefault());
-    assertNull("resourcePrefix", android.resourcePrefix());
+    assertNull(android);
   }
 
   public void testAddAndApplyBlockElements() throws Exception {
