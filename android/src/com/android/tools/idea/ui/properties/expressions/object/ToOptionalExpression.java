@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.properties.expressions.object;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.ObservableOptional;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  * @param <S> The concrete source type we're converting from
  * @param <D> The optional dest type we're converting to
  */
-public abstract class ToOptionalExpression<S, D> extends Expression implements ObservableValue<Optional<D>> {
+public abstract class ToOptionalExpression<S, D> extends Expression implements ObservableOptional<D> {
   private final ObservableValue<S> myValue;
 
   public ToOptionalExpression(@NotNull ObservableValue<S> value) {
