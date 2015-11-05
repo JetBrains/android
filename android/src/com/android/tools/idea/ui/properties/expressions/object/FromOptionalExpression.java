@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.properties.expressions.object;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.ObservableOptional;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -28,9 +29,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class FromOptionalExpression<S, D> extends Expression implements ObservableValue<D> {
 
-  private final ObservableValue<Optional<S>> myValue;
+  private final ObservableOptional<S> myValue;
 
-  public FromOptionalExpression(ObservableValue<Optional<S>> optional) {
+  public FromOptionalExpression(ObservableOptional<S> optional) {
     super(optional);
     myValue = optional;
   }
@@ -46,7 +47,7 @@ public abstract class FromOptionalExpression<S, D> extends Expression implements
   public abstract static class WithDefault<S, D> extends FromOptionalExpression<S, D> {
     @NotNull private final D myDefaultValue;
 
-    public WithDefault(@NotNull D defaultValue, ObservableValue<Optional<S>> optionalValue) {
+    public WithDefault(@NotNull D defaultValue, ObservableOptional<S> optionalValue) {
       super(optionalValue);
       myDefaultValue = defaultValue;
     }
