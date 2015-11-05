@@ -15,20 +15,28 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.PsiElements;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 import java.util.Collection;
 
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
+import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 
 /**
@@ -61,8 +69,48 @@ public final class GradleDslLiteral extends GradleDslElement {
       return myUnsavedValue;
     }
 
-    if (myLiteral != null) {
-      return myLiteral.getValue();
+    if (myLiteral == null) {
+      return null;
+    }
+
+    Object value = myLiteral.getValue();
+    if (value != null) {
+      return value;
+    }
+
+    if (myLiteral instanceof GrString) { // String literal with variables. ex: compileSdkVersion = "$ANDROID-${VERSION}"
+      String literalText = myLiteral.getText();
+      if (isQuotedString(literalText)) {
+        literalText = unquoteString(literalText);
+      }
+
+      GrStringInjection[] injections = ((GrString)myLiteral).getInjections();
+      for (GrStringInjection injection : injections) {
+        String variableName = null;
+
+        GrClosableBlock closableBlock = injection.getClosableBlock();
+        if (closableBlock != null) {
+          String blockText  = closableBlock.getText();
+          variableName = blockText.substring(1, blockText.length() - 1);
+        }
+        else {
+          GrExpression expression = injection.getExpression();
+          if (expression != null) {
+            variableName = expression.getText();
+          }
+        }
+
+        if (!isEmpty(variableName)) {
+          GradleDslLiteral resolvedLiteral = resolveReference(variableName, GradleDslLiteral.class);
+          if (resolvedLiteral != null) {
+            Object resolvedValue = resolvedLiteral.getValue();
+            if (resolvedValue != null) {
+              literalText = literalText.replace(injection.getText(), resolvedValue.toString());
+            }
+          }
+        }
+      }
+      return literalText;
     }
     return null;
   }
