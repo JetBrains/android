@@ -29,7 +29,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testAttributeNameCompletion1() throws Throwable {
-    doTestCompletionVariants("an1.xml", "android:icon", "android:label", "android:priority", "android:logo");
+    doTestCompletionVariants("an1.xml", "android:icon", "android:label", "android:priority", "android:logo", "replace");
   }
 
   public void testAttributeNameCompletion2() throws Throwable {
@@ -267,6 +267,17 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   // Regression test for http://b.android.com/187026
   public void testTelephonyActionCompletion() throws Throwable {
     toTestCompletion("TelephonyActionCompletion.xml", "TelephonyActionCompletion_after.xml");
+  }
+
+  // Test support for tools: namespace attribute completion in manifest files,
+  // tools:node in this particular case
+  public void testToolsNodeCompletion() throws Throwable {
+    toTestCompletion("ToolsManifestMergerCompletion.xml", "ToolsManifestMergerCompletion_after.xml");
+  }
+
+  // Test support for value completion of tools:node attribute
+  public void testToolsNodeValueCompletion() throws Throwable {
+    toTestCompletion("ToolsNodeValueCompletion.xml", "ToolsNodeValueCompletion_after.xml");
   }
 
   public void testIntentActionsHighlighting() throws Throwable {
