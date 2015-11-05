@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
@@ -67,18 +68,30 @@ public final class GradleDslParser {
       return false;
     }
 
+    String name = referenceExpression.getText();
+    if (isEmpty(name) ) {
+      return false;
+    }
+
+    GrArgumentList argumentList = expression.getArgumentList();
+    if (argumentList.getAllArguments().length > 0) {
+      dslElement.setDslElement(name, new GradleDslMethodCall(dslElement, expression, name, argumentList));
+      // This element is a method call with arguments. This element may also contain a closure along with it, but as of now we do not have
+      // a use case to understand closure associated with a method call with arguments. So, just process the method arguments and return.
+      // ex: compile("dependency") {}
+      return true;
+    }
+
     GrClosableBlock[] closureArguments = expression.getClosureArguments();
     if (closureArguments.length == 0) {
       return false;
     }
 
+    // Now this element is pure block element, i.e a method call with no argument but just a closure argument. So, here just process the
+    // closure and treat it as a block element.
+    // ex: android {}
     GrClosableBlock closableBlock = closureArguments[0];
-    String blockName = referenceExpression.getText();
-    if (isEmpty(blockName) ) {
-      return false;
-    }
-
-    List<String> nameSegments = Splitter.on('.').splitToList(blockName);
+    List<String> nameSegments = Splitter.on('.').splitToList(name);
     GradlePropertiesDslElement blockElement = getBlockElement(nameSegments, dslElement);
     if (blockElement == null) {
       return false;
@@ -241,7 +254,10 @@ public final class GradleDslParser {
       if (callReferenceExpression != null) {
         String referenceName = callReferenceExpression.getText();
         if (!isEmpty(referenceName)) {
-          return new GradleDslMethodCall(parentElement, referenceName, methodCall);
+          GrArgumentList argumentList = methodCall.getArgumentList();
+          if (argumentList.getAllArguments().length > 0) {
+            return new GradleDslMethodCall(parentElement, methodCall, referenceName, argumentList);
+          }
         }
       }
     }
