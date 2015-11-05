@@ -20,9 +20,9 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElem
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -39,7 +39,7 @@ public class DependenciesModel {
     GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
     if (list != null) {
       for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
-        dependencies.add(ArtifactDependencyModel.create(element));
+        dependencies.addAll(ArtifactDependencyModel.create(element));
       }
     }
     return dependencies;
@@ -65,7 +65,16 @@ public class DependenciesModel {
   public DependenciesModel remove(@NotNull DependencyModel model) {
     GradleDslElementList gradleDslElementList = myDslElement.getProperty(model.getConfigurationName(), GradleDslElementList.class);
     if (gradleDslElementList != null) {
-      gradleDslElementList.removeElement(model.getDslElement());
+      GradleDslElement dependencyElement = model.getDslElement();
+      if (dependencyElement.getParent() instanceof GradleDslMethodCall) {
+        GradleDslMethodCall methodCallElement = (GradleDslMethodCall)dependencyElement.getParent();
+        if (methodCallElement.getAllArguments().size() == 1) {
+          // TODO check if closure is not empty and let user know?
+          gradleDslElementList.removeElement(methodCallElement);
+        }
+      } else {
+        gradleDslElementList.removeElement(model.getDslElement());
+      }
     }
     return this;
   }
