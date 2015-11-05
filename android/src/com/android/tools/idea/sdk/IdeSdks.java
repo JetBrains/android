@@ -90,8 +90,9 @@ public final class IdeSdks {
     return null;
   }
 
+  @Nullable
   public static File getAndroidNdkPath() {
-    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData data = tryToChooseAndroidSdk();
     if (data == null) {
       return null;
     }
