@@ -107,7 +107,7 @@ public class HaxmAlert extends JPanel {
       } else {
         HaxmState haxmState = getHaxmState(false);
         if (haxmState == HaxmState.NOT_INSTALLED) {
-          if (SystemInfo.isUnix) {
+          if (SystemInfo.isLinux) {
             warningTextBuilder.append("Enable Linux KVM for better emulation performance.<br>");
             myErrorInstructionsLink.setHyperlinkTarget(FirstRunWizardDefaults.KVM_LINUX_INSTALL_URL);
             myErrorInstructionsLink.setHtmlText("<a>KVM Instructions</a>");
@@ -216,7 +216,8 @@ public class HaxmAlert extends JPanel {
     if (found) {
       try {
         FullRevision revision = Haxm.getInstalledVersion(AndroidSdkUtils.tryToChooseAndroidSdk().getLocation());
-        FullRevision current = new FullRevision(1, 1, 1);
+        // TODO: Use value from remote repository instead
+        FullRevision current = new FullRevision(1, 1, 5);
         if (revision.compareTo(current) < 0) {
           // We have the new version number, as well as the currently installed
           // version number here, which we could use to make a better error message.
