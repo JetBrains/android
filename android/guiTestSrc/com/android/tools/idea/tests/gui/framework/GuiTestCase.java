@@ -226,16 +226,6 @@ public abstract class GuiTestCase {
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
-    GuiTestSuiteState testSuiteState = getGuiTestSuiteState();
-    if (!testSuiteState.isImportProjectWizardAlreadyTested()) {
-      testSuiteState.setImportProjectWizardAlreadyTested(true);
-
-      findWelcomeFrame().clickImportProjectButton();
-
-      FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
-      return openProjectAndWaitUntilOpened(toSelect, importProjectDialog);
-    }
-
     doImportProject(toSelect);
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
