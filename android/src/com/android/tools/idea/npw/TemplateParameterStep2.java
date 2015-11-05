@@ -106,7 +106,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   private JPanel myTemplateParameters;
   private JLabel myTemplateDescription;
   private JPanel myRootPanel;
-  private JEditorPane myParameterDescription;
+  private JLabel myParameterDescription;
   private JSeparator myFooterSeparator;
   private Map<String, Object> myParameterDefaultValues = Maps.newHashMap();
   private TemplateEntry myCurrentTemplate;
@@ -485,7 +485,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   }
 
   @Override
-  protected JEditorPane getDescriptionPane() {
+  protected JLabel getDescriptionLabel() {
     return myParameterDescription;
   }
 

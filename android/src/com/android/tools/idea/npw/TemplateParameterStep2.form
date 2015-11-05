@@ -47,7 +47,7 @@
         </constraints>
         <properties/>
       </component>
-      <component id="16499" class="javax.swing.JEditorPane" binding="myParameterDescription">
+      <component id="db719" class="javax.swing.JLabel" binding="myParameterDescription">
         <constraints>
           <grid row="5" column="1" row-span="1" col-span="2" vsize-policy="2" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
