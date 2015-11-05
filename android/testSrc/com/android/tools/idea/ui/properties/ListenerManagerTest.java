@@ -76,6 +76,40 @@ public final class ListenerManagerTest {
   }
 
   @Test
+  public void listenAndFireWorks() throws Exception {
+    ListenerManager listeners = new ListenerManager();
+
+    IntListener intListener = new IntListener();
+    IntValueProperty intProperty = new IntValueProperty(10);
+
+    listeners.listenAndFire(intProperty, intListener);
+
+    assertThat(intListener.myInvalidationCount).isEqualTo(1);
+    assertThat(intListener.myLastValue).isEqualTo(10);
+
+    intProperty.set(20);
+    assertThat(intListener.myInvalidationCount).isEqualTo(2);
+    assertThat(intListener.myLastValue).isEqualTo(20);
+  }
+
+  @Test
+  public void listenWithConsumerAndFireWorks() throws Exception {
+    ListenerManager listeners = new ListenerManager();
+
+    IntReceiver intListener = new IntReceiver();
+    IntValueProperty intProperty = new IntValueProperty(10);
+
+    listeners.listenAndFire(intProperty, intListener);
+
+    assertThat(intListener.myInvalidationCount).isEqualTo(1);
+    assertThat(intListener.myLastValue).isEqualTo(10);
+
+    intProperty.set(20);
+    assertThat(intListener.myInvalidationCount).isEqualTo(2);
+    assertThat(intListener.myLastValue).isEqualTo(20);
+  }
+
+  @Test
   public void releasingListenerWorks() throws Exception {
     ListenerManager listeners = new ListenerManager();
 
