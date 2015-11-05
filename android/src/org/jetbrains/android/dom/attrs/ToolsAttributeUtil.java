@@ -49,7 +49,6 @@ public class ToolsAttributeUtil {
   private static final ResolvingConverter LAYOUT_REFERENCE_CONVERTER =
     new ResourceReferenceConverter(Collections.singleton(ResourceType.LAYOUT.getName()));
   private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter(true, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-  private static final ResolvingConverter ACTION_BAR_MODE_FLAGS_CONVERTER = new LightFlagConverter("standard", "list", "tabs");
 
   private static final List<AttributeFormat> NO_FORMATS = Collections.emptyList();
 
@@ -83,7 +82,7 @@ public class ToolsAttributeUtil {
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, ResolvingConverter> CONVERTERS = ImmutableMap.<String, ResolvingConverter>builder()
-    .put(ATTR_ACTION_BAR_NAV_MODE, ACTION_BAR_MODE_FLAGS_CONVERTER)
+    .put(ATTR_ACTION_BAR_NAV_MODE, EnumConverter.createEnumConverter(ActionBarNavModeValue.class))
     .put(ATTR_CONTEXT, ACTIVITY_CLASS_CONVERTER)
     .put(ATTR_LISTFOOTER, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_LISTHEADER, LAYOUT_REFERENCE_CONVERTER)
