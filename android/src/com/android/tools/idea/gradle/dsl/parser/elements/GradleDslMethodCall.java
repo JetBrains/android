@@ -39,43 +39,38 @@ public final class GradleDslMethodCall extends GradleDslElement {
   private final @NotNull List<GradleDslElement> myAllArguments;
 
   public GradleDslMethodCall(@NotNull GradleDslElement parent,
+                             @NotNull GrMethodCallExpression methodCall,
                              @NotNull String name,
-                             @NotNull GrMethodCallExpression methodCall) {
+                             @NotNull GrArgumentList argumentList) {
     super(parent, methodCall, name);
-    GrArgumentList argumentList = methodCall.getArgumentList();
-    if (argumentList != null) {
-      List<GradleDslLiteral> literalArguments = Lists.newArrayList();
-      List<GradleDslLiteralMap> mapArguments = Lists.newArrayList();
-      GrExpression[] expressionArguments = argumentList.getExpressionArguments();
-      for (GrExpression expression : expressionArguments) {
-        if (expression instanceof GrLiteral) {
-          literalArguments.add(new GradleDslLiteral(this, argumentList, name, (GrLiteral)expression));
+
+    List<GradleDslLiteral> literalArguments = Lists.newArrayList();
+    List<GradleDslLiteralMap> mapArguments = Lists.newArrayList();
+
+    GrExpression[] expressionArguments = argumentList.getExpressionArguments();
+    for (GrExpression expression : expressionArguments) {
+      if (expression instanceof GrLiteral) {
+        literalArguments.add(new GradleDslLiteral(this, argumentList, name, (GrLiteral)expression));
+      }
+      else if (expression instanceof GrListOrMap) {
+        GrListOrMap listOrMap = (GrListOrMap)expression;
+        if (listOrMap.isMap()) {
+          mapArguments.add(new GradleDslLiteralMap(this, name, listOrMap));
         }
-        else if (expression instanceof GrListOrMap) {
-          GrListOrMap listOrMap = (GrListOrMap)expression;
-          if (listOrMap.isMap()) {
-            mapArguments.add(new GradleDslLiteralMap(this, name, listOrMap));
-          }
-          else {
-            literalArguments.addAll(new GradleDslLiteralList(this, name, listOrMap).getElements());
-          }
+        else {
+          literalArguments.addAll(new GradleDslLiteralList(this, name, listOrMap).getElements());
         }
       }
-
-      GrNamedArgument[] namedArguments = argumentList.getNamedArguments();
-      if (namedArguments.length > 0) {
-        mapArguments.add(new GradleDslLiteralMap(this, argumentList, name, namedArguments));
-      }
-
-      myLiteralArguments = ImmutableList.copyOf(literalArguments);
-      myMapArguments = ImmutableList.copyOf(mapArguments);
-      myAllArguments = ImmutableList.<GradleDslElement>builder().addAll(myLiteralArguments).addAll(myMapArguments).build();
     }
-    else {
-      myLiteralArguments = ImmutableList.of();
-      myMapArguments = ImmutableList.of();
-      myAllArguments = ImmutableList.of();
+
+    GrNamedArgument[] namedArguments = argumentList.getNamedArguments();
+    if (namedArguments.length > 0) {
+      mapArguments.add(new GradleDslLiteralMap(this, argumentList, name, namedArguments));
     }
+
+    myLiteralArguments = ImmutableList.copyOf(literalArguments);
+    myMapArguments = ImmutableList.copyOf(mapArguments);
+    myAllArguments = ImmutableList.<GradleDslElement>builder().addAll(myLiteralArguments).addAll(myMapArguments).build();
   }
 
   @NotNull
