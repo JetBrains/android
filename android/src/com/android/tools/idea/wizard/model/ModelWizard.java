@@ -26,6 +26,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.containers.Stack;
@@ -142,6 +143,20 @@ public final class ModelWizard implements Disposable {
   @NotNull
   public ObservableString title() {
     return myTitle;
+  }
+
+  /**
+   * Returns the component on the current step which wants to have initial focus, if any, or
+   * {@code null} otherwise.
+   * <p/>
+   * This is provided in case the container UI wants to know (as {@link DialogWrapper} does, for
+   * example).
+   */
+  @Nullable
+  public JComponent getPreferredFocusComponent() {
+    ensureWizardIsRunning();
+    ModelWizardStep step = mySteps.get(myCurrIndex);
+    return step.getPreferredFocusComponent();
   }
 
   /**
@@ -345,9 +360,9 @@ public final class ModelWizard implements Disposable {
     myTitle.set(step.getTitle());
     ((CardLayout)myContentPanel.getLayout()).show(myContentPanel, Integer.toString(myCurrIndex));
 
-    JComponent focusComponent = step.getPreferredFocusComponent();
-    if (focusComponent != null) {
-      IdeFocusManager.findInstanceByComponent(focusComponent).requestFocus(focusComponent, false);
+    JComponent focusedComponent = step.getPreferredFocusComponent();
+    if (focusedComponent != null) {
+      IdeFocusManager.findInstanceByComponent(focusedComponent).requestFocus(focusedComponent, false);
     }
   }
 
