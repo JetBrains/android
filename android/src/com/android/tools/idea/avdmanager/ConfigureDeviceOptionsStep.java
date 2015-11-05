@@ -72,7 +72,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
   private JCheckBox myHasHardwareButtons;
   private JCheckBox myHasHardwareKeyboard;
   private JTextField myDeviceName;
-  private JEditorPane myHelpAndErrorPane;
+  private JBLabel myHelpAndErrorLabel;
   private HyperlinkLabel myHardwareSkinHelpLabel;
   private SkinChooser myCustomSkinPath;
   private ComboBox myDeviceTypeComboBox;
@@ -131,10 +131,10 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
       }
     };
 
-    myHelpAndErrorPane = new JEditorPane();
-    myHelpAndErrorPane.setBackground(JBColor.background());
-    myHelpAndErrorPane.setForeground(JBColor.foreground());
-    myHelpAndErrorPane.setOpaque(true);
+    myHelpAndErrorLabel = new JBLabel();
+    myHelpAndErrorLabel.setBackground(JBColor.background());
+    myHelpAndErrorLabel.setForeground(JBColor.foreground());
+    myHelpAndErrorLabel.setOpaque(true);
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardConstants.CREATE_SKIN_HELP_LINK);
     myCustomSkinPath = new SkinChooser(getProject());
@@ -161,8 +161,8 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
   }
 
   @Override
-  protected JEditorPane getDescriptionPane() {
-    return myHelpAndErrorPane;
+  protected JLabel getDescriptionLabel() {
+    return myHelpAndErrorLabel;
   }
 
   /**
