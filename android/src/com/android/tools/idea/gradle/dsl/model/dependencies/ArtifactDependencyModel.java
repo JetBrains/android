@@ -19,9 +19,13 @@ import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteralMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+
+import java.util.List;
 
 /**
  * A Gradle artifact dependency. There are two notations supported for declaring a dependency on an external module. One is a string
@@ -64,22 +68,32 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
   }
 
   @NotNull
-  protected static ArtifactDependencyModel create(@NotNull GradleDslElement element) {
-    assert element instanceof GradleDslLiteral || element instanceof GradleDslLiteralMap;
+  protected static List<ArtifactDependencyModel> create(@NotNull GradleDslElement element) {
+    List<ArtifactDependencyModel> results = Lists.newArrayList();
+    assert element instanceof GradleDslLiteral || element instanceof GradleDslLiteralMap || element instanceof GradleDslMethodCall;
     if (element instanceof GradleDslLiteralMap) {
-      return new MapNotation((GradleDslLiteralMap)element);
+      results.add(new MapNotation((GradleDslLiteralMap)element));
     }
-    GradleDslLiteral dslLiteral = (GradleDslLiteral)element;
-    String value = dslLiteral.getValue(String.class);
-    if (value != null) {
-      ExternalDependencySpec spec = ExternalDependencySpec.create(value);
-      if (spec != null) {
-        return new CompactNotationModel((GradleDslLiteral)element, spec);
+    else if (element instanceof GradleDslMethodCall) {
+      for (GradleDslElement argument : ((GradleDslMethodCall)element).getAllArguments()) {
+        results.addAll(create(argument));
       }
-      throw new IllegalArgumentException("'" + value + "' is not a valid dependency specification");
+    } else {
+      GradleDslLiteral dslLiteral = (GradleDslLiteral)element;
+      String value = dslLiteral.getValue(String.class);
+      if (value != null) {
+        ExternalDependencySpec spec = ExternalDependencySpec.create(value);
+        if (spec != null) {
+          results.add(new CompactNotationModel((GradleDslLiteral)element, spec));
+        } else {
+          throw new IllegalArgumentException("'" + value + "' is not a valid dependency specification");
+        }
+      } else {
+        assert dslLiteral.getLiteral() != null;
+        throw new IllegalArgumentException("'" + dslLiteral.getLiteral().getText() + "' is not a valid dependency specification");
+      }
     }
-    assert dslLiteral.getLiteral() != null;
-    throw new IllegalArgumentException("'" + dslLiteral.getLiteral().getText() + "' is not a valid dependency specification");
+    return results;
   }
 
   private static class MapNotation extends ArtifactDependencyModel {

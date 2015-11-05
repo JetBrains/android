@@ -41,7 +41,8 @@ public class DependenciesDslElement extends GradlePropertiesDslElement {
     // TODO deal with element that has closable such as:
     // compile("xxx") { exclude "yyy" }
 
-    if (dependency instanceof GradleDslLiteral || dependency instanceof GradleDslLiteralMap) {
+    if (dependency instanceof GradleDslLiteral || dependency instanceof GradleDslLiteralMap || dependency instanceof GradleDslMethodCall) {
+      // TODO also check the children of GradleDslMethodCall
       GradleDslElementList elementList = getProperty(configurationName, GradleDslElementList.class);
       if (elementList == null) {
         elementList = new GradleDslElementList(this, configurationName);
