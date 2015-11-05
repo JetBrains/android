@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.core;
 
+import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.CountListener;
 import org.junit.Test;
 
@@ -22,18 +23,29 @@ import static org.fest.assertions.Assertions.assertThat;
 
 public final class OptionalPropertyTest {
   @Test
-  public void testInitialization() {
-    {
-      OptionalProperty<String> optStringValue = OptionalProperty.of("Test");
-      assertThat(optStringValue.isPresent()).isTrue();
-      assertThat(optStringValue.getValue()).isEqualTo("Test");
-      assertThat(optStringValue.get().get()).isEqualTo("Test"); // Grab the underlying optional
-    }
+  public void testInitializationByStaticMethodOf() {
+    OptionalProperty<String> optStringValue = OptionalProperty.of("Test");
+    assertThat(optStringValue.get().isPresent()).isTrue();
+    assertThat(optStringValue.getValue()).isEqualTo("Test");
+    assertThat(optStringValue.get().get()).isEqualTo("Test"); // Grab the underlying optional
+  }
 
-    {
-      OptionalProperty<String> optStringValue = OptionalProperty.absent();
-      assertThat(optStringValue.isPresent()).isFalse();
-    }
+  @Test
+  public void testInitializationByStaticMethodAbsent() {
+    OptionalProperty<String> optStringValue = OptionalProperty.absent();
+    assertThat(optStringValue.get().isPresent()).isFalse();
+  }
+
+  @Test
+  public void testInitializationByStaticMethodFromNullableWithValue() throws Exception {
+    OptionalProperty<String> optStringValue = OptionalProperty.fromNullable("Test");
+    assertThat(optStringValue.get().isPresent()).isTrue();
+  }
+
+  @Test
+  public void testInitializationByStaticMethodFromNullableWithNull() throws Exception {
+    OptionalProperty<String> optStringValue = OptionalProperty.fromNullable(null);
+    assertThat(optStringValue.get().isPresent()).isFalse();
   }
 
   @Test
@@ -47,18 +59,27 @@ public final class OptionalPropertyTest {
   public void testClearValue() {
     OptionalProperty<String> optStringValue = OptionalProperty.of("Dummy text");
     optStringValue.clear();
-    assertThat(optStringValue.isPresent()).isFalse();
+    assertThat(optStringValue.get().isPresent()).isFalse();
+  }
+
+  @Test
+  public void testSetNullableValue() throws Exception {
+    OptionalProperty<String> optStringValue = OptionalProperty.absent();
+    optStringValue.setNullableValue("Hello");
+    assertThat(optStringValue.getValue()).isEqualTo("Hello");
+    optStringValue.setNullableValue(null);
+    assertThat(optStringValue.get().isPresent()).isEqualTo(false);
   }
 
   @Test
   public void testGetValueOr() {
     OptionalProperty<String> optStringValue = OptionalProperty.absent();
     assertThat(optStringValue.getValueOr("Default")).isEqualTo("Default");
-    assertThat(optStringValue.isPresent()).isFalse();
+    assertThat(optStringValue.get().isPresent()).isFalse();
 
     optStringValue.setValue("Not Default");
     assertThat(optStringValue.getValueOr("Default")).isEqualTo("Not Default");
-    assertThat(optStringValue.isPresent()).isTrue();
+    assertThat(optStringValue.get().isPresent()).isTrue();
   }
 
   @Test
@@ -88,4 +109,26 @@ public final class OptionalPropertyTest {
     assertThat(listener.getCount()).isEqualTo(2);
     optStringValue.clear();
     assertThat(listener.getCount()).isEqualTo(2);
-  }}
+  }
+
+  @Test
+  public void testIsPresentBinding() throws Exception {
+    OptionalProperty<String> optString = OptionalProperty.of("Hello");
+    OptionalProperty<Integer> optInt = OptionalProperty.of(10);
+
+    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BoolProperty areBothPresent = new BoolValueProperty();
+    bindings.bind(areBothPresent, optString.isPresent().and(optInt.isPresent()));
+
+    assertThat(areBothPresent.get()).isTrue();
+    optString.clear();
+    assertThat(areBothPresent.get()).isFalse();
+    optString.setValue("I'm back");
+    assertThat(areBothPresent.get()).isTrue();
+    optInt.clear();
+    assertThat(areBothPresent.get()).isFalse();
+    optString.clear();
+    assertThat(areBothPresent.get()).isFalse();
+  }
+}
+
