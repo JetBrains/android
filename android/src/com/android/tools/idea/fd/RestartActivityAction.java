@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -29,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class RestartActivityAction extends AnAction {
   public RestartActivityAction() {
-    super("Restart Activity", null, AllIcons.Actions.Reset);
+    super("Restart Activity", null, AndroidIcons.RunIcons.Restart);
   }
 
   @Override
