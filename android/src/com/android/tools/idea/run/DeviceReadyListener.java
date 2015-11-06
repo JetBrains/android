@@ -48,11 +48,7 @@ public final class DeviceReadyListener implements AndroidDebugBridge.IDeviceChan
   @NotNull private final Object myFinishedLock = new Object();
   @GuardedBy("finishedLock") private boolean myFinished;
 
-  public DeviceReadyListener(
-    @NotNull ConsolePrinter printer,
-    @NotNull Predicate<IDevice> deviceFilter,
-    @NotNull Callback callback
-  ) {
+  public DeviceReadyListener(@NotNull ConsolePrinter printer, @NotNull Predicate<IDevice> deviceFilter, @NotNull Callback callback) {
     myPrinter = printer;
     myDeviceFilter = deviceFilter;
     myCallback = callback;

@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
-import com.intellij.ui.ColoredTextContainer;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.ide.ui.search.SearchUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -76,13 +79,19 @@ public class ConnectedAndroidDevice implements AndroidDevice {
   }
 
   @Override
-  public boolean supportsFeature(@NonNull IDevice.HardwareFeature feature) {
+  public boolean supportsFeature(@NotNull IDevice.HardwareFeature feature) {
     return myDevice.supportsFeature(feature);
   }
 
+  @NotNull
   @Override
-  public void renderName(@NotNull ColoredTextContainer renderer) {
-    renderer.setIcon(myDevice.isEmulator() ? AndroidIcons.Ddms.Emulator2 : AndroidIcons.Ddms.RealDevice);
+  public String getName() {
+    return myAvdName == null ? getDeviceName() : myAvdName;
+  }
+
+  @Override
+  public void renderName(@NotNull SimpleColoredComponent renderer, boolean isCompatible, @org.jetbrains.annotations.Nullable @Nullable String searchPrefix) {
+    renderer.setIcon(myDevice.isEmulator() ? AndroidIcons.Ddms.EmulatorDevice : AndroidIcons.Ddms.RealDevice);
 
     IDevice.DeviceState state = myDevice.getState();
     if (state != IDevice.DeviceState.ONLINE) {
@@ -91,8 +100,8 @@ public class ConnectedAndroidDevice implements AndroidDevice {
       return;
     }
 
-    String name = myAvdName == null ? getDeviceName() : myAvdName;
-    renderer.append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    SimpleTextAttributes attr = isCompatible ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
+    SearchUtil.appendFragments(searchPrefix, getName(), attr.getStyle(), attr.getFgColor(), attr.getBgColor(), renderer);
 
     String build = DevicePropertyUtil.getBuild(myDevice);
     if (!build.isEmpty()) {
@@ -108,6 +117,12 @@ public class ConnectedAndroidDevice implements AndroidDevice {
     }
     name.append(DevicePropertyUtil.getModel(myDevice, ""));
     return name.toString();
+  }
+
+  @NotNull
+  @Override
+  public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull ConsolePrinter printer) {
+    return Futures.immediateFuture(myDevice);
   }
 
   @NotNull

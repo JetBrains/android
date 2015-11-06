@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.NonNull;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdWizardConstants;
-import com.intellij.icons.AllIcons;
-import com.intellij.ui.ColoredTextContainer;
+import com.google.common.base.Predicate;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.ide.ui.search.SearchUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LaunchableAndroidDevice implements AndroidDevice {
   private final AvdInfo myAvdInfo;
@@ -58,7 +62,7 @@ public class LaunchableAndroidDevice implements AndroidDevice {
   }
 
   @Override
-  public boolean supportsFeature(@NonNull IDevice.HardwareFeature feature) {
+  public boolean supportsFeature(@NotNull IDevice.HardwareFeature feature) {
     switch (feature) {
       case WATCH:
         return AvdWizardConstants.WEAR_TAG.equals(myAvdInfo.getTag());
@@ -69,10 +73,34 @@ public class LaunchableAndroidDevice implements AndroidDevice {
     }
   }
 
+  @NotNull
   @Override
-  public void renderName(@NotNull ColoredTextContainer component) {
-    component.setIcon(AllIcons.Actions.Execute);
-    component.append(AvdManagerConnection.getAvdDisplayName(myAvdInfo), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+  public String getName() {
+    return AvdManagerConnection.getAvdDisplayName(myAvdInfo);
+  }
+
+  @Override
+  public void renderName(@NotNull SimpleColoredComponent renderer, boolean isCompatible, @Nullable String searchPrefix) {
+    renderer.setIcon(AndroidIcons.Ddms.EmulatorDevice);
+    SimpleTextAttributes attr = isCompatible ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
+    SearchUtil.appendFragments(searchPrefix, getName(), attr.getStyle(), attr.getFgColor(), attr.getBgColor(), renderer);
+  }
+
+  @NotNull
+  @Override
+  public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull ConsolePrinter printer) {
+    AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
+
+    // Wait for an AVD to come up with name matching the one we just launched.
+    final String avdName = myAvdInfo.getName();
+    Predicate<IDevice> avdNameFilter = new Predicate<IDevice>() {
+      @Override
+      public boolean apply(IDevice device) {
+        return device.isEmulator() && avdName.equals(device.getAvdName());
+      }
+    };
+
+    return DeviceReadyListener.getReadyDevice(avdNameFilter, printer);
   }
 
   public AvdInfo getAvdInfo() {
