@@ -16,12 +16,41 @@
 package com.android.tools.idea.gradle.structure.configurables.editor.dependencies;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
 abstract class ArtifactRepositorySearch {
+  @NotNull
+  abstract String getName();
+
+  /**
+   * Indicates whether search results are paginated (if supported by the repository.)
+   * @return {@code true} if the search results are paginated; {@code false} otherwise.
+   */
   abstract boolean supportsPagination();
 
   @NotNull
-  abstract SearchResult startSearch(@NotNull String artifactName, int rows, int start) throws IOException;
+  abstract SearchResult start(@NotNull Request request) throws IOException;
+
+  static class Request {
+    @NotNull final String artifactName;
+    @Nullable final String groupId;
+    final int rows;
+    final int start;
+
+    /**
+     * Creates a new {@link Request}.
+     * @param artifactName the name of the artifact to look for.
+     * @param groupId the group ID of the artifact (optional.)
+     * @param rows number of rows to retrieve.
+     * @param start start zero-based starting position of the search (useful when paginating results.)
+     */
+    Request(@NotNull String artifactName, @Nullable String groupId, int rows, int start) {
+      this.artifactName = artifactName;
+      this.groupId = groupId;
+      this.rows = rows;
+      this.start = start;
+    }
+  }
 }

@@ -284,8 +284,9 @@ public class RepositoryUrlManager {
    * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
    */
   @Nullable
-  private String getLatestVersionFromMavenMetadata(final File metadataFile, @Nullable final String filterPrefix,
-                                                   final boolean includePreviews) {
+  public String getLatestVersionFromMavenMetadata(@NotNull final File metadataFile,
+                                                  @Nullable final String filterPrefix,
+                                                  final boolean includePreviews) {
     String xml = readTextFile(metadataFile);
     final List<GradleCoordinate> versions = Lists.newLinkedList();
     try {
@@ -461,13 +462,11 @@ public class RepositoryUrlManager {
     return file.exists();
   }
 
-  @VisibleForTesting
-  static class RepositoryLibrary {
+  public static class RepositoryLibrary {
     public final String id;
     public final String basePath;
     public final String baseCoordinate;
     private final RangeMap<Integer, String> myArchiveExtensions;
-
 
     private RepositoryLibrary(String id, String basePath, String baseCoordinate, String archiveExtension) {
       this.id = id;
