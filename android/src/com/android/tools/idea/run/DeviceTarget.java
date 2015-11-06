@@ -39,12 +39,12 @@ public final class DeviceTarget {
   }
 
   @NotNull
-  public static DeviceTarget forFuture(ListenableFuture<IDevice> deviceFuture) {
+  public static DeviceTarget forFuture(@NotNull ListenableFuture<IDevice> deviceFuture) {
     return forFutures(ImmutableList.of(deviceFuture));
   }
 
   @NotNull
-  public static DeviceTarget forFutures(Collection<ListenableFuture<IDevice>> deviceFutures) {
+  public static DeviceTarget forFutures(@NotNull Collection<ListenableFuture<IDevice>> deviceFutures) {
     return new DeviceTarget(deviceFutures);
   }
 
