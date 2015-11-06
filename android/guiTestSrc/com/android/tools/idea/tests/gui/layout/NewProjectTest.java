@@ -118,7 +118,7 @@ public class NewProjectTest extends GuiTestCase {
                  // This warning is wrong: http://b.android.com/192605
                  "        Missing support for Google App Indexing\n" +
                  "            app\n" +
-                 "                Application should have at least one Activity supporting ACTION_VIEW\n",
+                 "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent-filler. See issue explanation for more details.\n",
                  inspections.getResults());
   }
 
