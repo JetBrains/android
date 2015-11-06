@@ -118,9 +118,4 @@ public final class GradleDslMethodCall extends GradleDslElement {
     // TODO: Add support to create a new method element, if there is a use case.
     return getPsiElement();
   }
-
-  @Override
-  protected void delete() {
-    // TODO: Add support to delete a method element, if there is a use case.
-  }
 }
