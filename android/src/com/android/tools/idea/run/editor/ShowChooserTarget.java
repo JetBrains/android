@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ShowChooserTarget extends DeployTarget<ShowChooserTarget.State> {
+  public static final String ID = TargetSelectionMode.SHOW_DIALOG.name();
   private DeployTargetPickerDialog.Result myResult;
 
   // Note: we only maintain the state that is persisted along with the run configuration here.
@@ -46,7 +47,7 @@ public class ShowChooserTarget extends DeployTarget<ShowChooserTarget.State> {
   @NotNull
   @Override
   public String getId() {
-    return TargetSelectionMode.SHOW_DIALOG.name();
+    return ID;
   }
 
   @NotNull
@@ -67,29 +68,15 @@ public class ShowChooserTarget extends DeployTarget<ShowChooserTarget.State> {
   }
 
   @Override
-  public boolean showPrompt(Executor executor,
+  public boolean showPrompt(@NotNull Executor executor,
                             @NotNull ExecutionEnvironment env,
-                            AndroidFacet facet,
-                            DeviceCount deviceCount,
+                            @NotNull AndroidFacet facet,
+                            @NotNull DeviceCount deviceCount,
                             boolean androidTests,
                             @NotNull Map<String, DeployTargetState> deployTargetStates,
                             int runConfigId,
-                            ProcessHandlerConsolePrinter printer) {
-    /**
-     * 1. Figure out if we need to show the dialog
-     *    If not, then set the state and move on
-     * 2. Show the dialog, get the user choice: we are going to do one of:
-     *    a. use an existing device or avd, in which case it is going to be DeviceTarget
-     *    b. will use a custom launcher.
-     *    Save that state and reuse in the the subsequent calls to hasCustomRunProfileState() or getTarget()
-     */
-
+                            @NotNull ProcessHandlerConsolePrinter printer) {
     State showChooserState = (State)deployTargetStates.get(getId());
-
-    // TODO: see if there is saved state for this run config context, and that selection is still valid
-    // if so, set the current state from the previous selection. Currently, this is handled by the ManualTargetChooser
-    //if (showChooserState.USE_LAST_SELECTED_DEVICE) {
-    //}
 
     // If we are not showing any custom run/profile states, then show the old style device chooser
     List<DeployTarget> applicableTargets = getTargetsProvidingRunProfileState(executor, androidTests);
@@ -104,10 +91,21 @@ public class ShowChooserTarget extends DeployTarget<ShowChooserTarget.State> {
       return true;
     }
 
+    Project project = facet.getModule().getProject();
+
+    if (showChooserState.USE_LAST_SELECTED_DEVICE) {
+      myResult = DevicePickerStateService.getInstance(project).getDeployTargetPickerResult(runConfigId);
+      if (myResult != null) {
+        return true;
+      }
+    }
+
     // show the dialog and get the state
-    DeployTargetPickerDialog dialog = new DeployTargetPickerDialog(runConfigId, facet, applicableTargets, deployTargetStates, printer);
+    DeployTargetPickerDialog dialog =
+      new DeployTargetPickerDialog(runConfigId, facet, deviceCount, applicableTargets, deployTargetStates, printer);
     if (dialog.showAndGet()) {
       myResult = dialog.getResult();
+      DevicePickerStateService.getInstance(project).setDeployPickerResult(runConfigId, myResult);
       return true;
     }
     else {
