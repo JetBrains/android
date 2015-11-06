@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 
 import java.io.IOException;
 
@@ -132,6 +133,9 @@ public class ExtModelTest extends GradleFileModelTestCase {
                   "ext.COMPILE_SDK_VERSION = SDK_VERSION\n" +
                   "android {\n" +
                   "  compileSdkVersion COMPILE_SDK_VERSION\n" +
+                  "  defaultConfig {\n" +
+                  "    targetSdkVersion compileSdkVersion\n" +
+                  "  }\n" +
                   "}";
 
     writeToBuildFile(text);
@@ -153,5 +157,67 @@ public class ExtModelTest extends GradleFileModelTestCase {
     AndroidModel androidModel = buildModel.android();
     assertNotNull(androidModel);
     assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion());
+
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    assertNotNull(defaultConfig);
+    assertEquals("targetSdkVersion", "21", defaultConfig.targetSdkVersion());
   }
+
+  public void testResolveVariablesInStringLiteral() throws IOException {
+    String text = "ext.ANDROID = \"android\"\n" +
+                  "ext.SDK_VERSION = 23\n" +
+                  "android {\n" +
+                  "  compileSdkVersion = \"$ANDROID-${SDK_VERSION}\"\n" +
+                  "  defaultConfig {\n" +
+                  "    targetSdkVersion \"$compileSdkVersion\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertNotNull(buildModel);
+
+    ExtModel extModel = buildModel.ext();
+    assertNotNull(extModel);
+
+    String androidText = extModel.getProperty("ANDROID", String.class);
+    assertNotNull(androidText);
+    assertEquals("android", androidText);
+
+    Integer sdkVersion = extModel.getProperty("SDK_VERSION", Integer.class);
+    assertNotNull(sdkVersion);
+    assertEquals(23, sdkVersion.intValue());
+
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    assertEquals("compileSdkVersion", "android-23", androidModel.compileSdkVersion());
+
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    assertNotNull(defaultConfig);
+    assertEquals("targetSdkVersion", "android-23", defaultConfig.targetSdkVersion());
+  }
+
+  public void testResolveQualifiedVariableInStringLiteral() throws IOException {
+    String text = "android {\n" +
+                  "  compileSdkVersion 23\n" +
+                  "  defaultConfig {\n" +
+                  "    targetSdkVersion \"$android.compileSdkVersion\"\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertNotNull(buildModel);
+
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    assertEquals("compileSdkVersion", "23", androidModel.compileSdkVersion());
+
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    assertNotNull(defaultConfig);
+    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+  }
+
 }
