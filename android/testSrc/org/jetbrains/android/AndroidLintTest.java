@@ -643,6 +643,14 @@ public class AndroidLintTest extends AndroidTestCase {
     }
   }
 
+  public void testDeprecation() throws Exception {
+    // Need to use minSdkVersion >= 3 to get all the deprecation warnings to kick in
+    deleteManifest();
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    doTestNoFix(new AndroidLintInspectionToolProvider.AndroidLintDeprecatedInspection(),
+                "/res/layout/deprecation.xml", "xml");
+  }
+
   public void testActivityRegistered() throws Exception {
     createManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
