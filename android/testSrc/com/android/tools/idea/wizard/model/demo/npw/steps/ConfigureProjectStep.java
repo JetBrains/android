@@ -88,9 +88,7 @@ public final class ConfigureProjectStep extends ModelWizardStep<ProjectModel> {
   @Nullable
   @Override
   protected JComponent getPreferredFocusComponent() {
-    // Not necessary to do this in this case, since the text field gets focus anyway, but it's here
-    // for demonstration purposes
-    return myAppNameTextField; // TODO: Not working in demo, investigate? Works fine in regular Studio code
+    return myAppNameTextField;
   }
 
   @NotNull

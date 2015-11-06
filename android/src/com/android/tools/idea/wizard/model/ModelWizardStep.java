@@ -57,7 +57,8 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
 
   /**
    * Returns a component which should try and get focus when a step is first entered, or
-   * {@code null} if we're OK just letting Swing choose for us.
+   * {@code null} if we're OK just letting Swing choose for us. This will likely leave focus where
+   * it is, which is probably the wizard's next button.
    */
   @Nullable
   protected JComponent getPreferredFocusComponent() {
