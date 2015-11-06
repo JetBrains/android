@@ -62,6 +62,18 @@ public class DependenciesModel {
     return this;
   }
 
+  @NotNull
+  public List<ModuleDependencyModel> moduleDependencies(@NotNull String configurationName) {
+    List<ModuleDependencyModel> dependencies = Lists.newArrayList();
+    GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+    if (list != null) {
+      for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
+        dependencies.addAll(ModuleDependencyModel.create(configurationName, element));
+      }
+    }
+    return dependencies;
+  }
+
   public DependenciesModel remove(@NotNull DependencyModel dependency) {
     GradleDslElementList gradleDslElementList = myDslElement.getProperty(dependency.getConfigurationName(), GradleDslElementList.class);
     if (gradleDslElementList != null) {
