@@ -19,7 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.google.common.base.Objects;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;

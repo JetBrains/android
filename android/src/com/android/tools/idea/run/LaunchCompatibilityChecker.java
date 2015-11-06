@@ -22,14 +22,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 
-public class LaunchCompatibiltyChecker {
+public class LaunchCompatibilityChecker {
   private final AndroidVersion myMinSdkVersion;
   private final IAndroidTarget myProjectTarget;
   private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
 
-  public LaunchCompatibiltyChecker(@NotNull AndroidVersion minSdkVersion,
-                                   @NotNull IAndroidTarget target,
-                                   @NotNull EnumSet<IDevice.HardwareFeature> requiredHardwareFeatures) {
+  public LaunchCompatibilityChecker(@NotNull AndroidVersion minSdkVersion,
+                                    @NotNull IAndroidTarget target,
+                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredHardwareFeatures) {
     myMinSdkVersion = minSdkVersion;
     myProjectTarget = target;
     myRequiredHardwareFeatures = requiredHardwareFeatures;
