@@ -183,7 +183,7 @@ public class DistributionServiceTest extends AndroidTestCase {
       }
     });
     assertTrue(result.get(5, TimeUnit.SECONDS));
-    assertEquals(.631, service.getSupportedDistributionForApiLevel(19), 0.0001);
+    assertEquals(.626, service.getSupportedDistributionForApiLevel(19), 0.0001);
   }
 
   /**
