@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
@@ -59,7 +59,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
   }
 
   private static void showAndroidProjectStructure(@NotNull Project project) {
-    if (SystemProperties.getBooleanProperty("use.new.project.structure", false)) {
+    if (GradleExperimentalSettings.getInstance().USE_NEW_PROJECT_STRUCTURE_DIALOG) {
       ProjectStructureConfigurable.getInstance(project).showDialog();
       return;
     }
