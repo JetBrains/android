@@ -74,6 +74,16 @@ public class AndroidProjectWizardTest extends NewProjectWizardTestCase {
     assertEquals(ANDROID, moduleSdk.getName());
   }
 
+  /*
+  public void testGradleImport() throws Exception {
+    VfsRootAccess.SHOULD_PERFORM_ACCESS_CHECK = false;
+    File file = createTempFile("build.gradle", "");
+    importProjectFrom(file.getPath(), null, new GradleProjectImportProvider(new GradleProjectImportBuilder(
+      ServiceManager.getService(ProjectDataManager.class))));
+
+  }
+  */
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
