@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<<warning descr="`AbsoluteLayout` is deprecated">AbsoluteLayout</warning> xmlns:android="http://schemas.android.com/apk/res/android"
+<<warning descr="`AbsoluteLayout` is deprecated" textAttributesKey="DEPRECATED_ATTRIBUTES">AbsoluteLayout</warning> xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
@@ -13,17 +13,17 @@
 
     <!--  Deprecated attributes -->
     <TextView
-        <warning descr="`android:autoText` is deprecated: Use `inputType` instead">android:autoText="true"</warning>
-        <warning descr="`android:capitalize` is deprecated: Use `inputType` instead">android:capitalize="true"</warning>
-        <warning descr="`android:editable` is deprecated: Use an `<EditText>` to make it editable">android:editable="true"</warning>
+        <warning descr="`android:autoText` is deprecated: Use `inputType` instead" textAttributesKey="DEPRECATED_ATTRIBUTES">android:autoText="true"</warning>
+        <warning descr="`android:capitalize` is deprecated: Use `inputType` instead" textAttributesKey="DEPRECATED_ATTRIBUTES">android:capitalize="true"</warning>
+        <warning descr="`android:editable` is deprecated: Use an `<EditText>` to make it editable" textAttributesKey="DEPRECATED_ATTRIBUTES">android:editable="true"</warning>
         android:enabled="true"
-        <warning descr="`android:inputMethod` is deprecated: Use `inputType` instead">android:inputMethod="@+id/foo"</warning>
-        <warning descr="`android:numeric` is deprecated: Use `inputType` instead">android:numeric="true"</warning>
-        <warning descr="`android:password` is deprecated: Use `inputType` instead">android:password="true"</warning>
-        <warning descr="`android:phoneNumber` is deprecated: Use `inputType` instead">android:phoneNumber="true"</warning>
+        <warning descr="`android:inputMethod` is deprecated: Use `inputType` instead" textAttributesKey="DEPRECATED_ATTRIBUTES">android:inputMethod="@+id/foo"</warning>
+        <warning descr="`android:numeric` is deprecated: Use `inputType` instead" textAttributesKey="DEPRECATED_ATTRIBUTES">android:numeric="true"</warning>
+        <warning descr="`android:password` is deprecated: Use `inputType` instead" textAttributesKey="DEPRECATED_ATTRIBUTES">android:password="true"</warning>
+        <warning descr="`android:phoneNumber` is deprecated: Use `inputType` instead" textAttributesKey="DEPRECATED_ATTRIBUTES">android:phoneNumber="true"</warning>
         android:singleLine="true" />
 
-    <EditText <warning descr="`android:editable` is deprecated: `<EditText>` is already editable">android:editable="true"</warning> />
-    <EditText <warning descr="`android:editable` is deprecated: Use `inputType` instead">android:editable="false"</warning> />
+    <EditText <warning descr="`android:editable` is deprecated: `<EditText>` is already editable" textAttributesKey="DEPRECATED_ATTRIBUTES">android:editable="true"</warning> />
+    <EditText <warning descr="`android:editable` is deprecated: Use `inputType` instead" textAttributesKey="DEPRECATED_ATTRIBUTES">android:editable="false"</warning> />
 
 </AbsoluteLayout>

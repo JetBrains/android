@@ -932,11 +932,10 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
-    public static class AndroidLintGradleIdeErrorInspection extends AndroidLintInspectionBase {
-      public AndroidLintGradleIdeErrorInspection() {
-        super(AndroidBundle.message("android.lint.inspections.gradle.ide.error"), GradleDetector.IDE_SUPPORT);
-      }
-
+  public static class AndroidLintGradleIdeErrorInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleIdeErrorInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.ide.error"), GradleDetector.IDE_SUPPORT);
+    }
   }
 
   public static class AndroidLintGradleOverridesInspection extends AndroidLintInspectionBase {
