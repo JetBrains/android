@@ -50,6 +50,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
+import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -266,8 +267,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   public void init() {
     super.init();
     registerComponents();
-    deregister(getDescriptionPane());
-    getDescriptionPane().setVisible(false);
+    deregister(getDescriptionLabel());
+    getDescriptionLabel().setVisible(false);
     Device device = myState.get(DEVICE_DEFINITION_KEY);
     SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
     myAvdConfigurationOptionHelpPanel.setSystemImageDescription(systemImage);
