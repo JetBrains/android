@@ -48,7 +48,6 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
-import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
