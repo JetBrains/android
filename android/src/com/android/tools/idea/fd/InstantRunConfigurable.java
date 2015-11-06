@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.Configurable;
@@ -159,17 +158,9 @@ public class InstantRunConfigurable
       AndroidGradleModel model = AndroidGradleModel.get(module);
       if (model != null) {
         isGradle = true;
-        String version = model.getAndroidProject().getModelVersion();
-        try {
-          FullRevision modelVersion = FullRevision.parseRevision(version);
-
-          // Supported in version 1.6 of the Gradle plugin and up
-          if (modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0) {
-            isCurrentPlugin = true;
-            break;
-          }
-        } catch (NumberFormatException e) {
-          Logger.getInstance(AndroidGradleModel.class).warn("Failed to parse '" + version + "'", e);
+        if (FastDeployManager.isInstantRunSupported(model)) {
+          isCurrentPlugin = true;
+          break;
         }
       }
     }

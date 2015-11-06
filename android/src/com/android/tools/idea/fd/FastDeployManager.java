@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.fd;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.SourceProvider;
-import com.android.builder.model.Variant;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
@@ -67,7 +65,6 @@ import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
@@ -106,7 +103,7 @@ import static com.android.SdkConstants.*;
  */
 public final class FastDeployManager implements ProjectComponent, BulkFileListener {
   public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "1.6.0-alpha4";
-  public static final FullRevision MINIMUM_GRADLE_PLUGIN_VERSION = FullRevision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+  private static final FullRevision MINIMUM_GRADLE_PLUGIN_VERSION = FullRevision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
   private static final Object INSTANCE_LOCK = new Object();
 
@@ -786,13 +783,27 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
 
   @NotNull
   public static String getIncrementalDexTask(@NotNull AndroidGradleModel model, @NotNull Module module) {
-
+    assert isInstantRunSupported(model) : module;
     String taskName = model.getSelectedVariant().getMainArtifact().getInstantRun().getIncrementalAssembleTaskName();
     String gradlePath = GradleUtil.getGradlePath(module);
     if (gradlePath != null) {
       taskName = gradlePath + ":" + taskName;
     }
     return taskName;
+  }
+
+  /** Returns true if Instant Run is supported for this gradle model (whether or not it's enabled) */
+  static boolean isInstantRunSupported(@NotNull AndroidGradleModel model) {
+    String version = model.getAndroidProject().getModelVersion();
+    try {
+      FullRevision modelVersion = FullRevision.parseRevision(version);
+
+      // Supported in version 1.6 of the Gradle plugin and up
+      return modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
+    } catch (NumberFormatException e) {
+      Logger.getInstance(FastDeployManager.class).warn("Failed to parse '" + version + "'", e);
+      return false;
+    }
   }
 
   /**
@@ -935,6 +946,10 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   }
 
   private static void removeOldPatches(AndroidGradleModel model) {
+    // This method may be called even when instant run isn't eligible
+    if (!isInstantRunSupported(model)) {
+      return;
+    }
     File restart = DexFileType.RESTART_DEX.getFile(model);
     if (restart.exists()) {
       boolean deleted = restart.delete();
