@@ -41,6 +41,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   private JSpinner myModuleNumberSpinner;
   private JCheckBox mySkipSourceGenOnSyncCheckbox;
   private JCheckBox myLoadAllTestArtifactsCheckbox;
+  private JCheckBox myUseNewProjectStructureCheckBox;
 
   private boolean myLoadAllTestArtifactsChanged;
 
@@ -82,7 +83,8 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   public boolean isModified() {
     if (mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled() ||
         mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
-        mySettings.LOAD_ALL_TEST_ARTIFACTS != isLoadAllTestArtifacts()) {
+        mySettings.LOAD_ALL_TEST_ARTIFACTS != isLoadAllTestArtifacts() ||
+        mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG != isUseNewProjectStructureDialog()) {
       return true;
     }
     Integer value = getMaxModuleCountForSourceGen();
@@ -99,6 +101,8 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
       mySettings.LOAD_ALL_TEST_ARTIFACTS = loadAllTestArtifacts;
       myLoadAllTestArtifactsChanged = true;
     }
+
+    mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG = isUseNewProjectStructureDialog();
 
     Integer value = getMaxModuleCountForSourceGen();
     if (value != null) {
@@ -124,12 +128,17 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
     return myLoadAllTestArtifactsCheckbox.isSelected();
   }
 
+  private boolean isUseNewProjectStructureDialog() {
+    return myUseNewProjectStructureCheckBox.isSelected();
+  }
+
   @Override
   public void reset() {
     myEnableModuleSelectionOnImportCheckBox.setSelected(mySettings.SELECT_MODULES_ON_PROJECT_IMPORT);
     mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
     myLoadAllTestArtifactsCheckbox.setSelected(mySettings.LOAD_ALL_TEST_ARTIFACTS);
+    myUseNewProjectStructureCheckBox.setSelected(mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG);
   }
 
   @Override
