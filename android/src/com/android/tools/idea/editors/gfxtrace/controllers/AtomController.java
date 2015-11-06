@@ -273,12 +273,12 @@ public class AtomController extends TreeController {
 
         public PreviewPanel(final ListenableFuture<FetchedImage> imageFuture) {
           if (imageFuture.isDone()) {
-            image = Futures.getUnchecked(imageFuture).icon.getImage();
+            image = Futures.getUnchecked(imageFuture).image;
           } else {
             imageFuture.addListener(new Runnable() {
               @Override
               public void run() {
-                image = Futures.getUnchecked(imageFuture).icon.getImage();
+                image = Futures.getUnchecked(imageFuture).image;
                 Balloon parent = lastShownBalloon;
                 if (parent != null) {
                   parent.revalidate();
@@ -347,8 +347,7 @@ public class AtomController extends TreeController {
                   LoadingIndicator.paint(tree, g, x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
                   LoadingIndicator.scheduleForRedraw(Repaintables.forComponent(tree));
                 } else {
-                  ImageIcon icon = image.icon;
-                  RenderUtils.drawImage(tree, g, icon.getImage(), x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
+                  RenderUtils.drawImage(tree, g, image.image, x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
                 }
               }
 
