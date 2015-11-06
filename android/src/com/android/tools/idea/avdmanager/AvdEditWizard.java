@@ -56,6 +56,7 @@ public class AvdEditWizard extends DynamicWizard {
   @Nullable private final AvdInfo myAvdInfo;
   private final boolean myForceCreate;
   private final JComponent myParent;
+  private AvdInfo myCreatedAvd;
 
   public AvdEditWizard(@NotNull JComponent parent,
                        @Nullable Project project,
@@ -377,8 +378,13 @@ public class AvdEditWizard extends DynamicWizard {
     }
 
     AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
-    connection.createOrUpdateAvd(myForceCreate ? null : myAvdInfo, avdName, device, systemImageDescription, orientation, isCircular, sdCard,
+    myCreatedAvd = connection.createOrUpdateAvd(myForceCreate ? null : myAvdInfo, avdName, device, systemImageDescription, orientation, isCircular, sdCard,
                                         skinFile, hardwareProperties, false);
+  }
+
+  @Nullable
+  public AvdInfo getCreatedAvd() {
+    return myCreatedAvd;
   }
 
   @NotNull

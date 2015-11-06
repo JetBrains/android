@@ -82,12 +82,17 @@ public abstract class DeployTarget<S extends DeployTargetState> {
 
   /**
    * Prompt the user for whatever input might be required at the time of the launch.
-   * @param uniqueID a unique ID identifying the run configuration context from which this is being invoked
+   *
+   * @param runConfigId a unique ID identifying the run configuration context from which this is being invoked
    */
-  public boolean showPrompt(Executor executor,
-                            ExecutionEnvironment env, AndroidFacet facet, DeviceCount deviceCount, boolean androidTests,
+  public boolean showPrompt(@NotNull Executor executor,
+                            @NotNull ExecutionEnvironment env,
+                            @NotNull AndroidFacet facet,
+                            @NotNull DeviceCount deviceCount,
+                            boolean androidTests,
                             @NotNull Map<String, DeployTargetState> deployTargetStates,
-                            int uniqueId, ProcessHandlerConsolePrinter printer) {
+                            int runConfigId,
+                            @NotNull ProcessHandlerConsolePrinter printer) {
     throw new IllegalStateException();
   }
 
