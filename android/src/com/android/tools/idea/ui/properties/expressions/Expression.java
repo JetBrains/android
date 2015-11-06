@@ -38,6 +38,10 @@ public abstract class Expression extends AbstractObservable implements Observabl
   };
 
   protected Expression(Observable... values) {
+    if (values.length == 0) {
+      throw new IllegalArgumentException("Can't create an expression without any target observables");
+    }
+
     for (Observable value : values) {
       value.addWeakListener(myListener);
     }
