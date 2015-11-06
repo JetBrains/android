@@ -26,7 +26,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.codeInsight.ExceptionUtil;
 import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.codeInspection.*;
@@ -1650,7 +1649,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           }
         }
 
-        if (allowedValues.types.isEmpty() && expression.getType() == PsiType.INT) {
+        if (allowedValues.types.isEmpty() && PsiType.INT.equals(expression.getType())) {
           // Passing literal integer to a color
           return VALID;
         }
