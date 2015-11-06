@@ -22,12 +22,14 @@ import com.android.tools.idea.wizard.model.demo.npw.models.ActivityModel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 
 public final class ConfigureActivityStep extends ModelWizardStep<ActivityModel> {
   private JPanel myRootPanel;
+  private JBTextField myPreferredFocus;
 
   public ConfigureActivityStep(@NotNull ActivityModel model) {
     super(model, String.format("Customize the %s Activity", model.getFormFactor().getName()));
@@ -37,6 +39,12 @@ public final class ConfigureActivityStep extends ModelWizardStep<ActivityModel> 
   @Override
   protected JComponent getComponent() {
     return myRootPanel;
+  }
+
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return myPreferredFocus;
   }
 
   @Override
@@ -55,6 +63,11 @@ public final class ConfigureActivityStep extends ModelWizardStep<ActivityModel> 
       JBTextField valueTextField = new JBTextField("Value" + (row + 1));
       valueTextField.putClientProperty("param", param);
       myRootPanel.add(valueTextField, new ProportionalLayout.Constraint(row, 1));
+
+      if (row == 0) {
+        myPreferredFocus = valueTextField;
+      }
+
       row++;
     }
   }

@@ -25,6 +25,7 @@ import com.android.tools.idea.wizard.model.demo.npw.android.ActivityTemplate;
 import com.android.tools.idea.wizard.model.demo.npw.models.ActivityModel;
 import com.intellij.ui.ListCellRendererWrapper;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
@@ -100,5 +101,11 @@ public final class ChooseActivityStep extends ModelWizardStep<ActivityModel> {
   @Override
   protected JComponent getComponent() {
     return myRootPanel;
+  }
+
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return myTargetActivityComboBox;
   }
 }

@@ -29,8 +29,10 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,8 @@ public final class ChooseFormFactorsStep extends ModelWizardStep<ProjectModel> {
   private final Map<FormFactor, ChooseActivityStep> myFormFactorSteps = Maps.newHashMap();
 
   private JPanel myRootPanel;
+
+  private JCheckBox myPreferredFocus;
 
   private ObservableBool myAnySelected;
 
@@ -74,6 +78,7 @@ public final class ChooseFormFactorsStep extends ModelWizardStep<ProjectModel> {
       SelectedProperty selected = new SelectedProperty(checkbox);
       if (formFactor == FormFactor.MOBILE) {
         checkbox.setSelected(true);
+        myPreferredFocus = checkbox;
       }
 
       myListeners.listenAndFire(selected, new Consumer<Boolean>() {
@@ -101,6 +106,12 @@ public final class ChooseFormFactorsStep extends ModelWizardStep<ProjectModel> {
   @Override
   protected JComponent getComponent() {
     return myRootPanel;
+  }
+
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return myPreferredFocus;
   }
 
   private void createUIComponents() {

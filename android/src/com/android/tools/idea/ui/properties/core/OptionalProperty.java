@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
  * Properties don't allow {@code null} values by design, but if the concept is still needed, this
  * convenience class provides an interface that mirrors that of guava's {@link Optional} interface.
  */
-public final class OptionalProperty<T> extends ObservableProperty<Optional<T>> {
+public final class OptionalProperty<T> extends ObservableProperty<Optional<T>> implements ObservableOptional<T> {
 
   @NotNull private Optional<T> myOptional;
 
