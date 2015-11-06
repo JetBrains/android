@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.editor.dependencies;
 
 import org.intellij.lang.annotations.Language;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Reader;
@@ -24,17 +23,24 @@ import java.io.StringReader;
 import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link MavenCentralRepositorySearch}.
  */
 public class MavenCentralRepositorySearchTest {
-  private MavenCentralRepositorySearch myRepository;
+  @Test
+  public void testCreateUrlWithGroupId() {
+    ArtifactRepositorySearch.Request request = new ArtifactRepositorySearch.Request("guava", "com.google.guava", 20, 1);
+    String url = MavenCentralRepositorySearch.createRequestUrl(request);
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g:\"com.google.guava\"+AND+a:\"guava\"", url);
+  }
 
-  @Before
-  public void setUp() {
-    myRepository = new MavenCentralRepositorySearch();
+  @Test
+  public void testCreateUrlWithoutGroupId() {
+    ArtifactRepositorySearch.Request request = new ArtifactRepositorySearch.Request("guava", null, 20, 1);
+    String url = MavenCentralRepositorySearch.createRequestUrl(request);
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=a:\"guava\"", url);
   }
 
   @Test
@@ -178,7 +184,7 @@ public class MavenCentralRepositorySearchTest {
                       "    </lst>\n" +
                       "</response>";
     Reader responseReader = new StringReader(response);
-    SearchResult result = myRepository.parse(responseReader);
+    SearchResult result = MavenCentralRepositorySearch.parse(responseReader);
     assertEquals(409, result.totalFound);
     List<String> data = result.data;
     assertThat(data).hasSize(5)
@@ -187,7 +193,5 @@ public class MavenCentralRepositorySearchTest {
                                       "be.fluid-it.com.squarespace.jersey2-guice:jersey2-guice:0.10-fix",
                                       "com.peterphi.std.guice:stdlib-guice-hibernate:8.5.1",
                                       "com.peterphi.std.guice:stdlib-guice-webapp:8.5.1");
-
-    System.out.println();
   }
 }
