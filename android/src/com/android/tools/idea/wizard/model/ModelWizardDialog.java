@@ -17,12 +17,10 @@ package com.android.tools.idea.wizard.model;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
 import com.android.tools.idea.ui.properties.swing.EnabledProperty;
-import com.google.common.base.Optional;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -130,6 +128,12 @@ public final class ModelWizardDialog extends DialogWrapper {
       }
       return new Action[]{prevAction, nextAction, getCancelAction(), finishAction, getHelpAction()};
     }
+  }
+
+  @Nullable
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myWizard.getPreferredFocusComponent();
   }
 
   @Override
