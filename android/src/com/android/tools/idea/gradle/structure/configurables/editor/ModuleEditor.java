@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.editor;
 
 import com.android.tools.idea.gradle.structure.configurables.ModuleConfigurationState;
+import com.android.tools.idea.gradle.structure.configurables.editor.dependencies.DependenciesEditor;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -72,6 +73,16 @@ public abstract class ModuleEditor implements Place.Navigator, Disposable {
   @NotNull
   protected abstract JComponent createCenterPanel();
 
+
+  @Nullable
+  public String getHelpTopic() {
+    if (myEditors.isEmpty()) {
+      return null;
+    }
+    ModuleConfigurationEditor selectedEditor = getSelectedEditor();
+    return selectedEditor != null ? selectedEditor.getHelpTopic() : null;
+  }
+
   @Nullable
   public abstract ModuleConfigurationEditor getSelectedEditor();
 
@@ -110,11 +121,6 @@ public abstract class ModuleEditor implements Place.Navigator, Disposable {
   }
 
   protected abstract void disposeCenterPanel();
-
-  @Nullable
-  public String getHelpTopic() {
-    return null;
-  }
 
   @Nullable
   public History getHistory() {
