@@ -17,7 +17,6 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -1562,17 +1561,17 @@ public class LombokPsiConverter {
     if (type == PsiType.NULL) {
       literal = new NullLiteral();
       bind(literal, expression);
-    } else if (type == PsiType.INT || type == PsiType.LONG || type == PsiType.SHORT
-          || type == PsiType.BYTE) {
+    } else if (PsiType.INT.equals(type) || PsiType.LONG.equals(type) || PsiType.SHORT.equals(type)
+               || PsiType.BYTE.equals(type)) {
       literal = new IntegralLiteral().rawValue(expression.getText());
       bind(literal, expression);
-    } else if (type == PsiType.BOOLEAN) {
+    } else if (PsiType.BOOLEAN.equals(type)) {
       literal = new BooleanLiteral().rawValue(expression.getText());
       bind(literal, expression);
-    } else if (type == PsiType.DOUBLE || type == PsiType.FLOAT) {
+    } else if (PsiType.DOUBLE.equals(type) || PsiType.FLOAT.equals(type)) {
       literal = new FloatingPointLiteral().rawValue(expression.getText());
       bind(literal, expression);
-    } else if (type == PsiType.CHAR) {
+    } else if (PsiType.CHAR.equals(type)) {
       literal = new CharLiteral().rawValue(expression.getText());
       bind(literal, expression);
     } else if (type != null && type.getCanonicalText().equals(CommonClassNames.JAVA_LANG_STRING)) {

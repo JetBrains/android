@@ -208,7 +208,7 @@ public abstract class OnClickConverter extends Converter<String> implements Cust
   }
 
   public boolean checkSignature(@NotNull PsiMethod method) {
-    if (method.getReturnType() != PsiType.VOID) {
+    if (!PsiType.VOID.equals(method.getReturnType())) {
       return false;
     }
 

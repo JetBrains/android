@@ -370,8 +370,8 @@ public class IntellijApiDetector extends ApiDetector {
           // the class files (e.g. get inlined) which has a separate issue type:
           // INLINED.
           PsiType type = field.getType();
-          if (type == PsiType.INT || type == PsiType.CHAR || type == PsiType.BOOLEAN
-              || type == PsiType.DOUBLE || type == PsiType.FLOAT || type == PsiType.BYTE
+          if (PsiType.INT.equals(type) || PsiType.CHAR.equals(type) || PsiType.BOOLEAN.equals(type)
+              || PsiType.DOUBLE.equals(type) || PsiType.FLOAT.equals(type) || PsiType.BYTE.equals(type)
               || type.equalsToText(CommonClassNames.JAVA_LANG_STRING)) {
             issue = INLINED;
 
