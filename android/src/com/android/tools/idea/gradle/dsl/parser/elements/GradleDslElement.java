@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -254,5 +256,40 @@ public abstract class GradleDslElement {
     if (!element.isValid()) { // If this element is deleted, also delete the parent if it is empty.
       deleteIfEmpty(parent);
     }
+  }
+
+  /**
+   * Returns the resolved value of the given {@code referenceText} of type {@code clazz} when the {@code referenceText} is referring to
+   * an element with the value of that type, or {@code null} otherwise.
+   */
+  @Nullable
+  protected <T> T resolveReference(@NotNull String referenceText, @NotNull Class<T> clazz) {
+    GradleDslElement element = this;
+    while(element != null) {
+      if (element instanceof GradlePropertiesDslElement) {
+        T propertyValue = ((GradlePropertiesDslElement)element).getProperty(referenceText, clazz);
+        if (propertyValue != null) {
+          return propertyValue;
+        }
+        if (element instanceof GradleDslFile) {
+          ExtDslElement extDslElement = ((GradleDslFile)element).getProperty(ExtDslElement.NAME, ExtDslElement.class);
+          if (extDslElement != null) {
+            T extPropertyValue = extDslElement.getProperty(referenceText, clazz);
+            if (extPropertyValue != null) {
+              return extPropertyValue;
+            }
+          }
+        }
+      }
+      element = element.getParent();
+    }
+
+    // TODO: Also expand to look at other places like rootProject etc.
+
+    if (clazz.isAssignableFrom(String.class)) {
+      return clazz.cast(referenceText);
+    }
+
+    return null;
   }
 }

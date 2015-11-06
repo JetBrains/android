@@ -55,36 +55,7 @@ public final class GradleDslReference extends GradleDslElement {
       return null;
     }
 
-    GradleDslFile dslFile = null;
-    GradleDslElement parent = myParent;
-    while(parent != null) {
-      if (parent instanceof GradleDslFile) {
-        dslFile = (GradleDslFile)parent;
-        break;
-      }
-      parent = parent.getParent();
-    }
-
-    if (dslFile == null) {
-      return null;
-    }
-
-    ExtDslElement extDslElement = dslFile.getProperty(ExtDslElement.NAME, ExtDslElement.class);
-    if (extDslElement == null) {
-      return null;
-    }
-
-    // TODO: Also expand to look at other places like rootProject etc.
-    T extPropertyValue = extDslElement.getProperty(referenceText, clazz);
-    if (extPropertyValue != null) {
-      return extPropertyValue;
-    }
-
-    if (clazz.isAssignableFrom(String.class)) {
-      return clazz.cast(referenceText);
-    }
-
-    return null;
+    return resolveReference(referenceText, clazz);
   }
 
   @Override
