@@ -105,7 +105,7 @@ public abstract class ImagePanelController extends Controller {
   private void updateImage(final int imageRequest, FetchedImage fetchedImage) {
     if (isCurrentImageRequest(imageRequest)) {
       myLoading.stopLoading();
-      myImagePanel.setImage(fetchedImage.icon.getImage());
+      myImagePanel.setImage(fetchedImage.image);
     }
   }
 
