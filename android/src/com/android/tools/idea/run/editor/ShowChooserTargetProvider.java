@@ -17,9 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.*;
 import com.google.common.collect.Lists;
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
@@ -33,9 +31,8 @@ import javax.swing.*;
 import java.util.List;
 import java.util.Map;
 
-public class ShowChooserTarget extends DeployTarget<ShowChooserTarget.State> {
+public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserTargetProvider.State> {
   public static final String ID = TargetSelectionMode.SHOW_DIALOG.name();
-  private DeployTargetPickerDialog.Result myResult;
 
   // Note: we only maintain the state that is persisted along with the run configuration here.
   // Any other state that is necessary for the dialog itself should be maintained separately, possibly indexed by the run configuration
@@ -63,12 +60,12 @@ public class ShowChooserTarget extends DeployTarget<ShowChooserTarget.State> {
   }
 
   @Override
-  public boolean requiresRuntimePrompt(@NotNull State deployTargetState) {
+  public boolean requiresRuntimePrompt() {
     return true;
   }
 
   @Override
-  public boolean showPrompt(@NotNull Executor executor,
+  public DeployTarget showPrompt(@NotNull Executor executor,
                             @NotNull ExecutionEnvironment env,
                             @NotNull AndroidFacet facet,
                             @NotNull DeviceCount deviceCount,
@@ -79,24 +76,23 @@ public class ShowChooserTarget extends DeployTarget<ShowChooserTarget.State> {
     State showChooserState = (State)deployTargetStates.get(getId());
 
     // If we are not showing any custom run/profile states, then show the old style device chooser
-    List<DeployTarget> applicableTargets = getTargetsProvidingRunProfileState(executor, androidTests);
+    List<DeployTargetProvider> applicableTargets = getTargetsProvidingRunProfileState(executor, androidTests);
     if (applicableTargets.isEmpty()) {
       DeviceTarget deviceTarget = new ManualTargetChooser(showChooserState, facet, runConfigId)
         .getTarget(printer, deviceCount, executor instanceof DefaultDebugExecutor);
       if (deviceTarget == null) {
-        return false;
+        return null;
       }
 
-      myResult = DeployTargetPickerDialog.Result.create(deviceTarget);
-      return true;
+      return new RealizedDeployTarget(null, null, deviceTarget);
     }
 
     Project project = facet.getModule().getProject();
 
     if (showChooserState.USE_LAST_SELECTED_DEVICE) {
-      myResult = DevicePickerStateService.getInstance(project).getDeployTargetPickerResult(runConfigId);
-      if (myResult != null) {
-        return true;
+      DeployTarget target = DevicePickerStateService.getInstance(project).getDeployTargetPickerResult(runConfigId);
+      if (target != null) {
+        return target;
       }
     }
 
@@ -104,21 +100,22 @@ public class ShowChooserTarget extends DeployTarget<ShowChooserTarget.State> {
     DeployTargetPickerDialog dialog =
       new DeployTargetPickerDialog(runConfigId, facet, deviceCount, applicableTargets, deployTargetStates, printer);
     if (dialog.showAndGet()) {
-      myResult = dialog.getResult();
-      DevicePickerStateService.getInstance(project).setDeployPickerResult(runConfigId, myResult);
-      return true;
+      DeployTarget result = dialog.getSelectedDeployTarget();
+      DevicePickerStateService.getInstance(project)
+        .setDeployPickerResult(runConfigId, showChooserState.USE_LAST_SELECTED_DEVICE ? result : null);
+      return result;
     }
     else {
-      return false;
+      return null;
     }
   }
 
   @NotNull
-  private static List<DeployTarget> getTargetsProvidingRunProfileState(@NotNull Executor executor, boolean androidTests) {
-    List<DeployTarget> targets = Lists.newArrayList();
+  private static List<DeployTargetProvider> getTargetsProvidingRunProfileState(@NotNull Executor executor, boolean androidTests) {
+    List<DeployTargetProvider> targets = Lists.newArrayList();
 
-    for (DeployTarget target : DeployTarget.getDeployTargets()) {
-      if (target.showInDevicePicker() && target.isApplicable(androidTests) && target.hasCustomRunProfileState(executor)) {
+    for (DeployTargetProvider target : DeployTargetProvider.getProviders()) {
+      if (target.showInDevicePicker() && target.isApplicable(androidTests)) {
         targets.add(target);
       }
     }
@@ -134,25 +131,8 @@ public class ShowChooserTarget extends DeployTarget<ShowChooserTarget.State> {
   }
 
   @Override
-  public boolean hasCustomRunProfileState(@NotNull Executor executor) {
-    return myResult != null && myResult.hasRunProfile();
-  }
-
-  @Override
-  public RunProfileState getRunProfileState(@NotNull Executor executor, @NotNull ExecutionEnvironment env, @NotNull State state)
-    throws ExecutionException {
-    return myResult.getRunProfileState(executor, env, state);
-  }
-
-  @Nullable
-  @Override
-  public DeviceTarget getTarget(@NotNull State state,
-                                @NotNull AndroidFacet facet,
-                                @NotNull DeviceCount deviceCount,
-                                boolean debug,
-                                int runConfigId,
-                                @NotNull ConsolePrinter printer) {
-    return myResult.getDeviceTarget();
+  public DeployTarget<State> getDeployTarget() {
+    throw new IllegalStateException("The results from the device picker should have been used.");
   }
 
   private static class ShowChooserConfigurable implements DeployTargetConfigurable<State> {
