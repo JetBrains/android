@@ -56,74 +56,113 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     checkReadAndModify(text);
   }
 
-  public void testDependenciesWithSingleConfigurationName() throws Exception {
+  public void testDependenciesWithSingleConfigurationName_CompactListOne() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile('com.google.code.guice:guice:1.0',\n" +
+                  "          'com.google.guava:guava:19.0')\n" +
+                  "}";
+    checkTwoDependenciesWithSingleConfigurationName(text);
+  }
+
+  public void testDependenciesWithSingleConfigurationName_CompactListTwo() throws Exception {
     String text = "dependencies {\n" +
                   "  compile(['com.google.code.guice:guice:1.0',\n" +
                   "           'com.google.guava:guava:19.0'])\n" +
                   "}";
     checkTwoDependenciesWithSingleConfigurationName(text);
+  }
 
-    text = "dependencies {\n" +
-           "  compile('com.google.code.guice:guice:1.0',\n" +
-           "          'com.google.guava:guava:19.0')\n" +
-           "}";
+  public void testDependenciesWithSingleConfigurationName_CompactListThree() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile(['com.google.code.guice:guice:1.0'],\n" +
+                  "          'com.google.guava:guava:19.0')\n" +
+                  "}";
     checkTwoDependenciesWithSingleConfigurationName(text);
+  }
 
-    text = "dependencies {\n" +
-           "  compile(group: 'com.google.code.guice', name: 'guice', version: '1.0',\n" +
-           "          group: 'com.google.guava', name: 'guava', version: '19.0')\n" +
-           "}";
+  public void testDependenciesWithSingleConfigurationName_CompactListFour() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile(['com.google.code.guice:guice:1.0'],\n" +
+                  "          ['com.google.guava:guava:19.0'])\n" +
+                  "}";
     checkTwoDependenciesWithSingleConfigurationName(text);
+  }
 
-    text = "dependencies {\n" +
-           "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0',\n" +
-           "           group: 'com.google.guava', name: 'guava', version: '19.0'])\n" +
-           "}";
+  public void testDependenciesWithSingleConfigurationName_MapListOne() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0'],\n" +
+                  "          [group: 'com.google.guava', name: 'guava', version: '19.0'])\n" +
+                  "}";
     checkTwoDependenciesWithSingleConfigurationName(text);
+  }
 
-    text = "dependencies {\n" +
-           "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0',\n" +
-           "           'com.google.guava:guava:19.0'])\n" +
+  public void testDependenciesWithSingleConfigurationName_MapListTwo() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0'],\n" +
+                  "          group: 'com.google.guava', name: 'guava', version: '19.0')\n" +
+                  "}";
+    checkTwoDependenciesWithSingleConfigurationName(text);
+  }
+
+  public void testDependenciesWithSingleConfigurationName_CompactAndMapListOne() throws Exception {
+    String text = "dependencies {\n" +
+           "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0'],\n" +
+           "          ['com.google.guava:guava:19.0'])\n" +
            "}";
     checkTwoDependenciesWithSingleConfigurationName(text);
   }
 
-  private void checkTwoDependenciesWithSingleConfigurationName(@NotNull String text) throws Exception {
-    writeToBuildFile(text);
+  public void testDependenciesWithSingleConfigurationName_CompactAndMapListTwo() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0'],\n" +
+                  "          'com.google.guava:guava:19.0')\n" +
+                  "}";
+    checkTwoDependenciesWithSingleConfigurationName(text);
+  }
+
+  private void checkTwoDependenciesWithSingleConfigurationName(@NotNull final String text) throws Exception {
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        try {
+          writeToBuildFile(text);
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    });
     final GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependenciesV2();
     assertNotNull(dependenciesModel);
     List<ArtifactDependencyModel> artifacts = dependenciesModel.artifactDependencies("compile");
     assertSize(2, artifacts);
 
+    dependenciesModel.remove(artifacts.get(0));
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
 
-    // TODO fix GradleDslMethodCall in order to support deletion
-    //dependenciesModel.remove(artifacts.get(0));
-    //runWriteCommandAction(myProject, new Runnable() {
-    //  @Override
-    //  public void run() {
-    //    buildModel.applyChanges();
-    //  }
-    //});
-    //
-    //buildModel.reparse();
-    //dependenciesModel = buildModel.dependenciesV2();
-    //assertNotNull(dependenciesModel);
-    //
-    //assertSize(1, dependenciesModel.artifactDependencies("compile"));
-    //
-    //dependenciesModel.remove(getDependency(dependenciesModel));
-    //runWriteCommandAction(myProject, new Runnable() {
-    //  @Override
-    //  public void run() {
-    //    buildModel.applyChanges();
-    //  }
-    //});
-    //
-    //buildModel.reparse();
-    //dependenciesModel = buildModel.dependenciesV2();
-    //assertNull(dependenciesModel);
+    buildModel.reparse();
+    dependenciesModel = buildModel.dependenciesV2();
+    assertNotNull(dependenciesModel);
 
+    assertSize(1, dependenciesModel.artifactDependencies("compile"));
+
+    dependenciesModel.remove(getDependency(dependenciesModel));
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    buildModel.reparse();
+    dependenciesModel = buildModel.dependenciesV2();
+    assertNull(dependenciesModel);
   }
 
   public void testAddingDependency() throws Exception {
