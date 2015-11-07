@@ -45,7 +45,7 @@ public class DataBindingProjectComponent implements ProjectComponent, Modificati
   private AtomicLong myModificationCount = new AtomicLong(0);
   private Map<String, PsiPackage> myDataBindingPsiPackages = Maps.newConcurrentMap();
 
-  public DataBindingProjectComponent(Project project) {
+  public DataBindingProjectComponent(final Project project) {
     myProject = project;
     myDataBindingEnabledModules = CachedValuesManager.getManager(project).createCachedValue(new CachedValueProvider<AndroidFacet[]>() {
       @Nullable
@@ -63,7 +63,7 @@ public class DataBindingProjectComponent implements ProjectComponent, Modificati
           }
         }
         myModificationCount.incrementAndGet();
-        return Result.create(facets.toArray(new AndroidFacet[facets.size()]), DataBindingUtil.DATA_BINDING_ENABLED_TRACKER);
+        return Result.create(facets.toArray(new AndroidFacet[facets.size()]), DataBindingUtil.DATA_BINDING_ENABLED_TRACKER, ModuleManager.getInstance(project));
       }
     }, false);
   }

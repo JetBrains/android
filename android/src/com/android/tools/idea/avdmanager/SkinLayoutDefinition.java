@@ -23,8 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -138,14 +137,14 @@ public class SkinLayoutDefinition {
    */
   private void makeString(@NotNull StringBuilder sb, int depth) {
     sb.append("{\n");
-    for (String key : myProperties.keySet()) {
+    for (String key : sort(myProperties.keySet())) {
       appendSpace(sb, depth);
       sb.append(key);
       sb.append("    ");
       sb.append(myProperties.get(key));
       sb.append("\n");
     }
-    for (String key : myChildren.keySet()) {
+    for (String key : sort(myChildren.keySet())) {
       appendSpace(sb, depth);
       sb.append(key);
       sb.append("    ");
@@ -155,6 +154,11 @@ public class SkinLayoutDefinition {
     sb.append("}\n");
   }
 
+  private static List<String> sort(Set<String> set) {
+    ArrayList<String> list = new ArrayList<String>(set);
+    Collections.sort(list);
+    return list;
+  }
   private static void appendSpace(@NotNull StringBuilder sb, int depth) {
     for (int i = 0; i < depth; i++) {
       sb.append("  ");

@@ -2,8 +2,6 @@ ______ENTRY_0:
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
-com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
 $ANDROID_SDK_DIR$/platform-tools/lib/dx.jar
@@ -11,7 +9,7 @@ $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/classes.dex
 --optimize
 true
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib1/classes.jar
-$DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib/classes.jar
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib2/classes.jar
 $PROJECT_DIR$/out/production/app/com
 $PROJECT_DIR$/root/app/libs/external_jar.jar
 --exclude
@@ -22,15 +20,15 @@ $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/app.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/classes.dex
 [
 $PROJECT_DIR$/out/production/app
-$PROJECT_DIR$/out/production/lib
 $PROJECT_DIR$/out/production/lib1
+$PROJECT_DIR$/out/production/lib2
 ]
 [
 $PROJECT_DIR$/root/app/libs/external_jar.jar
 ]
 [
 $PROJECT_DIR$/root/app/libs
-$PROJECT_DIR$/root/lib/libs
+$PROJECT_DIR$/root/lib2/libs
 ]
 []
 $PROJECT_DIR$/out/production/app/app.apk

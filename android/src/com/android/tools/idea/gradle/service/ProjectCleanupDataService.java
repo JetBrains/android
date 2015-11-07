@@ -22,12 +22,15 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -41,7 +44,7 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 /**
  * Removes modules from the project that where not created by the "Sync with Gradle" action.
  */
-public class ProjectCleanupDataService implements ProjectDataService<ImportedModule, Void> {
+public class ProjectCleanupDataService extends AbstractProjectDataService<ImportedModule, Void> {
   @Override
   @NotNull
   public Key<ImportedModule> getTargetDataKey() {
@@ -49,7 +52,10 @@ public class ProjectCleanupDataService implements ProjectDataService<ImportedMod
   }
 
   @Override
-  public void importData(@NotNull Collection<DataNode<ImportedModule>> toImport, @NotNull Project project, boolean synchronous) {
+  public void importData(@NotNull Collection<DataNode<ImportedModule>> toImport,
+                         @Nullable final ProjectData projectData,
+                         @NotNull final Project project,
+                         @NotNull final IdeModifiableModelsProvider modelsProvider) {
     // IntelliJ supports several gradle projects linked to one IDEA project it will be separate processes for these gradle projects importing
     // also IntelliJ does not prevent to mix gradle projects with non-gradle ones.
     // See https://youtrack.jetbrains.com/issue/IDEA-137433
@@ -93,9 +99,5 @@ public class ProjectCleanupDataService implements ProjectDataService<ImportedMod
         });
       }
     }
-  }
-
-  @Override
-  public void removeData(@NotNull Collection<? extends Void> toRemove, @NotNull Project project, boolean synchronous) {
   }
 }

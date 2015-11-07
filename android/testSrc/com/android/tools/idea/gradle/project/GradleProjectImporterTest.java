@@ -27,19 +27,19 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
+import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
@@ -88,18 +88,22 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    Project[] projects = myProjectManager.getOpenProjects();
-    for (Project project : projects) {
-      if (project != getProject()) {
-        myProjectManager.closeAndDispose(project);
+    try {
+      Project[] projects = myProjectManager.getOpenProjects();
+      for (Project project : projects) {
+        if (project != getProject()) {
+          myProjectManager.closeAndDispose(project);
+        }
       }
     }
-    super.tearDown();
+    finally {
+      super.tearDown();
+    }
   }
 
   @Override
-  protected CompositeException checkForSettingsDamage() throws Exception {
-    return new CompositeException();
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
   }
 
   public void testImportNewlyCreatedProject() throws Exception {

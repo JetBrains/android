@@ -129,7 +129,8 @@ public class SdkUpdaterConfigPanel {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
         UpdateSettingsConfigurable settings = new UpdateSettingsConfigurable();
-        settings.setCheckNowEnabled(false);
+        // TODO jbakermalone - this method doesn't exist anymore
+        //settings.setCheckNowEnabled(false);
         ShowSettingsUtil.getInstance().editConfigurable(getComponent(), settings);
         channelChangedCallback.run();
       }

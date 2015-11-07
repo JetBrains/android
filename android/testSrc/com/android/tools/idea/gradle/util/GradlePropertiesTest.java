@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.net.HttpConfigurable;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Tests for {@link GradleProperties}.
@@ -35,9 +36,8 @@ public class GradlePropertiesTest extends IdeaTestCase {
   }
 
   @Override
-  protected CompositeException checkForSettingsDamage() throws Exception {
-    // For this test we don't care for this check. This method does nothing.
-    return new CompositeException();
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
   }
 
   public void testCopyProxySettingsFromIde() {

@@ -31,7 +31,7 @@ public class AidlFile extends PsiFileBase {
 
   public AidlFile(FileViewProvider viewProvider) {
     super(viewProvider, AidlFileType.INSTANCE.getLanguage());
-    myFileType = viewProvider.getVirtualFile().getFileType();
+    myFileType = viewProvider.getFileType();
   }
 
   @Override

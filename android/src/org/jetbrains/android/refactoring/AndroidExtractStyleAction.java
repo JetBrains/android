@@ -144,7 +144,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
 
     new WriteCommandAction(project, "Extract Android Style '" + styleName + "'", file) {
       @Override
-      protected void run(final Result result) throws Throwable {
+      protected void run(@NotNull final Result result) throws Throwable {
         final List<XmlAttribute> attributesToDelete = new ArrayList<XmlAttribute>();
 
         if (!AndroidResourceUtil

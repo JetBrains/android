@@ -18,9 +18,14 @@ package com.android.tools.idea.lang.databinding;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.InjectedLanguagePlaces;
 import com.intellij.psi.LanguageInjector;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLanguageInjectionHost;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTokenType;
+import com.intellij.util.xml.DomManager;
+import com.intellij.util.xml.GenericAttributeValue;
+import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.PREFIX_BINDING_EXPR;
@@ -35,6 +40,12 @@ public class DbLanguageInjector implements LanguageInjector {
     if (valueText.length() <= PREFIX_BINDING_EXPR.length() || !valueText.startsWith(PREFIX_BINDING_EXPR)) {
       return;
     }
+
+    PsiElement parent = host.getParent();
+    if (!(parent instanceof XmlAttribute)) return;
+    GenericAttributeValue element = DomManager.getDomManager(host.getProject()).getDomElement((XmlAttribute)parent);
+    if (element == null || !(element.getParent() instanceof AndroidDomElement)) return;
+
     // Parser only parses the expression, not the prefix '@{' or the suffix '}'. Extract the start/end index of the expression.
     String unescapedValue = host.getText();
     int startIndex = unescapedValue.indexOf(PREFIX_BINDING_EXPR.charAt(0)) + PREFIX_BINDING_EXPR.length();

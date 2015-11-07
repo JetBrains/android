@@ -20,10 +20,10 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.util.ExceptionUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -59,16 +59,17 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     VariantStub selectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(selectedVariant);
     String selectedVariantName = selectedVariant.getName();
-    AndroidGradleModel
-      androidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
-                                                             selectedVariantName, AndroidProject.ARTIFACT_ANDROID_TEST);
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
-    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+      AndroidGradleModel
+        androidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
+                                                        selectedVariantName, AndroidProject.ARTIFACT_ANDROID_TEST);
+    final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
-      myCustomizer.customizeModule(myProject, rootModel, androidModel);
+      myCustomizer.customizeModule(myProject, myModule, modelsProvider, androidModel);
+      modelsProvider.commit();
     }
-    finally {
-      rootModel.commit();
+    catch (Throwable t) {
+      modelsProvider.dispose();
+      ExceptionUtil.rethrowAllAsUnchecked(t);
     }
 
     // Verify that AndroidFacet was added and configured.

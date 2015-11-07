@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.customizer.java;
 
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,8 +39,12 @@ import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
 
 public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomizer<JavaProject> {
   @Override
-  public void customizeModule(@NotNull Project project, @NotNull ModifiableRootModel moduleModel, @Nullable JavaProject javaProject) {
+  public void customizeModule(@NotNull Project project,
+                              @NotNull Module module,
+                              @NotNull IdeModifiableModelsProvider modelsProvider,
+                              @Nullable JavaProject javaProject) {
     if (javaProject != null) {
+      final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
       Map<String, Set<File>> artifactsByConfiguration = javaProject.getArtifactsByConfiguration();
       if (artifactsByConfiguration != null) {
         for (Map.Entry<String, Set<File>> entry : artifactsByConfiguration.entrySet()) {
@@ -51,26 +55,14 @@ public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomize
                 // We only expose artifacts that are jar files.
                 continue;
               }
-              String libraryName = moduleModel.getModule().getName() + "." + getNameWithoutExtension(artifact);
-              LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-              Library library = libraryTable.getLibraryByName(libraryName);
+              String libraryName = module.getName() + "." + getNameWithoutExtension(artifact);
+              Library library = modelsProvider.getLibraryByName(libraryName);
               if (library == null) {
                 // Create library.
-                LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
-                try {
-                  library = libraryTableModel.createLibrary(libraryName);
-                  Library.ModifiableModel libraryModel = library.getModifiableModel();
-                  try {
-                    String url = pathToUrl(artifact.getPath());
-                    libraryModel.addRoot(url, CLASSES);
-                  }
-                  finally {
-                    libraryModel.commit();
-                  }
-                }
-                finally {
-                  libraryTableModel.commit();
-                }
+                library = modelsProvider.createLibrary(libraryName);
+                Library.ModifiableModel libraryModel = library.getModifiableModel();
+                String url = pathToUrl(artifact.getPath());
+                libraryModel.addRoot(url, CLASSES);
                 LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);
                 orderEntry.setScope(COMPILE);
                 orderEntry.setExported(true);

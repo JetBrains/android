@@ -27,13 +27,13 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ExceptionUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -184,15 +184,16 @@ class BuildVariantUpdater {
 
   @NotNull
   private static Module invokeCustomizers(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
     try {
       for (ModuleCustomizer<AndroidGradleModel> customizer : getCustomizers(androidModel.getProjectSystemId())) {
-        customizer.customizeModule(module.getProject(), rootModel, androidModel);
+        customizer.customizeModule(module.getProject(), module, modelsProvider, androidModel);
       }
+      modelsProvider.commit();
     }
-    finally {
-      rootModel.commit();
+    catch (Throwable t) {
+      modelsProvider.dispose();
+      ExceptionUtil.rethrowAllAsUnchecked(t);
     }
     return module;
   }

@@ -29,6 +29,7 @@ import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.panels.OpaquePanel;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,7 +84,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
       Container rootPanel = centerRootPanel.getParent();
       if (rootPanel instanceof JPanel) {
         // Clear out default borders, we'll set our own later
-        ((JPanel)rootPanel).setBorder(new EmptyBorder(0, 0, 0, 0));
+        ((JPanel)rootPanel).setBorder(JBUI.Borders.empty());
       }
     }
   }

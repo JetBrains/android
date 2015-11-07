@@ -17,7 +17,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.intellij.codeInsight.TargetElementUtilBase;
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -147,8 +147,8 @@ public class AndroidRenameTest extends AndroidTestCase {
         Editor editor = myFixture.getEditor();
         PsiFile file = myFixture.getFile();
         Editor completionEditor = InjectedLanguageUtil.getEditorForInjectedLanguageNoCommit(editor, file);
-        PsiElement element = TargetElementUtilBase.findTargetElement(completionEditor, TargetElementUtilBase.REFERENCED_ELEMENT_ACCEPTED |
-                                                                                       TargetElementUtilBase.ELEMENT_NAME_ACCEPTED);
+        PsiElement element = TargetElementUtil.findTargetElement(completionEditor, TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED |
+                                                                                   TargetElementUtil.ELEMENT_NAME_ACCEPTED);
         assert element != null;
         final PsiElement substitution = RenamePsiElementProcessor.forElement(element).substituteElementToRename(element, editor);
         new RenameProcessor(myFixture.getProject(), substitution, newName, false, true).run();

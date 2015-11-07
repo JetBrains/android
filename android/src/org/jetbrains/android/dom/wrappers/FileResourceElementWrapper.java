@@ -351,7 +351,7 @@ public class FileResourceElementWrapper implements PsiFile, ResourceElementWrapp
 
   @Override
   public boolean isPhysical() {
-    return myWrappee.isPhysical();
+    return false;
   }
 
   @Override

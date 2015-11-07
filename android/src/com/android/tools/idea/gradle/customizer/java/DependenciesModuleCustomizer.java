@@ -27,8 +27,8 @@ import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
@@ -49,22 +49,24 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   private static final DependencyScope DEFAULT_DEPENDENCY_SCOPE = COMPILE;
 
   @Override
-  protected void setUpDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull JavaProject javaProject) {
+  protected void setUpDependencies(@NotNull Module module,
+                                   @NotNull IdeModifiableModelsProvider modelsProvider,
+                                   @NotNull JavaProject javaProject) {
+
+    final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     List<String> unresolved = Lists.newArrayList();
     for (JavaModuleDependency dependency : javaProject.getJavaModuleDependencies()) {
-      updateDependency(moduleModel, dependency);
+      updateDependency(module, modelsProvider, dependency);
     }
 
     for (JarLibraryDependency dependency : javaProject.getJarLibraryDependencies()) {
       if (dependency.isResolved()) {
-        updateDependency(moduleModel, dependency);
+        updateDependency(module, modelsProvider, dependency);
       }
       else {
         unresolved.add(dependency.getName());
       }
     }
-
-    Module module = moduleModel.getModule();
 
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(moduleModel.getProject());
     messages.reportUnresolvedDependencies(unresolved, module);
@@ -80,17 +82,20 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     facetProperties.BUILDABLE = javaProject.isBuildable();
   }
 
-  private void updateDependency(@NotNull ModifiableRootModel moduleModel, @NotNull JavaModuleDependency dependency) {
-    DependencySetupErrors setupErrors = getSetupErrors(moduleModel.getProject());
+  private void updateDependency(@NotNull Module module,
+                                @NotNull IdeModifiableModelsProvider modelsProvider,
+                                @NotNull JavaModuleDependency dependency) {
+    DependencySetupErrors setupErrors = getSetupErrors(module.getProject());
 
     String moduleName = dependency.getModuleName();
-    ModuleManager moduleManager = ModuleManager.getInstance(moduleModel.getProject());
     Module found = null;
-    for (Module module : moduleManager.getModules()) {
-      if (moduleName.equals(module.getName())) {
-        found = module;
+    for (Module m : modelsProvider.getModules()) {
+      if (moduleName.equals(m.getName())) {
+        found = m;
       }
     }
+
+    final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     if (found != null) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(found);
       if (androidFacet == null) {
@@ -102,22 +107,24 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       }
       return;
     }
-    setupErrors.addMissingModule(moduleName, moduleModel.getModule().getName(), null);
+    setupErrors.addMissingModule(moduleName, module.getName(), null);
   }
 
-  private void updateDependency(@NotNull ModifiableRootModel moduleModel, @NotNull JarLibraryDependency dependency) {
+  private void updateDependency(@NotNull Module module,
+                                @NotNull IdeModifiableModelsProvider modelsProvider,
+                                @NotNull JarLibraryDependency dependency) {
     DependencyScope scope = parseScope(dependency.getScope());
     File binaryPath = dependency.getBinaryPath();
     if (binaryPath == null) {
-      DependencySetupErrors setupErrors = getSetupErrors(moduleModel.getProject());
-      setupErrors.addMissingBinaryPath(moduleModel.getModule().getName());
+      DependencySetupErrors setupErrors = getSetupErrors(module.getProject());
+      setupErrors.addMissingBinaryPath(module.getName());
       return;
     }
     String path = binaryPath.getPath();
 
     // Gradle API doesn't provide library name at the moment.
     String name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(path);
-    setUpLibraryDependency(moduleModel, name, scope, singletonList(path), asPaths(dependency.getSourcePath()),
+    setUpLibraryDependency(module, modelsProvider, name, scope, singletonList(path), asPaths(dependency.getSourcePath()),
                            asPaths(dependency.getJavadocPath()));
   }
 

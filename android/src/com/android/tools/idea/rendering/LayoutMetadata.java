@@ -291,7 +291,7 @@ public class LayoutMetadata {
     }
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, title, file) {
       @Override
-      protected void run(Result<Void> result) throws Throwable {
+      protected void run(@NotNull Result<Void> result) throws Throwable {
         if (value == null) {
           // Clear attribute
           XmlAttribute attribute;
@@ -372,7 +372,7 @@ public class LayoutMetadata {
       }
       action = new WriteCommandAction<Void>(project, title, affectedFiles.toArray(new PsiFile[affectedFiles.size()])) {
         @Override
-        protected void run(Result<Void> result) throws Throwable {
+        protected void run(@NotNull Result<Void> result) throws Throwable {
           for (XmlTag tag : list) {
             if (value == null) {
               // Clear attribute

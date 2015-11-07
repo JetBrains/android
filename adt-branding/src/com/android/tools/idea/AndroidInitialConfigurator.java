@@ -101,18 +101,18 @@ public class AndroidInitialConfigurator {
   }
 
   private static void customizeSettings(PropertiesComponent propertiesComponent) {
-    if (!propertiesComponent.getBoolean(CONFIG_V4, false)) {
+    if (!propertiesComponent.getBoolean(CONFIG_V4)) {
       propertiesComponent.setValue(CONFIG_V4, "true");
       UISettings.getInstance().HIDE_TOOL_STRIPES = false;
 
-      if (!propertiesComponent.getBoolean(CONFIG_V3, false)) {
+      if (!propertiesComponent.getBoolean(CONFIG_V3)) {
         propertiesComponent.setValue(CONFIG_V3, "true");
         // See https://youtrack.jetbrains.com/issue/IDEA-113332
         // It's not really fixed but worked around by turning off the =-quoting
         WebEditorOptions.getInstance().setInsertQuotesForAttributeValue(false);
       }
 
-      if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
+      if (!propertiesComponent.getBoolean(CONFIG_V1)) {
         propertiesComponent.setValue(CONFIG_V1, "true");
         CodeInsightSettings.getInstance().AUTO_POPUP_JAVADOC_INFO = true;
         UISettings.getInstance().SCROLL_TAB_LAYOUT_IN_EDITOR = true;
@@ -124,7 +124,7 @@ public class AndroidInitialConfigurator {
         }
       }
 
-      if (!propertiesComponent.getBoolean(CONFIG_V2, false)) {
+      if (!propertiesComponent.getBoolean(CONFIG_V2)) {
         propertiesComponent.setValue(CONFIG_V2, "true");
         UISettings.getInstance().SHOW_MAIN_TOOLBAR = true;
       }

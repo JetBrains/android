@@ -69,7 +69,7 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
 
 
   @Override
-  protected void run(Result<Void> result) throws Throwable {
+  protected void run(@NotNull Result<Void> result) throws Throwable {
     final List<XmlTag> missing = findViewsMissingSizes();
     for (XmlTag tag : missing) {
       if (!definesWidth(tag, myResourceResolver)) {

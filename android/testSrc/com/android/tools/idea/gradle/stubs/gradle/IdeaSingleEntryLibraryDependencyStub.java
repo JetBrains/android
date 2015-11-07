@@ -70,4 +70,10 @@ public class IdeaSingleEntryLibraryDependencyStub implements IdeaSingleEntryLibr
   public boolean getExported() {
     return false;
   }
+
+  @Override
+  public boolean isExported() {
+    return getExported();
+  }
+
 }

@@ -28,11 +28,6 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidJavaDocRendererTest extends AndroidTestCase {
   private static final String VERTICAL_ALIGN = "valign=\"top\"";
 
-  @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
-  public AndroidJavaDocRendererTest() {
-    IdeaTestCase.initPlatformPrefix();
-  }
-
   public void checkStrings(String fileName, @Nullable String expectedDoc) {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");

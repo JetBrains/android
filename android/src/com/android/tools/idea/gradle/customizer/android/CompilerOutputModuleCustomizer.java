@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +39,8 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
   implements BuildVariantModuleCustomizer<AndroidGradleModel> {
   @Override
   public void customizeModule(@NotNull Project project,
-                              @NotNull ModifiableRootModel moduleModel,
+                              @NotNull Module module,
+                              @NotNull IdeModifiableModelsProvider modelsProvider,
                               @Nullable AndroidGradleModel androidModel) {
     if (androidModel == null) {
       return;
@@ -52,6 +55,7 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
     BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(selectedVariant);
     File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
 
+    final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     setOutputPaths(moduleModel, mainClassesFolder, testClassesFolder);
   }
 

@@ -18,8 +18,6 @@ ______ENTRY_1:0
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
-com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
 $ANDROID_SDK_DIR$/platform-tools/lib/dx.jar
@@ -49,8 +47,6 @@ ______ENTRY_3:1,2
 $JAVA_PATH$
 -Xmx1024M
 -classpath
-$IDEA_RT_PATH$
-com.intellij.rt.execution.CommandLineWrapper
 $CLASSPATH_TMP$
 org.jetbrains.android.compiler.tools.AndroidDxRunner
 $ANDROID_SDK_DIR$/platform-tools/lib/dx.jar

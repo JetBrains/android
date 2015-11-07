@@ -137,7 +137,7 @@ class AndroidInlineUtil {
       }
       new WriteCommandAction(project, AndroidBundle.message("android.inline.style.command.name", data.myStyleName), file) {
         @Override
-        protected void run(final Result result) throws Throwable {
+        protected void run(@NotNull final Result result) throws Throwable {
           usageData.inline(attributeValues, parentStyleRef);
         }
 

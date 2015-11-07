@@ -39,6 +39,7 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
     myShow = true;
   }
 
+  @NotNull
   @Override
   public Key<InfoPanel> getKey() {
     return KEY;
@@ -46,7 +47,7 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
 
   @Nullable
   @Override
-  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, FileEditor fileEditor) {
+  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull FileEditor fileEditor) {
     if (!myShow || !StringResourceEditorProvider.canViewTranslations(myProject, file)) {
       return null;
     }

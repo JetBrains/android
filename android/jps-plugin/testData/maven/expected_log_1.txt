@@ -4,7 +4,7 @@ $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/app.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/classes.dex
 [
 $PROJECT_DIR$/out/production/app
-$PROJECT_DIR$/out/production/lib
+$PROJECT_DIR$/out/production/lib2
 ]
 []
 []

@@ -130,7 +130,7 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
       builder.append(s);
 
       if (i < subargs.length - 1) {
-        builder.append(File.pathSeparator);
+        builder.append(';');
       }
     }
     return builder.toString();

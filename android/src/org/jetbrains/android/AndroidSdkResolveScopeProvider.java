@@ -1,47 +1,60 @@
 package org.jetbrains.android;
 
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.module.impl.scopes.JdkScope;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.CommonClassNames;
-import com.intellij.psi.SdkResolveScopeProvider;
+import com.intellij.psi.ResolveScopeProvider;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.augment.AndroidInternalRClass;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidSdkResolveScopeProvider extends SdkResolveScopeProvider {
-  @Override
-  public GlobalSearchScope getScope(@NotNull Project project, @NotNull JdkOrderEntry entry) {
-    final Sdk sdk = entry.getJdk();
+public class AndroidSdkResolveScopeProvider extends ResolveScopeProvider {
 
+  @Nullable
+  @Override
+  public GlobalSearchScope getResolveScope(@NotNull VirtualFile file, Project project) {
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return null;
+
+    ProjectFileIndex index = ProjectRootManager.getInstance(project).getFileIndex();
+    JdkOrderEntry entry = ContainerUtil.findInstance(index.getOrderEntriesForFile(file), JdkOrderEntry.class);
+    final Sdk sdk = entry == null ? null : entry.getJdk();
     if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
       return null;
     }
 
-    if (sdk.getRootProvider().getFiles(OrderRootType.SOURCES).length == 0) {
-      return null;
-    }
-    return new MyJdkScope(project, entry);
+    return new MyJdkScope(project, entry, index.isInLibrarySource(file));
   }
 
   public static class MyJdkScope extends JdkScope {
     private final Sdk mySdk;
+    private final boolean myIncludeSource;
 
-    private MyJdkScope(Project project, @NotNull JdkOrderEntry jdkOrderEntry) {
-      super(project, jdkOrderEntry);
-      mySdk = jdkOrderEntry.getJdk();
+    private MyJdkScope(Project project, @NotNull JdkOrderEntry entry, boolean includeSource) {
+      super(project,
+            entry.getRootFiles(OrderRootType.CLASSES),
+            includeSource ? entry.getRootFiles(OrderRootType.SOURCES) : VirtualFile.EMPTY_ARRAY,
+            entry.getJdkName());
+      myIncludeSource = includeSource;
+      mySdk = entry.getJdk();
     }
 
     @Override
     public boolean isForceSearchingInLibrarySources() {
-      return true;
+      return myIncludeSource;
     }
 
     @Override

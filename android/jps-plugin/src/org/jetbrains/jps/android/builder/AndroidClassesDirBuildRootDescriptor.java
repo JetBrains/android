@@ -1,6 +1,6 @@
 package org.jetbrains.jps.android.builder;
 
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.io.FileFilters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.builders.BuildTarget;
 import org.jetbrains.jps.builders.impl.BuildRootDescriptorImpl;
@@ -19,11 +19,6 @@ public class AndroidClassesDirBuildRootDescriptor extends BuildRootDescriptorImp
   @NotNull
   @Override
   public FileFilter createFileFilter() {
-    return new FileFilter() {
-      @Override
-      public boolean accept(@NotNull File file) {
-        return FileUtilRt.extensionEquals(file.getName(), "class");
-      }
-    };
+    return FileFilters.withExtension("class");
   }
 }

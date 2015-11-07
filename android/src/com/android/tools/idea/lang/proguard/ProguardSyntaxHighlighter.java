@@ -31,23 +31,23 @@ public class ProguardSyntaxHighlighter extends SyntaxHighlighterBase {
 
   private static final TextAttributesKey[] EMPTY_KEY = new TextAttributesKey[0];
 
-  private static final TextAttributesKey[] COMMENTS_KEY =
-    new TextAttributesKey[]{createTextAttributesKey("COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT)};
+  private static final TextAttributesKey COMMENT = createTextAttributesKey("COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
+  private static final TextAttributesKey[] COMMENTS_KEY = new TextAttributesKey[]{COMMENT};
 
-  private static final TextAttributesKey[] BAD_CHARS_KEY =
-    new TextAttributesKey[]{createTextAttributesKey("BAD_CHAR", DefaultLanguageHighlighterColors.INVALID_STRING_ESCAPE)};
+  private static final TextAttributesKey BAD_CHAR = createTextAttributesKey("BAD_CHAR", DefaultLanguageHighlighterColors.INVALID_STRING_ESCAPE);
+  private static final TextAttributesKey[] BAD_CHARS_KEY = new TextAttributesKey[]{BAD_CHAR};
 
-  private static final TextAttributesKey[] OPERATOR_KEY =
-    new TextAttributesKey[]{createTextAttributesKey("OPERATOR", DefaultLanguageHighlighterColors.BRACES)};
+  private static final TextAttributesKey OPERATOR = createTextAttributesKey("OPERATOR", DefaultLanguageHighlighterColors.BRACES);
+  private static final TextAttributesKey[] OPERATOR_KEY = new TextAttributesKey[]{OPERATOR};
 
-  private static final TextAttributesKey[] FLAG_NAME_KEY =
-    new TextAttributesKey[]{createTextAttributesKey("FLAG_NAME", DefaultLanguageHighlighterColors.KEYWORD)};
+  private static final TextAttributesKey FLAG_NAME = createTextAttributesKey("FLAG_NAME", DefaultLanguageHighlighterColors.KEYWORD);
+  private static final TextAttributesKey[] FLAG_NAME_KEY = new TextAttributesKey[]{FLAG_NAME};
 
-  private static final TextAttributesKey[] FLAG_ARG_KEY =
-    new TextAttributesKey[]{createTextAttributesKey("FLAG_ARG", DefaultLanguageHighlighterColors.PARAMETER)};
+  private static final TextAttributesKey FLAG_ARG = createTextAttributesKey("FLAG_ARG", DefaultLanguageHighlighterColors.PARAMETER);
+  private static final TextAttributesKey[] FLAG_ARG_KEY = new TextAttributesKey[]{FLAG_ARG};
 
-  private static final TextAttributesKey[] CLASS_SPEC_KEY =
-    new TextAttributesKey[]{createTextAttributesKey("CLASS_SPEC", DefaultLanguageHighlighterColors.INSTANCE_FIELD)};
+  private static final TextAttributesKey CLASS_SPEC = createTextAttributesKey("CLASS_SPEC", DefaultLanguageHighlighterColors.INSTANCE_FIELD);
+  private static final TextAttributesKey[] CLASS_SPEC_KEY = new TextAttributesKey[]{CLASS_SPEC};
 
   @NotNull
   @Override

@@ -74,7 +74,7 @@ public class DomPsiConverterTest extends AndroidTestCase {
 
     // Perform iteration on a different thread without read access
     final AtomicReference<String> formattedHolder = new AtomicReference<String>();
-    Thread thread = new Thread() {
+    Thread thread = new Thread("dom psi") {
       @Override
       public void run() {
         try {
