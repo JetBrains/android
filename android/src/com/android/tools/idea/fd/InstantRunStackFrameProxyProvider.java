@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.fd;
 
-import com.intellij.debugger.jdi.StackFrameModifier;
+import com.intellij.debugger.jdi.StackFrameProxyProvider;
+import com.intellij.debugger.jdi.StackFrameProxyImpl;
+import com.intellij.debugger.jdi.ThreadReferenceProxyImpl;
 import com.sun.jdi.StackFrame;
 import org.jetbrains.annotations.NotNull;
 
-public class InstantRunStackFrameModifier implements StackFrameModifier {
+public class InstantRunStackFrameProxyProvider implements StackFrameProxyProvider {
 
   @Override
-  public StackFrame modifyStackFrame(@NotNull StackFrame frame) {
-    return new InstantRunStackFrame(frame);
+  public StackFrameProxyImpl createProxy(@NotNull ThreadReferenceProxyImpl threadProxy, @NotNull StackFrame frame, int fromBottomIndex) {
+    return new InstantRunStackFrame(threadProxy, frame, fromBottomIndex);
   }
 }
