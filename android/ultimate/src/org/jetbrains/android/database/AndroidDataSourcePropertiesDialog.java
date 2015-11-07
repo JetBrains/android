@@ -6,11 +6,9 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.MultiLineReceiver;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.intellij.database.dataSource.AbstractDataSourceConfigurable;
-import com.intellij.database.dataSource.DatabaseDriver;
 import com.intellij.database.util.DbImplUtil;
+import com.intellij.database.view.ui.DsUiDefaults;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.javaee.dataSource.AbstractDataSourceConfigurable;
-import com.intellij.javaee.dataSource.DatabaseDriver;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -71,6 +69,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   protected AndroidDataSourcePropertiesDialog(@NotNull AndroidDbManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
     super(manager, dataSource, project);
 
+    myPanel.setBorder(DsUiDefaults.DEFAULT_PANEL_BORDER);
     myTempDataSource = dataSource.copy();
 
     myConfigurationPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
@@ -138,12 +137,6 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
         updateDataBases();
         updateDbCombo();
         registerDeviceListener();
-      }
-    });
-    new UiNotifyConnector(myPanel, new Activatable.Adapter() {
-      @Override
-      public void showNotify() {
-        checkDriverPresence();
       }
     });
   }
@@ -250,6 +243,8 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   private void updateDbCombo() {
     if (!myPanel.isShowing()) return; // comboboxes do weird stuff when loosing focus
     String selectedPackage = getSelectedPackage();
+    String selectedDatabase = getSelectedDatabase();
+    boolean databaseIsCustom = StringUtil.isNotEmpty(selectedDatabase) && ((DefaultComboBoxModel)myDataBaseComboBox.getModel()).getIndexOf(selectedDatabase) < 0;
 
     if (myInternalStorageRadioButton.isSelected()) {
       List<String> dbList = myDatabaseMap.get(selectedPackage);
@@ -257,6 +252,9 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     }
     else {
       myDataBaseComboBox.setModel(new DefaultComboBoxModel(DEFAULT_EXTERNAL_DB_PATTERNS));
+    }
+    if (databaseIsCustom) {
+      myDataBaseComboBox.getEditor().setItem(selectedDatabase);
     }
   }
 
@@ -421,30 +419,6 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   @Override
   public String getHelpTopic() {
     return null; // todo
-  }
-
-  private void checkDriverPresence() {
-    final DatabaseDriver driver = myDataSource.getDatabaseDriver();
-    if (driver != null && !driver.isDownloaded()) {
-      myController.showErrorNotification(this,
-        "SQLite driver missing",
-        "<font size=\"3\"><a href=\"create\">Download</a> SQLite driver files</font>",
-        new Runnable() {
-          @Override
-          public void run() {
-            driver.downloadDriver(myPanel, new Runnable() {
-              @Override
-              public void run() {
-                fireStateChanged();
-                myController.showErrorNotification(AndroidDataSourcePropertiesDialog.this, null);
-              }
-            });
-          }
-        });
-    }
-    else {
-      myController.showErrorNotification(this, null);
-    }
   }
 
   public boolean isModified() {

@@ -221,7 +221,7 @@ public class CreateAvdDialog extends DialogWrapper {
       myTargetBox.setSelectedItem(targets[0]);
     }
     myNameField.setText(generateAvdName());
-    final String url = "http://developer.android.com/guide/developing/tools/avd.html";
+    final String url = "http://developer.android.com/tools/devices/index.html";
     myAvdInfoLink.setText("<html>\n" +
                           "   <body>\n" +
                           "     <p style=\"margin-top: 0;\">\n" +
@@ -245,7 +245,7 @@ public class CreateAvdDialog extends DialogWrapper {
         }
         return true;
       }
-    }.installOn(myAvdInfoLabel);
+    }.installOn(myAvdInfoLink);
 
     ActionListener listener = new ActionListener() {
       @Override

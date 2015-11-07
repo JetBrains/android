@@ -25,13 +25,13 @@ import com.android.tools.idea.gradle.service.sync.change.ProjectStructureChange;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
-import com.intellij.openapi.externalSystem.service.project.ProjectStructureHelper;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -66,8 +66,8 @@ public class Ide2GradleModuleDependencyService extends AbstractIde2GradleProject
   @Override
   protected boolean processEntityAddition(@NotNull EntityAdded<ModuleDependencyData> change, @NotNull Project ideProject) {
     ModuleDependencyData data = change.getAddedEntity().getData();
-    ProjectStructureHelper helper = ServiceManager.getService(ProjectStructureHelper.class);
-    Module ownerIdeModule = helper.findIdeModule(data.getOwnerModule(), ideProject);
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(ideProject);
+    Module ownerIdeModule = modelsProvider.findIdeModule(data.getOwnerModule());
     if (ownerIdeModule == null) {
       if (LOG.isDebugEnabled()) {
         LOG.debug(String.format("Skipping change '%s' by ide -> gradle sync service %s. Reason: can't find matching owner ide module",
@@ -85,7 +85,7 @@ public class Ide2GradleModuleDependencyService extends AbstractIde2GradleProject
       return false;
     }
 
-    Module dependencyIdeModule = helper.findIdeModule(data.getTarget(), ideProject);
+    Module dependencyIdeModule = modelsProvider.findIdeModule(data.getTarget());
     if (dependencyIdeModule == null) {
       if (LOG.isDebugEnabled()) {
         LOG.debug(String.format("Skipping change '%s' by ide -> gradle sync service %s. Reason: can't find matching dependency ide module",

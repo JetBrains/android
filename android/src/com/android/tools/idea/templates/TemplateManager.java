@@ -22,14 +22,15 @@ import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.*;
 import com.google.common.io.Files;
-import com.intellij.ide.actions.NonEmptyActionGroup;
 import com.intellij.ide.IdeView;
+import com.intellij.ide.actions.NonEmptyActionGroup;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -43,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.util.*;
 
@@ -150,12 +150,7 @@ public class TemplateManager {
         // Look in SDK/tools/templates
         File toolsTemplatesFolder = new File(location, FileUtil.join(FD_TOOLS, FD_TEMPLATES));
         if (toolsTemplatesFolder.isDirectory()) {
-          File[] templateRoots = toolsTemplatesFolder.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-              return pathname.isDirectory();
-            }
-          });
+          File[] templateRoots = toolsTemplatesFolder.listFiles(FileUtilRt.ALL_DIRECTORIES);
           if (templateRoots != null) {
             Collections.addAll(folders, templateRoots);
           }

@@ -246,7 +246,7 @@ public class ActivityMenuAction extends FlatComboAction {
         assert file != null;
         WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Choose Activity", file) {
           @Override
-          protected void run(Result<Void> result) throws Throwable {
+          protected void run(@NotNull Result<Void> result) throws Throwable {
             String activity = myActivity;
             String pkg = ManifestInfo.get(module, false).getPackage();
             if (pkg != null && activity.startsWith(pkg) && activity.length() > pkg.length()

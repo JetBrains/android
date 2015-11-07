@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.AndroidFakeFileSystem;
-import com.google.common.base.Joiner;
 import com.intellij.openapi.fileTypes.ex.FakeFileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -94,7 +93,7 @@ public class StringsVirtualFile extends LightVirtualFile {
     public static final StringsResourceFileType INSTANCE = new StringsResourceFileType();
 
     @Override
-    public boolean isMyFileType(VirtualFile file) {
+    public boolean isMyFileType(@NotNull VirtualFile file) {
       return file.getFileType() instanceof StringsResourceFileType;
     }
 

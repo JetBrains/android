@@ -42,7 +42,7 @@ public class SetAttributeFix extends WriteCommandAction<Void> {
   }
 
   @Override
-  protected void run(Result<Void> result) throws Throwable {
+  protected void run(@NotNull Result<Void> result) throws Throwable {
     if (myNamespace != null && myValue != null) {
       SuppressLintIntentionAction.ensureNamespaceImported(getProject(), (XmlFile)myTag.getContainingFile(), myNamespace);
     }

@@ -29,6 +29,9 @@ public class UnknownHostErrorHandlerTest extends TestCase {
   public void testGradleProxyDocsUrlIsValid() throws Exception {
     URL docsUrl = new URL(GRADLE_PROXY_ACCESS_DOCS_URL);
     HttpURLConnection connection = (HttpURLConnection)docsUrl.openConnection();
+
+    // to avoid 403 Forbidden HTTP status add user-agent request property
+    connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36");
     // http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
     int responseCode = connection.getResponseCode();
     if (responseCode == 400) {

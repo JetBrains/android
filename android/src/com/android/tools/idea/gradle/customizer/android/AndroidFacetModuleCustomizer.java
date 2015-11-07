@@ -19,12 +19,12 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -48,11 +48,11 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<AndroidGra
 
   @Override
   public void customizeModule(@NotNull Project project,
-                              @NotNull ModifiableRootModel moduleModel,
+                              @NotNull Module module,
+                              @NotNull IdeModifiableModelsProvider modelsProvider,
                               @Nullable AndroidGradleModel androidModel) {
-    Module module = moduleModel.getModule();
     if (androidModel == null) {
-      removeAllFacetsOfType(module, AndroidFacet.ID);
+      removeAllFacetsOfType(AndroidFacet.ID, modelsProvider.getModifiableFacetModel(module));
     }
     else {
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -61,15 +61,11 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<AndroidGra
       }
       else {
         // Module does not have Android facet. Create one and add it.
-        FacetManager facetManager = FacetManager.getInstance(module);
-        ModifiableFacetModel model = facetManager.createModifiableModel();
-        try {
-          facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-          model.addFacet(facet);
-          configureFacet(facet, androidModel);
-        } finally {
-          model.commit();
-        }
+        ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
+        final AndroidFacetType facetType = AndroidFacet.getFacetType();
+        facet = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null);
+        model.addFacet(facet);
+        configureFacet(facet, androidModel);
       }
     }
   }

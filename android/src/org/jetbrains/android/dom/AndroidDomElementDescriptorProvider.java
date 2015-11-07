@@ -22,7 +22,9 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.SoftHashMap;
@@ -93,9 +95,15 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
   @Nullable
   public static Pair<AndroidDomElement, String> getDomElementAndBaseClassQName(@NotNull XmlTag tag) {
-    Project project = tag.getProject();
+    final PsiFile file = tag.getContainingFile();
+    if (!(file instanceof XmlFile)) return null;
+    Project project = file.getProject();
     if (project.isDefault()) return null;
-    final DomElement domElement = DomManager.getDomManager(project).getDomElement(tag);
+
+    final DomManager domManager = DomManager.getDomManager(project);
+    if (domManager.getFileElement((XmlFile)file, AndroidDomElement.class) == null) return null;
+    
+    final DomElement domElement = domManager.getDomElement(tag);
     if (!(domElement instanceof AndroidDomElement)) {
       return null;
     }

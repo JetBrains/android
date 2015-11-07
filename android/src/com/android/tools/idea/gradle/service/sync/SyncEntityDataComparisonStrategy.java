@@ -16,14 +16,14 @@
 package com.android.tools.idea.gradle.service.sync;
 
 import com.google.common.collect.Maps;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.service.project.ProjectStructureHelper;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -75,8 +75,8 @@ public class SyncEntityDataComparisonStrategy {
   private static class ModuleStrategy implements EqualityStrategy<ModuleData> {
     @Override
     public boolean isSameData(@NotNull ModuleData data1, @NotNull ModuleData data2, @NotNull Project project) {
-      ProjectStructureHelper helper = ServiceManager.getService(ProjectStructureHelper.class);
-      Module ideModule = helper.findIdeModule(data1, project);
+      IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
+      Module ideModule = modelsProvider.findIdeModule(data1);
       if (ideModule == null) {
         return false;
       }

@@ -286,7 +286,11 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
 
   @Override
   public void tearDown() throws Exception {
-    CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
-    super.tearDown();
+    try {
+      CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 }

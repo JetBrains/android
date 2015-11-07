@@ -34,8 +34,8 @@ import org.jetbrains.android.maven.AndroidFacetImporterBase;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.idea.maven.importing.FacetImporterTestCase;
+import org.jetbrains.idea.maven.server.MavenServerManager;
 import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
@@ -572,6 +572,9 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+
+      // do not lock files by maven process
+      MavenServerManager.getInstance().shutdown(true);
     }
   }
 
@@ -596,6 +599,9 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+
+      // do not lock files by maven process
+      MavenServerManager.getInstance().shutdown(true);
     }
   }
 
@@ -655,6 +661,9 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+
+      // do not lock files by maven process
+      MavenServerManager.getInstance().shutdown(true);
     }
   }
 
@@ -680,6 +689,9 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+
+      // do not lock files by maven process
+      MavenServerManager.getInstance().shutdown(true);
     }
   }
 
@@ -705,6 +717,9 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+
+      // do not lock files by maven process
+      MavenServerManager.getInstance().shutdown(true);
     }
   }
 
@@ -750,6 +765,9 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+
+      // do not lock files by maven process
+      MavenServerManager.getInstance().shutdown(true);
     }
   }
 
@@ -804,6 +822,9 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
+
+      // do not lock files by maven process
+      MavenServerManager.getInstance().shutdown(true);
     }
   }
 

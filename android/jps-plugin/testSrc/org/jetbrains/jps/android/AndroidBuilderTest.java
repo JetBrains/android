@@ -963,14 +963,14 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     addPathPatterns(executor, androidSdk);
 
     final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
-    final JpsModule libModule = addAndroidModule("lib", new String[]{"src"}, "lib", "lib", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib2", new String[]{"src"}, "lib", "lib2", androidSdk).getFirst();
     final JpsModule libModule1 = addAndroidModule("lib1", new String[]{"src"}, "lib1", "lib1", androidSdk).getFirst();
 
     JpsMavenExtensionService.getInstance().getOrCreateExtension(appModule);
     final MavenProjectConfiguration mavenConf = ((JpsMavenExtensionServiceImpl)JpsMavenExtensionService.
       getInstance()).getMavenProjectConfiguration(myDataStorageRoot);
     addMavenResourcesConf(mavenConf, "app");
-    addMavenResourcesConf(mavenConf, "lib");
+    addMavenResourcesConf(mavenConf, "lib2");
     addMavenResourcesConf(mavenConf, "lib1");
 
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
@@ -1012,7 +1012,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
                                                          "app", "non_maven_app", androidSdk).getFirst();
     nonMavenAppModule.getDependenciesList().addModuleDependency(libModule);
 
-    final JpsModule libModule2 = addAndroidModule("lib2", new String[]{"src"}, "lib1", "lib2", androidSdk).getFirst();
+    final JpsModule libModule2 = addAndroidModule("lib3", new String[]{"src"}, "lib1", "lib3", androidSdk).getFirst();
     final JpsAndroidModuleExtension libExtension2 = AndroidJpsUtil.getExtension(libModule2);
     assert libExtension2 != null;
     final JpsAndroidModuleProperties libProps2 = ((JpsAndroidModuleExtensionImpl)libExtension2).getProperties();
@@ -1169,7 +1169,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> androidSdk = addJdkAndAndroidSdk();
     addPathPatterns(executor, androidSdk);
     final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
-    final JpsModule libModule = addAndroidModule("lib", new String[]{"src"}, "lib", "lib", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib2", new String[]{"src"}, "lib", "lib2", androidSdk).getFirst();
     final JpsModule libModule1 = addAndroidModule("lib1", new String[]{"src"}, "lib1", "lib1", androidSdk).getFirst();
 
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
@@ -1278,7 +1278,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
                                                               "/android_combined_assets\\d*tmp");
     executor.addRegexPathPatternPrefix("COMBINED_RESOURCES_TMP", FileUtil.toSystemIndependentName(tempDirectory) +
                                                               "/android_combined_resources\\d*tmp");
-    executor.addRegexPathPatternPrefix("CLASSPATH_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/classpath\\d*\\.tmp");
+    executor.addRegexPathPatternPrefix("CLASSPATH_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/classpath\\d*\\.jar");
     executor.addRegexPathPattern("JAVA_PATH", ".*/java");
     executor.addRegexPathPattern("IDEA_RT_PATH", ".*/idea_rt.jar");
     executor.addRegexPathPattern("PROGUARD_INPUT_JAR", ".*/proguard_input\\S*\\.jar");

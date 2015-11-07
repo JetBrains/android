@@ -30,6 +30,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -90,8 +91,13 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
     StartupManager.getInstance(project).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
-        doImportSdkAndFacetConfiguration(facet, model);
-        ApplicationManager.getApplication().saveAll();
+        DumbService.getInstance(project).runWhenSmart(new Runnable() {
+          @Override
+          public void run() {
+            doImportSdkAndFacetConfiguration(facet, model);
+            ApplicationManager.getApplication().saveAll();
+          }
+        });
       }
     });
   }

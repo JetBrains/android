@@ -26,8 +26,8 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ContentEntry;
@@ -62,41 +62,43 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   implements BuildVariantModuleCustomizer<AndroidGradleModel> {
 
   @Override
-  protected void setUpDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull AndroidGradleModel androidModel) {
+  protected void setUpDependencies(@NotNull Module module,
+                                   @NotNull IdeModifiableModelsProvider modelsProvider,
+                                   @NotNull AndroidGradleModel androidModel) {
     AndroidProject androidProject = androidModel.getAndroidProject();
 
     DependencySet dependencies = Dependency.extractFrom(androidModel);
     for (LibraryDependency dependency : dependencies.onLibraries()) {
-      updateLibraryDependency(moduleModel, dependency, androidProject);
+      updateLibraryDependency(module, modelsProvider, dependency, androidProject);
     }
     for (ModuleDependency dependency : dependencies.onModules()) {
-      updateModuleDependency(moduleModel, dependency, androidProject);
+      updateModuleDependency(module, modelsProvider, dependency, androidProject);
     }
 
-    addExtraSdkLibrariesAsDependencies(moduleModel, androidProject);
+    addExtraSdkLibrariesAsDependencies(module, modelsProvider, androidProject);
 
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(moduleModel.getProject());
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
     Collection<SyncIssue> syncIssues = androidModel.getSyncIssues();
     if (syncIssues != null) {
-      messages.reportSyncIssues(syncIssues, moduleModel.getModule());
+      messages.reportSyncIssues(syncIssues, module);
     }
     else {
       Collection<String> unresolvedDependencies = androidProject.getUnresolvedDependencies();
-      messages.reportUnresolvedDependencies(unresolvedDependencies, moduleModel.getModule());
+      messages.reportUnresolvedDependencies(unresolvedDependencies, module);
     }
   }
 
-  private void updateModuleDependency(@NotNull ModifiableRootModel moduleModel,
+  private void updateModuleDependency(@NotNull Module module,
+                                      @NotNull IdeModifiableModelsProvider modelsProvider,
                                       @NotNull ModuleDependency dependency,
                                       @NotNull AndroidProject androidProject) {
-    ModuleManager moduleManager = ModuleManager.getInstance(moduleModel.getProject());
     Module moduleDependency = null;
-    for (Module module : moduleManager.getModules()) {
-      AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
+    for (Module m : modelsProvider.getModules()) {
+      AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(m);
       if (androidGradleFacet != null) {
         String gradlePath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
         if (Objects.equal(gradlePath, dependency.getGradlePath())) {
-          moduleDependency = module;
+          moduleDependency = m;
           break;
         }
       }
@@ -104,7 +106,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     LibraryDependency compiledArtifact = dependency.getBackupDependency();
 
     if (moduleDependency != null) {
-      ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(moduleDependency);
+      ModuleOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addModuleOrderEntry(moduleDependency);
       orderEntry.setExported(true);
       orderEntry.setScope(dependency.getScope());
 
@@ -116,28 +118,29 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     String backupName = compiledArtifact != null ? compiledArtifact.getName() : null;
 
-    DependencySetupErrors setupErrors = getSetupErrors(moduleModel.getProject());
-    setupErrors.addMissingModule(dependency.getGradlePath(), moduleModel.getModule().getName(), backupName);
+    DependencySetupErrors setupErrors = getSetupErrors(module.getProject());
+    setupErrors.addMissingModule(dependency.getGradlePath(), module.getName(), backupName);
 
     // fall back to library dependency, if available.
     if (compiledArtifact != null) {
-      updateLibraryDependency(moduleModel, compiledArtifact, androidProject);
+      updateLibraryDependency(module, modelsProvider, compiledArtifact, androidProject);
     }
   }
 
-  public static void updateLibraryDependency(@NotNull ModifiableRootModel moduleModel,
+  public static void updateLibraryDependency(@NotNull Module module,
+                                             @NotNull IdeModifiableModelsProvider modelsProvider,
                                              @NotNull LibraryDependency dependency,
                                              @NotNull AndroidProject androidProject) {
     Collection<String> binaryPaths = dependency.getPaths(BINARY);
     Collection<String> sourcePaths = dependency.getPaths(SOURCE);
     Collection<String> docPaths = dependency.getPaths(DOC);
-    setUpLibraryDependency(moduleModel, dependency.getName(), dependency.getScope(), binaryPaths, sourcePaths, docPaths);
+    setUpLibraryDependency(module, modelsProvider, dependency.getName(), dependency.getScope(), binaryPaths, sourcePaths, docPaths);
 
     File buildFolder = androidProject.getBuildFolder();
 
     // Exclude jar files that are in "jars" folder in "build" folder.
     // see https://code.google.com/p/android/issues/detail?id=123788
-    ContentEntry[] contentEntries = moduleModel.getContentEntries();
+    ContentEntry[] contentEntries = modelsProvider.getModifiableRootModel(module).getContentEntries();
     for (String binaryPath : binaryPaths) {
       File parent = new File(binaryPath).getParentFile();
       if (parent != null && FD_JARS.equals(parent.getName()) && isAncestor(buildFolder, parent, true)) {
@@ -156,7 +159,10 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
    * global to the whole IDE. To work around this limitation, we set these libraries as module dependencies instead.
    * </p>
    */
-  private static void addExtraSdkLibrariesAsDependencies(@NotNull ModifiableRootModel moduleModel, @NotNull AndroidProject androidProject) {
+  private static void addExtraSdkLibrariesAsDependencies(@NotNull Module module,
+                                                         @NotNull IdeModifiableModelsProvider modelsProvider,
+                                                         @NotNull AndroidProject androidProject) {
+    ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     Sdk sdk = moduleModel.getSdk();
     assert sdk != null; // If we got here, SDK will *NOT* be null.
 
@@ -191,7 +197,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
         // Include compile target as part of the name, to ensure the library name is unique to this Android platform.
 
         name = name + "-" + suffix; // e.g. maps-android-23, effects-android-23 (it follows the library naming convention: library-version
-        setUpLibraryDependency(moduleModel, name, DependencyScope.COMPILE, Collections.singletonList(library));
+        setUpLibraryDependency(module, modelsProvider, name, DependencyScope.COMPILE, Collections.singletonList(library));
       }
     }
   }

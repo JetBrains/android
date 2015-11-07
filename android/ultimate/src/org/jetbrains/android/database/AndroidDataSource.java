@@ -1,14 +1,11 @@
 package org.jetbrains.android.database;
 
-import com.intellij.database.dataSource.DataSourceTemplate;
 import com.intellij.database.dataSource.LocalDataSource;
-import com.intellij.database.model.info.DataSourceInfo;
+import com.intellij.database.model.DatabaseSystem;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.persistence.database.DataSourceInfo;
-import com.intellij.persistence.database.DataSourceTemplate;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.classpath.SimpleClasspathElement;
 import com.intellij.util.ui.classpath.SimpleClasspathElementFactory;
@@ -26,7 +23,7 @@ import java.util.List;
 /**
  * @author Eugene.Kudelevsky
  */
-class AndroidDataSource extends LocalDataSource implements DataSourceInfo, ModificationTracker {
+class AndroidDataSource extends LocalDataSource implements DatabaseSystem, ModificationTracker {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSource");
 
   private State myState = new State();
@@ -121,6 +118,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
   public AndroidDataSource copy() {
     AndroidDataSource newSource = new AndroidDataSource();
     newSource.setName(getName());
+    newSource.setDatabaseDriver(getDatabaseDriver());
     State newState = newSource.getState();
     State state = buildFullState();
     newState.name = state.name;
@@ -146,11 +144,6 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
   @Override
   public Icon getBaseIcon() {
     return AndroidIcons.Android;
-  }
-
-  @Override
-  public DataSourceTemplate getTemplate() {
-    return AndroidDbManager.DEFAULT_TEMPLATE;
   }
 
   @Override

@@ -42,11 +42,6 @@ public class NewModuleWizardStateTest extends AndroidGradleTestCase {
     myState = new NewModuleWizardState();
   }
 
-  @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
-  }
-
   public void testConstruction() throws Exception {
     assertTrue(myState.hasAttr(ATTR_IS_LIBRARY_MODULE));
     assertTrue(myState.hasAttr(ATTR_CREATE_ICONS));

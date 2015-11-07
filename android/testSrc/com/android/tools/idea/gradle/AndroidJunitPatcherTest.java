@@ -27,6 +27,8 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.Function;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -79,7 +81,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   }
 
   private List<String> getExampleClasspath() {
-    myRoot = myAndroidProject.getRootDir().getPath();
+    myRoot = FileUtil.normalize(myAndroidProject.getRootDir().getPath());
     List<String> exampleClassPath =
       Lists.newArrayList(myRoot + "/build/intermediates/classes/debug", myRoot + "/build/intermediates/classes/test/debug",
                          myRoot + "/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/classes.jar",
@@ -124,7 +126,12 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
 
   public void testPathChanges() throws Exception {
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
-    List<String> result = myJavaParameters.getClassPath().getPathList();
+    List<String> result = ContainerUtil.map(myJavaParameters.getClassPath().getPathList(), new Function<String, String>() {
+      @Override
+      public String fun(String s) {
+        return FileUtil.normalize(s);
+      }
+    });
     Set<String> resultSet = ImmutableSet.copyOf(result);
     assertDoesntContain(result, myRealAndroidJar);
 
@@ -175,6 +182,6 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     artifact.setMockablePlatformJar(new File(myMockableAndroidJar));
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
 
-    assertEquals(myMockableAndroidJar, Iterables.getLast(myJavaParameters.getClassPath().getPathList()));
+    assertEquals(FileUtil.normalize(myMockableAndroidJar), FileUtil.normalize(Iterables.getLast(myJavaParameters.getClassPath().getPathList())));
   }
 }

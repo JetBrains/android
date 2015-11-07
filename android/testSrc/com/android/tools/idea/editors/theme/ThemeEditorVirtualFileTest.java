@@ -17,25 +17,34 @@ package com.android.tools.idea.editors.theme;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.project.impl.ProjectManagerImpl;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
-public class ThemeEditorVirtualFileTest extends AndroidTestCase {
+import java.io.IOException;
 
+public class ThemeEditorVirtualFileTest extends AndroidTestCase {
   /**
    * Tests that the theme editor works with the right virtual file
    * when there are several projects with the same name open.
    */
-  public void testRightProject() {
-    Project otherProject = ProjectManagerEx.getInstanceEx().newProject(getProject().getName(), "", true, true);
-    assertNotNull(otherProject);
-    ProjectManagerEx.getInstanceEx().openProject(otherProject);
+  public void testRightProject() throws IOException {
+    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+    Project otherProject = projectManager.newProject(getProject().getName(), FileUtilRt.generateRandomTemporaryPath().getPath(), true, true);
+    try {
+      assertNotNull(otherProject);
+      projectManager.openProject(otherProject);
 
-    ThemeEditorVirtualFile themeEditorVirtualFile = ThemeEditorVirtualFile.getThemeEditorFile(myModule.getProject());
-    VirtualFile virtualFile = themeEditorVirtualFile.getFileSystem().findFileByPath(themeEditorVirtualFile.getPath());
+      ThemeEditorVirtualFile themeEditorVirtualFile = ThemeEditorVirtualFile.getThemeEditorFile(myModule.getProject());
+      VirtualFile virtualFile = themeEditorVirtualFile.getFileSystem().findFileByPath(themeEditorVirtualFile.getPath());
 
-    assertEquals(themeEditorVirtualFile, virtualFile);
-
-    ProjectManagerEx.getInstanceEx().closeAndDispose(otherProject);
+      assertEquals(themeEditorVirtualFile, virtualFile);
+    }
+    finally {
+      if (otherProject != null) {
+        ((ProjectManagerImpl)projectManager).closeProject(otherProject, false, true, false);
+      }
+    }
   }
 }

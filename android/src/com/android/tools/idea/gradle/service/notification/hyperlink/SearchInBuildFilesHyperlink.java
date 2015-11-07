@@ -72,7 +72,7 @@ public class SearchInBuildFilesHyperlink extends NotificationHyperlink {
             AdapterProcessor<UsageInfo, Usage> consumer =
               new AdapterProcessor<UsageInfo, Usage>(processor, UsageInfo2UsageAdapter.CONVERTER);
             //noinspection ConstantConditions
-            FindInProjectUtil.findUsages(findModelCopy, null, project, consumer, processPresentation);
+            FindInProjectUtil.findUsages(findModelCopy, project, consumer, processPresentation);
           }
         };
       }

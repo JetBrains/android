@@ -9,6 +9,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.util.xmlb.SkipDefaultValuesSerializationFilters;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +22,7 @@ public class AndroidComponentEntryPoint extends EntryPoint {
   @NotNull
   @Override
   public String getDisplayName() {
-    return "Automatically add all Android components to entry points";
+    return AndroidBundle.message("android.component.entry.point");
   }
 
   @Override

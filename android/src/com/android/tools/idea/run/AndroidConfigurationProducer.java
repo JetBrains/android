@@ -42,6 +42,9 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
     final Module module = context.getModule();
     if (module == null) return null;
     location = JavaExecutionUtil.stepIntoSingleClass(location);
+    if (location == null) {
+      return null;
+    }
     PsiElement element = location.getPsiElement();
     JavaPsiFacade facade = JavaPsiFacade.getInstance(element.getProject());
     GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(true);

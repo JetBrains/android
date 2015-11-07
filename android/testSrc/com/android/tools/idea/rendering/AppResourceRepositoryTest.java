@@ -44,8 +44,12 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
   @Override
   public void tearDown() throws Exception {
-    ResourceFolderRegistry.reset();
-    super.tearDown();
+    try {
+      ResourceFolderRegistry.reset();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testStable() {

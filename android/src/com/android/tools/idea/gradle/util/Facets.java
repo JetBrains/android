@@ -20,9 +20,7 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.module.Module;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -45,6 +43,16 @@ public final class Facets {
       }
       finally {
         model.commit();
+      }
+    }
+  }
+
+  public static <T extends Facet> void removeAllFacetsOfType(@NotNull FacetTypeId<T> typeId,
+                                                             @NotNull ModifiableFacetModel modifiableFacetModel) {
+    Collection<T> facets = modifiableFacetModel.getFacetsByType(typeId);
+    if (!facets.isEmpty()) {
+      for (T facet : facets) {
+        modifiableFacetModel.removeFacet(facet);
       }
     }
   }

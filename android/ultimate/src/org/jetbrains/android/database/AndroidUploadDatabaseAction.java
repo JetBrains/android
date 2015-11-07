@@ -3,7 +3,7 @@ package org.jetbrains.android.database;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.intellij.CommonBundle;
-import com.intellij.database.psi.DbDataSourceElement;
+import com.intellij.database.psi.DbDataSource;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -68,14 +68,14 @@ public class AndroidUploadDatabaseAction extends AnAction {
 
   @NotNull
   private static List<AndroidDataSource> getSelectedAndroidDataSources(AnActionEvent e) {
-    final Set<DbDataSourceElement> dataSourceElements = getSelectedElements(e.getDataContext(), DbDataSourceElement.class);
+    final Set<DbDataSource> dataSourceElements = getSelectedElements(e.getDataContext(), DbDataSource.class);
 
     if (dataSourceElements.isEmpty()) {
       return Collections.emptyList();
     }
     final List<AndroidDataSource> androidDataSources = new ArrayList<AndroidDataSource>();
 
-    for (DbDataSourceElement element : dataSourceElements) {
+    for (DbDataSource element : dataSourceElements) {
       final Object delegate = element.getDelegate();
 
       if (delegate instanceof AndroidDataSource) {

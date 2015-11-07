@@ -18,7 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.npw.AsyncValidator;
 import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.util.ConcurrencyUtil;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,15 +51,14 @@ public final class AsyncValidatorTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     // This should happen on some other thread - it will become the AWT event queue thread.
-    Future<IdeaTestApplication> application = Executors.newSingleThreadExecutor().
+    Future<IdeaTestApplication> application = Executors.newSingleThreadExecutor(ConcurrencyUtil.newNamedThreadFactory("async validator test")).
       submit(new Callable<IdeaTestApplication>() {
         @Override
         public IdeaTestApplication call() throws Exception {
-          PlatformTestCase.autodetectPlatformPrefix();
-          return IdeaTestApplication.getInstance(null);
+          return IdeaTestApplication.getInstance();
         }
       });
-    application.get(30, TimeUnit.SECONDS); // Wait for the application instantiation
+    application.get(100, TimeUnit.SECONDS); // Wait for the application instantiation
   }
 
   public void testBasicValidation() throws InterruptedException {

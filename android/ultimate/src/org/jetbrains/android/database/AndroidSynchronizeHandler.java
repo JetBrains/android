@@ -4,7 +4,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.intellij.CommonBundle;
 import com.intellij.database.SynchronizeHandler;
-import com.intellij.database.psi.DbDataSourceElement;
+import com.intellij.database.psi.DbDataSource;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -26,10 +26,10 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
 
   @Override
   public void synchronizationStarted(@NotNull final Project project,
-                                     @NotNull Set<DbDataSourceElement> elements) {
+                                     @NotNull Set<DbDataSource> elements) {
     final List<AndroidDataSource> dataSourcesToSync = new ArrayList<AndroidDataSource>();
 
-    for (DbDataSourceElement element : elements) {
+    for (DbDataSource element : elements) {
       final Object delegate = element.getDelegate();
 
       if (delegate instanceof AndroidDataSource) {
@@ -42,8 +42,8 @@ public class AndroidSynchronizeHandler extends SynchronizeHandler {
     }
     final Set<AndroidDataSource> syncedDataSources = doSynchronize(project, dataSourcesToSync);
 
-    for (Iterator<DbDataSourceElement> it = elements.iterator(); it.hasNext(); ) {
-      final DbDataSourceElement element = it.next();
+    for (Iterator<DbDataSource> it = elements.iterator(); it.hasNext(); ) {
+      final DbDataSource element = it.next();
       final Object delegate = element.getDelegate();
 
       if (delegate instanceof AndroidDataSource && !syncedDataSources.contains(delegate)) {
