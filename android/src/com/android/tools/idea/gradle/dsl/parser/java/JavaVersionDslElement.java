@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.java;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,10 +40,10 @@ import static com.android.tools.idea.gradle.dsl.parser.java.LanguageLevelUtil.co
 import static com.android.tools.idea.gradle.dsl.parser.java.LanguageLevelUtil.parseFromGradleString;
 
 public class JavaVersionDslElement extends GradleDslElement {
-  private GradleDslElement myInternalVersionElement;
+  private GradleDslExpression myInternalVersionElement;
   @Nullable private LanguageLevel myUnsavedValue;
 
-  public JavaVersionDslElement(@Nullable JavaDslElement parent, @NotNull GradleDslElement dslElement, @NotNull String name) {
+  public JavaVersionDslElement(@Nullable JavaDslElement parent, @NotNull GradleDslExpression dslElement, @NotNull String name) {
     super(parent, null, name);
     assert dslElement instanceof GradleDslLiteral || dslElement instanceof GradleDslReference;
     assert dslElement.getPsiElement() instanceof GrAssignmentExpression;
@@ -90,9 +91,9 @@ public class JavaVersionDslElement extends GradleDslElement {
 
     if (myInternalVersionElement instanceof GradleDslReference) {
       GradleDslReference referenceElement = (GradleDslReference)myInternalVersionElement;
-      valueLiteral = referenceElement.getResolvedValue(GradleDslLiteral.class);
+      valueLiteral = referenceElement.getValue(GradleDslLiteral.class);
       if (valueLiteral == null) {
-        String resolvedReference = referenceElement.getResolvedValue(String.class);
+        String resolvedReference = referenceElement.getValue(String.class);
         if (resolvedReference != null) {
           return resolvedReference;
         }

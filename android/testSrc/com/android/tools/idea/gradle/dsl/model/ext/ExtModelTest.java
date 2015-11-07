@@ -19,6 +19,9 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
 
@@ -218,6 +221,152 @@ public class ExtModelTest extends GradleFileModelTestCase {
     ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertNotNull(defaultConfig);
     assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
+  }
+
+  public void testStringReferenceInListProperty() throws IOException {
+    String text = "ext.TEST_STRING = \"test\"\n" +
+                  "android.defaultConfig {\n" +
+                  "    proguardFiles 'proguard-android.txt', TEST_STRING\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertNotNull(buildModel);
+
+    ExtModel extModel = buildModel.ext();
+    assertNotNull(extModel);
+
+    assertEquals("test", extModel.getProperty("TEST_STRING", String.class));
+
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    assertNotNull(defaultConfig);
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "test"), defaultConfig.proguardFiles());
+  }
+
+  public void testListReferenceInListProperty() throws IOException {
+    String text = "ext.TEST_STRINGS = [\"test1\", \"test2\"]\n" +
+                  "android.defaultConfig {\n" +
+                  "    proguardFiles TEST_STRINGS\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertNotNull(buildModel);
+
+    ExtModel extModel = buildModel.ext();
+    assertNotNull(extModel);
+
+    GradleDslExpressionList expressionList = extModel.getProperty("TEST_STRINGS", GradleDslExpressionList.class);
+    assertNotNull(expressionList);
+    assertEquals(ImmutableList.of("test1", "test2"), expressionList.getValues(String.class));
+
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    assertNotNull(defaultConfig);
+    assertEquals("proguardFiles", ImmutableList.of("test1", "test2"), defaultConfig.proguardFiles());
+  }
+
+  public void testResolveVariableInListProperty() throws IOException {
+    String text = "ext.TEST_STRING = \"test\"\n" +
+                  "android.defaultConfig {\n" +
+                  "    proguardFiles 'proguard-android.txt', \"$TEST_STRING\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertNotNull(buildModel);
+
+    ExtModel extModel = buildModel.ext();
+    assertNotNull(extModel);
+
+    assertEquals("test", extModel.getProperty("TEST_STRING", String.class));
+
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    assertNotNull(defaultConfig);
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "test"), defaultConfig.proguardFiles());
+  }
+
+  public void testStringReferenceInMapProperty() throws IOException {
+    String text = "ext.TEST_STRING = \"test\"\n" +
+                  "android.defaultConfig {\n" +
+                  "    testInstrumentationRunnerArguments size:\"medium\", foo:TEST_STRING\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertNotNull(buildModel);
+
+    ExtModel extModel = buildModel.ext();
+    assertNotNull(extModel);
+
+    assertEquals("test", extModel.getProperty("TEST_STRING", String.class));
+
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    assertNotNull(defaultConfig);
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "test"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+  }
+
+  // TODO: Support this use case to get this test pass.
+  /*public void testMapReferenceInMapProperty() throws IOException {
+    String text = "ext.TEST_MAP = [test1:\"value1\", test2:\"value2\"]\n" +
+                  "android.defaultConfig {\n" +
+                  "    testInstrumentationRunnerArguments TEST_MAP\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertNotNull(buildModel);
+
+    ExtModel extModel = buildModel.ext();
+    assertNotNull(extModel);
+
+    GradleDslExpressionMap expressionMap = extModel.getProperty("TEST_MAP", GradleDslExpressionMap.class);
+    assertNotNull(expressionMap);
+    assertEquals(ImmutableMap.of("test1", "value1", "test2", "value2"), expressionMap.getValues(String.class));
+
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    assertNotNull(defaultConfig);
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("test1", "value1", "test2", "value2"),
+                 defaultConfig.testInstrumentationRunnerArguments());
+  }*/
+
+  public void testResolveVariableInMapProperty() throws IOException {
+    String text = "ext.TEST_STRING = \"test\"\n" +
+                  "android.defaultConfig {\n" +
+                  "    testInstrumentationRunnerArguments size:\"medium\", foo:\"$TEST_STRING\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertNotNull(buildModel);
+
+    ExtModel extModel = buildModel.ext();
+    assertNotNull(extModel);
+
+    assertEquals("test", extModel.getProperty("TEST_STRING", String.class));
+
+    AndroidModel androidModel = buildModel.android();
+    assertNotNull(androidModel);
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    assertNotNull(defaultConfig);
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "test"),
+                 defaultConfig.testInstrumentationRunnerArguments());
   }
 
 }
