@@ -154,7 +154,10 @@ public final class ModelWizard implements Disposable {
    */
   @Nullable
   public JComponent getPreferredFocusComponent() {
-    ensureWizardIsRunning();
+    if (isFinished()) {
+      return null;
+    }
+
     ModelWizardStep step = mySteps.get(myCurrIndex);
     return step.getPreferredFocusComponent();
   }
@@ -314,7 +317,7 @@ public final class ModelWizard implements Disposable {
   }
 
   public boolean isFinished() {
-    return myCurrIndex > mySteps.size();
+    return myCurrIndex >= mySteps.size();
   }
 
   private void ensureWizardIsRunning() {
@@ -345,7 +348,7 @@ public final class ModelWizard implements Disposable {
       }
     }
 
-    myCurrIndex = mySteps.size() + 1; // Magic value indicates done. See: isFinished
+    myCurrIndex = mySteps.size(); // Magic value indicates done. See: isFinished
     myPrevSteps.clear();
     myCanGoBack.set(false);
     myCanGoForward.set(false);
