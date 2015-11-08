@@ -71,15 +71,17 @@ public class JavaProjectDataService extends AbstractProjectDataService<JavaProje
     if (!toImport.isEmpty()) {
       try {
         doImport(toImport, project, modelsProvider);
-      } catch (Throwable e) {
+      }
+      catch (Throwable e) {
         LOG.error(String.format("Failed to set up Java modules in project '%1$s'", project.getName()), e);
         GradleSyncState.getInstance(project).syncFailed(e.getMessage());
       }
     }
   }
 
-  private void doImport(final Collection<DataNode<JavaProject>> toImport, final Project project, final IdeModifiableModelsProvider modelsProvider)
-    throws Throwable {
+  private void doImport(final Collection<DataNode<JavaProject>> toImport,
+                        final Project project,
+                        final IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
@@ -110,14 +112,15 @@ public class JavaProjectDataService extends AbstractProjectDataService<JavaProje
     return javaProjectsByModuleName;
   }
 
-  private void customizeModule(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider, @NotNull JavaProject javaProject) {
+  private void customizeModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider modelsProvider,
+                               @NotNull JavaProject javaProject) {
     if (javaProject.isAndroidProjectWithoutVariants()) {
       // See https://code.google.com/p/android/issues/detail?id=170722
       ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
-      String[] text = {
-        String.format("The module '%1$s' is an Android project without build variants, and cannot be built.", module.getName()),
-        "Please fix the module's configuration in the build.gradle file and sync the project again.",
-      };
+      String[] text =
+        {String.format("The module '%1$s' is an Android project without build variants, and cannot be built.", module.getName()),
+          "Please fix the module's configuration in the build.gradle file and sync the project again.",};
       messages.add(new Message(PROJECT_STRUCTURE_ISSUES, ERROR, text));
       cleanUpAndroidModuleWithoutVariants(module);
       // No need to setup source folders, dependencies, etc. Since the Android project does not have variants, and because this can
