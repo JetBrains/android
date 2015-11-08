@@ -23,8 +23,6 @@ import com.android.tools.idea.ui.properties.core.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
@@ -35,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,9 +49,7 @@ import java.util.Set;
 public final class ModelWizard implements Disposable {
 
   private final List<ModelWizardStep> mySteps;
-
   private final Facade myFacade = new Facade();
-
   /**
    * When we check if we should show a step, we also check the step's ancestor chain, and make sure
    * all of those should be shown as well. In this way, skipping a parent step automatically will
@@ -70,21 +67,30 @@ public final class ModelWizard implements Disposable {
   private final StringProperty myTitle = new StringValueProperty();
   private final JPanel myContentPanel = new JPanel(new CardLayout());
 
-  @Nullable SettableFuture<Boolean> myResult;
   private int myCurrIndex = -1;
 
   /**
-   * Construct a wizard and, for convenience, accept some initial steps. You can also call
-   * {@link #addStep(ModelWizardStep)} later with additional steps. Once added, call
-   * {@link #start()} to progress to the first step.
+   * Construct a wizard with all of the steps it can potentially show (although some may be
+   * hidden). If a step provides its own dependent steps, those, too, will be automatically added
+   * at this time.
    * <p/>
-   * When the wizard is finished, it will run through its steps, in order, and run
+   * A wizard, once constructed, is ready to go and will already be pointing at the first step. The
+   * next expected action is for {@link #goForward()} to be called. Most likely, a wrapping UI
+   * container, such as {@link ModelWizardDialog}, will be responsible for handling this.
+   * <p/>
+   * When the wizard is finished, it will iterate through its steps, in order, and run
    * {@link WizardModel#handleFinished()} on each of their associated models.
+   * <p/>
+   * Note: You don't use this constructor directly - instead, use {@link Builder#build()}.
    */
-  public ModelWizard(@NotNull ModelWizardStep... steps) {
-    mySteps = Lists.newArrayListWithExpectedSize(steps.length);
+  private ModelWizard(@NotNull Collection<ModelWizardStep> steps) {
+    mySteps = Lists.newArrayListWithExpectedSize(steps.size());
     for (ModelWizardStep step : steps) {
       addStep(step);
+    }
+
+    if (mySteps.isEmpty()) {
+      throw new IllegalStateException("Can't create a wizard with no steps");
     }
 
     myCanGoForward.addListener(new InvalidationListener() {
@@ -98,6 +104,8 @@ public final class ModelWizard implements Disposable {
         }
       }
     });
+
+    start();
   }
 
   /**
@@ -163,14 +171,9 @@ public final class ModelWizard implements Disposable {
   }
 
   /**
-   * Populates the wizard with an additional step (and any dependent steps it may have). No steps
-   * can be added after {@link #start()} is called.
+   * Populates the wizard with an additional step (and any dependent steps it may have).
    */
-  public void addStep(@NotNull ModelWizardStep<?> step) {
-    if (hasStarted()) {
-      throw new IllegalStateException("Attempting to add a step to a dialog that's already been started");
-    }
-
+  private void addStep(@NotNull ModelWizardStep<?> step) {
     myContentPanel.add(step.getComponent(), Integer.toString(mySteps.size()));
     mySteps.add(step);
     Disposer.register(this, step);
@@ -204,24 +207,10 @@ public final class ModelWizard implements Disposable {
   }
 
   /**
-   * Starts this wizard, indicating all steps have been added and navigation can begin via
-   * {@link #goForward()} and {@link #goBack()}. Once started, the wizard will be pointed at the
-   * first step.
-   * <p/>
-   * You can only start a wizard once.
-   *
-   * @return a listenable future which will be set to {@code true} as soon as the wizard is
-   * completed or {@code false} if it is cancelled.
+   * Starts this wizard, after all steps have been added. Once started, the wizard will be pointed
+   * at the first step, and navigation can begin via {@link #goForward()} and {@link #goBack()}.
    */
-  public ListenableFuture<Boolean> start() {
-    if (myResult != null) {
-      throw new IllegalStateException("Can't call start on a wizard that was already started");
-    }
-
-    if (mySteps.isEmpty()) {
-      throw new IllegalStateException("Can't call start on a wizard with no steps");
-    }
-
+  private void start() {
     for (ModelWizardStep step : mySteps) {
       step.onWizardStarting(myFacade);
     }
@@ -238,11 +227,7 @@ public final class ModelWizard implements Disposable {
       throw new IllegalStateException("Can't start a wizard with no visible steps");
     }
 
-    myResult = SettableFuture.create();
-
     goForward(); // Proceed to first step
-
-    return myResult;
   }
 
   /**
@@ -312,38 +297,25 @@ public final class ModelWizard implements Disposable {
     handleFinished(false);
   }
 
-  public boolean hasStarted() {
-    return myResult != null;
-  }
-
   public boolean isFinished() {
     return myCurrIndex >= mySteps.size();
   }
 
   private void ensureWizardIsRunning() {
-    if (!hasStarted()) {
-      throw new IllegalStateException("Invalid operation attempted before wizard was started");
-    }
-
     if (isFinished()) {
       throw new IllegalStateException("Invalid operation attempted after wizard already finished");
     }
   }
 
   private void handleFinished(boolean success) {
-    // We should only be called by code that only ran if a wizard had already started
-    assert myResult != null;
-
-    myResult.set(success);
-    Set<WizardModel> seenModels = Sets.newHashSet();
-    for (ModelWizardStep step : myPrevSteps) {
-      WizardModel model = step.getModel();
-      if (seenModels.contains(model)) {
-        continue;
-      }
-      seenModels.add(model);
-
-      if (success) {
+    if (success) {
+      Set<WizardModel> seenModels = Sets.newHashSet();
+      for (ModelWizardStep step : myPrevSteps) {
+        WizardModel model = step.getModel();
+        if (seenModels.contains(model)) {
+          continue;
+        }
+        seenModels.add(model);
         model.handleFinished();
       }
     }
@@ -405,14 +377,36 @@ public final class ModelWizard implements Disposable {
     return currPageIsLast;
   }
 
-  @VisibleForTesting
-  Facade getFacade() {
-    return myFacade;
-  }
-
   @Override
   public void dispose() {
     myBindings.releaseAll();
+  }
+
+  /**
+   * In order to construct a wizard, you must do so through its builder. The builder collects steps
+   * and, when the user is ready, can instantiate a new wizard which is already set to the first
+   * step.
+   */
+  public static final class Builder {
+    private final List<ModelWizardStep> mySteps;
+
+    /**
+     * Builder constructor which, for convenience, accepts some initial steps. You can also call
+     * {@link #addStep(ModelWizardStep)} to add additional steps. Once all steps are added, you
+     * should {@link #build()} the wizard.
+     */
+    public Builder(@NotNull ModelWizardStep... steps) {
+      mySteps = Lists.newArrayList(steps);
+    }
+
+    public Builder addStep(@NotNull ModelWizardStep step) {
+      mySteps.add(step);
+      return this;
+    }
+
+    public ModelWizard build() {
+      return new ModelWizard(mySteps);
+    }
   }
 
   /**
@@ -428,8 +422,9 @@ public final class ModelWizard implements Disposable {
      * to manually trigger the update.
      */
     public void updateNavigationProperties() {
-      if (!hasStarted()) return;
-
+      if (myCurrIndex < 0) {
+        return; // Protects against user calling this method in ModelWizardStep#onWizardStarting
+      }
       ModelWizard.this.updateNavigationProperties();
     }
   }
