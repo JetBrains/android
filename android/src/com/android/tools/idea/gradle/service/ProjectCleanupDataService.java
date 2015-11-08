@@ -27,7 +27,6 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,8 +62,7 @@ public class ProjectCleanupDataService extends AbstractProjectDataService<Import
       return;
     }
 
-    final ModuleManager moduleManager = ModuleManager.getInstance(project);
-    Module[] modules = moduleManager.getModules();
+    Module[] modules = modelsProvider.getModules();
     if (modules.length != toImport.size()) {
       final Map<String, Module> modulesByName = Maps.newHashMap();
       for (Module module : modules) {
@@ -79,7 +77,7 @@ public class ProjectCleanupDataService extends AbstractProjectDataService<Import
           @Override
           public void run() {
             List<File> imlFilesToRemove = Lists.newArrayList();
-            ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
+            ModifiableModuleModel moduleModel = modelsProvider.getModifiableModuleModel();
             try {
               for (Module module : modulesByName.values()) {
                 File imlFile = new File(toSystemDependentName(module.getModuleFilePath()));
