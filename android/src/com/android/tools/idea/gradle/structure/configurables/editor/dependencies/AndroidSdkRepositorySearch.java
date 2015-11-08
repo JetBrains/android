@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.configurables.ModuleConfigurationState;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,11 @@ class AndroidSdkRepositorySearch extends ArtifactRepositorySearch {
   private final List<GradleCoordinate> myGradleCoordinates = Lists.newArrayList();
 
   AndroidSdkRepositorySearch(@NotNull ModuleConfigurationState configurationState) {
-    File androidSdkPath = IdeSdks.getAndroidSdkPath();
+    this(configurationState, IdeSdks.getAndroidSdkPath());
+  }
+
+  @VisibleForTesting
+  AndroidSdkRepositorySearch(@NotNull ModuleConfigurationState configurationState, @Nullable File androidSdkPath) {
     if (androidSdkPath != null) {
       boolean preview = false;
       Module module = configurationState.getModule();
@@ -61,24 +66,10 @@ class AndroidSdkRepositorySearch extends ArtifactRepositorySearch {
     }
   }
 
-  private static boolean includePreview(@NotNull AndroidGradleModel androidModel) {
-    AndroidProject androidProject = androidModel.getAndroidProject();
-    for (Variant variant : androidProject.getVariants()) {
-      ApiVersion minSdkVersion = variant.getMergedFlavor().getMinSdkVersion();
-      if (minSdkVersion != null) {
-        boolean preview = new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename()).isPreview();
-        if (preview) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
+  @VisibleForTesting
   @Nullable
-  private static GradleCoordinate getLibraryCoordinate(@NotNull String libraryId, @NotNull File androidSdkPath, boolean preview) {
-    RepositoryLibrary library = EXTRAS_REPOSITORY.get(libraryId);
+  static GradleCoordinate getLibraryCoordinate(@NotNull String libraryId, @NotNull File androidSdkPath, boolean preview) {
+    RepositoryUrlManager.RepositoryLibrary library = EXTRAS_REPOSITORY.get(libraryId);
     File metadataFile = new File(String.format(library.basePath, androidSdkPath, library.id), MAVEN_METADATA_FILE_NAME);
     String coordinateText = null;
     if (!metadataFile.exists()) {
@@ -92,6 +83,21 @@ class AndroidSdkRepositorySearch extends ArtifactRepositorySearch {
       }
     }
     return coordinateText != null ? parseCoordinateString(coordinateText) : null;
+  }
+
+  private static boolean includePreview(@NotNull AndroidGradleModel androidModel) {
+    AndroidProject androidProject = androidModel.getAndroidProject();
+    for (Variant variant : androidProject.getVariants()) {
+      ApiVersion minSdkVersion = variant.getMergedFlavor().getMinSdkVersion();
+      if (minSdkVersion != null) {
+        boolean preview = new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename()).isPreview();
+        if (preview) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   @Override
@@ -121,6 +127,6 @@ class AndroidSdkRepositorySearch extends ArtifactRepositorySearch {
       }
     }
 
-    return new SearchResult(data, data.size());
+    return new SearchResult(getName(), data, data.size());
   }
 }
