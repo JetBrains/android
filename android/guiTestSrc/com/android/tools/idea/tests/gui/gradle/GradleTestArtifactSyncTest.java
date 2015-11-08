@@ -21,26 +21,36 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.intellij.lang.annotation.HighlightSeverity;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.tabs.impl.TabLabel;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import java.awt.*;
 import java.io.IOException;
+import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.GOTO_DECLARATION;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static junit.framework.Assert.assertNotNull;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class GradleTestArtifactSyncTest extends GuiTestCase {
+  private static final char VIRTUAL_FILE_PATH_SEPARATOR = '/';
 
   @Override
   @Before
@@ -50,29 +60,44 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
   }
 
   @Test @IdeGuiTest
-  public void testLoadBothTestArtifacts() throws IOException {
+  public void testLoadAllTestArtifacts() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
     EditorFixture editor = myProjectFrame.getEditor();
 
     Module appModule = myProjectFrame.getModule("app");
-    // Following source roots will to be loaded:
-    // main test freeTest debugTest androidTest freeAndroidTest res
-    assertEquals(7, ModuleRootManager.getInstance(appModule).getSourceRoots().length);
+    List<String> sourceRootNames = Lists.newArrayList();
+    VirtualFile[] sourceRoots = ModuleRootManager.getInstance(appModule).getSourceRoots();
+    for (VirtualFile sourceRoot : sourceRoots) {
+      // Get the last 2 segments of the path for each source folder (e.g. 'testFree/java')
+      String path = sourceRoot.getPath();
+      List<String> pathSegments = Splitter.on(VIRTUAL_FILE_PATH_SEPARATOR).omitEmptyStrings().splitToList(path);
+      int segmentCount = pathSegments.size();
+      assertThat(segmentCount).as("number of segments in path '" + path + "'").isGreaterThan(2);
+      String name = Joiner.on(VIRTUAL_FILE_PATH_SEPARATOR).join(pathSegments.get(segmentCount - 2), pathSegments.get(segmentCount - 1));
+      sourceRootNames.add(name);
+    }
+    assertThat(sourceRootNames).containsOnly("testFree/java", "androidTestFree/java", "testDebug/java", "main/res", "main/java",
+                                             "test/java", "androidTest/java");
 
     // Refer to the test source file for the reason of unresolved references
-    editor.open("app/src/androidTest/java/com/example/ApplicationTest.java");
-    editor.requireCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 3);
-    editor.moveTo(editor.findOffset("Test^Util util"));
-    assertGotoFile(editor, "androidTest/java/com/example/TestUtil.java");
+    editor.open("app/src/androidTest/java/com/example/ApplicationTest.java")
+          .requireHighlights(ERROR, "Cannot resolve symbol 'Assert'", "Cannot resolve symbol 'ExampleUnitTest'",
+                             "Cannot resolve symbol 'Lib'")
+          .moveTo(editor.findOffset("Test^Util util"))
+          .invokeAction(GOTO_DECLARATION);
+    requirePath(editor.getCurrentFile(), "androidTest/java/com/example/TestUtil.java");
 
-    editor.open("app/src/test/java/com/example/UnitTest.java");
-    editor.requireCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 2);
-    editor.moveTo(editor.findOffset("Test^Util util"));
-    assertGotoFile(editor, "test/java/com/example/TestUtil.java");
+    editor.open("app/src/test/java/com/example/UnitTest.java")
+          .requireHighlights(ERROR, "Cannot resolve symbol 'Collections2'", "Cannot resolve symbol 'ApplicationTest'")
+          .moveTo(editor.findOffset("Test^Util util"))
+          .invokeAction(GOTO_DECLARATION);
+    requirePath(editor.getCurrentFile(), "test/java/com/example/TestUtil.java");
   }
 
-  private static Color BLUE = new JBColor(new Color(0xdcf0ff), new Color(0x3C476B));
-  private static Color GREEN = new JBColor(new Color(231, 250, 219), new Color(0x425444));
+  private static void requirePath(@Nullable VirtualFile file, @NotNull String path) {
+    assertNotNull(file);
+    assertThat(file.getPath()).endsWith(path);
+  }
 
   @Test @IdeGuiTest
   public void testTestFileBackground() throws Exception {
@@ -80,18 +105,26 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
     EditorFixture editor = myProjectFrame.getEditor();
 
     editor.open("app/src/test/java/google/simpleapplication/UnitTest.java");
-    TabLabel tabLabel = myRobot.finder().findByType(TabLabel.class);
-    assertEquals(GREEN, tabLabel.getInfo().getTabColor());
+    TabLabel tabLabel = findTab(editor);
+    Color green = new JBColor(new Color(231, 250, 219), new Color(0x425444));
+    assertEquals(green, tabLabel.getInfo().getTabColor());
 
     editor.close();
     editor.open("app/src/androidTest/java/google/simpleapplication/ApplicationTest.java");
-    tabLabel = myRobot.finder().findByType(TabLabel.class);
-    assertEquals(BLUE, tabLabel.getInfo().getTabColor());
+    tabLabel = findTab(editor);
+    Color blue = new JBColor(new Color(0xdcf0ff), new Color(0x3C476B));
+    assertEquals(blue, tabLabel.getInfo().getTabColor());
   }
 
-  private static void assertGotoFile(@NotNull EditorFixture editor, @NotNull String pathSuffix) {
-    editor.invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
-    assertNotNull(editor.getCurrentFile());
-    assertTrue(editor.getCurrentFile().getPath().endsWith(pathSuffix));
+  @NotNull
+  private TabLabel findTab(@NotNull EditorFixture editor) {
+    final VirtualFile file = editor.getCurrentFile();
+    assert file != null;
+    return myRobot.finder().find(new GenericTypeMatcher<TabLabel>(TabLabel.class) {
+      @Override
+      protected boolean isMatching(@Nonnull TabLabel tabLabel) {
+        return tabLabel.getInfo().getText().equals(file.getName());
+      }
+    });
   }
 }
