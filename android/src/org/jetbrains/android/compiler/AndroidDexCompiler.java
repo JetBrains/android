@@ -191,7 +191,21 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
             continue;
           }
 
-          items.add(new DexItem(module, dexOutputDir, platform.getTarget(), files, dexConfig.VM_OPTIONS, dexConfig.MAX_HEAP_SIZE,
+          StringBuilder options = new StringBuilder(dexConfig.VM_OPTIONS);
+          //JpsAndroidModuleProperties state = configuration.getState();
+          //if (state != null ) {
+          //  if (state.ENABLE_MULTI_DEX) {
+          //    options.append(" --multi-dex");
+          //  }
+          //  if (!StringUtil.isEmpty(state.MAIN_DEX_LIST)) {
+          //    options.append(" --main-dex-list ").append(state.MAIN_DEX_LIST);
+          //  }
+          //  if (state.MINIMAL_MAIN_DEX) {
+          //    options.append(" --minimal-main-dex");
+          //  }
+          //}
+
+          items.add(new DexItem(module, dexOutputDir, platform.getTarget(), files, options.toString(), dexConfig.MAX_HEAP_SIZE,
                                 dexConfig.OPTIMIZE));
         }
       }
