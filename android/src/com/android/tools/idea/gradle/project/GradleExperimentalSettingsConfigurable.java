@@ -15,15 +15,23 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
+
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 
 public class GradleExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final GradleExperimentalSettings mySettings;
@@ -33,6 +41,8 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   private JSpinner myModuleNumberSpinner;
   private JCheckBox mySkipSourceGenOnSyncCheckbox;
   private JCheckBox myLoadAllTestArtifactsCheckbox;
+
+  private boolean myLoadAllTestArtifactsChanged;
 
   public GradleExperimentalSettingsConfigurable() {
     mySettings = GradleExperimentalSettings.getInstance();
@@ -83,7 +93,13 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   public void apply() throws ConfigurationException {
     mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = isModuleSelectionOnImportEnabled();
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = isSkipSourceGenOnSync();
-    mySettings.LOAD_ALL_TEST_ARTIFACTS = isLoadAllTestArtifacts();
+
+    boolean loadAllTestArtifacts = isLoadAllTestArtifacts();
+    if (mySettings.LOAD_ALL_TEST_ARTIFACTS != loadAllTestArtifacts) {
+      mySettings.LOAD_ALL_TEST_ARTIFACTS = loadAllTestArtifacts;
+      myLoadAllTestArtifactsChanged = true;
+    }
+
     Integer value = getMaxModuleCountForSourceGen();
     if (value != null) {
       mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = value;
@@ -118,6 +134,31 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   @Override
   public void disposeUIResources() {
+    if (myLoadAllTestArtifactsChanged) {
+      // Need to invoke later due to new "Dumb mode" rules introduced in IDEA 15
+      // See: DumbService#allowStartingDumbModeInside
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          syncAllGradleProjects();
+        }
+      }, ModalityState.NON_MODAL);
+    }
+  }
+
+  private static void syncAllGradleProjects() {
+    for (final Project project : ProjectManager.getInstance().getOpenProjects()) {
+      if (isBuildWithGradle(project)) {
+        new Task.Backgroundable(project, "Gradle Sync") {
+          @Override
+          public void run(@NotNull ProgressIndicator indicator) {
+            if (!project.isDisposed()) {
+              GradleProjectImporter.getInstance().requestProjectSync(project, null);
+            }
+          }
+        }.queue();
+      }
+    }
   }
 
   private void createUIComponents() {
