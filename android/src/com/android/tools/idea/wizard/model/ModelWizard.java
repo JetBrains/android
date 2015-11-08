@@ -343,9 +343,6 @@ public final class ModelWizard implements Disposable {
       if (success) {
         model.handleFinished();
       }
-      else {
-        model.handleCancelled();
-      }
     }
 
     myCurrIndex = mySteps.size() + 1; // Magic value indicates done. See: isFinished
