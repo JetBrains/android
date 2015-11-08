@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -31,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.isProjectModule;
 import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_6;
 
@@ -49,9 +49,16 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaP
     }
     LanguageLevel languageLevel = javaProject.getJavaLanguageLevel();
 
-    if (languageLevel == null && !isProjectModule(module)) {
-      List<Module> dependents = getAllDependentModules(module);
-      languageLevel = getMinimumLanguageLevelForAndroidModules(dependents.toArray(new Module[dependents.size()]));
+    if (languageLevel == null) {
+      try {
+        List<Module> dependents = getAllDependentModules(module);
+        languageLevel = getMinimumLanguageLevelForAndroidModules(dependents.toArray(new Module[dependents.size()]));
+      }
+      catch (RuntimeException e) {
+        Logger logger = Logger.getInstance(JavaLanguageLevelModuleCustomizer.class);
+        // TODO find out this is happening in IDEA 15
+        logger.info("Failed to obtain dependent modules for '" + module.getName() + "'", e);
+      }
     }
 
     if (languageLevel == null) {

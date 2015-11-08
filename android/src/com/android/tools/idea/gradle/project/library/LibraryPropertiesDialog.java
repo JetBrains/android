@@ -118,13 +118,7 @@ public class LibraryPropertiesDialog extends DialogWrapper {
     super.dispose();
   }
 
-  @Override
-  protected void doOKAction() {
-    save();
-    super.doOKAction();
-  }
-
-  private void save() {
+  public void applyChanges() {
     if (myLibraryEditorComponent != null) {
       executeProjectChanges(myProject, new Runnable() {
         @Override
