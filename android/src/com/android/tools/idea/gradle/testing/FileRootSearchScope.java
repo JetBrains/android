@@ -21,6 +21,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import gnu.trove.TObjectIntHashMap;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Set;
 
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
@@ -49,6 +51,25 @@ public class FileRootSearchScope extends GlobalSearchScope {
       myDirRootPaths.put(root, i++);
     }
     myProjectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
+  }
+
+  // This API is mostly for AndroidJunitPatcher and has linear time complexity, we can remove it after we run unit test through gradle
+  /**
+   * Check if a java.io.File is contained in the scope, slightly differently than {@link #accept(VirtualFile)} which calls
+   * {@link #contains(VirtualFile)}, if the file does not exists, if will try to check any of its parents are in the scope.
+   */
+  public boolean accept(@NotNull File file) {
+    while (!file.exists()) {
+      if (myDirRootPaths.containsKey(file)) {
+        return true;
+      }
+      file = file.getParentFile();
+    }
+    VirtualFile virtualFile = findFileByIoFile(file, true);
+    if (virtualFile != null) {
+      return accept(virtualFile);
+    }
+    return false;
   }
 
   @Override
@@ -121,27 +142,31 @@ public class FileRootSearchScope extends GlobalSearchScope {
       return scope;
     }
     if (scope instanceof FileRootSearchScope) {
-      final Set<File> roots = Sets.newHashSet();
-      myDirRootPaths.forEach(new TObjectProcedure<File>() {
-        @Override
-        public boolean execute(File file) {
-          roots.add(file);
-          return true;
-        }
-      });
-
-      ((FileRootSearchScope)scope).myDirRootPaths.forEach(new TObjectProcedure<File>() {
-        @Override
-        public boolean execute(File file) {
-          roots.add(file);
-          return true;
-        }
-      });
-
-      Project project = getProject();
-      assert project != null;
-      return new FileRootSearchScope(project, roots);
+      return uniteWith((FileRootSearchScope)scope);
     }
     return super.uniteWith(scope);
+  }
+
+  public FileRootSearchScope uniteWith(@NotNull FileRootSearchScope scope) {
+    final Set<File> roots = Sets.newHashSet();
+    myDirRootPaths.forEach(new TObjectProcedure<File>() {
+      @Override
+      public boolean execute(File file) {
+        roots.add(file);
+        return true;
+      }
+    });
+
+    scope.myDirRootPaths.forEach(new TObjectProcedure<File>() {
+      @Override
+      public boolean execute(File file) {
+        roots.add(file);
+        return true;
+      }
+    });
+
+    Project project = getProject();
+    assert project != null;
+    return new FileRootSearchScope(project, roots);
   }
 }
