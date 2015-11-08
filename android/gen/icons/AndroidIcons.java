@@ -69,6 +69,7 @@ public class AndroidIcons {
 
   public static final Icon AppModule = load("/icons/appModule.png");
   public static final Icon LibraryModule = load("/icons/libraryModule.png");
+  public static final Icon AndroidTestRoot = load("/icons/androidTestRoot.png");
 
   public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
 
