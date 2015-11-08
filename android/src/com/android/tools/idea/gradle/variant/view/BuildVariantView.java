@@ -21,6 +21,7 @@ import com.android.sdklib.repository.FullRevision.PreviewComparison;
 import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -68,7 +69,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 
 /**
@@ -121,32 +121,6 @@ public class BuildVariantView {
 
     // This makes the combo-box resize even if the even if it cannot show all its text
     myTestArtifactComboBox.setPrototypeDisplayValue("XXXX");
-  }
-
-  public void updateTestArtifactComboBox() {
-    List<Module> modules = getModulesIfProjectSupportsUnitTests();
-
-    boolean hasModules = !modules.isEmpty();
-    myTestArtifactComboBox.setEnabled(hasModules);
-
-    String tooltip = hasModules ? "" : "Unit test support requires Android Gradle plugin version 1.1.0 (or newer)";
-    myTestArtifactComboBox.setToolTipText(tooltip);
-
-    if (hasModules) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(modules.get(0));
-      assert androidModel != null; // getGradleModules() returns only android modules and at this stage we have the AndroidGradleModel.
-      String selectedTestArtifactName = androidModel.getSelectedTestArtifactName();
-      for (int i = 0; i < myTestArtifactComboBox.getItemCount(); i++) {
-        NamedArtifactType namedArtifactType = (NamedArtifactType)myTestArtifactComboBox.getModel().getElementAt(i);
-        if (namedArtifactType.artifactType.equals(selectedTestArtifactName)) {
-          myTestArtifactComboBox.setSelectedIndex(i);
-          break;
-        }
-      }
-
-      // Make sure all modules use the same test artifact.
-      updateModulesWithTestArtifact(selectedTestArtifactName);
-    }
   }
 
   @NotNull
@@ -312,6 +286,33 @@ public class BuildVariantView {
     }
     Arrays.sort(items);
     return items;
+  }
+
+  private void updateTestArtifactComboBox() {
+    List<Module> modules = getModulesIfProjectSupportsUnitTests();
+
+    boolean hasModules = !modules.isEmpty();
+    myTestArtifactComboBox.setEnabled(hasModules);
+    myTestArtifactPanel.setVisible(!GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS);
+
+    String tooltip = hasModules ? "" : "Unit test support requires Android Gradle plugin version 1.1.0 (or newer)";
+    myTestArtifactComboBox.setToolTipText(tooltip);
+
+    if (hasModules) {
+      AndroidGradleModel androidModel = AndroidGradleModel.get(modules.get(0));
+      assert androidModel != null; // getGradleModules() returns only android modules and at this stage we have the AndroidGradleModel.
+      String selectedTestArtifactName = androidModel.getSelectedTestArtifactName();
+      for (int i = 0; i < myTestArtifactComboBox.getItemCount(); i++) {
+        NamedArtifactType namedArtifactType = (NamedArtifactType)myTestArtifactComboBox.getModel().getElementAt(i);
+        if (namedArtifactType.artifactType.equals(selectedTestArtifactName)) {
+          myTestArtifactComboBox.setSelectedIndex(i);
+          break;
+        }
+      }
+
+      // Make sure all modules use the same test artifact.
+      updateModulesWithTestArtifact(selectedTestArtifactName);
+    }
   }
 
   public void updateContents(@NotNull List<Conflict> conflicts) {
