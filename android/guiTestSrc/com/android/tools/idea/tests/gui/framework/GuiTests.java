@@ -43,7 +43,6 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Timeout;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -427,12 +426,12 @@ public final class GuiTests {
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
     Robot robot = container.robot();
     final JButton button = findButton(container, text, robot);
-    Pause.pause(new Condition("Wait for button " + text + " to be enabled.") {
+    pause(new Condition("Wait for button " + text + " to be enabled.") {
       @Override
       public boolean test() {
-        return button.isEnabled();
+        return button.isEnabled() && button.isVisible() && button.isShowing();
       }
-    });
+    }, SHORT_TIMEOUT);
     robot.click(button);
   }
 

@@ -90,7 +90,7 @@ import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
   /** Default test artifact selected when importing a project. */
-  private static final String DEFAULT_TEST_ARTIFACT = AndroidProject.ARTIFACT_ANDROID_TEST;
+  private static final String DEFAULT_TEST_ARTIFACT = ARTIFACT_ANDROID_TEST;
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 

@@ -507,7 +507,6 @@ public class GradleSyncTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=66880
   public void testAutomaticCreationOfMissingWrapper() throws IOException {
     myProjectFrame = importSimpleApplication();
-
     myProjectFrame.deleteGradleWrapper().requestProjectSync().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
@@ -665,12 +664,10 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testCreateWrapperWhenLocalDistributionPathIsNotSet() throws IOException {
     myProjectFrame = importSimpleApplication();
-
     myProjectFrame.deleteGradleWrapper().useLocalGradleDistribution("").requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     myProjectFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
-
     myProjectFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
@@ -1035,6 +1032,8 @@ public class GradleSyncTest extends GuiTestCase {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     LibraryPropertiesDialogFixture propertiesDialog = myProjectFrame.showPropertiesForLibrary("guava");
     propertiesDialog.addAttachment(javadocJarPath).clickOk();
+
+    myProjectFrame.waitForBackgroundTasksToFinish();
 
     myProjectFrame.waitForBackgroundTasksToFinish();
 
