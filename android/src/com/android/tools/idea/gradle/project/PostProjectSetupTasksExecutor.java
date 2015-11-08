@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatf
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
@@ -56,6 +57,7 @@ import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.execution.junit.JUnitConfigurationType;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.Extensions;
@@ -68,12 +70,11 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
+import com.intellij.ui.tabs.FileColorConfigurationUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -92,6 +93,7 @@ import static com.android.tools.idea.gradle.project.LibraryAttachments.getStored
 import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
+import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.findSourceJarForLibrary;
 import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
 import static com.android.tools.idea.gradle.util.Projects.*;
@@ -102,10 +104,7 @@ import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJd
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
-import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class PostProjectSetupTasksExecutor {
@@ -169,8 +168,16 @@ public class PostProjectSetupTasksExecutor {
     executeProjectChanges(myProject, new Runnable() {
       @Override
       public void run() {
-        attachSourcesToLibraries();
-        adjustModuleStructures();
+        IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
+        try {
+          attachSourcesToLibraries(modelsProvider);
+          adjustModuleStructures(modelsProvider);
+          modelsProvider.commit();
+        }
+        catch (Throwable t) {
+          modelsProvider.dispose();
+          rethrowAllAsUnchecked(t);
+        }
         ensureValidSdks();
       }
     });
@@ -183,6 +190,14 @@ public class PostProjectSetupTasksExecutor {
     addSdkLinkIfNecessary();
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
+
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      TestArtifactSearchScopes.initializeScopes(myProject);
+      FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(myProject);
+      // Before sync, android test files are just considered as normal test file which has different FileColor configuration.
+      // If there is any opening tab for android test file, the tab color will not change unless we refresh it.
+      UISettings.getInstance().fireUISettingsChanged();
+    }
 
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
     // For IDEA, use regular "Make".
@@ -200,32 +215,23 @@ public class PostProjectSetupTasksExecutor {
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
 
-  private void adjustModuleStructures() {
-    final IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
+  private void adjustModuleStructures(@NotNull IdeModifiableModelsProvider modelsProvider) {
     Set<Sdk> androidSdks = Sets.newHashSet();
 
-    try {
-      for (Module module : modelsProvider.getModules()) {
-        ModifiableRootModel model = modelsProvider.getModifiableRootModel(module);
-        adjustInterModuleDependencies(module, modelsProvider);
+    for (Module module : modelsProvider.getModules()) {
+      ModifiableRootModel model = modelsProvider.getModifiableRootModel(module);
+      adjustInterModuleDependencies(module, modelsProvider);
 
-        Sdk sdk = model.getSdk();
-        if (sdk != null) {
-          if (isAndroidSdk(sdk)) {
-            androidSdks.add(sdk);
-          }
-          continue;
+      Sdk sdk = model.getSdk();
+      if (sdk != null) {
+        if (isAndroidSdk(sdk)) {
+          androidSdks.add(sdk);
         }
-
-        Sdk jdk = IdeSdks.getJdk();
-        model.setSdk(jdk);
+        continue;
       }
 
-      modelsProvider.commit();
-    }
-    catch (Throwable t) {
-      modelsProvider.dispose();
-      rethrowAllAsUnchecked(t);
+      Sdk jdk = IdeSdks.getJdk();
+      model.setSdk(jdk);
     }
 
     for (Sdk sdk : androidSdks) {
@@ -276,18 +282,17 @@ public class PostProjectSetupTasksExecutor {
     sdkModificator.commitChanges();
   }
 
-  private void attachSourcesToLibraries() {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProject);
+  private void attachSourcesToLibraries(@NotNull IdeModifiableModelsProvider modelsProvider) {
     LibraryAttachments storedLibraryAttachments = getStoredLibraryAttachments(myProject);
 
-    for (Library library : libraryTable.getLibraries()) {
+    for (Library library : modelsProvider.getAllLibraries()) {
       Set<String> sourcePaths = Sets.newHashSet();
 
       for (VirtualFile file : library.getFiles(SOURCES)) {
         sourcePaths.add(file.getUrl());
       }
 
-      Library.ModifiableModel libraryModel = library.getModifiableModel();
+      Library.ModifiableModel libraryModel = modelsProvider.getModifiableLibraryModel(library);
 
       // Find the source attachment based on the location of the library jar file.
       for (VirtualFile classFile : library.getFiles(CLASSES)) {
@@ -304,7 +309,6 @@ public class PostProjectSetupTasksExecutor {
       if (storedLibraryAttachments != null) {
         storedLibraryAttachments.addUrlsTo(libraryModel);
       }
-      libraryModel.commit();
     }
     if (storedLibraryAttachments != null) {
       storedLibraryAttachments.removeFromProject();
@@ -317,21 +321,6 @@ public class PostProjectSetupTasksExecutor {
     // null.
     File jarFilePath = getJarFromJarUrl(jarFile.getUrl());
     return jarFilePath != null ? findSourceJarForLibrary(jarFilePath) : null;
-  }
-
-
-  @Nullable
-  private static File getJarFromJarUrl(@NotNull String url) {
-    // URLs for jar file start with "jar://" and end with "!/".
-    if (!url.startsWith(JAR_PROTOCOL_PREFIX)) {
-      return null;
-    }
-    String path = url.substring(JAR_PROTOCOL_PREFIX.length());
-    int index = path.lastIndexOf(JAR_SEPARATOR);
-    if (index != -1) {
-      path = path.substring(0, index);
-    }
-    return new File(toSystemDependentName(path));
   }
 
   private void findAndShowVariantConflicts() {
