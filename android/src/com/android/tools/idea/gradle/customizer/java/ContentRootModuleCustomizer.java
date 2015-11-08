@@ -40,11 +40,12 @@ import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<JavaProject> {
   @Override
   @NotNull
-  protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel model, @NotNull JavaProject javaProject) {
+  protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel moduleModel,
+                                                                @NotNull JavaProject javaProject) {
     List<ContentEntry> allEntries = Lists.newArrayList();
     for (JavaModuleContentRoot contentRoot : javaProject.getContentRoots()) {
       File rootDirPath = contentRoot.getRootDirPath();
-      ContentEntry contentEntry = model.addContentEntry(pathToIdeaUrl(rootDirPath));
+      ContentEntry contentEntry = moduleModel.addContentEntry(pathToIdeaUrl(rootDirPath));
       allEntries.add(contentEntry);
     }
     return allEntries;

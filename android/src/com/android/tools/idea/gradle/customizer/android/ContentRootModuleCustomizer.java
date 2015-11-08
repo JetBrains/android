@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.roots.ContentEntry;
@@ -73,11 +72,8 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     addSourceFolders(androidModel, contentEntries, mainArtifact, false, orphans);
 
     if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      for (BaseArtifact testArtifact : androidModel.getSelectedVariant().getExtraAndroidArtifacts()) {
-        addSourceFolders(androidModel, contentEntries, testArtifact, true, orphans);
-      }
-      for (BaseArtifact testArtifact : androidModel.getSelectedVariant().getExtraJavaArtifacts()) {
-        addSourceFolders(androidModel, contentEntries, testArtifact, true, orphans);
+      for (BaseArtifact artifact : androidModel.getTestArtifactsInSelectedVariant()) {
+        addSourceFolders(androidModel, contentEntries, artifact, true, orphans);
       }
     } else {
       BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(androidModel.getSelectedVariant());
@@ -98,14 +94,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     if (buildTypeContainer != null) {
       addSourceFolder(androidModel, contentEntries, buildTypeContainer.getSourceProvider(), false, orphans);
 
-      Collection<SourceProvider> testSourceProviders;
-
-      if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-        testSourceProviders = androidModel.getSourceProvidersForAllTestArtifact(buildTypeContainer.getExtraSourceProviders());
-      } else {
-        testSourceProviders = androidModel.getSourceProvidersForSelectedTestArtifact(buildTypeContainer.getExtraSourceProviders());
-      }
-
+      Collection<SourceProvider> testSourceProviders = androidModel.getTestSourceProviders(buildTypeContainer.getExtraSourceProviders());
       for (SourceProvider testSourceProvider : testSourceProviders) {
         addSourceFolder(androidModel, contentEntries, testSourceProvider, true, orphans);
       }
@@ -177,17 +166,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                @NotNull List<RootSourceFolder> orphans) {
     addSourceFolder(androidModel, contentEntries, flavor.getSourceProvider(), false, orphans);
 
-    Collection<SourceProvider> testSourceProviders;
-
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      testSourceProviders = Sets.newHashSet();
-      for (SourceProviderContainer container : flavor.getExtraSourceProviders()) {
-        testSourceProviders.add(container.getSourceProvider());
-      }
-    } else {
-      testSourceProviders = androidModel.getSourceProvidersForSelectedTestArtifact(flavor.getExtraSourceProviders());
-    }
-
+    Collection<SourceProvider> testSourceProviders = androidModel.getTestSourceProviders(flavor.getExtraSourceProviders());
     for (SourceProvider sourceProvider : testSourceProviders) {
       addSourceFolder(androidModel, contentEntries, sourceProvider, true, orphans);
     }
