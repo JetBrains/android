@@ -19,13 +19,11 @@ import com.android.builder.model.JavaArtifact;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.google.common.collect.Lists;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.PathsList;
@@ -76,17 +74,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       }
 
       // Filter the library / module dependencies that are in android test
-      List<String> newClassPath = Lists.newArrayList();
-
       GlobalSearchScope excludeScope = testScopes.getUnitTestExcludeScope();
-      for (String path : classPath.getPathList()) {
-        VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(new File(path));
-        if (file != null && excludeScope.accept(file)) {
-          continue;
-        }
-        newClassPath.add(path);
-      }
-
       // There is potential performance if we just call remove for all excluded items because every random remove operation has linear
       // complexity. TODO change the {@code PathList} API.
       for (VirtualFile file : classPath.getVirtualFiles()) {
