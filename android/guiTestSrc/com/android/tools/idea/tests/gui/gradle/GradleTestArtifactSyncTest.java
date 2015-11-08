@@ -21,13 +21,16 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.tabs.impl.TabLabel;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.awt.*;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
@@ -38,9 +41,16 @@ import static org.junit.Assert.assertTrue;
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class GradleTestArtifactSyncTest extends GuiTestCase {
+
+  @Override
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = true;
+  }
+
   @Test @IdeGuiTest
   public void testLoadBothTestArtifacts() throws IOException {
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = true;
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
     EditorFixture editor = myProjectFrame.getEditor();
 
@@ -59,6 +69,24 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
     editor.requireCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 2);
     editor.moveTo(editor.findOffset("Test^Util util"));
     assertGotoFile(editor, "test/java/com/example/TestUtil.java");
+  }
+
+  private static Color BLUE = new JBColor(new Color(0xdcf0ff), new Color(0x3C476B));
+  private static Color GREEN = new JBColor(new Color(231, 250, 219), new Color(0x425444));
+
+  @Test @IdeGuiTest
+  public void testTestFileBackground() throws Exception {
+    myProjectFrame = importSimpleApplication();
+    EditorFixture editor = myProjectFrame.getEditor();
+
+    editor.open("app/src/test/java/google/simpleapplication/UnitTest.java");
+    TabLabel tabLabel = myRobot.finder().findByType(TabLabel.class);
+    assertEquals(GREEN, tabLabel.getInfo().getTabColor());
+
+    editor.close();
+    editor.open("app/src/androidTest/java/google/simpleapplication/ApplicationTest.java");
+    tabLabel = myRobot.finder().findByType(TabLabel.class);
+    assertEquals(BLUE, tabLabel.getInfo().getTabColor());
   }
 
   private static void assertGotoFile(@NotNull EditorFixture editor, @NotNull String pathSuffix) {
