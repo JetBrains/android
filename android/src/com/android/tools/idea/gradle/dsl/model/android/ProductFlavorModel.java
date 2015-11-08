@@ -64,7 +64,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setApplicationId(@NotNull String applicationId) {
-    myDslElement.setLiteralProperty(APPLICATION_ID, applicationId);
+    myDslElement.setNewLiteral(APPLICATION_ID, applicationId);
     return this;
   }
 
@@ -81,13 +81,13 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel addConsumerProguardFile(@NotNull String consumerProguardFile) {
-    myDslElement.addToListProperty(CONSUMER_PROGUARD_FILES, consumerProguardFile);
+    myDslElement.addToNewLiteralList(CONSUMER_PROGUARD_FILES, consumerProguardFile);
     return this;
   }
 
   @NotNull
   public ProductFlavorModel removeConsumerProguardFile(@NotNull String consumerProguardFile) {
-    myDslElement.removeFromListProperty(CONSUMER_PROGUARD_FILES, consumerProguardFile);
+    myDslElement.removeFromExpressionList(CONSUMER_PROGUARD_FILES, consumerProguardFile);
     return this;
   }
 
@@ -100,7 +100,7 @@ public final class ProductFlavorModel {
   @NotNull
   public ProductFlavorModel replaceConsumerProguardFile(@NotNull String oldConsumerProguardFile,
                                                           @NotNull String newConsumerProguardFile) {
-    myDslElement.replaceInListProperty(CONSUMER_PROGUARD_FILES, oldConsumerProguardFile, newConsumerProguardFile);
+    myDslElement.replaceInExpressionList(CONSUMER_PROGUARD_FILES, oldConsumerProguardFile, newConsumerProguardFile);
     return this;
   }
 
@@ -111,7 +111,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setDimension(@NotNull String dimension) {
-    myDslElement.setLiteralProperty(DIMENSION, dimension);
+    myDslElement.setNewLiteral(DIMENSION, dimension);
     return this;
   }
 
@@ -128,25 +128,25 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setManifestPlaceholder(@NotNull String name, @NotNull String value) {
-    myDslElement.setInMapProperty(MANIFEST_PLACEHOLDERS, name, value);
+    myDslElement.setInNewLiteralMap(MANIFEST_PLACEHOLDERS, name, value);
     return this;
   }
 
   @NotNull
   public ProductFlavorModel setManifestPlaceholder(@NotNull String name, int value) {
-    myDslElement.setInMapProperty(MANIFEST_PLACEHOLDERS, name, value);
+    myDslElement.setInNewLiteralMap(MANIFEST_PLACEHOLDERS, name, value);
     return this;
   }
 
   @NotNull
   public ProductFlavorModel setManifestPlaceholder(@NotNull String name, boolean value) {
-    myDslElement.setInMapProperty(MANIFEST_PLACEHOLDERS, name, value);
+    myDslElement.setInNewLiteralMap(MANIFEST_PLACEHOLDERS, name, value);
     return this;
   }
 
   @NotNull
   public ProductFlavorModel removeManifestPlaceholder(@NotNull String name) {
-    myDslElement.removeFromMapProperty(MANIFEST_PLACEHOLDERS, name);
+    myDslElement.removeFromExpressionMap(MANIFEST_PLACEHOLDERS, name);
     return this;
   }
 
@@ -163,7 +163,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setMaxSdkVersion(int maxSdkVersion) {
-    myDslElement.setLiteralProperty(MAX_SDK_VERSION, maxSdkVersion);
+    myDslElement.setNewLiteral(MAX_SDK_VERSION, maxSdkVersion);
     return this;
   }
 
@@ -181,13 +181,13 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setMinSdkVersion(int minSdkVersion) {
-    myDslElement.setLiteralProperty(MIN_SDK_VERSION, minSdkVersion);
+    myDslElement.setNewLiteral(MIN_SDK_VERSION, minSdkVersion);
     return this;
   }
 
   @NotNull
   public ProductFlavorModel setMinSdkVersion(@NotNull String minSdkVersion) {
-    myDslElement.setLiteralProperty(MIN_SDK_VERSION, minSdkVersion);
+    myDslElement.setNewLiteral(MIN_SDK_VERSION, minSdkVersion);
     return this;
   }
 
@@ -204,7 +204,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setMultiDexEnabled(boolean multiDexEnabled) {
-    myDslElement.setLiteralProperty(MULTI_DEX_ENABLED, multiDexEnabled);
+    myDslElement.setNewLiteral(MULTI_DEX_ENABLED, multiDexEnabled);
     return this;
   }
 
@@ -221,13 +221,13 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel addProguardFile(@NotNull String proguardFile) {
-    myDslElement.addToListProperty(PROGUARD_FILES, proguardFile);
+    myDslElement.addToNewLiteralList(PROGUARD_FILES, proguardFile);
     return this;
   }
 
   @NotNull
   public ProductFlavorModel removeProguardFile(@NotNull String proguardFile) {
-    myDslElement.removeFromListProperty(PROGUARD_FILES, proguardFile);
+    myDslElement.removeFromExpressionList(PROGUARD_FILES, proguardFile);
     return this;
   }
 
@@ -239,7 +239,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel replaceProguardFile(@NotNull String oldProguardFile, @NotNull String newProguardFile) {
-    myDslElement.replaceInListProperty(PROGUARD_FILES, oldProguardFile, newProguardFile);
+    myDslElement.replaceInExpressionList(PROGUARD_FILES, oldProguardFile, newProguardFile);
     return this;
   }
 
@@ -250,13 +250,13 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel addResConfig(@NotNull String resConfig) {
-    myDslElement.addToListProperty(RES_CONFIGS, resConfig);
+    myDslElement.addToNewLiteralList(RES_CONFIGS, resConfig);
     return this;
   }
 
   @NotNull
   public ProductFlavorModel removeResConfig(@NotNull String resConfig) {
-    myDslElement.removeFromListProperty(RES_CONFIGS, resConfig);
+    myDslElement.removeFromExpressionList(RES_CONFIGS, resConfig);
     return this;
   }
 
@@ -268,7 +268,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel replaceResConfig(@NotNull String oldResConfig, @NotNull String newResConfig) {
-    myDslElement.replaceInListProperty(RES_CONFIGS, oldResConfig, newResConfig);
+    myDslElement.replaceInExpressionList(RES_CONFIGS, oldResConfig, newResConfig);
     return this;
   }
 
@@ -281,8 +281,8 @@ public final class ProductFlavorModel {
 
     List<ResValue> result = Lists.newArrayList();
     for (GradleDslElement resValue : resValues.getElements()) {
-      if (resValue instanceof GradleDslLiteralList) {
-        GradleDslLiteralList listElement = (GradleDslLiteralList)resValue;
+      if (resValue instanceof GradleDslExpressionList) {
+        GradleDslExpressionList listElement = (GradleDslExpressionList)resValue;
         List<String> values = listElement.getValues(String.class);
         if (values.size() == 3) {
           result.add(new ResValue(values.get(0), values.get(1), values.get(2)));
@@ -307,7 +307,7 @@ public final class ProductFlavorModel {
   public ProductFlavorModel removeResValue(@NotNull ResValue resValue) {
     GradleDslElementList elementList = myDslElement.getProperty(RES_VALUES, GradleDslElementList.class);
     if (elementList != null) {
-      for (GradleDslLiteralList element : elementList.getElements(GradleDslLiteralList.class)) {
+      for (GradleDslExpressionList element : elementList.getElements(GradleDslExpressionList.class)) {
         List<String> values = element.getValues(String.class);
         if (values.size() == 3
             && resValue.type().equals(values.get(0)) && resValue.name().equals(values.get(1)) && resValue.value().equals(values.get(2))) {
@@ -328,8 +328,8 @@ public final class ProductFlavorModel {
   public ProductFlavorModel replaceResValue(@NotNull ResValue oldResValue, @NotNull ResValue newResValue) {
     GradleDslElementList elementList = myDslElement.getProperty(RES_VALUES, GradleDslElementList.class);
     if (elementList != null) {
-      for (GradleDslLiteralList element : elementList.getElements(GradleDslLiteralList.class)) {
-        List<GradleDslLiteral> gradleDslLiterals = element.getElements();
+      for (GradleDslExpressionList element : elementList.getElements(GradleDslExpressionList.class)) {
+        List<GradleDslExpression> gradleDslLiterals = element.getExpressions();
         if (gradleDslLiterals.size() == 3
             && oldResValue.type().equals(gradleDslLiterals.get(0).getValue())
             && oldResValue.name().equals(gradleDslLiterals.get(1).getValue())
@@ -351,13 +351,13 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setTargetSdkVersion(int targetSdkVersion) {
-    myDslElement.setLiteralProperty(TARGET_SDK_VERSION, targetSdkVersion);
+    myDslElement.setNewLiteral(TARGET_SDK_VERSION, targetSdkVersion);
     return this;
   }
 
   @NotNull
   public ProductFlavorModel setTargetSdkVersion(@NotNull String targetSdkVersion) {
-    myDslElement.setLiteralProperty(TARGET_SDK_VERSION, targetSdkVersion);
+    myDslElement.setNewLiteral(TARGET_SDK_VERSION, targetSdkVersion);
     return this;
   }
 
@@ -374,7 +374,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setTestApplicationId(@NotNull String testApplicationId) {
-    myDslElement.setLiteralProperty(TEST_APPLICATION_ID, testApplicationId);
+    myDslElement.setNewLiteral(TEST_APPLICATION_ID, testApplicationId);
     return this;
   }
 
@@ -391,7 +391,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setTestFunctionalTest(boolean testFunctionalTest) {
-    myDslElement.setLiteralProperty(TEST_FUNCTIONAL_TEST, testFunctionalTest);
+    myDslElement.setNewLiteral(TEST_FUNCTIONAL_TEST, testFunctionalTest);
     return this;
   }
 
@@ -408,7 +408,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setTestHandleProfiling(boolean testHandleProfiling) {
-    myDslElement.setLiteralProperty(TEST_HANDLE_PROFILING, testHandleProfiling);
+    myDslElement.setNewLiteral(TEST_HANDLE_PROFILING, testHandleProfiling);
     return this;
   }
 
@@ -425,7 +425,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setTestInstrumentationRunner(@NotNull String testInstrumentationRunner) {
-    myDslElement.setLiteralProperty(TEST_INSTRUMENTATION_RUNNER, testInstrumentationRunner);
+    myDslElement.setNewLiteral(TEST_INSTRUMENTATION_RUNNER, testInstrumentationRunner);
     return this;
   }
 
@@ -442,13 +442,13 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setTestInstrumentationRunnerArgument(@NotNull String name, @NotNull String value) {
-    myDslElement.setInMapProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, name, value);
+    myDslElement.setInNewLiteralMap(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, name, value);
     return this;
   }
 
   @NotNull
   public ProductFlavorModel removeTestInstrumentationRunnerArgument(@NotNull String name) {
-    myDslElement.removeFromMapProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, name);
+    myDslElement.removeFromExpressionMap(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, name);
     return this;
   }
 
@@ -465,7 +465,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setUseJack(boolean useJack) {
-    myDslElement.setLiteralProperty(USE_JACK, useJack);
+    myDslElement.setNewLiteral(USE_JACK, useJack);
     return this;
   }
 
@@ -483,13 +483,13 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setVersionCode(int versionCode) {
-    myDslElement.setLiteralProperty(VERSION_CODE, versionCode);
+    myDslElement.setNewLiteral(VERSION_CODE, versionCode);
     return this;
   }
 
   @NotNull
   public ProductFlavorModel setVersionCode(@NotNull String versionCode) {
-    myDslElement.setLiteralProperty(VERSION_CODE, versionCode);
+    myDslElement.setNewLiteral(VERSION_CODE, versionCode);
     return this;
   }
 
@@ -506,7 +506,7 @@ public final class ProductFlavorModel {
 
   @NotNull
   public ProductFlavorModel setVersionName(@NotNull String versionName) {
-    myDslElement.setLiteralProperty(VERSION_NAME, versionName);
+    myDslElement.setNewLiteral(VERSION_NAME, versionName);
     return this;
   }
 
@@ -571,7 +571,7 @@ public final class ProductFlavorModel {
     }
 
     @NotNull
-    private GradleDslLiteralList toLiteralListElement(@NotNull GradleDslElement parent) {
+    private GradleDslExpressionList toLiteralListElement(@NotNull GradleDslElement parent) {
       GradleDslLiteral typeElement = new GradleDslLiteral(parent, NAME);
       typeElement.setValue(myType);
       GradleDslLiteral nameElement = new GradleDslLiteral(parent, NAME);
@@ -579,9 +579,11 @@ public final class ProductFlavorModel {
       GradleDslLiteral valueElement = new GradleDslLiteral(parent, NAME);
       valueElement.setValue(myValue);
 
-      GradleDslLiteralList gradleDslLiteralList = new GradleDslLiteralList(parent, NAME);
-      gradleDslLiteralList.add(typeElement, nameElement, valueElement);
-      return gradleDslLiteralList;
+      GradleDslExpressionList gradleDslExpressionList = new GradleDslExpressionList(parent, NAME);
+      gradleDslExpressionList.addNewExpression(typeElement);
+      gradleDslExpressionList.addNewExpression(nameElement);
+      gradleDslExpressionList.addNewExpression(valueElement);
+      return gradleDslExpressionList;
     }
   }
 }

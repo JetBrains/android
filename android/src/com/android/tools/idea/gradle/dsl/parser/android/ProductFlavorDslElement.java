@@ -32,53 +32,54 @@ public final class ProductFlavorDslElement extends GradlePropertiesDslElement {
   }
 
   @Override
-  public void addDslElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("consumerProguardFiles") && element instanceof GradleDslLiteral) {
-      addAsDslLiteralList(property, (GradleDslLiteral)element);
+  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+    if (property.equals("consumerProguardFiles") && element instanceof GradleDslExpression) {
+      addAsParsedDslExpressionList(property, (GradleDslExpression)element);
       return;
     }
 
     if (property.equals("proguardFiles") || property.equals("proguardFile")) {
-      addToDslLiteralList("proguardFiles", element);
+      addToParsedExpressionList("proguardFiles", element);
       return;
     }
 
     if (property.equals("resConfigs") || property.equals("resConfig")) {
-      addToDslLiteralList("resConfigs", element);
+      addToParsedExpressionList("resConfigs", element);
       return;
     }
 
     if (property.equals("resValue")) {
-      if (!(element instanceof GradleDslLiteralList)) {
+      if (!(element instanceof GradleDslExpressionList)) {
         return;
       }
-      GradleDslLiteralList listElement = (GradleDslLiteralList)element;
-      if (listElement.getElements().size() != 3 || listElement.getValues(String.class).size() != 3) {
+      GradleDslExpressionList listElement = (GradleDslExpressionList)element;
+      if (listElement.getExpressions().size() != 3 || listElement.getValues(String.class).size() != 3) {
         return;
       }
 
       GradleDslElementList elementList = getProperty("resValues", GradleDslElementList.class);
       if (elementList == null) {
         elementList = new GradleDslElementList(this, "resValues");
-        setDslElement("resValues", elementList);
+        setParsedElement("resValues", elementList);
       }
       elementList.addParsedElement(element);
     }
 
     if (property.equals("testInstrumentationRunnerArguments")) {
-      if (!(element instanceof GradleDslLiteralMap)) {
+      if (!(element instanceof GradleDslExpressionMap)) {
         return;
       }
-      GradleDslLiteralMap testInstrumentationRunnerArgumentsElement =
-        getProperty("testInstrumentationRunnerArguments", GradleDslLiteralMap.class);
+      GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
+        getProperty("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
-        setDslElement("testInstrumentationRunnerArguments", element);
-      } else {
-        GradleDslLiteralMap elementsToAdd = (GradleDslLiteralMap)element;
+        setParsedElement("testInstrumentationRunnerArguments", element);
+      }
+      else {
+        GradleDslExpressionMap elementsToAdd = (GradleDslExpressionMap)element;
         for (String key : elementsToAdd.getProperties()) {
           GradleDslElement elementToAdd = elementsToAdd.getPropertyElement(key);
           if (elementToAdd != null) {
-            testInstrumentationRunnerArgumentsElement.setDslElement(key, elementToAdd);
+            testInstrumentationRunnerArgumentsElement.setParsedElement(key, elementToAdd);
           }
         }
       }
@@ -86,11 +87,11 @@ public final class ProductFlavorDslElement extends GradlePropertiesDslElement {
     }
 
     if (property.equals("testInstrumentationRunnerArgument")) {
-      if (!(element instanceof GradleDslLiteralList)) {
+      if (!(element instanceof GradleDslExpressionList)) {
         return;
       }
-      GradleDslLiteralList gradleDslLiteralList = (GradleDslLiteralList)element;
-      List<GradleDslLiteral> elements = gradleDslLiteralList.getElements();
+      GradleDslExpressionList gradleDslExpressionList = (GradleDslExpressionList)element;
+      List<GradleDslExpression> elements = gradleDslExpressionList.getExpressions();
       if (elements.size() != 2) {
         return;
       }
@@ -99,17 +100,17 @@ public final class ProductFlavorDslElement extends GradlePropertiesDslElement {
       if (key == null) {
         return;
       }
-      GradleDslLiteral value = elements.get(1);
+      GradleDslExpression value = elements.get(1);
 
-      GradleDslLiteralMap testInstrumentationRunnerArgumentsElement =
-        getProperty("testInstrumentationRunnerArguments", GradleDslLiteralMap.class);
+      GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
+        getProperty("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
-        testInstrumentationRunnerArgumentsElement = new GradleDslLiteralMap(this, "testInstrumentationRunnerArguments");
+        testInstrumentationRunnerArgumentsElement = new GradleDslExpressionMap(this, "testInstrumentationRunnerArguments");
       }
-      testInstrumentationRunnerArgumentsElement.setDslElement(key, value);
+      testInstrumentationRunnerArgumentsElement.setParsedElement(key, value);
       return;
     }
 
-    super.addDslElement(property, element);
+    super.addParsedElement(property, element);
   }
 }

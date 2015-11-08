@@ -23,53 +23,25 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.Map;
 
-import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
-
 /**
- * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslLiteral}.
+ * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslExpression}.
  */
-public final class GradleDslLiteralMap extends GradlePropertiesDslElement {
-  public GradleDslLiteralMap(@Nullable GradleDslElement parent, @NotNull String name) {
+public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
+  public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
   }
 
-  public GradleDslLiteralMap(@NotNull GradleDslElement parent, @NotNull String name, @NotNull GrListOrMap map) {
-    super(parent, map, name);
-    assert map.isMap();
-    for (GrNamedArgument argument : map.getNamedArguments()) {
-      GrLiteral literal = getChildOfType(argument, GrLiteral.class);
-      if (literal != null) {
-        String argName = argument.getLabelName();
-        if (argName != null) {
-          setDslElement(argName, new GradleDslLiteral(this, map, name, literal));
-        }
-      }
-    }
-  }
-
-  public GradleDslLiteralMap(@Nullable GradleDslElement parent,
-                             @NotNull GroovyPsiElement psiElement,
-                             @NotNull String name,
-                             @NotNull GrNamedArgument... namedArguments) {
+  public GradleDslExpressionMap(@Nullable GradleDslElement parent,
+                                @NotNull GroovyPsiElement psiElement,
+                                @NotNull String name) {
     super(parent, psiElement, name);
-    for (GrNamedArgument argument : namedArguments) {
-      GrLiteral literal = getChildOfType(argument, GrLiteral.class);
-      if (literal != null) {
-        String argName = argument.getLabelName();
-        if (argName != null) {
-          setDslElement(argName, new GradleDslLiteral(this, psiElement, name, literal));
-        }
-      }
-    }
   }
 
-  void put(String key, Object value) {
+  void addNewLiteral(String key, Object value) {
     GradleDslElement propertyElement = getPropertyElement(key);
     if (propertyElement instanceof GradleDslLiteral) {
       ((GradleDslLiteral)propertyElement).setValue(value);
@@ -86,28 +58,18 @@ public final class GradleDslLiteralMap extends GradlePropertiesDslElement {
    * <p>Returns an empty map when the given there are no values of type {@code clazz}.
    */
   @NotNull
-  <V> Map<String, V> getValues(@NotNull Class<V> clazz) {
+  public <V> Map<String, V> getValues(@NotNull Class<V> clazz) {
     Map<String, V> result = Maps.newHashMap();
     for (String key : getProperties()) {
       GradleDslElement propertyElement = getPropertyElement(key);
-      if (propertyElement instanceof GradleDslLiteral) {
-        V value = ((GradleDslLiteral)propertyElement).getValue(clazz);
+      if (propertyElement instanceof GradleDslExpression) {
+        V value = ((GradleDslExpression)propertyElement).getValue(clazz);
         if (value != null) {
           result.put(key, value);
         }
       }
     }
     return result;
-  }
-
-  @Override
-  @Nullable
-  public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    GradleDslElement propertyElement = getPropertyElement(property);
-    if (propertyElement instanceof GradleDslLiteral) {
-      return ((GradleDslLiteral)propertyElement).getValue(clazz);
-    }
-    return null;
   }
 
   @Override

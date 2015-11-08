@@ -37,13 +37,12 @@ public class GradleDslElementList extends GradleDslElement {
   }
 
   public void addParsedElement(@NotNull GradleDslElement element) {
-    myElements.add(element);
-    // In some cases, the element (instead of the parser) need to create a list to hold elements created by the parser, since the elements'
-    // parent will be the parent of the list initially, we need to change their parent to this element.
     element.myParent = this;
+    myElements.add(element);
   }
 
   public void addNewElement(@NotNull GradleDslElement element) {
+    element.myParent = this;
     myToBeAddedElements.add(element);
     setModified(true);
   }
@@ -108,7 +107,6 @@ public class GradleDslElementList extends GradleDslElement {
     for (GradleDslElement element : myToBeAddedElements) {
       if (element.create() != null) {
         myElements.add(element);
-        element.myParent = this;
       }
     }
     myToBeAddedElements.clear();
