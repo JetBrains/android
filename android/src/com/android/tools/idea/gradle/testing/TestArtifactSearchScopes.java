@@ -41,10 +41,12 @@ import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
 
@@ -261,6 +263,10 @@ public final class TestArtifactSearchScopes {
 
   @Nullable
   private static File urlToFilePath(@NotNull String url) {
-    return new File(toSystemDependentPath(urlToPath(url)));
+    if (url.startsWith(JAR_PROTOCOL_PREFIX)) {
+      return getJarFromJarUrl(url);
+    }
+    String path = urlToPath(url);
+    return new File(toSystemDependentPath(path));
   }
 }
