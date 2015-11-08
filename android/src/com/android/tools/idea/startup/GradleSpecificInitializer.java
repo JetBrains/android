@@ -95,9 +95,6 @@ public class GradleSpecificInitializer implements Runnable {
   private static final String[] ANDROID_SDK_RELATIVE_PATHS =
     {ANDROID_SDK_FOLDER_NAME, File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME};
 
-  private static Set<String> unwantedIntentions = Sets.newHashSet("TestNGOrderEntryFix", "JCiPOrderEntryFix");
-
-
   @Override
   public void run() {
     setUpNewProjectActions();
@@ -131,7 +128,6 @@ public class GradleSpecificInitializer implements Runnable {
     }
 
     checkAndSetAndroidSdkSources();
-    hideUnwantedIntentions();
   }
 
   /**
@@ -454,30 +450,6 @@ public class GradleSpecificInitializer implements Runnable {
       IAndroidTarget target = platform.getTarget();
       findAndSetPlatformSources(target, sdkModificator);
       sdkModificator.commitChanges();
-    }
-  }
-
-  // Disable the intentions that we don't want in android studio.
-  private static void hideUnwantedIntentions() {
-    IntentionManager intentionManager = IntentionManager.getInstance();
-    if (!(intentionManager instanceof IntentionManagerImpl)) {
-      return;
-    }
-
-    // IntentionManagerImpl.hasActiveRequests equals true when there is unprocessed register extension request, theoretically, it is
-    // possible that two requests have a relative big time gap, so that hasActiveRequests could become true after first request has been
-    // processed but the second one haven't been sent, thus cause us skipping the intentions we care about.
-    // In reality this isn't problem so far because all the extension register requests are sent through a loop.
-    // TODO Ideally, we want make IntentionManagerImpl.registerIntentionFromBean as protected method so we could override it and ignore the
-    // unwanted intentions in the first place.
-    while (((IntentionManagerImpl)intentionManager).hasActiveRequests()) {
-      TimeoutUtil.sleep(100);
-    }
-
-    for (IntentionAction intentionAction : intentionManager.getIntentionActions()) {
-      if (unwantedIntentions.contains(intentionAction.getClass().getSimpleName())) {
-        intentionManager.unregisterIntention(intentionAction);
-      }
     }
   }
 }
