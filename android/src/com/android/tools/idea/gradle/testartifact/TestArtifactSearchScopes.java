@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.testartifact;
 
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -29,13 +28,11 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -47,6 +44,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
+import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
 
 /**
@@ -113,7 +113,7 @@ public class TestArtifactSearchScopes {
   @NotNull
   public GlobalSearchScope getAndroidTestSourceScope() {
     if (androidTestSourceScope == null) {
-      androidTestSourceScope = getSourceScope(AndroidProject.ARTIFACT_ANDROID_TEST);
+      androidTestSourceScope = getSourceScope(ARTIFACT_ANDROID_TEST);
     }
     return androidTestSourceScope;
   }
@@ -121,7 +121,7 @@ public class TestArtifactSearchScopes {
   @NotNull
   public GlobalSearchScope getUnitTestSourceScope() {
     if (unitTestSourceScope == null) {
-      unitTestSourceScope = getSourceScope(AndroidProject.ARTIFACT_UNIT_TEST);
+      unitTestSourceScope = getSourceScope(ARTIFACT_UNIT_TEST);
     }
     return unitTestSourceScope;
   }
@@ -129,7 +129,7 @@ public class TestArtifactSearchScopes {
   @NotNull
   public GlobalSearchScope getAndroidTestExcludeScope() {
     if (androidTestExcludeScope == null) {
-      androidTestExcludeScope = getExcludedScope(AndroidProject.ARTIFACT_ANDROID_TEST);
+      androidTestExcludeScope = getExcludedScope(ARTIFACT_ANDROID_TEST);
     }
     return androidTestExcludeScope;
   }
@@ -137,7 +137,7 @@ public class TestArtifactSearchScopes {
   @NotNull
   public GlobalSearchScope getUnitTestExcludeScope() {
     if (unitTestExcludeScope == null) {
-      unitTestExcludeScope = getExcludedScope(AndroidProject.ARTIFACT_UNIT_TEST);
+      unitTestExcludeScope = getExcludedScope(ARTIFACT_UNIT_TEST);
     }
     return unitTestExcludeScope;
   }
@@ -168,22 +168,32 @@ public class TestArtifactSearchScopes {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
     Set<Library> excludedLibrary = Sets.newHashSet();
     Set<Module> excludedModules = Sets.newHashSet();
+    Set<VirtualFile> excludeRoots = Sets.newHashSet();
+
+    BaseArtifact unitTestArtifact = myAndroidModel.getUnitTestArtifactInSelectedVariant();
+    BaseArtifact androidTestArtifact = myAndroidModel.getAndroidTestArtifactInSelectedVariant();
+
+    boolean isAndroidTestArtifact = ARTIFACT_ANDROID_TEST.equals(artifactName);
+
+    BaseArtifact excludeArtifact = isAndroidTestArtifact ? unitTestArtifact : androidTestArtifact;
+        if (excludeArtifact != null) {
+      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(excludeArtifact.getClassesFolder());
+      if (virtualFile != null) {
+        excludeRoots.add(virtualFile);
+      }
+    }
 
     DependencySet androidTestDependencies = new DependencySet();
     DependencySet unitTestDependecies = new DependencySet();
-
-    Set<VirtualFile> excludeRoots = Sets.newHashSet();
-
-    for (BaseArtifact testArtifact : myAndroidModel.getSelectedVariant().getExtraAndroidArtifacts()) {
-      Dependency.populate(androidTestDependencies, testArtifact, DependencyScope.TEST);
+    if (unitTestArtifact != null) {
+      Dependency.populate(unitTestDependecies, unitTestArtifact, DependencyScope.TEST);
+    }
+    if (androidTestArtifact != null) {
+      Dependency.populate(androidTestDependencies, androidTestArtifact, DependencyScope.TEST);
     }
 
-    for (BaseArtifact testArtifact : myAndroidModel.getSelectedVariant().getExtraJavaArtifacts()) {
-      Dependency.populate(unitTestDependecies, testArtifact, DependencyScope.TEST);
-    }
-
-    DependencySet wanted = AndroidProject.ARTIFACT_ANDROID_TEST.equals(artifactName) ? androidTestDependencies : unitTestDependecies;
-    DependencySet unwanted = AndroidProject.ARTIFACT_ANDROID_TEST.equals(artifactName) ? unitTestDependecies : androidTestDependencies;
+    DependencySet wanted = isAndroidTestArtifact ? androidTestDependencies : unitTestDependecies;
+    DependencySet unwanted = isAndroidTestArtifact ? unitTestDependecies : androidTestDependencies;
 
     for (LibraryDependency dependency : unwanted.onLibraries()) {
       Library library = libraryTable.getLibraryByName(dependency.getName());
@@ -216,15 +226,23 @@ public class TestArtifactSearchScopes {
     }
 
     for (Library library : excludedLibrary) {
-      excludeRoots.addAll(Arrays.asList(library.getFiles(OrderRootType.CLASSES)));
+      for (VirtualFile vFile : library.getFiles(OrderRootType.CLASSES)) {
+        excludeRoots.add(vFile);
+        if (vFile.getFileSystem() instanceof JarFileSystem) {
+          File file = virtualToIoFile(vFile);
+          VirtualFile jarFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+          excludeRoots.add(jarFile); // For easier compiler output filter
+        }
+      }
     }
 
     // This depends on all the modules are using explicit dependencies in android studio
     for (Module module : excludedModules) {
       for (ContentEntry entry : ModuleRootManager.getInstance(module).getContentEntries()) {
-        for (VirtualFile vFile : entry.getSourceFolderFiles()) {
-          excludeRoots.add(vFile);
-        }
+        excludeRoots.addAll(Arrays.asList(entry.getSourceFolderFiles()));
+
+        VirtualFile vFile = ModuleRootManager.getInstance(module).getModuleExtension(CompilerModuleExtension.class).getCompilerOutputPath();
+        excludeRoots.add(vFile); // For easier compiler output filter
       }
     }
 
@@ -235,8 +253,7 @@ public class TestArtifactSearchScopes {
   private GlobalSearchScope getExcludedScope(@NotNull String artifactName) {
     GlobalSearchScope excludedSource;
     GlobalSearchScope excludedLibs = getExcludedDependenciesScope(artifactName);
-    // TODO add module dependencies
-    if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(artifactName)) {
+    if (ARTIFACT_ANDROID_TEST.equals(artifactName)) {
       excludedSource = getUnitTestSourceScope();
     }
     else {

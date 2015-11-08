@@ -16,11 +16,14 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.android.SdkConstants;
+import com.android.builder.model.BaseArtifact;
 import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.google.common.annotations.VisibleForTesting;
@@ -47,6 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.AndroidGradleModel.getIdeSetupTasks;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
@@ -297,10 +301,32 @@ public class GradleInvoker {
       LOG.info(msg);
       return;
     }
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
+    if (androidGradleModel == null) {
+      return;
+    }
 
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null) {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
+
+      // Make sure all the generated sources, unpacked aars and mockable jars are in place. They are usually up to date, since we
+      // generate them at sync time, so Gradle will just skip those tasks. The generated files can be missing if this is a "Rebuild
+      // Project" run or if the user cleaned the project from the command line. The mockable jar is necessary to run unit tests, but the
+      // compilation tasks don't depend on it, so we have to call it explicitly.
+      BaseArtifact testArtifact = getArtifactForTestCompileType(testCompileType, androidGradleModel);
+      if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+        addAfterSyncTasks(tasks, gradlePath, properties);
+        // properties.AFTER_SYNC_TASK_NAMES include main artifacts IDE setup tasks, so we need to add additional tasks according to
+        // the test
+        if (testArtifact != null) {
+          for (String taskName : getIdeSetupTasks(testArtifact)) {
+            addTaskIfSpecified(tasks, gradlePath, taskName);
+          }
+        }
+      } else {
+        addAfterSyncTasks(tasks, gradlePath, properties);
+      }
 
       switch (buildMode) {
         case CLEAN: // Intentional fall-through.
@@ -311,7 +337,11 @@ public class GradleInvoker {
           tasks.add(createBuildTask(gradlePath, properties.ASSEMBLE_TASK_NAME));
 
           if (testCompileType != TestCompileType.NONE) {
-            addTaskIfSpecified(tasks, gradlePath, properties.ASSEMBLE_TEST_TASK_NAME);
+            if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS && testArtifact != null) {
+              addTaskIfSpecified(tasks, gradlePath, testArtifact.getAssembleTaskName());
+            } else {
+              addTaskIfSpecified(tasks, gradlePath, properties.ASSEMBLE_TEST_TASK_NAME);
+            }
           }
           break;
         default:
@@ -323,7 +353,12 @@ public class GradleInvoker {
           if (testCompileType != TestCompileType.JAVA_TESTS) {
             addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TASK_NAME);
           }
-          addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TEST_TASK_NAME);
+
+          if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS && testArtifact != null) {
+            addTaskIfSpecified(tasks, gradlePath, testArtifact.getCompileTaskName());
+          } else {
+            addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TEST_TASK_NAME);
+          }
           break;
       }
     }
@@ -338,6 +373,19 @@ public class GradleInvoker {
           tasks.add(createBuildTask(gradlePath, JavaGradleFacet.TEST_CLASSES_TASK_NAME));
         }
       }
+    }
+  }
+
+  @Nullable
+  private static BaseArtifact getArtifactForTestCompileType(@NotNull TestCompileType testCompileType,
+                                                            @NotNull AndroidGradleModel androidGradleModel) {
+    if (testCompileType == TestCompileType.NONE) {
+      return null;
+    }
+    if (testCompileType == TestCompileType.ANDROID_TESTS) {
+      return androidGradleModel.getAndroidTestArtifactInSelectedVariant();
+    } else {
+      return androidGradleModel.getUnitTestArtifactInSelectedVariant();
     }
   }
 
