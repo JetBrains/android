@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidDslElement extends GradlePropertiesDslElement {
@@ -33,11 +33,11 @@ public final class AndroidDslElement extends GradlePropertiesDslElement {
   }
 
   @Override
-  public void addDslElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("flavorDimensions") && element instanceof GradleDslLiteral) {
-      addAsDslLiteralList(property, (GradleDslLiteral)element);
+  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+    if (property.equals("flavorDimensions") && element instanceof GradleDslExpression) {
+      addAsParsedDslExpressionList(property, (GradleDslExpression)element);
       return;
     }
-    super.addDslElement(property, element);
+    super.addParsedElement(property, element);
   }
 }

@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.PsiElements;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +24,7 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
@@ -34,15 +32,13 @@ import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 import java.util.Collection;
 
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
-import static com.intellij.openapi.util.text.StringUtil.unquoteString;
+import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 
 /**
  * Represents a {@link GrLiteral} element.
  */
-public final class GradleDslLiteral extends GradleDslElement {
+public final class GradleDslLiteral extends GradleDslExpression {
   @Nullable private GrLiteral myLiteral;
   @Nullable private Object myUnsavedValue;
 
@@ -63,6 +59,7 @@ public final class GradleDslLiteral extends GradleDslElement {
     return myLiteral;
   }
 
+  @Override
   @Nullable
   public Object getValue() {
     if (myUnsavedValue != null) {
@@ -101,7 +98,7 @@ public final class GradleDslLiteral extends GradleDslElement {
         }
 
         if (!isEmpty(variableName)) {
-          GradleDslLiteral resolvedLiteral = resolveReference(variableName, GradleDslLiteral.class);
+          GradleDslExpression resolvedLiteral = resolveReference(variableName, GradleDslExpression.class);
           if (resolvedLiteral != null) {
             Object resolvedValue = resolvedLiteral.getValue();
             if (resolvedValue != null) {
@@ -119,6 +116,7 @@ public final class GradleDslLiteral extends GradleDslElement {
    * Returns the value of type {@code clazz} when the the {@link GrLiteral} element contains the value of that type,
    * or {@code null} otherwise.
    */
+  @Override
   @Nullable
   public <T> T getValue(@NotNull Class<T> clazz) {
     Object value = getValue();
@@ -128,6 +126,7 @@ public final class GradleDslLiteral extends GradleDslElement {
     return null;
   }
 
+  @Override
   public void setValue(@NotNull Object value) {
     myUnsavedValue = value;
     setModified(true);
@@ -139,8 +138,6 @@ public final class GradleDslLiteral extends GradleDslElement {
     return value != null ? value.toString() : super.toString();
   }
 
-
-
   @Override
   @NotNull
   protected Collection<GradleDslElement> getChildren() {
@@ -150,7 +147,7 @@ public final class GradleDslLiteral extends GradleDslElement {
   @Override
   @Nullable
   public GroovyPsiElement create() {
-    if (!(myParent instanceof GradleDslLiteralMap)) {
+    if (!(myParent instanceof GradleDslExpressionMap)) {
       return super.create();
     }
     // This is a value in the map element we need to create a named argument for it.
