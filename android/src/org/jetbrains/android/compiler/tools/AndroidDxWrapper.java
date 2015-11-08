@@ -122,7 +122,7 @@ public class AndroidDxWrapper {
       return messages;
     }
 
-    AndroidCommonUtils.handleDexCompilationResult(process, outFile, messages);
+    AndroidCommonUtils.handleDexCompilationResult(process, outFile, messages, false);
 
     return messages;
   }
