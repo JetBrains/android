@@ -27,9 +27,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
-import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -44,7 +41,6 @@ import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
@@ -171,7 +167,7 @@ public final class TestArtifactSearchScopes {
 
   @NotNull
   private GlobalSearchScope getExcludedDependenciesScope(@NotNull String artifactName) {
-    Set<File> excludedRootFolders = Sets.newHashSet();
+    Set<File> excludedRoots = Sets.newHashSet();
 
     BaseArtifact unitTestArtifact = myAndroidModel.getUnitTestArtifactInSelectedVariant();
     BaseArtifact androidTestArtifact = myAndroidModel.getAndroidTestArtifactInSelectedVariant();
@@ -180,7 +176,7 @@ public final class TestArtifactSearchScopes {
 
     BaseArtifact excludeArtifact = isAndroidTestArtifact ? unitTestArtifact : androidTestArtifact;
     if (excludeArtifact != null) {
-      excludedRootFolders.add(excludeArtifact.getClassesFolder());
+      excludedRoots.add(excludeArtifact.getClassesFolder());
     }
 
     DependencySet androidTestDependencies = null;
@@ -198,16 +194,13 @@ public final class TestArtifactSearchScopes {
     DependencySet dependenciesToExclude = isAndroidTestArtifact ? unitTestDependencies : androidTestDependencies;
 
     Project project = myModule.getProject();
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
 
-    Set<Library> excludedLibraries = Sets.newHashSet();
     Set<Module> excludedModules = Sets.newHashSet();
 
     if (dependenciesToExclude != null) {
       for (LibraryDependency dependency : dependenciesToExclude.onLibraries()) {
-        Library library = libraryTable.getLibraryByName(dependency.getName());
-        if (library != null) {
-          excludedLibraries.add(library);
+        for (String path : dependency.getPaths(LibraryDependency.PathType.BINARY)) {
+          excludedRoots.add(new File(path));
         }
       }
 
@@ -221,9 +214,8 @@ public final class TestArtifactSearchScopes {
 
     if (dependenciesToInclude != null) {
       for (LibraryDependency dependency : dependenciesToInclude.onLibraries()) {
-        Library library = libraryTable.getLibraryByName(dependency.getName());
-        if (library != null) {
-          excludedLibraries.remove(library);
+        for (String path : dependency.getPaths(LibraryDependency.PathType.BINARY)) {
+          excludedRoots.remove(new File(path));
         }
       }
 
@@ -235,30 +227,22 @@ public final class TestArtifactSearchScopes {
       }
     }
 
-    for (Library library : excludedLibraries) {
-      for (String url : library.getUrls(CLASSES)) {
-        if (isNotEmpty(url)) {
-          excludedRootFolders.add(urlToFilePath(url));
-        }
-      }
-    }
-
     // This depends on all the modules are using explicit dependencies in android studio
     for (Module excludedModule : excludedModules) {
       ModuleRootManager rootManager = ModuleRootManager.getInstance(excludedModule);
       for (ContentEntry entry : rootManager.getContentEntries()) {
         for (SourceFolder sourceFolder : entry.getSourceFolders()) {
-          excludedRootFolders.add(urlToFilePath(sourceFolder.getUrl()));
+          excludedRoots.add(urlToFilePath(sourceFolder.getUrl()));
         }
         CompilerModuleExtension compiler = rootManager.getModuleExtension(CompilerModuleExtension.class);
         String url = compiler.getCompilerOutputUrl();
         if (isNotEmpty(url)) {
-          excludedRootFolders.add(urlToFilePath(url));
+          excludedRoots.add(urlToFilePath(url));
         }
       }
     }
 
-    return new FileRootSearchScope(project, excludedRootFolders);
+    return new FileRootSearchScope(project, excludedRoots);
   }
 
   @Nullable
