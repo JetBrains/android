@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +26,7 @@ import java.util.Collection;
 /**
  * Represents a {@link GrReferenceExpression} element.
  */
-public final class GradleDslReference extends GradleDslElement {
+public final class GradleDslReference extends GradleDslExpression {
   @NotNull private GrReferenceExpression myReference;
 
   public GradleDslReference(@NotNull GradleDslElement parent,
@@ -39,9 +37,22 @@ public final class GradleDslReference extends GradleDslElement {
     myReference = reference;
   }
 
+  @Override
+  @NotNull
+  protected Collection<GradleDslElement> getChildren() {
+    return ImmutableList.of();
+  }
+
   @Nullable
   public String getReferenceText() {
     return myReference.getText();
+  }
+
+  @Nullable
+  @Override
+  public Object getValue() {
+    GradleDslLiteral valueLiteral = getValue(GradleDslLiteral.class);
+    return valueLiteral != null ? valueLiteral.getValue() : getValue(String.class);
   }
 
   /**
@@ -49,19 +60,18 @@ public final class GradleDslReference extends GradleDslElement {
    * of that type, or {@code null} otherwise.
    */
   @Nullable
-  public <T> T getResolvedValue(@NotNull Class<T> clazz) {
+  @Override
+  public <T> T getValue(@NotNull Class<T> clazz) {
     String referenceText = getReferenceText();
     if (referenceText == null) {
       return null;
     }
-
     return resolveReference(referenceText, clazz);
   }
 
   @Override
-  @NotNull
-  protected Collection<GradleDslElement> getChildren() {
-    return ImmutableList.of();
+  public void setValue(@NotNull Object value) {
+    // TODO: Add support to set a reference value.
   }
 
   @Override
