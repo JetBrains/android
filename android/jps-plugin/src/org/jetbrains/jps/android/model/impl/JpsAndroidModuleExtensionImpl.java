@@ -111,6 +111,21 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   }
 
   @Override
+  public boolean isMultiDexEnabled() {
+    return myProperties.ENABLE_MULTI_DEX;
+  }
+
+  @Override
+  public String getMainDexList() {
+    return myProperties.MAIN_DEX_LIST;
+  }
+
+  @Override
+  public boolean isMinimalMainDex() {
+    return myProperties.MINIMAL_MAIN_DEX;
+  }
+
+  @Override
   public boolean isCopyCustomGeneratedSources() {
     return myProperties.COMPILE_CUSTOM_GENERATED_SOURCES;
   }
