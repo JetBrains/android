@@ -75,7 +75,7 @@ public final class GradleDslParser {
 
     GrArgumentList argumentList = expression.getArgumentList();
     if (argumentList.getAllArguments().length > 0) {
-      dslElement.setDslElement(name, new GradleDslMethodCall(dslElement, expression, name, argumentList));
+      dslElement.addDslElement(name, new GradleDslMethodCall(dslElement, expression, name, argumentList));
       // This element is a method call with arguments. This element may also contain a closure along with it, but as of now we do not have
       // a use case to understand closure associated with a method call with arguments. So, just process the method arguments and return.
       // ex: compile("dependency") {}

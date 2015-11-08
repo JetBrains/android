@@ -42,6 +42,90 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     checkReadAndModify(text);
   }
 
+  public void testMapNotationMethodCall() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile(group: 'com.google.code.guice', name: 'guice', version: '1.0')\n" +
+                  "}";
+    checkReadAndModify(text);
+  }
+
+  public void testCompactNotationMethodCall() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile('com.google.code.guice:guice:1.0')\n" +
+                  "}";
+    checkReadAndModify(text);
+  }
+
+  public void testDependenciesWithSingleConfigurationName() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile(['com.google.code.guice:guice:1.0',\n" +
+                  "           'com.google.guava:guava:19.0'])\n" +
+                  "}";
+    checkTwoDependenciesWithSingleConfigurationName(text);
+
+    text = "dependencies {\n" +
+           "  compile('com.google.code.guice:guice:1.0',\n" +
+           "          'com.google.guava:guava:19.0')\n" +
+           "}";
+    checkTwoDependenciesWithSingleConfigurationName(text);
+
+    text = "dependencies {\n" +
+           "  compile(group: 'com.google.code.guice', name: 'guice', version: '1.0',\n" +
+           "          group: 'com.google.guava', name: 'guava', version: '19.0')\n" +
+           "}";
+    checkTwoDependenciesWithSingleConfigurationName(text);
+
+    text = "dependencies {\n" +
+           "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0',\n" +
+           "           group: 'com.google.guava', name: 'guava', version: '19.0'])\n" +
+           "}";
+    checkTwoDependenciesWithSingleConfigurationName(text);
+
+    text = "dependencies {\n" +
+           "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0',\n" +
+           "           'com.google.guava:guava:19.0'])\n" +
+           "}";
+    checkTwoDependenciesWithSingleConfigurationName(text);
+  }
+
+  private void checkTwoDependenciesWithSingleConfigurationName(@NotNull String text) throws Exception {
+    writeToBuildFile(text);
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
+    assertNotNull(dependenciesModel);
+    List<ArtifactDependencyModel> artifacts = dependenciesModel.artifactDependencies("compile");
+    assertSize(2, artifacts);
+
+
+    // TODO fix GradleDslMethodCall in order to support deletion
+    //dependenciesModel.remove(artifacts.get(0));
+    //runWriteCommandAction(myProject, new Runnable() {
+    //  @Override
+    //  public void run() {
+    //    buildModel.applyChanges();
+    //  }
+    //});
+    //
+    //buildModel.reparse();
+    //dependenciesModel = buildModel.dependenciesV2();
+    //assertNotNull(dependenciesModel);
+    //
+    //assertSize(1, dependenciesModel.artifactDependencies("compile"));
+    //
+    //dependenciesModel.remove(getDependency(dependenciesModel));
+    //runWriteCommandAction(myProject, new Runnable() {
+    //  @Override
+    //  public void run() {
+    //    buildModel.applyChanges();
+    //  }
+    //});
+    //
+    //buildModel.reparse();
+    //dependenciesModel = buildModel.dependenciesV2();
+    //assertNull(dependenciesModel);
+
+  }
+
   public void testAddingDependency() throws Exception {
     String text = "dependencies {\n" +
                   "  compile 'com.google.code.guice:guice:1.0'\n" +
