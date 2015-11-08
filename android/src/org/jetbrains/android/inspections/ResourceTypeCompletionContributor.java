@@ -23,17 +23,18 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupItemUtil;
 import com.intellij.codeInsight.lookup.VariableLookupItem;
+import com.intellij.codeInspection.magicConstant.MagicCompletionContributor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.intellij.patterns.ElementPattern;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.Consumer;
 import gnu.trove.THashSet;
 import gnu.trove.TObjectHashingStrategy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -86,81 +87,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       return;
     }
 
-    ResourceTypeInspection.Constraints allowedValues = null;
-    if (IN_METHOD_CALL_ARGUMENT.accepts(pos)) {
-      PsiCall call = PsiTreeUtil.getParentOfType(pos, PsiCall.class);
-      if (!(call instanceof PsiExpression)) return;
-      PsiType type = ((PsiExpression)call).getType();
-
-      PsiResolveHelper resolveHelper = JavaPsiFacade.getInstance(call.getProject()).getResolveHelper();
-      JavaResolveResult[] methods = call instanceof PsiMethodCallExpression
-                                    ? ((PsiMethodCallExpression)call).getMethodExpression().multiResolve(true)
-                                    : call instanceof PsiNewExpression && type instanceof PsiClassType
-                                      ? resolveHelper.multiResolveConstructor((PsiClassType)type, call.getArgumentList(), call)
-                                      : JavaResolveResult.EMPTY_ARRAY;
-      for (JavaResolveResult resolveResult : methods) {
-        PsiElement element = resolveResult.getElement();
-        if (!(element instanceof PsiMethod)) return;
-        PsiMethod method = (PsiMethod)element;
-        if (!resolveHelper.isAccessible(method, call, null)) continue;
-        PsiElement argument = pos;
-        while (!(argument.getContext() instanceof PsiExpressionList)) argument = argument.getContext();
-        PsiExpressionList list = (PsiExpressionList)argument.getContext();
-        int i = ArrayUtil.indexOf(list.getExpressions(), argument);
-        if (i == -1) continue;
-        PsiParameter[] params = method.getParameterList().getParameters();
-        if (i >= params.length) continue;
-        PsiParameter parameter = params[i];
-        ResourceTypeInspection.Constraints values =
-          parameter == null ? null : ResourceTypeInspection.getAllowedValues(parameter, parameter.getType(), null);
-        if (values == null) continue;
-        if (allowedValues == null) {
-          allowedValues = values;
-          continue;
-        }
-        if (!allowedValues.equals(values)) return;
-      }
-    }
-    else if (IN_BINARY_COMPARISON.accepts(pos)) {
-      PsiBinaryExpression exp = PsiTreeUtil.getParentOfType(pos, PsiBinaryExpression.class);
-      if (exp != null && (exp.getOperationTokenType() == JavaTokenType.EQEQ || exp.getOperationTokenType() == JavaTokenType.NE)) {
-        PsiExpression l = exp.getLOperand();
-        PsiElement resolved;
-        if (l instanceof PsiReferenceExpression && (resolved = ((PsiReferenceExpression)l).resolve()) instanceof PsiModifierListOwner) {
-          allowedValues = ResourceTypeInspection.getAllowedValues((PsiModifierListOwner)resolved, l.getType(), null);
-        }
-        PsiExpression r = exp.getROperand();
-        if (allowedValues == null && r instanceof PsiReferenceExpression && (resolved = ((PsiReferenceExpression)r).resolve()) instanceof PsiModifierListOwner) {
-          allowedValues = ResourceTypeInspection.getAllowedValues((PsiModifierListOwner)resolved, r.getType(), null);
-        }
-      }
-    }
-    else if (IN_ASSIGNMENT.accepts(pos)) {
-      PsiAssignmentExpression assignment = PsiTreeUtil.getParentOfType(pos, PsiAssignmentExpression.class);
-      PsiElement resolved;
-      PsiExpression l = assignment == null ? null : assignment.getLExpression();
-      if (assignment != null && PsiTreeUtil.isAncestor(assignment.getRExpression(), pos, false) && l instanceof PsiReferenceExpression && (resolved = ((PsiReferenceExpression)l).resolve()) instanceof PsiModifierListOwner) {
-        allowedValues = ResourceTypeInspection.getAllowedValues((PsiModifierListOwner)resolved, l.getType(), null);
-      }
-    }
-    else if (IN_RETURN.accepts(pos)) {
-      PsiReturnStatement statement = PsiTreeUtil.getParentOfType(pos, PsiReturnStatement.class);
-      PsiExpression l = statement == null ? null : statement.getReturnValue();
-      PsiMethod method = PsiTreeUtil.getParentOfType(l, PsiMethod.class);
-      if (method != null) {
-        allowedValues = ResourceTypeInspection.getAllowedValues(method, method.getReturnType(), null);
-      }
-    }
-    else if (IN_ANNOTATION_INITIALIZER.accepts(pos)) {
-      PsiNameValuePair pair = (PsiNameValuePair)pos.getParent().getParent();
-      PsiAnnotationMemberValue value = pair.getValue();
-      if (!(value instanceof PsiExpression)) return;
-      PsiReference ref = pair.getReference();
-      if (ref == null) return;
-      PsiMethod method = (PsiMethod)ref.resolve();
-      if (method == null) return;
-      allowedValues = ResourceTypeInspection.getAllowedValues(method, method.getReturnType(), null);
-    }
+    ResourceTypeInspection.Constraints allowedValues = getAllowedValues(pos);
     if (allowedValues == null) return;
 
     final Set<PsiElement> allowed = new THashSet<PsiElement>(new TObjectHashingStrategy<PsiElement>() {
@@ -240,6 +167,22 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       }
     });
   }
+
+  @Nullable
+  private static ResourceTypeInspection.Constraints getAllowedValues(@NotNull PsiElement pos) {
+    ResourceTypeInspection.Constraints allowedValues = null;
+    for (Pair<PsiModifierListOwner, PsiType> pair : MagicCompletionContributor.getMembersWithAllowedValues(pos)) {
+      ResourceTypeInspection.Constraints values = ResourceTypeInspection.getAllowedValues(pair.first, pair.second, null);
+      if (values == null) continue;
+      if (allowedValues == null) {
+        allowedValues = values;
+        continue;
+      }
+      if (!allowedValues.equals(values)) return null;
+    }
+    return allowedValues;
+  }
+
 
   private static LookupElement decorate(CompletionParameters parameters, List<ExpectedTypeInfo> types, LookupElement element) {
     if (!types.isEmpty() && parameters.getCompletionType() == CompletionType.SMART) {
