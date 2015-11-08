@@ -29,7 +29,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,10 +86,10 @@ public final class TestArtifactSearchScopes {
   @NotNull private final Module myModule;
   @NotNull private final AndroidGradleModel myAndroidModel;
 
-  private GlobalSearchScope myAndroidTestSourceScope;
-  private GlobalSearchScope myUnitTestSourceScope;
-  private GlobalSearchScope myAndroidTestExcludeScope;
-  private GlobalSearchScope myUnitTestExcludeScope;
+  private FileRootSearchScope myAndroidTestSourceScope;
+  private FileRootSearchScope myUnitTestSourceScope;
+  private FileRootSearchScope myAndroidTestExcludeScope;
+  private FileRootSearchScope myUnitTestExcludeScope;
 
   private TestArtifactSearchScopes(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
     myModule = module;
@@ -111,7 +110,7 @@ public final class TestArtifactSearchScopes {
   }
 
   @NotNull
-  public GlobalSearchScope getAndroidTestSourceScope() {
+  public FileRootSearchScope getAndroidTestSourceScope() {
     if (myAndroidTestSourceScope == null) {
       myAndroidTestSourceScope = getSourceScope(ARTIFACT_ANDROID_TEST);
     }
@@ -119,7 +118,7 @@ public final class TestArtifactSearchScopes {
   }
 
   @NotNull
-  public GlobalSearchScope getUnitTestSourceScope() {
+  public FileRootSearchScope getUnitTestSourceScope() {
     if (myUnitTestSourceScope == null) {
       myUnitTestSourceScope = getSourceScope(ARTIFACT_UNIT_TEST);
     }
@@ -127,7 +126,7 @@ public final class TestArtifactSearchScopes {
   }
 
   @NotNull
-  private GlobalSearchScope getSourceScope(@NotNull String artifactName) {
+  private FileRootSearchScope getSourceScope(@NotNull String artifactName) {
     Set<File> roots = Sets.newHashSet();
     // TODO consider generated source
     for (SourceProvider sourceProvider : myAndroidModel.getTestSourceProviders(artifactName)) {
@@ -137,7 +136,7 @@ public final class TestArtifactSearchScopes {
   }
 
   @NotNull
-  public GlobalSearchScope getAndroidTestExcludeScope() {
+  public FileRootSearchScope getAndroidTestExcludeScope() {
     if (myAndroidTestExcludeScope == null) {
       myAndroidTestExcludeScope = getExcludedScope(ARTIFACT_ANDROID_TEST);
     }
@@ -145,7 +144,7 @@ public final class TestArtifactSearchScopes {
   }
 
   @NotNull
-  public GlobalSearchScope getUnitTestExcludeScope() {
+  public FileRootSearchScope getUnitTestExcludeScope() {
     if (myUnitTestExcludeScope == null) {
       myUnitTestExcludeScope = getExcludedScope(ARTIFACT_UNIT_TEST);
     }
@@ -153,20 +152,20 @@ public final class TestArtifactSearchScopes {
   }
 
   @NotNull
-  private GlobalSearchScope getExcludedScope(@NotNull String artifactName) {
-    GlobalSearchScope excludedSource;
+  private FileRootSearchScope getExcludedScope(@NotNull String artifactName) {
+    FileRootSearchScope excludedSource;
     if (ARTIFACT_ANDROID_TEST.equals(artifactName)) {
       excludedSource = getUnitTestSourceScope();
     }
     else {
       excludedSource = getAndroidTestSourceScope();
     }
-    GlobalSearchScope excludedLibs = getExcludedDependenciesScope(artifactName);
+    FileRootSearchScope excludedLibs = getExcludedDependenciesScope(artifactName);
     return excludedSource.uniteWith(excludedLibs);
   }
 
   @NotNull
-  private GlobalSearchScope getExcludedDependenciesScope(@NotNull String artifactName) {
+  private FileRootSearchScope getExcludedDependenciesScope(@NotNull String artifactName) {
     Set<File> excludedRoots = Sets.newHashSet();
 
     BaseArtifact unitTestArtifact = myAndroidModel.getUnitTestArtifactInSelectedVariant();
@@ -239,6 +238,11 @@ public final class TestArtifactSearchScopes {
         if (isNotEmpty(url)) {
           excludedRoots.add(urlToFilePath(url));
         }
+      }
+
+      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(excludedModule);
+      if (androidGradleModel != null) {
+        excludedRoots.add(androidGradleModel.getMainArtifact().getJavaResourcesFolder());
       }
     }
 

@@ -53,5 +53,6 @@ public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleTestCa
     assertTrue(classpath.contains("junit-4.12.jar"));
     assertFalse(classpath.contains("gson-2.4.jar"));
     assertFalse(classpath.contains("guava-18.0.jar"));
+    assertFalse(classpath.contains("module3"));
   }
 }
