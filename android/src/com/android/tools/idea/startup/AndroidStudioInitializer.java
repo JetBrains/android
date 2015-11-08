@@ -30,7 +30,9 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.ui.tabs.FileColorConfigurationUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
@@ -84,6 +86,8 @@ public class AndroidStudioInitializer implements Runnable {
     TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
     TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
+
+    FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(ProjectManager.getInstance().getDefaultProject());
   }
 
   private static void checkInstallation() {

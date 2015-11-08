@@ -845,6 +845,7 @@
     <projectModelModifier implementation="com.android.tools.idea.gradle.AndroidGradleJavaProjectModelModifier"/>
     <resolveScopeProvider implementation="com.android.tools.idea.gradle.testing.TestArtifactResolveScopeProvider" order="first"/>
     <useScopeOptimizer implementation="com.android.tools.idea.gradle.testing.TestArtifactUseScopeOptimizer"/>
+    <customScopesProvider implementation="com.android.tools.idea.gradle.testing.TestArtifactCustomScopeProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
