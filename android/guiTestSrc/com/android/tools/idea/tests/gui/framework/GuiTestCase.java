@@ -30,6 +30,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -109,6 +110,11 @@ public abstract class GuiTestCase {
     setIdeSettings();
     setUpSdks();
 
+    // There is a race condition between reloading the configuration file after file deletion detected and the serialization of IDEA model
+    // we just customized so that modules can't be loaded correctly.
+    // This is a hack to prevent StoreAwareProjectManager from doing any reloading during test.
+    ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
+
     refreshFiles();
   }
 
@@ -136,6 +142,7 @@ public abstract class GuiTestCase {
     if (myRobot != null) {
       myRobot.cleanUpWithoutDisposingWindows();
     }
+    ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
   }
 
   @NotNull
