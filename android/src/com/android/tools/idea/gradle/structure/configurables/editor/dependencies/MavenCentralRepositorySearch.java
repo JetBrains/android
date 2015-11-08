@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.configurables.editor.dependencie
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.util.io.HttpRequests;
-import com.intellij.util.io.HttpRequests.Request;
 import com.intellij.util.io.HttpRequests.RequestProcessor;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -32,7 +31,16 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.JDOMUtil.load;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
+/**
+ * Searches Maven Central using its <a href="http://search.maven.org/ajaxsolr/images/MavenCentralAPIGuide.pdf">REST API</a>.
+ */
 class MavenCentralRepositorySearch extends ArtifactRepositorySearch {
+  @Override
+  @NotNull
+  String getName() {
+    return "Maven Central";
+  }
+
   @Override
   boolean supportsPagination() {
     return true;
@@ -40,13 +48,12 @@ class MavenCentralRepositorySearch extends ArtifactRepositorySearch {
 
   @Override
   @NotNull
-  SearchResult startSearch(@NotNull String artifactName, int rows, int start) throws IOException {
+  SearchResult start(@NotNull Request request) throws IOException {
     // This query searches for artifacts with name equal to the passed text.
-    String request = String.format("https://search.maven.org/solrsearch/select?rows=1$%d&start=2$%d&wt=xml&q=a:3$%s", rows, start,
-                                   artifactName);
-    return HttpRequests.request(request).accept("application/xml").connect(new RequestProcessor<SearchResult>() {
+    String url = createRequestUrl(request);
+    return HttpRequests.request(url).accept("application/xml").connect(new RequestProcessor<SearchResult>() {
       @Override
-      public SearchResult process(@NotNull Request request) throws IOException {
+      public SearchResult process(@NotNull HttpRequests.Request request) throws IOException {
         try {
           return parse(request.getReader());
         }
@@ -60,7 +67,51 @@ class MavenCentralRepositorySearch extends ArtifactRepositorySearch {
 
   @VisibleForTesting
   @NotNull
-  SearchResult parse(@NotNull Reader response) throws JDOMException, IOException {
+  static String createRequestUrl(@NotNull Request request) {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("https://search.maven.org/solrsearch/select?")
+          .append("rows=").append(request.rows).append("&")
+          .append("start=").append(request.start).append("&")
+          .append("wt=xml&")
+          .append("q=");
+    String groupId = request.groupId;
+    if (isNotEmpty(groupId)) {
+      buffer.append("g:\"").append(groupId).append("\"+AND+");
+    }
+    buffer.append("a:\"").append(request.artifactName).append("\"");
+    return buffer.toString();
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static SearchResult parse(@NotNull Reader response) throws JDOMException, IOException {
+    /*
+    Sample response:
+
+    <response>
+    <result name="response" numFound="409" start="41">
+        <doc>
+            <str name="a">guice-bean</str>
+            <arr name="ec">
+                <str>.pom</str>
+            </arr>
+            <str name="g">org.sonatype.spice.inject</str>
+            <str name="id">org.sonatype.spice.inject:guice-bean</str>
+            <str name="latestVersion">1.3.4</str>
+            <str name="p">pom</str>
+            <str name="repositoryId">central</str>
+            <arr name="text">
+                <str>org.sonatype.spice.inject</str>
+                <str>guice-bean</str>
+                <str>.pom</str>
+            </arr>
+            <long name="timestamp">1283070402000</long>
+            <int name="versionCount">10</int>
+        </doc>
+    </result>
+    </response>
+     */
+
     List<String> data = Lists.newArrayList();
     int totalFound = 0;
 
