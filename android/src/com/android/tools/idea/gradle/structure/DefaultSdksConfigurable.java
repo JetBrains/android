@@ -130,7 +130,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
       myNdkLocationTextField.setEnabled(false);
     }
 
-    showOrHideNdkQuickfixLink();
+    adjustNdkQuickFixVisibility();
 
     final CardLayout layout = (CardLayout)myNdkDownloadPanel.getLayout();
     layout.show(myNdkDownloadPanel, "loading");
@@ -599,7 +599,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
     if (!myNdkLocationTextField.getText().isEmpty()) {
       ValidationResult validationResult = validateAndroidNdk(getNdkLocation(), false);
       if (!validationResult.success) {
-        showOrHideNdkQuickfixLink();
+        adjustNdkQuickFixVisibility();
         String msg = validationResult.message;
         if (isEmpty(msg)) {
           msg = CHOOSE_VALID_NDK_DIRECTORY_ERR;
@@ -608,12 +608,12 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
       }
     }
     else if (myNdkLocationTextField.isVisible()) {
-      showOrHideNdkQuickfixLink();
+      adjustNdkQuickFixVisibility();
     }
     return null;
   }
 
-  private void showOrHideNdkQuickfixLink() {
+  private void adjustNdkQuickFixVisibility() {
     boolean hasNdk = IdeSdks.getAndroidNdkPath() != null;
     myNdkDownloadPanel.setVisible(!hasNdk);
     myNdkResetHyperlinkLabel.setVisible(hasNdk);
