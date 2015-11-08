@@ -94,6 +94,8 @@ public class JpsAndroidModuleProperties {
   public boolean ENABLE_SOURCES_AUTOGENERATION = true;
 
   public boolean ENABLE_MULTI_DEX = false;
+  public String MAIN_DEX_LIST = "";
+  public boolean MINIMAL_MAIN_DEX = false;
 
   @Tag(AndroidCommonUtils.INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME)
   public boolean myIncludeAssetsFromLibraries = false;
