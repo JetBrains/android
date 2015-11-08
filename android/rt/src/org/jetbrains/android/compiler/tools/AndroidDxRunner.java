@@ -60,6 +60,8 @@ public class AndroidDxRunner {
   private static Field myConsoleErr;
 
   private static Field myMultiDex;
+  private static Field myMinimalMainDex;
+  private static Field myMainDexList;
 
   private AndroidDxRunner() { }
 
@@ -95,6 +97,8 @@ public class AndroidDxRunner {
       myConsoleErr = consoleClass.getField("err");
 
       myMultiDex = getFieldIfPossible(argClass, "multiDex");
+      myMainDexList = getFieldIfPossible(argClass, "mainDexListFile");
+      myMinimalMainDex = getFieldIfPossible(argClass, "minimalMainDex");
     }
     catch (SecurityException e) {
       reportError("Unable to find API for dex.jar", e);
@@ -128,7 +132,7 @@ public class AndroidDxRunner {
                             String[] fileNames,
                             boolean optimize,
                             boolean forceJumbo,
-                            boolean coreLibrary, boolean multiDex) {
+                            boolean coreLibrary, boolean multiDex, String mainDexList, boolean minimalMainDex) {
     loadDex(dxPath);
 
     try {
@@ -168,6 +172,18 @@ public class AndroidDxRunner {
       }
       else {
         reportWarning("Cannot find 'multiDex' field. The option won't be passed to DEX");
+      }
+      if (myMinimalMainDex != null) {
+        myMinimalMainDex.set(args, minimalMainDex);
+      }
+      else {
+        reportWarning("Cannot find 'minimalMainDex' field. The option won't be passed to DEX");
+      }
+      if (myMainDexList != null) {
+        myMainDexList.set(args, mainDexList);
+      }
+      else {
+        reportWarning("Cannot find 'mainDexListFile' field. The option won't be passed to DEX");
       }
       Object res = myMethod.invoke(null, args);
 
@@ -260,6 +276,8 @@ public class AndroidDxRunner {
     boolean forceJumbo = false;
     boolean coreLibrary = false;
     boolean multiDex = false;
+    boolean minimalMainDex = false;
+    String mainDexList = null;
 
     int i = 2;
 
@@ -281,6 +299,15 @@ public class AndroidDxRunner {
       }
       else if ("--multi-dex".equals(args[i])) {
         multiDex = true;
+      }
+      else if ("--minimal-main-dex".equals(args[i])) {
+        minimalMainDex = true;
+      }
+      else if ("--main-dex-list".equals(args[i])) {
+        i++;
+        if (i < args.length) {
+          mainDexList = args[i];
+        }
       }
       i++;
     }
@@ -306,17 +333,6 @@ public class AndroidDxRunner {
     files.removeAll(Arrays.asList(excludedFiles));
     String[] filesArray = files.toArray(new String[files.size()]);
     //System.out.println("file names: " + concat(filesArray));
-    runDex(dxPath, outFilePath, filesArray, optimize, forceJumbo, coreLibrary, multiDex);
-  }
-
-  private static String concat(String[] ar) {
-    StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < ar.length; i++) {
-      builder.append('"').append(ar[i]).append('"');
-      if (i < ar.length - 1) {
-        builder.append(", ");
-      }
-    }
-    return builder.toString();
+    runDex(dxPath, outFilePath, filesArray, optimize, forceJumbo, coreLibrary, multiDex, mainDexList, minimalMainDex);
   }
 }
