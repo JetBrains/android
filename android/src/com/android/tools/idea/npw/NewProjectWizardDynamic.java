@@ -33,8 +33,10 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -213,7 +215,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
   @Override
   protected void doFinish() throws IOException {
     final String location = myState.get(PROJECT_LOCATION_KEY);
-    String name = myState.get(APPLICATION_NAME_KEY);
+    final String name = myState.get(APPLICATION_NAME_KEY);
     assert location != null && name != null;
     new WriteCommandAction.Simple(getProject()) {
       @Override
@@ -221,7 +223,12 @@ public class NewProjectWizardDynamic extends DynamicWizard {
         VfsUtil.createDirectoryIfMissing(location);
       }
     }.execute();
-    myProject = ProjectManager.getInstance().createProject(name, location);
+    myProject = UIUtil.invokeAndWaitIfNeeded(new Computable<Project>() {
+      @Override
+      public Project compute() {
+        return ProjectManager.getInstance().createProject(name, location);
+      }
+    });
     super.doFinish();
   }
 
