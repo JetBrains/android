@@ -169,6 +169,8 @@ public final class GuiTests {
 
               System.out.println(String.format("Setting JDK: '%1$s'", jdkPath.getPath()));
               IdeSdks.setJdkPath(jdkPath);
+
+              System.out.println();
             }
           });
         }

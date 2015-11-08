@@ -124,6 +124,8 @@ public abstract class GuiTestCase {
     GuiTestSuiteState state = getGuiTestSuiteState();
     state.setSkipSdkMerge(false);
     state.setUseCachedGradleModelOnly(false);
+
+    // TODO: setUpDefaultGeneralSettings();
   }
 
   @After

@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
+import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.Projects.setGradleVersionUsed;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
@@ -128,8 +129,8 @@ public class GradleModelDataService extends AbstractProjectDataService<GradleMod
    * @return the Android-Gradle facet from the given module.
    */
   @NotNull
-  private static AndroidGradleFacet setAndGetAndroidGradleFacet(@NotNull  Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+  private static AndroidGradleFacet setAndGetAndroidGradleFacet(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    AndroidGradleFacet facet = findFacet(module, modelsProvider, AndroidGradleFacet.TYPE_ID);
     if (facet != null) {
       return facet;
     }
