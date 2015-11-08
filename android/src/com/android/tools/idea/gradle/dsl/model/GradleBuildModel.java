@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
-import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
+import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -192,19 +193,19 @@ public class GradleBuildModel extends GradleFileModel {
     }
 
     @Override
-    public void setDslElement(@NotNull String property, @NotNull GradleDslElement element) {
+    public void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
       if ((SOURCE_COMPATIBILITY_FIELD.equals(property) || TARGET_COMPATIBILITY_FIELD.equals(property))
           && (element instanceof GradleDslLiteral || element instanceof GradleDslReference)) {
         JavaDslElement javaDslElement = getProperty(JavaDslElement.NAME, JavaDslElement.class);
         if (javaDslElement == null) {
           javaDslElement = new JavaDslElement(this);
-          super.setDslElement(JavaDslElement.NAME, javaDslElement);
+          super.setParsedElement(JavaDslElement.NAME, javaDslElement);
         }
-        JavaVersionDslElement versionDslElement = new JavaVersionDslElement(javaDslElement, element, property);
-        javaDslElement.setDslElement(property, versionDslElement);
+        JavaVersionDslElement versionDslElement = new JavaVersionDslElement(javaDslElement, (GradleDslExpression)element, property);
+        javaDslElement.setParsedElement(property, versionDslElement);
         return;
       }
-      super.setDslElement(property, element);
+      super.setParsedElement(property, element);
     }
 
     @Override

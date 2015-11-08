@@ -19,8 +19,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-
 public class DependenciesDslElement extends GradlePropertiesDslElement {
   public static String NAME = "dependencies";
 
@@ -29,24 +27,13 @@ public class DependenciesDslElement extends GradlePropertiesDslElement {
   }
 
   @Override
-  public void addDslElement(@NotNull String configurationName, @NotNull GradleDslElement dependency) {
-    // Treat all literal and literal map as dependencies
-    // TODO analysis the configuration in context so we could exclude those are not dependencies
-    // TODO deal with list of dependencies such as:
-    //  runtime(
-    //    [group: 'com.google.code.guice', name: 'guice', version: '1.0'],
-    //    [group: 'com.google.guava', name: 'guava', version: '18.0'],
-    //    [group: 'com.android.support', name: 'appcompat-v7', version: '22.1.1']
-    //  )
-    // TODO deal with element that has closable such as:
-    // compile("xxx") { exclude "yyy" }
-
-    if (dependency instanceof GradleDslLiteral || dependency instanceof GradleDslLiteralMap || dependency instanceof GradleDslMethodCall) {
-      // TODO also check the children of GradleDslMethodCall
+  public void addParsedElement(@NotNull String configurationName, @NotNull GradleDslElement dependency) {
+    // Treat all expressions and expression maps as dependencies
+    if (dependency instanceof GradleDslExpression || dependency instanceof GradleDslExpressionMap) {
       GradleDslElementList elementList = getProperty(configurationName, GradleDslElementList.class);
       if (elementList == null) {
         elementList = new GradleDslElementList(this, configurationName);
-        super.addDslElement(configurationName, elementList);
+        super.addParsedElement(configurationName, elementList);
       }
       elementList.addParsedElement(dependency);
     }

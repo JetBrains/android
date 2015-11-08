@@ -62,18 +62,24 @@ public class DependenciesModel {
     return this;
   }
 
-  public DependenciesModel remove(@NotNull DependencyModel model) {
-    GradleDslElementList gradleDslElementList = myDslElement.getProperty(model.getConfigurationName(), GradleDslElementList.class);
+  public DependenciesModel remove(@NotNull DependencyModel dependency) {
+    GradleDslElementList gradleDslElementList = myDslElement.getProperty(dependency.getConfigurationName(), GradleDslElementList.class);
     if (gradleDslElementList != null) {
-      GradleDslElement dependencyElement = model.getDslElement();
-      if (dependencyElement.getParent() instanceof GradleDslMethodCall) {
-        GradleDslMethodCall methodCallElement = (GradleDslMethodCall)dependencyElement.getParent();
-        if (methodCallElement.getAllArguments().size() == 1) {
-          // TODO check if closure is not empty and let user know?
-          gradleDslElementList.removeElement(methodCallElement);
+      GradleDslElement dependencyElement = dependency.getDslElement();
+      GradleDslElement parent = dependencyElement.getParent();
+      if (parent instanceof GradleDslMethodCall) {
+        GradleDslMethodCall methodCall = (GradleDslMethodCall)parent;
+        List<GradleDslElement> arguments = methodCall.getArguments();
+        if (arguments.size() == 1 && arguments.get(0).equals(dependencyElement)) {
+          // If this is the last argument, remove the method call altogether.
+          gradleDslElementList.removeElement(methodCall);
         }
-      } else {
-        gradleDslElementList.removeElement(model.getDslElement());
+        else {
+          methodCall.remove(dependencyElement);
+        }
+      }
+      else {
+        gradleDslElementList.removeElement(dependencyElement);
       }
     }
     return this;
