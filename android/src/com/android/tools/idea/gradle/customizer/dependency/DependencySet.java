@@ -32,6 +32,9 @@ public class DependencySet {
   private final Multimap<String, LibraryDependency> myLibrariesByName = ArrayListMultimap.create();
   private final Map<String, ModuleDependency> myModulesByPath = Maps.newHashMap();
 
+  DependencySet() {
+  }
+
   /**
    * Adds the given dependency to this collection. If this collection already has a dependency under the same name, the dependency with the
    * wider scope is stored: {@link com.intellij.openapi.roots.DependencyScope#COMPILE} has wider scope than
