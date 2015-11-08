@@ -49,13 +49,13 @@ public final class AndroidModel {
 
   @NotNull
   public AndroidModel setBuildToolsVersion(int buildToolsVersion) {
-    myDslElement.setLiteralProperty(BUILD_TOOLS_VERSION, buildToolsVersion);
+    myDslElement.setNewLiteral(BUILD_TOOLS_VERSION, buildToolsVersion);
     return this;
   }
 
   @NotNull
   public AndroidModel setBuildToolsVersion(@NotNull String buildToolsVersion) {
-    myDslElement.setLiteralProperty(BUILD_TOOLS_VERSION, buildToolsVersion);
+    myDslElement.setNewLiteral(BUILD_TOOLS_VERSION, buildToolsVersion);
     return this;
   }
 
@@ -73,13 +73,13 @@ public final class AndroidModel {
 
   @NotNull
   public AndroidModel setCompileSdkVersion(int compileSdkVersion) {
-    myDslElement.setLiteralProperty(COMPILE_SDK_VERSION, compileSdkVersion);
+    myDslElement.setNewLiteral(COMPILE_SDK_VERSION, compileSdkVersion);
     return this;
   }
 
   @NotNull
   public AndroidModel setCompileSdkVersion(@NotNull String compileSdkVersion) {
-    myDslElement.setLiteralProperty(COMPILE_SDK_VERSION, compileSdkVersion);
+    myDslElement.setNewLiteral(COMPILE_SDK_VERSION, compileSdkVersion);
     return this;
   }
 
@@ -118,7 +118,7 @@ public final class AndroidModel {
 
   @NotNull
   public AndroidModel setDefaultPublishConfig(@NotNull String defaultPublishConfig) {
-    myDslElement.setLiteralProperty(DEFAULT_PUBLISH_CONFIG, defaultPublishConfig);
+    myDslElement.setNewLiteral(DEFAULT_PUBLISH_CONFIG, defaultPublishConfig);
     return this;
   }
 
@@ -135,13 +135,13 @@ public final class AndroidModel {
 
   @NotNull
   public AndroidModel addFlavorDimension(@NotNull String flavorDimension) {
-    myDslElement.addToListProperty(FLAVOR_DIMENSIONS, flavorDimension);
+    myDslElement.addToNewLiteralList(FLAVOR_DIMENSIONS, flavorDimension);
     return this;
   }
 
   @NotNull
   public AndroidModel removeFlavorDimension(@NotNull String flavorDimension) {
-    myDslElement.removeFromListProperty(FLAVOR_DIMENSIONS, flavorDimension);
+    myDslElement.removeFromExpressionList(FLAVOR_DIMENSIONS, flavorDimension);
     return this;
   }
 
@@ -153,7 +153,7 @@ public final class AndroidModel {
 
   @NotNull
   public AndroidModel replaceFlavorDimension(@NotNull String oldFlavorDimension, @NotNull String newFlavorDimension) {
-    myDslElement.replaceInListProperty(FLAVOR_DIMENSIONS, oldFlavorDimension, newFlavorDimension);
+    myDslElement.replaceInExpressionList(FLAVOR_DIMENSIONS, oldFlavorDimension, newFlavorDimension);
     return this;
   }
 
@@ -164,7 +164,7 @@ public final class AndroidModel {
 
   @NotNull
   public AndroidModel setGeneratePureSplits(boolean generatePureSplits) {
-    myDslElement.setLiteralProperty(GENERATE_PURE_SPLITS, generatePureSplits);
+    myDslElement.setNewLiteral(GENERATE_PURE_SPLITS, generatePureSplits);
     return this;
   }
 
@@ -215,7 +215,7 @@ public final class AndroidModel {
 
   @NotNull
   public AndroidModel setPublishNonDefault(boolean publishNonDefault) {
-    myDslElement.setLiteralProperty(PUBLISH_NON_DEFAULT, publishNonDefault);
+    myDslElement.setNewLiteral(PUBLISH_NON_DEFAULT, publishNonDefault);
     return this;
   }
 
@@ -232,7 +232,7 @@ public final class AndroidModel {
 
   @NotNull
   public AndroidModel setResourcePrefix(@NotNull String resourcePrefix) {
-    myDslElement.setLiteralProperty(RESOURCE_PREFIX, resourcePrefix);
+    myDslElement.setNewLiteral(RESOURCE_PREFIX, resourcePrefix);
     return this;
   }
 

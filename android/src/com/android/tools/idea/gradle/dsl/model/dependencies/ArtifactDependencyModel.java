@@ -16,14 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteralMap;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.List;
 
@@ -70,36 +66,31 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
   @NotNull
   protected static List<ArtifactDependencyModel> create(@NotNull GradleDslElement element) {
     List<ArtifactDependencyModel> results = Lists.newArrayList();
-    assert element instanceof GradleDslLiteral || element instanceof GradleDslLiteralMap || element instanceof GradleDslMethodCall;
-    if (element instanceof GradleDslLiteralMap) {
-      results.add(new MapNotation((GradleDslLiteralMap)element));
+    assert element instanceof GradleDslExpression || element instanceof GradleDslExpressionMap;
+    if (element instanceof GradleDslExpressionMap) {
+      results.add(new MapNotation((GradleDslExpressionMap)element));
     }
     else if (element instanceof GradleDslMethodCall) {
-      for (GradleDslElement argument : ((GradleDslMethodCall)element).getAllArguments()) {
+      for (GradleDslElement argument : ((GradleDslMethodCall)element).getArguments()) {
         results.addAll(create(argument));
       }
     } else {
-      GradleDslLiteral dslLiteral = (GradleDslLiteral)element;
+      GradleDslExpression dslLiteral = (GradleDslLiteral)element;
       String value = dslLiteral.getValue(String.class);
       if (value != null) {
         ExternalDependencySpec spec = ExternalDependencySpec.create(value);
         if (spec != null) {
           results.add(new CompactNotationModel((GradleDslLiteral)element, spec));
-        } else {
-          throw new IllegalArgumentException("'" + value + "' is not a valid dependency specification");
         }
-      } else {
-        assert dslLiteral.getLiteral() != null;
-        throw new IllegalArgumentException("'" + dslLiteral.getLiteral().getText() + "' is not a valid dependency specification");
       }
     }
     return results;
   }
 
   private static class MapNotation extends ArtifactDependencyModel {
-    @NotNull private GradleDslLiteralMap myDslElement;
+    @NotNull private GradleDslExpressionMap myDslElement;
 
-    MapNotation(@NotNull GradleDslLiteralMap dslElement) {
+    MapNotation(@NotNull GradleDslExpressionMap dslElement) {
       myDslElement = dslElement;
     }
 
@@ -125,7 +116,7 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
 
     @Override
     public void setVersion(@NotNull String name) {
-      myDslElement.setLiteralProperty("version", name);
+      myDslElement.setNewLiteral("version", name);
     }
 
     @Nullable
@@ -141,19 +132,19 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
       return myDslElement.getProperty("ext", String.class);
     }
 
-    @NotNull
     @Override
+    @NotNull
     protected GradleDslElement getDslElement() {
       return myDslElement;
     }
   }
 
   private static class CompactNotationModel extends ArtifactDependencyModel {
-    @NotNull private GradleDslLiteral myDslElement;
+    @NotNull private GradleDslExpression myDslExpression;
     @NotNull private ExternalDependencySpec mySpec;
 
-    private CompactNotationModel(@NotNull GradleDslLiteral dslElement, @NotNull  ExternalDependencySpec spec) {
-      myDslElement = dslElement;
+    private CompactNotationModel(@NotNull GradleDslExpression dslExpression, @NotNull  ExternalDependencySpec spec) {
+      myDslExpression = dslExpression;
       mySpec = spec;
     }
 
@@ -178,7 +169,7 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
     @Override
     public void setVersion(@NotNull String version) {
       mySpec.version = version;
-      myDslElement.setValue(mySpec.toString());
+      myDslExpression.setValue(mySpec.toString());
     }
 
     @Nullable
@@ -193,10 +184,10 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
       return mySpec.extension;
     }
 
-    @NotNull
     @Override
+    @NotNull
     protected GradleDslElement getDslElement() {
-      return myDslElement;
+      return myDslExpression;
     }
   }
 }

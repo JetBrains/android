@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.dependencies.external;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.android.tools.idea.gradle.dsl.dependencies.Dependency;
 import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

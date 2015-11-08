@@ -20,11 +20,6 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.util.Collection;
@@ -33,81 +28,96 @@ import java.util.List;
 /**
  * Represents a {@link GrMethodCallExpression} element.
  */
-public final class GradleDslMethodCall extends GradleDslElement {
-  private final @NotNull List<GradleDslLiteral> myLiteralArguments;
-  private final @NotNull List<GradleDslLiteralMap> myMapArguments;
-  private final @NotNull List<GradleDslElement> myAllArguments;
+public final class GradleDslMethodCall extends GradleDslExpression {
+  private final @NotNull List<GradleDslElement> myArguments = Lists.newArrayList();
+  private final @NotNull List<GradleDslElement> myToBeRemovedArguments = Lists.newArrayList();
 
   public GradleDslMethodCall(@NotNull GradleDslElement parent,
                              @NotNull GrMethodCallExpression methodCall,
-                             @NotNull String name,
-                             @NotNull GrArgumentList argumentList) {
+                             @NotNull String name) {
     super(parent, methodCall, name);
+  }
 
-    List<GradleDslLiteral> literalArguments = Lists.newArrayList();
-    List<GradleDslLiteralMap> mapArguments = Lists.newArrayList();
+  public void addParsedExpression(@NotNull GradleDslExpression expression) {
+    expression.myParent = this;
+    myArguments.add(expression);
+  }
 
-    GrExpression[] expressionArguments = argumentList.getExpressionArguments();
-    for (GrExpression expression : expressionArguments) {
-      if (expression instanceof GrLiteral) {
-        literalArguments.add(new GradleDslLiteral(this, argumentList, name, (GrLiteral)expression));
-      }
-      else if (expression instanceof GrListOrMap) {
-        GrListOrMap listOrMap = (GrListOrMap)expression;
-        if (listOrMap.isMap()) {
-          mapArguments.add(new GradleDslLiteralMap(this, name, listOrMap));
-        }
-        else {
-          literalArguments.addAll(new GradleDslLiteralList(this, name, listOrMap).getElements());
-        }
-      }
+  public void addParsedExpressionMap(@NotNull GradleDslExpressionMap expressionMap) {
+    expressionMap.myParent = this;
+    myArguments.add(expressionMap);
+  }
+
+  @NotNull
+  public List<GradleDslElement> getArguments() {
+    if (myToBeRemovedArguments.isEmpty()) {
+      return ImmutableList.copyOf(myArguments);
     }
 
-    GrNamedArgument[] namedArguments = argumentList.getNamedArguments();
-    if (namedArguments.length > 0) {
-      mapArguments.add(new GradleDslLiteralMap(this, argumentList, name, namedArguments));
+    List<GradleDslElement> result = Lists.newArrayList();
+    result.addAll(myArguments);
+    for (GradleDslElement argument : myToBeRemovedArguments) {
+      result.remove(argument);
     }
-
-    myLiteralArguments = ImmutableList.copyOf(literalArguments);
-    myMapArguments = ImmutableList.copyOf(mapArguments);
-    myAllArguments = ImmutableList.<GradleDslElement>builder().addAll(myLiteralArguments).addAll(myMapArguments).build();
-  }
-
-  @NotNull
-  public List<GradleDslLiteral> getLiteralArguments() {
-    return myLiteralArguments;
-  }
-
-  @NotNull
-  public List<GradleDslLiteralMap> getMapArguments() {
-    return myMapArguments;
-  }
-
-  @NotNull
-  public List<GradleDslElement> getAllArguments() {
-    return myAllArguments;
+    return result;
   }
 
   @Override
   @NotNull
   protected Collection<GradleDslElement> getChildren() {
-    return ImmutableList.of();
+    return getArguments();
+  }
+
+  @Nullable
+  @Override
+  public Object getValue() {
+    GroovyPsiElement psiElement = getPsiElement();
+    return psiElement != null ? psiElement.getText() : null;
+  }
+
+  @Nullable
+  @Override
+  public <T> T getValue(@NotNull Class<T> clazz) {
+    Object value = getValue();
+    if (clazz.isInstance(value)) {
+      return clazz.cast(value);
+    }
+    return null;
+  }
+
+  @Override
+  public void setValue(@NotNull Object value) {
+    // TODO: Add support to set a method value.
+  }
+
+  public void remove(GradleDslElement argument) {
+    if (myArguments.contains(argument)) {
+      myToBeRemovedArguments.add(argument);
+      setModified(true);
+    }
   }
 
   @Override
   protected void apply() {
-    for (GradleDslElement element : getAllArguments()) {
-      if (element.isModified()) {
-        element.applyChanges();
+    for (GradleDslElement argument : myToBeRemovedArguments) {
+      if (myArguments.remove(argument)) {
+        argument.delete();
+      }
+    }
+
+    for (GradleDslElement argument : myArguments) {
+      if (argument.isModified()) {
+        argument.applyChanges();
       }
     }
   }
 
   @Override
   protected void reset() {
-    for (GradleDslElement element : getAllArguments()) {
-      if (element.isModified()) {
-        element.resetState();
+    myToBeRemovedArguments.clear();
+    for (GradleDslElement argument : myArguments) {
+      if (argument.isModified()) {
+        argument.resetState();
       }
     }
   }

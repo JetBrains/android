@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +63,7 @@ public class GradleSettingsModel extends GradleFileModel {
     if (!modulePath.startsWith(":")) {
       modulePath = ":" + modulePath;
     }
-    myGradleDslFile.addToListProperty(INCLUDE, modulePath);
+    myGradleDslFile.addToNewLiteralList(INCLUDE, modulePath);
     return this;
   }
 
@@ -71,9 +71,9 @@ public class GradleSettingsModel extends GradleFileModel {
   public GradleSettingsModel removeModulePath(@NotNull String modulePath) {
     // Try to remove the module path whether it has ":" prefix or not.
     if (!modulePath.startsWith(":")) {
-      myGradleDslFile.removeFromListProperty(INCLUDE, ":" + modulePath);
+      myGradleDslFile.removeFromExpressionList(INCLUDE, ":" + modulePath);
     }
-    myGradleDslFile.removeFromListProperty(INCLUDE, modulePath);
+    myGradleDslFile.removeFromExpressionList(INCLUDE, modulePath);
     return this;
   }
 
@@ -84,9 +84,9 @@ public class GradleSettingsModel extends GradleFileModel {
       newModulePath = ":" + newModulePath;
     }
     if (!oldModulePath.startsWith(":")) {
-      myGradleDslFile.replaceInListProperty(INCLUDE, ":" + oldModulePath, newModulePath);
+      myGradleDslFile.replaceInExpressionList(INCLUDE, ":" + oldModulePath, newModulePath);
     }
-    myGradleDslFile.replaceInListProperty(INCLUDE, oldModulePath, newModulePath);
+    myGradleDslFile.replaceInExpressionList(INCLUDE, oldModulePath, newModulePath);
     return this;
   }
 
@@ -96,12 +96,12 @@ public class GradleSettingsModel extends GradleFileModel {
     }
 
     @Override
-    public void addDslElement(@NotNull String property, @NotNull GradleDslElement element) {
+    public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
       if (property.equals(INCLUDE)) {
-        addToDslLiteralList(property, element);
+        addToParsedExpressionList(property, element);
         return;
       }
-      super.addDslElement(property, element);
+      super.addParsedElement(property, element);
     }
   }
 }
