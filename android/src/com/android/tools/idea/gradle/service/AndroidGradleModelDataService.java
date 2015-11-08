@@ -110,8 +110,8 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
   /**
    * Sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
    *
-   * @param toImport    contains the Android-Gradle project.
-   * @param project     IDEA project to configure.
+   * @param toImport contains the Android-Gradle project.
+   * @param project  IDEA project to configure.
    */
   @Override
   public void importData(@NotNull Collection<DataNode<AndroidGradleModel>> toImport,
@@ -133,7 +133,9 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     }
   }
 
-  private void doImport(final Collection<DataNode<AndroidGradleModel>> toImport, final Project project, final IdeModifiableModelsProvider modelsProvider) throws Throwable {
+  private void doImport(final Collection<DataNode<AndroidGradleModel>> toImport,
+                        final Project project,
+                        final IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
@@ -290,11 +292,9 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
   private static void setIdeEncodingAndAddEncodingMismatchMessage(@NotNull String newEncoding, @NotNull Project project) {
     EncodingProjectManager encodings = EncodingProjectManager.getInstance(project);
-    String[] text = {
-      String.format("The project encoding (%1$s) has been reset to the encoding specified in the Gradle build files (%2$s).",
-                    encodings.getDefaultCharset().displayName(), newEncoding),
-      "Mismatching encodings can lead to serious bugs."
-    };
+    String[] text = {String.format("The project encoding (%1$s) has been reset to the encoding specified in the Gradle build files (%2$s).",
+                                   encodings.getDefaultCharset().displayName(), newEncoding),
+      "Mismatching encodings can lead to serious bugs."};
     encodings.setDefaultCharsetName(newEncoding);
     NotificationHyperlink openDocHyperlink = new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info...");
     ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, INFO, text), openDocHyperlink);
@@ -303,12 +303,11 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
   private static void addLayoutRenderingIssueMessage(String modelVersion, @NotNull Project project) {
     // See https://code.google.com/p/android/issues/detail?id=170841
     NotificationHyperlink quickFix = new FixGradleModelVersionHyperlink(false);
-    NotificationHyperlink openDocHyperlink = new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841",
-                                                                  "More Info...");
-    String[] text = {
-      String.format("Using an obsolete version of the Gradle plugin (%1$s); this can lead to layouts not rendering correctly.",
-                    modelVersion)
-    };
+    NotificationHyperlink openDocHyperlink =
+      new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info...");
+    String[] text =
+      {String.format("Using an obsolete version of the Gradle plugin (%1$s); this can lead to layouts not rendering correctly.",
+                     modelVersion)};
     ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, WARNING, text), openDocHyperlink, quickFix);
   }
 

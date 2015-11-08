@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.service;
 
-import com.android.tools.idea.gradle.AndroidProjectKeys;
-import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacetType;
 import com.android.tools.idea.gradle.util.Facets;
@@ -39,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
 import static com.android.tools.idea.gradle.util.Projects.setGradleVersionUsed;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
@@ -48,10 +48,10 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class GradleModelDataService extends AbstractProjectDataService<GradleModel, Void> {
   private static final Logger LOG = Logger.getInstance(GradleModelDataService.class);
 
-  @NotNull
   @Override
+  @NotNull
   public Key<GradleModel> getTargetDataKey() {
-    return AndroidProjectKeys.GRADLE_MODEL;
+    return GRADLE_MODEL;
   }
 
   @Override
@@ -62,7 +62,8 @@ public class GradleModelDataService extends AbstractProjectDataService<GradleMod
     if (!toImport.isEmpty()) {
       try {
         doImport(toImport, project, modelsProvider);
-      } catch (Throwable e) {
+      }
+      catch (Throwable e) {
         LOG.error(String.format("Failed to set up modules in project '%1$s'", project.getName()), e);
         GradleSyncState.getInstance(project).syncFailed(e.getMessage());
       }
@@ -81,8 +82,8 @@ public class GradleModelDataService extends AbstractProjectDataService<GradleMod
             GradleModel gradleModel = gradleProjectsByName.get(module.getName());
             if (gradleModel == null) {
               // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
-              // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides not
-              // to delete the orphan module when Studio prompts to do so.
+              // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides
+              // not to delete the orphan module when Studio prompts to do so.
               Facets.removeAllFacetsOfType(AndroidGradleFacet.TYPE_ID, modelsProvider.getModifiableFacetModel(module));
             }
             else {
@@ -122,12 +123,12 @@ public class GradleModelDataService extends AbstractProjectDataService<GradleMod
   /**
    * Retrieves the Android-Gradle facet from the given module. If the given module does not have it, this method will create a new one.
    *
-   * @param module the given module.
+   * @param module         the given module.
    * @param modelsProvider platform modifiable models provider
    * @return the Android-Gradle facet from the given module.
    */
   @NotNull
-  private static AndroidGradleFacet setAndGetAndroidGradleFacet(Module module, IdeModifiableModelsProvider modelsProvider) {
+  private static AndroidGradleFacet setAndGetAndroidGradleFacet(@NotNull  Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
     AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
     if (facet != null) {
       return facet;
