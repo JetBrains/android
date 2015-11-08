@@ -91,7 +91,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
                                       @NotNull IdeModifiableModelsProvider modelsProvider,
                                       @NotNull ModuleDependency dependency,
                                       @NotNull AndroidProject androidProject) {
-    Module moduleDependency = dependency.getModule(modelsProvider.getModules(), modelsProvider);
+    Module moduleDependency = dependency.getModule(modelsProvider);
     LibraryDependency compiledArtifact = dependency.getBackupDependency();
 
     if (moduleDependency != null) {
