@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.testartifact.TestArtifactSearchScopes;
+import com.google.common.collect.Lists;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.compiler.CompileScope;
@@ -25,6 +27,8 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -36,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -59,13 +62,38 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       return;
     }
 
-    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
     // Modify the class path only if we're dealing with the unit test artifact.
-    if (testArtifact == null || !(testArtifact instanceof JavaArtifact) || !ARTIFACT_UNIT_TEST.equals(testArtifact.getName())) {
+    JavaArtifact testArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
+    if (testArtifact == null) {
       return;
     }
 
     PathsList classPath = javaParameters.getClassPath();
+
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+      if (testScopes == null) {
+        return;
+      }
+
+      // Filter the library / module dependencies that are in android test
+      List<String> newClassPath = Lists.newArrayList();
+      for (String path : classPath.getPathList()) {
+        VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(new File(path));
+        if (vFile != null && testScopes.getUnitTestExcludeScope().accept(vFile)) {
+          continue;
+        }
+        newClassPath.add(path);
+      }
+
+      // There is potential performance if we just call remove for all excluded items because every random remove operation has linear
+      // complexity. TODO change the {@code PathList} API.
+      for (VirtualFile vFile : classPath.getVirtualFiles()) {
+        if (testScopes.getUnitTestExcludeScope().accept(vFile)) {
+          classPath.remove(vFile.getPath());
+        }
+      }
+    }
 
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null) {
@@ -74,7 +102,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     String originalClassPath = classPath.getPathsString();
     try {
-      handlePlatformJar(classPath, platform, (JavaArtifact)testArtifact);
+      handlePlatformJar(classPath, platform, testArtifact);
       handleJavaResources(module, androidModel, classPath);
     }
     catch (RuntimeException e) {
@@ -157,7 +185,8 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
 
     // The only test resources we want to use, are the ones from the module where the test is. They should go first, before main resources.
-    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
+    JavaArtifact testArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
+
     if (testArtifact != null) {
       try {
         classPath.add(testArtifact.getJavaResourcesFolder());

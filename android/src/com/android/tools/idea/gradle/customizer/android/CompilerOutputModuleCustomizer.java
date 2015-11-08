@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
-import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.JavaArtifact;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
@@ -52,10 +52,11 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
     }
     Variant selectedVariant = androidModel.getSelectedVariant();
     File mainClassesFolder = selectedVariant.getMainArtifact().getClassesFolder();
-    BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(selectedVariant);
-    File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
 
-    final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
+    ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
+    JavaArtifact testArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
+
+    File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
     setOutputPaths(moduleModel, mainClassesFolder, testClassesFolder);
   }
 
