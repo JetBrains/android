@@ -23,6 +23,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +65,9 @@ public class JavaLanguageLevelModuleCustomizer implements ModuleCustomizer<JavaP
       languageLevel = JDK_1_6; // The minimum safe Java language level.
     }
 
-    modelsProvider.getModifiableRootModel(module).getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
+    ModifiableRootModel rootModel = modelsProvider.getModifiableRootModel(module);
+    LanguageLevelModuleExtensionImpl moduleExtension = rootModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class);
+    moduleExtension.setLanguageLevel(languageLevel);
   }
 
   @Nullable

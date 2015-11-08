@@ -20,7 +20,6 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.FullRevision.PreviewComparison;
 import com.android.sdklib.repository.PreciseRevision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
@@ -68,6 +67,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.sdklib.repository.PreciseRevision.parseRevision;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.messages.Message.Type.INFO;
@@ -104,7 +104,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
   @NotNull
   @Override
   public Key<AndroidGradleModel> getTargetDataKey() {
-    return AndroidProjectKeys.ANDROID_MODEL;
+    return ANDROID_MODEL;
   }
 
   /**
