@@ -128,9 +128,7 @@ public class SdkUpdaterConfigPanel {
     myChannelLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
-        UpdateSettingsConfigurable settings = new UpdateSettingsConfigurable();
-        // TODO jbakermalone - this method doesn't exist anymore
-        //settings.setCheckNowEnabled(false);
+        UpdateSettingsConfigurable settings = new UpdateSettingsConfigurable(false);
         ShowSettingsUtil.getInstance().editConfigurable(getComponent(), settings);
         channelChangedCallback.run();
       }
