@@ -20,10 +20,8 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.dependency.*;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
-import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -93,17 +91,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
                                       @NotNull IdeModifiableModelsProvider modelsProvider,
                                       @NotNull ModuleDependency dependency,
                                       @NotNull AndroidProject androidProject) {
-    Module moduleDependency = null;
-    for (Module m : modelsProvider.getModules()) {
-      AndroidGradleFacet androidGradleFacet = findFacet(m, modelsProvider, AndroidGradleFacet.TYPE_ID);
-      if (androidGradleFacet != null) {
-        String gradlePath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-        if (Objects.equal(gradlePath, dependency.getGradlePath())) {
-          moduleDependency = m;
-          break;
-        }
-      }
-    }
+    Module moduleDependency = dependency.getModule(modelsProvider.getModules(), modelsProvider);
     LibraryDependency compiledArtifact = dependency.getBackupDependency();
 
     if (moduleDependency != null) {

@@ -377,7 +377,7 @@ public abstract class IdeaSourceProvider {
     return srcDirectories;
   }
 
-  private static Collection<File> getAllSourceFolders(SourceProvider provider) {
+  public static Collection<File> getAllSourceFolders(SourceProvider provider) {
     List<File> srcDirectories = Lists.newArrayList();
     srcDirectories.addAll(provider.getJavaDirectories());
     srcDirectories.addAll(provider.getResDirectories());
