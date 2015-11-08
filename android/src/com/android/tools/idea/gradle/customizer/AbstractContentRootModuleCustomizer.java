@@ -62,7 +62,7 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
   }
 
   @NotNull
-  protected abstract Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel ideaModuleModel,
+  protected abstract Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel moduleModel,
                                                                          @NotNull T externalProjectModel);
 
   protected abstract void setUpContentEntries(@NotNull ModifiableRootModel ideaModuleModel,

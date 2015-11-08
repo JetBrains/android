@@ -41,10 +41,10 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testLoadBothTestArtifacts() throws IOException {
     GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = true;
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
+    EditorFixture editor = myProjectFrame.getEditor();
 
-    Module appModule = projectFrame.getModule("app");
+    Module appModule = myProjectFrame.getModule("app");
     // Following source roots will to be loaded:
     // main test freeTest debugTest androidTest freeAndroidTest res
     assertEquals(7, ModuleRootManager.getInstance(appModule).getSourceRoots().length);
