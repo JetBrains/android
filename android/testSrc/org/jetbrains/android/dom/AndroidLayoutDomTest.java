@@ -460,6 +460,13 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     toTestCompletion("tn13.xml", "tn13_after.xml");
   }
 
+  // Regression test for http://b.android.com/193339
+  // Completion by simple class name in layouts should succeed when tag name is typed lowercase,
+  // the bug made it fail because two identical completion elements have been shown.
+  public void testTagNameCompletionBySimpleNameLowercase() throws Throwable {
+    toTestCompletion("tag_name_lowercase.xml", "tag_name_lowercase_after.xml");
+  }
+
   public void testTagNameIcons1() throws Throwable {
     doTestTagNameIcons("tn10.xml");
   }
