@@ -49,12 +49,14 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
+import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
@@ -460,5 +462,15 @@ public final class Projects {
 
   public static void setModulesToDisposePostSync(@NotNull Project project, @Nullable Collection<Module> modules) {
     project.putUserData(MODULES_TO_DISPOSE_POST_SYNC, modules);
+  }
+
+  /**
+   * Indicates whether the project in the given folder can be imported as a Gradle project.
+   * @param importSource the folder containing the project.
+   * @return {@code true} if the project can be imported as a Gradle project, {@code false} otherwise.
+   */
+  public static boolean canImportAsGradleProject(@NotNull VirtualFile importSource) {
+    VirtualFile target = findImportTarget(importSource);
+    return target != null && GradleConstants.EXTENSION.equals(target.getExtension());
   }
 }
