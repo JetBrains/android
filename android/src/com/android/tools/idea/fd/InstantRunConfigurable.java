@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
@@ -180,7 +180,7 @@ public class InstantRunConfigurable
   public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
     String version = MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
     // Pick max version of "recommended Gradle plugin" and "minimum required for instant run"
-    if (FullRevision.parseRevision(GRADLE_PLUGIN_RECOMMENDED_VERSION).compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) > 0) {
+    if (Revision.parseRevision(GRADLE_PLUGIN_RECOMMENDED_VERSION).compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) > 0) {
       version = GRADLE_PLUGIN_RECOMMENDED_VERSION;
     }
 
