@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.ui.properties.expressions;
 
+import com.android.tools.idea.ui.properties.core.IntProperty;
+import com.android.tools.idea.ui.properties.core.IntValueProperty;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 public final class ExpressionTest {
   @Test(expected = IllegalArgumentException.class)
@@ -32,5 +36,22 @@ public final class ExpressionTest {
         return value.get();
       }
     };
+  }
+
+  @Test
+  public void testSimpleExpression() throws Exception {
+    final IntProperty intValue = new IntValueProperty(13);
+    final Expression<String> intToString = new Expression<String>(intValue) {
+      @NotNull
+      @Override
+      public String get() {
+        return intValue.get().toString();
+      }
+    };
+
+    assertThat(intToString.get()).isEqualTo("13");
+
+    intValue.set(-13);
+    assertThat(intToString.get()).isEqualTo("-13");
   }
 }
