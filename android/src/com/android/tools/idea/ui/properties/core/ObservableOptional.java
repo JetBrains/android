@@ -22,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Read-only handle to an {@link OptionalProperty}.
+ * <p/>
+ * Designed with an interface that emulates Guava's {@link Optional}.
  */
 public interface ObservableOptional<T> extends ObservableValue<Optional<T>> {
 

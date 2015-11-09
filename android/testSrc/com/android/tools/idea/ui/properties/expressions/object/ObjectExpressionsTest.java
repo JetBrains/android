@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.properties.expressions.object;
 
 import com.android.tools.idea.ui.properties.core.OptionalProperty;
+import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.google.common.base.Optional;
@@ -29,7 +30,7 @@ public final class ObjectExpressionsTest {
   @Test
   public void testFromOptionalExpression() {
 
-    OptionalProperty<Integer> intProperty = OptionalProperty.absent();
+    OptionalProperty<Integer> intProperty = OptionalValueProperty.absent();
 
     FromOptionalExpression<Integer, String> toStringExpr = new FromOptionalExpression<Integer, String>(intProperty) {
       @Override
@@ -56,7 +57,7 @@ public final class ObjectExpressionsTest {
   @Test
   public void testFromOptionalExpressionWithDefault() {
 
-    OptionalProperty<Integer> intProperty = OptionalProperty.of(42);
+    OptionalProperty<Integer> intProperty = OptionalValueProperty.of(42);
 
     FromOptionalExpression<Integer, String> toStringExpr =
       new FromOptionalExpression.WithDefault<Integer, String>("(null int)", intProperty) {
