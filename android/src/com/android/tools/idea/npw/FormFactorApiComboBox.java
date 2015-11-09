@@ -19,8 +19,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
@@ -179,7 +178,7 @@ public final class FormFactorApiComboBox extends JComboBox {
         populateApiLevels(targetApiLevel, ourHighestInstalledApiTarget, stateStore);
       }
       AndroidVersion androidVersion = new AndroidVersion(targetItem.apiLevel, null);
-      IPkgDesc platformDesc = PkgDesc.Builder.newPlatform(androidVersion, new MajorRevision(1), FullRevision.NOT_SPECIFIED).create();
+      IPkgDesc platformDesc = PkgDesc.Builder.newPlatform(androidVersion, new Revision(1), Revision.NOT_SPECIFIED).create();
 
       // Check to see if this is installed. If not, request that we install it
       if (myInstallRequest != null) {

@@ -16,8 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
@@ -109,11 +108,11 @@ public class SdkMerger {
       LocalPkgInfo destPkg = destPackages.get(srcPkg.getDesc().getInstallId());
       if (destPkg != null) {
         IPkgDesc destPkgDesc = destPkg.getDesc();
-        FullRevision srcFullRevision = srcPkgDesc.getFullRevision();
-        FullRevision destFullRevision = destPkgDesc.getFullRevision();
-        MajorRevision srcMajorRevision = srcPkgDesc.getMajorRevision();
-        MajorRevision destMajorRevision = destPkgDesc.getMajorRevision();
-        if ((srcFullRevision != null && destFullRevision != null && srcFullRevision.compareTo(destFullRevision) > 0) ||
+        Revision srcRevision = srcPkgDesc.getRevision();
+        Revision destRevision = destPkgDesc.getRevision();
+        Revision srcMajorRevision = srcPkgDesc.getRevision();
+        Revision destMajorRevision = destPkgDesc.getRevision();
+        if ((srcRevision != null && destRevision != null && srcRevision.compareTo(destRevision) > 0) ||
             (srcMajorRevision != null && destMajorRevision != null && srcMajorRevision.compareTo(destMajorRevision) > 0)) {
           // Package exists in destination but is old; replace it.
           results.add(new MergeablePackage(srcPkg, destPkg, destLocation));

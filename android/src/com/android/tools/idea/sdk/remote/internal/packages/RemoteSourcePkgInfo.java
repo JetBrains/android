@@ -20,10 +20,9 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.io.IFileOp;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.io.FileOp;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
@@ -62,7 +61,7 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
     }
     AndroidVersion version = new AndroidVersion(apiLevel, codeName);
 
-    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newSource(version, new MajorRevision(getRevision()));
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newSource(version, getRevision());
     pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), version, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
     pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, version, isObsolete()));
@@ -121,7 +120,7 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, AndroidVersion version, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, AndroidVersion version, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
@@ -159,7 +158,7 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
    * so that users don't end up modifying sources by mistake in Eclipse.
    */
   @Override
-  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, IFileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
+  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, FileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
     super.postUnzipFileHook(archive, monitor, fileOp, unzippedFile, zipEntry);
 
     if (fileOp.isFile(unzippedFile) && !SdkConstants.FN_SOURCE_PROP.equals(unzippedFile.getName())) {

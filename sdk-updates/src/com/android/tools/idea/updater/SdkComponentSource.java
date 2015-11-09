@@ -17,7 +17,7 @@ package com.android.tools.idea.updater;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
@@ -162,17 +162,17 @@ public class SdkComponentSource implements ExternalComponentSource {
     mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, new SdkLoadedCallback(false) {
       @Override
       public void doRun(@NotNull SdkPackages packages) {
-        PreciseRevision toolsRevision = null;
-        PreciseRevision platformRevision = null;
+        Revision toolsRevision = null;
+        Revision platformRevision = null;
         AndroidVersion platformVersion = null;
         for (LocalPkgInfo info : packages.getLocalPkgInfos()) {
           if (info.getDesc().getType() == PkgType.PKG_TOOLS &&
-              (toolsRevision == null || toolsRevision.compareTo(info.getDesc().getPreciseRevision()) < 0)) {
-            toolsRevision = info.getDesc().getPreciseRevision();
+              (toolsRevision == null || toolsRevision.compareTo(info.getDesc().getRevision()) < 0)) {
+            toolsRevision = info.getDesc().getRevision();
           }
           if (info.getDesc().getType() == PkgType.PKG_PLATFORM &&
               (platformVersion == null || platformVersion.compareTo(info.getDesc().getAndroidVersion()) < 0)) {
-            platformRevision = info.getDesc().getPreciseRevision();
+            platformRevision = info.getDesc().getRevision();
             platformVersion = info.getDesc().getAndroidVersion();
           }
         }

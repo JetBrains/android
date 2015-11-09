@@ -16,7 +16,7 @@
 package com.android.tools.idea.stats;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gson.*;
@@ -290,12 +290,12 @@ public class DistributionService {
 
   @Nullable
   private static List<Distribution> loadDistributionsFromJson(String jsonString) {
-    Type fullRevisionType = new TypeToken<FullRevision>() {
+    Type fullRevisionType = new TypeToken<Revision>() {
     }.getType();
-    GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(fullRevisionType, new JsonDeserializer<FullRevision>() {
+    GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(fullRevisionType, new JsonDeserializer<Revision>() {
       @Override
-      public FullRevision deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        return FullRevision.parseRevision(json.getAsString());
+      public Revision deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        return Revision.parseRevision(json.getAsString());
       }
     });
     Gson gson = gsonBuilder.create();

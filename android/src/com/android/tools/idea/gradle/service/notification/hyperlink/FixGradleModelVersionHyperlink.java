@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.SdkConstants;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.intellij.openapi.diagnostic.Logger;
@@ -128,7 +128,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
       String basePath = project.getBasePath();
       if (basePath != null) {
         File wrapperPropertiesFilePath = getGradleWrapperPropertiesFilePath(new File(basePath));
-        FullRevision current = getGradleVersionInWrapper(wrapperPropertiesFilePath);
+        Revision current = getGradleVersionInWrapper(wrapperPropertiesFilePath);
         if (current != null && !isSupportedGradleVersion(current)) {
           try {
             updateGradleDistributionUrl(myGradleVersion, wrapperPropertiesFilePath);
@@ -143,7 +143,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   }
 
   @Nullable
-  private static FullRevision getGradleVersionInWrapper(@NotNull File wrapperPropertiesFilePath) {
+  private static Revision getGradleVersionInWrapper(@NotNull File wrapperPropertiesFilePath) {
     String version = null;
     try {
       version = getGradleWrapperVersion(wrapperPropertiesFilePath);
@@ -153,7 +153,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
     }
     if (isNotEmpty(version)) {
       try {
-        return FullRevision.parseRevision(version);
+        return Revision.parseRevision(version);
       }
       catch (NumberFormatException e) {
         LOG.warn("Failed to parse Gradle version " + version, e);

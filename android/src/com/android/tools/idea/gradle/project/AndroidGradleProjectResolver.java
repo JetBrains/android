@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.ImportedModule;
@@ -345,7 +345,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @NotNull
-  private static String getUnsupportedModelVersionErrorMsg(@Nullable FullRevision modelVersion) {
+  private static String getUnsupportedModelVersionErrorMsg(@Nullable Revision modelVersion) {
     StringBuilder builder = new StringBuilder();
     builder.append(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
     String recommendedVersion = String.format("The recommended version is %1$s.", GRADLE_PLUGIN_RECOMMENDED_VERSION);
@@ -397,7 +397,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // Android module jars
     addIfNotNull(getJarPathForClass(getClass()), classPath);
     // Android sdklib jar
-    addIfNotNull(getJarPathForClass(FullRevision.class), classPath);
+    addIfNotNull(getJarPathForClass(Revision.class), classPath);
     // Android common jar
     addIfNotNull(getJarPathForClass(AndroidGradleSettings.class), classPath);
     // Android gradle model jar

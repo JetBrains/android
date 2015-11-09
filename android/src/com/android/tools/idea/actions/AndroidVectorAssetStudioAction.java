@@ -16,8 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.npw.VectorAssetStudioWizard;
 import com.intellij.openapi.module.Module;
@@ -42,7 +41,7 @@ public class AndroidVectorAssetStudioAction extends AndroidAssetStudioAction {
     "#projectBuildFile\">here</a> for how to update the version of Android plugin for Gradle." +
     "</p></html>";
 
-  private static final FullRevision VECTOR_ASSET_GENERATION_REVISION = new FullRevision(1, 4, 0);
+  private static final Revision VECTOR_ASSET_GENERATION_REVISION = new Revision(1, 4, 0);
   private static final int VECTOR_DRAWABLE_API_LEVEL = 21;
 
   public AndroidVectorAssetStudioAction() {
@@ -57,9 +56,9 @@ public class AndroidVectorAssetStudioAction extends AndroidAssetStudioAction {
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
       String version = androidModel.getAndroidProject().getModelVersion();
-      FullRevision revision = PreciseRevision.parseRevision(version);
+      Revision revision = Revision.parseRevision(version);
 
-      if (revision.compareTo(VECTOR_ASSET_GENERATION_REVISION, FullRevision.PreviewComparison.IGNORE) < 0
+      if (revision.compareTo(VECTOR_ASSET_GENERATION_REVISION, Revision.PreviewComparison.IGNORE) < 0
           && (minSdkVersion == null || minSdkVersion.getApiLevel() < VECTOR_DRAWABLE_API_LEVEL)) {
         Messages.showErrorDialog(project, updateMessage, "Need Newer Android Plugin for Gradle");
         return;

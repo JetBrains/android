@@ -17,7 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
@@ -96,7 +96,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
   public static void putSdkDependentParams(@NotNull ScopedStateStore state) {
     final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     BuildToolInfo buildTool = sdkData != null ? sdkData.getLatestBuildTool() : null;
-    FullRevision minimumRequiredBuildToolVersion = FullRevision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
+    Revision minimumRequiredBuildToolVersion = Revision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
     if (buildTool != null && buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) >= 0) {
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
     }

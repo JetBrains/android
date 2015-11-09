@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.gradle.structure;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
@@ -325,7 +325,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
           Messages.showErrorDialog(getContentPanel(), "Please select a valid SDK before downloading the NDK.");
           return;
         }
-        List<IPkgDesc> requested = ImmutableList.of(PkgDesc.Builder.newNdk(FullRevision.NOT_SPECIFIED).create());
+        List<IPkgDesc> requested = ImmutableList.of(PkgDesc.Builder.newNdk(Revision.NOT_SPECIFIED).create());
         SdkQuickfixWizard wizard = new SdkQuickfixWizard(null, null, requested);
         wizard.init();
         if (wizard.showAndGet()) {

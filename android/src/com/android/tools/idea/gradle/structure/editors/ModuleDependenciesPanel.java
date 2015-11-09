@@ -302,7 +302,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
   private String installRepositoryIfNeeded(String coordinateText) {
     GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(coordinateText);
     assert gradleCoordinate != null;  // Only allowed to click ok when the string is valid.
-    if (!REVISION_ANY.equals(gradleCoordinate.getFullRevision()) ||
+    if (!REVISION_ANY.equals(gradleCoordinate.getRevision()) ||
         !RepositoryUrlManager.EXTRAS_REPOSITORY.containsKey(gradleCoordinate.getArtifactId())) {
       // No installation needed, or it's not a local repository.
       return coordinateText;

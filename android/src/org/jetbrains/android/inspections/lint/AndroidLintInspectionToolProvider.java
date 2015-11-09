@@ -913,7 +913,7 @@ public class AndroidLintInspectionToolProvider {
       if (before != null && before.contains("+")) {
         final GradleCoordinate plus = GradleCoordinate.parseCoordinateString(before);
         if (plus != null && plus.getArtifactId() != null) {
-          return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with specific version", plus.getFullRevision(), "specific version") {
+          return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with specific version", plus.getRevision(), "specific version") {
             @Nullable
             @Override
             protected String getNewValue() {
