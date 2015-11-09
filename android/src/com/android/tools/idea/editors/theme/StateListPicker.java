@@ -509,13 +509,13 @@ public class StateListPicker extends JPanel {
     public StateComponent(@NotNull Project project) {
       super(BoxLayout.PAGE_AXIS);
 
-      myResourceComponent = new ResourceComponent(project);
+      myResourceComponent = new ResourceComponent(project, true);
       add(myResourceComponent);
       myResourceComponent
         .setMaximumSize(new Dimension(myResourceComponent.getMaximumSize().width, myResourceComponent.getPreferredSize().height));
       myResourceComponent.setVariantComboVisible(false);
 
-      myAlphaComponent = new SwatchComponent(project);
+      myAlphaComponent = new SwatchComponent(project, true);
       myAlphaComponent.setBackground(JBColor.WHITE);
       myAlphaComponent.setForeground(null);
       add(myAlphaComponent);

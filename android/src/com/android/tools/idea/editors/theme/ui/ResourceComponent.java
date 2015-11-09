@@ -43,7 +43,7 @@ public class ResourceComponent extends JPanel {
 
   private final VariantsComboBox myVariantCombo = new VariantsComboBox();
 
-  public ResourceComponent(@NotNull Project project) {
+  public ResourceComponent(@NotNull Project project, boolean isEditor) {
     super(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP));
     setBorder(BorderFactory.createEmptyBorder(ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0, ThemeEditorConstants.ATTRIBUTE_MARGIN / 2, 0));
 
@@ -61,7 +61,7 @@ public class ResourceComponent extends JPanel {
     topRowPanel.add(myVariantCombo);
     add(topRowPanel, BorderLayout.CENTER);
 
-    mySwatchComponent = new SwatchComponent(project);
+    mySwatchComponent = new SwatchComponent(project, isEditor);
     add(mySwatchComponent, BorderLayout.SOUTH);
 
     ThemeEditorUtils.setInheritsPopupMenuRecursive(this);
