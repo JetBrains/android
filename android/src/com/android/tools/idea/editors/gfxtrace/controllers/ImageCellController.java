@@ -26,19 +26,10 @@ import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.widgets.*;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.StatusText;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseWheelEvent;
-import java.util.List;
 
 public abstract class ImageCellController<T extends ImageCellList.Data> extends Controller
     implements CellList.SelectionListener<T>, CellRenderer.CellLoader<T> {
@@ -97,7 +88,7 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
           @Override
           public void run() {
             // Back in the UI thread here
-            cell.icon = fetchedImage.icon;
+            cell.icon = new ImageIcon(fetchedImage.image);
             cell.stopLoading();
             onLoad.run();
             myList.repaint();
