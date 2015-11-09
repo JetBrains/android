@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.*;
 import com.google.common.collect.*;
@@ -33,13 +34,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Predicates.notNull;
@@ -64,11 +63,6 @@ public final class GradleModuleImporter extends ModuleImporter {
   private GradleModuleImporter(@Nullable Project project, boolean isWizard) {
     myIsWizard = isWizard;
     myProject = project;
-  }
-
-  public static boolean isGradleProject(VirtualFile importSource) {
-    VirtualFile target = findImportTarget(importSource);
-    return target != null && GradleConstants.EXTENSION.equals(target.getExtension());
   }
 
   @Override
@@ -102,7 +96,7 @@ public final class GradleModuleImporter extends ModuleImporter {
   @Override
   public boolean canImport(VirtualFile importSource) {
     try {
-      return isGradleProject(importSource) && (myIsWizard || findModules(importSource).size() == 1);
+      return Projects.canImportAsGradleProject(importSource) && (myIsWizard || findModules(importSource).size() == 1);
     }
     catch (IOException e) {
       LOG.error(e);
