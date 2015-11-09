@@ -146,7 +146,7 @@ class GradleGroovyFile {
    * Refreshes its state by rereading the contents from the underlying build file.
    */
   public void reload() {
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
+    Runnable runnable = new Runnable() {
       @Override
       public void run() {
         if (!myFile.exists()) {
@@ -165,7 +165,12 @@ class GradleGroovyFile {
         myGroovyFile = (GroovyFile)psiFile;
         onPsiFileAvailable();
       }
-    });
+    };
+    if (myProject.isInitialized()) {
+      runnable.run();
+    } else {
+      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(runnable);
+    }
   }
 
   public VirtualFile getFile() {
