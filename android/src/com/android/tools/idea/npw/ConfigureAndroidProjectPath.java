@@ -20,7 +20,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
+import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.sdk.wizard.SmwOldApiDirectInstall;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.templates.Template;

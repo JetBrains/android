@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sdk.wizard;
+package com.android.tools.idea.sdk.wizard.legacy;
 
 import com.android.repository.api.License;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.tools.idea.sdk.wizard.AndroidSdkLicenseTemporaryData;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
