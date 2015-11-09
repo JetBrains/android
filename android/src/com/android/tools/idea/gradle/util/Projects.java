@@ -74,6 +74,7 @@ public final class Projects {
   private static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("project.has.sync.errors");
   private static final Key<Boolean> HAS_WRONG_JDK = Key.create("project.has.wrong.jdk");
   private static final Key<DependencySetupErrors> DEPENDENCY_SETUP_ERRORS = Key.create("project.dependency.setup.errors");
+  private static final Key<Collection<Module>> MODULES_TO_DISPOSE_POST_SYNC = Key.create("project.modules.to.dispose.post.sync");
 
   private Projects() {
   }
@@ -450,5 +451,14 @@ public final class Projects {
       }
     }
     return null;
+  }
+
+  @Nullable
+  public static Collection<Module> getModulesToDisposePostSync(@NotNull Project project) {
+    return project.getUserData(MODULES_TO_DISPOSE_POST_SYNC);
+  }
+
+  public static void setModulesToDisposePostSync(@NotNull Project project, @Nullable Collection<Module> modules) {
+    project.putUserData(MODULES_TO_DISPOSE_POST_SYNC, modules);
   }
 }
