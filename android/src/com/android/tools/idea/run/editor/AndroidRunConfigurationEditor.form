@@ -34,10 +34,9 @@
             <children>
               <component id="7f548" class="com.intellij.ui.components.JBLabel" binding="myModuleJBLabel">
                 <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <labelFor value="a005a"/>
                   <text value="&amp;Module:"/>
                 </properties>
               </component>
@@ -46,12 +45,6 @@
                   <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
                 </constraints>
               </vspacer>
-              <component id="a005a" class="javax.swing.JComboBox" binding="myModulesComboBox">
-                <constraints>
-                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
-              </component>
               <grid id="f6c8d" binding="myConfigurationSpecificPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
                 <constraints>
                   <grid row="1" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -90,6 +83,12 @@
               <component id="a51ee" class="com.intellij.openapi.options.ex.ConfigurableCardPanel" binding="myDeployTargetConfigurableCardPanel">
                 <constraints>
                   <grid row="4" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="4" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="bd6f5" class="com.intellij.application.options.ModulesComboBox" binding="myModulesComboBox">
+                <constraints>
+                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
               </component>
