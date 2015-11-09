@@ -18,12 +18,11 @@ package org.jetbrains.android.dom.attrs;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.util.xml.EnumConverter;
 import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.converters.LightFlagConverter;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.converters.StaticEnumConverter;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,14 +81,14 @@ public class ToolsAttributeUtil {
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, ResolvingConverter> CONVERTERS = ImmutableMap.<String, ResolvingConverter>builder()
-    .put(ATTR_ACTION_BAR_NAV_MODE, EnumConverter.createEnumConverter(ActionBarNavModeValue.class))
+    .put(ATTR_ACTION_BAR_NAV_MODE, new StaticEnumConverter("standard", "list", "tabs"))
     .put(ATTR_CONTEXT, ACTIVITY_CLASS_CONVERTER)
     .put(ATTR_LISTFOOTER, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_LISTHEADER, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_LISTITEM, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_LAYOUT, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_SHOW_IN, LAYOUT_REFERENCE_CONVERTER)
-    .put(ATTR_NODE, EnumConverter.createEnumConverter(NodeMarkerValue.class))
+    .put(ATTR_NODE, new StaticEnumConverter("merge", "replace", "strict", "merge-only-attributes", "remove", "removeAll"))
     .build();
 
   /**
