@@ -37,6 +37,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,7 +76,7 @@ public class AvdEditWizard extends DynamicWizard {
     if (myAvdInfo != null) {
       fillExistingInfo(myAvdInfo);
       if (myForceCreate) {
-        String displayName = myAvdInfo.getProperties().get(AvdWizardConstants.DISPLAY_NAME_KEY.name);
+        String displayName = myAvdInfo.getProperties().get(DISPLAY_NAME_KEY.name);
         getState().put(DISPLAY_NAME_KEY, String.format("Copy of %1$s", displayName));
       }
     }
@@ -135,6 +136,8 @@ public class AvdEditWizard extends DynamicWizard {
 
     Map<String, String> properties = avdInfo.getProperties();
 
+    state.put(CPU_CORES_KEY, StringUtil.parseInt(properties.get(CPU_CORES_KEY.name), 1));
+    state.put(RANCHU_KEY, properties.containsKey(CPU_CORES_KEY.name));
     state.put(RAM_STORAGE_KEY, getStorageFromIni(properties.get(RAM_STORAGE_KEY.name)));
     state.put(VM_HEAP_STORAGE_KEY, getStorageFromIni(properties.get(VM_HEAP_STORAGE_KEY.name)));
     state.put(INTERNAL_STORAGE_KEY, getStorageFromIni(properties.get(INTERNAL_STORAGE_KEY.name)));
@@ -294,7 +297,7 @@ public class AvdEditWizard extends DynamicWizard {
       @Override
       public String transformEntry(String key, Object value) {
         if (value instanceof Storage) {
-          if (key.equals(AvdWizardConstants.RAM_STORAGE_KEY.name) || key.equals(AvdWizardConstants.VM_HEAP_STORAGE_KEY.name)) {
+          if (key.equals(RAM_STORAGE_KEY.name) || key.equals(VM_HEAP_STORAGE_KEY.name)) {
             return toIniString((Storage)value, true);
           }
           else {
@@ -338,7 +341,7 @@ public class AvdEditWizard extends DynamicWizard {
 
     boolean isCircular = device.isScreenRound();
 
-    String tempAvdName = myState.get(AvdWizardConstants.AVD_ID_KEY);
+    String tempAvdName = myState.get(AVD_ID_KEY);
     if (tempAvdName == null || tempAvdName.isEmpty()) {
       tempAvdName = calculateAvdName(myAvdInfo, hardwareProperties, device, myForceCreate);
     }
@@ -413,7 +416,7 @@ public class AvdEditWizard extends DynamicWizard {
     if (path == null || path.getPath().isEmpty()) {
       return path;
     }
-    if (path.equals(NO_SKIN)) {
+    if (FileUtil.filesEqual(path, NO_SKIN)) {
       return NO_SKIN;
     }
     if (!path.isAbsolute()) {
@@ -506,6 +509,7 @@ public class AvdEditWizard extends DynamicWizard {
     return String.format("%1$d%2$s", storage.getSizeAsUnit(unit), unitString);
   }
 
+
   /**
    * Encode the given value as a string that can be placed in the AVD's INI file.
    */
@@ -514,6 +518,9 @@ public class AvdEditWizard extends DynamicWizard {
     return b ? "yes" : "no";
   }
 
+  /**
+   * Decode the given value from an AVD's INI file.
+   */
   private static boolean fromIniString(@Nullable String s) {
     return "yes".equals(s);
   }

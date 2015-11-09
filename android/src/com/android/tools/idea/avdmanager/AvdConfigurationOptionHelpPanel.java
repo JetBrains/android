@@ -112,6 +112,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(HAS_HARDWARE_KEYBOARD_KEY, "Enable keyboard input").
     put(AVD_ID_KEY, "AVD Id").
     put(DEVICE_FRAME_KEY, "Enable device frame").
+    put(CPU_CORES_KEY, "Number of cores").
     build();
 
   private static Map<ScopedStateStore.Key<?>, String> DESCRIPTIONS = ImmutableMap.<ScopedStateStore.Key<?>, String>builder().
@@ -156,6 +157,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(AVD_ID_KEY, "Identification name used to save an AVD on disk. This AVD name can also be used with Android command line tools.").
     put(DEVICE_FRAME_KEY, "Enable a frame around the Android emulator window that mimics the look of a real " +
                           "Android device. Click on Show Advanced Settings for more options.").
+    put(CPU_CORES_KEY, "Select the number of CPU cores for the emulator to use.").
     build();
 
   /**

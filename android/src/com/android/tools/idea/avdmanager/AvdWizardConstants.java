@@ -27,7 +27,6 @@ import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.google.common.collect.Lists;
 import com.intellij.util.ui.JBFont;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -93,6 +92,9 @@ public class AvdWizardConstants {
   public static final String AVD_INI_AVD_ID = "AvdId";
   public static final Key<String> AVD_ID_KEY = createKey(AVD_INI_AVD_ID, WIZARD, String.class);
 
+  public static final Key<Boolean> RANCHU_KEY = createKey(WIZARD_ONLY + "ranchu.emulator", WIZARD, Boolean.class);
+  public static final Key<Integer> CPU_CORES_KEY = createKey(AvdManager.AVD_INI_CPU_CORES, WIZARD, Integer.class);
+
   // Device definition keys
 
   public static final Key<String> DEVICE_NAME_KEY = createKey("DeviceName", STEP, String.class);
@@ -148,6 +150,9 @@ public class AvdWizardConstants {
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
   private static final int MAX_RAM_MB = 1536;
 
+  /** The first SDK level supported by the Ranchu emulator */
+  public static final int MIN_SDK_FOR_RANCHU_EMULATOR = 22;
+
   /**
    * Get the default amount of ram to use for the given hardware in an AVD. This is typically
    * the same RAM as is used in the hardware, but it is maxed out at {@link #MAX_RAM_MB} since more than that
@@ -166,5 +171,12 @@ public class AvdWizardConstants {
     }
 
     return ram;
+  }
+
+  /**
+   * Return the max number of cores that an AVD can use on this development system.
+   */
+  public static int getMaxCpuCores() {
+    return Runtime.getRuntime().availableProcessors() / 2;
   }
 }
