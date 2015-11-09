@@ -18,7 +18,7 @@ package com.android.tools.idea.welcome.wizard;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
+import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;

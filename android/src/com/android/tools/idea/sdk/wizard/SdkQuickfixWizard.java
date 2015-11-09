@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk.wizard;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
+import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
