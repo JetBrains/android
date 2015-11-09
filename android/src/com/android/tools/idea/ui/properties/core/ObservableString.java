@@ -19,7 +19,7 @@ import com.android.tools.idea.ui.properties.ObservableValue;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Interface which, when implemented, allows the chaining of String values.
+ * Read-only handle to a {@link StringProperty}.
  */
 public interface ObservableString extends ObservableValue<String> {
   @NotNull

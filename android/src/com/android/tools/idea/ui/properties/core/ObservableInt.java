@@ -19,7 +19,7 @@ import com.android.tools.idea.ui.properties.ObservableValue;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Interface which, when implemented, allows the chaining of Integer values.
+ * Read-only handle to an {@link IntProperty}.
  */
 public interface ObservableInt extends ObservableValue<Integer> {
   @NotNull
