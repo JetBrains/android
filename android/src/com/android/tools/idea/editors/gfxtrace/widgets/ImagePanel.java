@@ -65,7 +65,7 @@ public class ImagePanel extends JPanel {
     return myImage.getEmptyText();
   }
 
-  public void setImage(Image image) {
+  public void setImage(BufferedImage image) {
     myImage.setImage(image);
   }
 
@@ -80,9 +80,11 @@ public class ImagePanel extends JPanel {
 
     private final JViewport parent;
     private final StatusText emptyText;
-    private Image image = EMPTY_IMAGE;
+    private BufferedImage image = EMPTY_IMAGE;
+    private BufferedImage opaqueImage = null;
     private double zoom;
     private boolean drawCheckerBoard = true;
+    private boolean transparent = true;
     private boolean flipped = false;
 
     public ImageComponent(JBScrollPane scrollPane) {
@@ -190,12 +192,13 @@ public class ImagePanel extends JPanel {
       return emptyText;
     }
 
-    public void setImage(Image image) {
+    public void setImage(BufferedImage image) {
       if (this.image == EMPTY_IMAGE) {
         // Ignore any zoom actions that might have happened before the first real image was shown.
         zoomToFit();
       }
       this.image = (image == null) ? EMPTY_IMAGE : image;
+      this.opaqueImage = null;
       revalidate();
       repaint();
     }
@@ -226,6 +229,18 @@ public class ImagePanel extends JPanel {
         }
       });
       group.add(new Separator());
+      group.add(new ToggleAction("Toggle Transparency", "Enable/disable image transparency", AndroidIcons.GfxTrace.Opacity) {
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+          return transparent;
+        }
+
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+          transparent = state;
+          repaint();
+        }
+      });
       group.add(new ToggleAction("Show Checkerboard", "Toggle the checkerboard background", ImagesIcons.ToggleTransparencyChessboard) {
         @Override
         public boolean isSelected(AnActionEvent e) {
@@ -236,6 +251,13 @@ public class ImagePanel extends JPanel {
         public void setSelected(AnActionEvent e, boolean state) {
           drawCheckerBoard = state;
           repaint();
+        }
+
+        @Override
+        public void update(@NotNull AnActionEvent e) {
+          super.update(e);
+          Presentation presentation = e.getPresentation();
+          presentation.setEnabled(transparent);
         }
       });
       if (enableVerticalFlip) {
@@ -273,7 +295,7 @@ public class ImagePanel extends JPanel {
       int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
       int x = (getWidth() - w) / 2, y = (getHeight() - h) / 2;
 
-      if (drawCheckerBoard) {
+      if (drawCheckerBoard && transparent) {
         ((Graphics2D)g).setPaint(CHECKER_PAINT);
         g.fillRect(x, y, w, h);
       }
@@ -282,7 +304,20 @@ public class ImagePanel extends JPanel {
       if (flipped) {
         ((Graphics2D)g).transform(new AffineTransform(1, 0, 0, -1, 0, getHeight() - 1));
       }
-      g.drawImage(image, x, y, w, h, this);
+      if (transparent) {
+        g.drawImage(image, x, y, w, h, this);
+      }
+      else {
+        if (opaqueImage == null) {
+          //noinspection UndesirableClassUsage
+          opaqueImage = new BufferedImage(image.getWidth(this), image.getHeight(this), BufferedImage.TYPE_3BYTE_BGR);
+          Graphics2D opaqueG = opaqueImage.createGraphics();
+          opaqueG.setComposite(AlphaComposite.Src);
+          opaqueG.drawImage(image, 0, 0, this);
+          opaqueG.dispose();
+        }
+        g.drawImage(opaqueImage, x, y, w, h, this);
+      }
       ((Graphics2D)g).setTransform(transform);
       BORDER.paintBorder(this, g, x - BORDER_SIZE, y - BORDER_SIZE, w + 2 * BORDER_SIZE, h + 2 * BORDER_SIZE);
     }

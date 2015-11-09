@@ -27,7 +27,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -35,10 +34,10 @@ import java.awt.image.WritableRaster;
 
 public class FetchedImage {
   @NotNull private static final Logger LOG = Logger.getInstance(FetchedImage.class);
-  @NotNull public final ImageInfo myImageInfo;
-  @NotNull public final byte[] myData;
+
+  @NotNull private final ImageInfo myImageInfo;
   @NotNull public final Dimension dimensions;
-  @NotNull public final ImageIcon icon;
+  @NotNull public final BufferedImage image;
 
   public static ListenableFuture<FetchedImage> load(final ServiceClient client, ListenableFuture<ImageInfoPath> imageInfo) {
     return Futures.transform(imageInfo, new AsyncFunction<ImageInfoPath, FetchedImage>() {
@@ -80,10 +79,9 @@ public class FetchedImage {
 
   public FetchedImage(@NotNull ImageInfo imageInfo, @NotNull byte[] data) {
     myImageInfo = imageInfo;
-    myData = data;
     dimensions = new Dimension((int)myImageInfo.getWidth(), (int)myImageInfo.getHeight());
     //noinspection UndesirableClassUsage
-    BufferedImage image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_4BYTE_ABGR);
+    image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_4BYTE_ABGR);
     WritableRaster raster = image.getRaster();
     DataBufferByte dataBuffer = (DataBufferByte)raster.getDataBuffer();
     assert (myImageInfo.getFormat() instanceof FmtRGBA);
@@ -104,6 +102,5 @@ public class FetchedImage {
         destination[destinationOffset + 3] = data[sourceOffset + 0];
       }
     }
-    icon = new ImageIcon(image);
   }
 }
