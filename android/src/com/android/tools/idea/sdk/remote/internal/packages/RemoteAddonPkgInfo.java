@@ -21,10 +21,8 @@ import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.descriptors.IPkgDescAddon;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalAddonPkgInfo;
@@ -33,7 +31,6 @@ import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import com.android.utils.Pair;
 import com.google.common.base.Objects;
 import org.w3c.dom.Node;
 
@@ -180,7 +177,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
     mLayoutlibVersion = new LayoutlibVersionMixin(packageNode);
 
     PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder
-      .newAddon(androidVersion, new MajorRevision(getRevision()), new IdDisplay(vendorId, vendorDisp), new IdDisplay(nameId, nameDisp));
+      .newAddon(androidVersion, getRevision(), new IdDisplay(vendorId, vendorDisp), new IdDisplay(nameId, nameDisp));
     pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), nameDisp, androidVersion, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
     pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, nameDisp, isObsolete()));
@@ -201,8 +198,8 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
     getAndroidVersion().saveProperties(props);
     mLayoutlibVersion.saveProperties(props);
 
-    props.setProperty(PkgProps.ADDON_NAME_ID, ((IPkgDescAddon)getPkgDesc()).getName().getId());
-    props.setProperty(PkgProps.ADDON_NAME_DISPLAY, ((IPkgDescAddon)getPkgDesc()).getName().getDisplay());
+    props.setProperty(PkgProps.ADDON_NAME_ID, getPkgDesc().getName().getId());
+    props.setProperty(PkgProps.ADDON_NAME_DISPLAY, getPkgDesc().getName().getDisplay());
     props.setProperty(PkgProps.ADDON_VENDOR_ID, getPkgDesc().getVendor().getId());
     props.setProperty(PkgProps.ADDON_VENDOR_DISPLAY, getPkgDesc().getVendor().getDisplay());
   }
@@ -264,7 +261,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
   @NonNull
   @Override
   public String installId() {
-    return encodeAddonName(((IPkgDescAddon)getPkgDesc()).getName().getId(), getPkgDesc().getVendor().getId(), getAndroidVersion());
+    return encodeAddonName(getPkgDesc().getName().getId(), getPkgDesc().getVendor().getId(), getAndroidVersion());
   }
 
   /**
@@ -283,7 +280,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
    * Returns a short description for an {@link IDescription}.
    */
   private static String createShortDescription(String listDisplay,
-                                               FullRevision revision,
+                                               Revision revision,
                                                String displayName,
                                                AndroidVersion version,
                                                boolean obsolete) {
@@ -312,7 +309,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
   public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
     File addons = new File(osSdkRoot, SdkConstants.FD_ADDONS);
 
-    IdDisplay name = ((IPkgDescAddon)getPkgDesc()).getName();
+    IdDisplay name = getPkgDesc().getName();
     IdDisplay vendor = getPkgDesc().getVendor();
 
     // First find if this add-on is already installed. If so, reuse the same directory.
@@ -354,14 +351,14 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
   }
 
   @Override
-  public boolean sameItemAs(LocalPkgInfo pkg, FullRevision.PreviewComparison previewComparison) {
+  public boolean sameItemAs(LocalPkgInfo pkg, Revision.PreviewComparison previewComparison) {
     if (pkg instanceof LocalAddonPkgInfo) {
       LocalAddonPkgInfo localPkg = (LocalAddonPkgInfo)pkg;
 
-      String nameId = ((IPkgDescAddon)getPkgDesc()).getName().getId();
+      String nameId = getPkgDesc().getName().getId();
 
       // check they are the same add-on.
-      if (Objects.equal(nameId, ((IPkgDescAddon)localPkg.getDesc()).getName()) &&
+      if (Objects.equal(nameId, localPkg.getDesc().getName()) &&
           getAndroidVersion().equals(localPkg.getDesc().getAndroidVersion())) {
         // Check the vendor-id field.
         if (getPkgDesc().getVendor().equals(localPkg.getDesc().getVendor())) {
@@ -379,7 +376,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
     int result = super.hashCode();
     result = prime * result + ((mLayoutlibVersion == null) ? 0 : mLayoutlibVersion.hashCode());
     result = prime * result + Arrays.hashCode(mLibs);
-    String name = ((IPkgDescAddon)getPkgDesc()).getName().getDisplay();
+    String name = getPkgDesc().getName().getDisplay();
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result = prime * result + (getPkgDesc().hasVendor() ? 0 : getPkgDesc().getVendor().hashCode());
     result = prime * result + getAndroidVersion().hashCode();

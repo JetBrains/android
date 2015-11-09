@@ -17,10 +17,10 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.*;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.repository.Revision;
 import com.android.tools.idea.sdk.SdkLoadedCallback;
 import com.android.tools.idea.sdk.SdkPackages;
 import com.android.tools.idea.sdk.SdkState;
@@ -376,11 +376,11 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     int apiLevel = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
     List<IPkgDesc> requestedPackages = Lists.newArrayListWithCapacity(3);
     requestedPackages.add(PkgDesc.Builder.newSysImg(new AndroidVersion(apiLevel, null), SystemImage.DEFAULT_TAG,
-                                                    Abi.X86.toString(), new MajorRevision(1)).create());
+                                                    Abi.X86.toString(), new Revision(1)).create());
     requestedPackages.add(PkgDesc.Builder.newSysImg(new AndroidVersion(apiLevel, null), WEAR_TAG,
-                                                    Abi.X86.toString(), new MajorRevision(1)).create());
+                                                    Abi.X86.toString(), new Revision(1)).create());
     requestedPackages.add(PkgDesc.Builder.newSysImg(new AndroidVersion(apiLevel, null), TV_TAG,
-                                                    Abi.X86.toString(), new MajorRevision(1)).create());
+                                                    Abi.X86.toString(), new Revision(1)).create());
     SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
     sdkQuickfixWizard.init();
     sdkQuickfixWizard.show();

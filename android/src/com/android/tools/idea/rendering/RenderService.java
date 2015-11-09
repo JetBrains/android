@@ -22,8 +22,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -303,7 +302,7 @@ public class RenderService {
           List<IPkgDesc> requested = Lists.newArrayList();
           // The revision to install. Note that this will install a higher version than this if available;
           // e.g. even if we ask for version 4, if revision 7 is available it will be installed, not revision 4.
-          requested.add(PkgDesc.Builder.newPlatform(version, new MajorRevision(revision), FullRevision.NOT_SPECIFIED).create());
+          requested.add(PkgDesc.Builder.newPlatform(version, new Revision(revision), Revision.NOT_SPECIFIED).create());
           SdkQuickfixWizard wizard = new SdkQuickfixWizard(module.getProject(), null, requested);
           wizard.init();
 

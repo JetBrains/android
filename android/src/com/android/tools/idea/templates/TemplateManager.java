@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.android.utils.XmlUtils;
@@ -339,18 +339,18 @@ public class TemplateManager {
   private List<File> getHighestVersionedTemplateRoot(@NotNull File artifactNameRoot) {
     List<File> templateDirectories = Lists.newArrayList();
     File highestVersionDir = null;
-    FullRevision highestVersionNumber = null;
+    Revision highestVersionNumber = null;
     for (File versionDir : listFiles(artifactNameRoot)) {
       if (!versionDir.isDirectory() || versionDir.isHidden()) {
         continue;
       }
       // Find the highest version of this AAR
-      FullRevision revision;
+      Revision revision;
       try {
-        revision = FullRevision.parseRevision(versionDir.getName());
+        revision = Revision.parseRevision(versionDir.getName());
       } catch (NumberFormatException e) {
         // Revision was not parse-able, consider it to be the lowest version revision
-        revision = FullRevision.NOT_SPECIFIED;
+        revision = Revision.NOT_SPECIFIED;
       }
       if (highestVersionNumber == null || revision.compareTo(highestVersionNumber) > 0) {
         highestVersionNumber = revision;

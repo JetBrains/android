@@ -20,9 +20,8 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
@@ -58,7 +57,7 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
     }
     AndroidVersion version = new AndroidVersion(apiLevel, codeName);
 
-    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newDoc(version, new MajorRevision(getRevision()));
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newDoc(version, getRevision());
     pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), version, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
     pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, version, isObsolete()));
@@ -113,7 +112,7 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, AndroidVersion version, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, AndroidVersion version, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }

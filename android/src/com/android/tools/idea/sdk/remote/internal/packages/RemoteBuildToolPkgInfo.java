@@ -18,10 +18,9 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.FullRevision.PreviewComparison;
+import com.android.repository.Revision;
+import com.android.repository.Revision.PreviewComparison;
 import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.PreciseRevision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalBuildToolPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
@@ -92,7 +91,7 @@ public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
@@ -118,7 +117,7 @@ public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
     File folder = new File(osSdkRoot, SdkConstants.FD_BUILD_TOOLS);
     StringBuilder sb = new StringBuilder();
 
-    PreciseRevision revision = getPkgDesc().getPreciseRevision();
+    Revision revision = getPkgDesc().getRevision();
     int[] version = revision.toIntArray(false);
     for (int i = 0; i < version.length; i++) {
       sb.append(version[i]);
@@ -126,7 +125,7 @@ public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
         sb.append('.');
       }
     }
-    if (getPkgDesc().getPreciseRevision().isPreview()) {
+    if (getPkgDesc().getRevision().isPreview()) {
       sb.append(PkgDesc.PREVIEW_SUFFIX);
     }
 
@@ -140,7 +139,7 @@ public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
     // so 2 build tools with 2 different revisions are not the same item.
     if (pkg instanceof LocalBuildToolPkgInfo) {
       LocalBuildToolPkgInfo rhs = (LocalBuildToolPkgInfo)pkg;
-      return rhs.getDesc().getFullRevision().compareTo(getRevision(), comparePreview) == 0;
+      return rhs.getDesc().getRevision().compareTo(getRevision(), comparePreview) == 0;
     }
     return false;
   }

@@ -19,8 +19,7 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.NoPreviewRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.*;
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
@@ -129,10 +128,8 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
 
     mOldPaths = RemotePackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_OLD_PATHS);
 
-    FullRevision revision = getRevision();
-    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newExtra(vendor, mPath, mDisplayName, getOldPaths(),
-                                                              new NoPreviewRevision(revision.getMajor(), revision.getMinor(),
-                                                                                    revision.getMicro()));
+    Revision revision = getRevision();
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newExtra(vendor, mPath, mDisplayName, getOldPaths(), revision);
     pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), mDisplayName, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
     pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, mDisplayName, isObsolete()));
@@ -204,7 +201,7 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
    * or {@link #MIN_TOOLS_REV_NOT_SPECIFIED} if there is no such requirement.
    */
   @Override
-  public FullRevision getMinToolsRevision() {
+  public Revision getMinToolsRevision() {
     return mMinToolsMixin.getMinToolsRevision();
   }
 
@@ -327,7 +324,7 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, String displayName, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, String displayName, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
@@ -429,7 +426,7 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
   }
 
   @Override
-  public boolean sameItemAs(LocalPkgInfo pkg, FullRevision.PreviewComparison previewComparison) {
+  public boolean sameItemAs(LocalPkgInfo pkg, Revision.PreviewComparison previewComparison) {
     // Extra packages are similar if they have the same path and vendor
     if (pkg instanceof LocalExtraPkgInfo) {
       LocalExtraPkgInfo ep = (LocalExtraPkgInfo)pkg;
