@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
@@ -198,7 +198,7 @@ final class PreSyncChecks {
           msg = createUseWrapperQuestion(reason);
         }
         else {
-          FullRevision gradleVersion = getGradleVersion(gradleHomePath);
+          Revision gradleVersion = getGradleVersion(gradleHomePath);
           if (gradleVersion == null) {
             String reason = String.format("The path\n'%1$s'\n, does not belong to a Gradle distribution.", gradleHomePath.getPath());
             msg = createUseWrapperQuestion(reason);

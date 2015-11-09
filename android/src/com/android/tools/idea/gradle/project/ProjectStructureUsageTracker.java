@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.*;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.Sets;
@@ -76,7 +76,7 @@ class ProjectStructureUsageTracker {
     AndroidGradleModel target = appModel != null ? appModel : libModel;
     if (target != null) {
       AndroidProject androidProject = target.getAndroidProject();
-      FullRevision gradleVersion = getGradleVersion(myProject);
+      Revision gradleVersion = getGradleVersion(myProject);
       UsageTracker.getInstance().trackGradleArtifactVersions(target.getApplicationId(), androidProject.getModelVersion(),
                                                              gradleVersion != null ? gradleVersion.toString() : "<Not Found>");
     }

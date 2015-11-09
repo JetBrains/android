@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.*;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.IPkgDescAddon;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.google.common.base.Objects;
@@ -55,7 +54,7 @@ public final class SystemImageDescription {
     }
     // Google APIs addons up to 18 included a bundled system image
     if (desc.getType().equals(PkgType.PKG_ADDON) && desc.hasVendor() && desc.getVendor().getId().equals("google") &&
-        ((IPkgDescAddon)desc).getName().getId().equals("google_apis") && desc.getAndroidVersion().getApiLevel() <= 18) {
+        desc.getName().getId().equals("google_apis") && desc.getAndroidVersion().getApiLevel() <= 18) {
       return true;
     }
 
@@ -121,7 +120,7 @@ public final class SystemImageDescription {
     }
     // for normal system images, the tag will be e.g. google_apis. Bundled images don't have a tag; instead use the name.
     if (myRemotePackage.getType() == PkgType.PKG_ADDON) {
-      return ((IPkgDescAddon)myRemotePackage).getName();
+      return myRemotePackage.getName();
     }
     IdDisplay tag = myRemotePackage.getTag();
     if (tag != null) {

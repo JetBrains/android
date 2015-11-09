@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 
 /**
@@ -32,11 +32,11 @@ public interface IMinToolsDependency {
    * The value of {@link #getMinToolsRevision()} when the
    * {@link SdkRepoConstants#NODE_MIN_TOOLS_REV} was not specified in the XML source.
    */
-  FullRevision MIN_TOOLS_REV_NOT_SPECIFIED = new FullRevision(FullRevision.MISSING_MAJOR_REV);
+  Revision MIN_TOOLS_REV_NOT_SPECIFIED = new Revision(Revision.MISSING_MAJOR_REV);
 
   /**
    * The minimal revision of the tools package required by this extra package if > 0,
    * or {@link #MIN_TOOLS_REV_NOT_SPECIFIED} if there is no such requirement.
    */
-  FullRevision getMinToolsRevision();
+  Revision getMinToolsRevision();
 }

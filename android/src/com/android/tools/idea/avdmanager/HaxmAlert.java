@@ -17,17 +17,15 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.welcome.install.*;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.io.Closeables;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
@@ -215,9 +213,9 @@ public class HaxmAlert extends JPanel {
 
     if (found) {
       try {
-        FullRevision revision = Haxm.getInstalledVersion(AndroidSdkUtils.tryToChooseAndroidSdk().getLocation());
+        Revision revision = Haxm.getInstalledVersion(AndroidSdkUtils.tryToChooseAndroidSdk().getLocation());
         // TODO: Use value from remote repository instead
-        FullRevision current = new FullRevision(1, 1, 5);
+        Revision current = new Revision(1, 1, 5);
         if (revision.compareTo(current) < 0) {
           // We have the new version number, as well as the currently installed
           // version number here, which we could use to make a better error message.
