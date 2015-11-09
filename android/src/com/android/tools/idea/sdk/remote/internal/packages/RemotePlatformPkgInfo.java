@@ -18,12 +18,11 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
+import com.android.repository.Revision;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
@@ -73,7 +72,7 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
 
     mLayoutlibVersion = new LayoutlibVersionMixin(packageNode);
 
-    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newPlatform(version, new MajorRevision(getRevision()), getMinToolsRevision());
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newPlatform(version, new Revision(getRevision()), getMinToolsRevision());
     pkgDescBuilder
       .setDescriptionShort(createShortDescription(mListDisplay, getRevision(), mVersionName, version, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
@@ -152,7 +151,7 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
    * Returns a short description for an {@link IDescription}.
    */
   private static String createShortDescription(String listDisplay,
-                                               FullRevision revision,
+                                               Revision revision,
                                                String versionName,
                                                AndroidVersion version,
                                                boolean obsolete) {

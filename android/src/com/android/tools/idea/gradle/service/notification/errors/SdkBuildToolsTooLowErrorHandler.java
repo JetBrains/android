@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service.notification.errors;
 
 import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixBuildToolsVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallBuildToolsHyperlink;
@@ -60,7 +60,7 @@ public class SdkBuildToolsTooLowErrorHandler extends AbstractSyncErrorHandler {
         localAndroidSdk = androidSdkData.getLocalSdk();
       }
       if (localAndroidSdk != null) {
-        BuildToolInfo buildTool = localAndroidSdk.getBuildTool(FullRevision.parseRevision(minimumVersion));
+        BuildToolInfo buildTool = localAndroidSdk.getBuildTool(Revision.parseRevision(minimumVersion));
         buildToolInstalled = buildTool != null;
       }
 

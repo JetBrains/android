@@ -23,7 +23,6 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.SystemImage;
-import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
@@ -83,7 +82,7 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
 
     if (addonNode == null) {
       // A platform system-image
-      descBuilder = PkgDesc.Builder.newSysImg(version, tag, abi, new MajorRevision(getRevision()));
+      descBuilder = PkgDesc.Builder.newSysImg(version, tag, abi, getRevision());
     }
     else {
       // An add-on system-image
@@ -95,7 +94,7 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
 
       vendor = new IdDisplay(vendorId, vendorDisp);
 
-      descBuilder = PkgDesc.Builder.newAddonSysImg(version, vendor, tag, abi, new MajorRevision(getRevision()));
+      descBuilder = PkgDesc.Builder.newAddonSysImg(version, vendor, tag, abi, getRevision());
     }
     descBuilder
       .setDescriptionShort(LocalSysImgPkgInfo.createShortDescription(getListDisplay(), abi, vendor, tag, version, getRevision(),

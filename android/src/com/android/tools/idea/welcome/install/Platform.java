@@ -18,8 +18,7 @@ package com.android.tools.idea.welcome.install;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
@@ -109,19 +108,19 @@ public class Platform extends InstallableComponent {
   @NotNull
   @Override
   public Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    MajorRevision unspecifiedRevision = new MajorRevision(FullRevision.NOT_SPECIFIED);
-    PkgDesc.Builder platform = PkgDesc.Builder.newPlatform(myVersion, unspecifiedRevision, FullRevision.NOT_SPECIFIED);
+    Revision unspecifiedRevision = Revision.NOT_SPECIFIED;
+    PkgDesc.Builder platform = PkgDesc.Builder.newPlatform(myVersion, unspecifiedRevision, Revision.NOT_SPECIFIED);
     PkgDesc.Builder platformSources = PkgDesc.Builder.newSource(myVersion, unspecifiedRevision);
     PkgDesc.Builder buildTool = PkgDesc.Builder.newBuildTool(findLatestCompatibleBuildTool(remotePackages, myVersion));
     return ImmutableList.of(platform.create(), platformSources.create(), buildTool.create());
   }
 
-  private static FullRevision findLatestCompatibleBuildTool(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages,
+  private static Revision findLatestCompatibleBuildTool(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages,
                                                             AndroidVersion version) {
-    FullRevision revision = null;
+    Revision revision = null;
     if (remotePackages != null) {
       for (RemotePkgInfo remotePkgInfo : remotePackages.get(PkgType.PKG_BUILD_TOOLS)) {
-        FullRevision testRevision = remotePkgInfo.getPkgDesc().getFullRevision();
+        Revision testRevision = remotePkgInfo.getPkgDesc().getRevision();
         if (testRevision != null &&
             testRevision.getMajor() == version.getApiLevel() && (revision == null || testRevision.compareTo(revision) > 0)) {
           revision = testRevision;

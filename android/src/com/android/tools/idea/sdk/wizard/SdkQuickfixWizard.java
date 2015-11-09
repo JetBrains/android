@@ -60,7 +60,7 @@ import static com.android.tools.idea.wizard.WizardConstants.SKIPPED_INSTALL_REQU
       @Override
       public void actionPerformed(AnActionEvent e) {
         List<IPkgDesc> requestedPackages = Lists.newArrayListWithCapacity(3);
-        FullRevision minBuildToolsRev = FullRevision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
+        Revision minBuildToolsRev = Revision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
         requestedPackages.add(PkgDesc.Builder.newBuildTool(minBuildToolsRev).create());
         requestedPackages.add(PkgDesc.Builder.newPlatform(new AndroidVersion(19, null), new MajorRevision(1), minBuildToolsRev).create());
         SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);

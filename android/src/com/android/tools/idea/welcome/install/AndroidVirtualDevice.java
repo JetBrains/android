@@ -22,8 +22,7 @@ import com.android.sdklib.*;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
@@ -176,7 +175,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
   @NotNull
   @Override
   public Collection<IPkgDesc> getRequiredSdkPackages(Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    MajorRevision unspecifiedRevision = new MajorRevision(FullRevision.NOT_SPECIFIED);
+    Revision unspecifiedRevision = new Revision(Revision.NOT_SPECIFIED);
     List<IPkgDesc> result = Lists.newArrayList();
     if (myLatestVersion != null) {
       result.add(PkgDesc.Builder.newAddon(myLatestVersion, unspecifiedRevision, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG).create());

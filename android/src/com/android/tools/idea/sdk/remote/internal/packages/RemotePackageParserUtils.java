@@ -17,10 +17,7 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.NoPreviewRevision;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.sdk.remote.internal.archives.*;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import org.w3c.dom.Node;
@@ -52,9 +49,9 @@ public class RemotePackageParserUtils {
     String mjv = getOptionalXmlString(archiveNode, SdkRepoConstants.NODE_MIN_JVM_VERSION);
 
     if (hos != null || hb != null || jb != null || mjv != null) {
-      NoPreviewRevision rev = null;
+      Revision rev = null;
       try {
-        rev = NoPreviewRevision.parseRevision(mjv);
+        rev = Revision.parseRevision(mjv);
       }
       catch (NumberFormatException ignore) {
       }
@@ -83,10 +80,10 @@ public class RemotePackageParserUtils {
    * format with major/minor/micro/preview sub-elements.
    *
    * @param revisionNode The node to parse.
-   * @return A new {@link FullRevision}. If parsing failed, major is set to
-   * {@link FullRevision#MISSING_MAJOR_REV}.
+   * @return A new {@link Revision}. If parsing failed, major is set to
+   * {@link Revision#MISSING_MAJOR_REV}.
    */
-  public static PreciseRevision parsePreciseRevisionElement(Node revisionNode) {
+  public static Revision parseRevisionElement(Node revisionNode) {
     // This needs to support two modes:
     // - For repository XSD >= 7, <revision> contains sub-elements such as <major> or <minor>.
     // - Otherwise for repository XSD < 7, <revision> contains an integer.
@@ -99,29 +96,29 @@ public class RemotePackageParserUtils {
         major = getXmlInt(revisionNode, SdkRepoConstants.NODE_MAJOR_REV, -1);
         minor = getXmlInt(revisionNode, SdkRepoConstants.NODE_MINOR_REV, -1);
         if (minor == -1) {
-          return new PreciseRevision(major);
+          return new Revision(major);
         }
         micro = getXmlInt(revisionNode, SdkRepoConstants.NODE_MICRO_REV, -1);
         if (micro == -1) {
-          return new PreciseRevision(major, minor);
+          return new Revision(major, minor);
         }
         preview = getXmlInt(revisionNode, SdkRepoConstants.NODE_PREVIEW, -1);
         if (preview == -1) {
-          return new PreciseRevision(major, minor, micro);
+          return new Revision(major, minor, micro);
         }
-        return new PreciseRevision(major, minor, micro, preview);
+        return new Revision(major, minor, micro, preview);
       }
       else {
         try {
           String majorStr = revisionNode.getTextContent().trim();
           major = Integer.parseInt(majorStr);
-          return new PreciseRevision(major);
+          return new Revision(major);
         }
         catch (Exception e) {
         }
       }
     }
-    return new PreciseRevision(FullRevision.MISSING_MAJOR_REV);
+    return new Revision(Revision.MISSING_MAJOR_REV);
   }
 
   /**
