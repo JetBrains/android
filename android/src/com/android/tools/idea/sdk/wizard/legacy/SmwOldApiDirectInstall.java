@@ -21,6 +21,7 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
+import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
@@ -50,7 +51,9 @@ import java.util.List;
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 
-
+/**
+ * @deprecated Replaced by {@link InstallSelectedPackagesStep}
+ */
 public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
   private Logger LOG = Logger.getInstance(SmwOldApiDirectInstall.class);
   private JBLabel myLabelSdkPath;

@@ -17,15 +17,16 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.sdk.wizard.legacy.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -734,9 +735,8 @@ public class RenderLogger extends LayoutLog {
         IPkgDesc lPreviewLib =
           PkgDesc.Builder.newPlatform(new AndroidVersion(21, "L"), new Revision(4), Revision.NOT_SPECIFIED).create();
         List<IPkgDesc> requested = Lists.newArrayList(lPreviewLib);
-        SdkQuickfixWizard wizard = new SdkQuickfixWizard(myModule.getProject(), myModule, requested);
-        wizard.init();
-        if (wizard.showAndGet()) {
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(myModule.getProject(), requested);
+        if (dialog != null && dialog.showAndGet()) {
           // Force target to be recomputed.
           sdkData.getLocalSdk().clearLocalPkg(EnumSet.of(PkgType.PKG_PLATFORM));
           AndroidFacet facet = AndroidFacet.getInstance(myModule);

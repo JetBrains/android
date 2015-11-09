@@ -18,8 +18,9 @@ package com.android.tools.idea.updater.configure;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
-import com.android.tools.idea.sdk.wizard.legacy.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.updater.SdkComponentSource;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
@@ -152,9 +153,10 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
           item.getLocalInfo().delete();
         }
         if (!requestedPackages.isEmpty()) {
-          SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
-          sdkQuickfixWizard.init();
-          sdkQuickfixWizard.show();
+          ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(null, requestedPackages);
+          if (dialog != null) {
+            dialog.show();
+          }
         }
         myPanel.refresh();
       }

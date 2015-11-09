@@ -47,7 +47,7 @@ public final class StudioWizardDialogBuilder {
    * constructor, any calls to {@link #setProject(Project)} and
    * {@link #setModalityType(DialogWrapper.IdeModalityType)} will be ignored.
    */
-  public StudioWizardDialogBuilder(@NotNull ModelWizard wizard, @NotNull String title, @NotNull Component parent) {
+  public StudioWizardDialogBuilder(@NotNull ModelWizard wizard, @NotNull String title, Component parent) {
     this(wizard, title);
     myParent = parent;
   }
