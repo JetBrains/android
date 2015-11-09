@@ -24,7 +24,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public final class OptionalPropertyTest {
   @Test
   public void testInitializationByStaticMethodOf() {
-    OptionalProperty<String> optStringValue = OptionalProperty.of("Test");
+    OptionalProperty<String> optStringValue = OptionalValueProperty.of("Test");
     assertThat(optStringValue.get().isPresent()).isTrue();
     assertThat(optStringValue.getValue()).isEqualTo("Test");
     assertThat(optStringValue.get().get()).isEqualTo("Test"); // Grab the underlying optional
@@ -32,39 +32,39 @@ public final class OptionalPropertyTest {
 
   @Test
   public void testInitializationByStaticMethodAbsent() {
-    OptionalProperty<String> optStringValue = OptionalProperty.absent();
+    OptionalProperty<String> optStringValue = OptionalValueProperty.absent();
     assertThat(optStringValue.get().isPresent()).isFalse();
   }
 
   @Test
   public void testInitializationByStaticMethodFromNullableWithValue() throws Exception {
-    OptionalProperty<String> optStringValue = OptionalProperty.fromNullable("Test");
+    OptionalProperty<String> optStringValue = OptionalValueProperty.fromNullable("Test");
     assertThat(optStringValue.get().isPresent()).isTrue();
   }
 
   @Test
   public void testInitializationByStaticMethodFromNullableWithNull() throws Exception {
-    OptionalProperty<String> optStringValue = OptionalProperty.fromNullable(null);
+    OptionalProperty<String> optStringValue = OptionalValueProperty.fromNullable(null);
     assertThat(optStringValue.get().isPresent()).isFalse();
   }
 
   @Test
   public void testSetValue() {
-    OptionalProperty<String> optStringValue = OptionalProperty.of("Hello");
+    OptionalProperty<String> optStringValue = OptionalValueProperty.of("Hello");
     optStringValue.setValue("Goodbye");
     assertThat(optStringValue.getValue()).isEqualTo("Goodbye");
   }
 
   @Test
   public void testClearValue() {
-    OptionalProperty<String> optStringValue = OptionalProperty.of("Dummy text");
+    OptionalProperty<String> optStringValue = OptionalValueProperty.of("Dummy text");
     optStringValue.clear();
     assertThat(optStringValue.get().isPresent()).isFalse();
   }
 
   @Test
   public void testSetNullableValue() throws Exception {
-    OptionalProperty<String> optStringValue = OptionalProperty.absent();
+    OptionalProperty<String> optStringValue = OptionalValueProperty.absent();
     optStringValue.setNullableValue("Hello");
     assertThat(optStringValue.getValue()).isEqualTo("Hello");
     optStringValue.setNullableValue(null);
@@ -73,7 +73,7 @@ public final class OptionalPropertyTest {
 
   @Test
   public void testGetValueOr() {
-    OptionalProperty<String> optStringValue = OptionalProperty.absent();
+    OptionalProperty<String> optStringValue = OptionalValueProperty.absent();
     assertThat(optStringValue.getValueOr("Default")).isEqualTo("Default");
     assertThat(optStringValue.get().isPresent()).isFalse();
 
@@ -84,19 +84,19 @@ public final class OptionalPropertyTest {
 
   @Test
   public void testGetValueOrNull() {
-    OptionalProperty<String> optStringValue = OptionalProperty.absent();
+    OptionalProperty<String> optStringValue = OptionalValueProperty.absent();
     assertThat(optStringValue.getValueOrNull()).isNull();
   }
 
   @Test(expected = IllegalStateException.class)
   public void testGetOnAbsentOptionThrowsException() {
-    OptionalProperty<String> optStringValue = OptionalProperty.absent();
+    OptionalProperty<String> optStringValue = OptionalValueProperty.absent();
     optStringValue.getValue();
   }
 
   @Test
   public void testInvalidationListenerFiredOnValueChange() {
-    OptionalProperty<String> optStringValue = OptionalProperty.absent();
+    OptionalProperty<String> optStringValue = OptionalValueProperty.absent();
     CountListener listener = new CountListener();
     optStringValue.addListener(listener);
 
@@ -113,8 +113,8 @@ public final class OptionalPropertyTest {
 
   @Test
   public void testIsPresentBinding() throws Exception {
-    OptionalProperty<String> optString = OptionalProperty.of("Hello");
-    OptionalProperty<Integer> optInt = OptionalProperty.of(10);
+    OptionalProperty<String> optString = OptionalValueProperty.of("Hello");
+    OptionalProperty<Integer> optInt = OptionalValueProperty.of(10);
 
     BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
     BoolProperty areBothPresent = new BoolValueProperty();
