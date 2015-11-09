@@ -19,7 +19,7 @@ import com.android.tools.idea.ui.properties.ObservableValue;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Interface which, when implemented, allows the chaining of boolean values.
+ * Read-only handle to a {@link BoolProperty}.
  */
 public interface ObservableBool extends ObservableValue<Boolean> {
   @NotNull

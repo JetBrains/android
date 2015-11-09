@@ -29,6 +29,14 @@ public final class OptionalProperty<T> extends ObservableProperty<Optional<T>> i
 
   @NotNull private Optional<T> myOptional;
 
+  public OptionalProperty() {
+    myOptional = Optional.absent();
+  }
+
+  public OptionalProperty(@NotNull T value) {
+    myOptional = Optional.of(value);
+  }
+
   public static <T> OptionalProperty<T> of(@NotNull T value) {
     return new OptionalProperty<T>(value);
   }
@@ -46,20 +54,13 @@ public final class OptionalProperty<T> extends ObservableProperty<Optional<T>> i
     return new OptionalProperty<T>();
   }
 
-  public OptionalProperty() {
-    myOptional = Optional.absent();
-  }
-
-  public OptionalProperty(@NotNull T value) {
-    myOptional = Optional.of(value);
-  }
-
   @NotNull
   @Override
   public Optional<T> get() {
     return myOptional;
   }
 
+  @Override
   @NotNull
   public T getValue() {
     return myOptional.get();
@@ -86,16 +87,20 @@ public final class OptionalProperty<T> extends ObservableProperty<Optional<T>> i
     }
   }
 
+  @Override
   @NotNull
   public T getValueOr(@NotNull T defaultValue) {
     return myOptional.or(defaultValue);
   }
 
+  @Override
   @Nullable
   public T getValueOrNull() {
     return myOptional.orNull();
   }
 
+  @NotNull
+  @Override
   public ObservableBool isPresent() {
     return new BooleanExpression(this) {
       @NotNull
