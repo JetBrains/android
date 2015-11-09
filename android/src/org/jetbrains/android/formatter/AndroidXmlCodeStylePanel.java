@@ -136,6 +136,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     private JComboBox myWrapAttributesCombo;
 
     protected JBCheckBox myInsertLineBreakBeforeFirstAttributeCheckBox;
+    protected JBCheckBox myInsertLineBreakBeforeNamespaceDeclarationCheckBox;
     protected JBCheckBox myInsertLineBreakAfterLastAttributeCheckbox;
 
     private final String myTitle;
@@ -144,6 +145,12 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     protected MyFileSpecificPanel(String title, ContextSpecificSettingsProviders.Provider<T> provider) {
       myTitle = title;
       mySettingsProvider = provider;
+      myInsertLineBreakBeforeFirstAttributeCheckBox.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+          UIUtil.setEnabled(myInsertLineBreakBeforeNamespaceDeclarationCheckBox, myInsertLineBreakBeforeFirstAttributeCheckBox.isSelected(), true);
+        }
+      });
     }
 
     protected void init() {
@@ -173,6 +180,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     protected void apply(T s) {
       s.WRAP_ATTRIBUTES = ourWrappings[myWrapAttributesCombo.getSelectedIndex()];
       s.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE = myInsertLineBreakBeforeFirstAttributeCheckBox.isSelected();
+      s.INSERT_LINE_BREAK_BEFORE_NAMESPACE_DECLARATION = myInsertLineBreakBeforeNamespaceDeclarationCheckBox.isSelected();
       s.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE = myInsertLineBreakAfterLastAttributeCheckbox.isSelected();
     }
 
@@ -185,6 +193,9 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
         return true;
       }
       if (s.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE != myInsertLineBreakBeforeFirstAttributeCheckBox.isSelected()) {
+        return true;
+      }
+      if (s.INSERT_LINE_BREAK_BEFORE_NAMESPACE_DECLARATION != myInsertLineBreakBeforeNamespaceDeclarationCheckBox.isSelected()) {
         return true;
       }
       if (s.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE != myInsertLineBreakAfterLastAttributeCheckbox.isSelected()) {
@@ -200,7 +211,9 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     protected void resetImpl(T s) {
       myWrapAttributesCombo.setSelectedIndex(getIndexForWrapping(s.WRAP_ATTRIBUTES));
       myInsertLineBreakBeforeFirstAttributeCheckBox.setSelected(s.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE);
+      myInsertLineBreakBeforeNamespaceDeclarationCheckBox.setSelected(s.INSERT_LINE_BREAK_BEFORE_NAMESPACE_DECLARATION);
       myInsertLineBreakAfterLastAttributeCheckbox.setSelected(s.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE);
+      UIUtil.setEnabled(myInsertLineBreakBeforeNamespaceDeclarationCheckBox, s.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE, true);
     }
 
     @NotNull
@@ -298,6 +311,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
 
       init();
       myInsertLineBreakBeforeFirstAttributeCheckBox.setVisible(false);
+      myInsertLineBreakBeforeNamespaceDeclarationCheckBox.setVisible(false);
       myInsertLineBreakAfterLastAttributeCheckbox.setVisible(false);
     }
 
