@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -756,14 +756,14 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   private boolean supportsIssueReporting() {
     String original = myAndroidProject.getModelVersion();
-    FullRevision modelVersion;
+    Revision modelVersion;
     try {
-      modelVersion = FullRevision.parseRevision(original);
+      modelVersion = Revision.parseRevision(original);
     } catch (NumberFormatException e) {
       Logger.getInstance(AndroidGradleModel.class).warn("Failed to parse '" + original + "'", e);
       return false;
     }
-    return modelVersion.compareTo(FullRevision.parseRevision("1.1.0")) >= 0;
+    return modelVersion.compareTo(Revision.parseRevision("1.1.0")) >= 0;
   }
 
   @Nullable

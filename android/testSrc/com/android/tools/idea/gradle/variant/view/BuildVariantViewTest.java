@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidProject;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.repository.Revision;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -101,8 +100,8 @@ public class BuildVariantViewTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static FullRevision getModelVersionSupportingUnitTests() {
-    return new PreciseRevision(1, 1, 0);
+  private static Revision getModelVersionSupportingUnitTests() {
+    return new Revision(1, 1, 0);
   }
 
   private static class Listener implements BuildVariantView.BuildVariantSelectionChangeListener {

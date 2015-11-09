@@ -16,9 +16,8 @@
 package com.android.tools.idea.sdk.remote;
 
 import com.android.annotations.NonNull;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.SmartList;
@@ -68,12 +67,12 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
     checkInstallId(remote);
     if (remote.getPkgDesc().isPreview()) {
       if (myRemotePreviewInfo == null ||
-          remote.getPkgDesc().isUpdateFor(myRemotePreviewInfo.getPkgDesc(), FullRevision.PreviewComparison.IGNORE)) {
+          remote.getPkgDesc().isUpdateFor(myRemotePreviewInfo.getPkgDesc(), Revision.PreviewComparison.IGNORE)) {
         myRemotePreviewInfo = remote;
       }
     }
     else {
-      if (myRemoteInfo == null || remote.getPkgDesc().isUpdateFor(myRemoteInfo.getPkgDesc(), FullRevision.PreviewComparison.IGNORE)) {
+      if (myRemoteInfo == null || remote.getPkgDesc().isUpdateFor(myRemoteInfo.getPkgDesc(), Revision.PreviewComparison.IGNORE)) {
         myRemoteInfo = remote;
       }
     }
@@ -102,7 +101,7 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
     if (includePreview &&
         (!hasRemote(false) ||
          (hasPreview() &&
-          myRemotePreviewInfo.getPkgDesc().isUpdateFor(myRemoteInfo.getPkgDesc(), FullRevision.PreviewComparison.IGNORE)))) {
+          myRemotePreviewInfo.getPkgDesc().isUpdateFor(myRemoteInfo.getPkgDesc(), Revision.PreviewComparison.IGNORE)))) {
       return myRemotePreviewInfo;
     }
     // Else return the non-preview, possibly null.
@@ -149,7 +148,7 @@ public class UpdatablePkgInfo implements Comparable<UpdatablePkgInfo> {
   public boolean isUpdate(boolean includePreview) {
     RemotePkgInfo remote = getRemote(includePreview);
     return myLocalInfo != null && remote != null &&
-           remote.getPkgDesc().getPreciseRevision().compareTo(myLocalInfo.getDesc().getPreciseRevision()) > 0;
+           remote.getPkgDesc().getRevision().compareTo(myLocalInfo.getDesc().getRevision()) > 0;
   }
 
   public List<RemotePkgInfo> getAllRemotes() {

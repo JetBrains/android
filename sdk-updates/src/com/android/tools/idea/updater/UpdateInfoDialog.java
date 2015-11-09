@@ -119,7 +119,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
       packageHtmlBuilder.openHtmlBody();
       packageHtmlBuilder.beginList();
       for (IPkgDesc desc : packages) {
-        packageHtmlBuilder.listItem().add(desc.getListDescription() + " revision " + desc.getPreciseRevision());
+        packageHtmlBuilder.listItem().add(desc.getListDescription() + " revision " + desc.getRevision());
       }
       packageHtmlBuilder.closeHtmlBody();
       myPackages.setText(packageHtmlBuilder.getHtml());

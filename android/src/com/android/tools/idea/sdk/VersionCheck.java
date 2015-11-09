@@ -16,7 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.PkgProps;
 import com.google.common.io.Closeables;
 import com.intellij.openapi.diagnostic.Logger;
@@ -39,7 +39,7 @@ public final class VersionCheck {
   /**
    * The minimum version of the SDK Tools that this version of Android Studio requires.
    */
-  public static final FullRevision MIN_TOOLS_REV = new FullRevision(24, 0, 2, 0);
+  public static final Revision MIN_TOOLS_REV = new Revision(24, 0, 2, 0);
 
   private static final Pattern SOURCE_PROPERTY_PATTERN = Pattern.compile("^" + PkgProps.PKG_REVISION + "=(.*)$");
 
@@ -81,7 +81,7 @@ public final class VersionCheck {
   @NotNull
   public static VersionCheckResult checkVersion(@NotNull String sdkPath) {
     File toolsDir = new File(sdkPath, SdkConstants.OS_SDK_TOOLS_FOLDER);
-    FullRevision toolsRevision = new FullRevision(Integer.MAX_VALUE);
+    Revision toolsRevision = new Revision(Integer.MAX_VALUE);
     BufferedReader reader = null;
     try {
       File sourceProperties = new File(toolsDir, SdkConstants.FN_SOURCE_PROP);
@@ -92,7 +92,7 @@ public final class VersionCheck {
         Matcher m = SOURCE_PROPERTY_PATTERN.matcher(line);
         if (m.matches()) {
           try {
-            toolsRevision = FullRevision.parseRevision(m.group(1));
+            toolsRevision = Revision.parseRevision(m.group(1));
           } catch (NumberFormatException ignore) {}
           break;
         }
@@ -111,23 +111,23 @@ public final class VersionCheck {
   }
 
   public static class VersionCheckResult {
-    @NotNull private final FullRevision myRevision;
+    @NotNull private final Revision myRevision;
     private final boolean myCompatibleVersion;
 
-    VersionCheckResult(@NotNull FullRevision revision) {
+    VersionCheckResult(@NotNull Revision revision) {
       myRevision = revision;
       myCompatibleVersion = isCompatible(revision);
     }
 
-    private static boolean isCompatible(@NotNull FullRevision revision) {
+    private static boolean isCompatible(@NotNull Revision revision) {
       if (revision.getMajor() == Integer.MAX_VALUE) {
         return false;
       }
-      return revision.compareTo(MIN_TOOLS_REV, FullRevision.PreviewComparison.IGNORE) >= 0;
+      return revision.compareTo(MIN_TOOLS_REV, Revision.PreviewComparison.IGNORE) >= 0;
     }
 
     @NotNull
-    public FullRevision getRevision() {
+    public Revision getRevision() {
       return myRevision;
     }
 

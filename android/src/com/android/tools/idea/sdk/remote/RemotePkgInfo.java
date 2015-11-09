@@ -19,16 +19,14 @@ package com.android.tools.idea.sdk.remote;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.repository.Revision;
+import com.android.repository.io.FileOp;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.io.IFileOp;
-import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.License;
 import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.PreciseRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.archives.ArchFilter;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.packages.RemotePackageParserUtils;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
@@ -85,7 +83,7 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
   protected final String mListDisplay;
   protected final String mDescription;
   protected final String mDescUrl;
-  protected PreciseRevision mRevision;
+  protected Revision mRevision;
 
   protected final Archive[] mArchives;
   protected final SdkSource mSource;
@@ -105,7 +103,7 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
     mArchives = parseArchives(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_ARCHIVES));
     mRevision =
       RemotePackageParserUtils
-        .parsePreciseRevisionElement(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_REVISION));
+        .parseRevisionElement(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_REVISION));
   }
 
   /**
@@ -260,7 +258,7 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
    * Returns the revision for this package.
    */
   @NonNull
-  public FullRevision getRevision() {
+  public Revision getRevision() {
     return mRevision;
   }
 
@@ -445,11 +443,11 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
    *
    * @param archive      The archive that is being installed.
    * @param monitor      The {@link ITaskMonitor} to display errors.
-   * @param fileOp       The {@link IFileOp} used by the archive installer.
+   * @param fileOp       The {@link FileOp} used by the archive installer.
    * @param unzippedFile The file that has just been unzipped in the install temp directory.
    * @param zipEntry     The {@link ZipArchiveEntry} that has just been unzipped.
    */
-  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, IFileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
+  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, FileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
 
     // if needed set the permissions.
     if (sUsingUnixPerm && fileOp.isFile(unzippedFile)) {
@@ -520,18 +518,18 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
     }
 
     // check they are the same item, ignoring the preview bit.
-    if (!sameItemAs(localPkg, FullRevision.PreviewComparison.IGNORE)) {
+    if (!sameItemAs(localPkg, Revision.PreviewComparison.IGNORE)) {
       return UpdateInfo.INCOMPATIBLE;
     }
 
     // a preview cannot update a non-preview
     // TODO(jbakermalone): review this logic
-    if (getRevision().isPreview() && !localPkg.getDesc().getFullRevision().isPreview()) {
+    if (getRevision().isPreview() && !localPkg.getDesc().getRevision().isPreview()) {
       return UpdateInfo.INCOMPATIBLE;
     }
 
     // check revision number
-    if (localPkg.getDesc().getFullRevision().compareTo(this.getRevision()) < 0) {
+    if (localPkg.getDesc().getRevision().compareTo(this.getRevision()) < 0) {
       return UpdateInfo.UPDATE;
     }
 
@@ -548,14 +546,14 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
    * @param pkg the package to compare.
    * @return true if the item as equivalent.
    */
-  protected boolean sameItemAs(LocalPkgInfo pkg, FullRevision.PreviewComparison comparePreview) {
+  protected boolean sameItemAs(LocalPkgInfo pkg, Revision.PreviewComparison comparePreview) {
     IPkgDesc desc = getPkgDesc();
     IPkgDesc other = pkg.getDesc();
     return Objects.equal(desc.getPath(), other.getPath()) &&
            Objects.equal(desc.getTag(), other.getTag()) &&
            Objects.equal(desc.getAndroidVersion(), other.getAndroidVersion()) &&
            Objects.equal(desc.getVendor(), other.getVendor()) &&
-           (comparePreview == FullRevision.PreviewComparison.IGNORE ||
-            desc.getFullRevision().isPreview() == other.getFullRevision().isPreview());
+           (comparePreview == Revision.PreviewComparison.IGNORE ||
+            desc.getRevision().isPreview() == other.getRevision().isPreview());
   }
 }

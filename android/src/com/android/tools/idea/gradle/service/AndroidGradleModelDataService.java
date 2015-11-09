@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.service;
 
 import com.android.builder.model.AndroidProject;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.FullRevision.PreviewComparison;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
@@ -66,7 +64,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.sdklib.repository.PreciseRevision.parseRevision;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
@@ -147,7 +144,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
         Map<String, AndroidGradleModel> androidModelsByModuleName = indexByModuleName(toImport);
 
         Charset ideEncoding = EncodingProjectManager.getInstance(project).getDefaultCharset();
-        FullRevision oneDotTwoModelVersion = new PreciseRevision(1, 2, 0);
+        Revision oneDotTwoModelVersion = new Revision(1, 2, 0);
 
         String nonMatchingModelEncodingFound = null;
         String modelVersionWithLayoutRenderingIssue = null;
@@ -169,8 +166,8 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
               modelVersionWithLayoutRenderingIssue = delegate.getModelVersion();
             }
 
-            FullRevision modelVersion = parseRevision(delegate.getModelVersion());
-            boolean isModelVersionOneDotTwoOrNewer = modelVersion.compareTo(oneDotTwoModelVersion, PreviewComparison.IGNORE) >= 0;
+            Revision modelVersion = Revision.parseRevision(delegate.getModelVersion());
+            boolean isModelVersionOneDotTwoOrNewer = modelVersion.compareTo(oneDotTwoModelVersion, Revision.PreviewComparison.IGNORE) >= 0;
 
             // Verify that the encoding in the model is the same as the encoding in the IDE's project settings.
             Charset modelEncoding = null;

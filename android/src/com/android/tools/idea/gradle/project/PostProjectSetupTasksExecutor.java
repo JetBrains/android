@@ -19,7 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
@@ -594,9 +594,9 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private static class InstallSdkToolsHyperlink extends NotificationHyperlink {
-    @NotNull private final FullRevision myVersion;
+    @NotNull private final Revision myVersion;
 
-    InstallSdkToolsHyperlink(@NotNull FullRevision version) {
+    InstallSdkToolsHyperlink(@NotNull Revision version) {
       super("install.build.tools", "Install Tools " + version);
       myVersion = version;
     }
@@ -605,7 +605,7 @@ public class PostProjectSetupTasksExecutor {
     protected void execute(@NotNull Project project) {
       List<IPkgDesc> requested = Lists.newArrayList();
       if (myVersion.getMajor() == 23) {
-        FullRevision minBuildToolsRev = new FullRevision(20, 0, 0);
+        Revision minBuildToolsRev = new Revision(20, 0, 0);
         requested.add(PkgDesc.Builder.newPlatformTool(minBuildToolsRev).create());
       }
       requested.add(PkgDesc.Builder.newTool(myVersion, myVersion).create());

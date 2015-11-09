@@ -19,8 +19,7 @@ import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
@@ -733,7 +732,7 @@ public class RenderLogger extends LayoutLog {
       @Override
       public void run() {
         IPkgDesc lPreviewLib =
-          PkgDesc.Builder.newPlatform(new AndroidVersion(21, "L"), new MajorRevision(4), FullRevision.NOT_SPECIFIED).create();
+          PkgDesc.Builder.newPlatform(new AndroidVersion(21, "L"), new Revision(4), Revision.NOT_SPECIFIED).create();
         List<IPkgDesc> requested = Lists.newArrayList(lPreviewLib);
         SdkQuickfixWizard wizard = new SdkQuickfixWizard(myModule.getProject(), myModule, requested);
         wizard.init();
