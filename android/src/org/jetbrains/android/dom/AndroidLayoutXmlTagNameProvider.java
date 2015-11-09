@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom;
 
+import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.completion.XmlTagInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -87,7 +88,11 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
         lookupElement = lookupElement.withInsertHandler(XmlTagInsertHandler.INSTANCE);
       }
 
-      elements.add(lookupElement);
+      // DefaultXmlTagNameProvider uses PrioritizedLookupElement with priority 1.0 for most elements
+      // We're using 0.5 here because those elements that would be processed by DefaultXmlTagNameProvider
+      // are views available by short names and thus should have higher priority. Otherwise because this
+      // provider kicks in first they would be lower.
+      elements.add(PrioritizedLookupElement.withPriority(lookupElement, 0.5));
     }
   }
 }
