@@ -18,7 +18,8 @@ package com.android.tools.idea.editors;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.tools.idea.sdk.wizard.legacy.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
 import com.intellij.codeEditor.JavaEditorFileSwapper;
@@ -104,9 +105,8 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
           List<IPkgDesc> requested = Lists.newArrayList();
           requested.add(PkgDesc.Builder.newSource(platform.getApiVersion(), new Revision(Revision.NOT_SPECIFIED)).create());
 
-          SdkQuickfixWizard wizard = new SdkQuickfixWizard(myProject, null, requested);
-          wizard.init();
-          if (wizard.showAndGet()) {
+          ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(myProject, requested);
+          if (dialog != null && dialog.showAndGet()) {
             updateSdkSourceRoot(sdk);
           }
         }
