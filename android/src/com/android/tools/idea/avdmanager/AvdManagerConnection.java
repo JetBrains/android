@@ -53,10 +53,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.NO_SKIN;
-
 /**
- * A wrapper class for communicating with {@link com.android.sdklib.internal.avd.AvdManager} and exposing helper functions
+ * A wrapper class for communicating with {@link AvdManager} and exposing helper functions
  * for dealing with {@link AvdInfo} objects inside Android studio.
  */
 public class AvdManagerConnection {
@@ -300,6 +298,7 @@ public class AvdManagerConnection {
     final String scaleFactor = properties.get(AvdWizardConstants.AVD_INI_SCALE_FACTOR);
     final String netDelay = properties.get(AvdWizardConstants.AVD_INI_NETWORK_LATENCY);
     final String netSpeed = properties.get(AvdWizardConstants.AVD_INI_NETWORK_SPEED);
+    final boolean useRanchu = properties.containsKey(AvdWizardConstants.CPU_CORES_KEY.name);
 
     final ProgressWindow p = new ProgressWindow(false, true, project);
     p.setIndeterminate(false);
@@ -325,6 +324,10 @@ public class AvdManagerConnection {
 
         if (netSpeed != null) {
           commandLine.addParameters("-netspeed", netSpeed);
+        }
+
+        if (useRanchu) {
+          commandLine.addParameter("-ranchu");
         }
 
         commandLine.addParameters("-avd", avdName);
@@ -418,7 +421,7 @@ public class AvdManagerConnection {
     if (skinFolder == null && isCircular) {
       skinFolder = getRoundSkin(systemImageDescription);
     }
-    if (FileUtil.filesEqual(skinFolder, NO_SKIN)) {
+    if (FileUtil.filesEqual(skinFolder, AvdWizardConstants.NO_SKIN)) {
       skinFolder = null;
       hardwareProperties.remove(AvdManager.AVD_INI_SKIN_PATH);
     }
