@@ -22,9 +22,7 @@ import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
@@ -53,8 +51,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.Projects.enforceExternalBuild;
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.util.text.StringUtil.join;
 
@@ -111,9 +109,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       // button and editor notifications.
       syncState.notifyUser();
     }
-    if (shouldShowMigrateToGradleNotification()
-        && AndroidStudioInitializer.isAndroidStudio()
-        && Projects.isIdeaAndroidProject(myProject)) {
+    if (shouldShowMigrateToGradleNotification() && isAndroidStudio() && isIdeaAndroidProject(myProject)) {
       // Suggest that Android Studio users use Gradle instead of IDEA project builder.
       showMigrateToGradleWarning();
       return;
@@ -122,6 +118,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     boolean isGradleProject = isBuildWithGradle(myProject);
     if (isGradleProject) {
       configureGradleProject();
+    }
+    else if (canImportAsGradleProject(myProject.getBaseDir())) {
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }
 
@@ -201,7 +200,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     if (unsupportedModules.size() == 0) {
       return;
     }
-    final String s = join(unsupportedModules, new Function<Module, String>() {
+    String s = join(unsupportedModules, new Function<Module, String>() {
       @Override
       public String fun(Module module) {
         return module.getName();

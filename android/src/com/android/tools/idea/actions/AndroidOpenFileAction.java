@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.GradleModuleImporter.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.intellij.ide.actions.OpenFileAction.openFile;
 import static com.intellij.ide.impl.ProjectUtil.openOrImport;
@@ -112,7 +112,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   }
 
   private static boolean openOrImportProject(@NotNull VirtualFile file, @Nullable Project project) {
-    if (isGradleProject(file)) {
+    if (canImportAsGradleProject(file)) {
       VirtualFile target = findImportTarget(file);
       if (target != null) {
         GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
