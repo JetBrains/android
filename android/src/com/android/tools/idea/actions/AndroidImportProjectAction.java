@@ -50,7 +50,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.eclipse.GradleImport.isEclipseProjectDir;
 import static com.android.tools.idea.gradle.project.AdtModuleImporter.isAdtProjectLocation;
-import static com.android.tools.idea.gradle.project.GradleModuleImporter.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
@@ -173,7 +173,7 @@ public class AndroidImportProjectAction extends AnAction {
                                      "(which for example will contain\nan AndroidManifest.xml file) and try again.", file.getPath());
       Messages.showErrorDialog(message, "Import Project");
     }
-    else if (isGradleProject(target)) {
+    else if (canImportAsGradleProject(target)) {
       GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
       gradleImporter.importProject(file);
     }
