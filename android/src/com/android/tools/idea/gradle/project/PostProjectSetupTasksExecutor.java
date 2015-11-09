@@ -59,10 +59,12 @@ import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -104,6 +106,8 @@ import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJd
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
@@ -213,6 +217,39 @@ public class PostProjectSetupTasksExecutor {
     myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
+
+    disposeModulesMarkedForRemoval();
+  }
+
+  private void disposeModulesMarkedForRemoval() {
+    final Collection<Module> modulesToDispose = getModulesToDisposePostSync(myProject);
+    if (modulesToDispose == null || modulesToDispose.isEmpty()) {
+      return;
+    }
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+        List<File> imlFilesToRemove = Lists.newArrayList();
+        ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
+        try {
+          for (Module module : modulesToDispose) {
+            File imlFile = new File(toSystemDependentName(module.getModuleFilePath()));
+            imlFilesToRemove.add(imlFile);
+            moduleModel.disposeModule(module);
+          }
+        }
+        finally {
+          setModulesToDisposePostSync(myProject, null);
+          moduleModel.commit();
+        }
+        for (File imlFile : imlFilesToRemove) {
+          if (imlFile.isFile()) {
+            delete(imlFile);
+          }
+        }
+      }
+    });
   }
 
   private void adjustModuleStructures(@NotNull IdeModifiableModelsProvider modelsProvider) {
