@@ -22,7 +22,7 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -103,7 +103,7 @@ import static com.android.SdkConstants.*;
  */
 public final class FastDeployManager implements ProjectComponent, BulkFileListener {
   public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "1.6.0-alpha4";
-  static final FullRevision MINIMUM_GRADLE_PLUGIN_VERSION = FullRevision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+  static final Revision MINIMUM_GRADLE_PLUGIN_VERSION = Revision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
   private static final Object INSTANCE_LOCK = new Object();
 
@@ -490,7 +490,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     String version = model.getAndroidProject().getModelVersion();
     try {
       // Sigh, would be nice to have integer versions to avoid having to do this here
-      FullRevision revision = FullRevision.parseRevision(version);
+      Revision revision = Revision.parseRevision(version);
 
       // Supported in version 1.6 of the Gradle plugin and up
       return revision.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
@@ -796,7 +796,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   static boolean isInstantRunSupported(@NotNull AndroidGradleModel model) {
     String version = model.getAndroidProject().getModelVersion();
     try {
-      FullRevision modelVersion = FullRevision.parseRevision(version);
+      Revision modelVersion = Revision.parseRevision(version);
 
       // Supported in version 1.6 of the Gradle plugin and up
       return modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
