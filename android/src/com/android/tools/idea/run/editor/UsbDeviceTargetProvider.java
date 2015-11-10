@@ -76,19 +76,19 @@ public class UsbDeviceTargetProvider extends DeployTargetProvider {
 
       @Nullable
       @Override
-      public DeviceTarget getTarget(@NotNull DeployTargetState state,
-                                    @NotNull AndroidFacet facet,
-                                    @NotNull DeviceCount deviceCount,
-                                    boolean debug,
-                                    int runConfigId,
-                                    @NotNull ConsolePrinter printer) {
+      public DeviceFutures getDevices(@NotNull DeployTargetState state,
+                                      @NotNull AndroidFacet facet,
+                                      @NotNull DeviceCount deviceCount,
+                                      boolean debug,
+                                      int runConfigId,
+                                      @NotNull ConsolePrinter printer) {
         Collection<IDevice> runningDevices =
           DeviceSelectionUtils.chooseRunningDevice(facet, new TargetDeviceFilter.UsbDeviceFilter(), deviceCount);
         if (runningDevices == null) {
           // The user canceled.
           return null;
         }
-        return DeviceTarget.forDevices(runningDevices);
+        return DeviceFutures.forDevices(runningDevices);
       }
     };
   }

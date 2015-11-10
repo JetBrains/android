@@ -62,7 +62,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 
   /** The key used to store the selected device target as copyable user data on each execution environment. */
-  public static final Key<DeviceTarget> DEVICE_TARGET_KEY = Key.create("android.device.target");
+  public static final Key<DeviceFutures> DEVICE_FUTURES_KEY = Key.create("android.device.futures");
 
   public static final Key<Collection<IDevice>> DEPLOY_DEVICES = Key.create("android.deploy.devices");
   public static final Key<Boolean> FAST_DEPLOY = Key.create("android.fast.deploy");
@@ -352,19 +352,19 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     // If there is a session that we will embed to, we need to re-use the devices from that session.
     // TODO: this means that if the deployment target is changed between sessions, we still use the one from the old session?
-    DeviceTarget deviceTarget = getOldSessionTarget(project, executor);
-    if (deviceTarget == null) {
-      deviceTarget = deployTarget.getTarget(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID(), printer);
-      if (deviceTarget == null) {
+    DeviceFutures deviceFutures = getOldSessionTarget(project, executor);
+    if (deviceFutures == null) {
+      deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID(), printer);
+      if (deviceFutures == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
         return null;
       }
     }
 
     // Store the chosen target on the execution environment so before-run tasks can access it.
-    env.putCopyableUserData(DEVICE_TARGET_KEY, deviceTarget);
+    env.putCopyableUserData(DEVICE_FUTURES_KEY, deviceFutures);
 
-    if (deviceTarget.getDeviceFutures().isEmpty()) {
+    if (deviceFutures.get().isEmpty()) {
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
@@ -372,7 +372,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       .setDebug(debug)
       .build();
 
-    return new AndroidRunningState(env, facet, getApkProvider(facet), deviceTarget, printer, getApplicationLauncher(facet),
+    return new AndroidRunningState(env, facet, getApkProvider(facet), deviceFutures, printer, getApplicationLauncher(facet),
                                    launchOptions, this);
   }
 
@@ -389,14 +389,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Nullable
-  private DeviceTarget getOldSessionTarget(@NotNull Project project, @NotNull Executor executor) {
+  private DeviceFutures getOldSessionTarget(@NotNull Project project, @NotNull Executor executor) {
     AndroidSessionInfo sessionInfo = AndroidSessionManager.findOldSession(project, executor, this);
     if (sessionInfo != null) {
       if (sessionInfo.isEmbeddable()) {
         Collection<IDevice> oldDevices = sessionInfo.getState().getDevices();
         Collection<IDevice> online = DeviceSelectionUtils.getOnlineDevices(oldDevices);
         if (!online.isEmpty()) {
-          return DeviceTarget.forDevices(online);
+          return DeviceFutures.forDevices(online);
         }
       }
     }
