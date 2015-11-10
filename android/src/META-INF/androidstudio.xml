@@ -46,6 +46,9 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <defaultProjectTypeProvider type="Android"/>
+    <applicationService serviceInterface="org.jetbrains.plugins.gradle.service.GradleInstallationManager"
+                        serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager"
+                        overrides="true"/>
   </extensions>
 
   <application-components>
