@@ -36,7 +36,7 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
 
   // Note: we only maintain the state that is persisted along with the run configuration here.
   // Any other state that is necessary for the dialog itself should be maintained separately, possibly indexed by the run configuration
-  // context in which getTarget() is invoked.
+  // context in which getDeployTarget() is invoked.
   public static final class State extends DeployTargetState {
     public boolean USE_LAST_SELECTED_DEVICE;
   }
@@ -78,13 +78,13 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
     // If we are not showing any custom run/profile states, then show the old style device chooser
     List<DeployTargetProvider> applicableTargets = getTargetsProvidingRunProfileState(executor, androidTests);
     if (applicableTargets.isEmpty()) {
-      DeviceTarget deviceTarget = new ManualTargetChooser(showChooserState, facet, runConfigId)
-        .getTarget(printer, deviceCount, executor instanceof DefaultDebugExecutor);
-      if (deviceTarget == null) {
+      DeviceFutures deviceFutures = new ManualTargetChooser(showChooserState, facet, runConfigId)
+        .getDevices(printer, deviceCount, executor instanceof DefaultDebugExecutor);
+      if (deviceFutures == null) {
         return null;
       }
 
-      return new RealizedDeployTarget(null, null, deviceTarget);
+      return new RealizedDeployTarget(null, null, deviceFutures);
     }
 
     Project project = facet.getModule().getProject();

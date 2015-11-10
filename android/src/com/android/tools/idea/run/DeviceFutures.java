@@ -25,47 +25,43 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 
-/**
- * The target devices to use for a device-oriented run configuration launch.
- * We may be launching the devices, so they are stored as futures which resolve when each device is ready to use.
- */
-public final class DeviceTarget {
-
+/** A collection of devices (some of them may still be starting up) for use in a device-oriented run configuration launch. */
+public final class DeviceFutures {
   @NotNull
   private final Collection<ListenableFuture<IDevice>> myDeviceFutures;
 
-  private DeviceTarget(@NotNull Collection<ListenableFuture<IDevice>> deviceFutures) {
+  private DeviceFutures(@NotNull Collection<ListenableFuture<IDevice>> deviceFutures) {
     myDeviceFutures = deviceFutures;
   }
 
   @NotNull
-  public static DeviceTarget forFuture(@NotNull ListenableFuture<IDevice> deviceFuture) {
+  public static DeviceFutures forFuture(@NotNull ListenableFuture<IDevice> deviceFuture) {
     return forFutures(ImmutableList.of(deviceFuture));
   }
 
   @NotNull
-  public static DeviceTarget forFutures(@NotNull Collection<ListenableFuture<IDevice>> deviceFutures) {
-    return new DeviceTarget(deviceFutures);
+  public static DeviceFutures forFutures(@NotNull Collection<ListenableFuture<IDevice>> deviceFutures) {
+    return new DeviceFutures(deviceFutures);
   }
 
   @NotNull
-  public static DeviceTarget forDevices(Iterable<IDevice> devices) {
+  public static DeviceFutures forDevices(Iterable<IDevice> devices) {
     ImmutableList.Builder<ListenableFuture<IDevice>> futures = ImmutableList.builder();
     for (IDevice device : devices) {
       futures.add(Futures.immediateFuture(device));
     }
-    return new DeviceTarget(futures.build());
+    return new DeviceFutures(futures.build());
   }
 
   /** @return the device futures, which resolve when each device is ready. */
   @NotNull
-  public Collection<ListenableFuture<IDevice>> getDeviceFutures() {
+  public Collection<ListenableFuture<IDevice>> get() {
     return myDeviceFutures;
   }
 
   /** @return the target devices, if all are now ready. Otherwise, null. */
   @Nullable
-  public Collection<IDevice> getDevicesIfReady() {
+  public Collection<IDevice> getIfReady() {
     for (ListenableFuture<IDevice> deviceFuture : myDeviceFutures) {
       if (!deviceFuture.isDone() || deviceFuture.isCancelled()) {
         return null;
