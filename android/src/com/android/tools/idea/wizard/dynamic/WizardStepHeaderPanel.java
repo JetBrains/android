@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard.dynamic;
 
 import com.android.tools.idea.ui.ImageComponent;
+import com.android.tools.idea.ui.wizard.StudioWizardLayout;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
@@ -34,6 +35,8 @@ import java.beans.PropertyChangeListener;
 
 /**
  * Wizard header component
+ *
+ * @deprecated Replaced by {@link StudioWizardLayout}.
  */
 public class WizardStepHeaderPanel extends JPanel {
   @NotNull String myTitle = "Title Label";

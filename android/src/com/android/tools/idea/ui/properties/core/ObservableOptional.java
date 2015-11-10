@@ -17,18 +17,25 @@ package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.google.common.base.Optional;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Convenience interface for returning read-only optional properties.
+ * Read-only handle to an {@link OptionalProperty}.
  * <p/>
- * {@link OptionalProperty} instances are relatively common, and it's less tedious and easier to
- * read if you write this:
- * <p/>
- * {@code ObservableOptional<String> tooltip() { return myTooltip; }}
- * <p/>
- * instead of this:
- * <p/>
- * {@code ObservableValue<Optional<String>> tooltip() { return myTooltip; }}
+ * Designed with an interface that emulates Guava's {@link Optional}.
  */
 public interface ObservableOptional<T> extends ObservableValue<Optional<T>> {
+
+  @NotNull
+  T getValue();
+
+  @NotNull
+  T getValueOr(@NotNull T defaultValue);
+
+  @Nullable
+  T getValueOrNull();
+
+  @NotNull
+  ObservableBool isPresent();
 }

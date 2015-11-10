@@ -152,12 +152,16 @@ public class AndroidIcons {
   }
 
   public static class Wizards {
+    public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.png"); // 60x60
     public static final Icon NewModuleSidePanel = load("/icons/wizards/newModule.png"); // 143x627
     public static final Icon NewProjectSidePanel = load("/icons/wizards/newProject.png"); // 143x627
     public static final Icon DefaultTemplate = load("/icons/wizards/defaultTemplate.png"); //512x512
     public static final Icon DefaultTemplate256 = load("/icons/wizards/defaultTemplate256.png"); // 256x256
     public static final Icon GithubIcon = load("/icons/wizards/github_icon.png"); // 256x256
-    public static final Icon NewProjectMascot = load("/icons/wizards/welcome.png"); // 60x60
+    /**
+     * @deprecated Name is bad - this icon is used outside of project creation. Migrate to StudioProductIcon.
+     * TODO: Post wizard migration: delete constant and welcome_green.png
+     */
     public static final Icon NewProjectMascotGreen = load("/icons/wizards/welcome_green.png"); // 60x60
   }
 
