@@ -47,7 +47,6 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
   private final ListenerManager myListeners = new ListenerManager();
   private final Map<ObservableValue<?>, String> myErrors = Maps.newLinkedHashMap();
   private final Map<ObservableValue<?>, String> myWarnings = Maps.newLinkedHashMap();
-  private final Map<ObservableValue<?>, ValidationResult> myValidators = Maps.newLinkedHashMap();
   private final BoolProperty myHasErrors = new BoolValueProperty();
 
   private JPanel myRootPanel;
@@ -77,7 +76,7 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
    * <p/>
    * See also {@link #hasErrors()}, which will be true if at least one error is returned.
    */
-  public <T> void registerErrorValidator(@NotNull final ObservableValue<T> value, @NotNull final NotNullProducer<String> errorProducer) {
+  public void registerErrorValidator(@NotNull final ObservableValue<?> value, @NotNull final NotNullProducer<String> errorProducer) {
     myListeners.listenAndFire(value, new InvalidationListener() {
       @Override
       protected void onInvalidated(@NotNull ObservableValue<?> sender) {
@@ -96,8 +95,7 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
    * Registration order matters - the first warning reported takes precedence over later warnings
    * if more than one warning occurs at the same time. Any error will trump any warning.
    */
-  public <T> void registerWarningValidator(@NotNull final ObservableValue<T> value,
-                                           @NotNull final NotNullProducer<String> warningProducer) {
+  public void registerWarningValidator(@NotNull final ObservableValue<?> value, @NotNull final NotNullProducer<String> warningProducer) {
     myListeners.listenAndFire(value, new InvalidationListener() {
       @Override
       protected void onInvalidated(@NotNull ObservableValue<?> sender) {
@@ -108,33 +106,35 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
   }
 
   /**
-   * Register a validation handler for the current property. See {@link ValidationResult} for more
+   * Register a validation handler for the current property. See {@link PathValidator} for more
    * information about the sort of conditions it can validate for.
    * <p/>
    * Registration order matters - the first error reported takes precedence over later errors
    * if more than one error occurs at the same time; the same is true for warnings. Any error will
    * trump any warning.
    * <p/>
-   * See also {@link #hasErrors()}, which will be true if a {@link ValidationResult.Status#ERROR}
+   * See also {@link #hasErrors()}, which will be true if a {@link PathValidator.Status#ERROR}
    * is returned.
    */
-  public <T> void registerValidator(@NotNull final ObservableValue<T> value,
-                                    @NotNull final NotNullProducer<ValidationResult> validationProducer) {
+  public void registerPathValidator(@NotNull final ObservableValue<?> value,
+                                    @NotNull final NotNullProducer<PathValidator.Result> validationProducer) {
     myListeners.listenAndFire(value, new InvalidationListener() {
       @Override
       protected void onInvalidated(@NotNull ObservableValue<?> sender) {
-        ValidationResult result = validationProducer.produce();
-        if (result.getStatus() == ValidationResult.Status.ERROR) {
-          myWarnings.put(value, "");
-          myErrors.put(value, result.getMessage());
-        }
-        else if (result.getStatus() == ValidationResult.Status.WARN) {
-          myErrors.put(value, "");
-          myWarnings.put(value, result.getMessage());
-        }
-        else {
-          myErrors.put(value, "");
-          myWarnings.put(value, "");
+        PathValidator.Result result = validationProducer.produce();
+        switch (result.getSeverity()) {
+          case ERROR:
+            myWarnings.put(value, "");
+            myErrors.put(value, result.getMessage());
+            break;
+          case WARNING:
+            myErrors.put(value, "");
+            myWarnings.put(value, result.getMessage());
+            break;
+          default:
+            myErrors.put(value, "");
+            myWarnings.put(value, "");
+            break;
         }
         updateValidationLabel();
       }
