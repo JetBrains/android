@@ -168,11 +168,12 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     if (url != null) {
       return generateDoc(element, url);
     } else {
-      // See if it's in a resource file definition: This allows you to invoke
-      // documentation on <string name="cursor_here">...</string>
-      // and see the various translations etc of the string
       XmlAttribute attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class, false);
-      if (attribute != null && ATTR_NAME.equals(attribute.getName())) {
+      if (attribute == null) {
+        return null;
+      }
+
+      if (ATTR_NAME.equals(attribute.getName())) {
         XmlTag tag = attribute.getParent();
         String typeName = tag.getName();
         if (TAG_ITEM.equals(typeName)) {
@@ -184,6 +185,30 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         ResourceType type = ResourceType.getEnum(typeName);
         if (type != null) {
           return generateDoc(element, type, value, false);
+        }
+      }
+
+      // Display documentation for enum values defined in attrs.xml file, if it's present
+      if (ANDROID_URI.equals(attribute.getNamespace())) {
+        AndroidFacet facet = AndroidFacet.getInstance(element);
+        if (facet == null) {
+          return null;
+        }
+        ResourceManager manager = facet.getSystemResourceManager();
+        if (manager == null) {
+          return null;
+        }
+        AttributeDefinitions definitions = manager.getAttributeDefinitions();
+        if (definitions == null) {
+          return null;
+        }
+        AttributeDefinition attributeDefinition = definitions.getAttrDefByName(attribute.getLocalName());
+        if (attributeDefinition == null) {
+          return null;
+        }
+        else {
+          String doc = attributeDefinition.getValueDoc(value);
+          return doc == null ? null : doc.trim();
         }
       }
     }
