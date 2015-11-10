@@ -22,5 +22,5 @@ import org.jetbrains.annotations.NotNull;
  * because a value it is bound to has become invalidated).
  */
 public abstract class InvalidationListener {
-  protected abstract void onInvalidated(@NotNull Observable sender);
+  protected abstract void onInvalidated(@NotNull ObservableValue<?> sender);
 }

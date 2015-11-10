@@ -18,7 +18,7 @@ package com.android.tools.idea.wizard.model;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -95,7 +95,7 @@ public final class ModelWizard implements Disposable {
 
     myCanGoForward.addListener(new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull Observable sender) {
+      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
         if (myCanGoForward.get()) {
           // Make double sure that, when we switch from blocked to can proceed, we check that no
           // no future steps also became visible or hidden at some point. Otherwise, we might think
