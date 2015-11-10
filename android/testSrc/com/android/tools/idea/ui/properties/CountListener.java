@@ -28,7 +28,7 @@ public final class CountListener extends InvalidationListener {
   }
 
   @Override
-  protected void onInvalidated(@NotNull Observable sender) {
+  protected void onInvalidated(@NotNull ObservableValue<?> sender) {
     count++;
   }
 }

@@ -247,7 +247,7 @@ public final class BindingsManager {
     private final ObservableValue<Boolean> myEnabled;
 
     @Override
-    protected void onInvalidated(@NotNull Observable sender) {
+    protected void onInvalidated(@NotNull ObservableValue<?> sender) {
       if (myEnabled.get()) {
         enqueueUpdater(new DestUpdater<T>(myDest, mySrc));
       }
@@ -276,13 +276,13 @@ public final class BindingsManager {
     private final SettableValue<T> myRhs;
     private final InvalidationListener myLeftChangedListener = new InvalidationListener() {
       @Override
-      public void onInvalidated(@NotNull Observable sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         enqueueUpdater(new DestUpdater<T>(myRhs, myLhs));
       }
     };
     private final InvalidationListener myRightChangedListener = new InvalidationListener() {
       @Override
-      public void onInvalidated(@NotNull Observable sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         enqueueUpdater(new DestUpdater<T>(myLhs, myRhs));
       }
     };
