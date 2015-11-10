@@ -209,7 +209,7 @@ public final class ListenerManagerTest {
     int myLastValue;
 
     @Override
-    protected void onInvalidated(@NotNull Observable sender) {
+    protected void onInvalidated(@NotNull ObservableValue<?> sender) {
       myInvalidationCount++;
       myLastValue = ((ObservableInt)sender).get();
     }

@@ -22,9 +22,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * Implementation for {@link Observable}, providing the logic for adding/removing listeners.
+ * Implementation for {@link ObservableValue}, providing the logic for adding/removing listeners.
  */
-public abstract class AbstractObservable implements Observable {
+public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
   private final List<InvalidationListener> myListeners = Lists.newArrayListWithCapacity(0);
   private final UnsafeWeakList<InvalidationListener> myWeakListeners = new UnsafeWeakList<InvalidationListener>(0);
   private boolean myNotificationsEnabled = true;

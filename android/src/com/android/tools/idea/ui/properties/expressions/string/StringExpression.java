@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.ui.properties.expressions.string;
 
-import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.expressions.Expression;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class StringExpression extends Expression<String> implements ObservableString {
 
-  protected StringExpression(Observable... values) {
+  protected StringExpression(ObservableValue... values) {
     super(values);
   }
 
