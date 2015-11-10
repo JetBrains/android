@@ -84,7 +84,7 @@ public final class ValidationResult {
                                                   @NotNull String fieldName,
                                                   @NotNull FileOp fileOp,
                                                   boolean checkEmpty,
-                                                  boolean checkWriteable) {
+                                                  boolean checkWritable) {
     ValidationResult warningResult = null;
     if (projectLocation == null || projectLocation.isEmpty()) {
       return error(ValidationResult.Message.NO_LOCATION_SPECIFIED, fieldName);
@@ -116,9 +116,9 @@ public final class ValidationResult {
         }
       }
       // Check that we can write to that location: make sure we can write into the first extant directory in the path.
-      if (checkWriteable && !testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
+      if (checkWritable && !testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
         if (!testFile.getParentFile().canWrite()) {
-          return error(ValidationResult.Message.PATH_NOT_WRITEABLE, fieldName, testFile.getParentFile().getPath());
+          return error(ValidationResult.Message.PATH_NOT_WRITABLE, fieldName, testFile.getParentFile().getPath());
         }
       }
       testFile = testFile.getParentFile();
@@ -138,8 +138,8 @@ public final class ValidationResult {
     if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
       return error(ValidationResult.Message.PARENT_NOT_DIR, fieldName);
     }
-    if (checkWriteable && file.exists() && !file.canWrite()) {
-      return error(ValidationResult.Message.PATH_NOT_WRITEABLE, fieldName, file.getPath());
+    if (checkWritable && file.exists() && !file.canWrite()) {
+      return error(ValidationResult.Message.PATH_NOT_WRITABLE, fieldName, file.getPath());
     }
 
     String installLocation = PathManager.getHomePathFor(Application.class);
@@ -197,7 +197,7 @@ public final class ValidationResult {
     WHITESPACE("%1$s should not contain whitespace, as this can cause problems with the NDK tools."),
     NON_ASCII_CHARS_WARNING("Your %1$s contains non-ASCII characters, which can cause problems. Proceed with caution."),
     NON_ASCII_CHARS_ERROR("Your %1$s contains non-ASCII characters."),
-    PATH_NOT_WRITEABLE("The path '%2$s' is not writeable. Please choose a new location."),
+    PATH_NOT_WRITABLE("The path '%2$s' is not writable. Please choose a new location."),
     PROJECT_LOC_IS_FILE("There must not already be a file at the %1$s."),
     NON_EMPTY_DIR("A non-empty directory already exists at the specified %1$s. Existing files may be overwritten. Proceed with caution."),
     PROJECT_IS_FILE_SYSTEM_ROOT("The %1$s can not be at the filesystem root"),
