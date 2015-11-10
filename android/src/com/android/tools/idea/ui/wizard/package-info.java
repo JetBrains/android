@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.properties.core;
-
-import com.android.tools.idea.ui.properties.ObservableValue;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * Read-only handle to a {@link StringProperty}.
+ * Custom UI components useful for giving Android Studio wizards a consistent look and feel.
  */
-public interface ObservableString extends ObservableValue<String> {
-  @NotNull
-  ObservableBool isEmpty();
-
-  @NotNull
-  ObservableString trim();
-}
+package com.android.tools.idea.ui.wizard;

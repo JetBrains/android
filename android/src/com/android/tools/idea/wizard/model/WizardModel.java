@@ -24,12 +24,6 @@ package com.android.tools.idea.wizard.model;
  */
 public abstract class WizardModel {
   /**
-   * Method which is executed when a wizard is aborted because the user hit "Cancel".
-   */
-  protected void handleCancelled() {
-  }
-
-  /**
    * Method which is executed when a wizard is completed because the user hit "Finish".
    */
   protected abstract void handleFinished();

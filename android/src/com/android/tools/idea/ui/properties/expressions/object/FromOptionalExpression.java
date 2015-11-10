@@ -15,52 +15,37 @@
  */
 package com.android.tools.idea.ui.properties.expressions.object;
 
-import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.ObservableOptional;
 import com.android.tools.idea.ui.properties.expressions.Expression;
-import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Base class for expressions that convert some optional target value into a concrete value.
+ * A useful base-class expression for converting optional values to concrete
+ * values.
  *
  * @param <S> The optional source type we're converting from
  * @param <D> The concrete dest type we're converting to
  */
-public abstract class FromOptionalExpression<S, D> extends Expression implements ObservableValue<D> {
+public abstract class FromOptionalExpression<S, D> extends Expression<D> {
 
+  @NotNull private final D myDefaultValue;
   private final ObservableOptional<S> myValue;
 
-  public FromOptionalExpression(ObservableOptional<S> optional) {
+  public FromOptionalExpression(@NotNull D defaultValue, @NotNull ObservableOptional<S> optional) {
     super(optional);
+    myDefaultValue = defaultValue;
     myValue = optional;
   }
 
   @NotNull
   @Override
   public final D get() {
-    return transform(myValue.get());
+    if (!myValue.get().isPresent()) {
+      return myDefaultValue;
+    }
+    return transform(myValue.getValue());
   }
 
-  protected abstract D transform(@NotNull Optional<S> optional);
-
-  public abstract static class WithDefault<S, D> extends FromOptionalExpression<S, D> {
-    @NotNull private final D myDefaultValue;
-
-    public WithDefault(@NotNull D defaultValue, ObservableOptional<S> optionalValue) {
-      super(optionalValue);
-      myDefaultValue = defaultValue;
-    }
-
-    @Override
-    protected final D transform(@NotNull Optional<S> optional) {
-      if (!optional.isPresent()) {
-        return myDefaultValue;
-      }
-
-      return transform(optional.get());
-    }
-
-    protected abstract D transform(@NotNull S value);
-  }
+  @NotNull
+  protected abstract D transform(@NotNull S value);
 }

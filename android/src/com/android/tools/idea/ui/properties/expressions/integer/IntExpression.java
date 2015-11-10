@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Base class for Integer expressions, providing a default implementation for the {@link ObservableInt} interface.
  */
-public abstract class IntExpression extends Expression implements ObservableInt {
+public abstract class IntExpression extends Expression<Integer> implements ObservableInt {
 
   protected IntExpression(Observable... values) {
     super(values);
