@@ -17,7 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeviceCount;
-import com.android.tools.idea.run.DeviceTarget;
+import com.android.tools.idea.run.DeviceFutures;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
@@ -37,10 +37,10 @@ public interface DeployTarget<S extends DeployTargetState> {
    * if an error needs to be displayed, the target chooser should surface it.
    */
   @Nullable
-  DeviceTarget getTarget(@NotNull S state,
-                         @NotNull AndroidFacet facet,
-                         @NotNull DeviceCount deviceCount,
-                         boolean debug,
-                         int runConfigId,
-                         @NotNull ConsolePrinter printer);
+  DeviceFutures getDevices(@NotNull S state,
+                           @NotNull AndroidFacet facet,
+                           @NotNull DeviceCount deviceCount,
+                           boolean debug,
+                           int runConfigId,
+                           @NotNull ConsolePrinter printer);
 }

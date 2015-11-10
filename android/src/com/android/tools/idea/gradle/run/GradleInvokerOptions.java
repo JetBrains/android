@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.DeviceTarget;
+import com.android.tools.idea.run.DeviceFutures;
 import com.google.common.collect.Iterables;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -158,12 +158,12 @@ public class GradleInvokerOptions {
 
   @NotNull
   private static Collection<IDevice> getTargetDevices(@NotNull ExecutionEnvironment env) {
-    DeviceTarget deviceTarget = env.getCopyableUserData(AndroidRunConfigurationBase.DEVICE_TARGET_KEY);
-    if (deviceTarget == null) {
+    DeviceFutures deviceFutures = env.getCopyableUserData(AndroidRunConfigurationBase.DEVICE_FUTURES_KEY);
+    if (deviceFutures == null) {
       return Collections.emptyList();
     }
 
-    Collection<IDevice> readyDevices = deviceTarget.getDevicesIfReady();
+    Collection<IDevice> readyDevices = deviceFutures.getIfReady();
     return readyDevices == null ? Collections.<IDevice>emptyList() : readyDevices;
   }
 }

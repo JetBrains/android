@@ -107,13 +107,13 @@ public class EmulatorTargetProvider extends DeployTargetProvider<EmulatorTargetP
 
       @Nullable
       @Override
-      public DeviceTarget getTarget(@NotNull State state,
-                                    @NotNull AndroidFacet facet,
-                                    @NotNull DeviceCount deviceCount,
-                                    boolean debug,
-                                    int runConfigId,
-                                    @NotNull ConsolePrinter printer) {
-        return new EmulatorTargetChooser(facet, Strings.emptyToNull(state.PREFERRED_AVD)).getTarget(printer, deviceCount, debug);
+      public DeviceFutures getDevices(@NotNull State state,
+                                      @NotNull AndroidFacet facet,
+                                      @NotNull DeviceCount deviceCount,
+                                      boolean debug,
+                                      int runConfigId,
+                                      @NotNull ConsolePrinter printer) {
+        return new EmulatorTargetChooser(facet, Strings.emptyToNull(state.PREFERRED_AVD)).getDevices(printer, deviceCount, debug);
       }
     };
   }
