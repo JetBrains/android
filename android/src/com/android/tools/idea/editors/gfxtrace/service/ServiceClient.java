@@ -32,6 +32,7 @@ public abstract class ServiceClient {
   public abstract ListenableFuture<Object> get(Path p);
   public abstract ListenableFuture<CapturePath[]> getCaptures();
   public abstract ListenableFuture<DevicePath[]> getDevices();
+  public abstract ListenableFuture<String[]> getFeatures();
   public abstract ListenableFuture<ImageInfoPath> getFramebufferColor(DevicePath device, AtomPath after, RenderSettings settings);
   public abstract ListenableFuture<ImageInfoPath> getFramebufferDepth(DevicePath device, AtomPath after);
   public abstract ListenableFuture<Message> getSchema();

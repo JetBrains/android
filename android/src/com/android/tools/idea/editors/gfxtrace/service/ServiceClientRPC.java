@@ -58,6 +58,10 @@ public final class ServiceClientRPC extends ServiceClient {
     return myExecutorService.submit(new GetDevicesCallable());
   }
   @Override
+  public ListenableFuture<String[]> getFeatures() {
+    return myExecutorService.submit(new GetFeaturesCallable());
+  }
+  @Override
   public ListenableFuture<ImageInfoPath> getFramebufferColor(DevicePath device, AtomPath after, RenderSettings settings) {
     return myExecutorService.submit(new GetFramebufferColorCallable(device, after, settings));
   }
@@ -150,6 +154,23 @@ public final class ServiceClientRPC extends ServiceClient {
     public DevicePath[] call() throws Exception {
       try {
         ResultGetDevices result = (ResultGetDevices)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
+    }
+  }
+  private class GetFeaturesCallable implements Callable<String[]> {
+    private final CallGetFeatures myCall;
+    private final Exception stack = new StackException();
+
+    private GetFeaturesCallable() {
+      myCall = new CallGetFeatures();
+    }
+    @Override
+    public String[] call() throws Exception {
+      try {
+        ResultGetFeatures result = (ResultGetFeatures)myBroadcaster.Send(myCall);
         return result.getValue();
       } catch (Exception e) {
         throw (Exception)stack.initCause(e);
