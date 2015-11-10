@@ -20,10 +20,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 class SearchResult {
+  @NotNull final String repository;
   @NotNull final List<String> data;
   final int totalFound;
 
-  SearchResult(@NotNull List<String> data, int totalFound) {
+  SearchResult(@NotNull String repository, @NotNull List<String> data, int totalFound) {
+    this.repository = repository;
     this.data = data;
     this.totalFound = totalFound;
   }

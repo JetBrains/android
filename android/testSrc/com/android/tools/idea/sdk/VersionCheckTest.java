@@ -17,9 +17,12 @@ package com.android.tools.idea.sdk;
 
 import com.google.common.base.Strings;
 import junit.framework.TestCase;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+
+import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 
 /**
  * Tests for {@link VersionCheck}.
@@ -27,16 +30,12 @@ import org.jetbrains.annotations.Nullable;
 public class VersionCheckTest extends TestCase {
   private static final String PRE_V22_SDK_PATH = "PRE_V22_SDK_PATH";
 
-  private String mySdkPath;
+  private File mySdkPath;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySdkPath = getSystemPropertyOrEnvironmentVariable(AndroidTestCase.SDK_PATH_PROPERTY);
-    if (Strings.isNullOrEmpty(mySdkPath)) {
-      String format = "Please specify the path of an Android SDK (v23.0.0) in the system property or environment variable '%1$s'";
-      fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
-    }
+    mySdkPath = getAndroidSdkPath();
   }
 
   @Nullable
@@ -50,7 +49,7 @@ public class VersionCheckTest extends TestCase {
 
   // Disabled until Tools 23 is available.
   public void DISABLEDtestCheckVersion() {
-    VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(mySdkPath);
+    VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(mySdkPath.getPath());
     assertTrue(result.isCompatibleVersion());
   }
 
