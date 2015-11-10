@@ -50,6 +50,10 @@ public class ServiceClientWrapper extends ServiceClient {
     return myClient.getDevices();
   }
   @Override
+  public ListenableFuture<String[]> getFeatures() {
+    return myClient.getFeatures();
+  }
+  @Override
   public ListenableFuture<ImageInfoPath> getFramebufferColor(DevicePath device, AtomPath after, RenderSettings settings) {
     return myClient.getFramebufferColor(device, after, settings);
   }
