@@ -461,23 +461,6 @@ public class GradleProjectImporter {
   private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
     settings.setUseAutoImport(false);
 
-    // Set the JDK to use when syncing project.
-    if (isAndroidStudio()) {
-      Sdk jdk = IdeSdks.getJdk();
-      if (jdk != null) {
-        settings.setGradleJvm(jdk.getName());
-      }
-    } else {
-      // validate Gradle SDK
-      if (!checkForJdk(project, settings.getGradleJvm())) {
-        // Set first acceptable JDK to use when syncing project (or create one if it is not set up yet)
-        Sdk jdk = IdeSdks.getJdk();
-        if (jdk != null) {
-          settings.setGradleJvm(jdk.getName());
-        }
-      }
-    }
-
     String basePath = project.getBasePath();
     if (basePath != null) {
       settings.setExternalProjectPath(toCanonicalPath(basePath));
