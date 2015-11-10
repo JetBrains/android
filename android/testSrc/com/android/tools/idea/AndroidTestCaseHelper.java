@@ -17,7 +17,6 @@
 package com.android.tools.idea;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -29,16 +28,16 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Assert;
 
 import java.io.File;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class AndroidTestCaseHelper {
   @NotNull
@@ -62,9 +61,9 @@ public class AndroidTestCaseHelper {
   @NotNull
   public static File getAndroidSdkPath() {
     String path = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(AndroidTestBase.SDK_PATH_PROPERTY);
-    if (Strings.isNullOrEmpty(path)) {
+    if (isNullOrEmpty(path)) {
       String format = "Please specify the path of an Android SDK in the system property or environment variable '%1$s'";
-      Assert.fail(String.format(format, AndroidTestBase.SDK_PATH_PROPERTY));
+      fail(String.format(format, AndroidTestBase.SDK_PATH_PROPERTY));
     }
     // If we got here is because the path is not null or empty.
     return new File(path);
@@ -74,7 +73,7 @@ public class AndroidTestCaseHelper {
   public static String getSystemPropertyOrEnvironmentVariable(String... names) {
     for (String name : names) {
       String s = getSystemPropertyOrEnvironmentVariable(name);
-      if (!Strings.isNullOrEmpty(s)) {
+      if (!isNullOrEmpty(s)) {
         return s;
       }
     }
