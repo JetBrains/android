@@ -984,8 +984,10 @@
   <extensions defaultExtensionNs="com.intellij">
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.BrShortNamesCache"/>
     <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingComponentShortNamesCache"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.BrClassFinder"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingClassFinder"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.DataBindingComponentClassFinder"/>
   </extensions>
 
   <!-- Android IDL support -->
