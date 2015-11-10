@@ -43,7 +43,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class EmulatorTargetConfigurable implements DeployTargetConfigurable<EmulatorTarget.State> {
+public class EmulatorTargetConfigurable implements DeployTargetConfigurable<EmulatorTargetProvider.State> {
   private final Project myProject;
   private final Disposable myParentDisposable;
   private final DeployTargetConfigurableContext myContext;
@@ -113,7 +113,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
   }
 
   @Override
-  public void resetFrom(@NotNull EmulatorTarget.State state, int uniqueID) {
+  public void resetFrom(@NotNull EmulatorTargetProvider.State state, int uniqueID) {
     final JComboBox combo = myAvdCombo.getComboBox();
     final String avd = state.PREFERRED_AVD;
     if (avd != null) {
@@ -131,7 +131,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
   }
 
   @Override
-  public void applyTo(@NotNull EmulatorTarget.State state, int uniqueID) {
+  public void applyTo(@NotNull EmulatorTargetProvider.State state, int uniqueID) {
     state.PREFERRED_AVD = "";
 
     JComboBox combo = myAvdCombo.getComboBox();

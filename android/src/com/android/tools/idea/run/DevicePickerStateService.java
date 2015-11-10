@@ -16,7 +16,9 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetPickerDialog;
+import com.android.tools.idea.run.editor.RealizedDeployTarget;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import gnu.trove.TIntObjectHashMap;
@@ -30,8 +32,8 @@ public class DevicePickerStateService {
   private TIntObjectHashMap<DeviceStateAtLaunch> myLastUsedDevices = new TIntObjectHashMap<DeviceStateAtLaunch>();
 
   /** A map from launch configuration id to the deploy target picker dialog's result. */
-  private TIntObjectHashMap<DeployTargetPickerDialog.Result> myDeployPickerResults =
-    new TIntObjectHashMap<DeployTargetPickerDialog.Result>();
+  private TIntObjectHashMap<DeployTarget> myDeployPickerResults =
+    new TIntObjectHashMap<DeployTarget>();
 
   public static DevicePickerStateService getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, DevicePickerStateService.class);
@@ -46,12 +48,12 @@ public class DevicePickerStateService {
     return myLastUsedDevices.get(id);
   }
 
-  public void setDeployPickerResult(int runConfigId, @NotNull DeployTargetPickerDialog.Result result) {
-    myDeployPickerResults.put(runConfigId, result);
+  public void setDeployPickerResult(int runConfigId, @Nullable DeployTarget target) {
+    myDeployPickerResults.put(runConfigId, target);
   }
 
   @Nullable
-  public DeployTargetPickerDialog.Result getDeployTargetPickerResult(int runConfigId) {
+  public DeployTarget getDeployTargetPickerResult(int runConfigId) {
     return myDeployPickerResults.get(runConfigId);
   }
 }

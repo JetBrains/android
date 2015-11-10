@@ -19,10 +19,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.*;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -48,7 +44,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   private final int myContextId;
   @NotNull private final AndroidFacet myFacet;
 
-  @Nullable private final DeployTarget myDeployTarget;
+  @Nullable private final DeployTargetProvider myDeployTargetProvider;
   @Nullable private final DeployTargetState myDeployTargetState;
   @Nullable private final DeployTargetConfigurable myDeployTargetConfigurable;
 
@@ -59,29 +55,29 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   private JBTabbedPane myTabbedPane;
   private JPanel myCloudTargetsPanel;
   private JPanel myDevicesPanel;
-  private Result myResult;
+  private DeployTarget myDeployTarget;
 
   public DeployTargetPickerDialog(int runContextId,
                                   @NotNull final AndroidFacet facet,
                                   @NotNull DeviceCount deviceCount,
-                                  @NotNull List<DeployTarget> deployTargets,
+                                  @NotNull List<DeployTargetProvider> deployTargetProviders,
                                   @NotNull Map<String, DeployTargetState> deployTargetStates,
                                   @NotNull ProcessHandlerConsolePrinter printer) {
     super(facet.getModule().getProject(), true);
 
     // TODO: Eventually we may support more than 1 custom run provider. In such a case, there should be
     // a combo to pick one of the cloud providers.
-    if (deployTargets.size() > 1) {
+    if (deployTargetProviders.size() > 1) {
       throw new IllegalArgumentException("Only 1 custom run profile state provider can be displayed right now..");
     }
 
     myFacet = facet;
     myContextId = runContextId;
-    if (!deployTargets.isEmpty()) {
-      myDeployTarget = deployTargets.get(0);
-      myDeployTargetState = deployTargetStates.get(myDeployTarget.getId());
+    if (!deployTargetProviders.isEmpty()) {
+      myDeployTargetProvider = deployTargetProviders.get(0);
+      myDeployTargetState = deployTargetStates.get(myDeployTargetProvider.getId());
     } else {
-      myDeployTarget = null;
+      myDeployTargetProvider = null;
       myDeployTargetState = null;
     }
     myPrinter = printer;
@@ -103,9 +99,9 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     });
 
     // Tab 2
-    if (!deployTargets.isEmpty()) {
+    if (!deployTargetProviders.isEmpty()) {
       Module module = facet.getModule();
-      myDeployTargetConfigurable = myDeployTarget.createConfigurable(module.getProject(), getDisposable(), new Context(module));
+      myDeployTargetConfigurable = myDeployTargetProvider.createConfigurable(module.getProject(), getDisposable(), new Context(module));
       JComponent component = myDeployTargetConfigurable.createComponent();
       if (component != null) {
         myCloudTargetsPanel.add(component, BorderLayout.CENTER);
@@ -115,8 +111,8 @@ public class DeployTargetPickerDialog extends DialogWrapper {
       myDeployTargetConfigurable = null;
     }
 
-    DeployTargetState state = deployTargetStates.get(ShowChooserTarget.ID);
-    setDoNotAskOption(new UseSameDevicesOption((ShowChooserTarget.State)state));
+    DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
+    setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
     setTitle("Select Deployment Target");
     setModal(true);
     init();
@@ -166,9 +162,9 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   protected void doOKAction() {
     int selectedIndex = myTabbedPane.getSelectedIndex();
     if (selectedIndex == DEVICE_TAB_INDEX) {
-      myResult = Result.create(getTarget(myDevicePicker.getSelectedDevices()));
+      myDeployTarget = new RealizedDeployTarget(null, null, getTarget(myDevicePicker.getSelectedDevices()));
     } else if (selectedIndex == CUSTOM_RUNPROFILE_PROVIDER_TARGET_INDEX) {
-      myResult = Result.create(myDeployTarget, myDeployTargetState);
+      myDeployTarget = new RealizedDeployTarget(myDeployTargetProvider, myDeployTargetState, null);
     }
 
     super.doOKAction();
@@ -189,74 +185,8 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   }
 
   @NotNull
-  public Result getResult() {
-    return myResult;
-  }
-
-  public abstract static class Result {
-    public boolean hasRunProfile() {
-      return false;
-    }
-
-    public RunProfileState getRunProfileState(@NotNull final Executor executor,
-                                              @NotNull ExecutionEnvironment env,
-                                              @NotNull DeployTargetState state) throws ExecutionException {
-      throw new IllegalStateException();
-    }
-
-    public DeviceTarget getDeviceTarget() {
-      throw new IllegalStateException();
-    }
-
-    @NotNull
-    public static Result create(@NotNull DeployTarget deployTarget, @NotNull DeployTargetState deployTargetState) {
-      return new RunProfileResult(deployTarget, deployTargetState);
-    }
-
-    @NotNull
-    public static Result create(@NotNull DeviceTarget device) {
-      return new DeviceResult(device);
-    }
-  }
-
-  private static class RunProfileResult extends Result {
-    private final DeployTarget myDelegate;
-    private final DeployTargetState myDelegateState;
-
-    private RunProfileResult(@NotNull DeployTarget delegate, @NotNull DeployTargetState state) {
-      myDelegate = delegate;
-      myDelegateState = state;
-    }
-
-    @Override
-    public boolean hasRunProfile() {
-      return true;
-    }
-
-    @Override
-    public RunProfileState getRunProfileState(@NotNull final Executor executor,
-                                              @NotNull ExecutionEnvironment env,
-                                              @NotNull DeployTargetState state) throws ExecutionException {
-      return myDelegate.getRunProfileState(executor, env, myDelegateState);
-    }
-  }
-
-  private static class DeviceResult extends Result {
-    private final DeviceTarget myTarget;
-
-    private DeviceResult(@NotNull DeviceTarget target) {
-      myTarget = target;
-    }
-
-    @Override
-    public boolean hasRunProfile() {
-      return false;
-    }
-
-    @Override
-    public DeviceTarget getDeviceTarget() {
-      return myTarget;
-    }
+  public DeployTarget getSelectedDeployTarget() {
+    return myDeployTarget;
   }
 
   private static final class Context implements DeployTargetConfigurableContext {
@@ -282,9 +212,9 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   }
 
   private static class UseSameDevicesOption implements DoNotAskOption {
-    @NotNull private final ShowChooserTarget.State myState;
+    @NotNull private final ShowChooserTargetProvider.State myState;
 
-    public UseSameDevicesOption(@NotNull ShowChooserTarget.State state) {
+    public UseSameDevicesOption(@NotNull ShowChooserTargetProvider.State state) {
       myState = state;
     }
 

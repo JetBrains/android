@@ -29,14 +29,14 @@ public class DeployTargetConfigurableWrapper implements Configurable, Configurab
   @NotNull private final Project myProject;
   @NotNull private final Disposable myParentDisposable;
   @NotNull private final DeployTargetConfigurableContext myContext;
-  @NotNull private final DeployTarget myTarget;
+  @NotNull private final DeployTargetProvider myTarget;
 
   private DeployTargetConfigurable myConfigurable;
 
   public DeployTargetConfigurableWrapper(@NotNull Project project,
                                          @NotNull Disposable parent,
                                          @NotNull DeployTargetConfigurableContext context,
-                                         @NotNull DeployTarget target) {
+                                         @NotNull DeployTargetProvider target) {
     myProject = project;
     myParentDisposable = parent;
     myContext = context;
