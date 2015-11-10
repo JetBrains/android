@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.ui.properties;
 
-import com.android.tools.idea.ui.properties.exceptions.BindingCycleException;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.util.Consumer;
@@ -54,7 +52,7 @@ public final class ListenerManager {
   public <T> void listen(@NotNull final ObservableValue<T> src, @NotNull final Consumer<T> listener) {
     InvalidationListener listenerWrapper = new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull Observable sender) {
+      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
         listener.consume(src.get());
       }
     };

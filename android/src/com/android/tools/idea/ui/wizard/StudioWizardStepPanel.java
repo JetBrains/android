@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.wizard;
 
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.Observable;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
@@ -81,7 +80,7 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
   public <T> void registerErrorValidator(@NotNull final ObservableValue<T> value, @NotNull final NotNullProducer<String> errorProducer) {
     myListeners.listenAndFire(value, new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull Observable sender) {
+      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
         myErrors.put(value, errorProducer.produce());
         updateValidationLabel();
       }
@@ -101,7 +100,7 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
                                            @NotNull final NotNullProducer<String> warningProducer) {
     myListeners.listenAndFire(value, new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull Observable sender) {
+      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
         myWarnings.put(value, warningProducer.produce());
         updateValidationLabel();
       }
@@ -123,7 +122,7 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
                                     @NotNull final NotNullProducer<ValidationResult> validationProducer) {
     myListeners.listenAndFire(value, new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull Observable sender) {
+      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
         ValidationResult result = validationProducer.produce();
         if (result.getStatus() == ValidationResult.Status.ERROR) {
           myWarnings.put(value, "");

@@ -17,7 +17,7 @@ package com.android.tools.idea.wizard.model.demo.npw.steps;
 
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.swing.SelectedIndexProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -85,7 +85,7 @@ public final class ChooseActivityStep extends ModelWizardStep<ActivityModel> {
   protected void onWizardStarting(@NotNull final ModelWizard.Facade wizard) {
     myListeners.listen(new SelectedIndexProperty(myTargetActivityComboBox), new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull Observable sender) {
+      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
         ActivityTemplate targetTemplate = (ActivityTemplate)myTargetActivityComboBox.getSelectedItem();
         // Set the target template in the model immediately (instead of waiting until
         // onProceeding), since whether this is set or not affects if later steps show up.
