@@ -20,7 +20,6 @@ import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
@@ -44,7 +43,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JPanel myPanel;
   protected JBTabbedPane myTabbedPane;
   private JBLabel myModuleJBLabel;
-  private ModulesComboBox myModulesComboBox;
+  private JComboBox myModulesComboBox;
 
   // application run parameters or test run parameters
   private JPanel myConfigurationSpecificPanel;
