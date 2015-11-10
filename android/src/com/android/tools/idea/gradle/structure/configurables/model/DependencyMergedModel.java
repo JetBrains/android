@@ -13,35 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables;
+package com.android.tools.idea.gradle.structure.configurables.model;
 
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class ModuleConfigurationState {
-  @NotNull private final Project myProject;
+import javax.swing.*;
 
-  @Nullable private final Module myModule;
+public abstract class DependencyMergedModel {
+  @NotNull final ModuleMergedModel parent;
+  @NotNull final String configurationName;
 
-  public ModuleConfigurationState(@NotNull Module module) {
-    myModule = module;
-    myProject = module.getProject();
+  DependencyMergedModel(@NotNull ModuleMergedModel parent, @NotNull String configurationName) {
+    this.parent = parent;
+    this.configurationName = configurationName;
   }
 
   @NotNull
-  public Project getProject() {
-    return myProject;
-  }
-
-  @Nullable
-  public Module getModule() {
-    return myModule;
+  public String getConfigurationName() {
+    return configurationName;
   }
 
   @NotNull
-  public String getModuleName() {
-    return myModule != null ? myModule.getName() : "";
-  }
+  public abstract Icon getIcon();
+
+  public abstract boolean isInAndroidProject();
 }

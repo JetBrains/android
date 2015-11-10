@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -48,9 +48,9 @@ public class ModuleStructureConfigurable extends BaseStructureConfigurable imple
 
   private void createModuleNodes() {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      if (AndroidGradleFacet.getInstance(module) != null) {
-        ModuleConfigurationState state = new ModuleConfigurationState(module);
-        ModuleConfigurable configurable = new ModuleConfigurable(state);
+      ModuleMergedModel model = ModuleMergedModel.get(module);
+      if (model != null) {
+        ModuleConfigurable configurable = new ModuleConfigurable(model);
         MyNode moduleNode = new MyNode(configurable);
         myRoot.add(moduleNode);
       }
