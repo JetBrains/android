@@ -17,6 +17,10 @@ package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.*;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -26,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Collection;
 
-public class UsbDeviceTarget extends DeployTarget {
+public class UsbDeviceTargetProvider extends DeployTargetProvider {
   public static final class State extends DeployTargetState {
   }
 
@@ -55,21 +59,38 @@ public class UsbDeviceTarget extends DeployTarget {
     return new TargetConfigurable();
   }
 
-  @Nullable
   @Override
-  public DeviceTarget getTarget(@NotNull DeployTargetState state,
-                                @NotNull AndroidFacet facet,
-                                @NotNull DeviceCount deviceCount,
-                                boolean debug,
-                                int runConfigId,
-                                @NotNull ConsolePrinter printer) {
-    Collection<IDevice> runningDevices =
-      DeviceSelectionUtils.chooseRunningDevice(facet, new TargetDeviceFilter.UsbDeviceFilter(), deviceCount);
-    if (runningDevices == null) {
-      // The user canceled.
-      return null;
-    }
-    return DeviceTarget.forDevices(runningDevices);
+  public DeployTarget getDeployTarget() {
+    return new DeployTarget() {
+      @Override
+      public boolean hasCustomRunProfileState(@NotNull Executor executor) {
+        return false;
+      }
+
+      @Override
+      public RunProfileState getRunProfileState(@NotNull Executor executor,
+                                                @NotNull ExecutionEnvironment env,
+                                                @NotNull DeployTargetState state) throws ExecutionException {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public DeviceTarget getTarget(@NotNull DeployTargetState state,
+                                    @NotNull AndroidFacet facet,
+                                    @NotNull DeviceCount deviceCount,
+                                    boolean debug,
+                                    int runConfigId,
+                                    @NotNull ConsolePrinter printer) {
+        Collection<IDevice> runningDevices =
+          DeviceSelectionUtils.chooseRunningDevice(facet, new TargetDeviceFilter.UsbDeviceFilter(), deviceCount);
+        if (runningDevices == null) {
+          // The user canceled.
+          return null;
+        }
+        return DeviceTarget.forDevices(runningDevices);
+      }
+    };
   }
 
   private static class TargetConfigurable implements DeployTargetConfigurable<State> {

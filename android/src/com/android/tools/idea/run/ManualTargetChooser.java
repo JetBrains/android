@@ -2,7 +2,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.editor.ShowChooserTarget;
+import com.android.tools.idea.run.editor.ShowChooserTargetProvider;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
@@ -26,12 +26,12 @@ import java.util.Set;
 public class ManualTargetChooser {
   @NotNull private static final Logger LOG = Logger.getInstance(ManualTargetChooser.class);
 
-  @NotNull private final ShowChooserTarget.State myShowChooserState;
+  @NotNull private final ShowChooserTargetProvider.State myShowChooserState;
   @NotNull private final AndroidFacet myFacet;
   private final int myRunConfigId;
   @NotNull private final Project myProject;
 
-  public ManualTargetChooser(@NotNull ShowChooserTarget.State state, @NotNull AndroidFacet facet, int runConfigId) {
+  public ManualTargetChooser(@NotNull ShowChooserTargetProvider.State state, @NotNull AndroidFacet facet, int runConfigId) {
     myShowChooserState = state;
     myFacet = facet;
     myRunConfigId = runConfigId;

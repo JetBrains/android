@@ -868,7 +868,7 @@
                     interface="com.android.tools.idea.stats.UsageUploader" />
     <extensionPoint qualifiedName="com.android.ide.developerServiceBuildSystemOperations"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceBuildSystemOperations"/>
-    <extensionPoint qualifiedName="com.android.run.deployTarget" interface="com.android.tools.idea.run.editor.DeployTarget" />
+    <extensionPoint qualifiedName="com.android.run.deployTargetProvider" interface="com.android.tools.idea.run.editor.DeployTargetProvider" />
     <extensionPoint qualifiedName="com.android.run.deviceNameRenderer"
                     interface="com.android.tools.idea.ddms.DeviceNameRendererEx"/>
     <extensionPoint qualifiedName="com.android.ide.projectStructureItemsContributor"
@@ -932,9 +932,9 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.run">
-    <deployTarget implementation="com.android.tools.idea.run.editor.ShowChooserTarget" />
-    <deployTarget implementation="com.android.tools.idea.run.editor.UsbDeviceTarget" />
-    <deployTarget implementation="com.android.tools.idea.run.editor.EmulatorTarget" />
+    <deployTargetProvider implementation="com.android.tools.idea.run.editor.ShowChooserTargetProvider" />
+    <deployTargetProvider implementation="com.android.tools.idea.run.editor.UsbDeviceTargetProvider" />
+    <deployTargetProvider implementation="com.android.tools.idea.run.editor.EmulatorTargetProvider" />
   </extensions>
 
   <!-- Layout editor -->
