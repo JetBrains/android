@@ -184,7 +184,7 @@ public class MavenCentralRepositorySearchTest {
                       "    </lst>\n" +
                       "</response>";
     Reader responseReader = new StringReader(response);
-    SearchResult result = MavenCentralRepositorySearch.parse(responseReader);
+    SearchResult result = new MavenCentralRepositorySearch().parse(responseReader);
     assertEquals(409, result.totalFound);
     List<String> data = result.data;
     assertThat(data).hasSize(5)

@@ -84,7 +84,7 @@ class MavenCentralRepositorySearch extends ArtifactRepositorySearch {
 
   @VisibleForTesting
   @NotNull
-  static SearchResult parse(@NotNull Reader response) throws JDOMException, IOException {
+  SearchResult parse(@NotNull Reader response) throws JDOMException, IOException {
     /*
     Sample response:
 
@@ -145,6 +145,6 @@ class MavenCentralRepositorySearch extends ArtifactRepositorySearch {
       }
     }
 
-    return new SearchResult(data, totalFound);
+    return new SearchResult(getName(), data, totalFound);
   }
 }
