@@ -104,12 +104,6 @@ public class NewProjectTest extends GuiTestCase {
 
     assertEquals("Test Application\n" +
                  "    Android Lint\n" +
-                 // This warning is from the "foo" string we created in the Gradle resValue declaration above
-                 // This warning is currently not showing: http://b.android.com/192833
-                 // "        Unused resources\n" +
-                 // "            app\n" +
-                 // "                The resource 'R.string.foo' appears to be unused\n" +
-
                  // This warning is unfortunate. We may want to get rid of it.
                  "        Missing allowBackup attribute\n" +
                  "            app\n" +
@@ -118,7 +112,12 @@ public class NewProjectTest extends GuiTestCase {
                  // This warning is wrong: http://b.android.com/192605
                  "        Missing support for Google App Indexing\n" +
                  "            app\n" +
-                 "                Application should have at least one Activity supporting ACTION_VIEW\n",
+                 "                Application should have at least one Activity supporting ACTION_VIEW\n" +
+
+                 // This warning is from the "foo" string we created in the Gradle resValue declaration above
+                 "        Unused resources\n" +
+                 "            app\n" +
+                 "                The resource 'R.string.foo' appears to be unused\n",
                  inspections.getResults());
   }
 
