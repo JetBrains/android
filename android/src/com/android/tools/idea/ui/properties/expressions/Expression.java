@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.properties.expressions;
 import com.android.tools.idea.ui.properties.AbstractObservable;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -27,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * Child class constructors should make sure they call {@code super} with all target observables,
  * as this will ensure invalidation notifications propagate correctly.
  */
-public abstract class Expression extends AbstractObservable implements Observable {
+public abstract class Expression<T> extends AbstractObservable implements ObservableValue<T> {
 
   @SuppressWarnings("FieldCanBeLocal") // must be local to avoid weak garbage collection
   private final InvalidationListener myListener = new InvalidationListener() {

@@ -36,4 +36,9 @@ public final class DemoWizardLayout implements ModelWizardDialog.CustomLayout {
     myInnerContainer.add(innerPanel);
     return myRootPanel;
   }
+
+  @Override
+  public void dispose() {
+    myBindings.releaseAll();
+  }
 }
