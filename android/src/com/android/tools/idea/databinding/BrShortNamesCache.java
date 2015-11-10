@@ -130,7 +130,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
   public boolean processMethodsWithName(@NonNls @NotNull String name,
                                         @NotNull GlobalSearchScope scope,
                                         @NotNull Processor<PsiMethod> processor) {
-    return true;
+    return false;
   }
 
   @NotNull
