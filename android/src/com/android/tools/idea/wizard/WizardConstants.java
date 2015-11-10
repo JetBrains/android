@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.ui.wizard.StudioWizardLayout;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope;
 import com.google.common.collect.ImmutableSet;
@@ -38,17 +39,38 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * Constants for template based wizards
+ * <p/>
+ * TODO: Post wizard migration: delete (or at least severely reduce) All keys must go!
+ *
+ * @deprecated These concepts should now exist in appropriate locations inside the
+ * {@link com.android.tools.idea.ui.wizard} package
  */
 public class WizardConstants {
 
   // Colors
+  /**
+   * @deprecated Obsoleted by {@link StudioWizardLayout}
+   */
   public static final JBColor ANDROID_NPW_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
 
   // Dimensions
+  /**
+   * @deprecated Obsoleted by {@link StudioWizardLayout}
+   */
   public static final int STUDIO_WIZARD_INSET_SIZE = JBUI.scale(12);
+  /**
+   * @deprecated Obsoleted by {@link StudioWizardLayout}
+   */
   public static final Insets STUDIO_WIZARD_INSETS =
     new Insets(0, STUDIO_WIZARD_INSET_SIZE, STUDIO_WIZARD_INSET_SIZE, STUDIO_WIZARD_INSET_SIZE);
+  /**
+   * @deprecated Obsoleted by {@link StudioWizardLayout}
+   */
   public static final int STUDIO_WIZARD_TOP_INSET = 18;
+
+  /**
+   * @deprecated Obsoleted by {@link StudioWizardLayout}
+   */
   public static final Dimension DEFAULT_WIZARD_WINDOW_SIZE = JBUI.size(1080, 650);
 
   public static final Dimension DEFAULT_GALLERY_THUMBNAIL_SIZE = JBUI.size(192, 192);
@@ -90,7 +112,13 @@ public class WizardConstants {
     createKey(ATTR_DEPENDENCIES_LIST, Scope.WIZARD, (Class<List<String>>)(Class)String.class);
 
   // Patterns
+  /**
+   * @deprecated This field should not be publicly accessed. Use provided path validation methods instead.
+   */
   public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>!;]";
+  /**
+   * @deprecated This field should not be publicly accessed. Use provided path validation methods instead.
+   */
   public static final Set<String> INVALID_WINDOWS_FILENAMES = ImmutableSet
     .of("con", "prn", "aux", "clock$", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2",
         "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", "$mft", "$mftmirr", "$logfile", "$volume", "$attrdef", "$bitmap", "$boot",

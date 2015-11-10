@@ -18,7 +18,6 @@ package com.android.tools.idea.wizard.model;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -38,18 +37,16 @@ public class ModelWizardTest {
   public void wizardCanProgressThroughAllStepsAsExpected() throws Exception {
     PersonModel personModel = new PersonModel();
     OccupationModel occupationModel = new OccupationModel();
-    ModelWizard wizard = new ModelWizard();
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
 
-    wizard.addStep(new NameStep(personModel, "John Doe"));
-    wizard.addStep(new AgeStep(personModel, 25));
-    wizard.addStep(new TitleStep(occupationModel, "Code Monkey"));
+    wizardBuilder.addStep(new NameStep(personModel, "John Doe"));
+    wizardBuilder.addStep(new AgeStep(personModel, 25));
+    wizardBuilder.addStep(new TitleStep(occupationModel, "Code Monkey"));
 
-    assertThat(wizard.hasStarted()).isFalse();
+    ModelWizard wizard = wizardBuilder.build();
 
-    ListenableFuture<Boolean> result = wizard.start();
     SwingUtilities.invokeAndWait(EmptyRunnable.getInstance()); // Lets wizard properties update
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(NameStep.class);
-    assertThat(wizard.hasStarted()).isTrue();
     assertThat(wizard.canGoBack().get()).isFalse();
     assertThat(wizard.canGoForward().get()).isTrue();
     assertThat(wizard.onLastStep().get()).isFalse();
@@ -82,22 +79,22 @@ public class ModelWizardTest {
     assertThat(personModel.getAge()).isEqualTo(25);
     assertThat(occupationModel.getTitle()).isEqualTo("Code Monkey");
 
-    assertThat(result.get()).isTrue();
+    assertThat(wizard.isFinished()).isTrue();
   }
 
   @Test
   public void wizardCanGoForwardAndBack() throws Exception {
-    ModelWizard wizard = new ModelWizard();
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
 
     PersonModel personModel = new PersonModel();
     DummyModel dummyModel = new DummyModel();
     OccupationModel occupationModel = new OccupationModel();
-    wizard.addStep(new NameStep(personModel, "John Doe"));
-    wizard.addStep(new ShouldSkipStep(dummyModel));
-    wizard.addStep(new AgeStep(personModel, 25));
-    wizard.addStep(new TitleStep(occupationModel, "Code Monkey"));
+    wizardBuilder.addStep(new NameStep(personModel, "John Doe"));
+    wizardBuilder.addStep(new ShouldSkipStep(dummyModel));
+    wizardBuilder.addStep(new AgeStep(personModel, 25));
+    wizardBuilder.addStep(new TitleStep(occupationModel, "Code Monkey"));
 
-    wizard.start();
+    ModelWizard wizard = wizardBuilder.build();
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(NameStep.class);
     wizard.goForward(); // Skips skippable step
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(AgeStep.class);
@@ -111,17 +108,17 @@ public class ModelWizardTest {
 
   @Test
   public void wizardCanBeCancelled() throws Exception {
-    ModelWizard wizard = new ModelWizard();
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
 
-    wizard.addStep(new DummyStep(new DummyModel()));
+    DummyModel model = new DummyModel();
+    wizardBuilder.addStep(new DummyStep(model));
 
-    ListenableFuture<Boolean> result = wizard.start();
+    ModelWizard wizard = wizardBuilder.build();
     assertThat(wizard.isFinished()).isFalse();
 
     wizard.cancel();
     assertThat(wizard.isFinished()).isTrue();
-
-    assertThat(result.get()).isFalse();
+    assertThat(model.myIsFinished).isFalse(); // Models are not finished when cancelled
   }
 
   @Test
@@ -134,12 +131,11 @@ public class ModelWizardTest {
     RecordFinishedStep extraStep1 = new RecordFinishedStep(step1.getModel());
     RecordFinishedStep extraStep3 = new RecordFinishedStep(step3.getModel());
 
-    // Add dummy model so we can add at least one step
-    ModelWizard wizard = new ModelWizard(step1, step2, step3, step4);
-    wizard.addStep(extraStep1);
-    wizard.addStep(extraStep3);
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(step1, step2, step3, step4);
+    wizardBuilder.addStep(extraStep1);
+    wizardBuilder.addStep(extraStep3);
 
-    wizard.start();
+    ModelWizard wizard = wizardBuilder.build();
     wizard.goForward(); // Step1
     wizard.goForward(); // Step2
     wizard.goForward(); // Step3
@@ -151,88 +147,47 @@ public class ModelWizardTest {
   }
 
   @Test(expected = IllegalStateException.class)
-  public void wizardCantAddStepAfterStarting() throws Exception {
-    PersonModel personModel = new PersonModel();
-    ModelWizard wizard = new ModelWizard(new NameStep(personModel, "Dummy Name"));
-    wizard.start();
-
-    wizard.addStep(new AgeStep(personModel, 25));
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void wizardCantStartWithoutAnySteps() throws Exception {
-    ModelWizard modelWizard = new ModelWizard();
-    modelWizard.start();
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void wizardCantStartAfterAlreadyStarted() throws Exception {
-    ModelWizard modelWizard = new ModelWizard(new DummyStep(new DummyModel()));
-    modelWizard.start();
-
-    modelWizard.start();
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void wizardCantGoForwardBeforeStarting() throws Exception {
-    ModelWizard modelWizard = new ModelWizard(new DummyStep(new DummyModel()));
-
-    modelWizard.goForward();
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void wizardCantGoBackBeforeStarting() throws Exception {
-    ModelWizard modelWizard = new ModelWizard(new DummyStep(new DummyModel()));
-
-    modelWizard.goBack();
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void wizardCantCancelBeforeStarting() throws Exception {
-    ModelWizard modelWizard = new ModelWizard(new DummyStep(new DummyModel()));
-
-    modelWizard.cancel();
+  public void cantCreateWizardWithoutSteps() throws Exception {
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    ModelWizard wizard = wizardBuilder.build();
   }
 
   @Test(expected = IllegalStateException.class)
   public void wizardCantGoForwardAfterFinishing() throws Exception {
-    ModelWizard modelWizard = new ModelWizard(new DummyStep(new DummyModel()));
-    modelWizard.start();
-    modelWizard.goForward();
+    ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
+    wizard.goForward();
 
-    assertThat(modelWizard.isFinished()).isTrue();
-    modelWizard.goForward();
+    assertThat(wizard.isFinished()).isTrue();
+    wizard.goForward();
   }
 
   @Test(expected = IllegalStateException.class)
   public void wizardCantGoBackAfterFinishing() throws Exception {
-    ModelWizard modelWizard = new ModelWizard(new DummyStep(new DummyModel()));
-    modelWizard.start();
-    modelWizard.goForward();
+    ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
+    wizard.goForward();
 
-    assertThat(modelWizard.isFinished()).isTrue();
-    modelWizard.goBack();
+    assertThat(wizard.isFinished()).isTrue();
+    wizard.goBack();
   }
 
   @Test(expected = IllegalStateException.class)
   public void wizardCantCancelAfterFinishing() throws Exception {
-    ModelWizard modelWizard = new ModelWizard(new DummyStep(new DummyModel()));
-    modelWizard.start();
-    modelWizard.goForward();
+    ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
+    wizard.goForward();
 
-    assertThat(modelWizard.isFinished()).isTrue();
-    modelWizard.cancel();
+    assertThat(wizard.isFinished()).isTrue();
+    wizard.cancel();
   }
 
   @Test(expected = IllegalStateException.class)
   public void wizardCantGoBackIfNoPreviousSteps() throws Exception {
     DummyModel model = new DummyModel();
-    ModelWizard modelWizard = new ModelWizard(new DummyStep(model), new DummyStep(model));
-    modelWizard.start();
-    modelWizard.goForward();
-    modelWizard.goBack();
+    ModelWizard wizard = new ModelWizard.Builder(new DummyStep(model), new DummyStep(model)).build();
 
-    modelWizard.goBack();
+    wizard.goForward();
+    wizard.goBack();
+
+    wizard.goBack();
   }
 
   @Test
@@ -240,70 +195,72 @@ public class ModelWizardTest {
     DummyModel dummyModel = new DummyModel();
     ShouldSkipStep shouldSkipStep = new ShouldSkipStep(dummyModel);
 
-    ModelWizard modelWizard = new ModelWizard();
-    modelWizard.addStep(new DummyStep(dummyModel));
-    modelWizard.addStep(shouldSkipStep);
-    modelWizard.addStep(new DummyStep(dummyModel));
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    wizardBuilder.addStep(new DummyStep(dummyModel));
+    wizardBuilder.addStep(shouldSkipStep);
+    wizardBuilder.addStep(new DummyStep(dummyModel));
 
-    modelWizard.start();
-    modelWizard.goForward();
-    modelWizard.goForward();
+    ModelWizard wizard = wizardBuilder.build();
+    wizard.goForward();
+    wizard.goForward();
 
-    assertThat(modelWizard.isFinished()).isTrue();
+    assertThat(wizard.isFinished()).isTrue();
     assertThat(shouldSkipStep.isEntered()).isFalse();
   }
 
   @Test(expected = IllegalStateException.class)
   public void wizardCantContinueIfStepPreventsIt() throws Exception {
     DummyModel dummyModel = new DummyModel();
-    ModelWizard modelWizard = new ModelWizard();
-    modelWizard.addStep(new PreventProceedingStep(dummyModel));
-    modelWizard.addStep(new DummyStep(dummyModel));
-    modelWizard.start();
-    modelWizard.goForward();
+
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    wizardBuilder.addStep(new PreventProceedingStep(dummyModel));
+    wizardBuilder.addStep(new DummyStep(dummyModel));
+
+    ModelWizard wizard = wizardBuilder.build();
+    wizard.goForward();
   }
 
   @Test
   public void stepCanCreateSubsteps() throws Exception {
     DummyModel model = new DummyModel();
-    ModelWizard modelWizard = new ModelWizard();
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     // Creates parent, which creates child
-    modelWizard.addStep(new GrandparentStep(model));
+    wizardBuilder.addStep(new GrandparentStep(model));
 
-    modelWizard.start();
-    assertThat(modelWizard.getCurrentStep().getClass()).isEqualTo(GrandparentStep.class);
-    modelWizard.goForward();
-    assertThat(modelWizard.getCurrentStep().getClass()).isEqualTo(ParentStep.class);
-    modelWizard.goForward();
-    assertThat(modelWizard.getCurrentStep().getClass()).isEqualTo(ChildStep.class);
+    ModelWizard wizard = wizardBuilder.build();
+    assertThat(wizard.getCurrentStep().getClass()).isEqualTo(GrandparentStep.class);
+    wizard.goForward();
+    assertThat(wizard.getCurrentStep().getClass()).isEqualTo(ParentStep.class);
+    wizard.goForward();
+    assertThat(wizard.getCurrentStep().getClass()).isEqualTo(ChildStep.class);
   }
 
   @Test
   public void hidingAStepHidesItsSubstepsRecursively() throws Exception {
     DummyModel model = new DummyModel();
-    ModelWizard modelWizard = new ModelWizard();
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     // Creates parent, which creates child
     GrandparentStep grandparentStep = new GrandparentStep(model);
     grandparentStep.setShouldSkip();
 
     // Add at least one visible step or the wizard will be fail to start
-    modelWizard.addStep(new DummyStep(model));
-    modelWizard.addStep(grandparentStep);
+    wizardBuilder.addStep(new DummyStep(model));
+    wizardBuilder.addStep(grandparentStep);
 
-    modelWizard.start();
-    assertThat(modelWizard.onLastStep().get()).isTrue();
+    ModelWizard wizard = wizardBuilder.build();
+    assertThat(wizard.onLastStep().get()).isTrue();
   }
 
   @Test(expected = IllegalStateException.class)
   public void startingAWizardWithNoVisibleStepsThrowsException() throws Exception {
     DummyModel model = new DummyModel();
-    ModelWizard modelWizard = new ModelWizard();
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     // Creates parent, which creates child
     GrandparentStep grandparentStep = new GrandparentStep(model);
     grandparentStep.setShouldSkip();
 
-    modelWizard.addStep(grandparentStep);
-    modelWizard.start();
+    wizardBuilder.addStep(grandparentStep);
+    ModelWizard wizard = wizardBuilder.build();
   }
 
   @Test
@@ -312,13 +269,14 @@ public class ModelWizardTest {
     RecordFinishedModel recordModel = new RecordFinishedModel(finishList);
     RecordFinishedStep recordStep = new RecordFinishedStep(recordModel);
     recordStep.setShouldSkip();
-    ModelWizard modelWizard = new ModelWizard(recordStep);
-    modelWizard.addStep(new DummyStep(new DummyModel())); // Ensure we have at least one shown step
 
-    modelWizard.start();
-    modelWizard.goForward();
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(recordStep);
+    wizardBuilder.addStep(new DummyStep(new DummyModel())); // Ensure we have at least one shown step
 
-    assertThat(modelWizard.isFinished()).isTrue();
+    ModelWizard wizard = wizardBuilder.build();
+    wizard.goForward();
+
+    assertThat(wizard.isFinished()).isTrue();
 
     assertThat(finishList).isEmpty();
   }
@@ -326,8 +284,10 @@ public class ModelWizardTest {
   @Test
   public void stepGetsDisposedWhenWizardGetsDisposed() throws Exception {
     DisposedStep disposedStep = new DisposedStep(new DummyModel());
-    ModelWizard wizard = new ModelWizard(disposedStep);
-    wizard.start();
+
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(disposedStep);
+
+    ModelWizard wizard = wizardBuilder.build();
     wizard.goForward();
 
     assertThat(wizard.isFinished()).isTrue();
@@ -339,8 +299,10 @@ public class ModelWizardTest {
   }
 
   private static class DummyModel extends WizardModel {
+    private boolean myIsFinished;
     @Override
     public void handleFinished() {
+      myIsFinished = true;
     }
   }
 

@@ -16,98 +16,21 @@
 package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableProperty;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Properties don't allow {@code null} values by design, but if the concept is still needed, this
- * convenience class provides an interface that mirrors that of guava's {@link Optional} interface.
+ * Base class for all properties that need to support being set to or returning a {@code null}
+ * value.
+ * <p/>
+ * Designed with an interface that emulates Guava's {@link Optional}.
  */
-public final class OptionalProperty<T> extends ObservableProperty<Optional<T>> implements ObservableOptional<T> {
+public abstract class OptionalProperty<T> extends ObservableProperty<Optional<T>> implements ObservableOptional<T> {
 
-  @NotNull private Optional<T> myOptional;
+  public abstract void setValue(@NotNull T value);
 
-  public static <T> OptionalProperty<T> of(@NotNull T value) {
-    return new OptionalProperty<T>(value);
-  }
+  public abstract void clear();
 
-  public static <T> OptionalProperty<T> fromNullable(@Nullable T value) {
-    if (value != null) {
-      return of(value);
-    }
-    else {
-      return absent();
-    }
-  }
-
-  public static <T> OptionalProperty<T> absent() {
-    return new OptionalProperty<T>();
-  }
-
-  public OptionalProperty() {
-    myOptional = Optional.absent();
-  }
-
-  public OptionalProperty(@NotNull T value) {
-    myOptional = Optional.of(value);
-  }
-
-  @NotNull
-  @Override
-  public Optional<T> get() {
-    return myOptional;
-  }
-
-  @NotNull
-  public T getValue() {
-    return myOptional.get();
-  }
-
-  public void setValue(@NotNull T value) {
-    if (!myOptional.isPresent() || !myOptional.get().equals(value)) {
-      set(Optional.of(value));
-    }
-  }
-
-  public void clear() {
-    if (myOptional.isPresent()) {
-      set(Optional.<T>absent());
-    }
-  }
-
-  public void setNullableValue(@Nullable T value) {
-    if (value != null) {
-      setValue(value);
-    }
-    else {
-      clear();
-    }
-  }
-
-  @NotNull
-  public T getValueOr(@NotNull T defaultValue) {
-    return myOptional.or(defaultValue);
-  }
-
-  @Nullable
-  public T getValueOrNull() {
-    return myOptional.orNull();
-  }
-
-  public ObservableBool isPresent() {
-    return new BooleanExpression(this) {
-      @NotNull
-      @Override
-      public Boolean get() {
-        return myOptional.isPresent();
-      }
-    };
-  }
-
-  @Override
-  protected void setDirectly(@NotNull Optional<T> value) {
-    myOptional = value;
-  }
+  public abstract void setNullableValue(@Nullable T value);
 }

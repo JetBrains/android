@@ -46,46 +46,49 @@ public final class NewProjectWizardDemo {
     myNewProjectButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        ModelWizard projectWizard = new ModelWizard();
+        ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
 
-        ProjectModel projectModel = new ProjectModel();
-        projectWizard.addStep(new ConfigureProjectStep(projectModel));
-        projectWizard.addStep(new ChooseFormFactorsStep(projectModel));
+        ProjectModel model = new ProjectModel();
+        wizardBuilder.addStep(new ConfigureProjectStep(model));
+        wizardBuilder.addStep(new ChooseFormFactorsStep(model));
 
-        runWizard(projectWizard, myNewProjectButton.getText());
+        runWizard(wizardBuilder.build(), myNewProjectButton.getText());
       }
     });
 
     myNewMobileActivityButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        ModelWizard activityWizard = new ModelWizard();
-        ActivityModel model = new ActivityModel(FormFactor.MOBILE);
-        activityWizard.addStep(new ChooseActivityStep(model));
+        ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
 
-        runWizard(activityWizard, myNewMobileActivityButton.getText());
+        ActivityModel model = new ActivityModel(FormFactor.MOBILE);
+        wizardBuilder.addStep(new ChooseActivityStep(model));
+
+        runWizard(wizardBuilder.build(), myNewMobileActivityButton.getText());
       }
     });
 
     myNewWearActivityButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        ModelWizard activityWizard = new ModelWizard();
-        ActivityModel model = new ActivityModel(FormFactor.WEAR);
-        activityWizard.addStep(new ChooseActivityStep(model));
+        ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
 
-        runWizard(activityWizard, myNewWearActivityButton.getText());
+        ActivityModel model = new ActivityModel(FormFactor.WEAR);
+        wizardBuilder.addStep(new ChooseActivityStep(model));
+
+        runWizard(wizardBuilder.build(), myNewWearActivityButton.getText());
       }
     });
 
     myNewTVActivityButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        ModelWizard activityWizard = new ModelWizard();
-        ActivityModel model = new ActivityModel(FormFactor.TV);
-        activityWizard.addStep(new ChooseActivityStep(model));
+        ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
 
-        runWizard(activityWizard, myNewTVActivityButton.getText());
+        ActivityModel model = new ActivityModel(FormFactor.TV);
+        wizardBuilder.addStep(new ChooseActivityStep(model));
+
+        runWizard(wizardBuilder.build(), myNewTVActivityButton.getText());
       }
     });
   }
