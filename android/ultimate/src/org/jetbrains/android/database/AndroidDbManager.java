@@ -165,6 +165,11 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   public void fireDataSourceUpdated(DbDataSource element) {
   }
 
+  @Override
+  public void addDataSource(@NotNull AndroidDataSource dataSource) {
+    processAddOrRemove(dataSource, true);
+  }
+
   private static class AndroidDataSourceTemplate implements DataSourceTemplate {
     @NotNull
     @Override
