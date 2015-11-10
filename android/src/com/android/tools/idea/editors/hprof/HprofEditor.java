@@ -42,6 +42,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.status.InlineProgressIndicator;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,12 +69,10 @@ public class HprofEditor extends CaptureEditor {
         InlineProgressIndicator indicator = myPanel.getProgressIndicator();
         assert indicator != null;
         try {
-          indicator.setFraction(0.0);
-          indicator.setText("Parsing hprof file...");
+          updateIndicator(indicator, 0.0, "Parsing hprof file...");
           mySnapshot = Snapshot.createSnapshot(new MemoryMappedFileBuffer(hprofFile));
 
-          indicator.setFraction(0.5);
-          indicator.setText("Computing dominators...");
+          updateIndicator(indicator, 0.5, "Computing dominators...");
           mySnapshot.computeDominators();
         }
         catch (Throwable throwable) {
@@ -210,5 +209,15 @@ public class HprofEditor extends CaptureEditor {
 
     // TODO change this back to PooledThreadExecutor.INSTANCE once multi-reader problem has been solved in Snapshot
     return memoryAnalyzer.analyze(captureGroup, listeners, tasks, EdtExecutor.INSTANCE, Executors.newSingleThreadExecutor());
+  }
+
+  private static void updateIndicator(@NotNull final InlineProgressIndicator indicator, final double fraction, @NotNull final String text) {
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        indicator.setFraction(fraction);
+        indicator.setText(text);
+      }
+    });
   }
 }
