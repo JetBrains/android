@@ -24,10 +24,10 @@ import java.util.List;
 /**
  * An expression which maps one list to another.
  */
-public abstract class AbstractMapExpression<S, D> extends ListExpression<S, D> {
+public abstract class MapExpression<S, D> extends ListExpression<S, D> {
   private final ObservableList<? extends S> mySourceList;
 
-  protected AbstractMapExpression(ObservableList<? extends S> sourceList) {
+  protected MapExpression(ObservableList<? extends S> sourceList) {
     super(sourceList);
 
     mySourceList = sourceList;
