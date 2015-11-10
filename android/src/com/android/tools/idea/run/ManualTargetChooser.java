@@ -39,10 +39,10 @@ public class ManualTargetChooser {
   }
 
   @Nullable
-  public DeviceTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
+  public DeviceFutures getDevices(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
     Collection<IDevice> devices = getReusableDevices(deviceCount);
     if (!devices.isEmpty()) {
-      return DeviceTarget.forDevices(devices);
+      return DeviceFutures.forDevices(devices);
     }
 
     AndroidPlatform platform = myFacet.getConfiguration().getAndroidPlatform();
@@ -65,7 +65,7 @@ public class ManualTargetChooser {
         return null;
       }
       EmulatorTargetChooser emulatorChooser = new EmulatorTargetChooser(myFacet, selectedAvd);
-      return emulatorChooser.getTarget(printer, deviceCount, debug);
+      return emulatorChooser.getDevices(printer, deviceCount, debug);
     }
     else {
       final IDevice[] selectedDevices = chooser.getSelectedDevices();
@@ -75,7 +75,7 @@ public class ManualTargetChooser {
       DevicePickerStateService.getInstance(myProject)
         .setDevicesUsedInLaunch(myRunConfigId, Sets.newHashSet(selectedDevices), getOnlineDevices());
       myShowChooserState.USE_LAST_SELECTED_DEVICE = chooser.useSameDevicesAgain();
-      return DeviceTarget.forDevices(Arrays.asList(selectedDevices));
+      return DeviceFutures.forDevices(Arrays.asList(selectedDevices));
     }
   }
 

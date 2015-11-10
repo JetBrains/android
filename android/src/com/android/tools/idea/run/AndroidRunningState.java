@@ -86,7 +86,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   private final Object myDebugLock = new Object();
 
-  @NotNull private final DeviceTarget myDeviceTarget;
+  @NotNull private final DeviceFutures myDeviceFutures;
 
   private volatile DebugLauncher myDebugLauncher;
 
@@ -104,14 +104,14 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   public AndroidRunningState(@NotNull ExecutionEnvironment environment,
                              @NotNull AndroidFacet facet,
                              @NotNull ApkProvider apkProvider,
-                             @NotNull DeviceTarget deviceTarget,
+                             @NotNull DeviceFutures deviceFutures,
                              @NotNull ProcessHandlerConsolePrinter printer,
                              @NotNull AndroidApplicationLauncher applicationLauncher,
                              @NotNull LaunchOptions launchOptions,
                              @NotNull AndroidRunConfigurationBase configuration) throws ExecutionException {
     myFacet = facet;
     myApkProvider = apkProvider;
-    myDeviceTarget = deviceTarget;
+    myDeviceFutures = deviceFutures;
     myPrinter = printer;
     myConfiguration = configuration;
 
@@ -187,7 +187,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   @Nullable
   @Override
   public Collection<IDevice> getDevices() {
-    return myDeviceTarget.getDevicesIfReady();
+    return myDeviceFutures.getIfReady();
   }
 
   @Nullable
@@ -283,7 +283,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
       @Override
       public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
-        for (ListenableFuture<IDevice> deviceFuture : myDeviceTarget.getDeviceFutures()) {
+        for (ListenableFuture<IDevice> deviceFuture : myDeviceFutures.get()) {
           deviceFuture.cancel(true);
         }
         myStopped.set(true);
@@ -299,7 +299,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   void start() {
     final AtomicInteger startedCount = new AtomicInteger();
-    for (ListenableFuture<IDevice> targetDevice : myDeviceTarget.getDeviceFutures()) {
+    for (ListenableFuture<IDevice> targetDevice : myDeviceFutures.get()) {
       Futures.addCallback(targetDevice, new FutureCallback<IDevice>() {
         @Override
         public void onSuccess(@Nullable IDevice device) {
@@ -318,7 +318,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
             });
           }
           if (prepareAndStartApp(device)) {
-            if (startedCount.incrementAndGet() == myDeviceTarget.getDeviceFutures().size() && !isDebugMode()) {
+            if (startedCount.incrementAndGet() == myDeviceFutures.get().size() && !isDebugMode()) {
               // All the devices have been started, and we don't need to wait to attach the debugger. We're done.
               myStopped.set(true);
               getProcessHandler().destroyProcess();

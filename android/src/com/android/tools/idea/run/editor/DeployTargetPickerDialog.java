@@ -171,7 +171,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   }
 
   @NotNull
-  private DeviceTarget getTarget(@NotNull List<AndroidDevice> devices) {
+  private DeviceFutures getTarget(@NotNull List<AndroidDevice> devices) {
     if (devices.isEmpty()) {
       throw new IllegalStateException("Incorrect validation? No device was selected in device picker.");
     }
@@ -181,7 +181,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
       futures.add(device.launch(myFacet.getModule().getProject(), myPrinter));
     }
 
-    return DeviceTarget.forFutures(futures);
+    return DeviceFutures.forFutures(futures);
   }
 
   @NotNull

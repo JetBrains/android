@@ -17,7 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeviceCount;
-import com.android.tools.idea.run.DeviceTarget;
+import com.android.tools.idea.run.DeviceFutures;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
@@ -29,14 +29,14 @@ import org.jetbrains.annotations.Nullable;
 public class RealizedDeployTarget implements DeployTarget {
   @Nullable private final DeployTargetProvider myDelegate;
   @Nullable private final DeployTargetState myDelegateState;
-  @Nullable private final DeviceTarget myDeviceTarget;
+  @Nullable private final DeviceFutures myDeviceFutures;
 
   public RealizedDeployTarget(@Nullable DeployTargetProvider delegate,
                               @Nullable DeployTargetState delegateState,
-                              @Nullable DeviceTarget deviceTarget) {
+                              @Nullable DeviceFutures deviceFutures) {
     myDelegate = delegate;
     myDelegateState = delegateState;
-    myDeviceTarget = deviceTarget;
+    myDeviceFutures = deviceFutures;
   }
 
   @Override
@@ -56,12 +56,12 @@ public class RealizedDeployTarget implements DeployTarget {
 
   @Nullable
   @Override
-  public DeviceTarget getTarget(@NotNull DeployTargetState state,
-                                @NotNull AndroidFacet facet,
-                                @NotNull DeviceCount deviceCount,
-                                boolean debug,
-                                int runConfigId,
-                                @NotNull ConsolePrinter printer) {
-    return myDeviceTarget;
+  public DeviceFutures getDevices(@NotNull DeployTargetState state,
+                                  @NotNull AndroidFacet facet,
+                                  @NotNull DeviceCount deviceCount,
+                                  boolean debug,
+                                  int runConfigId,
+                                  @NotNull ConsolePrinter printer) {
+    return myDeviceFutures;
   }
 }
