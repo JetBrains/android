@@ -19,7 +19,7 @@ import com.android.tools.idea.ui.properties.collections.ObservableList;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.IntValueProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.android.tools.idea.ui.properties.expressions.list.AbstractMapExpression;
+import com.android.tools.idea.ui.properties.expressions.list.MapExpression;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -74,7 +74,7 @@ public final class BindingsManagerTest {
     CountListener listener = new CountListener();
     stringList.addListener(listener);
 
-    bindings.bind(stringList, new AbstractMapExpression<Integer, String>(numericList) {
+    bindings.bind(stringList, new MapExpression<Integer, String>(numericList) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
@@ -135,7 +135,7 @@ public final class BindingsManagerTest {
     ObservableList<String> dest = new ObservableList<String>();
     ObservableList<Integer> src = new ObservableList<Integer>();
 
-    bindings.bind(dest, new AbstractMapExpression<Integer, String>(src) {
+    bindings.bind(dest, new MapExpression<Integer, String>(src) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
@@ -191,7 +191,7 @@ public final class BindingsManagerTest {
     ObservableList<String> dest = new ObservableList<String>();
     ObservableList<Integer> src = new ObservableList<Integer>();
 
-    bindings.bind(dest, new AbstractMapExpression<Integer, String>(src) {
+    bindings.bind(dest, new MapExpression<Integer, String>(src) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
