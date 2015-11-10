@@ -20,6 +20,10 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.run.*;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -30,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class EmulatorTarget extends DeployTarget<EmulatorTarget.State> {
+public class EmulatorTargetProvider extends DeployTargetProvider<EmulatorTargetProvider.State> {
   public static final class State extends DeployTargetState {
     public String PREFERRED_AVD = "";
 
@@ -87,14 +91,30 @@ public class EmulatorTarget extends DeployTarget<EmulatorTarget.State> {
     return new EmulatorTargetConfigurable(project, parentDisposable, context);
   }
 
-  @Nullable
   @Override
-  public DeviceTarget getTarget(@NotNull State state,
-                                @NotNull AndroidFacet facet,
-                                @NotNull DeviceCount deviceCount,
-                                boolean debug,
-                                int runConfigId,
-                                @NotNull ConsolePrinter printer) {
-    return new EmulatorTargetChooser(facet, Strings.emptyToNull(state.PREFERRED_AVD)).getTarget(printer, deviceCount, debug);
+  public DeployTarget<State> getDeployTarget() {
+    return new DeployTarget<State>() {
+      @Override
+      public boolean hasCustomRunProfileState(@NotNull Executor executor) {
+        return false;
+      }
+
+      @Override
+      public RunProfileState getRunProfileState(@NotNull Executor executor, @NotNull ExecutionEnvironment env, @NotNull State state)
+        throws ExecutionException {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public DeviceTarget getTarget(@NotNull State state,
+                                    @NotNull AndroidFacet facet,
+                                    @NotNull DeviceCount deviceCount,
+                                    boolean debug,
+                                    int runConfigId,
+                                    @NotNull ConsolePrinter printer) {
+        return new EmulatorTargetChooser(facet, Strings.emptyToNull(state.PREFERRED_AVD)).getTarget(printer, deviceCount, debug);
+      }
+    };
   }
 }

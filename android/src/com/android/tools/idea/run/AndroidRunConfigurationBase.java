@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.run.editor.DeployTarget;
+import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -69,27 +70,27 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public String TARGET_SELECTION_MODE = TargetSelectionMode.SHOW_DIALOG.name();
   public String PREFERRED_AVD = "";
 
-  private final List<DeployTarget> myDeployTargets; // all available deploy targets
-  private final boolean myAndroidTests;
-
-  private final Map<String, DeployTargetState> myDeployTargetStates;
-
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
   public boolean SKIP_NOOP_APK_INSTALLATIONS = true; // skip installation if the APK hasn't hasn't changed
   public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
+
+  private final List<DeployTargetProvider> myDeployTargetProviders; // all available deploy targets
+  private final Map<String, DeployTargetState> myDeployTargetStates;
+
+  private final boolean myAndroidTests;
 
   private final NativeRunParameters myNativeRunParameters = new NativeRunParameters();
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
 
-    myDeployTargets = DeployTarget.getDeployTargets();
+    myDeployTargetProviders = DeployTargetProvider.getProviders();
     myAndroidTests = androidTests;
 
     ImmutableMap.Builder<String, DeployTargetState> builder = ImmutableMap.builder();
-    for (DeployTarget target : myDeployTargets) {
-      builder.put(target.getId(), target.createState());
+    for (DeployTargetProvider provider : myDeployTargetProviders) {
+      builder.put(provider.getId(), provider.createState());
     }
     myDeployTargetStates = builder.build();
   }
@@ -197,10 +198,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  public List<DeployTarget> getApplicableDeployTargets() {
-    List<DeployTarget> targets = Lists.newArrayList();
+  public List<DeployTargetProvider> getApplicableDeployTargetProviders() {
+    List<DeployTargetProvider> targets = Lists.newArrayList();
 
-    for (DeployTarget target : myDeployTargets) {
+    for (DeployTargetProvider target : myDeployTargetProviders) {
       if (target.isApplicable(myAndroidTests)) {
         targets.add(target);
       }
@@ -210,10 +211,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  public DeployTarget getCurrentDeployTarget() {
-    DeployTarget target = getDeployTarget(TARGET_SELECTION_MODE);
+  public DeployTargetProvider getCurrentDeployTargetProvider() {
+    DeployTargetProvider target = getDeployTargetProvider(TARGET_SELECTION_MODE);
     if (target == null) {
-      target = getDeployTarget(TargetSelectionMode.SHOW_DIALOG.name());
+      target = getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG.name());
     }
 
     assert target != null;
@@ -221,8 +222,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Nullable
-  private DeployTarget getDeployTarget(@NotNull String id) {
-    for (DeployTarget target : myDeployTargets) {
+  private DeployTargetProvider getDeployTargetProvider(@NotNull String id) {
+    for (DeployTargetProvider target : myDeployTargetProviders) {
       if (target.getId().equals(id)) {
         return target;
       }
@@ -233,12 +234,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   private DeployTargetState getCurrentDeployTargetState() {
-    DeployTarget currentTarget = getCurrentDeployTarget();
+    DeployTargetProvider currentTarget = getCurrentDeployTargetProvider();
     return myDeployTargetStates.get(currentTarget.getId());
   }
 
   @NotNull
-  public DeployTargetState getDeployTargetState(@NotNull DeployTarget target) {
+  public DeployTargetState getDeployTargetState(@NotNull DeployTargetProvider target) {
     return myDeployTargetStates.get(target.getId());
   }
 
@@ -246,7 +247,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     TARGET_SELECTION_MODE = mode.name();
   }
 
-  public void setTargetSelectionMode(@NotNull DeployTarget target) {
+  public void setTargetSelectionMode(@NotNull DeployTargetProvider target) {
     TARGET_SELECTION_MODE = target.getId();
   }
 
@@ -295,7 +296,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException("Unable to obtain debug bridge");
     }
 
-    DeployTarget currentTarget = getCurrentDeployTarget();
+    DeployTargetProvider currentTargetProvider = getCurrentDeployTargetProvider();
     DeployTargetState deployTargetState = getCurrentDeployTargetState();
     ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
 
@@ -333,22 +334,27 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
 
-    if (currentTarget.requiresRuntimePrompt(deployTargetState)) {
-      if (!currentTarget
-        .showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID(), printer)) {
-        return null; // user cancelled
+    DeployTarget deployTarget;
+    if (currentTargetProvider.requiresRuntimePrompt()) {
+      deployTarget = currentTargetProvider
+        .showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID(), printer);
+      if (deployTarget == null) {
+        return null;
       }
     }
+    else {
+      deployTarget = currentTargetProvider.getDeployTarget();
+    }
 
-    if (currentTarget.hasCustomRunProfileState(executor)) {
-      return currentTarget.getRunProfileState(executor, env, deployTargetState);
+    if (deployTarget.hasCustomRunProfileState(executor)) {
+      return deployTarget.getRunProfileState(executor, env, deployTargetState);
     }
 
     // If there is a session that we will embed to, we need to re-use the devices from that session.
     // TODO: this means that if the deployment target is changed between sessions, we still use the one from the old session?
     DeviceTarget deviceTarget = getOldSessionTarget(project, executor);
     if (deviceTarget == null) {
-      deviceTarget = currentTarget.getTarget(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID(), printer);
+      deviceTarget = deployTarget.getTarget(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID(), printer);
       if (deviceTarget == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
         return null;
