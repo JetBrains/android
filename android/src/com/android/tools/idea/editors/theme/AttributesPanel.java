@@ -126,6 +126,10 @@ public class AttributesPanel {
     myThemeWarning.setIcon(AllIcons.General.BalloonWarning);
   }
 
+  public void setThemeNamePopupMenu(@Nullable JPopupMenu popup) {
+    myThemeCombo.setComponentPopupMenu(popup);
+  }
+
   /**
    * @param themeName Does not have to be one of the items in the combo box list.
    */
