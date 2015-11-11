@@ -43,6 +43,7 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import gnu.trove.TIntArrayList;
+import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +51,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -60,9 +63,9 @@ import java.util.List;
 import java.util.Set;
 
 public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable,
-                                     ActionListener {
-  private final static int UPDATE_DELAY_MILLIS = 250;
-  private final ListSpeedSearch mySpeedSearch;
+                                     ActionListener, ListSelectionListener {
+  private static final int UPDATE_DELAY_MILLIS = 250;
+  private static final TIntObjectHashMap<Set<String>> ourSelectionsPerConfig = new TIntObjectHashMap<Set<String>>();
 
   private JPanel myPanel;
   private JButton myCreateEmulatorButton;
@@ -72,14 +75,16 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   private JBList myDevicesList;
 
   @NotNull private final AndroidFacet myFacet;
+  private final int myRunContextId;
   @NotNull private final DevicePickerListModel myModel;
   @NotNull private final MergingUpdateQueue myUpdateQueue;
   private final LaunchCompatibilityChecker myCompatibilityChecker;
+  private final ListSpeedSearch mySpeedSearch;
 
-  private boolean myInitialSelectionComplete;
   private List<AvdInfo> myAvdInfos = Lists.newArrayList();
 
-  public DevicePicker(@NotNull Disposable parent, @NotNull final AndroidFacet facet, @NotNull DeviceCount deviceCount) {
+  public DevicePicker(@NotNull Disposable parent, int runContextId, @NotNull final AndroidFacet facet, @NotNull DeviceCount deviceCount) {
+    myRunContextId = runContextId;
     myFacet = facet;
 
     myHelpHyperlink.addHyperlinkListener(new HyperlinkListener() {
@@ -110,6 +115,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     myDevicesList.setCellRenderer(new AndroidDeviceRenderer(myCompatibilityChecker, mySpeedSearch));
     myDevicesList.setSelectionMode(getListSelectionMode(deviceCount));
     myDevicesList.addKeyListener(new MyListKeyListener(mySpeedSearch));
+    myDevicesList.addListSelectionListener(this);
 
     myCreateEmulatorButton.addActionListener(this);
 
@@ -177,6 +183,13 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
       wizard.showAndGet();
       AvdInfo createdAvd = wizard.getCreatedAvd();
       refreshAvds(createdAvd);
+    }
+  }
+
+  @Override
+  public void valueChanged(ListSelectionEvent e) {
+    if (e.getSource() == myDevicesList) {
+      ourSelectionsPerConfig.put(myRunContextId, getSelectedSerials(myDevicesList.getSelectedValues()));
     }
   }
 
@@ -267,14 +280,12 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     }
 
     Set<String> selectedSerials = getSelectedSerials(myDevicesList.getSelectedValues());
+
     List<IDevice> connectedDevices = Lists.newArrayList(AndroidDebugBridge.getBridge().getDevices());
     myModel.reset(connectedDevices, myAvdInfos);
 
-    if (selectedSerials.isEmpty() && !myInitialSelectionComplete) {
-      selectedSerials = getInitialSelection();
-      if (!selectedSerials.isEmpty()) {
-        myInitialSelectionComplete = true;
-      }
+    if (selectedSerials.isEmpty()) {
+      selectedSerials = getDefaultSelection();
     }
     myDevicesList.setSelectedIndices(getIndices(myModel.getItems(), selectedSerials));
 
@@ -320,7 +331,16 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   @NotNull
-  private Set<String> getInitialSelection() {
+  private Set<String> getDefaultSelection() {
+    Set<String> lastSelection = ourSelectionsPerConfig.get(myRunContextId);
+    if (lastSelection != null && !lastSelection.isEmpty()) {
+      // check if any of them actually present right now
+      int[] indices = getIndices(myModel.getItems(), lastSelection);
+      if (indices.length > 0) {
+        return lastSelection;
+      }
+    }
+
     for (DevicePickerEntry entry : myModel.getItems()) {
       if (entry.isMarker()) {
         continue;

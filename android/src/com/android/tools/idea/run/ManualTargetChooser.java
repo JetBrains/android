@@ -40,9 +40,11 @@ public class ManualTargetChooser {
 
   @Nullable
   public DeviceFutures getDevices(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
-    Collection<IDevice> devices = getReusableDevices(deviceCount);
-    if (!devices.isEmpty()) {
-      return DeviceFutures.forDevices(devices);
+    if (myShowChooserState.USE_LAST_SELECTED_DEVICE) {
+      Collection<IDevice> devices = getLastUsedDevices(myProject, myRunConfigId, deviceCount);
+      if (!devices.isEmpty()) {
+        return DeviceFutures.forDevices(devices);
+      }
     }
 
     AndroidPlatform platform = myFacet.getConfiguration().getAndroidPlatform();
@@ -73,7 +75,7 @@ public class ManualTargetChooser {
         return null;
       }
       DevicePickerStateService.getInstance(myProject)
-        .setDevicesUsedInLaunch(myRunConfigId, Sets.newHashSet(selectedDevices), getOnlineDevices());
+        .setDevicesUsedInLaunch(myRunConfigId, Sets.newHashSet(selectedDevices), getOnlineDevices(myProject));
       myShowChooserState.USE_LAST_SELECTED_DEVICE = chooser.useSameDevicesAgain();
       return DeviceFutures.forDevices(Arrays.asList(selectedDevices));
     }
@@ -81,13 +83,13 @@ public class ManualTargetChooser {
 
   /** Re-use the last used devices if we are configured to do so and the online devices have not changed. */
   @NotNull
-  private Collection<IDevice> getReusableDevices(@NotNull DeviceCount deviceCount) {
-    DeviceStateAtLaunch devicesToReuse = DevicePickerStateService.getInstance(myProject).getDevicesUsedInLastLaunch(myRunConfigId);
-    if (!myShowChooserState.USE_LAST_SELECTED_DEVICE || devicesToReuse == null) {
+  public static Collection<IDevice> getLastUsedDevices(@NotNull Project project, int runConfigId, @NotNull DeviceCount deviceCount) {
+    DeviceStateAtLaunch devicesToReuse = DevicePickerStateService.getInstance(project).getDevicesUsedInLastLaunch(runConfigId);
+    if (devicesToReuse == null) {
       return ImmutableList.of();
     }
 
-    Set<IDevice> onlineDevices = getOnlineDevices();
+    Set<IDevice> onlineDevices = getOnlineDevices(project);
     if (devicesToReuse.matchesCurrentAvailableDevices(onlineDevices)) {
       Collection<IDevice> usedDevices = devicesToReuse.filterByUsed(onlineDevices);
       if (usedDevices.size() == 1 || deviceCount.isMultiple()) {
@@ -97,8 +99,8 @@ public class ManualTargetChooser {
     return ImmutableList.of();
   }
 
-  private Set<IDevice> getOnlineDevices() {
-    AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(myFacet.getModule().getProject());
+  public static Set<IDevice> getOnlineDevices(@NotNull Project project) {
+    AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(project);
     if (debugBridge == null) {
       return Collections.emptySet();
     }
