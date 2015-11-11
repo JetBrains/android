@@ -75,19 +75,6 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
                             int runConfigId,
                             @NotNull ProcessHandlerConsolePrinter printer) {
     State showChooserState = (State)deployTargetStates.get(getId());
-
-    // If we are not showing any custom run/profile states, then show the old style device chooser
-    List<DeployTargetProvider> applicableTargets = getTargetsProvidingRunProfileState(executor, androidTests);
-    if (applicableTargets.isEmpty()) {
-      DeviceFutures deviceFutures = new ManualTargetChooser(showChooserState, facet, runConfigId)
-        .getDevices(printer, deviceCount, executor instanceof DefaultDebugExecutor);
-      if (deviceFutures == null) {
-        return null;
-      }
-
-      return new RealizedDeployTarget(null, null, deviceFutures);
-    }
-
     Project project = facet.getModule().getProject();
 
     if (showChooserState.USE_LAST_SELECTED_DEVICE) {
@@ -104,6 +91,8 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
         return new RealizedDeployTarget(null, null, DeviceFutures.forDevices(devices));
       }
     }
+
+    List<DeployTargetProvider> applicableTargets = getTargetsProvidingRunProfileState(executor, androidTests);
 
     // show the dialog and get the state
     DeployTargetPickerDialog dialog =
