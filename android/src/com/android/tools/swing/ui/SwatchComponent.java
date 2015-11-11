@@ -256,6 +256,10 @@ public class SwatchComponent extends Box {
     myTextField.addDocumentListener(listener);
   }
 
+  public void addTextFocusListener(@NotNull final FocusListener listener) {
+    myTextField.addFocusListener(listener);
+  }
+
   public boolean hasWarningIcon() {
     return WARNING_ICON.equals(mySwatchButton.getIcon());
   }
