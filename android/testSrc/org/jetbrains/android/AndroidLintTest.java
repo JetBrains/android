@@ -184,6 +184,12 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/res/layout/layout.xml", "xml");
   }
 
+  public void testUnusedAttribute() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintUnusedAttributeInspection(),
+                  "Suppress With tools:targetApi Attribute",
+                  "/res/layout/layout.xml", "xml");
+  }
+
   public void testExportedService() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintExportedServiceInspection(),

@@ -11,7 +11,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
@@ -43,9 +42,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
 import static com.android.tools.lint.checks.PluralsDetector.IMPLIED_QUANTITY;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
-import static com.android.xml.AndroidManifest.ATTRIBUTE_REQUIRED;
-import static com.android.xml.AndroidManifest.NODE_USES_FEATURE;
-import static com.android.xml.AndroidManifest.NODE_USES_PERMISSION;
+import static com.android.xml.AndroidManifest.*;
 
 /**
  * Registrations for all the various Lint rules as local IDE inspections, along with quickfixes for many of them
@@ -197,6 +194,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintUnusedAttributeInspection extends AndroidLintInspectionBase {
     public AndroidLintUnusedAttributeInspection() {
       super(AndroidBundle.message("android.lint.inspections.unused.attribute"), ApiDetector.UNUSED);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return getApiDetectorFixes(ApiDetector.INLINED, startElement, endElement, message);
     }
   }
 
@@ -1169,6 +1172,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintOverrideInspection extends AndroidLintInspectionBase {
     public AndroidLintOverrideInspection() {
       super(AndroidBundle.message("android.lint.inspections.override"), ApiDetector.OVERRIDE);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return getApiDetectorFixes(ApiDetector.INLINED, startElement, endElement, message);
     }
   }
 
