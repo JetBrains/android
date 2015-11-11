@@ -18,20 +18,15 @@ package com.android.tools.idea.structure.services;
 import com.android.SdkConstants;
 import com.android.tools.idea.templates.FreemarkerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
-import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.TypedVariable;
 import com.android.tools.idea.templates.parse.SaxUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.tools.idea.templates.recipe.RecipeExecutor;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.collections.ObservableList;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.IntProperty;
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
-import com.android.tools.idea.ui.properties.expressions.integer.IntExpression;
-import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
+import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.swing.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -484,13 +479,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       if (boolValue == null) {
         throw new RuntimeException("Invalid bool value (did you forget ${...}): " + value);
       }
-      return new BooleanExpression() {
-        @NotNull
-        @Override
-        public Boolean get() {
-          return boolValue;
-        }
-      };
+      return new BoolValueProperty(boolValue);
     }
   }
 
@@ -502,13 +491,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       return (ObservableValue<String>)myContext.getValue(matcher.group(1));
     }
     else {
-      return new StringExpression() {
-        @NotNull
-        @Override
-        public String get() {
-          return value;
-        }
-      };
+      return new StringValueProperty(value);
     }
   }
 
@@ -525,13 +508,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
         throw new RuntimeException("Invalid integer value (did you forget ${...}): " + value);
       }
 
-      return new IntExpression() {
-        @NotNull
-        @Override
-        public Integer get() {
-          return intValue;
-        }
-      };
+      return new IntValueProperty(intValue);
     }
   }
 
