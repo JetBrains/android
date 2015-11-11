@@ -147,6 +147,10 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     checkJavadoc("/javadoc/strings/layout1.xml", "res/layout/layout1.xml", "<html><body>Application Name</body></html>");
   }
 
+  public void testAttributeValueDoc() {
+    checkJavadoc("/javadoc/layout/layout.xml", "res/layout/layout.xml", "The view should be only big enough to enclose its content (plus padding).");
+  }
+
   public void testXmlString2() {
     // Like testXmlString1, but the caret is at the right edge of an attribute value so the document provider has
     // to go to the previous XML token to obtain the resource url
