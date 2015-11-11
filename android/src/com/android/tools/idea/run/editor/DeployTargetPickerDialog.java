@@ -34,6 +34,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -56,6 +57,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   private JPanel myCloudTargetsPanel;
   private JPanel myDevicesPanel;
   private DeployTarget myDeployTarget;
+  private List<AndroidDevice> mySelectedDevices;
 
   public DeployTargetPickerDialog(int runContextId,
                                   @NotNull final AndroidFacet facet,
@@ -83,7 +85,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     myPrinter = printer;
 
     // Tab 1
-    myDevicePicker = new DevicePicker(getDisposable(), facet, deviceCount);
+    myDevicePicker = new DevicePicker(getDisposable(), runContextId, facet, deviceCount);
     myDevicesPanel.add(myDevicePicker.getComponent(), BorderLayout.CENTER);
     myDevicesPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
     myDevicePicker.installDoubleClickListener(new DoubleClickListener() {
@@ -121,7 +123,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
-    return myContentPane;
+    return myDeployTargetProvider == null ? myDevicesPanel : myContentPane;
   }
 
   @Nullable
@@ -162,8 +164,10 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   protected void doOKAction() {
     int selectedIndex = myTabbedPane.getSelectedIndex();
     if (selectedIndex == DEVICE_TAB_INDEX) {
-      myDeployTarget = new RealizedDeployTarget(null, null, getTarget(myDevicePicker.getSelectedDevices()));
+      mySelectedDevices = myDevicePicker.getSelectedDevices();
+      myDeployTarget = new RealizedDeployTarget(null, null, launchDevices(mySelectedDevices));
     } else if (selectedIndex == CUSTOM_RUNPROFILE_PROVIDER_TARGET_INDEX) {
+      mySelectedDevices = Collections.emptyList();
       myDeployTarget = new RealizedDeployTarget(myDeployTargetProvider, myDeployTargetState, null);
     }
 
@@ -171,11 +175,12 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   }
 
   @NotNull
-  private DeviceFutures getTarget(@NotNull List<AndroidDevice> devices) {
+  private DeviceFutures launchDevices(@NotNull List<AndroidDevice> devices) {
     if (devices.isEmpty()) {
       throw new IllegalStateException("Incorrect validation? No device was selected in device picker.");
     }
 
+    // NOTE: WE ARE LAUNCHING EMULATORS HERE
     List<ListenableFuture<IDevice>> futures = Lists.newArrayList();
     for (AndroidDevice device : devices) {
       futures.add(device.launch(myFacet.getModule().getProject(), myPrinter));
@@ -187,6 +192,11 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @NotNull
   public DeployTarget getSelectedDeployTarget() {
     return myDeployTarget;
+  }
+
+  @NotNull
+  public List<AndroidDevice> getSelectedDevices() {
+    return mySelectedDevices;
   }
 
   private static final class Context implements DeployTargetConfigurableContext {
