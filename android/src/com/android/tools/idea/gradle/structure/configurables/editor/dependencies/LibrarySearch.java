@@ -20,30 +20,37 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.UIUtil.FontSize;
+import com.intellij.ui.table.TableView;
+import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.ListTableModel;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
-import javax.swing.table.AbstractTableModel;
-import java.awt.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
+import static com.intellij.icons.AllIcons.General.WarningDecorator;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ui.UIUtil.getLabelFont;
-import static java.awt.event.KeyEvent.VK_A;
+import static com.intellij.util.ui.UIUtil.ComponentStyle.SMALL;
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+import static java.awt.event.KeyEvent.VK_N;
 
 class LibrarySearch {
   @NotNull private final DependenciesPanel myDependenciesPanel;
@@ -52,12 +59,13 @@ class LibrarySearch {
   private JBTextField myArtifactNameTextField;
   private JPanel myPanel;
   private JBTextField myGroupIdTextField;
-  private JBTable myResultsTable;
+  private TableView<LibraryFound> myResultsTable;
   private JButton mySearchButton;
   private JButton myAddLibraryButton;
   private JBLabel myArtifactNameLabel;
   private JBLabel myGroupIdLabel;
   private JBLabel myRequiredFieldLabel;
+  private JBScrollPane myResultsScrollPane;
 
   LibrarySearch(@NotNull DependenciesPanel dependenciesPanel, @NotNull ArtifactRepositorySearch[] repositorySearches) {
     myDependenciesPanel = dependenciesPanel;
@@ -69,12 +77,14 @@ class LibrarySearch {
       }
     });
 
-    Font labelFont = getLabelFont(FontSize.SMALL);
-    myArtifactNameLabel.setFont(labelFont);
-    myArtifactNameLabel.setDisplayedMnemonic(VK_A);
-    myArtifactNameLabel.setDisplayedMnemonicIndex(0);
-    myGroupIdLabel.setFont(labelFont);
-    myRequiredFieldLabel.setFont(labelFont);
+    myArtifactNameLabel.setComponentStyle(SMALL);
+    myArtifactNameLabel.setDisplayedMnemonic(VK_N);
+    myArtifactNameLabel.setIcon(WarningDecorator);
+
+    myGroupIdLabel.setComponentStyle(SMALL);
+
+    myRequiredFieldLabel.setComponentStyle(SMALL);
+    myRequiredFieldLabel.setIcon(WarningDecorator);
 
     myArtifactNameTextField.addActionListener(new ActionListener() {
       @Override
@@ -93,49 +103,101 @@ class LibrarySearch {
         performSearch();
       }
     });
+
+    myAddLibraryButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        Collection<LibraryFound> selection = myResultsTable.getSelection();
+        for (LibraryFound libraryFound : selection) {
+          myDependenciesPanel.addLibraryDependency(libraryFound.coordinate.toString());
+        }
+      }
+    });
+
+    myResultsTable = new TableView<LibraryFound>(new ResultsTableModel());
+    myResultsTable.setAutoCreateRowSorter(true);
+    myResultsTable.getTableHeader().setReorderingAllowed(false);
+    myResultsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent e) {
+        myAddLibraryButton.setEnabled(!myResultsTable.getSelection().isEmpty());
+      }
+    });
+    myResultsScrollPane.setViewportView(myResultsTable);
+    new TableSpeedSearch(myResultsTable);
+    clearResults();
   }
 
   private void performSearch() {
     mySearchButton.setEnabled(false);
-    myResultsTable.getEmptyText().setText("Loading...");
+    myResultsTable.getEmptyText().setText("Searching...");
     myResultsTable.setPaintBusy(true);
     clearResults();
 
     final ArtifactRepositorySearch.Request request = new ArtifactRepositorySearch.Request(getArtifactName(), getGroupId(), 50, 0);
 
-    List<Future<SearchResult>> jobs = Lists.newArrayListWithExpectedSize(myRepositorySearches.length);
-    List<LibraryFound> librariesFound = Lists.newArrayList();
+    final ActionCallback callback = new ActionCallback();
+    final List<Future<SearchResult>> jobs = Lists.newArrayListWithExpectedSize(myRepositorySearches.length);
+    final List<LibraryFound> librariesFound = Lists.newArrayList();
 
-    Application application = ApplicationManager.getApplication();
-    for (final ArtifactRepositorySearch search : myRepositorySearches) {
-      jobs.add(application.executeOnPooledThread(new Callable<SearchResult>() {
-        @Override
-        public SearchResult call() throws Exception {
-          return search.start(request);
+    final Application application = ApplicationManager.getApplication();
+
+    application.executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        for (final ArtifactRepositorySearch search : myRepositorySearches) {
+          jobs.add(application.executeOnPooledThread(new Callable<SearchResult>() {
+            @Override
+            public SearchResult call() throws Exception {
+              return search.start(request);
+            }
+          }));
         }
-      }));
-    }
 
-    try {
-      for (Future<SearchResult> job : jobs) {
-        SearchResult result = Futures.get(job, Exception.class);
-        for (String coordinateText : result.data) {
-          GradleCoordinate coordinate = parseCoordinateString(coordinateText);
-          if (coordinate != null) {
-            librariesFound.add(new LibraryFound(coordinate, result.repository));
+        for (Future<SearchResult> job : jobs) {
+          SearchResult result;
+          try {
+            result = Futures.get(job, Exception.class);
+            for (String coordinateText : result.data) {
+              GradleCoordinate coordinate = parseCoordinateString(coordinateText);
+              if (coordinate != null) {
+                librariesFound.add(new LibraryFound(coordinate, result.repository));
+              }
+            }
+          }
+          catch (Exception e) {
+            // TODO show error message in search panel
+            e.printStackTrace();
           }
         }
-      }
-    }
-    catch (Throwable e) {
-      e.printStackTrace();
-    }
 
-    myResultsTable.setModel(new ResultsTableModel(librariesFound));
-    myResultsTable.setPaintBusy(false);
-    myResultsTable.getEmptyText().setText("Nothing to Show");
-    mySearchButton.setEnabled(true);
-    myResultsTable.requestFocusInWindow();
+        callback.setDone();
+      }
+    });
+
+    callback.doWhenDone(new Runnable() {
+      @Override
+      public void run() {
+        invokeLaterIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            myResultsTable.getListTableModel().setItems(librariesFound);
+            myResultsTable.updateColumnSizes();
+            myResultsTable.setPaintBusy(false);
+            myResultsTable.getEmptyText().setText("Nothing to show");
+            if (librariesFound.isEmpty()) {
+              myAddLibraryButton.setEnabled(false);
+            }
+            else {
+              myResultsTable.changeSelection(0, 0, false, false);
+            }
+            myResultsTable.requestFocusInWindow();
+
+            mySearchButton.setEnabled(true);
+          }
+        });
+      }
+    });
   }
 
   @NotNull
@@ -154,6 +216,69 @@ class LibrarySearch {
     return myPanel;
   }
 
+  private void clearResults() {
+    myResultsTable.getListTableModel().setItems(Collections.<LibraryFound>emptyList());
+  }
+
+  private static class ResultsTableModel extends ListTableModel<LibraryFound> {
+    ResultsTableModel() {
+      createAndSetColumnInfos();
+      setSortable(true);
+    }
+
+    private void createAndSetColumnInfos() {
+      ColumnInfo<LibraryFound, String> groupId = new ColumnInfo<LibraryFound, String>("Group ID") {
+        @Override
+        @Nullable
+        public String valueOf(LibraryFound libraryFound) {
+          return libraryFound.coordinate.getGroupId();
+        }
+
+        @Override
+        @NonNls
+        @NotNull
+        public String getPreferredStringValue() {
+          return "abcdefghijklmno";
+        }
+      };
+      ColumnInfo<LibraryFound, String> artifactName = new ColumnInfo<LibraryFound, String>("Artifact Name") {
+        @Override
+        @Nullable
+        public String valueOf(LibraryFound libraryFound) {
+          return libraryFound.coordinate.getArtifactId();
+        }
+
+        @Override
+        @NonNls
+        @NotNull
+        public String getPreferredStringValue() {
+          return "abcdefg";
+        }
+      };
+      ColumnInfo<LibraryFound, String> version = new ColumnInfo<LibraryFound, String>("Version") {
+        @Override
+        @Nullable
+        public String valueOf(LibraryFound libraryFound) {
+          return libraryFound.coordinate.getRevision();
+        }
+
+        @Override
+        @NotNull
+        public String getPreferredStringValue() {
+          return "100.100.100";
+        }
+      };
+      ColumnInfo<LibraryFound, String> repository = new ColumnInfo<LibraryFound, String>("Repository") {
+        @Override
+        @Nullable
+        public String valueOf(LibraryFound libraryFound) {
+          return libraryFound.repository;
+        }
+      };
+      setColumnInfos(new ColumnInfo[]{groupId, artifactName, version, repository});
+    }
+  }
+
   private static class LibraryFound {
     @NotNull final GradleCoordinate coordinate;
     @NotNull final String repository;
@@ -161,66 +286,6 @@ class LibrarySearch {
     LibraryFound(@NotNull GradleCoordinate coordinate, @NotNull String repository) {
       this.coordinate = coordinate;
       this.repository = repository;
-    }
-  }
-
-  private void createUIComponents() {
-    myResultsTable = new JBTable();
-    new TableSpeedSearch(myResultsTable);
-    clearResults();
-  }
-
-  private void clearResults() {
-    myResultsTable.setModel(new ResultsTableModel(Collections.<LibraryFound>emptyList()));
-  }
-
-  private static class ResultsTableModel extends AbstractTableModel {
-    private static final String[] TABLE_COLUMN_NAMES = {"Group ID", "Artifact Name", "Version", "Repository"};
-    private static final int GROUP_ID_COLUMN = 0;
-    private static final int ARTIFACT_NAME_COLUMN = 1;
-    private static final int VERSION_COLUMN = 2;
-    private static final int REPOSITORY_COLUMN = 3;
-
-    @NotNull private final List<LibraryFound> myLibrariesFound;
-
-    ResultsTableModel(@NotNull List<LibraryFound> librariesFound) {
-      myLibrariesFound = librariesFound;
-    }
-
-    @Override
-    public int getRowCount() {
-      return myLibrariesFound.size();
-    }
-
-    @Override
-    public int getColumnCount() {
-      return TABLE_COLUMN_NAMES.length;
-    }
-
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
-      LibraryFound libraryFound = myLibrariesFound.get(rowIndex);
-      switch (columnIndex) {
-        case GROUP_ID_COLUMN:
-          return libraryFound.coordinate.getGroupId();
-        case ARTIFACT_NAME_COLUMN:
-          return libraryFound.coordinate.getArtifactId();
-        case VERSION_COLUMN:
-          return libraryFound.coordinate.getRevision();
-        case REPOSITORY_COLUMN:
-          return libraryFound.repository;
-      }
-      throw new IllegalArgumentException(String.format("'%1$d' is not a valid column index", columnIndex));
-    }
-
-    @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-      return false;
-    }
-
-    @Override
-    public String getColumnName(int column) {
-      return TABLE_COLUMN_NAMES[column];
     }
   }
 }
