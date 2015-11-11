@@ -25,6 +25,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
@@ -75,6 +76,13 @@ public class ConnectedAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public String getSerial() {
+    if (myDevice.isEmulator()) {
+      String avdName = myDevice.getAvdName();
+      if (avdName != null) {
+        return avdName;
+      }
+    }
+
     return myDevice.getSerialNumber();
   }
 
