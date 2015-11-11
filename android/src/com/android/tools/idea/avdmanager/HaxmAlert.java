@@ -64,7 +64,7 @@ public class HaxmAlert extends JPanel {
         // as the actual width is known. This allows the wizard dialog to be set to the correct size even before this step is shown.
         final View view = (View)getClientProperty("html");
         Component parent = getParent();
-        if (view != null && parent != null && parent.getWidth() > 0) {
+        if (view != null && parent != null && parent.getWidth() > 0 && parent.getWidth() != (int)view.getPreferredSpan(View.X_AXIS)) {
           view.setSize(parent.getWidth(), 0);
           return new Dimension((int)view.getPreferredSpan(View.X_AXIS), (int)view.getPreferredSpan(View.Y_AXIS));
         }
