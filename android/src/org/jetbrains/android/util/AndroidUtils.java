@@ -155,6 +155,8 @@ public class AndroidUtils {
   private static final String[] ANDROID_COMPONENT_CLASSES = new String[]{ACTIVITY_BASE_CLASS_NAME,
     SERVICE_CLASS_NAME, RECEIVER_CLASS_NAME, PROVIDER_CLASS_NAME};
 
+  private static final Lexer JAVA_LEXER = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
+
   private AndroidUtils() {
   }
 
@@ -818,30 +820,36 @@ public class AndroidUtils {
     // (the code wouldn't have compiled)
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    Lexer lexer = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
     int index = 0;
     while (true) {
       int index1 = name.indexOf('.', index);
       if (index1 < 0) {
         index1 = name.length();
       }
-      String segment = name.substring(index, index1);
-      lexer.start(segment);
-      if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) {
-        if (lexer.getTokenType() instanceof IKeywordElementType) {
-          return "Package names cannot contain Java keywords like '" + segment + "'";
-        }
-        if (segment.isEmpty()) {
-          return "Package segments must be of non-zero length";
-        }
-        return segment + " is not a valid identifier";
-      }
+      String error = isReservedKeyword(name.substring(index, index1));
+      if (error != null) return error;
       if (index1 == name.length()) {
         break;
       }
       index = index1 + 1;
     }
 
+    return null;
+  }
+
+  @Nullable
+  public static String isReservedKeyword(@NotNull String string) {
+    Lexer lexer = JAVA_LEXER;
+    lexer.start(string);
+    if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) {
+      if (lexer.getTokenType() instanceof IKeywordElementType) {
+        return "Package names cannot contain Java keywords like '" + string + "'";
+      }
+      if (string.isEmpty()) {
+        return "Package segments must be of non-zero length";
+      }
+      return string + " is not a valid identifier";
+    }
     return null;
   }
 
