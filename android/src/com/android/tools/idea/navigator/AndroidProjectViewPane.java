@@ -94,7 +94,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   @Override
   public SelectInTarget createSelectInTarget() {
-    return new ProjectPaneSelectInTarget(myProject);
+    // No implementation needed, we piggy back on the default ProjectViewPane for select in target
+    return null;
   }
 
   @Override
