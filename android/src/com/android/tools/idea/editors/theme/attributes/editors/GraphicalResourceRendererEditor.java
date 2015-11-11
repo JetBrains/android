@@ -119,6 +119,16 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
           stopCellEditing();
         }
       });
+      myComponent.addTextFocusListener(new FocusAdapter() {
+        @Override
+        public void focusGained(FocusEvent e) {
+          DumbService dumbService = DumbService.getInstance(myContext.getProject());
+          if (dumbService.isDumb()) {
+            dumbService.showDumbModeNotification(DUMB_MODE_MESSAGE);
+            cancelCellEditing();
+          }
+        }
+      });
     }
 
     myPreviewPanel = previewPanel;

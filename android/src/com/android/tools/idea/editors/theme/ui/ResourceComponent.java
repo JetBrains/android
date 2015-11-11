@@ -142,16 +142,20 @@ public class ResourceComponent extends JPanel {
     mySwatchComponent.setComponentPopupMenu(popup);
   }
 
-  public void addSwatchListener(final ActionListener listener) {
+  public void addSwatchListener(@NotNull final ActionListener listener) {
     mySwatchComponent.addSwatchListener(listener);
   }
 
-  public void addTextListener(final ActionListener listener) {
+  public void addTextListener(@NotNull final ActionListener listener) {
     mySwatchComponent.addTextListener(listener);
   }
 
-  public void addTextDocumentListener(final DocumentListener listener) {
+  public void addTextDocumentListener(@NotNull final DocumentListener listener) {
     mySwatchComponent.addTextDocumentListener(listener);
+  }
+
+  public void addTextFocusListener(@NotNull final FocusListener listener) {
+    mySwatchComponent.addTextFocusListener(listener);
   }
 
   public boolean hasWarningIcon() {
