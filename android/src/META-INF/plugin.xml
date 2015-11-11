@@ -292,6 +292,7 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.menu.MenuDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.resources.ResourcesDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.xml.XmlResourceDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.lint.LintSettingsFileDescription"/>
     <dom.extender domClass="org.jetbrains.android.dom.AndroidDomElement"
                   extenderClass="org.jetbrains.android.dom.AndroidDomExtender"/>
 
