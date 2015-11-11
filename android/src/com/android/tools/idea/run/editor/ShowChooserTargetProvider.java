@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.*;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.execution.Executor;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -28,8 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserTargetProvider.State> {
   public static final String ID = TargetSelectionMode.SHOW_DIALOG.name();
@@ -90,9 +91,17 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
     Project project = facet.getModule().getProject();
 
     if (showChooserState.USE_LAST_SELECTED_DEVICE) {
+      // If the last selection was a custom run profile state, then use that
       DeployTarget target = DevicePickerStateService.getInstance(project).getDeployTargetPickerResult(runConfigId);
-      if (target != null) {
+      if (target != null && target.hasCustomRunProfileState(executor)) {
         return target;
+      }
+
+      // If the last selection was a device, we can't just use the saved deploy target, since the list of devices could be stale,
+      // which would happen if the result was to launch an emulator. So we use the state of the devices instead
+      Collection<IDevice> devices = ManualTargetChooser.getLastUsedDevices(project, runConfigId, deviceCount);
+      if (!devices.isEmpty()) {
+        return new RealizedDeployTarget(null, null, DeviceFutures.forDevices(devices));
       }
     }
 
@@ -101,13 +110,38 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
       new DeployTargetPickerDialog(runConfigId, facet, deviceCount, applicableTargets, deployTargetStates, printer);
     if (dialog.showAndGet()) {
       DeployTarget result = dialog.getSelectedDeployTarget();
-      DevicePickerStateService.getInstance(project)
-        .setDeployPickerResult(runConfigId, showChooserState.USE_LAST_SELECTED_DEVICE ? result : null);
+
+      if (showChooserState.USE_LAST_SELECTED_DEVICE) {
+        DevicePickerStateService.getInstance(project)
+          .setDeployPickerResult(runConfigId, result.hasCustomRunProfileState(executor) ? result : null);
+
+        // TODO: we only save the running devices, which means that the AVD selection is lost if the AVD wasn't running
+        // TODO: the getRunningDevices() returns an empty list righ now if there is an AVD to be selected, which atleast makes the dialog
+        // show up again, but eventually, we need to be able to handle a transition from AVD -> running device
+        DevicePickerStateService.getInstance(project)
+          .setDevicesUsedInLaunch(runConfigId, getRunningDevices(dialog.getSelectedDevices()), ManualTargetChooser.getOnlineDevices(project));
+      }
+
       return result;
     }
     else {
       return null;
     }
+  }
+
+  private static Set<IDevice> getRunningDevices(@NotNull List<AndroidDevice> selectedDevices) {
+    Set<IDevice> result = Sets.newHashSet();
+
+    for (AndroidDevice device : selectedDevices) {
+      if (device instanceof ConnectedAndroidDevice) {
+        result.add(((ConnectedAndroidDevice)device).getDevice());
+      }
+      else {
+        return Collections.emptySet();
+      }
+    }
+
+    return result;
   }
 
   @NotNull
