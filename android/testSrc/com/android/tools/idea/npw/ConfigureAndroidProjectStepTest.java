@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.npw.ConfigureAndroidProjectStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import junit.framework.TestCase;
 
@@ -42,5 +41,6 @@ public class ConfigureAndroidProjectStepTest extends TestCase {
   public void testNameToPackageReturnsSanitizedPackageName() {
     assertEquals("myapplication", ConfigureAndroidProjectStep.nameToPackage("#My $AppLICATION"));
     assertEquals("myapplication", ConfigureAndroidProjectStep.nameToPackage("My..\u2603..APPLICATION"));
+    assertEquals("aswitch", ConfigureAndroidProjectStep.nameToPackage("switch"));
   }
 }
