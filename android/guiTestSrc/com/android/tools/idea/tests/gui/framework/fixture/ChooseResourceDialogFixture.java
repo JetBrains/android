@@ -70,7 +70,7 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
       GuiTests.waitUntilFound(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
         @Override
         protected boolean isMatching(@NotNull JLabel component) {
-          return component.isShowing() && !StringUtil.isEmpty(component.getText()) && component.getIcon() == AllIcons.Actions.Lightning;
+          return component.isShowing() && !StringUtil.isEmpty(component.getText()) && component.getIcon() == AllIcons.General.Error;
         }
       });
     return error.getText();
