@@ -35,6 +35,7 @@ import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.collect.*;
+import com.intellij.find.FindManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -446,6 +447,22 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         reload(myThemeName, mySubStyleName);
       }
     };
+
+    JPopupMenu themeNamePopupMenu = new JPopupMenu();
+    themeNamePopupMenu.add(new JMenuItem(new AbstractAction("Find Usages") {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ThemeEditorStyle style = getUsedStyle();
+        assert style != null; // we always have something selected
+        if (style.isProjectStyle()) {
+          PsiElement name = style.getNamePsiElement();
+          assert name != null; // name is never null for project styles
+          FindManager.getInstance(myProject).findUsages(name);
+        }
+        // TODO this should also work for framework styles, but currently does not work even from xml files.
+      }
+    }));
+    myPanel.setThemeNamePopupMenu(themeNamePopupMenu);
 
     // Set an initial state in case that the editor didn't have a previously saved state
     // TODO: Try to be smarter about this and get the ThemeEditor to set a default state where there is no previous state
