@@ -127,6 +127,11 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
             dumbService.showDumbModeNotification(DUMB_MODE_MESSAGE);
             cancelCellEditing();
           }
+          else {
+            AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
+            assert facet != null;
+            myComponent.setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, getAllowedResourceTypes()));
+          }
         }
       });
     }
@@ -201,10 +206,6 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
     myComponent.setFont(ThemeEditorUtils.scaleFontForAttribute(font));
     updateComponentInternal(myComponent, value);
     updateComponent(myContext, myComponent, value);
-
-    AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
-    assert facet != null;
-    myComponent.setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, getAllowedResourceTypes()));
 
     return myComponent;
   }
