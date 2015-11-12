@@ -168,7 +168,8 @@ class GradleGroovyFile {
     };
     if (myProject.isInitialized()) {
       runnable.run();
-    } else {
+    }
+    else {
       StartupManager.getInstance(myProject).runWhenProjectIsInitialized(runnable);
     }
   }

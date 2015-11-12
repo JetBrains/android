@@ -1,3 +1,5 @@
 <LinearLayout>
-  <p1.p2.LabelView layout_width="" layout_height=""/>
+  <p1.p2.LabelView
+          layout_width=""
+          layout_height=""/>
 </LinearLayout>
