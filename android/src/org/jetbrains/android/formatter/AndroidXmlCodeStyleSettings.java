@@ -114,7 +114,7 @@ public class AndroidXmlCodeStyleSettings extends CustomCodeStyleSettings {
       return new AndroidXmlPolicy(settings, this, documentModel) {
         @Override
         public boolean insertLineBreakBeforeTag(XmlTag xmlTag) {
-          return INSERT_BLANK_LINE_BEFORE_TAG;
+          return INSERT_BLANK_LINE_BEFORE_TAG || super.insertLineBreakBeforeTag(xmlTag);
         }
 
         @Override
