@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.repository.Revision;
+import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.google.common.base.Predicate;
@@ -29,18 +35,34 @@ import com.intellij.openapi.options.ex.ConfigurableCardPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.NotNullProducer;
+import com.intellij.util.ui.PlatformColors;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
-public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase> extends SettingsEditor<T> implements PanelWithAnchor {
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+import static com.android.tools.idea.fd.FastDeployManager.MINIMUM_GRADLE_PLUGIN_VERSION;
+import static com.android.tools.idea.fd.FastDeployManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
+
+public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase> extends SettingsEditor<T> implements PanelWithAnchor,
+                                                                                                                       HyperlinkListener,
+                                                                                                                       ActionListener,
+                                                                                                                       GradleSyncListener {
   private JPanel myPanel;
   protected JBTabbedPane myTabbedPane;
   private JBLabel myModuleJBLabel;
@@ -58,6 +80,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JCheckBox myShowLogcatCheckBox;
   private JCheckBox mySkipNoOpApkInstallation;
   private JCheckBox myForceStopRunningApplicationCheckBox;
+  private HyperlinkLabel myOldVersionLabel;
 
   private JComponent anchor;
 
@@ -83,6 +106,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
         return !facet.isLibraryProject() || libraryProjectValidator.apply(facet);
       }
     };
+    myModulesComboBox.addActionListener(this);
 
     myApplicableDeployTargetProviders = ImmutableList.copyOf(config.getApplicableDeployTargetProviders());
     DeployTargetConfigurableContext context = new RunConfigurationEditorContext(myModuleSelector, myModulesComboBox);
@@ -176,5 +200,89 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   public ConfigurationModuleSelector getModuleSelector() {
     return myModuleSelector;
+  }
+
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    if (e.getSource() == myModulesComboBox) {
+      updateLinkState();
+    }
+  }
+
+  private void createUIComponents() {
+    myOldVersionLabel = new HyperlinkLabel("", JBColor.RED, new JBColor(new NotNullProducer<Color>() {
+      @NotNull
+      @Override
+      public Color produce() {
+        return UIUtil.getLabelBackground();
+      }
+    }), PlatformColors.BLUE);
+
+    setSyncLinkMessage("");
+    myOldVersionLabel.addHyperlinkListener(this);
+  }
+
+  private void setSyncLinkMessage(@NotNull String syncMessage) {
+    myOldVersionLabel.setHyperlinkText("Instant Run requires a newer version of the Gradle plugin. ", "Update Project", " " + syncMessage);
+    myOldVersionLabel.repaint();
+  }
+
+  @Override
+  public void hyperlinkUpdate(HyperlinkEvent e) {
+    String version = MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
+    // Pick max version of "recommended Gradle plugin" and "minimum required for instant run"
+    if (Revision.parseRevision(GRADLE_PLUGIN_RECOMMENDED_VERSION).compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) > 0) {
+      version = GRADLE_PLUGIN_RECOMMENDED_VERSION;
+    }
+
+    Project project = getModuleSelector().getModule().getProject();
+    if (FixGradleModelVersionHyperlink.updateGradlePluginVersion(project, version, GRADLE_LATEST_VERSION)) {
+      // request a sync
+      GradleProjectImporter.getInstance().syncProjectSynchronously(project, true, this);
+    }
+    else {
+      setSyncLinkMessage("Error updating to " + version);
+    }
+  }
+
+  @Override
+  public void syncStarted(@NotNull Project project) {
+    setSyncLinkMessage("(Syncing)");
+  }
+
+  @Override
+  public void syncSucceeded(@NotNull Project project) {
+    syncFinished();
+  }
+
+  @Override
+  public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+    setSyncLinkMessage("(Sync Failed)");
+    syncFinished();
+  }
+
+  @Override
+  public void syncSkipped(@NotNull Project project) {
+    syncFinished();
+  }
+
+  private void syncFinished() {
+    updateLinkState();
+  }
+
+  private void updateLinkState() {
+    Module module = getModuleSelector().getModule();
+    if (module == null) {
+      myOldVersionLabel.setVisible(false);
+      return;
+    }
+
+    AndroidGradleModel model = AndroidGradleModel.get(module);
+    if (model == null || FastDeployManager.isInstantRunSupported(model)) {
+      myOldVersionLabel.setVisible(false);
+      return;
+    }
+
+    myOldVersionLabel.setVisible(true);
   }
 }
