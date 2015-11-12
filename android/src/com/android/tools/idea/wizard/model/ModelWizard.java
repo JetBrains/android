@@ -281,7 +281,7 @@ public final class ModelWizard implements Disposable {
     }
 
     ModelWizardStep currStep = mySteps.get(myCurrIndex);
-    if (!currStep.canGoBack().get()) {
+    if (!currStep.canGoBack()) {
       throw new IllegalStateException("Can't call goBack on wizard when the step prevents it");
     }
 
@@ -351,8 +351,7 @@ public final class ModelWizard implements Disposable {
     myOnLastStep.set(isOnLastVisibleStep());
     ModelWizardStep step = mySteps.get(myCurrIndex);
     myBindings.bind(myCanGoForward, step.canGoForward());
-    BoolProperty hasSteps = new BoolValueProperty(!myPrevSteps.empty());
-    myBindings.bind(myCanGoBack, hasSteps.and(step.canGoBack()));
+    myCanGoBack.set(!myPrevSteps.empty() && step.canGoBack());
   }
 
   private boolean shouldShowStep(ModelWizardStep step) {

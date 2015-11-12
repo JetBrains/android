@@ -111,15 +111,12 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
   }
 
   /**
-   * Returns an observable boolean, which when set to {@code true} means the current step can
+   * Returns a boolean, which when set to {@code true} means the current step can
    * go back to previous step.
-   * <p/>
-   * The return type is observable so as soon as you switch the value from {@code false} to
-   * {@code true}, UI can automatically be notified through a binding.
    */
   @NotNull
-  protected ObservableBool canGoBack() {
-    return BooleanExpressions.alwaysTrue();
+  protected boolean canGoBack() {
+    return true;
   }
 
   /**
