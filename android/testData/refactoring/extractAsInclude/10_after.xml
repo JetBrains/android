@@ -4,5 +4,6 @@
               andr1:orientation="vertical"
               andr1:layout_width="fill_parent"
               andr1:layout_height="fill_parent">
+
     <include layout="@layout/extracted"/>
 </LinearLayout>
