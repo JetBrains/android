@@ -1,12 +1,16 @@
 package org.jetbrains.android.uipreview;
 
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.Variant;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.ClassJarProvider;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.AarResourceClassRegistry;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.RenderClassLoader;
@@ -20,6 +24,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -65,19 +70,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
   private final LayoutLibrary myLibrary;
 
   /** Map from fully qualified class name to the corresponding .class file for each class loaded by this class loader */
-  private Map<String, VirtualFile> myClassFiles;
-  /** Map from fully qualified class name to the corresponding last modified info for each class loaded by this class loader */
-  private Map<String, ClassModificationTimestamp> myClassFilesLastModified;
-
-  private static class ClassModificationTimestamp {
-    public final long timestamp;
-    public final long length;
-
-    public ClassModificationTimestamp(long timestamp, long length) {
-      this.timestamp = timestamp;
-      this.length = length;
-    }
-  }
+  private Map<String,File> myClassFiles;
+  /** Map from fully qualified class name to the corresponding last modified file stamp for each class loaded by this class loader */
+  private Map<String,Long> myLoadedTimestamp;
 
   private ModuleClassLoader(@NotNull LayoutLibrary library, @NotNull Module module) {
     super(library.getClassLoader());
@@ -182,22 +177,48 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     VirtualFile vOutFolder = extension.getCompilerOutputPath();
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    VirtualFile classFile = null;
     if (vOutFolder == null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && facet.requiresAndroidModel()) {
-        AndroidModel androidModel = facet.getAndroidModel();
+        // Try a bit harder; we don't have a compiler module extension or mechanism
+        // to query this yet, so just hardcode it (ugh!)
+        // TODO: b/22597804
+        AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
         if (androidModel != null) {
-          classFile = androidModel.getClassJarProvider().findModuleClassFile(name, module);
+          Variant variant = androidModel.getSelectedVariant();
+          String variantName = variant.getName();
+          AndroidArtifact mainArtifactInfo = androidModel.getMainArtifact();
+          File classesFolder = mainArtifactInfo.getClassesFolder();
+
+          // Older models may not supply it; in that case, we rely on looking relative
+          // to the .APK file location:
+          //noinspection ConstantConditions
+          if (classesFolder == null) {
+            @SuppressWarnings("deprecation")  // For getOutput()
+            AndroidArtifactOutput output = GradleUtil.getOutput(mainArtifactInfo);
+            File file = output.getMainOutputFile().getOutputFile();
+            File buildFolder = file.getParentFile().getParentFile();
+            classesFolder = new File(buildFolder, "classes"); // See AndroidContentRoot
+          }
+
+          File outFolder = new File(classesFolder,
+                                    // Change variant name variant-release into variant/release directories
+                                    variantName.replace('-', File.separatorChar));
+          if (outFolder.exists()) {
+            vOutFolder = LocalFileSystem.getInstance().findFileByIoFile(outFolder);
+            if (vOutFolder != null) {
+              Class<?> localClass = loadClassFromClassPath(name, VfsUtilCore.virtualToIoFile(vOutFolder));
+              if (localClass != null) {
+                return localClass;
+              }
+            }
+          }
         }
       }
-    } else {
-      classFile = ClassJarProvider.findClassFileInPath(vOutFolder, name);
+      return null;
     }
-    if (classFile != null) {
-      return loadClassFile(name, classFile);
-    }
-    return null;
+
+    return loadClassFromClassPath(name, VfsUtilCore.virtualToIoFile(vOutFolder));
   }
 
   /**
@@ -212,14 +233,14 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * @return true if the source file has been modified, or false if not (or if the source file cannot be found)
    */
   public boolean isSourceModified(@NotNull final String fqcn, @Nullable final Object myCredential) {
-    VirtualFile classFile = getClassFile(fqcn);
+    File classFile = getClassFile(fqcn);
 
     // Make sure the class file is up to date and if not, log an error
     if (classFile != null) {
       // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
-        long classFileModified = classFile.getTimeStamp();
+        long classFileModified = classFile.lastModified();
         if (classFileModified > 0L) {
           VirtualFile virtualFile = ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>() {
             @Nullable
@@ -236,6 +257,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
                   return containingFile.getVirtualFile();
                 }
               }
+
               return null;
             }
           });
@@ -250,17 +272,12 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
               AndroidFacet facet = AndroidFacet.getInstance(myModule);
               // User modifications on the source file might not always result on a new .class file.
-              // We use the project modification time instead to display the warning more reliably.
-              // Also, some build systems may use a constant last modified timestamp for .class files,
-              // for deterministic builds, so the project modification time is more reliable.
-              long lastBuildTimestamp = classFileModified;
-              if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
-                Long projectBuildTimestamp = facet.getAndroidModel().getLastBuildTimestamp(myModule.getProject());
-                if (projectBuildTimestamp != null) {
-                  lastBuildTimestamp = projectBuildTimestamp;
-                }
-              }
-              if (sourceFileModified > lastBuildTimestamp && lastBuildTimestamp > 0L) {
+              // If it's a gradle project, we use the project modification time instead to display the warning
+              // more reliably.
+              long lastBuildTimestamp = facet != null && facet.requiresAndroidModel()
+                                        ? PostProjectBuildTasksExecutor.getInstance(myModule.getProject()).getLastBuildTimestamp()
+                                        : classFileModified;
+              if (sourceFileModified > lastBuildTimestamp && lastBuildTimestamp != -1) {
                 modified = true;
               }
             }
@@ -278,14 +295,13 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   @Override
   @Nullable
-  protected Class<?> loadClassFile(final String fqcn, @NotNull VirtualFile classFile) {
+  protected Class<?> loadClassFile(final String fqcn, File classFile) {
     if (myClassFiles == null) {
       myClassFiles = Maps.newHashMap();
-      myClassFilesLastModified = Maps.newHashMap();
+      myLoadedTimestamp = Maps.newHashMap();
     }
     myClassFiles.put(fqcn, classFile);
-    myClassFilesLastModified.put(fqcn,
-                                 new ClassModificationTimestamp(classFile.getTimeStamp(), classFile.getLength()));
+    myLoadedTimestamp.put(fqcn, classFile.lastModified());
 
     return super.loadClassFile(fqcn, classFile);
   }
@@ -301,15 +317,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
         result.add(customWidgetsUrl);
       }
     }
-    List<VirtualFile> externalLibraries;
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
-      AndroidModel androidModel = facet.getAndroidModel();
-      externalLibraries = androidModel.getClassJarProvider().getModuleExternalLibraries(myModule);
-    } else {
-      externalLibraries = AndroidRootUtil.getExternalLibraries(myModule);
-    }
-    for (VirtualFile libFile : externalLibraries) {
+    for (VirtualFile libFile : AndroidRootUtil.getExternalLibraries(myModule)) {
       if (EXT_JAR.equals(libFile.getExtension())) {
         final File file = new File(libFile.getPath());
         if (file.exists()) {
@@ -339,24 +347,21 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   /** Returns the path to a class file loaded for the given class, if any */
   @Nullable
-  public VirtualFile getClassFile(@NotNull String className) {
+  public File getClassFile(@NotNull String className) {
     return myClassFiles != null ? myClassFiles.get(className) : null;
   }
 
   /** Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader */
   private boolean isUpToDate() {
     if (myClassFiles != null) {
-      for (Map.Entry<String, VirtualFile> entry : myClassFiles.entrySet()) {
+      for (Map.Entry<String, File> entry : myClassFiles.entrySet()) {
         String className = entry.getKey();
-        VirtualFile classFile = entry.getValue();
-        ClassModificationTimestamp lastModifiedStamp = myClassFilesLastModified.get(className);
-        if (lastModifiedStamp != null) {
-          long loadedModifiedTime = lastModifiedStamp.timestamp;
-          long loadedModifiedLength = lastModifiedStamp.length;
-          long classFileModifiedTime = classFile.getTimeStamp();
-          long classFileModifiedLength = classFile.getLength();
-          if ((classFileModifiedTime > 0L && loadedModifiedTime > 0L && loadedModifiedTime < classFileModifiedTime)
-             || loadedModifiedLength != classFileModifiedLength) {
+        File classFile = entry.getValue();
+        Long timestamp = myLoadedTimestamp.get(className);
+        if (timestamp != null) {
+          long loadedModifiedTime = timestamp;
+          long classFileModified = classFile.lastModified();
+          if (classFileModified > 0L && loadedModifiedTime > 0L && loadedModifiedTime < classFileModified) {
             return false;
           }
         }
