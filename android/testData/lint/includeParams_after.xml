@@ -8,6 +8,7 @@
             android:id="@+id/myInclude"
             layout="@layout/myincluded"
             android:layout_width="fill_parent"
-            android:visibility="visible" android:layout_height=""/>
+            android:visibility="visible"
+            android:layout_height=""/>
 
 </LinearLayout>
