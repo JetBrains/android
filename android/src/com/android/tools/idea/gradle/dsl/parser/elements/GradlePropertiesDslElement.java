@@ -91,8 +91,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
       gradleDslExpressionList.addParsedExpression((GradleDslExpression)element);
     }
     else if (element instanceof GradleDslExpressionList) {
-      List<GradleDslExpression> gradleDslLiterals = ((GradleDslExpressionList)element).getExpressions();
-      for (GradleDslExpression expression : gradleDslLiterals) {
+      List<GradleDslExpression> gradleExpressions = ((GradleDslExpressionList)element).getExpressions();
+      for (GradleDslExpression expression : gradleExpressions) {
         gradleDslExpressionList.addParsedExpression(expression);
       }
     }
