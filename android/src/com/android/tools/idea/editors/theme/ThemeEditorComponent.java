@@ -48,6 +48,7 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.ui.*;
 import com.intellij.util.ui.JBUI;
@@ -880,6 +881,31 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       myPreviewPanel.setError(myThemeName);
       myAttributesTable.setModel(EMPTY_TABLE_MODEL);
       return;
+    }
+
+    myPanel.setShowThemeNotUsedWarning(false);
+    if (selectedTheme.isProjectStyle()) {
+      // Check whenever we reload the theme as any external file could have been changed that would affect this.
+      // e.g. change to the manifest to use a theme.
+      final PsiElement name = selectedTheme.getNamePsiElement();
+      new SwingWorker<Boolean, Object>() {
+        @Override
+        protected Boolean doInBackground() throws Exception {
+          assert name != null; // it's a project theme, so we should always have a name.
+          return ReferencesSearch.search(name).findFirst() == null;
+        }
+
+        @Override
+        protected void done() {
+          try {
+            myPanel.setShowThemeNotUsedWarning(get());
+          }
+          catch (Exception ex) {
+            // should never happen, as we are calling get from done.
+            throw new RuntimeException(ex);
+          }
+        }
+      }.execute();
     }
 
     myPreviewPanel.setError(null);
