@@ -144,7 +144,7 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
   /**
    * Returns a property which indicates if any of the components in this panel are invalid.
    *
-   * This is a useful property to listen to when overriding {@link ModelWizardStep#canProceed()},
+   * This is a useful property to listen to when overriding {@link ModelWizardStep#canGoForward()},
    * and you may even be able to just return it directly.
    */
   public ObservableBool hasErrors() {
