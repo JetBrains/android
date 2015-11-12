@@ -27,14 +27,11 @@ import java.util.Collection;
  * Represents a {@link GrReferenceExpression} element.
  */
 public final class GradleDslReference extends GradleDslExpression {
-  @NotNull private GrReferenceExpression myReference;
-
   public GradleDslReference(@NotNull GradleDslElement parent,
                             @NotNull GroovyPsiElement psiElement,
                             @NotNull String name,
                             @NotNull GrReferenceExpression reference) {
-    super(parent, psiElement, name);
-    myReference = reference;
+    super(parent, psiElement, name, reference);
   }
 
   @Override
@@ -45,7 +42,7 @@ public final class GradleDslReference extends GradleDslExpression {
 
   @Nullable
   public String getReferenceText() {
-    return myReference.getText();
+    return myExpression != null ? myExpression.getText() : null;
   }
 
   @Nullable

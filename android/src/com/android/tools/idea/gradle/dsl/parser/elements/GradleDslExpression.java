@@ -24,8 +24,19 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
  * Represents a {@link GrExpression} element.
  */
 public abstract class GradleDslExpression extends GradleDslElement {
-  protected GradleDslExpression(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement psiElement, @NotNull String name) {
+  @Nullable protected GrExpression myExpression;
+
+  protected GradleDslExpression(@Nullable GradleDslElement parent,
+                                @Nullable GroovyPsiElement psiElement,
+                                @NotNull String name,
+                                @Nullable GrExpression expression) {
     super(parent, psiElement, name);
+    myExpression = expression;
+  }
+
+  @Nullable
+  public GrExpression getExpression() {
+    return myExpression;
   }
 
   @Nullable

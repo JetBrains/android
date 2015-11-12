@@ -17,14 +17,16 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel.CONFIGURATION;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel.PATH;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel.PROJECT;
 
 public class DependenciesModel {
   @NotNull private DependenciesDslElement myDslElement;
@@ -72,6 +74,24 @@ public class DependenciesModel {
       }
     }
     return dependencies;
+  }
+
+  @NotNull
+  public DependenciesModel addModuleDependency(@NotNull String configurationName, @NotNull String path, @Nullable String config) {
+    GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+    if (list == null) {
+      list = new GradleDslElementList(myDslElement, configurationName);
+      myDslElement.setNewElement(configurationName, list);
+    }
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, PROJECT, configurationName);
+    GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, PROJECT);
+    mapArguments.setNewLiteral(PATH, path);
+    if (config != null) {
+      mapArguments.setNewLiteral(CONFIGURATION, config);
+    }
+    methodCall.addNewArgument(mapArguments);
+    list.addNewElement(methodCall);
+    return this;
   }
 
   public DependenciesModel remove(@NotNull DependencyModel dependency) {
