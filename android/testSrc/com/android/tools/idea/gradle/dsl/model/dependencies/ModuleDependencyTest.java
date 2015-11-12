@@ -52,7 +52,22 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertEquals(":a", dependencyModel.path());
     assertNull(dependencyModel.configuration());
 
-    // Modify
+    // Set Config
+    dependencyModel.setConfiguration("myConf");
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    buildModel.reparse();
+
+    dependencyModel = getDependency(buildModel.dependenciesV2());
+    assertEquals(":a", dependencyModel.path());
+    assertEquals("myConf", dependencyModel.configuration());
+
+    // Set Project
     dependencyModel.setPath(":new_a");
     runWriteCommandAction(myProject, new Runnable() {
       @Override
@@ -65,8 +80,25 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencyModel = getDependency(buildModel.dependenciesV2());
     assertEquals(":new_a", dependencyModel.path());
+    assertEquals("myConf", dependencyModel.configuration());
 
-    // Delete
+    // Remove Config
+    dependencyModel.removeConfiguration();
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    buildModel.reparse();
+
+    dependencyModel = getDependency(buildModel.dependenciesV2());
+    assertEquals(":new_a", dependencyModel.path());
+    assertNull(dependencyModel.configuration());
+
+
+    // Delete the dependency
     DependenciesModel dependenciesModel = buildModel.dependenciesV2();
     assertNotNull(dependenciesModel);
     dependenciesModel.remove(dependencyModel);
@@ -91,6 +123,67 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertEquals(":a", dependency.path());
     assertEquals("myConf", dependency.configuration());
+  }
+
+  public void testAddingDependency() throws Exception {
+    String text = "dependencies {\n" +
+                  "  compile project(':a')\n" +
+                  "}";
+    writeToBuildFile(text);
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
+    assertNotNull(dependenciesModel);
+
+    ModuleDependencyModel moduleDependency = getDependency(dependenciesModel);
+    assertEquals(":a", moduleDependency.path());
+    assertNull(moduleDependency.configuration());
+
+    dependenciesModel.addModuleDependency("compile", ":b", "myConfig");
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+    buildModel.reparse();
+
+    dependenciesModel = buildModel.dependenciesV2();
+    assertNotNull(dependenciesModel);
+
+    List<ModuleDependencyModel> moduleDependencies = dependenciesModel.moduleDependencies("compile");
+    assertSize(2, moduleDependencies);
+
+    assertEquals(":a", moduleDependencies.get(0).path());
+    assertNull(moduleDependencies.get(0).configuration());
+    assertEquals(":b", moduleDependencies.get(1).path());
+    assertEquals("myConfig", moduleDependencies.get(1).configuration());
+  }
+
+  public void testAddingDependencyForEmptyFile() throws Exception {
+    writeToBuildFile("");
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
+    assertNull(dependenciesModel);
+    dependenciesModel = buildModel.addDependenciesModelV2().dependenciesV2();
+    assertNotNull(dependenciesModel);
+
+    dependenciesModel.addModuleDependency("compile", ":a", null);
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+    buildModel.reparse();
+
+    dependenciesModel = buildModel.dependenciesV2();
+    assertNotNull(dependenciesModel);
+
+    ModuleDependencyModel moduleDependency = getDependency(dependenciesModel);
+    assertEquals(":a", moduleDependency.path());
+    assertNull(moduleDependency.configuration());
   }
 
   private static ModuleDependencyModel getDependency(@Nullable DependenciesModel dependenciesModel) {
