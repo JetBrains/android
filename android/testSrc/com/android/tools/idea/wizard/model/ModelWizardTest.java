@@ -383,8 +383,8 @@ public class ModelWizardTest {
 
     @NotNull
     @Override
-    protected ObservableBool canGoBack() {
-      return BooleanExpressions.alwaysFalse();
+    protected boolean canGoBack() {
+      return false;
     }
   }
 
