@@ -111,7 +111,7 @@ public class JavacOutputParser implements PatternAwareOutputParser {
               }
 
               if (messageEnd != null) {
-                reader.pushBack(messageEnd);
+                reader.pushBack();
               }
               break;
             }
