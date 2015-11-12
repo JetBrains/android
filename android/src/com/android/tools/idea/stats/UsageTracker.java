@@ -112,6 +112,8 @@ public abstract class UsageTracker {
   public static final String ACTION_APP_INDEXING_API_CODE_CREATED = "apiCodeCreated";
   public static final String ACTION_APP_INDEXING_DEEP_LINK_LAUNCHED = "deepLinkLaunched";
   public static final String ACTION_APP_INDEXING_TRIGGER_QUICKFIX = "triggerQuickfix";
+  public static final String ACTION_APP_INDEXING_SHOW_FEAG_DIALOG = "showFeagDialog";
+  public static final String ACTION_APP_INDEXING_START_FEAG_TASK = "startFeagTask";
 
   /**
    * When using the usage tracker, do NOT include any information that can identify the user
