@@ -19,6 +19,7 @@ package com.android.tools.idea.run.testing;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.intellij.execution.JavaExecutionUtil;
@@ -252,6 +253,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
   @Override
   public boolean shouldReplace(ConfigurationFromContext self, ConfigurationFromContext other) {
+    if (!Projects.isBuildWithGradle(self.getConfiguration().getProject())) return false;
     // If we decided the context is for an instrumentation test (see {@link #setupConfigurationFromContext}), it should replace
     // other test configurations, as they won't work anyway.
     return other.isProducedBy(JUnitConfigurationProducer.class);

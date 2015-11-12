@@ -3,6 +3,7 @@
               android:orientation="vertical"
               android:layout_width="fill_parent"
               android:layout_height="fill_parent">
+
     <TextView xmlns:andr="http://schemas.android.com/apk/res/android"
               andr:layout_width="fill_parent"
               andr:layout_height="wrap_content"

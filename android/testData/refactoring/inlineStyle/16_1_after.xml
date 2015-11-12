@@ -2,5 +2,6 @@
     <Button android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@android:color/white"
-            android:text="Hello" android:background="@android:color/white"/>
+            android:text="Hello"
+            android:background="@android:color/white"/>
 </LinearLayout>

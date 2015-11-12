@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="fill_parent"
-              android:layout_height="fill_parent" android:baselineAligned="<selection>false</selection>">
+              android:layout_height="fill_parent"
+              android:baselineAligned="false">
   <AbsoluteLayout android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_weight="10"/>
 </LinearLayout>
 

@@ -22,8 +22,8 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.IdeModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +75,7 @@ public class SyncEntityDataComparisonStrategy {
   private static class ModuleStrategy implements EqualityStrategy<ModuleData> {
     @Override
     public boolean isSameData(@NotNull ModuleData data1, @NotNull ModuleData data2, @NotNull Project project) {
-      IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
+      IdeModelsProvider modelsProvider = new IdeModelsProviderImpl(project);
       Module ideModule = modelsProvider.findIdeModule(data1);
       if (ideModule == null) {
         return false;
