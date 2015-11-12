@@ -158,6 +158,10 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestHighlighting("hl2.xml");
   }
 
+  public void testWrongEnumValuesHighlighting() throws Throwable {
+    doTestHighlighting("wrong_enum_value.xml");
+  }
+
   public void testTableRowRootTag() throws Throwable {
     doTestHighlighting();
   }
