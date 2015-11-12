@@ -35,18 +35,18 @@ public class PathValidatorTest {
   }
 
   private static void assertRuleFails(FileOp fileOp, PathValidator.Rule rule, File inputFile, File failureCause) {
-    PathValidator validator = new PathValidator.Builder().withRule(rule, PathValidator.Severity.ERROR).build("test path", fileOp);
-    PathValidator.Result result = validator.validate(inputFile);
+    PathValidator validator = new PathValidator.Builder().withRule(rule, Validator.Severity.ERROR).build("test path", fileOp);
+    Validator.Result result = validator.validate(inputFile);
 
-    assertThat(result.getSeverity()).isEqualTo(PathValidator.Severity.ERROR);
+    assertThat(result.getSeverity()).isEqualTo(Validator.Severity.ERROR);
     assertThat(result.getMessage()).isEqualTo(rule.getMessage(failureCause, "test path"));
   }
 
   private static void assertRulePasses(FileOp fileOp, PathValidator.Rule rule, File file) {
-    PathValidator validator = new PathValidator.Builder().withRule(rule, PathValidator.Severity.ERROR).build("test path", fileOp);
+    PathValidator validator = new PathValidator.Builder().withRule(rule, Validator.Severity.ERROR).build("test path", fileOp);
     PathValidator.Result result = validator.validate(file);
 
-    assertThat(result.getSeverity()).isEqualTo(PathValidator.Severity.OK);
+    assertThat(result.getSeverity()).isEqualTo(Validator.Severity.OK);
   }
 
   @Before
@@ -228,18 +228,18 @@ public class PathValidatorTest {
   @Test
   public void errorsShownBeforeWarnings() throws Exception {
     PathValidator validator = new PathValidator.Builder().
-      withRule(PathValidator.WHITESPACE, PathValidator.Severity.WARNING).
-      withRule(PathValidator.ILLEGAL_CHARACTER, PathValidator.Severity.ERROR).build("test path");
+      withRule(PathValidator.WHITESPACE, Validator.Severity.WARNING).
+      withRule(PathValidator.ILLEGAL_CHARACTER, Validator.Severity.ERROR).build("test path");
 
     // This path validator has its warning registered before its error, but we should still show the error first
     PathValidator.Result result = validator.validate(new File("whitespace and illegal characters??!"));
-    assertThat(result.getSeverity()).isEqualTo(PathValidator.Severity.ERROR);
+    assertThat(result.getSeverity()).isEqualTo(Validator.Severity.ERROR);
   }
 
   @Test
   public void ruleMustHaveValidSeverity() throws Exception {
     try {
-      new PathValidator.Builder().withRule(PathValidator.ILLEGAL_CHARACTER, PathValidator.Severity.OK);
+      new PathValidator.Builder().withRule(PathValidator.ILLEGAL_CHARACTER, Validator.Severity.OK);
       fail();
     }
     catch (IllegalArgumentException ignored) {

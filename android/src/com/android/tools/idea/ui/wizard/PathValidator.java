@@ -48,7 +48,7 @@ import java.util.Set;
  * This class is immutable.
  */
 @Immutable
-public final class PathValidator {
+public final class PathValidator implements Validator<File> {
 
   public static final Rule IS_EMPTY = new SimpleRule() {
     @Override
@@ -284,6 +284,7 @@ public final class PathValidator {
    * @return {@link Result#OK} or the first error or warning it encounters.
    */
   @NotNull
+  @Override
   public Result validate(@NotNull File file) {
     Result result = validate(file, Severity.ERROR);
     if (result != Result.OK) {
@@ -314,13 +315,6 @@ public final class PathValidator {
     }
 
     return Result.OK;
-  }
-
-  /**
-   * In a validation {@link Result}, this indicates the level of the violation.
-   */
-  public enum Severity {
-    OK, WARNING, ERROR
   }
 
   /**
@@ -400,31 +394,6 @@ public final class PathValidator {
     @NotNull
     public PathValidator build(@NotNull String pathName, @NotNull FileOp fileOp) {
       return new PathValidator(pathName, myErrors, myWarnings, fileOp);
-    }
-  }
-
-  /**
-   * The result of a call to {@link #validate(File)}. You can check if the result is {@link #OK}
-   * and, if not, use {@link #getMessage()} to get a readable error message you can display to the
-   * user.
-   */
-  public static class Result {
-    public static final Result OK = new Result(Severity.OK, "");
-
-    private final Severity mySeverity;
-    private final String myMessage;
-
-    private Result(@NotNull Severity severity, @NotNull String message) {
-      mySeverity = severity;
-      myMessage = message;
-    }
-
-    public Severity getSeverity() {
-      return mySeverity;
-    }
-
-    public String getMessage() {
-      return myMessage;
     }
   }
 
