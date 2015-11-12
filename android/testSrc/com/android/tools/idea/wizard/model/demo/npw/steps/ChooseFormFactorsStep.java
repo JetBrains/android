@@ -98,7 +98,7 @@ public final class ChooseFormFactorsStep extends ModelWizardStep<ProjectModel> {
 
   @NotNull
   @Override
-  protected ObservableBool canProceed() {
+  protected ObservableBool canGoForward() {
     return myAnySelected;
   }
 

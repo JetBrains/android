@@ -242,7 +242,7 @@ public final class ModelWizard implements Disposable {
 
     if (myCurrIndex >= 0) {
       ModelWizardStep currStep = mySteps.get(myCurrIndex);
-      if (!currStep.canProceed().get()) {
+      if (!currStep.canGoForward().get()) {
         throw new IllegalStateException("Can't call goForward on wizard when the step prevents it");
       }
 
@@ -278,6 +278,11 @@ public final class ModelWizard implements Disposable {
 
     if (myPrevSteps.empty()) {
       throw new IllegalStateException("Calling back on wizard without any previous pages");
+    }
+
+    ModelWizardStep currStep = mySteps.get(myCurrIndex);
+    if (!currStep.canGoBack().get()) {
+      throw new IllegalStateException("Can't call goBack on wizard when the step prevents it");
     }
 
     myCurrIndex = mySteps.indexOf(myPrevSteps.pop());
@@ -343,10 +348,11 @@ public final class ModelWizard implements Disposable {
    * This should only be called if you're already on a step.
    */
   private void updateNavigationProperties() {
-    myCanGoBack.set(!myPrevSteps.empty());
     myOnLastStep.set(isOnLastVisibleStep());
     ModelWizardStep step = mySteps.get(myCurrIndex);
-    myBindings.bind(myCanGoForward, step.canProceed());
+    myBindings.bind(myCanGoForward, step.canGoForward());
+    BoolProperty hasSteps = new BoolValueProperty(!myPrevSteps.empty());
+    myBindings.bind(myCanGoBack, hasSteps.and(step.canGoBack()));
   }
 
   private boolean shouldShowStep(ModelWizardStep step) {

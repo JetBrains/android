@@ -213,11 +213,24 @@ public class ModelWizardTest {
     DummyModel dummyModel = new DummyModel();
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new PreventProceedingStep(dummyModel));
+    wizardBuilder.addStep(new PreventNavigatingForwardStep(dummyModel));
     wizardBuilder.addStep(new DummyStep(dummyModel));
 
     ModelWizard wizard = wizardBuilder.build();
     wizard.goForward();
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void wizardCantGoBackIfStepPreventsIt() throws Exception {
+    DummyModel dummyModel = new DummyModel();
+
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    wizardBuilder.addStep(new DummyStep(dummyModel));
+    wizardBuilder.addStep(new PreventNavigatingBackwardStep(dummyModel));
+
+    ModelWizard wizard = wizardBuilder.build();
+    wizard.goForward();
+    wizard.goBack();
   }
 
   @Test
@@ -300,6 +313,7 @@ public class ModelWizardTest {
 
   private static class DummyModel extends WizardModel {
     private boolean myIsFinished;
+
     @Override
     public void handleFinished() {
       myIsFinished = true;
@@ -350,14 +364,26 @@ public class ModelWizardTest {
     }
   }
 
-  private static class PreventProceedingStep extends NoUiStep<DummyModel> {
-    public PreventProceedingStep(@NotNull DummyModel model) {
+  private static class PreventNavigatingForwardStep extends NoUiStep<DummyModel> {
+    public PreventNavigatingForwardStep(@NotNull DummyModel model) {
       super(model);
     }
 
     @NotNull
     @Override
-    protected ObservableBool canProceed() {
+    protected ObservableBool canGoForward() {
+      return BooleanExpressions.alwaysFalse();
+    }
+  }
+
+  private static class PreventNavigatingBackwardStep extends NoUiStep<DummyModel> {
+    public PreventNavigatingBackwardStep(@NotNull DummyModel model) {
+      super(model);
+    }
+
+    @NotNull
+    @Override
+    protected ObservableBool canGoBack() {
       return BooleanExpressions.alwaysFalse();
     }
   }
