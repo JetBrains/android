@@ -127,6 +127,21 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestCompletionVariants("tools_listview_attrs.xml", "tools:targetApi", "tools:listfooter", "tools:listheader", "tools:listitem");
   }
 
+  // tools:targetApi values are autocompleted
+  public void testTargetApiValueCompletion() throws Throwable {
+    doTestCompletionVariants("tools_targetapi.xml", "HONEYCOMB", "HONEYCOMB_MR1", "HONEYCOMB_MR2");
+  }
+
+  // "-1" is not a valid tools:targetApi value
+  public void testTargetApiErrorMessage1() throws Throwable {
+    doTestHighlighting("tools_targetapi_error1.xml");
+  }
+
+  // "apple_pie" is not a valid tools:targetApi value as well
+  public void testTargetApiErrorMessage2() throws Throwable {
+    doTestHighlighting("tools_targetapi_error2.xml");
+  }
+
   public void testCommonPrefixIdea63531() throws Throwable {
     VirtualFile file = copyFileToProject("commonPrefixIdea63531.xml");
     myFixture.configureFromExistingVirtualFile(file);
