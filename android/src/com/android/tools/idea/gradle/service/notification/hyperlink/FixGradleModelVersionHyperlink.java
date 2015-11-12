@@ -82,7 +82,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
       browse("http://tools.android.com/tech-docs/new-build-system/migrating-to-1-0-0");
     }
 
-    if (updateGradlePluginVersion(project)) {
+    if (updateGradlePluginVersion(project, myModelVersion, myGradleVersion)) {
       GradleProjectImporter.getInstance().requestProjectSync(project, null);
       return;
     }
@@ -93,7 +93,13 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
     AndroidGradleNotification.getInstance(project).showBalloon(ERROR_MSG_TITLE, msg, ERROR, hyperlink);
   }
 
-  private boolean updateGradlePluginVersion(@NotNull final Project project) {
+  /**
+   * Updates the Android Gradle Model version, and optionally the gradle version of a given project.
+   * Returns true if the update of the model version succeeded.
+   */
+  public static boolean updateGradlePluginVersion(@NotNull final Project project,
+                                                   @NotNull final String modelVersion,
+                                                   @Nullable String gradleVersion) {
     VirtualFile baseDir = project.getBaseDir();
     if (baseDir == null) {
       // Unlikely to happen: this is default project.
@@ -111,7 +117,7 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
             boolean updated = updateGradleDependencyVersion(project, document, GRADLE_PLUGIN_NAME, new Computable<String>() {
               @Override
               public String compute() {
-                return myModelVersion;
+                return modelVersion;
               }
             });
             if (updated) {
@@ -124,14 +130,14 @@ public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
     });
 
     boolean updated = atLeastOneUpdated.get();
-    if (updated && isNotEmpty(myGradleVersion)) {
+    if (updated && isNotEmpty(gradleVersion)) {
       String basePath = project.getBasePath();
       if (basePath != null) {
         File wrapperPropertiesFilePath = getGradleWrapperPropertiesFilePath(new File(basePath));
         Revision current = getGradleVersionInWrapper(wrapperPropertiesFilePath);
         if (current != null && !isSupportedGradleVersion(current)) {
           try {
-            updateGradleDistributionUrl(myGradleVersion, wrapperPropertiesFilePath);
+            updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFilePath);
           }
           catch (IOException e) {
             LOG.warn("Failed to update Gradle version in wrapper", e);
