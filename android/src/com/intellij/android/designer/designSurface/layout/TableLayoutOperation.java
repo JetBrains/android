@@ -29,6 +29,8 @@ import com.intellij.designer.model.MetaManager;
 import com.intellij.designer.model.MetaModel;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadComponentVisitor;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -172,7 +174,26 @@ public class TableLayoutOperation extends GridOperation {
           RadComponentOperations.addComponent(container, newRowComponent, null);
         }
 
-        execute(myContext, newRowComponent, myComponents, null);
+        // Do not add the component if we are dropping a TableRow. This avoids nesting empty TableRow components since the user intent is
+        // probably just to create a new empty row.
+        if (!SdkConstants.TABLE_ROW.equals(editComponent.getMetaModel().getTag())) {
+          execute(myContext, newRowComponent, myComponents, null);
+
+          // Remove the layout attributes of the new child objects. These are not needed for elements within a TableRow and they will
+          // default to layout_width="match_parent" and layout_height="wrap_content".
+          // If a new component it's not in the first column and has layout_height="match_parent", it will crash the layout. This tries to
+          // do the right thing when adding new components.
+          ApplicationManager.getApplication().runWriteAction(new Runnable() {
+            @Override
+            public void run() {
+              for (RadComponent component : myComponents) {
+                RadComponentOperations.deleteAttribute(component, SdkConstants.ATTR_LAYOUT_WIDTH);
+                RadComponentOperations.deleteAttribute(component, SdkConstants.ATTR_LAYOUT_HEIGHT);
+              }
+            }
+          });
+        }
+
         RadTableLayoutComponent.setCellIndex(editComponent, myColumn);
       }
     }
