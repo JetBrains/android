@@ -93,7 +93,7 @@ public final class ConfigureProjectStep extends ModelWizardStep<ProjectModel> {
 
   @NotNull
   @Override
-  protected ObservableBool canProceed() {
+  protected ObservableBool canGoForward() {
     return not(myAppNameText.isEmpty());
   }
 
