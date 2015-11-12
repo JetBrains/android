@@ -26,12 +26,12 @@ public class AndroidSessionManager {
   @Nullable
   public static AndroidSessionInfo findOldSession(@NotNull Project project,
                                                   @NotNull Executor executor,
-                                                  @NotNull AndroidRunConfigurationBase configuration) {
+                                                  int currentID) {
     for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
       final AndroidSessionInfo info = handler.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
 
       if (info != null &&
-          info.getState().getConfiguration().equals(configuration) &&
+          currentID == info.getState().getRunConfigurationId() &&
           executor.getId().equals(info.getExecutorId())) {
         return info;
       }
