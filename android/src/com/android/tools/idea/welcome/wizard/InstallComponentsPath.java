@@ -26,15 +26,19 @@ import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.*;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope;
 import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import com.google.common.collect.*;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -48,9 +52,9 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.*;
 
 /**
  * Wizard path that manages component installation flow. It will prompt the user
@@ -59,14 +63,12 @@ import java.util.*;
  * perform component setup.
  */
 public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
-  public static final AndroidVersion LATEST_ANDROID_VERSION = new AndroidVersion(22, null);
-  private static final ScopedStateStore.Key<String> KEY_SDK_INSTALL_LOCATION =
-    ScopedStateStore.createKey("download.sdk.location", ScopedStateStore.Scope.PATH, String.class);
+  private static final Key<String> KEY_SDK_INSTALL_LOCATION = ScopedStateStore.createKey("download.sdk.location", Scope.PATH, String.class);
+
   private final ProgressStep myProgressStep;
   @NotNull private final FirstRunWizardMode myMode;
   @NotNull private final ComponentInstaller myComponentInstaller;
   @NotNull private final File mySdkLocation;
-  private SdkComponentsStep mySdkComponentsStep;
   private ComponentTreeNode myComponentTree;
   @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
 
@@ -82,7 +84,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myComponentInstaller = new ComponentInstaller(remotePackages, installUpdates);
   }
 
-  private ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason, @NotNull ScopedStateStore stateStore, boolean createAvd) {
+  private ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason,
+                                                @NotNull ScopedStateStore stateStore,
+                                                boolean createAvd) {
     List<ComponentTreeNode> components = Lists.newArrayList();
     components.add(new AndroidSdk(stateStore));
     ComponentTreeNode platforms = Platform.createSubtree(stateStore, myRemotePackages);
@@ -166,10 +170,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return download.then(unpack).then(move);
   }
 
-  private static boolean existsAndIsVisible(DynamicWizardStep step) {
-    return step != null && step.isStepVisible();
-  }
-
   @Nullable
   private File getHandoffAndroidSdkSource() {
     File androidSrc = myMode.getAndroidSrc();
@@ -225,8 +225,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
     myComponentTree = createComponentTree(myMode, myState, createAvd);
     myComponentTree.init(myProgressStep);
-    mySdkComponentsStep = new SdkComponentsStep(myComponentTree, FirstRunWizard.KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, myMode);
-    addStep(mySdkComponentsStep);
+
+    addStep(new SdkComponentsStep(myComponentTree, FirstRunWizard.KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, myMode));
 
     SdkManager manager = SdkManager.createManager(pathString, new NullLogger());
     myComponentTree.init(myProgressStep);
@@ -235,15 +235,17 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       addStep(step);
     }
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, new Supplier<Collection<RemotePkgInfo>>() {
+      Supplier<Collection<RemotePkgInfo>> supplier = new Supplier<Collection<RemotePkgInfo>>() {
         @Override
         public Collection<RemotePkgInfo> get() {
-          return myComponentInstaller.getPackagesToInstallInfos(myState.get(KEY_SDK_INSTALL_LOCATION), myComponentTree.getChildrenToInstall());
+          Iterable<InstallableComponent> components = myComponentTree.getChildrenToInstall();
+          return myComponentInstaller.getPackagesToInstallInfos(myState.get(KEY_SDK_INSTALL_LOCATION), components);
         }
-      }));
+      };
+
+      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, supplier));
     }
   }
-
 
   @Override
   public void deriveValues(Set<ScopedStateStore.Key> modified) {
@@ -308,7 +310,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     Collections.reverse(packages);
     RemotePkgInfo latest = null;
     for (RemotePkgInfo pkg : packages) {
-      boolean isPreview = pkg.getPkgDesc().getAndroidVersion().isPreview();
+      AndroidVersion version = pkg.getPkgDesc().getAndroidVersion();
+      assert version != null;
+
+      boolean isPreview = version.isPreview();
       if (preview) {
         if (isPreview) {
           latest = pkg;
@@ -347,8 +352,11 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return true;
   }
 
-  public boolean showsStep() {
-    return isPathVisible() && (existsAndIsVisible(mySdkComponentsStep) || myMode == FirstRunWizardMode.NEW_INSTALL);
+  boolean shouldDownloadingComponentsStepBeShown() {
+    String path = myState.get(KEY_SDK_INSTALL_LOCATION);
+    assert path != null;
+
+    return new File(path).canWrite();
   }
 
   private static class MergeOperation extends InstallOperation<File, File> {
