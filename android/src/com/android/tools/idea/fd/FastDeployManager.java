@@ -103,7 +103,7 @@ import static com.android.SdkConstants.*;
  */
 public final class FastDeployManager implements ProjectComponent, BulkFileListener {
   public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "1.6.0-alpha4";
-  static final Revision MINIMUM_GRADLE_PLUGIN_VERSION = Revision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+  public static final Revision MINIMUM_GRADLE_PLUGIN_VERSION = Revision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
   private static final Object INSTANCE_LOCK = new Object();
 
@@ -793,7 +793,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   }
 
   /** Returns true if Instant Run is supported for this gradle model (whether or not it's enabled) */
-  static boolean isInstantRunSupported(@NotNull AndroidGradleModel model) {
+  public static boolean isInstantRunSupported(@NotNull AndroidGradleModel model) {
     String version = model.getAndroidProject().getModelVersion();
     try {
       Revision modelVersion = Revision.parseRevision(version);
