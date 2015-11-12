@@ -23,6 +23,7 @@ import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.converters.StaticEnumConverter;
+import org.jetbrains.android.dom.converters.TargetApiConverter;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,6 +90,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_LAYOUT, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_SHOW_IN, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_NODE, new StaticEnumConverter("merge", "replace", "strict", "merge-only-attributes", "remove", "removeAll"))
+    .put(ATTR_TARGET_API, new TargetApiConverter())
     .build();
 
   /**
