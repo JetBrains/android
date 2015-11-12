@@ -22,6 +22,7 @@ import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
@@ -107,9 +108,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
   private TextFieldWithBrowseButton myJdkLocationTextField;
   private JPanel myWholePanel;
   private JPanel myNdkDownloadPanel;
-
-  @SuppressWarnings("unused")
-  private AsyncProcessIcon myNdkCheckProcessIcon;
+  @SuppressWarnings("unused") private AsyncProcessIcon myNdkCheckProcessIcon;
 
   private DetailsComponent myDetailsComponent;
   private History myHistory;
@@ -208,7 +207,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
   }
 
   private void saveAndroidNdkPath() {
-    if(myProject == null || myProject.isDefault()) {
+    if (myProject == null || myProject.isDefault()) {
       return;
     }
 
@@ -227,8 +226,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
                                  "Cause: %2$s\n\n" +
                                  "Please manually update the file's '%3$s' property value to \n" +
                                  "'%4$s'\n" +
-                                 "and sync the project with Gradle files.", myProject.getName(), cause,
-                                 NDK_DIR_PROPERTY, getNdkLocation().getPath());
+                                 "and sync the project with Gradle files.", myProject.getName(), cause, NDK_DIR_PROPERTY,
+                                 getNdkLocation().getPath());
       Messages.showErrorDialog(myProject, msg, "Android Ndk Update");
     }
   }
@@ -425,9 +424,9 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
 
   @Override
   public boolean isModified() {
-    return !myOriginalSdkHomePath.equals(getSdkLocation().getPath())
-           || !myOriginalNdkHomePath.equals(getNdkLocation().getPath())
-           || !myOriginalJdkHomePath.equals(getJdkLocation().getPath());
+    return !myOriginalSdkHomePath.equals(getSdkLocation().getPath()) ||
+           !myOriginalNdkHomePath.equals(getNdkLocation().getPath()) ||
+           !myOriginalJdkHomePath.equals(getJdkLocation().getPath());
   }
 
   /**
@@ -489,7 +488,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
       catch (IOException e) {
         LOG.info(String.format("Unable to read local.properties file in project '%1$s'.", myProject.getName()), e);
       }
-    } else {
+    }
+    else {
       File path = IdeSdks.getAndroidNdkPath();
       if (path != null) {
         return path.getPath();
@@ -574,7 +574,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
   @Nullable
   private String validateAndroidSdkPath() {
     WizardUtils.ValidationResult wizardValidationResult =
-      WizardUtils.validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false, false);
+      WizardUtils.validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
     if (!wizardValidationResult.isOk()) {
       return wizardValidationResult.getFormattedMessage();
     }

@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +55,7 @@ public class SdkPaths {
   public static ValidationResult validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage) {
     if (ndkPath != null) {
       WizardUtils.ValidationResult wizardValidationResult =
-        WizardUtils.validateLocation(ndkPath.getAbsolutePath(), "Android NDK location", false, false);
+        WizardUtils.validateLocation(ndkPath.getAbsolutePath(), "Android NDK location", false, WritableCheckMode.DO_NOT_CHECK);
       if (!wizardValidationResult.isOk()) {
         return ValidationResult.error(wizardValidationResult.getFormattedMessage());
       }
@@ -77,7 +78,9 @@ public class SdkPaths {
   }
 
   @NotNull
-  private static ValidationResult validatedSdkPath(@Nullable File sdkPath, @NotNull String sdkName, boolean checkForWritable,
+  private static ValidationResult validatedSdkPath(@Nullable File sdkPath,
+                                                   @NotNull String sdkName,
+                                                   boolean checkForWritable,
                                                    boolean includePathInMessage) {
     if (sdkPath == null) {
       return ValidationResult.error("");

@@ -53,7 +53,8 @@ public class FirstRunWizard extends DynamicWizard {
   private final SetupJdkPath myJdkPath;
   private InstallComponentsPath myComponentsPath;
 
-  public FirstRunWizard(@NotNull DynamicWizardHost host, @NotNull FirstRunWizardMode mode,
+  public FirstRunWizard(@NotNull DynamicWizardHost host,
+                        @NotNull FirstRunWizardMode mode,
                         @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
     super(null, null, WIZARD_TITLE, host);
     myMode = mode;
@@ -68,8 +69,8 @@ public class FirstRunWizard extends DynamicWizard {
     ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
     myComponentsPath = new InstallComponentsPath(progressStep, myMode, initialSdkLocation, myRemotePackages, true);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
-      boolean sdkExists = initialSdkLocation.isDirectory() &&
-                          SdkManager.createManager(initialSdkLocation.getAbsolutePath(), new NullLogger()) != null;
+      boolean sdkExists =
+        initialSdkLocation.isDirectory() && SdkManager.createManager(initialSdkLocation.getAbsolutePath(), new NullLogger()) != null;
       addPath(new SingleStepPath(new FirstRunWelcomeStep(sdkExists)));
     }
     addPath(myJdkPath);
@@ -153,7 +154,8 @@ public class FirstRunWizard extends DynamicWizard {
      */
     @Override
     public boolean isStepVisible() {
-      return myFinishClicks.get() == 1 || (!(myJdkPath.showsStep() || myComponentsPath.showsStep()));
+      return myFinishClicks.get() == 1 &&
+             (myJdkPath.shouldDownloadingComponentsStepBeShown() || myComponentsPath.shouldDownloadingComponentsStepBeShown());
     }
   }
 }

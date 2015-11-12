@@ -16,20 +16,19 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import java.io.File;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.TreeSet;
@@ -59,7 +58,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
   }
 
   private static Section getPackagesSection(@NotNull Collection<RemotePkgInfo> remotePackages) {
-    return new Section("Sdk Components to Download", getPackagesTable(remotePackages));
+    return new Section("SDK Components to Download", getPackagesTable(remotePackages));
   }
 
   @Nullable
@@ -98,11 +97,12 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
   }
 
   private void generateSummary() {
-    Collection<RemotePkgInfo> remotePackages = myPackagesProvider.get();
+    Collection<RemotePkgInfo> packages = myPackagesProvider.get();
+    Section[] sections = {getSetupTypeSection(), getSdkFolderSection(), getDownloadSizeSection(packages), getPackagesSection(packages)};
+
     StringBuilder builder = new StringBuilder("<html><head>");
     builder.append(UIUtil.getCssFontDeclaration(UIUtil.getLabelFont(), UIUtil.getLabelForeground(), null, null)).append("</head><body>");
-    Collection<Section> sections = ImmutableList.of(getSetupTypeSection(), getDestinationFolderSection(),
-                                                    getDownloadSizeSection(remotePackages), getPackagesSection(remotePackages));
+
     for (Section section : sections) {
       if (!section.isEmpty()) {
         builder.append(section.toHtml());
@@ -112,14 +112,23 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     mySummaryText.setText(builder.toString());
   }
 
-  private Section getDestinationFolderSection() {
-    String destinationFolder = PathUtil.toSystemDependentName(myState.get(myKeySdkInstallLocation));
-    return new Section("Destination Folder", destinationFolder);
+  private Section getSdkFolderSection() {
+    File sdkDirectory = getSdkDirectory();
+    String text = sdkDirectory.canWrite() ? sdkDirectory.getAbsolutePath() : sdkDirectory.getAbsolutePath() + " (read-only)";
+
+    return new Section("SDK Folder", text);
+  }
+
+  private File getSdkDirectory() {
+    String path = myState.get(myKeySdkInstallLocation);
+    assert path != null;
+
+    return new File(path);
   }
 
   private Section getSetupTypeSection() {
     String setupType = myState.getNotNull(myKeyCustomInstall, false) ? "Custom" : "Standard";
-    return new Section("Setup type", setupType);
+    return new Section("Setup Type", setupType);
   }
 
   @Nullable
