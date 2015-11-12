@@ -340,7 +340,14 @@ public final class ModuleClassLoader extends RenderClassLoader {
   /** Returns the path to a class file loaded for the given class, if any */
   @Nullable
   public VirtualFile getClassFile(@NotNull String className) {
-    return myClassFiles != null ? myClassFiles.get(className) : null;
+    if (myClassFiles == null) {
+      return null;
+    }
+    VirtualFile file = myClassFiles.get(className);
+    if (file == null) {
+      return null;
+    }
+    return file.isValid() ? file : null;
   }
 
   /** Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader */
@@ -349,6 +356,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
       for (Map.Entry<String, VirtualFile> entry : myClassFiles.entrySet()) {
         String className = entry.getKey();
         VirtualFile classFile = entry.getValue();
+        if (!classFile.isValid()) {
+          return false;
+        }
         ClassModificationTimestamp lastModifiedStamp = myClassFilesLastModified.get(className);
         if (lastModifiedStamp != null) {
           long loadedModifiedTime = lastModifiedStamp.timestamp;
