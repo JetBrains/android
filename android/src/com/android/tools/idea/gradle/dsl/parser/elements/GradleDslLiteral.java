@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
@@ -39,24 +40,22 @@ import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
  * Represents a {@link GrLiteral} element.
  */
 public final class GradleDslLiteral extends GradleDslExpression {
-  @Nullable private GrLiteral myLiteral;
   @Nullable private Object myUnsavedValue;
 
   public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull String name) {
-    super(parent, null, name);
+    super(parent, null, name, null);
   }
 
   public GradleDslLiteral(@NotNull GradleDslElement parent,
                           @NotNull GroovyPsiElement psiElement,
                           @NotNull String name,
                           @NotNull GrLiteral literal) {
-    super(parent, psiElement, name);
-    myLiteral = literal;
+    super(parent, psiElement, name, literal);
   }
 
   @Nullable
   public GrLiteral getLiteral() {
-    return myLiteral;
+    return (GrLiteral)myExpression;
   }
 
   @Override
@@ -66,22 +65,22 @@ public final class GradleDslLiteral extends GradleDslExpression {
       return myUnsavedValue;
     }
 
-    if (myLiteral == null) {
+    if (myExpression == null) {
       return null;
     }
 
-    Object value = myLiteral.getValue();
+    Object value = ((GrLiteral)myExpression).getValue();
     if (value != null) {
       return value;
     }
 
-    if (myLiteral instanceof GrString) { // String literal with variables. ex: compileSdkVersion = "$ANDROID-${VERSION}"
-      String literalText = myLiteral.getText();
+    if (myExpression instanceof GrString) { // String literal with variables. ex: compileSdkVersion = "$ANDROID-${VERSION}"
+      String literalText = myExpression.getText();
       if (isQuotedString(literalText)) {
         literalText = unquoteString(literalText);
       }
 
-      GrStringInjection[] injections = ((GrString)myLiteral).getInjections();
+      GrStringInjection[] injections = ((GrString)myExpression).getInjections();
       for (GrStringInjection injection : injections) {
         String variableName = null;
 
@@ -164,12 +163,18 @@ public final class GradleDslLiteral extends GradleDslExpression {
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(newLiteral.getProject());
     GrNamedArgument namedArgument = factory.createNamedArgument(myName, newLiteral);
-    PsiElement added = parentPsiElement.addAfter(namedArgument, parentPsiElement.getLastChild());
+    PsiElement added;
+    if (parentPsiElement instanceof GrArgumentList) {
+      added = ((GrArgumentList)parentPsiElement).addNamedArgument(namedArgument);
+    }
+    else {
+      added = parentPsiElement.addAfter(namedArgument, parentPsiElement.getLastChild());
+    }
     if (added instanceof GrNamedArgument) {
       GrNamedArgument addedNameArgument = (GrNamedArgument)added;
       GrLiteral literal = getChildOfType(addedNameArgument, GrLiteral.class);
       if (literal != null) {
-        myLiteral = literal;
+        myExpression = literal;
         setModified(false);
         return getPsiElement();
       }
@@ -179,11 +184,11 @@ public final class GradleDslLiteral extends GradleDslExpression {
 
   @Override
   protected void delete() {
-    if(myLiteral == null) {
+    if(myExpression == null) {
       return;
     }
-    PsiElement parent = myLiteral.getParent();
-    myLiteral.delete();
+    PsiElement parent = myExpression.getParent();
+    myExpression.delete();
     deleteIfEmpty(parent);
   }
 
@@ -198,16 +203,16 @@ public final class GradleDslLiteral extends GradleDslExpression {
     if (newLiteral == null) {
       return;
     }
-    if (myLiteral != null) {
-      PsiElement replace = myLiteral.replace(newLiteral);
+    if (myExpression != null) {
+      PsiElement replace = myExpression.replace(newLiteral);
       if (replace instanceof GrLiteral) {
-        myLiteral = (GrLiteral)replace;
+        myExpression = (GrLiteral)replace;
       }
     }
     else {
       PsiElement added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
       if (added instanceof GrLiteral) {
-        myLiteral = (GrLiteral)added;
+        myExpression = (GrLiteral)added;
       }
     }
   }
