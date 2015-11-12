@@ -118,7 +118,7 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   private static ResourceMerger createResourceMerger(File file) {
     ILogger logger = new LogWrapper(LOG);
-    ResourceMerger merger = new ResourceMerger();
+    ResourceMerger merger = new ResourceMerger(0);
 
     ResourceSet resourceSet = new ResourceSet(file.getName(), false /* validateEnabled */);
     resourceSet.addSource(file);
