@@ -75,6 +75,7 @@ public final class ProductFlavorDslElement extends GradlePropertiesDslElement {
         setParsedElement("testInstrumentationRunnerArguments", element);
       }
       else {
+        testInstrumentationRunnerArgumentsElement.setPsiElement(element.getPsiElement());
         GradleDslExpressionMap elementsToAdd = (GradleDslExpressionMap)element;
         for (String key : elementsToAdd.getProperties()) {
           GradleDslElement elementToAdd = elementsToAdd.getPropertyElement(key);
