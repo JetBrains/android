@@ -23,6 +23,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class ModuleDependencyModel extends DependencyModel {
+  public static final String PROJECT = "project";
+  public static final String PATH = "path";
+  public static final String CONFIGURATION = "configuration";
+
   @NotNull private String myConfigurationName;
   @NotNull private GradleDslMethodCall myDslElement;
   @NotNull private GradleDslExpression myPath;
@@ -68,8 +72,32 @@ public class ModuleDependencyModel extends DependencyModel {
   void setConfiguration(@NotNull String configuration) {
     if (myConfiguration != null) {
       myConfiguration.setValue(configuration);
-    } else {
-      // TODO implement logic of adding configuration
+      return;
+    }
+
+    GradleDslElement parent = myPath.getParent();
+    if (parent instanceof GradleDslExpressionMap) {
+      ((GradleDslExpressionMap)parent).setNewLiteral(CONFIGURATION, configuration);
+    }
+    else {
+      String path = path();
+      if (myPath instanceof GradleDslLiteral && path != null) { // TODO: support copying non string literal path values into map form.
+        GradleDslExpressionMap newMapArgument = new GradleDslExpressionMap(myDslElement, PROJECT);
+        newMapArgument.setNewLiteral(PATH, path);
+        newMapArgument.setNewLiteral(CONFIGURATION, configuration);
+        myDslElement.remove(myPath);
+        myDslElement.addNewArgument(newMapArgument);
+      }
+    }
+  }
+
+  void removeConfiguration() {
+    if (myConfiguration != null) {
+      GradleDslElement parent = myConfiguration.getParent();
+      if (parent instanceof GradleDslExpressionMap) {
+        ((GradleDslExpressionMap)parent).removeProperty(CONFIGURATION);
+        myConfiguration = null;
+      }
     }
   }
 
@@ -77,18 +105,18 @@ public class ModuleDependencyModel extends DependencyModel {
   @NotNull
   protected static List<ModuleDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
     List<ModuleDependencyModel> result = Lists.newArrayList();
-    if ("project".equals(methodCall.getName())) {
+    if (PROJECT.equals(methodCall.getName())) {
       for (GradleDslElement argument : methodCall.getArguments()) {
         if (argument instanceof GradleDslExpression) {
           result.add(new ModuleDependencyModel(configurationName, methodCall, (GradleDslExpression)argument, null));
         } else if (argument instanceof GradleDslExpressionMap) {
           GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
-          GradleDslExpression pathElement = dslMap.getProperty("path", GradleDslExpression.class);
+          GradleDslExpression pathElement = dslMap.getProperty(PATH, GradleDslExpression.class);
           if (pathElement == null) {
             assert methodCall.getPsiElement() != null;
             throw new IllegalArgumentException("'" + methodCall.getPsiElement().getText() + "' is not valid module dependency.");
           }
-          GradleDslExpression configuration = dslMap.getProperty("configuration", GradleDslExpression.class);
+          GradleDslExpression configuration = dslMap.getProperty(CONFIGURATION, GradleDslExpression.class);
           result.add(new ModuleDependencyModel(configurationName, methodCall, pathElement, configuration));
         }
       }
