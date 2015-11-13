@@ -43,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -139,7 +140,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     return validateAppName() && validatePackageName() && !locationValidationResult.isError();
   }
 
-  protected boolean validateAppName() {
+  private boolean validateAppName() {
     String appName = myState.get(WizardConstants.APPLICATION_NAME_KEY);
     if (appName == null || appName.isEmpty()) {
       setErrorHtml("Please enter an application name (shown in launcher)");
@@ -151,7 +152,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     return true;
   }
 
-  protected boolean validatePackageName() {
+  private boolean validatePackageName() {
     String packageName = myState.get(WizardConstants.PACKAGE_NAME_KEY);
     if (packageName == null) {
       setErrorHtml("Please enter a package name (This package uniquely identifies your application)");
@@ -182,11 +183,16 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   static String nameToPackage(String name) {
     name = name.replace('-', '_');
     name = name.replaceAll("[^a-zA-Z0-9_]", "");
-    name = name.toLowerCase();
-    if (AndroidUtils.isReservedKeyword(name) != null) {
-      // Not using StringUtil.fixVariableNameDerivedFromPropertyName() because we want it to stay lower cased.
-      name = (StringUtil.isVowel(name.charAt(0)) ? "an" : "a") + name;
+
+    if (!name.isEmpty()) {
+      name = name.toLowerCase(Locale.US);
+
+      if (AndroidUtils.isReservedKeyword(name) != null) {
+        // Not using StringUtil.fixVariableNameDerivedFromPropertyName() because we want it to stay lower cased.
+        name = (StringUtil.isVowel(name.charAt(0)) ? "an" : "a") + name;
+      }
     }
+
     return name;
   }
 
