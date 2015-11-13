@@ -889,6 +889,7 @@
                     interface="com.android.tools.idea.structure.dialog.ProjectStructureItemsContributor"/>
     <extensionPoint qualifiedName="com.android.ide.moduleStructureConfigurableContributor"
                     interface="com.android.tools.idea.structure.dialog.ModuleStructureConfigurableContributor"/>
+    <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.run.editor.AndroidDebugger" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -949,6 +950,7 @@
     <deployTargetProvider implementation="com.android.tools.idea.run.editor.ShowChooserTargetProvider" />
     <deployTargetProvider implementation="com.android.tools.idea.run.editor.UsbDeviceTargetProvider" />
     <deployTargetProvider implementation="com.android.tools.idea.run.editor.EmulatorTargetProvider" />
+    <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
   </extensions>
 
   <!-- Layout editor -->
