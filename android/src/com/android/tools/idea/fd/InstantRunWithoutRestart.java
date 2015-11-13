@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageType;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +65,13 @@ public class InstantRunWithoutRestart extends AnAction {
     FastDeployManager manager = FastDeployManager.get(project);
     for (IDevice device : devices) {
       if (FastDeployManager.isAppRunning(device, module)) {
-        manager.performUpdate(device, getUpdateMode(), module);
+        if (FastDeployManager.buildIdsMatch(device, module)) {
+          manager.performUpdate(device, getUpdateMode(), module);
+        } else {
+          FastDeployManager.postBalloon(MessageType.ERROR,
+                                        "Local Gradle build id doesn't match what's installed on the device; full build required",
+                                        project);
+        }
         break;
       }
     }

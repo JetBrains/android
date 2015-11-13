@@ -389,6 +389,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         LOG.info("Cannot patch update since the app is not running on device: " + device.getName());
         return false;
       }
+      if (!FastDeployManager.buildIdsMatch(device, module)) {
+        LOG.info("Local Gradle build id doesn't match what's installed on the device; full build required");
+        return false;
+      }
     }
 
     return true;
