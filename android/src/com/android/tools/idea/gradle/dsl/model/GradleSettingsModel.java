@@ -22,6 +22,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
@@ -53,9 +54,10 @@ public class GradleSettingsModel extends GradleFileModel {
    *
    * <p>For example, the path a:b or :a:b represents the module in the directory $projectDir/a/b.
    */
-  @Nullable
+  @NotNull
   public List<String> modulePaths() {
-    return myGradleDslFile.getListProperty(INCLUDE, String.class);
+    List<String> result = myGradleDslFile.getListProperty(INCLUDE, String.class);
+    return result != null ? result : Collections.<String>emptyList();
   }
 
   @NotNull
