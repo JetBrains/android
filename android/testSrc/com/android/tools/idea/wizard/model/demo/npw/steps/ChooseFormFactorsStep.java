@@ -93,7 +93,7 @@ public final class ChooseFormFactorsStep extends ModelWizardStep<ProjectModel> {
       checkboxSelectedProperties.add(selected);
     }
 
-    myAnySelected = any(Iterables.toArray(checkboxSelectedProperties, SelectedProperty.class));
+    myAnySelected = any(checkboxSelectedProperties);
   }
 
   @NotNull
