@@ -91,7 +91,7 @@ expr
   |   ineqComparisonExpr   //  '<=', '<' etc.
   |   bitShiftExpr
   |   addExpr              //  '+' and '-'
-  |   mulExpr              //  '*' and '/'
+  |   mulExpr              //  '*' and '/' and '%'
   |   negationExpr         //  '!' and '~'
   |   signChangeExpr
   |   castExpr
@@ -134,7 +134,7 @@ private ineqComparisonOp ::= '<=' | '>=' | '<' | '>'
 private bitShiftOp ::= '<<' | '>>>' | '>>'
 private addOp ::= '+' | '-'
 private signOp ::= '+' | '-'
-private mulOp ::= '*' | '/'
+private mulOp ::= '*' | '/' | '%'
 private negationOp ::= '~' | '!'
 
 expressionList ::= expr (',' expr)*
