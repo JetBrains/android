@@ -72,7 +72,7 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
 
     mLayoutlibVersion = new LayoutlibVersionMixin(packageNode);
 
-    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newPlatform(version, new Revision(getRevision()), getMinToolsRevision());
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newPlatform(version, getRevision(), getMinToolsRevision());
     pkgDescBuilder
       .setDescriptionShort(createShortDescription(mListDisplay, getRevision(), mVersionName, version, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
