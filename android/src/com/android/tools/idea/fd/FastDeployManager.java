@@ -17,11 +17,9 @@ package com.android.tools.idea.fd;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.InstantRun;
 import com.android.builder.model.SourceProvider;
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
+import com.android.ddmlib.*;
 import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
@@ -31,6 +29,8 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.*;
+import com.android.utils.XmlUtils;
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.google.common.io.Files;
@@ -70,6 +70,7 @@ import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
@@ -82,10 +83,11 @@ import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.frame.XExecutionStack;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -97,9 +99,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -122,22 +122,22 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   /**
    * Magic (random) number used to identify the protocol
    */
-  public static final long PROTOCOL_IDENTIFIER = 0x35107124L;
+  private static final long PROTOCOL_IDENTIFIER = 0x35107124L;
 
   /**
    * Version of the protocol
    */
-  public static final int PROTOCOL_VERSION = 4;
+  private static final int PROTOCOL_VERSION = 4;
 
   /**
    * Message: sending patches
    */
-  public static final int MESSAGE_PATCHES = 1;
+  private static final int MESSAGE_PATCHES = 1;
 
   /**
    * Message: ping, send ack back
    */
-  public static final int MESSAGE_PING = 2;
+  private static final int MESSAGE_PING = 2;
 
   /**
    * Message: look up a very quick checksum of the given path; this
@@ -145,6 +145,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    * quick way to determine if a path exists and some basic information
    * about it.
    */
+  @SuppressWarnings("unused")
   public static final int MESSAGE_PATH_EXISTS = 3;
 
   /**
@@ -153,22 +154,23 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    * a small delta on top of a (typically resource ) file instead of resending the whole
    * file over again.)
    */
+  @SuppressWarnings("unused")
   public static final int MESSAGE_PATH_CHECKSUM = 4;
 
   /**
    * Message: restart activities
    */
-  public static final int MESSAGE_RESTART_ACTIVITY = 5;
+  private static final int MESSAGE_RESTART_ACTIVITY = 5;
 
   /**
    * Message: show toast
    */
-  public static final int MESSAGE_SHOW_TOAST = 6;
+  private static final int MESSAGE_SHOW_TOAST = 6;
 
   /**
    * Done transmitting
    */
-  public static final int MESSAGE_EOF = 7;
+  private static final int MESSAGE_EOF = 7;
 
   /**
    * No updates
@@ -197,9 +199,17 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   public static final boolean DISPLAY_STATISTICS = System.getProperty("fd.stats") != null ? Boolean.getBoolean("fd.stats") : false;
 
   /** Local port on the desktop machine that we tunnel to the Android device via */
-  public static final int STUDIO_PORT = 8888;
+  private static final int STUDIO_PORT = 8888;
 
   private static final String LOCAL_HOST = "127.0.0.1";
+  /** The name of the attribute in the build-info.xml file from Gradle which names the build-id */
+  private static final String BUILD_ID_ATTR = "build-id";
+  /** The name of the attribute in the build-info.xml file from Gradle which names the verifier status */
+  private static final String VERIFIER_ATTR = "verifier";
+  /** The value set on the {@link #VERIFIER_ATTR} if the verifier was successful */
+  private static final String VERIFIER_COMPATIBLE_VALUE = "COMPATIBLE";
+  /** The name of the build timestamp file on the device in the data folder */
+  private static final String BUILD_ID_TXT = "build-id.txt";
 
   private static String getDataFolder(@NotNull String applicationId) {
     // Location on the device where application data is stored. Currently using sdcard location
@@ -229,6 +239,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   @Nullable private MessageBusConnection myConnection;
 
   /** Don't call directly: this is a project component instantiated by the IDE; use {@link #get(Project)} instead! */
+  @SuppressWarnings("WeakerAccess") // Called by infrastructure
   public FastDeployManager(@NotNull Project project) {
     myProject = project;
     if (isInstantRunEnabled(project)) {
@@ -239,6 +250,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   /** Returns the per-project instance of the fast deploy manager */
   @NotNull
   public static FastDeployManager get(@NotNull Project project) {
+    //noinspection ConstantConditions
     return project.getComponent(FastDeployManager.class);
   }
 
@@ -274,6 +286,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     assert isInstantRunEnabled(myProject);
     List<String> arguments = Lists.newArrayListWithExpectedSize(original.size() + 1);
     arguments.addAll(original);
+    //noinspection SpellCheckingInspection
     String property = "-Pandroid.optional.compilation=INSTANT_DEV";
     synchronized (INSTANCE_LOCK) {
       if (mySeenNonJavaChanges) {
@@ -300,7 +313,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     return arguments;
   }
 
-  public void startFileListener() {
+  private void startFileListener() {
     synchronized (INSTANCE_LOCK) {
       if (myConnection == null) {
         myConnection = ApplicationManager.getApplication().getMessageBus().connect();
@@ -309,7 +322,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     }
   }
 
-  public void stopFileListener() {
+  private void stopFileListener() {
     synchronized (INSTANCE_LOCK) {
       if (myConnection != null) {
         myConnection.disconnect();
@@ -324,6 +337,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   public void before(@NotNull List<? extends VFileEvent> events) {
   }
 
+  @SuppressWarnings("IfStatementWithIdenticalBranches")
   @Override
   public void after(@NotNull List<? extends VFileEvent> events) {
     if (myProject.isDisposed()) {
@@ -448,15 +462,230 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   }
 
   /**
+   * Returns the build id in the project as seen by the IDE
+   *
+   * @param module a module context, normally the main app module (but if it's a library module
+   *               the infrastructure will look for other app modules
+   * @return the build id, if found
+   */
+  @Nullable
+  private static String getLocalBuildId(@NotNull Module module) {
+    Element root = getLocalBuildInfo(module);
+    if (root == null) {
+      return null;
+    }
+
+    String id = root.getAttribute(BUILD_ID_ATTR);
+    if (id.isEmpty()) {
+      return null;
+    }
+
+    return id;
+  }
+
+  /**
+   * Returns the verifier status from the last build
+   *
+   * @param model the relevant model
+   * @return the status; "COMPATIBLE" if the build succeeded
+   */
+  @Nullable
+  private static String getVerifierStatus(@NotNull AndroidGradleModel model) {
+    Element root = getLocalBuildInfo(getLocalBuildInfoFile(model));
+    if (root == null) {
+      return null;
+    }
+
+    String id = root.getAttribute(VERIFIER_ATTR);
+    if (id.isEmpty()) {
+      return null;
+    }
+
+    return id;
+  }
+
+  @Nullable
+  private static Element getLocalBuildInfo(@NotNull Module module) {
+    assert isPatchableApp(module);
+
+    AndroidGradleModel model = getAppModel(module);
+    return getLocalBuildInfo(getLocalBuildInfoFile(model));
+  }
+
+  @Nullable
+  private static Element getLocalBuildInfo(@Nullable File file) {
+    try {
+      if (file != null && file.exists()) {
+        String xml = Files.toString(file, Charsets.UTF_8);
+        Document document = XmlUtils.parseDocumentSilently(xml, false);
+        if (document != null) {
+          return document.getDocumentElement();
+        }
+      }
+    }
+    catch (Throwable t) {
+      LOG.warn(t);
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static File getLocalBuildInfoFile(@Nullable AndroidGradleModel model) {
+    try {
+      if (model != null) {
+        InstantRun instantRun = model.getSelectedVariant().getMainArtifact().getInstantRun();
+        File file = instantRun.getInfoFile();
+        if (!file.exists()) {
+          // Temporary hack workaround; model is passing the wrong value! See InstantRunAnchorTask.java
+          return new File(instantRun.getRestartDexFile().getParentFile(), "build-info.xml");
+        }
+        return file;
+      }
+    }
+    catch (Throwable t) {
+      LOG.warn(t);
+    }
+
+    return null;
+  }
+
+  /**
+   * Returns the build id on the device
+   *
+   * @param device the device to check
+   * @param module a module context, normally the main app module (but if it's a library module
+   *               the infrastructure will look for other app modules
+   * @return the build id, if found
+   */
+  @Nullable
+  private static String getDeviceBuildId(@NotNull IDevice device, @NotNull Module module) {
+    AndroidFacet facet = findAppModule(module, module.getProject());
+    if (facet == null) {
+      return null;
+    }
+
+    String pkg = getPackageName(facet);
+    if (pkg == null) {
+      return null;
+    }
+
+    try {
+      File localIdFile = FileUtil.createTempFile("build-id", "txt");
+
+      String remoteIdFile = getDataFolder(pkg) + "/" + BUILD_ID_TXT;
+      device.pullFile(remoteIdFile, localIdFile.getPath());
+
+      String id = Files.toString(localIdFile, Charsets.UTF_8).trim();
+
+      //noinspection ResultOfMethodCallIgnored
+      localIdFile.delete();
+
+      return id;
+    } catch (IOException ignore) {
+    }
+    catch (AdbCommandRejectedException e) {
+      LOG.warn(e);
+    }
+    catch (SyncException e) {
+      LOG.warn(e);
+    }
+    catch (TimeoutException e) {
+      LOG.warn(e);
+    }
+
+    return null;
+  }
+
+  /**
+   * Checks whether the local and remote build id's match
+   *
+   * @param device the device to pull the id from
+   * @param module a module context, normally the main app module (but if it's a library module
+   *               the infrastructure will look for other app modules
+   * @return true if the build id's match. If not, there has been some intermediate build locally (or a clean)
+   *              such that Gradle state doesn't match what's on the device
+   */
+  public static boolean buildIdsMatch(@NotNull IDevice device, @NotNull Module module) {
+    String localBuildId = getLocalBuildId(module);
+    if (localBuildId == null) {
+      return false;
+    }
+    String deviceBuildId = getDeviceBuildId(device, module);
+    return localBuildId.equals(deviceBuildId);
+  }
+
+  /**
+   * Called after a build &amp; successful push to device: updates the build id on the device to whatever the
+   * build id was assigned by Gradle.
+   *
+   * @param device the device to push to
+   * @param module a module context, normally the main app module (but if it's a library module
+   *               the infrastructure will look for other app modules
+   */
+  public static void transferLocalIdToDeviceId(@NotNull IDevice device, @NotNull Module module) {
+    AndroidGradleModel model = getAppModel(module);
+    if (model == null) {
+      return;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null : module; // because we have an AndroidGradleModel
+    String pkg = getPackageName(facet);
+    if (pkg == null) {
+      return;
+    }
+
+    File file = getLocalBuildInfoFile(model);
+    if (file == null) {
+      return;
+    }
+
+    String buildId = StringUtil.notNullize(getLocalBuildId(module));
+    try {
+      // We could write the id to a local file, and then use IDevice#pushFile to send the
+      // file to the device, but if the app hasn't been installed yet, we'll end up creating
+      // the local data folder on the device, and we'll create it as root, which means the
+      // app won't be able to create additional folders in there later (such as a folder to
+      // hold the .dex files for hot-swapping). We can't use IDevice#pushFile to set specific
+      // file permissions, but we can instead use the "run-as" shell command to write the
+      // directory with the app's own permissions.
+      String dir = getDataFolder(pkg);
+      //noinspection SpellCheckingInspection
+      String cmd = "run-as " + pkg + " mkdir -p " + dir + "; echo '" + buildId + "' > " + dir + "/" + BUILD_ID_TXT;
+      CollectingOutputReceiver receiver = new CollectingOutputReceiver();
+      device.executeShellCommand(cmd, receiver);
+      String output = receiver.getOutput();
+      if (!output.trim().isEmpty()) {
+        LOG.warn(output);
+      }
+    } catch (IOException ioe) {
+      LOG.warn("Couldn't write build id file", ioe);
+    }
+    catch (AdbCommandRejectedException e) {
+      LOG.warn(e);
+    }
+    catch (TimeoutException e) {
+      LOG.warn(e);
+    }
+    catch (ShellCommandUnresponsiveException e) {
+      LOG.warn(e);
+    }
+  }
+
+  /**
    * Restart the activity on this device, if it's running and is in the foreground
    * @param device the device to apply the change to
    * @param module a module context, normally the main app module (but if it's a library module
    *               the infrastructure will look for other app modules
    */
-  public static void restartActivity(@NotNull IDevice device, @NotNull  Module module) {
+  public static void restartActivity(@NotNull IDevice device, @NotNull Module module) {
     AppState appState = getAppState(device, module);
     if (appState == AppState.FOREGROUND || appState == AppState.BACKGROUND) {
       final AndroidFacet facet = findAppModule(module, module.getProject());
+      if (facet == null) {
+        return;
+      }
       talkToApp(device, facet, new Communicator<Boolean>() {
         @Override
         public Boolean communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException {
@@ -466,6 +695,16 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
         }
       }, true);
     }
+  }
+
+  @Nullable
+  private static AndroidGradleModel getAppModel(@NotNull Module module) {
+    AndroidFacet facet = findAppModule(module, module.getProject());
+    if (facet == null) {
+      return null;
+    }
+
+    return AndroidGradleModel.get(facet);
   }
 
   /**
@@ -483,13 +722,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       return false;
     }
 
-    FastDeployManager manager = get(module.getProject());
-    AndroidFacet facet = manager.findAppModule(module);
-    if (facet == null) {
-      return false;
-    }
-
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    AndroidGradleModel model = getAppModel(module);
     if (model == null) {
       return false;
     }
@@ -510,6 +743,11 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    * Returns whether an update will result in a cold swap by looking at the results of a gradle build.
    */
   public static boolean isColdSwap(@NotNull AndroidGradleModel model) {
+    String status = getVerifierStatus(model);
+    if (status != null) {
+      return !VERIFIER_COMPATIBLE_VALUE.equals(status);
+    }
+
     File restart = DexFileType.RESTART_DEX.getFile(model);
     if (!restart.exists()) {
       return false;
@@ -533,10 +771,9 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     manager.performUpdate(device, updateMode, module);
   }
 
-  public static boolean pushChanges(@NotNull final IDevice device, @NotNull final AndroidFacet facet) {
+  public static void pushChanges(@NotNull final IDevice device, @NotNull final AndroidFacet facet) {
     FastDeployManager manager = get(facet.getModule().getProject());
-    manager.pushChanges(device, UpdateMode.HOT_SWAP, facet, getLastInstalledArscTimestamp(device, facet));
-    return true;
+    manager.pushChanges(device, facet, getLastInstalledArscTimestamp(device, facet));
   }
 
   private static long getLastInstalledArscTimestamp(@NotNull IDevice device, @NotNull AndroidFacet facet) {
@@ -565,7 +802,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    * at manifest file edits, not diffing the contents or disregarding "irrelevant"
    * edits such as whitespace or comments.
    */
-  public static boolean isRebuildRequired(@NotNull IDevice device, @NotNull Module module) {
+  private static boolean isRebuildRequired(@NotNull IDevice device, @NotNull Module module) {
     FastDeployManager manager = get(module.getProject());
     AndroidFacet facet = manager.findAppModule(module);
     if (facet == null) {
@@ -605,7 +842,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   /**
    * Returns the timestamp of the most recently modified manifest file applicable for the given facet
    */
-  public static long getManifestLastModified(@NotNull AndroidFacet facet) {
+  private static long getManifestLastModified(@NotNull AndroidFacet facet) {
     long maxLastModified = 0L;
     AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
@@ -685,10 +922,10 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     }
   }
 
-  public void pushChanges(@NotNull IDevice device, @NotNull UpdateMode updateMode, @NotNull AndroidFacet facet, long deviceArscTimestamp) {
+  private void pushChanges(@NotNull IDevice device, @NotNull AndroidFacet facet, long deviceArscTimestamp) {
     AndroidGradleModel model = AndroidGradleModel.get(facet);
     if (model != null) {
-      afterBuild(device, model, facet, updateMode, deviceArscTimestamp);
+      afterBuild(device, model, facet, UpdateMode.HOT_SWAP, deviceArscTimestamp);
     }
   }
 
@@ -848,7 +1085,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
                           long arscBefore) {
     List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(4);
 
-    updateMode = gatherGradleCodeChanges(model, changes, updateMode);
+    updateMode = gatherGradleCodeChanges(model, changes, facet, updateMode);
     updateMode = gatherGradleResourceChanges(model, facet, changes, arscBefore, updateMode);
 
     push(device, facet.getModule(), changes, updateMode);
@@ -897,7 +1134,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       AndroidSessionInfo sessionInfo = session.getProcess().getProcessHandler().getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
       if (sessionInfo != null) {
         Module module = sessionInfo.getState().getConfiguration().getConfigurationModule().getModule();
-        AndroidFacet facet = AndroidFacet.getInstance(module);
+        AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
         if (facet != null && packageName == getPackageName(facet)) {
           session.getProcess().getManagerThread().invoke(new DebuggerCommandImpl() {
             @Override
@@ -953,28 +1190,37 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   @NotNull
   private static UpdateMode gatherGradleCodeChanges(AndroidGradleModel model,
                                                     List<ApplicationPatch> changes,
+                                                    @NotNull AndroidFacet facet,
                                                     @NotNull UpdateMode updateMode) {
-    File restart = DexFileType.RESTART_DEX.getFile(model);
-    if (restart.exists()) {
-      try {
+    try {
+      File incremental = DexFileType.RELOAD_DEX.getFile(model);
+      boolean canReload = incremental.exists();
+      if (canReload) {
+        byte[] bytes = Files.toByteArray(incremental);
+        changes.add(new ApplicationPatch("classes.dex.3", bytes));
+        updateMode = updateMode.combine(UpdateMode.HOT_SWAP);
+      }
+
+      File restart = DexFileType.RESTART_DEX.getFile(model);
+      if (restart.exists()) {
         byte[] bytes = Files.toByteArray(restart);
         changes.add(new ApplicationPatch("classes.dex", bytes));
-
-        File incremental = DexFileType.RELOAD_DEX.getFile(model);
-        if (incremental.exists()) {
-          bytes = Files.toByteArray(incremental);
-          changes.add(new ApplicationPatch("classes.dex.3", bytes));
-          boolean deleted = incremental.delete();
-          if (!deleted) {
-            Logger.getInstance(FastDeployManager.class).error("Couldn't delete " + incremental);
-          }
-          return updateMode.combine(UpdateMode.HOT_SWAP);
+        if (!canReload) {
+          updateMode = updateMode.combine(UpdateMode.COLD_SWAP);
         }
-        return updateMode.combine(UpdateMode.COLD_SWAP);
-      } catch (Throwable t) {
-        Logger.getInstance(FastDeployManager.class).error("Couldn't generate dex", t);
       }
     }
+    catch (Throwable t) {
+      Logger.getInstance(FastDeployManager.class).error("Couldn't generate dex", t);
+    }
+
+    String status = getVerifierStatus(model);
+    if (status != null && !status.equals(VERIFIER_COMPATIBLE_VALUE)) {
+      // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
+      status = StringUtil.capitalizeWords(status.toLowerCase(Locale.US).replace('_', ' '), true);
+      postBalloon(MessageType.WARNING, "Couldn't apply changes on the fly: " + status, facet.getModule().getProject());
+    }
+
     return updateMode;
   }
 
@@ -1072,31 +1318,35 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     if (device != null) {
       final UpdateMode updateMode1 = updateMode;
       final AndroidFacet facet = findAppModule(module);
-      talkToApp(device, facet, new Communicator<Boolean>() {
-        @Override
-        public Boolean communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException {
-          output.writeInt(MESSAGE_PATCHES);
-          writeToken(facet, output);
-          ApplicationPatch.write(output, changes, updateMode1);
+      if (facet != null) {
+        talkToApp(device, facet, new Communicator<Boolean>() {
+          @Override
+          public Boolean communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException {
+            output.writeInt(MESSAGE_PATCHES);
+            writeToken(facet, output);
+            ApplicationPatch.write(output, changes, updateMode1);
 
-          // Let the app know whether it should show toasts
-          output.writeBoolean(isShowToastEnabled(myProject));
+            // Let the app know whether it should show toasts
+            output.writeBoolean(isShowToastEnabled(myProject));
 
-          // Finally read a boolean back from the other side; this has the net effect of
-          // waiting until applying/verifying code on the other side is done. (It doesn't
-          // count the actual restart time, but for activity restarts it's typically instant,
-          // and for cold starts we have no easy way to handle it (the process will die and a
-          // new process come up; to measure that we'll need to work a lot harder.)
-          input.readBoolean();
+            // Finally read a boolean back from the other side; this has the net effect of
+            // waiting until applying/verifying code on the other side is done. (It doesn't
+            // count the actual restart time, but for activity restarts it's typically instant,
+            // and for cold starts we have no easy way to handle it (the process will die and a
+            // new process come up; to measure that we'll need to work a lot harder.)
+            input.readBoolean();
 
-          return false;
-        }
+            return false;
+          }
 
-        @Override
-        int getTimeout() {
-          return 8000; // allow up to 8 seconds for resource push
-        }
-      }, true);
+          @Override
+          int getTimeout() {
+            return 8000; // allow up to 8 seconds for resource push
+          }
+        }, true);
+
+        transferLocalIdToDeviceId(device, facet.getModule());
+      }
     }
     if (DISPLAY_STATISTICS) {
       notifyEnd(myProject);
@@ -1126,7 +1376,9 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
           if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
             String action = event.getDescription();
             if ("restart".equals(action)) {
-              RestartActivityAction.restartActivity(module);
+              if (module != null) {
+                RestartActivityAction.restartActivity(module);
+              }
             }
             else if ("configure".equals(action)) {
               InstantRunConfigurable configurable = new InstantRunConfigurable(myProject);
@@ -1136,6 +1388,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
               notificationRef.get().hideBalloon();
             }
             else if ("dismiss_all".equals(action)) {
+              //noinspection AssignmentToStaticFieldFromInstanceMethod
               ourHideRestartTip = true;
               notificationRef.get().hideBalloon();
             }
@@ -1154,7 +1407,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   private static boolean ourHideRestartTip;
 
   @Nullable
-  static String getPackageName(@Nullable AndroidFacet facet) {
+  private static String getPackageName(@Nullable AndroidFacet facet) {
     if (facet != null) {
       try {
         return ApkProviderUtil.computePackageName(facet);
@@ -1171,12 +1424,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   }
 
   @Nullable
-  AndroidFacet findAppModule(@Nullable Module module) {
+  private AndroidFacet findAppModule(@Nullable Module module) {
     return findAppModule(module, myProject);
   }
 
   @Nullable
-  static AndroidFacet findAppModule(@Nullable Module module, @NotNull Project project) {
+  private static AndroidFacet findAppModule(@Nullable Module module, @NotNull Project project) {
     if (module != null) {
       assert module.getProject() == project;
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -1198,7 +1451,6 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     return null;
   }
 
-  @NotNull
   public static void showToast(@NotNull IDevice device, @NotNull Module module, @NotNull final String message) {
     try {
       talkToApp(device, findAppModule(module, module.getProject()), new Communicator<Boolean>() {
@@ -1260,39 +1512,8 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
 
     try {
       device.createForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-
       try {
-        Socket socket = new Socket(LOCAL_HOST, STUDIO_PORT);
-        try {
-          socket.setSoTimeout(8*1000); // Allow up to 8 second before timing out
-          DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-          try {
-            DataInputStream input = new DataInputStream(socket.getInputStream());
-            try {
-              output.writeLong(PROTOCOL_IDENTIFIER);
-              output.writeInt(PROTOCOL_VERSION);
-
-              int version = input.readInt();
-              if (version != PROTOCOL_VERSION) {
-                return errorValue;
-              }
-
-              socket.setSoTimeout(communicator.getTimeout());
-              T value = communicator.communicate(input, output);
-
-              output.writeInt(MESSAGE_EOF);
-
-              return value;
-            }
-            finally {
-              input.close();
-            }
-          } finally {
-            output.close();
-          }
-        } finally {
-          socket.close();
-        }
+        return talkToAppWithinPortForward(communicator, errorValue);
       }
       catch (UnknownHostException e) {
         LOG.warn(e);
@@ -1328,18 +1549,38 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     return errorValue;
   }
 
-  /**
-   * Wipe any previously stashed application data for the given app; when we install a new version
-   * of the app here we assume it contains all the new necessary data
-   */
-  public static void wipeData(@NotNull AndroidRunningState state,
-                              @NotNull IDevice device,
-                              @NotNull String remotePath,
-                              @NotNull AndroidOutputReceiver receiver)
-    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-    // Clear any locally cached data on the device related to this app
-    String pkg = remotePath.substring(remotePath.lastIndexOf('/') + 1);
-    state.executeDeviceCommandAndWriteToConsole(device, "rm -rf " + getDataFolder(pkg), receiver);
+  private static <T> T talkToAppWithinPortForward(@NotNull Communicator<T> communicator, @NotNull T errorValue) throws IOException {
+    Socket socket = new Socket(LOCAL_HOST, STUDIO_PORT);
+    try {
+      socket.setSoTimeout(8*1000); // Allow up to 8 second before timing out
+      DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+      try {
+        DataInputStream input = new DataInputStream(socket.getInputStream());
+        try {
+          output.writeLong(PROTOCOL_IDENTIFIER);
+          output.writeInt(PROTOCOL_VERSION);
+
+          int version = input.readInt();
+          if (version != PROTOCOL_VERSION) {
+            return errorValue;
+          }
+
+          socket.setSoTimeout(communicator.getTimeout());
+          T value = communicator.communicate(input, output);
+
+          output.writeInt(MESSAGE_EOF);
+
+          return value;
+        }
+        finally {
+          input.close();
+        }
+      } finally {
+        output.close();
+      }
+    } finally {
+      socket.close();
+    }
   }
 
   private static long ourBeginTime;
@@ -1348,7 +1589,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     ourBeginTime = System.currentTimeMillis();
   }
 
-  public static void notifyEnd(Project project) {
+  private static void notifyEnd(Project project) {
     long end = System.currentTimeMillis();
     final String message = "Instant Run: " + (end - ourBeginTime) + "ms";
     postBalloon(MessageType.INFO, message, project);

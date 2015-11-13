@@ -20,6 +20,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -78,6 +79,14 @@ public class ApkInstaller {
       boolean installed = installApp(device, remotePath, packageName, cancelInstallation);
       if (installed) {
         myInstalledApkCache.setInstalled(device, localFile, packageName);
+
+        if (FastDeployManager.isInstantRunEnabled(myProject) && FastDeployManager.isPatchableApp(myFacet.getModule())) {
+          try {
+            FastDeployManager.transferLocalIdToDeviceId(device, myFacet.getModule());
+          } catch (Exception e) {
+            myPrinter.stderr(e.toString());
+          }
+        }
       }
       return installed;
     } catch (Exception e) {
