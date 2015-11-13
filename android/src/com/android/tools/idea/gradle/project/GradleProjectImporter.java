@@ -38,6 +38,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -605,7 +606,8 @@ public class GradleProjectImporter {
                        @NotNull ExternalProjectRefreshCallback callback,
                        @NotNull final ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
-        refreshProject(project, GRADLE_SYSTEM_ID, getBaseDirPath(project).getPath(), callback, false /* resolve dependencies */,
+        final String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(getBaseDirPath(project).getPath());
+        refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */,
                        progressExecutionMode, true /* always report import errors */);
       }
       catch (RuntimeException e) {
