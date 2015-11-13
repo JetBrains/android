@@ -62,14 +62,15 @@ public class DistributionService {
     FileUtil.getNameWithoutExtension(STATS_FILENAME) + "(_[0-9]+)?\\." + FileUtilRt.getExtension(STATS_FILENAME);
 
   private List<Distribution> myDistributions = null;
-  private long myRefreshTime;
-  private long myAttemptTime;
-  private final FileDownloader myDownloader;
+  private final Object myLock = new Object();
   private final List<Runnable> mySuccesses = Lists.newLinkedList();
   private final List<Runnable> myFailures = Lists.newArrayList();
-  private final Object myLock = new Object();
-  private final File myCachePath;
   private volatile boolean myRunning = false;
+  private long myAttemptTime;
+  private long myRefreshTime;
+  @NotNull private final FileDownloader myDownloader;
+  @NotNull private final File myCachePath;
+  @NotNull private final URL myFallback;
 
   private static DistributionService ourInstance;
 
@@ -78,7 +79,7 @@ public class DistributionService {
       DownloadableFileDescription description = DownloadableFileService.getInstance().createFileDescription(STATS_URL, STATS_FILENAME);
       FileDownloader downloader =
         DownloadableFileService.getInstance().createDownloader(ImmutableList.of(description), "Distribution Stats");
-      ourInstance = new DistributionService(downloader, CACHE_PATH);
+      ourInstance = new DistributionService(downloader, CACHE_PATH, FALLBACK_URL);
     }
     return ourInstance;
   }
@@ -142,8 +143,7 @@ public class DistributionService {
   }
 
   /**
-   * Loads the latest distributions asynchronously. Tries to load from {@link STATS_URL}. Failing that
-   * they will be loaded from {@link FALLBACK_URL}.
+   * Loads the latest distributions asynchronously. Tries to load from STATS_URL. Failing that they will be loaded from FALLBACK_URL.
    * Callbacks will be run in a worker thread; you must invokeLater yourself if they need to make UI changes.
    *
    * @param success Callback to be run if the remote distributions are loaded successfully.
@@ -218,7 +218,7 @@ public class DistributionService {
     finally {
       synchronized (myLock) {
         if (myDistributions == null) {
-          loadFromFile(FALLBACK_URL);
+          loadFromFile(myFallback);
           runContinuations(myFailures);
         }
         else {
@@ -273,12 +273,13 @@ public class DistributionService {
   }
 
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
-  DistributionService(FileDownloader downloader, File cachePath) {
+  DistributionService(@NotNull FileDownloader downloader, @NotNull File cachePath, @NotNull URL fallback) {
     myDownloader = downloader;
     myCachePath = cachePath;
+    myFallback = fallback;
   }
 
-  private void loadFromFile(URL url) {
+  private void loadFromFile(@NotNull URL url) {
     try {
       String jsonString = ResourceUtil.loadText(url);
       myDistributions = loadDistributionsFromJson(jsonString);
