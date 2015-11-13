@@ -16,11 +16,16 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.dsl.parser.PsiElements.setLiteralText;
 
 public class ModuleDependencyModel extends DependencyModel {
   public static final String PROJECT = "project";
@@ -52,9 +57,11 @@ public class ModuleDependencyModel extends DependencyModel {
     return myConfigurationName;
   }
 
-  @Nullable
+  @NotNull
   public String path() {
-    return myPath.getValue(String.class);
+    String path = myPath.getValue(String.class);
+    assert path != null;
+    return path;
   }
 
   public void setPath(@NotNull String path) {
