@@ -24,6 +24,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
+import com.android.tools.idea.run.editor.*;
+import com.google.common.collect.*;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.*;
@@ -42,10 +44,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
@@ -70,7 +69,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private final boolean myAndroidTests;
 
-  private final NativeRunParameters myNativeRunParameters = new NativeRunParameters();
+  public String DEBUGGER_TYPE;
+  private final Map<String, AndroidDebuggerState> myAndroidDebuggerStates = Maps.newHashMap();
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
@@ -83,6 +83,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       builder.put(provider.getId(), provider.createState());
     }
     myDeployTargetStates = builder.build();
+    DEBUGGER_TYPE = getDefaultAndroidDebuggerType();
+    for (AndroidDebugger androidDebugger: getAndroidDebuggers()) {
+      myAndroidDebuggerStates.put(androidDebugger.getId(), androidDebugger.createState());
+    }
   }
 
   @Override
@@ -145,6 +149,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     errors.addAll(getApkProvider(facet).validate());
 
     errors.addAll(checkConfiguration(facet));
+    AndroidDebuggerState androidDebuggerState = getAndroidDebuggerState(DEBUGGER_TYPE);
+    if (androidDebuggerState != null) {
+      errors.addAll(androidDebuggerState.validate(facet));
+    }
 
     return errors;
   }
@@ -304,8 +312,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       .setDebug(debug)
       .build();
 
-    return new AndroidRunningState(env, facet, getApkProvider(facet), deviceFutures, printer, getApplicationLauncher(facet),
-                                   launchOptions, this);
+    AndroidApplicationLauncher appLauncher = getApplicationLauncher(facet);
+    AndroidDebuggerState androidDebuggerState = getAndroidDebuggerState(DEBUGGER_TYPE);
+    if (androidDebuggerState != null) {
+      appLauncher = androidDebuggerState.getApplicationLauncher(appLauncher);
+    }
+
+    return new AndroidRunningState(env, facet, getApkProvider(facet), deviceFutures, printer, appLauncher, launchOptions, this);
   }
 
   @Nullable
@@ -349,7 +362,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     for (DeployTargetState state : myDeployTargetStates.values()) {
       DefaultJDOMExternalizer.readExternal(state, element);
     }
-    myNativeRunParameters.readExternal(element);
+
+    for (Map.Entry<String, AndroidDebuggerState> entry: myAndroidDebuggerStates.entrySet()) {
+      Element optionElement = element.getChild(entry.getKey());
+      if (optionElement != null) {
+        entry.getValue().readExternal(optionElement);
+      }
+    }
   }
 
   @Override
@@ -361,15 +380,50 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     for (DeployTargetState state : myDeployTargetStates.values()) {
       DefaultJDOMExternalizer.writeExternal(state, element);
     }
-    myNativeRunParameters.writeExternal(element);
+
+    for (Map.Entry<String, AndroidDebuggerState> entry: myAndroidDebuggerStates.entrySet()) {
+      Element optionElement = new Element(entry.getKey());
+      element.addContent(optionElement);
+      entry.getValue().writeExternal(optionElement);
+    }
   }
 
   public boolean usesSimpleLauncher() {
-    return true;
+    AndroidDebugger<?> androidDebugger = getAndroidDebugger();
+    if (androidDebugger == null) {
+      return true;
+    }
+    return androidDebugger.getId().equals(AndroidJavaDebugger.ID);
   }
 
   @NotNull
-  public NativeRunParameters getNativeRunParameters() {
-    return myNativeRunParameters;
+  protected String getDefaultAndroidDebuggerType() {
+    return AndroidJavaDebugger.ID;
+  }
+
+  @NotNull
+  public List<AndroidDebugger> getAndroidDebuggers() {
+    return Arrays.asList(AndroidDebugger.EP_NAME.getExtensions());
+  }
+
+  @Nullable
+  public AndroidDebugger getAndroidDebugger() {
+    for (AndroidDebugger androidDebugger: getAndroidDebuggers()) {
+      if (androidDebugger.getId().equals(DEBUGGER_TYPE)) {
+        return androidDebugger;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public <T extends AndroidDebuggerState> T getAndroidDebuggerState(@NotNull String androidDebuggerId) {
+    AndroidDebuggerState state = myAndroidDebuggerStates.get(androidDebuggerId);
+    return (state != null) ? (T)state : null;
+  }
+
+  @Nullable
+  public <T extends AndroidDebuggerState> T getAndroidDebuggerState() {
+    return getAndroidDebuggerState(DEBUGGER_TYPE);
   }
 }
