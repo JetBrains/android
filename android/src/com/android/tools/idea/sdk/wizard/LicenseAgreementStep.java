@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.sdklib.repository.License;
+import com.android.repository.api.License;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.google.common.collect.Lists;
@@ -143,13 +143,13 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
         }
         if (selected != null && !selected.isLeaf()) {
           License license = (License)selected.getUserObject();
-          myLicenseTextField.setText(license.getLicense());
-          myCurrentLicense = license.getLicenseRef();
+          myLicenseTextField.setText(license.getValue());
+          myCurrentLicense = license.getId();
         }
         else if (selected != null && !selected.isRoot()) {
           Change change = (Change)selected.getUserObject();
-          myLicenseTextField.setText(change.license.getLicense());
-          myCurrentLicense = change.license.getLicenseRef();
+          myLicenseTextField.setText(change.license.getValue());
+          myCurrentLicense = change.license.getId();
         }
         if (myAcceptances.get(myCurrentLicense)) {
           myAcceptRadioButton.setSelected(true);
@@ -179,8 +179,8 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
         if (!leaf) {
           License license = (License)node.getUserObject();
 
-          if (license.getLicenseRef() != null) {
-            appendLicenseText(license, license.getLicenseRef());
+          if (license.getId() != null) {
+            appendLicenseText(license, license.getId());
           }
         }
         else {
@@ -194,7 +194,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
       }
 
       private void appendLicenseText(@Nullable License license, String text) {
-        boolean notAccepted = license != null && !myAcceptances.get(license.getLicenseRef());
+        boolean notAccepted = license != null && !myAcceptances.get(license.getId());
         if (notAccepted) {
           append("*", SimpleTextAttributes.ERROR_ATTRIBUTES);
           append(text, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
@@ -256,12 +256,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
         IPkgDesc desc = (IPkgDesc)o;
         License license = desc.getLicense();
         if (license == null) { // Android SDK license
-          if (desc.getAndroidVersion() != null && desc.getAndroidVersion().isPreview()) {
-            license = AndroidSdkLicenseTemporaryData.HARDCODED_ANDROID_PREVIEW_SDK_LICENSE;
-          }
-          else {
-            license = AndroidSdkLicenseTemporaryData.HARDCODED_ANDROID_SDK_LICENSE;
-          }
+          license = AndroidSdkLicenseTemporaryData.getLicense(desc.getAndroidVersion() != null && desc.getAndroidVersion().isPreview());
         }
         myLicenses.add(license);
         if (!license.checkAccepted(mySdkRoot)) {
@@ -279,7 +274,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
     DefaultMutableTreeNode root = new DefaultMutableTreeNode();
     DefaultMutableTreeNode firstChild = null;
     for (Change change : changes) {
-      String licenseRef = change.license.getLicenseRef();
+      String licenseRef = change.license.getId();
       myVisibleLicenses.add(licenseRef);
       if (!licenseNodeMap.containsKey(licenseRef)) {
         DefaultMutableTreeNode n = new DefaultMutableTreeNode(change.license);
