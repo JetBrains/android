@@ -35,6 +35,11 @@ import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.google.common.io.Files;
 import com.intellij.debugger.DebuggerManagerEx;
+import com.intellij.debugger.engine.JavaExecutionStack;
+import com.intellij.debugger.engine.SuspendContextImpl;
+import com.intellij.debugger.engine.events.DebuggerCommandImpl;
+import com.intellij.debugger.impl.DebuggerContextImpl;
+import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.ui.breakpoints.Breakpoint;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessHandler;
@@ -73,6 +78,8 @@ import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.frame.XExecutionStack;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidOutputReceiver;
@@ -861,10 +868,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     // we *don't* do that for the manifest file: the resource timestamp is updated because
     // the resource files will be pushed to the app, but the manifest changes can't be.
 
-    adjustBreakpoints();
+    refreshDebugger(pkgName);
   }
 
-  private void adjustBreakpoints() {
+  private void refreshDebugger(String packageName) {
+    // First we reapply the breakpoints on the new code, otherwise the breakpoints
+    // remain set on the old classes and will never be hit again.
     ApplicationManager.getApplication().runReadAction(new Runnable() {
       @Override
       public void run() {
@@ -880,6 +889,42 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
         }
       }
     });
+
+    // Now we refresh the call-stacks and the variable panes.
+    DebuggerManagerEx debugger = DebuggerManagerEx.getInstanceEx(myProject);
+    for (final DebuggerSession session : debugger.getSessions()) {
+      //TODO: We should do something like getProcessHandler().getUserData(AndroidDebugRunner.CLIENT)
+      AndroidSessionInfo sessionInfo = session.getProcess().getProcessHandler().getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
+      if (sessionInfo != null) {
+        Module module = sessionInfo.getState().getConfiguration().getConfigurationModule().getModule();
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null && packageName == getPackageName(facet)) {
+          session.getProcess().getManagerThread().invoke(new DebuggerCommandImpl() {
+            @Override
+            protected void action() throws Exception {
+              DebuggerContextImpl context = session.getContextManager().getContext();
+              SuspendContextImpl suspendContext = context.getSuspendContext();
+              if (suspendContext != null) {
+                XExecutionStack stack = suspendContext.getActiveExecutionStack();
+                if (stack != null) {
+                  ((JavaExecutionStack)stack).initTopFrame();
+                }
+              }
+              ApplicationManager.getApplication().invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                  session.refresh(false);
+                  XDebugSession xSession = session.getXDebugSession();
+                  if (xSession != null) {
+                    xSession.rebuildViews();
+                  }
+                }
+              });
+            }
+          });
+        }
+      }
+    }
   }
 
   @SuppressWarnings({"MethodMayBeStatic", "UnusedParameters"}) // won't be as soon as it really calls Gradle
