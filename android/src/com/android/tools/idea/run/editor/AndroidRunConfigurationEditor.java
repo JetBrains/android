@@ -90,6 +90,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private final ImmutableMap<String, DeployTargetConfigurableWrapper> myDeployTargetConfigurables;
   private final List<DeployTargetProvider> myApplicableDeployTargetProviders;
 
+  private AndroidDebuggerPanel myAndroidDebuggerPanel;
+
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator, T config) {
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
       @Override
@@ -135,6 +137,11 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       }
     };
     mySkipNoOpApkInstallation.addActionListener(actionListener);
+
+    if (config.getAndroidDebuggers().size() > 1) {
+      myAndroidDebuggerPanel = new AndroidDebuggerPanel(config);
+      myTabbedPane.add("Debugger", myAndroidDebuggerPanel.getComponent());
+    }
   }
 
   public void setConfigurationSpecificEditor(ConfigurationSpecificEditor<T> configurationSpecificEditor) {
@@ -172,6 +179,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myForceStopRunningApplicationCheckBox.setSelected(configuration.FORCE_STOP_RUNNING_APP);
 
     myConfigurationSpecificEditor.resetFrom(configuration);
+
+    if (myAndroidDebuggerPanel != null) {
+      myAndroidDebuggerPanel.resetFrom(configuration);
+    }
   }
 
   @Override
@@ -190,6 +201,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     configuration.FORCE_STOP_RUNNING_APP = myForceStopRunningApplicationCheckBox.isSelected();
 
     myConfigurationSpecificEditor.applyTo(configuration);
+
+    if (myAndroidDebuggerPanel != null) {
+      myAndroidDebuggerPanel.applyTo(configuration);
+    }
   }
 
   @Override
