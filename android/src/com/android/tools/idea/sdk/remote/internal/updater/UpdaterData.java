@@ -22,7 +22,7 @@ import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.ISdkChangeListener;
-import com.android.sdklib.repository.License;
+import com.android.repository.api.License;
 import com.android.sdklib.util.LineUtil;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
@@ -682,7 +682,7 @@ public class UpdaterData {
       mSdkLog.info("License id: %1$s\n", lid);
       mSdkLog.info("Used by: \n - %1$s\n", Joiner.on("\n  - ").skipNulls().join(lidPkgNames.get(lid)));
       mSdkLog.info("-------------------------------\n\n");
-      mSdkLog.info("%1$s\n", lic.getLicense());
+      mSdkLog.info("%1$s\n", lic.getValue());
 
       int retries = numRetries;
       tryAgain:
@@ -755,10 +755,10 @@ public class UpdaterData {
       if (p != null) {
         License lic = p.getLicense();
         if (lic != null &&
-            lic.getLicenseRef() != null &&
-            lic.getLicense().length() > 0 &&
-            lic.getLicense() != null &&
-            lic.getLicense().length() > 0) {
+            lic.getId() != null &&
+            lic.getValue().length() > 0 &&
+            lic.getValue() != null &&
+            lic.getValue().length() > 0) {
           return lic;
         }
       }
@@ -769,7 +769,7 @@ public class UpdaterData {
 
   private String getLicenseId(License lic) {
     return String.format("%1$s-%2$08x",       //$NON-NLS-1$
-                         lic.getLicenseRef(), lic.getLicense().hashCode());
+                         lic.getId(), lic.getValue().hashCode());
   }
 
   /**
