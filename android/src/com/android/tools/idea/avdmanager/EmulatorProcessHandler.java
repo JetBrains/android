@@ -134,8 +134,9 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
     }
   }
 
+  @NotNull
   @Override
-  public Future<?> executeTask(Runnable task) {
+  public Future<?> executeTask(@NotNull Runnable task) {
     return ApplicationManager.getApplication().executeOnPooledThread(task);
   }
 
