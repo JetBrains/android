@@ -236,7 +236,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.InstantRunPositionManagerFactory"/>
-    <debuggerStackFrameModifier implementation="com.android.tools.idea.fd.InstantRunStackFrameModifier"/>
+    <debuggerStackFrameProxyProvider implementation="com.android.tools.idea.fd.InstantRunStackFrameProxyProvider"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleNotificationExtension"/>
