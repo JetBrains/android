@@ -22,12 +22,15 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.editors.navigation.model.Properties;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.*;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -65,6 +68,7 @@ import java.util.Set;
 public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable,
                                      ActionListener, ListSelectionListener {
   private static final int UPDATE_DELAY_MILLIS = 250;
+  private static final String DEVICE_PICKER_LAST_SELECTION = "device.picker.selection";
   private static final TIntObjectHashMap<Set<String>> ourSelectionsPerConfig = new TIntObjectHashMap<Set<String>>();
 
   private JPanel myPanel;
@@ -189,7 +193,9 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   @Override
   public void valueChanged(ListSelectionEvent e) {
     if (e.getSource() == myDevicesList) {
-      ourSelectionsPerConfig.put(myRunContextId, getSelectedSerials(myDevicesList.getSelectedValues()));
+      Set<String> selectedSerials = getSelectedSerials(myDevicesList.getSelectedValues());
+      ourSelectionsPerConfig.put(myRunContextId, selectedSerials);
+      saveSelectionForProject(myFacet.getModule().getProject(), selectedSerials);
     }
   }
 
@@ -332,8 +338,15 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
   @NotNull
   private Set<String> getDefaultSelection() {
+    // first use the last selection for this config
     Set<String> lastSelection = ourSelectionsPerConfig.get(myRunContextId);
-    if (lastSelection != null && !lastSelection.isEmpty()) {
+
+    // if this is the first time launching the dialog, pick up the previous selections from saved state
+    if (lastSelection == null || lastSelection.isEmpty()) {
+      lastSelection = getLastSelectionForProject(myFacet.getModule().getProject());
+    }
+
+    if (!lastSelection.isEmpty()) {
       // check if any of them actually present right now
       int[] indices = getIndices(myModel.getItems(), lastSelection);
       if (indices.length > 0) {
@@ -404,6 +417,15 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
   public void installDoubleClickListener(@NotNull DoubleClickListener listener) {
     listener.installOn(myDevicesList);
+  }
+
+  private static Set<String> getLastSelectionForProject(@NotNull Project project) {
+    String s = PropertiesComponent.getInstance(project).getValue(DEVICE_PICKER_LAST_SELECTION);
+    return s == null ? Collections.<String>emptySet() : Sets.newHashSet(s.split(" "));
+  }
+
+  private static void saveSelectionForProject(@NotNull Project project, @NotNull Set<String> selectedSerials) {
+    PropertiesComponent.getInstance(project).setValue(DEVICE_PICKER_LAST_SELECTION, Joiner.on(' ').join(selectedSerials));
   }
 
   /** {@link MyListKeyListener} provides a custom key listener that makes sure that up/down key events don't end up selecting a marker. */
