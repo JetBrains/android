@@ -23,6 +23,8 @@ import com.intellij.psi.PsiElement;
 
 import java.io.IOException;
 
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_FIELD;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_FIELD;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
@@ -196,9 +198,9 @@ public class JavaModelTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
 
     JavaVersionDslElement targetVersionElement =
-      java.getGradleDslElement().getProperty(JavaModel.TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+      java.getGradleDslElement().getProperty(TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
     JavaVersionDslElement sourceVersionElement =
-      java.getGradleDslElement().getProperty(JavaModel.SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+      java.getGradleDslElement().getProperty(SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
     assertNotNull(targetVersionElement);
     assertNotNull(sourceVersionElement);
 
@@ -208,8 +210,8 @@ public class JavaModelTest extends GradleFileModelTestCase {
     assertNotNull(targetPsi);
     assertNotNull(sourcePsi);
 
-    // targetCompatibility should be next to sourceCompatibility
-    assertEquals(targetPsi, sourcePsi.getNextSibling().getNextSibling());
+    // targetCompatibility should be previous to sourceCompatibility
+    assertEquals(targetPsi, sourcePsi.getPrevSibling().getPrevSibling());
   }
 
   public void testAddNonExistedLanguageLevel() throws Exception {
