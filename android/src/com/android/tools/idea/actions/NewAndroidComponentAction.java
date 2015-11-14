@@ -15,11 +15,20 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.android.tools.idea.npw.ThemeHelper;
+import com.android.tools.idea.npw.project.AndroidPackageUtils;
+import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
+import com.android.tools.idea.npw.template.RenderTemplateModel;
+import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
+import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
@@ -31,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -119,9 +129,35 @@ public class NewAndroidComponentAction extends AnAction {
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
     File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
-    NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, file);
-    wizard.init();
-    wizard.show();
+
+    if (isActivityTemplate()) {
+      // TODO: Eventually we should use model wizards for ALL components, not just activities
+      // For now, we're sticking to activity templates to focus on a smaller scope for a first pass
+      assert targetFile != null;
+      VirtualFile targetDirectory = targetFile;
+      if (!targetDirectory.isDirectory()) {
+        targetDirectory = targetFile.getParent();
+        assert targetDirectory != null;
+      }
+      assert file != null;
+
+      String activityDescription = e.getPresentation().getText(); // e.g. "Blank Activity", "Tabbed Activity"
+      RenderTemplateModel templateModel = new RenderTemplateModel(facet, new TemplateHandle(file), "New " + activityDescription);
+      List<SourceProvider> sourceProviders = AndroidProjectPaths.getSourceProviders(facet, targetDirectory);
+      String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceProviders, targetDirectory);
+
+      ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+      wizardBuilder
+        .addStep(new ConfigureTemplateParametersStep(templateModel, "Configure Activity", initialPackageSuggestion, sourceProviders));
+      ModelWizardDialog dialog =
+        new StudioWizardDialogBuilder(wizardBuilder.build(), "New Android Activity").setProject(module.getProject()).build();
+      dialog.show();
+    }
+    else {
+      NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, file);
+      wizard.init();
+      wizard.show();
+    }
 
     /*
     // TODO: Implement the getCreatedElements call for the wizard

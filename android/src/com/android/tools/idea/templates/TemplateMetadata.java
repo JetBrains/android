@@ -211,13 +211,20 @@ public class TemplateMetadata {
     return myIconName;
   }
 
+  /**
+   * Get the default thumbnail path (the first choice, essentially).
+   */
   @Nullable
   public String getThumbnailPath() {
     return getThumbnailPath(null);
   }
 
+  /**
+   * Get the active thumbnail path, which requires a callback that takes a parameter ID and returns
+   * its value. Using that information, we can select the associated thumbnail path and return it.
+   */
   @Nullable
-  public String getThumbnailPath(Function<String, Object> currentState) {
+  public String getThumbnailPath(Function<String, Object> produceParameterValue) {
     // Apply selector logic. Pick the thumb first thumb that satisfies the largest number
     // of conditions.
     NodeList thumbs = myDocument.getElementsByTagName(TAG_THUMB);
@@ -244,7 +251,7 @@ public class TemplateMetadata {
           String variableName = attribute.getName();
           String thumbNailValue = attribute.getValue();
 
-          if (currentState == null || !thumbNailValue.equals(currentState.apply(variableName))) {
+          if (produceParameterValue == null || !thumbNailValue.equals(produceParameterValue.apply(variableName))) {
             match = false;
             break;
           }
