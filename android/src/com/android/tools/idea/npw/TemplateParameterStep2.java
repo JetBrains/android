@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.ui.LabelWithEditLink;
@@ -81,6 +82,8 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 /**
  * Wizard step for specifying template-specific parameters.
  * This class is used for configuring Android Activities AND non-Android lib modules.
+ *
+ * @deprecated Replaced by {@link ConfigureTemplateParametersStep}
  */
 public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   public static final Logger LOG = Logger.getInstance(TemplateParameterStep2.class);
