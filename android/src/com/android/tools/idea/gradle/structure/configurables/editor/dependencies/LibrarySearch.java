@@ -63,7 +63,6 @@ class LibrarySearch {
   private JButton mySearchButton;
   private JButton myAddLibraryButton;
   private JBLabel myArtifactNameLabel;
-  private JBLabel myGroupIdLabel;
   private JBLabel myRequiredFieldLabel;
   private JBScrollPane myResultsScrollPane;
 
@@ -81,9 +80,6 @@ class LibrarySearch {
     myArtifactNameLabel.setDisplayedMnemonic(VK_N);
     myArtifactNameLabel.setIcon(WarningDecorator);
 
-    myGroupIdLabel.setComponentStyle(SMALL);
-
-    myRequiredFieldLabel.setComponentStyle(SMALL);
     myRequiredFieldLabel.setIcon(WarningDecorator);
 
     myArtifactNameTextField.addActionListener(new SearchActionListener());
