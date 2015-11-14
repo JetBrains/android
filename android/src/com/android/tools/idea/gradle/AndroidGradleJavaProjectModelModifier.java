@@ -22,6 +22,10 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.google.common.collect.ImmutableList;
@@ -56,6 +60,7 @@ import java.util.Map;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.roots.libraries.LibraryUtil.findLibrary;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
@@ -155,8 +160,53 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     if (!isBuildWithGradle(module)) {
       return null;
     }
-    // TODO finish this after dsl parser have been done
-    return Promise.REJECTED;
+
+    final GradleBuildModel buildModel = GradleBuildModel.get(module);
+    if (buildModel == null) {
+      return null;
+    }
+
+    if (getAndroidModel(module) != null) {
+      AndroidModel androidModel = buildModel.android();
+      if (androidModel == null) {
+        buildModel.addAndroidModel();
+        androidModel = buildModel.android();
+        assert androidModel != null;
+      }
+      CompileOptionsModel compileOptionsModel = androidModel.compileOptions();
+      if (compileOptionsModel == null) {
+        androidModel.addCompileOptions();
+        compileOptionsModel = androidModel.compileOptions();
+        assert compileOptionsModel != null;
+      }
+
+      compileOptionsModel.setSourceCompatibility(level);
+      compileOptionsModel.setTargetCompatibility(level);
+    }
+    else {
+      JavaGradleFacet javaGradleFacet = JavaGradleFacet.getInstance(module);
+      if (javaGradleFacet == null || javaGradleFacet.getJavaModel() == null) {
+        return null;
+      }
+      JavaModel javaModel = buildModel.java();
+      if (javaModel == null) {
+        buildModel.addJavaModel();
+        javaModel = buildModel.java();
+        assert javaModel != null;
+      }
+      javaModel.setSourceCompatibility(level);
+      javaModel.setTargetCompatibility(level);
+    }
+
+    new WriteCommandAction(myProject, "Change Gradle Language Level") {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        buildModel.applyChanges();
+        registerUndoAction(myProject);
+      }
+    }.execute();
+
+    return requestProjectSync(myProject);
   }
 
   @NotNull
