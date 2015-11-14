@@ -124,7 +124,12 @@ public final class GradleDslExpressionList extends GradleDslElement {
   @Override
   @Nullable
   public GroovyPsiElement create() {
-    GroovyPsiElement psiElement = super.create();
+    GroovyPsiElement psiElement = getPsiElement();
+    if (psiElement != null) {
+      return psiElement;
+    }
+
+    psiElement = super.create();
     if (psiElement == null) {
       return null;
     }

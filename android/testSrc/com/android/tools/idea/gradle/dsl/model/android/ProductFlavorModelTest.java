@@ -1711,13 +1711,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
-    assertEquals("consumerProguardFiles", null, defaultConfig.consumerProguardFiles());
-    assertEquals("proguardFiles", null, defaultConfig.proguardFiles());
+    assertNull(android);
   }
 
   public void testSetAndApplyMapElements() throws Exception {
