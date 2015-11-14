@@ -17,7 +17,10 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.AndroidApplicationLauncher;
 import com.android.tools.idea.run.ValidationError;
-import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.DefaultJDOMExternalizer;
+import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.openapi.util.JDOMExternalizable;
+import com.intellij.openapi.util.WriteExternalException;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
