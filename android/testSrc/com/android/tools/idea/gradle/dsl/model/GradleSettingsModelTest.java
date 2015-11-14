@@ -77,7 +77,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     writeToSettingsFile(text);
     final GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertNotNull(settingsModel);
-    assertNull(settingsModel.modulePaths());
+    assertEmpty(settingsModel.modulePaths());
 
     settingsModel.addModulePath("app");
     //settingsModel.addModulePath("lib");
@@ -158,7 +158,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(), settingsModel.modulePaths());
 
     settingsModel.reparse();
-    assertNull(settingsModel.modulePaths());
+    assertEmpty(settingsModel.modulePaths());
   }
 
   public void testReplaceAndResetModulePaths() throws Exception {
