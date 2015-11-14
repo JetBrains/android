@@ -77,6 +77,15 @@ public class DependenciesModel {
   }
 
   @NotNull
+  public List<ModuleDependencyModel> moduleDependencies() {
+    List<ModuleDependencyModel> dependencies = Lists.newArrayList();
+    for (String configurationName : myDslElement.getProperties()) {
+      dependencies.addAll(moduleDependencies(configurationName));
+    }
+    return dependencies;
+  }
+
+  @NotNull
   public DependenciesModel addModuleDependency(@NotNull String configurationName, @NotNull String path, @Nullable String config) {
     GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
     if (list == null) {
