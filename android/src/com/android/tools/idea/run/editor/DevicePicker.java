@@ -22,7 +22,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.editors.navigation.model.Properties;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.*;
 import com.google.common.base.Joiner;
