@@ -17,8 +17,6 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.editor.DeployTarget;
-import com.android.tools.idea.run.editor.DeployTargetPickerDialog;
-import com.android.tools.idea.run.editor.RealizedDeployTarget;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import gnu.trove.TIntObjectHashMap;
