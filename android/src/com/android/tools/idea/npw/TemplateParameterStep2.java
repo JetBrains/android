@@ -20,17 +20,15 @@ import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.templates.Parameter;
+import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.ui.LabelWithEditLink;
-import com.android.tools.idea.ui.TextFieldWithLaunchBrowserButton;
-import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.*;
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -138,15 +136,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     myTemplateDescription.setBorder(BorderFactory.createEmptyBorder(0, 0, myTemplateDescription.getFont().getSize(), 0));
     setBodyComponent(myRootPanel);
     myStepTitle = stepTitle;
-  }
-
-  private static JComponent createTextFieldWithBrowse(Parameter parameter) {
-    String sourceUrl = parameter.sourceUrl;
-    if (sourceUrl == null) {
-      LOG.warn(String.format("Source URL is missing for parameter %1$s", parameter.name));
-      sourceUrl = "";
-    }
-    return new TextFieldWithLaunchBrowserButton(sourceUrl);
   }
 
   public void setPresetValue(@NotNull String key, @Nullable Object value) {
@@ -289,9 +278,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
           break;
         case ENUM:
           dataComponent = createEnumCombo(parameter);
-          break;
-        case EXTERNAL:
-          dataComponent = createTextFieldWithBrowse(parameter);
           break;
         case STRING:
           dataComponent = new JTextField();
@@ -922,7 +908,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
           clazz = Boolean.class;
           break;
         case ENUM:
-        case EXTERNAL:
         case STRING:
         case SEPARATOR:
         case CUSTOM:
