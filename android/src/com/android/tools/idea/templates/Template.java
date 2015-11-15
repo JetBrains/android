@@ -201,8 +201,6 @@ public class Template {
           break;
         case SEPARATOR:
           break;
-        case CUSTOM:
-          break;
       }
     }
     convertApisToInt(args);
