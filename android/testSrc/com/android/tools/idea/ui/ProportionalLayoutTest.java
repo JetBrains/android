@@ -164,7 +164,7 @@ public final class ProportionalLayoutTest {
 
   @Test
   public void heightCalculationSkipsEmptyRows() throws Exception {
-    final JPanel panel = new JPanel(ProportionalLayout.fromString("100px"));
+    final JPanel panel = new JPanel(ProportionalLayout.fromString("100px", 0));
 
     final Component row0 = Box.createVerticalStrut(20);
     final Component row2 = Box.createVerticalStrut(50);
@@ -179,6 +179,30 @@ public final class ProportionalLayoutTest {
     assertThat(row0.getHeight()).isEqualTo(20);
     assertThat(row2.getY()).isEqualTo(20);
     assertThat(row2.getHeight()).isEqualTo(50);
+  }
+
+  @Test
+  public void heightCalculationIncludesVgapAndSkipsEmptyRows() throws Exception {
+    final JPanel panel = new JPanel(ProportionalLayout.fromString("100px", 20));
+
+    final Component row2 = Box.createVerticalStrut(20);
+    final Component row4 = Box.createVerticalStrut(40);
+    final Component row6 = Box.createVerticalStrut(60);
+
+    panel.add(row2, new ProportionalLayout.Constraint(2, 0));
+    panel.add(row4, new ProportionalLayout.Constraint(4, 0));
+    panel.add(row6, new ProportionalLayout.Constraint(6, 0));
+
+    mockPackPanel(panel);
+
+    assertThat(panel.getHeight()).isEqualTo(120 + 40); // 120 from struts, 40 from inner gaps
+
+    assertThat(row2.getY()).isEqualTo(0);
+    assertThat(row2.getHeight()).isEqualTo(20);
+    assertThat(row4.getY()).isEqualTo(40);
+    assertThat(row4.getHeight()).isEqualTo(40);
+    assertThat(row6.getY()).isEqualTo(100);
+    assertThat(row6.getHeight()).isEqualTo(60);
   }
 
   @Test
