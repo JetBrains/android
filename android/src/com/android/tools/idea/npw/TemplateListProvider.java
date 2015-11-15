@@ -70,7 +70,7 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
     List<File> templates = manager.getTemplatesInCategory(category);
     List<TemplateEntry> metadataList = new ArrayList<TemplateEntry>(templates.size());
     for (File template : templates) {
-      TemplateMetadata metadata = manager.getTemplate(template);
+      TemplateMetadata metadata = manager.getTemplateMetadata(template);
       if (metadata == null || !metadata.isSupported()) {
         continue;
       }
