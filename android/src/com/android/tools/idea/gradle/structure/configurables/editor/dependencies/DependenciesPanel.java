@@ -36,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -49,10 +48,7 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
 import static com.intellij.icons.AllIcons.FileTypes.Any_type;
 import static com.intellij.icons.AllIcons.Nodes.Module;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static com.intellij.util.ui.UIUtil.getHTMLEditorKit;
 import static com.intellij.util.ui.UIUtil.getInactiveTextColor;
 import static javax.swing.BorderFactory.createCompoundBorder;
 import static javax.swing.BorderFactory.createEmptyBorder;
@@ -65,6 +61,7 @@ class DependenciesPanel extends JPanel {
   @NotNull private final TableView<DependencyMergedModel> myDependencyTable;
 
   @NotNull private final JBSplitter myMainSplitter;
+  @NotNull private final List<ArtifactRepositorySearch> myRepositorySearches;
   @NotNull private final List<AddDependencyPanel> myDependenciesPanels;
 
   @NotNull private final JPanel myEditorPanel;
@@ -75,25 +72,11 @@ class DependenciesPanel extends JPanel {
   private boolean myShowGroupId = true;
   private int mySelectedAddDependencyActionIndex;
 
-  private static final List<PopularLibrary> POPULAR_LIBRARIES = Lists.newArrayList();
-  static {
-    POPULAR_LIBRARIES.add(new PopularLibrary("appcompat-v7", "com.android.support:appcompat-v7:23.0.0"));
-    POPULAR_LIBRARIES.add(new PopularLibrary("cardview-v7", "com.android.support:cardview-v7:23.0.0"));
-    POPULAR_LIBRARIES.add(new PopularLibrary("dagger", "com.google.dagger:dagger:2.0.2"));
-    POPULAR_LIBRARIES.add(new PopularLibrary("design", "com.android.support:design:23.0.0"));
-    POPULAR_LIBRARIES.add(new PopularLibrary("guava", "com.google.guava:guava:18.0"));
-    POPULAR_LIBRARIES.add(new PopularLibrary("gridlayout-v7", "com.android.support:gridlayout-v7:23.0.0"));
-    POPULAR_LIBRARIES.add(new PopularLibrary("gson", "org.immutables:gson:2.1.0"));
-    POPULAR_LIBRARIES.add(new PopularLibrary("play-services", "com.google.android.gms:play-services:7.8.0"));
-    POPULAR_LIBRARIES.add(new PopularLibrary("recyclerview-v7", "com.android.support:recyclerview-v7:23.0.0"));
-    POPULAR_LIBRARIES.add(new PopularLibrary("support-annotations", "com.android.support:support-annotations:23.0.0"));
-    POPULAR_LIBRARIES.add(new PopularLibrary("support-v13", "com.android.support:support-v13:23.0.0"));
-  }
-
   DependenciesPanel(@NotNull ModuleMergedModel model) {
     super(new BorderLayout());
     myModel = model;
-    myDependenciesPanels = Lists.newArrayList(new LibrariesPanel(), new ModulesPanel(), new FilesPanel());
+    myRepositorySearches = Lists.newArrayList(new MavenCentralRepositorySearch(), new AndroidSdkRepositorySearch(myModel));
+    myDependenciesPanels = Lists.newArrayList(new LibrariesPanel(this, myRepositorySearches), new ModulesPanel(), new FilesPanel());
     DependenciesTableModel tableModel = new DependenciesTableModel();
     List<DependencyMergedModel> dependencies = model.getDependencies();
     tableModel.setItems(dependencies);
@@ -193,7 +176,7 @@ class DependenciesPanel extends JPanel {
     DefaultActionGroup group = new DefaultActionGroup();
     for (int i = 0; i < myDependenciesPanels.size(); i++) {
       AddDependencyPanel panel = myDependenciesPanels.get(i);
-      group.add(new AddDependencyAction(panel.text, panel.icon, i));
+      group.add(new AddDependencyAction(panel.getDescription(), panel.getIcon(), i));
     }
     group.addSeparator();
     group.add(new CheckboxAction("Show Group ID") {
@@ -336,82 +319,14 @@ class DependenciesPanel extends JPanel {
     }
   }
 
-  private static abstract class AddDependencyPanel extends JPanel {
-    @NotNull final String text;
-    @NotNull final Icon icon;
-
-    AddDependencyPanel(@NotNull String text, @NotNull Icon icon) {
-      super(new BorderLayout());
-      this.text = text;
-      this.icon = icon;
-    }
-  }
-
-  private class LibrariesPanel extends AddDependencyPanel {
-    LibrariesPanel() {
-      super("Library", LIBRARY_ICON);
-      JBSplitter splitter = new OnePixelSplitter(false, "psd.dependencies.libraries.splitter.proportion", 0.80f);
-
-      ArtifactRepositorySearch[] searches = {new MavenCentralRepositorySearch(), new AndroidSdkRepositorySearch(myModel)};
-      JPanel librarySearchPanel = new JPanel(new BorderLayout());
-      librarySearchPanel.add(new HeaderPanel("Library Search"), BorderLayout.NORTH);
-      librarySearchPanel.add(new LibrarySearch(DependenciesPanel.this, searches).getPanel(), BorderLayout.CENTER);
-
-      splitter.setFirstComponent(librarySearchPanel);
-      splitter.setSecondComponent(new PopularLibrariesPanel());
-
-      add(splitter, BorderLayout.CENTER);
-    }
-  }
-
-  private class PopularLibrariesPanel extends JPanel {
-    PopularLibrariesPanel() {
-      super(new BorderLayout());
-      JTextPane textPane = new JTextPane();
-      textPane.setEditable(false);
-
-      textPane.setEditorKit(getHTMLEditorKit());
-
-      StringBuilder buffer = new StringBuilder(860);
-      for (PopularLibrary library : POPULAR_LIBRARIES) {
-        buffer.append(String.format("<a href='%1$s'>", library.coordinate)).append(library.name).append("</a><br/>");
-      }
-      textPane.setText(buffer.toString());
-      textPane.setBorder(createEmptyBorder(5, 5, 5, 5));
-
-      textPane.addHyperlinkListener(new HyperlinkAdapter() {
-        @Override
-        protected void hyperlinkActivated(HyperlinkEvent e) {
-          String coordinate = e.getDescription();
-          assert isNotEmpty(coordinate);
-          addLibraryDependency(coordinate);
-        }
-      });
-
-      add(new HeaderPanel("Popular Libraries"), BorderLayout.NORTH);
-      add(new JBScrollPane(textPane), BorderLayout.CENTER);
-      setBorder(createEmptyBorder());
-    }
-  }
-
-  private static class PopularLibrary {
-    @NotNull final String name;
-    @NotNull final String coordinate;
-
-    PopularLibrary(@NotNull String name, @NotNull String coordinate) {
-      this.name = name;
-      this.coordinate = coordinate;
-    }
-  }
-
-  private class ModulesPanel extends AddDependencyPanel {
+  private static class ModulesPanel extends AddDependencyPanel {
     ModulesPanel() {
       super("Module", Module);
       add(new HeaderPanel("Modules"), BorderLayout.NORTH);
     }
   }
 
-  private class FilesPanel extends AddDependencyPanel {
+  private static class FilesPanel extends AddDependencyPanel {
     FilesPanel() {
       super("File", Any_type);
       add(new HeaderPanel("Files"), BorderLayout.NORTH);
