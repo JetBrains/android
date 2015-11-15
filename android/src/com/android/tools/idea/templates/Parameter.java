@@ -57,35 +57,25 @@ import static com.android.tools.idea.templates.Template.*;
  * data entry.
  */
 public class Parameter {
-  private static final Set<String> TYPE_CACHE = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
-
   private static Logger getLog() { return Logger.getInstance(Parameter.class); }
-
-  static {
-    for(Type t : Type.values()) {
-      TYPE_CACHE.add(t.name().toUpperCase(Locale.US));
-    }
-  }
 
   public enum Type {
     STRING,
     BOOLEAN,
     ENUM,
-    SEPARATOR,
-    CUSTOM;
+    SEPARATOR;
 
     public static Type get(@NotNull String name) {
+      name = name.toUpperCase(Locale.US);
       try {
-        name = name.toUpperCase(Locale.US);
-        if (!TYPE_CACHE.contains(name)) {
-          return CUSTOM;
-        }
         return valueOf(name);
-      } catch (IllegalArgumentException ignored) {
-        // Impossible to get here, type_cache guarantees it
+      }
+      catch (IllegalArgumentException e) {
+        getLog().error(String.format("Unexpected template type: %1$s.\nExpected one or more of: (%2$s)", name,
+                                     Joiner.on(',').join(Constraint.values())));
       }
 
-      return CUSTOM;
+      return STRING;
     }
   }
 
@@ -226,10 +216,6 @@ public class Parameter {
   @NotNull
   public final EnumSet<Constraint> constraints;
 
-  /** The dsl name of the type that will be created in the ui for the user to enter this parameter.
-   *  This should correspond to a name registered by an ExternalWizardParameterFactory extension. */
-  public String externalTypeName;
-
   Parameter(@NotNull TemplateMetadata template, @NotNull Element parameter) {
     this.template = template;
     element = parameter;
@@ -245,12 +231,6 @@ public class Parameter {
     enabled = parameter.getAttribute(ATTR_ENABLED);
     name = parameter.getAttribute(ATTR_NAME);
     help = parameter.getAttribute(ATTR_HELP);
-    if (type == Type.CUSTOM) {
-      externalTypeName = typeName;
-    }
-    else {
-      externalTypeName = null;
-    }
     String constraintString = parameter.getAttribute(ATTR_CONSTRAINTS);
     if (constraintString != null && !constraintString.isEmpty()) {
       EnumSet<Constraint> constraintSet = null;
@@ -277,7 +257,6 @@ public class Parameter {
   public String validate(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                          @Nullable String packageName, @Nullable Object value, Set<Object> relatedValues) {
     switch (type) {
-      case CUSTOM:
       case STRING:
         return getErrorMessageForStringType(project, module, provider, packageName, value.toString(), relatedValues);
       case BOOLEAN:
