@@ -334,7 +334,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       addStep(galleryStep);
     }
     else {
-      TemplateMetadata templateMetadata = TemplateManager.getInstance().getTemplate(myTemplate);
+      TemplateMetadata templateMetadata = TemplateManager.getInstance().getTemplateMetadata(myTemplate);
       assert templateMetadata != null;
       myState.put(KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate, templateMetadata));
     }

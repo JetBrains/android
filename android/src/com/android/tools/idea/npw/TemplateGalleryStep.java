@@ -104,7 +104,7 @@ public class TemplateGalleryStep extends TemplateWizardStep
     List<File> templates = manager.getTemplates(templateFolder);
     List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templates.size());
     for (File template : templates) {
-      TemplateMetadata metadata = manager.getTemplate(template);
+      TemplateMetadata metadata = manager.getTemplateMetadata(template);
       if (metadata == null || !metadata.isSupported()) {
         continue;
       }
