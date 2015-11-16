@@ -245,6 +245,13 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Replace with ifRoom", "/res/menu/menu.xml", "xml");
   }
 
+  public void testPaddingStartQuickFix() throws Exception {
+    deleteManifest();
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintRtlCompatInspection(),
+                  "Set paddingLeft", "/res/layout/layout.xml", "xml");
+  }
+
   public void testAppCompatMethod() throws Exception {
     Module[] modules = ModuleManager.getInstance(getProject()).getModules();
     for (Module module : modules) {
