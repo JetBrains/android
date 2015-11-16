@@ -643,16 +643,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
 
     String buildId = StringUtil.notNullize(getLocalBuildId(module));
     try {
-      // We could write the id to a local file, and then use IDevice#pushFile to send the
-      // file to the device, but if the app hasn't been installed yet, we'll end up creating
-      // the local data folder on the device, and we'll create it as root, which means the
-      // app won't be able to create additional folders in there later (such as a folder to
-      // hold the .dex files for hot-swapping). We can't use IDevice#pushFile to set specific
-      // file permissions, but we can instead use the "run-as" shell command to write the
-      // directory with the app's own permissions.
-      String dir = getDataFolder(pkg);
-      //noinspection SpellCheckingInspection
-      String cmd = "run-as " + pkg + " mkdir -p " + dir + "; echo '" + buildId + "' > " + dir + "/" + BUILD_ID_TXT;
+      String remote = copyToDeviceScratchFile(device, pkg, buildId);
+
+      String dataDir = getDataFolder(pkg);
+
+      // Essentially does: cp /data/local/tmp/build.txt /data/data/pkg/files/studio-fd/build.txt
+      String cmd = "run-as " + pkg + " mkdir -p " + dataDir + "; run-as " + pkg + " cp " + remote + " " + dataDir + "/" + BUILD_ID_TXT;
       CollectingOutputReceiver receiver = new CollectingOutputReceiver();
       device.executeShellCommand(cmd, receiver);
       String output = receiver.getOutput();
@@ -670,6 +666,27 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     }
     catch (ShellCommandUnresponsiveException e) {
       LOG.warn(e);
+    }
+    catch (SyncException e) {
+      LOG.warn(e);
+    }
+  }
+
+  private static String copyToDeviceScratchFile(@NotNull IDevice device, @NotNull String pkgName, @NotNull String contents)
+    throws IOException, AdbCommandRejectedException, SyncException, TimeoutException {
+
+    File local = null;
+    try {
+      local = FileUtil.createTempFile("data", "fdr");
+      Files.write(contents.getBytes(Charsets.UTF_8), local);
+
+      String remoteTmpBuildId = "/data/local/tmp/" + pkgName + "-data.fdr";
+      device.pushFile(local.getAbsolutePath(), remoteTmpBuildId);
+      return remoteTmpBuildId;
+    } finally {
+      if (local != null) {
+        local.delete();
+      }
     }
   }
 
@@ -786,7 +803,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   }
 
   /** Returns true if any of the devices in the given list require a rebuild */
-    public static boolean isRebuildRequired(@NotNull Collection<IDevice> devices, @NotNull Module module) {
+  public static boolean isRebuildRequired(@NotNull Collection<IDevice> devices, @NotNull Module module) {
     for (IDevice device : devices) {
       if (isRebuildRequired(device, module)) {
         return true;
