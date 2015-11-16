@@ -185,6 +185,14 @@ public class ModuleMergedModel {
     return myDependencyModels;
   }
 
+  @NotNull
+  static GradleCoordinate convert(@NotNull MavenCoordinates coordinates) {
+    RevisionComponent version = new StringComponent(coordinates.getVersion());
+    List<RevisionComponent> components = Lists.newArrayList(version);
+    GradleCoordinate.ArtifactType artifactType = GradleCoordinate.ArtifactType.getArtifactType(coordinates.getPackaging());
+    return new GradleCoordinate(coordinates.getGroupId(), coordinates.getArtifactId(), components, artifactType);
+  }
+
   /**
    * Collection of artifact dependencies obtained from the Gradle model.
    */
@@ -244,11 +252,7 @@ public class ModuleMergedModel {
     static LogicalArtifactDependency create(@NotNull Library dependency) {
       MavenCoordinates resolved = dependency.getResolvedCoordinates();
       if (resolved != null) {
-        RevisionComponent version = new StringComponent(resolved.getVersion());
-        List<RevisionComponent> components = Lists.newArrayList(version);
-        GradleCoordinate.ArtifactType artifactType = GradleCoordinate.ArtifactType.getArtifactType(resolved.getPackaging());
-        GradleCoordinate coordinate = new GradleCoordinate(resolved.getGroupId(), resolved.getArtifactId(), components, artifactType);
-        return new LogicalArtifactDependency(coordinate, dependency);
+        return new LogicalArtifactDependency(convert(resolved), dependency);
       }
       return null;
     }
