@@ -672,6 +672,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     }
   }
 
+  @NotNull
   private static String copyToDeviceScratchFile(@NotNull IDevice device, @NotNull String pkgName, @NotNull String contents)
     throws IOException, AdbCommandRejectedException, SyncException, TimeoutException {
 
@@ -685,6 +686,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       return remoteTmpBuildId;
     } finally {
       if (local != null) {
+        //noinspection ResultOfMethodCallIgnored
         local.delete();
       }
     }

@@ -85,58 +85,24 @@ public class PatchDeployState implements RunProfileState {
         myProcessHandler.notifyTextAvailable(msg, ProcessOutputTypes.STDOUT);
 
         boolean coldSwap = FastDeployManager.isColdSwap(AndroidGradleModel.get(myFacet));
-        AndroidMultiProcessHandler newProcessHandler = null;
-        ProcessHandler oldProcessHandler = myProcessHandler;
 
-        if (coldSwap) {
-          LOG.info("Performing a cold swap, application will restart");
+        if (coldSwap && (myProcessHandler instanceof AndroidMultiProcessHandler)) {
+          LOG.info("Performing a cold swap, application will restart\n");
           myProcessHandler.notifyTextAvailable("Performing a cold swap, application will restart\n", ProcessOutputTypes.STDOUT);
-          newProcessHandler = switchToNewProcessHandler();
+          ((AndroidMultiProcessHandler)myProcessHandler).reset();
         }
 
         for (IDevice device : myDevices) {
           FastDeployManager.pushChanges(device, myFacet);
 
-          if (coldSwap) {
-            newProcessHandler.addTargetDevice(device);
+          if (coldSwap && (myProcessHandler instanceof AndroidMultiProcessHandler)) {
+            ((AndroidMultiProcessHandler)myProcessHandler).addTargetDevice(device);
           }
         }
 
         myProcessHandler.notifyTextAvailable("Incremental update complete.\n", ProcessOutputTypes.STDOUT);
-
-        if (coldSwap && (oldProcessHandler instanceof AndroidMultiProcessHandler)) {
-          // We want to cleanup the existing process handler, but we don't want it to attempt to kill any clients
-          ((AndroidMultiProcessHandler)oldProcessHandler).setNoKill();
-          oldProcessHandler.destroyProcess();
-        }
       }
     });
-  }
-
-  @NotNull
-  private AndroidMultiProcessHandler switchToNewProcessHandler() {
-    AndroidMultiProcessHandler handler = new AndroidMultiProcessHandler(myApplicationId);
-    handler.startNotify();
-
-    AndroidSessionInfo info = myProcessHandler.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
-    if (info == null) {
-      throw new IllegalStateException("Unexpected error: Old state was not an instance of an Android run.");
-    }
-
-    AndroidSessionInfo newSession = new AndroidSessionInfo(handler, myDescriptor, info.getState(), info.getExecutorId());
-    handler.putUserData(AndroidDebugRunner.ANDROID_SESSION_INFO, newSession);
-
-    ConsoleView console = info.getState().getConsoleView();
-    if (console == null) {
-      throw new IllegalStateException("Unexpected error: Old state was not attached to a console.");
-    }
-
-    console.attachToProcess(handler);
-
-    myDescriptor.setProcessHandler(handler);
-    myProcessHandler = handler;
-
-    return handler;
   }
 
   private static String join(Collection<IDevice> devices) {
