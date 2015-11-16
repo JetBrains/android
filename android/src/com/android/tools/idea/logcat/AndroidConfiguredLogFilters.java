@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat;
 
+import com.android.ddmlib.ClientData;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.*;
@@ -71,11 +72,12 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
   }
 
   @NotNull
-  public FilterEntry createFilterForProcess(int pid) {
+  public FilterEntry createFilterForClient(@NotNull ClientData clientData) {
     FilterEntry entry = new FilterEntry();
-    final String pidString = Integer.toString(pid);
-    entry.setName("Process id: " + pidString);
-    entry.setPid(pidString);
+    entry.setPackageNameIsRegex(false);
+    String processName = clientData.getClientDescription();
+    entry.setPackageNamePattern(processName);
+    entry.setName("Process: " + processName);
     return entry;
   }
 
