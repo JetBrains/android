@@ -114,6 +114,17 @@ public abstract class UsageTracker {
   public static final String ACTION_APP_INDEXING_TRIGGER_QUICKFIX = "triggerQuickfix";
 
   /**
+   * Tracking category for LLDB native debugger
+   */
+  public static final String CATEGORY_LLDB = "lldb";
+  public static final String ACTION_LLDB_DEVICE_MODEL = IDevice.PROP_DEVICE_MODEL;
+  public static final String ACTION_LLDB_DEVICE_API_LEVEL = IDevice.PROP_BUILD_API_LEVEL;
+  public static final String ACTION_LLDB_SESSION_STARTED = "sessionStarted";
+  public static final String ACTION_LLDB_SESSION_FAILED = "sessionFailed";
+  public static final String ACTION_LLDB_INSTALL_STARTED = "installStarted";
+  public static final String ACTION_LLDB_INSTALL_FAILED = "installFailed";
+
+  /**
    * When using the usage tracker, do NOT include any information that can identify the user
    */
   @NotNull
