@@ -67,7 +67,6 @@ public class DumpSysAction {
     String description = myClient == null ? null : myClient.getClientData().getClientDescription();
     final String pkgName = description != null ? description : "";
     final String command = String.format(Locale.US, "dumpsys %1$s %2$s", myService, pkgName).trim();
-
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
@@ -81,7 +80,8 @@ public class DumpSysAction {
                 public void run() {
                   try {
                     final CaptureService service = CaptureService.getInstance(myProject);
-                    CaptureHandle handle = service.startCaptureFile(SystemInfoCaptureType.class);
+                    String name = service.getSuggestedName(myClient);
+                    CaptureHandle handle = service.startCaptureFile(SystemInfoCaptureType.class, name);
                     service.appendData(handle, receiver.getOutput().getBytes());
                     service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
                       @Override
