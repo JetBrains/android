@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.editor;
 
-import com.android.tools.idea.gradle.structure.configurables.ModuleConfigurationState;
+import com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.TabbedPaneWrapper;
 import com.intellij.ui.navigation.History;
@@ -35,8 +34,8 @@ public class TabbedModuleEditor extends ModuleEditor {
 
   private TabbedPaneWrapper myTabbedPane;
 
-  public TabbedModuleEditor(@NotNull ModuleConfigurationState module) {
-    super(module);
+  public TabbedModuleEditor(@NotNull ModuleMergedModel model) {
+    super(model);
   }
 
   @Override
