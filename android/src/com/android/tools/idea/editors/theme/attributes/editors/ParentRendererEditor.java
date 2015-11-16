@@ -144,6 +144,8 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorSty
         ThemeEditorUtils.createNewStyle(module, resName, parentName, fileName, dirNames);
       }
     });
+
+    ThemeEditorUtils.setInheritsPopupMenuRecursive(myPanel);
   }
 
   private void updateVariantsCombo() {
