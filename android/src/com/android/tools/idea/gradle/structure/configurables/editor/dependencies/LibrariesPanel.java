@@ -17,9 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.editor.dependencie
 
 import com.android.tools.idea.structure.dialog.HeaderPanel;
 import com.google.common.collect.Lists;
-import com.intellij.ui.HyperlinkAdapter;
-import com.intellij.ui.JBSplitter;
-import com.intellij.ui.OnePixelSplitter;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -88,7 +86,7 @@ class LibrariesPanel extends AddDependencyPanel {
 
       add(new HeaderPanel("Popular Libraries"), BorderLayout.NORTH);
       add(new JBScrollPane(textPane), BorderLayout.CENTER);
-      setBorder(createEmptyBorder());
+      setBorder(IdeBorderFactory.createBorder(SideBorder.RIGHT));
     }
   }
 

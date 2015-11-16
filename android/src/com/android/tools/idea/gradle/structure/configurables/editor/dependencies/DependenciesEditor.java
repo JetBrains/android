@@ -35,7 +35,7 @@ public class DependenciesEditor extends ModuleElementsEditor {
   @Override
   @Nullable
   protected JComponent doCreateComponent() {
-    myPanel = new DependenciesPanel(getModel());
+    myPanel = new DependenciesPanel(this, getModel());
     return myPanel;
   }
 

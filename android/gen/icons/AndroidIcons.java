@@ -73,6 +73,10 @@ public class AndroidIcons {
 
   public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
 
+  public static class ProjectStructure {
+    public static final Icon UnknownLibrary = load("/icons/psd/unknownLibrary.png");
+  }
+
   // Form factors
   public static class FormFactors {
     public static final Icon Wear_16 = load("/icons/wear.png");                          // 16x16
