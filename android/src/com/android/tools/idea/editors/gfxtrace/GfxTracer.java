@@ -95,7 +95,8 @@ public class GfxTracer {
     myDevice = device;
     myEvents = events;
     try {
-      myCapture = myCaptureService.startCaptureFile(GfxTraceCaptureType.class);
+      String name = myCaptureService.getSuggestedName(null);
+      myCapture = myCaptureService.startCaptureFile(GfxTraceCaptureType.class, name);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
