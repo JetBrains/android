@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.model;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel.LogicalArtifactDependency;
 import com.google.common.collect.Lists;
@@ -30,6 +31,7 @@ import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 public class ArtifactDependencyMergedModel extends DependencyMergedModel {
   @NotNull private final List<LogicalArtifactDependency> myLogicalModels;
   @NotNull private final ArtifactDependencyModel myParsedModel;
+  @NotNull private final GradleCoordinate myCoordinate;
 
   @NotNull
   static ArtifactDependencyMergedModel create(@NotNull ModuleMergedModel parent, @NotNull ArtifactDependencyModel parsedModel) {
@@ -49,6 +51,9 @@ public class ArtifactDependencyMergedModel extends DependencyMergedModel {
     super(parent, parsedModel.getConfigurationName());
     myLogicalModels = Lists.newArrayList(logicalModels);
     myParsedModel = parsedModel;
+    GradleCoordinate parsed = GradleCoordinate.parseCoordinateString(myParsedModel.getCompactNotation());
+    assert parsed != null;
+    myCoordinate = parsed;
   }
 
   @Override
@@ -60,6 +65,11 @@ public class ArtifactDependencyMergedModel extends DependencyMergedModel {
   @NotNull
   public Icon getIcon() {
     return LIBRARY_ICON;
+  }
+
+  @NotNull
+  public GradleCoordinate getCoordinate() {
+    return myCoordinate;
   }
 
   @Override
