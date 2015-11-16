@@ -27,6 +27,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.TreeModelEvent;
@@ -54,13 +55,26 @@ public class ActivitySelector extends JDialog {
   private DeviceInfo.Package mySelectedPackage;
   private DeviceInfo.Activity mySelectedActivity;
 
+  @NotNull private Listener myListener = NULL_LISTENER;
+
+  private static final Listener NULL_LISTENER = new Listener() {
+    @Override
+    public void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity activity) {
+    }
+
+    @Override
+    public void OnCancel() {
+    }
+  };
+
+
   public interface Listener {
     void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity activity);
 
     void OnCancel();
   }
 
-  public ActivitySelector(DeviceInfo.Provider dip, final Listener listener) {
+  public ActivitySelector(DeviceInfo.Provider dip) {
     setContentPane(contentPane);
     // setModal(true);
     getRootPane().setDefaultButton(buttonOK);
@@ -68,7 +82,9 @@ public class ActivitySelector extends JDialog {
     buttonOK.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        listener.OnLaunch(mySelectedPackage, mySelectedActivity);
+        if (myListener != null) {
+          myListener.OnLaunch(mySelectedPackage, mySelectedActivity);
+        }
         dispose();
       }
     });
@@ -76,7 +92,7 @@ public class ActivitySelector extends JDialog {
     buttonCancel.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        listener.OnCancel();
+        myListener.OnCancel();
         dispose();
       }
     });
@@ -85,7 +101,7 @@ public class ActivitySelector extends JDialog {
     addWindowListener(new WindowAdapter() {
       @Override
       public void windowClosing(WindowEvent e) {
-        listener.OnCancel();
+        myListener.OnCancel();
         dispose();
       }
     });
@@ -93,9 +109,8 @@ public class ActivitySelector extends JDialog {
     contentPane.registerKeyboardAction(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        listener.OnCancel();
+        myListener.OnCancel();
         dispose();
-
       }
     }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
@@ -177,6 +192,15 @@ public class ActivitySelector extends JDialog {
     });
 
     pack();
+  }
+
+  public void setListener(@Nullable Listener listener) {
+    if (listener != null) {
+      myListener = listener;
+    }
+    else {
+      myListener = NULL_LISTENER;
+    }
   }
 
   private void createUIComponents() {
