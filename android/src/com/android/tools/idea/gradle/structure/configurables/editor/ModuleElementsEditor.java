@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.editor;
 
-import com.android.tools.idea.gradle.structure.configurables.ModuleConfigurationState;
+import com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel;
 import com.intellij.openapi.CompositeDisposable;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -27,13 +27,13 @@ import javax.swing.*;
 
 public abstract class ModuleElementsEditor implements ModuleConfigurationEditor {
   @NotNull private final CompositeDisposable myDisposables = new CompositeDisposable();
-  @NotNull private final ModuleConfigurationState myConfigurationState;
+  @NotNull private final ModuleMergedModel myModel;
 
   protected JComponent myComponent;
   protected History myHistory;
 
-  protected ModuleElementsEditor(@NotNull ModuleConfigurationState configurationState) {
-    myConfigurationState = configurationState;
+  protected ModuleElementsEditor(@NotNull ModuleMergedModel model) {
+    myModel = model;
   }
 
   protected void registerDisposable(@NotNull Disposable disposable) {
@@ -41,8 +41,8 @@ public abstract class ModuleElementsEditor implements ModuleConfigurationEditor 
   }
 
   @NotNull
-  public ModuleConfigurationState getConfigurationState() {
-    return myConfigurationState;
+  public ModuleMergedModel getModel() {
+    return myModel;
   }
 
   @Nullable
