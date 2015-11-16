@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>File dependencies: e.g. compile files("a.jar")</li>
  * </ol>
  */
-abstract class DependencyModel {
+public abstract class DependencyModel {
   @NotNull
   protected abstract GradleDslElement getDslElement();
 

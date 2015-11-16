@@ -71,7 +71,8 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
       results.add(new MapNotation((GradleDslExpressionMap)element));
     }
     else if (element instanceof GradleDslMethodCall) {
-      if (!"project".equals(element.getName())) {
+      String name = element.getName();
+      if (!"project".equals(name) && !"fileTree".equals(name)) {
         for (GradleDslElement argument : ((GradleDslMethodCall)element).getArguments()) {
           results.addAll(create(argument));
         }

@@ -17,8 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables;
 
 import com.android.tools.idea.gradle.structure.configurables.editor.ModuleEditor;
 import com.android.tools.idea.gradle.structure.configurables.editor.TabbedModuleEditor;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.module.Module;
+import com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectStructureElementConfigurable;
@@ -33,20 +32,18 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
-
-public class ModuleConfigurable extends ProjectStructureElementConfigurable<ModuleConfigurationState>
+public class ModuleConfigurable extends ProjectStructureElementConfigurable<ModuleMergedModel>
   implements SearchableConfigurable, Place.Navigator {
 
+  @NotNull private final ModuleMergedModel myModel;
   @NotNull private final ModuleEditor myModuleEditor;
-  @NotNull private final ModuleConfigurationState myConfigurationState;
 
   private String myDisplayName;
 
-  public ModuleConfigurable(@NotNull ModuleConfigurationState configurationState) {
-    myConfigurationState = configurationState;
-    myDisplayName = myConfigurationState.getModuleName();
-    myModuleEditor = new TabbedModuleEditor(configurationState);
+  public ModuleConfigurable(@NotNull ModuleMergedModel model) {
+    myModel = model;
+    myDisplayName = model.getModuleName();
+    myModuleEditor = new TabbedModuleEditor(model);
   }
 
   @Override
@@ -89,8 +86,8 @@ public class ModuleConfigurable extends ProjectStructureElementConfigurable<Modu
   }
 
   @Override
-  public ModuleConfigurationState getEditableObject() {
-    return myConfigurationState;
+  public ModuleMergedModel getEditableObject() {
+    return myModel;
   }
 
   @Override
@@ -130,11 +127,7 @@ public class ModuleConfigurable extends ProjectStructureElementConfigurable<Modu
   @Override
   @Nullable
   public Icon getIcon(boolean expanded) {
-    Module module = myConfigurationState.getModule();
-    if (module != null && !module.isDisposed()) {
-      return getModuleIcon(module);
-    }
-    return AllIcons.Nodes.Module;
+    return myModel.getIcon();
   }
 
   @Override
