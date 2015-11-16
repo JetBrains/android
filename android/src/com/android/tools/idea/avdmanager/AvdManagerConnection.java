@@ -28,6 +28,8 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.run.ExternalToolRunner;
 import com.android.tools.idea.sdk.LogWrapper;
@@ -37,7 +39,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.util.ProgressWindow;
@@ -76,6 +80,7 @@ public class AvdManagerConnection {
   private static final int MNC_GAPI_MIN_REVISION = 2;
   private static final int LMP_AOSP_MIN_REVISION = 5;
   private static final int LMP_GAPI_MIN_REVISION = 9;
+  private static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0");
 
   private AvdManager ourAvdManager;
   private Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
@@ -134,6 +139,14 @@ public class AvdManagerConnection {
       }
     }
     return true;
+  }
+
+  private boolean hasQEMU2Installed() {
+    LocalPkgInfo info = myLocalSdk.getPkgInfo(PkgType.PKG_TOOLS);
+    if (info == null) {
+      return false;
+    }
+    return info.getDesc().getRevision().compareTo(TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0;
   }
 
   /**
@@ -393,6 +406,35 @@ public class AvdManagerConnection {
         }
       }
     });
+  }
+
+  /**
+   * Run "emulator -accel-check" to check the status for emulator acceleration on this machine.
+   * Return a {@link AccelerationErrorCode}.
+   */
+  public AccelerationErrorCode checkAcceration() {
+    if (!initIfNecessary()) {
+      return AccelerationErrorCode.UNKNOWN_ERROR;
+    }
+    if (!hasQEMU2Installed()) {
+      // TODO: Return this error when the new emulator has been released.
+      // return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED;
+      // TODO: For now just ignore the rest of the checks
+      return AccelerationErrorCode.ALREADY_INSTALLED;
+    }
+    GeneralCommandLine commandLine = new GeneralCommandLine();
+    commandLine.setExePath(ourEmulatorBinary.getPath());
+    commandLine.addParameter("-accel-check");
+    int exitValue;
+    try {
+      CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
+      ProcessOutput output = process.runProcess();
+      exitValue = output.getExitCode();
+    }
+    catch (ExecutionException e) {
+      exitValue = AccelerationErrorCode.UNKNOWN_ERROR.getErrorCode();
+    }
+    return AccelerationErrorCode.fromExitCode(exitValue);
   }
 
   /**
