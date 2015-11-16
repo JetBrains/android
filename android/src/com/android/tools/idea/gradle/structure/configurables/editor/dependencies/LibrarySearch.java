@@ -54,7 +54,7 @@ import static java.awt.event.KeyEvent.VK_N;
 
 class LibrarySearch {
   @NotNull private final DependenciesPanel myDependenciesPanel;
-  @NotNull private final ArtifactRepositorySearch[] myRepositorySearches;
+  @NotNull private final List<ArtifactRepositorySearch> myRepositorySearches;
 
   private JBTextField myArtifactNameTextField;
   private JPanel myPanel;
@@ -66,7 +66,7 @@ class LibrarySearch {
   private JBLabel myRequiredFieldLabel;
   private JBScrollPane myResultsScrollPane;
 
-  LibrarySearch(@NotNull DependenciesPanel dependenciesPanel, @NotNull ArtifactRepositorySearch[] repositorySearches) {
+  LibrarySearch(@NotNull DependenciesPanel dependenciesPanel, @NotNull List<ArtifactRepositorySearch> repositorySearches) {
     myDependenciesPanel = dependenciesPanel;
     myRepositorySearches = repositorySearches;
     myArtifactNameTextField.getDocument().addDocumentListener(new DocumentAdapter() {
@@ -130,7 +130,7 @@ class LibrarySearch {
     final ArtifactRepositorySearch.Request request = new ArtifactRepositorySearch.Request(getArtifactName(), getGroupId(), 50, 0);
 
     final ActionCallback callback = new ActionCallback();
-    final List<Future<SearchResult>> jobs = Lists.newArrayListWithExpectedSize(myRepositorySearches.length);
+    final List<Future<SearchResult>> jobs = Lists.newArrayListWithExpectedSize(myRepositorySearches.size());
     final List<LibraryFound> librariesFound = Lists.newArrayList();
 
     final Application application = ApplicationManager.getApplication();
