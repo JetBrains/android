@@ -224,4 +224,9 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
   private void print(@NotNull String s) {
     notifyTextAvailable(s + "\n", ProcessOutputTypes.STDOUT);
   }
+
+  public void reset() {
+    myDevices.clear();
+    myClients.clear();
+  }
 }
