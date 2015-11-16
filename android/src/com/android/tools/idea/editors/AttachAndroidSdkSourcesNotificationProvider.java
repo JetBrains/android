@@ -18,7 +18,7 @@ package com.android.tools.idea.editors;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.legacy.SdkQuickfixWizard;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
 import com.intellij.codeEditor.JavaEditorFileSwapper;

@@ -29,7 +29,7 @@ import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityS
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.legacy.SdkQuickfixWizard;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.google.common.collect.Lists;

@@ -268,7 +268,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
     return toReturn;
   }
 
-  public void setChanges(List<Change> changes) {
+  private void setChanges(List<Change> changes) {
     Map<String, DefaultMutableTreeNode> licenseNodeMap = Maps.newHashMap();
     myVisibleLicenses.clear();
 

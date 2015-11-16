@@ -20,7 +20,7 @@ import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.legacy.SdkQuickfixWizard;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;

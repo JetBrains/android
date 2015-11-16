@@ -25,7 +25,7 @@ import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.legacy.SdkQuickfixWizard;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
