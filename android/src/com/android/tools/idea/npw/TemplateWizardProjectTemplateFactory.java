@@ -81,7 +81,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
           project == null && !WizardConstants.MODULE_TEMPLATE_NAME.equals(templateName)) {
         continue;
       }
-      TemplateMetadata metadata = manager.getTemplate(template);
+      TemplateMetadata metadata = manager.getTemplateMetadata(template);
       if (metadata == null || !metadata.isSupported()) {
         continue;
       }
