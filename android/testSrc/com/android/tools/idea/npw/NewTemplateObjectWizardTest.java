@@ -183,9 +183,9 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
 
     for (File f : templates) {
       if (f.getName().equals("Notification")) {
-        notificationMetadata = manager.getTemplate(f);
+        notificationMetadata = manager.getTemplateMetadata(f);
       } else if (f.getName().equals("BlankFragment")) {
-        fragmentMetadata = manager.getTemplate(f);
+        fragmentMetadata = manager.getTemplateMetadata(f);
       }
     }
 

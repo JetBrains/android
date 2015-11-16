@@ -102,7 +102,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
     TemplateManager manager = TemplateManager.getInstance();
     List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templateFiles.size());
     for (File template : templateFiles) {
-      TemplateMetadata metadata = manager.getTemplate(template);
+      TemplateMetadata metadata = manager.getTemplateMetadata(template);
       if (metadata == null || !metadata.isSupported()) {
         continue;
       }

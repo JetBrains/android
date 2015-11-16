@@ -363,7 +363,7 @@ public class Template {
   @Nullable
   public TemplateMetadata getMetadata() {
     if (myMetadata == null) {
-      myMetadata = TemplateManager.getInstance().getTemplate(myTemplateRoot);
+      myMetadata = TemplateManager.getInstance().getTemplateMetadata(myTemplateRoot);
     }
 
     return myMetadata;
