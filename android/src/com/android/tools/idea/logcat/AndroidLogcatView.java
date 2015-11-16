@@ -189,7 +189,7 @@ public abstract class AndroidLogcatView implements Disposable {
             boolean reselect = myFilterComboBoxModel.getSelectedItem() == mySelectedAppFilter;
             AndroidConfiguredLogFilters.FilterEntry f;
             if (c != null) {
-              f = AndroidConfiguredLogFilters.getInstance(myProject).createFilterForProcess(c.getClientData().getPid());
+              f = AndroidConfiguredLogFilters.getInstance(myProject).createFilterForClient(c.getClientData());
             }
             else {
               f = new AndroidConfiguredLogFilters.FilterEntry();
