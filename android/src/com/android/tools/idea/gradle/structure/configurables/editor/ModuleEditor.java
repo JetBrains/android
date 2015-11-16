@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.editor;
 
-import com.android.tools.idea.gradle.structure.configurables.ModuleConfigurationState;
+import com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel;
 import com.android.tools.idea.gradle.structure.configurables.editor.dependencies.DependenciesEditor;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.roots.ui.configuration.ModuleElementsEditor;
 import com.intellij.ui.navigation.History;
@@ -34,16 +32,16 @@ import java.awt.*;
 import java.util.List;
 
 public abstract class ModuleEditor implements Place.Navigator, Disposable {
-  @NonNls  protected static final String SELECTED_EDITOR_NAME = "selectedEditor";
+  @NonNls protected static final String SELECTED_EDITOR_NAME = "selectedEditor";
 
+  @NotNull private final ModuleMergedModel myModel;
   @NotNull private final List<ModuleConfigurationEditor> myEditors = Lists.newArrayList();
-  @NotNull private final ModuleConfigurationState myConfigurationState;
 
   @Nullable private History myHistory;
   private JPanel mySettingsPanel;
 
-  protected ModuleEditor(@NotNull ModuleConfigurationState configurationState) {
-    myConfigurationState = configurationState;
+  protected ModuleEditor(@NotNull ModuleMergedModel model) {
+    myModel = model;
   }
 
   public void init(@Nullable History history) {
@@ -60,14 +58,14 @@ public abstract class ModuleEditor implements Place.Navigator, Disposable {
   public JPanel getPanel() {
     if (mySettingsPanel == null) {
       createEditors();
-      mySettingsPanel = new ModuleEditorPanel();
+      mySettingsPanel = new JPanel(new BorderLayout());
       mySettingsPanel.add(createCenterPanel(), BorderLayout.CENTER);
     }
     return mySettingsPanel;
   }
 
   private void createEditors() {
-    myEditors.add(new DependenciesEditor(myConfigurationState));
+    myEditors.add(new DependenciesEditor(myModel));
   }
 
   @NotNull
@@ -130,20 +128,5 @@ public abstract class ModuleEditor implements Place.Navigator, Disposable {
   @NotNull
   public List<ModuleConfigurationEditor> getEditors() {
     return myEditors;
-  }
-
-  private class ModuleEditorPanel extends JPanel implements DataProvider {
-    ModuleEditorPanel() {
-      super(new BorderLayout());
-    }
-
-    @Override
-    @Nullable
-    public Object getData(@NonNls String dataId) {
-      if (LangDataKeys.MODULE_CONTEXT.is(dataId)) {
-        return myConfigurationState.getModule();
-      }
-      return null;
-    }
   }
 }

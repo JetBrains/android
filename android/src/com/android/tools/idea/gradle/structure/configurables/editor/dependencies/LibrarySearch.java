@@ -86,15 +86,10 @@ class LibrarySearch {
     myRequiredFieldLabel.setComponentStyle(SMALL);
     myRequiredFieldLabel.setIcon(WarningDecorator);
 
-    myArtifactNameTextField.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (mySearchButton.isEnabled()) {
-          performSearch();
-        }
-      }
-    });
+    myArtifactNameTextField.addActionListener(new SearchActionListener());
     myArtifactNameTextField.getEmptyText().setText("Example: \"guava\"");
+
+    myGroupIdTextField.addActionListener(new SearchActionListener());
     myGroupIdTextField.getEmptyText().setText("Example: \"com.google.guava\"");
 
     mySearchButton.addActionListener(new ActionListener() {
@@ -116,6 +111,7 @@ class LibrarySearch {
 
     myResultsTable = new TableView<LibraryFound>(new ResultsTableModel());
     myResultsTable.setAutoCreateRowSorter(true);
+    myResultsTable.setShowGrid(false);
     myResultsTable.getTableHeader().setReorderingAllowed(false);
     myResultsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       @Override
@@ -124,6 +120,7 @@ class LibrarySearch {
       }
     });
     myResultsScrollPane.setViewportView(myResultsTable);
+    List<? extends RowSorter.SortKey> sortKeys = myResultsTable.getRowSorter().getSortKeys();
     new TableSpeedSearch(myResultsTable);
     clearResults();
   }
@@ -218,6 +215,15 @@ class LibrarySearch {
 
   private void clearResults() {
     myResultsTable.getListTableModel().setItems(Collections.<LibraryFound>emptyList());
+  }
+
+  private class SearchActionListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (mySearchButton.isEnabled()) {
+        performSearch();
+      }
+    }
   }
 
   private static class ResultsTableModel extends ListTableModel<LibraryFound> {
