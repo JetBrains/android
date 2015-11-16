@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.npw.NewModuleWizardState;
-import com.android.tools.idea.npw.TemplateWizardModuleBuilder;
 import com.android.tools.idea.templates.*;
 import com.google.common.collect.Maps;
 
@@ -67,7 +65,7 @@ public class NewModuleWizardStateTest extends AndroidGradleTestCase {
     File javaTemplateFile = null;
 
     for (File template : templates) {
-      TemplateMetadata metadata = manager.getTemplate(template);
+      TemplateMetadata metadata = manager.getTemplateMetadata(template);
       if (metadata.getTitle().equals(TemplateWizardModuleBuilder.MODULE_NAME)) {
         androidTemplateFile = template;
       } else if (metadata.getTitle().equals("Java Library")) {
