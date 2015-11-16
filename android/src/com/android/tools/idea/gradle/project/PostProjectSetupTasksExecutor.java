@@ -44,7 +44,7 @@ import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDia
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.legacy.SdkQuickfixWizard;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
