@@ -21,7 +21,6 @@
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="90c653" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
   <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size32opaque="/artwork/icon_AS_white.png" size12="/artwork/toolWindowProject_AS.png" ico="artwork/androidstudio.ico"/>
-  <package code="__PACKAGE_CODE__"/>
   <names product="Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
 
   <welcome-screen logo-url="/artwork/welcome.png"
