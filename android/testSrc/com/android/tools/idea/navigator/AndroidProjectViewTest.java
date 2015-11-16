@@ -27,6 +27,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.GroupByTypeComparator;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -169,15 +170,38 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     // Select the node app/res/values/dimens.xml, which groups together 3 dimens.xml files
     Object element = findElementForPath(structure, "app (Android)", "res", "values", "dimens.xml (3)");
     assertNotNull(element);
-
     myPane.getTreeBuilder().select(element);
 
     // Now make sure that selecting that group node caused the actual files to be selected
     PsiElement[] psiElements = myPane.getSelectedPSIElements();
     assertEquals(3, psiElements.length);
-
     for (PsiElement e : psiElements) {
-      assertEquals("dimens.xml", ((XmlFile)psiElements[0]).getName());
+      assertEquals("dimens.xml", ((XmlFile)e).getName());
+    }
+  }
+
+  // Test that the virtualFileArray for resource nodes actually contains the files for this node.
+   public void testVirtualFileArrayForResNode() throws Exception {
+    if (IS_PRESUBMIT_RUNNER || !CAN_SYNC_PROJECTS) {
+      System.err.println("AndroidProjectViewTest.testSelection temporarily disabled");
+      return;
+    }
+
+    loadProject("projects/navigator/packageview/simple");
+
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), myTestRootDisposable);
+
+    // Select the node app/res/drawable/is_launcher.png, which groups together 2 ic_launcher.png files.
+    Object element = findElementForPath(structure, "app (Android)", "res", "drawable", "ic_launcher.png (2)");
+    assertNotNull(element);
+    myPane.getTreeBuilder().select(element);
+
+    // Now make sure the virtualFileArray for this node actually contains the 2 files.
+    VirtualFile[] files = ((VirtualFile[])myPane.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY.getName()));
+    assertEquals(2, files.length);
+    for (VirtualFile f : files) {
+      assertEquals("ic_launcher.png", f.getName());
     }
   }
 
