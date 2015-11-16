@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableProperty;
-import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,60 +56,6 @@ public final class OptionalValueProperty<T> extends OptionalProperty<T> {
   @Override
   public Optional<T> get() {
     return myOptional;
-  }
-
-  @Override
-  @NotNull
-  public T getValue() {
-    return myOptional.get();
-  }
-
-  @Override
-  public void setValue(@NotNull T value) {
-    if (!myOptional.isPresent() || !myOptional.get().equals(value)) {
-      set(Optional.of(value));
-    }
-  }
-
-  @Override
-  public void clear() {
-    if (myOptional.isPresent()) {
-      set(Optional.<T>absent());
-    }
-  }
-
-  @Override
-  public void setNullableValue(@Nullable T value) {
-    if (value != null) {
-      setValue(value);
-    }
-    else {
-      clear();
-    }
-  }
-
-  @Override
-  @NotNull
-  public T getValueOr(@NotNull T defaultValue) {
-    return myOptional.or(defaultValue);
-  }
-
-  @Override
-  @Nullable
-  public T getValueOrNull() {
-    return myOptional.orNull();
-  }
-
-  @NotNull
-  @Override
-  public ObservableBool isPresent() {
-    return new BooleanExpression(this) {
-      @NotNull
-      @Override
-      public Boolean get() {
-        return myOptional.isPresent();
-      }
-    };
   }
 
   @Override
