@@ -36,7 +36,7 @@ public abstract class ModuleElementsEditor implements ModuleConfigurationEditor 
     myModel = model;
   }
 
-  protected void registerDisposable(@NotNull Disposable disposable) {
+  public void registerDisposable(@NotNull Disposable disposable) {
     myDisposables.add(disposable);
   }
 
