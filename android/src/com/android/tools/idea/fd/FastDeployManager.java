@@ -574,7 +574,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       File localIdFile = FileUtil.createTempFile("build-id", "txt");
 
       String remoteIdFile = getDataFolder(pkg) + "/" + BUILD_ID_TXT;
-      device.pullFile(remoteIdFile, localIdFile.getPath());
+
+      // on a user device, we cannot pull from a path where the segments aren't readable (I think this is a ddmlib limitation)
+      // So we first copy to /data/local/tmp and pull from there..
+      String remoteTmpFile = "/data/local/tmp/build-id.txt";
+      device.executeShellCommand("cp " + remoteIdFile + " " + remoteTmpFile, new CollectingOutputReceiver());
+      device.pullFile(remoteTmpFile, localIdFile.getPath());
 
       String id = Files.toString(localIdFile, Charsets.UTF_8).trim();
 
@@ -591,6 +596,9 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       LOG.warn(e);
     }
     catch (TimeoutException e) {
+      LOG.warn(e);
+    }
+    catch (ShellCommandUnresponsiveException e) {
       LOG.warn(e);
     }
 
