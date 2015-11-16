@@ -17,15 +17,14 @@ package com.android.tools.idea.editors.gfxtrace.actions;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.editors.gfxtrace.forms.ActivitySelector;
 import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
 import com.android.tools.idea.editors.gfxtrace.GfxTracer;
+import com.android.tools.idea.editors.gfxtrace.forms.ActivitySelector;
+import com.android.tools.idea.editors.gfxtrace.forms.TraceDialog;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.concurrency.JobScheduler;
+import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -39,12 +38,13 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.concurrent.TimeUnit;
+import java.awt.*;
 
 public abstract class GfxTraceCaptureAction extends ToggleAction {
   @NotNull protected final GpuMonitorView myView;
   @NotNull protected final String myText;
-  private ListenableFuture<GfxTracer> myPending = null;
-  private GfxTracer myActive = null;
+  private static JDialog sActiveForm = null;
+  private JDialog myActiveForm = null;
 
   public static class Listen extends GfxTraceCaptureAction {
     public Listen(@NotNull GpuMonitorView view) {
@@ -52,14 +52,35 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
     }
 
     @Override
-    ListenableFuture<GfxTracer> start(AnActionEvent event) {
-      final IDevice device = myView.getDeviceContext().getSelectedDevice();
-      if (device == null) {
-        return null;
-      }
-      GfxTracer.Options options = new GfxTracer.Options();
-      GfxTracer tracer = GfxTracer.listen(myView.getProject(), device, options, myView.getEvents());
-      return Futures.immediateFuture(tracer);
+    void start(@NotNull final Component owner, @NotNull final IDevice device) {
+      final TraceDialog dialog = new TraceDialog();
+      dialog.setListener(new TraceDialog.Listener() {
+        private GfxTracer myTracer = null;
+
+        @Override
+        public void onStartTrace(@NotNull String name) {
+          GfxTracer.Options options = new GfxTracer.Options();
+          options.myTraceName = name;
+          myTracer = GfxTracer.listen(myView.getProject(), device, options, bindListener(dialog));
+        }
+
+        @Override
+        public void onStopTrace() {
+          myTracer.stop();
+          onStop();
+        }
+
+        @Override
+        public void onCancelTrace() {
+          onStop();
+        }
+      });
+      CaptureService service = CaptureService.getInstance(myView.getProject());
+      String name = service.getSuggestedName(myView.getDeviceContext().getSelectedClient());
+      dialog.setLocationRelativeTo(owner);
+      dialog.setDefaultName(name);
+      dialog.setVisible(true);
+      setActiveForm(dialog);
     }
   }
 
@@ -75,13 +96,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
     }
 
     @Override
-    ListenableFuture<GfxTracer> start(final AnActionEvent event) {
-      final IDevice device = myView.getDeviceContext().getSelectedDevice();
-      if (device == null) {
-        return null;
-      }
-
-      final SettableFuture<GfxTracer> future = SettableFuture.create();
+    void start(@NotNull final Component owner, @NotNull final IDevice device) {
       ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
         private static final int ROOT_QUERY_TIMEOUT = 3000;
         private static final int ROOT_QUERY_INTERVAL = 250;
@@ -138,47 +153,71 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
                                  NotificationType.ERROR));
             }
           });
-          future.set(null);
+          onStop();
         }
 
         private void rootingSucceeded() {
-          showLauncher(device, future);
+          showLauncher(owner, device);
         }
       });
-      return future;
     }
 
-
-
-    private ListenableFuture<GfxTracer> showLauncher(final IDevice device, final SettableFuture<GfxTracer> future) {
+    private void showLauncher(final Component owner, final IDevice device) {
       DeviceInfo.Provider provider = new DeviceInfo.PkgInfoProvider(device);
-      ActivitySelector.Listener listener = new ActivitySelector.Listener() {
+      final ActivitySelector selector = new ActivitySelector(provider);
+      selector.setListener(new ActivitySelector.Listener() {
         @Override
         public void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity act) {
-          GfxTracer.Options options = new GfxTracer.Options();
-          future.set(GfxTracer.launch(myView.getProject(), device, pkg, act, options, myView.getEvents()));
+          showTraceDialog(selector, device, pkg, act);
         }
 
         @Override
         public void OnCancel() {
-          future.set(null);
+          onStop();
         }
-      };
-      final ActivitySelector selector = new ActivitySelector(provider, listener);
+      });
+      selector.setLocationRelativeTo(owner);
       selector.setTitle("Launch activity...");
       selector.setVisible(true);
-
-      // Ensure the selector is closed if the future is cancelled.
-      future.addListener(new Runnable() {
-        @Override
-        public void run() {
-          selector.setVisible(false);
-        }
-      }, EdtExecutor.INSTANCE);
-
-      return future;
+      setActiveForm(selector);
     }
 
+    private void showTraceDialog(final Component owner, final IDevice device, final DeviceInfo.Package pkg, final DeviceInfo.Activity act) {
+      final TraceDialog dialog = new TraceDialog();
+      dialog.setListener(new TraceDialog.Listener() {
+        private GfxTracer myTracer = null;
+
+        @Override
+        public void onStartTrace(@NotNull String name) {
+          GfxTracer.Options options = new GfxTracer.Options();
+          options.myTraceName = name;
+          myTracer = GfxTracer.launch(myView.getProject(), device, pkg, act, options, bindListener(dialog));
+        }
+
+        @Override
+        public void onStopTrace() {
+          myTracer.stop();
+          onStop();
+        }
+
+        @Override
+        public void onCancelTrace() {
+          onStop();
+        }
+      });
+
+      // Use the package name as the suggested trace name.
+      String name = pkg.myName;
+      int lastDot = name.lastIndexOf('.');
+      if (lastDot >= 0 && lastDot < name.length() - 1) {
+        name = name.substring(lastDot + 1);
+      }
+
+      dialog.setLocationRelativeTo(owner);
+      dialog.setDefaultName(name);
+      dialog.setVisible(true);
+      setActiveForm(dialog);
+    }
   }
 
   public GfxTraceCaptureAction(@NotNull GpuMonitorView view,
@@ -192,34 +231,25 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return myPending != null || myActive != null;
+    return sActiveForm != null && sActiveForm == myActiveForm;
   }
 
   @Override
   public final void setSelected(AnActionEvent e, boolean state) {
-    if (myPending != null) {
-      myPending.cancel(true);
-      myPending = null;
-      return;
+    IDevice device = myView.getDeviceContext().getSelectedDevice();
+    if (device == null) {
+      return; // Button shouldn't be enabled, but let's play safe.
     }
-
-    if (myActive != null) {
-      myActive.stop();
-      myActive = null;
-      return;
-    }
-
-    myPending = start(e);
-    myPending.addListener(new Runnable() {
-      @Override
-      public void run() {
-        if (myPending != null) {
-          myActive = Futures.getUnchecked(myPending);
-          myPending = null;
-        }
+    if (myActiveForm == sActiveForm) {
+      if (sActiveForm != null) {
+        myActiveForm.setVisible(true); // Bring-to-front
       }
-    }, EdtExecutor.INSTANCE);
+      else {
+        start(this.myView.getPanel().getTopLevelAncestor(), device);
+      }
+    }
   }
+
 
   @Override
   public final void update(AnActionEvent e) {
@@ -228,19 +258,101 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
     if (!GapiPaths.isValid()) {
       presentation.setEnabled(false);
       presentation.setText(myText + " : GPU debugger tools not installed");
-    } else if (myPending == null && myActive == null) {
-      presentation.setEnabled(isEnabled());
-      presentation.setText(myText + " : start tracing");
     }
     else {
-      presentation.setEnabled(true);
-      presentation.setText(myText + " : stop tracing");
+      presentation.setEnabled(isEnabled());
+      presentation.setText(myText);
     }
+  }
+
+  private IDevice getDevice() {
+    return myView.getDeviceContext().getSelectedDevice();
   }
 
   boolean isEnabled() {
-    return myView.getDeviceContext().getSelectedDevice() != null && GapiPaths.isValid();
+    if (sActiveForm == null || sActiveForm == myActiveForm) {
+      return getDevice() != null;
+    }
+    return false;
   }
 
-  abstract ListenableFuture<GfxTracer> start(AnActionEvent event);
+  protected void setActiveForm(JDialog form) {
+    myActiveForm = form;
+    sActiveForm = form;
+  }
+
+  /**
+   * Called by the derived class when the trace has finished.
+   */
+  protected void onStop() {
+    setActiveForm(null);
+  }
+
+  /**
+   * bindListener returns a {@link GfxTracer.Listener} that will forward update the specified
+   * {@link TraceDialog}.
+   */
+  protected GfxTracer.Listener bindListener(final TraceDialog dialog) {
+    return new GfxTracer.Listener() {
+      @NotNull private String myCurrentAction = "";
+      private long mySizeInBytes = 0;
+
+      @Override
+      public void onAction(final @NotNull String name) {
+        EdtExecutor.INSTANCE.execute(new Runnable() {
+          @Override
+          public void run() {
+            myCurrentAction = name;
+            update();
+          }
+        });
+      }
+
+      @Override
+      public void onProgress(final long sizeInBytes) {
+        EdtExecutor.INSTANCE.execute(new Runnable() {
+          @Override
+          public void run() {
+            mySizeInBytes = sizeInBytes;
+            update();
+          }
+        });
+      }
+
+      @Override
+      public void onStopped() {
+        dialog.onStop();
+      }
+
+      @Override
+      public void onError(@NotNull String error) {
+        dialog.onError(error);
+      }
+
+      private void update() {
+        final long KB = 1024;
+        final long MB = KB * KB;
+        final long GB = MB * KB;
+
+        String details = "";
+        if (mySizeInBytes > 0) {
+          if (mySizeInBytes < KB) {
+            details = String.format("%d bytes", mySizeInBytes);
+          }
+          else if (mySizeInBytes < MB) {
+            details = String.format("%.2f KB", (float)mySizeInBytes / KB);
+          }
+          else if (mySizeInBytes < GB) {
+            details = String.format("%.2f MB", (float)mySizeInBytes / MB);
+          }
+          else {
+            details = String.format("%.2f GB", (float)mySizeInBytes / GB);
+          }
+        }
+        dialog.onProgress(myCurrentAction, details);
+      }
+    };
+  }
+
+  abstract void start(@NotNull Component button, @NotNull IDevice device);
 }
