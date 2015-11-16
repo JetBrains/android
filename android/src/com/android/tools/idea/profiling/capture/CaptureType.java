@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public abstract class CaptureType {
-
   @NotNull
   abstract public String getName();
 
@@ -33,10 +32,11 @@ public abstract class CaptureType {
   public abstract boolean isValidCapture(@NotNull VirtualFile file);
 
   /**
-   * @return a file name for a newly created capture.
+   * getCaptureExtension returns the extension used for this capture type.
+   * The extension should include the '.' prefix.
    */
   @NotNull
-  public abstract String createCaptureFileName();
+  public abstract String getCaptureExtension();
 
   @NotNull
   protected abstract Capture createCapture(@NotNull VirtualFile file);

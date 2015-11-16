@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class HprofCaptureType extends FileCaptureType {
   protected HprofCaptureType() {
-    super("Heap Snapshot", AndroidIcons.Ddms.DumpHprof, "Snapshot_", SdkConstants.DOT_HPROF);
+    super("Heap Snapshot", AndroidIcons.Ddms.DumpHprof, SdkConstants.DOT_HPROF);
   }
 
   @NotNull
