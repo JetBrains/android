@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.model;
 
+import com.android.builder.model.Library;
+import com.android.builder.model.MavenCoordinates;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel.LogicalArtifactDependency;
@@ -26,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel.convert;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
 public class ArtifactDependencyMergedModel extends DependencyMergedModel {
@@ -59,6 +62,22 @@ public class ArtifactDependencyMergedModel extends DependencyMergedModel {
   @Override
   public boolean isInAndroidProject() {
     return !myLogicalModels.isEmpty();
+  }
+
+  public boolean matches(@NotNull Library library) {
+    for (LogicalArtifactDependency model : myLogicalModels) {
+      if (model.dependency == library) {
+        return true;
+      }
+      MavenCoordinates resolved = library.getResolvedCoordinates();
+      if (resolved != null) {
+        GradleCoordinate coordinate = convert(resolved);
+        if (coordinate.isSameArtifact(myCoordinate) && coordinate.getRevision().equals(myCoordinate.getRevision())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @Override
