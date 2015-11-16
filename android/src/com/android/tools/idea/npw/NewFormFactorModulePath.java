@@ -83,7 +83,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     List<File> applicationTemplates = manager.getTemplatesInCategory(Template.CATEGORY_APPLICATION);
     List<NewFormFactorModulePath> toReturn = Lists.newArrayList();
     for (File templateFile : applicationTemplates) {
-      TemplateMetadata metadata = manager.getTemplate(templateFile);
+      TemplateMetadata metadata = manager.getTemplateMetadata(templateFile);
       if (metadata == null || metadata.getFormFactor() == null) {
         continue;
       }
