@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AllocationCaptureType extends FileCaptureType {
   protected AllocationCaptureType() {
-    super("Allocation Tracking", AndroidIcons.Ddms.AllocationTracker, "Allocations_", "." + AllocationsFileType.DEFAULT_EXTENSION);
+    super("Allocation Tracking", AndroidIcons.Ddms.AllocationTracker, "." + AllocationsFileType.DEFAULT_EXTENSION);
   }
 
   @NotNull
