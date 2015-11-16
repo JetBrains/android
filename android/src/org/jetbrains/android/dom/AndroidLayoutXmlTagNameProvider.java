@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom;
 
+import com.google.common.collect.Sets;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.completion.XmlTagInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -34,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -63,7 +63,17 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
     List<XmlElementDescriptor> variants =
       TagNameVariantCollector.getTagDescriptors(tag, NAMESPACES, null);
 
-    final Set<String> addedNames = new HashSet<String>();
+    // Find the framework widgets that have a support library alternative
+    Set<String> supportAlternatives = Sets.newHashSet();
+    for (XmlElementDescriptor descriptor : variants) {
+      String qualifiedName = descriptor.getName(tag);
+
+      if (qualifiedName.startsWith("android.support.")) {
+        supportAlternatives.add(AndroidUtils.getUnqualifiedName(qualifiedName));
+      }
+    }
+
+    final Set<String> addedNames = Sets.newHashSet();
     for (XmlElementDescriptor descriptor : variants) {
       String qualifiedName = descriptor.getName(tag);
       if (!addedNames.add(qualifiedName)) {
@@ -97,13 +107,17 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
         lookupElement = lookupElement.withInsertHandler(XmlTagInsertHandler.INSTANCE);
       }
 
-      int priority = 1;
-      if (isDeprecated) {
-        // Deprecated tag names are supposed to be shown below non-deprecated tags
-        priority = 0;
-      } else if (simpleName == null) {
-        // Tag name is a unqualified name from one of Android framework packages, should be higher in completion
-        priority = 2;
+      // Deprecated tag names are supposed to be shown below non-deprecated tags
+      int priority = isDeprecated ? 10 : 100;
+      if (simpleName == null) {
+        if (supportAlternatives.contains(qualifiedName)) {
+          // This component has a support library alternative so lower the priority so the support component is shown at the top.
+          priority -= 1;
+        }
+        else {
+          // The component doesn't have an alternative in the support library so push it to the top.
+          priority += 10;
+        }
       }
 
       elements.add(PrioritizedLookupElement.withPriority(lookupElement, priority));
