@@ -33,6 +33,7 @@ import java.util.Map;
  * can be fixed, fit-to-size, or proportional. When a layout is requested, fixed and fit-to-size
  * columns are calculated first, and all remaining space is split by the proportional columns.
  * Rows, in contrast, are always fit to their height (although a vertical gap can be specified).
+ * Invisible components are skipped over when performing the layout.
  * <p/>
  * When you register components with a panel using this layout, you must associate it with a
  * {@link ProportionalLayout.Constraint} telling it which row and column it should fit within.
@@ -274,6 +275,8 @@ public final class ProportionalLayout implements LayoutManager2 {
 
       for (int i = 0; i < componentCount; i++) {
         Component comp = parent.getComponent(i);
+        if (!comp.isVisible()) continue;
+
         Dimension d = comp.getPreferredSize();
 
         int row = myConstraints.get(comp).getRow();
@@ -330,6 +333,7 @@ public final class ProportionalLayout implements LayoutManager2 {
 
       for (int i = 0; i < componentCount; i++) {
         Component comp = parent.getComponent(i);
+        if (!comp.isVisible()) continue;
         Dimension d = comp.getMinimumSize();
 
         int row = myConstraints.get(comp).getRow();
@@ -386,6 +390,7 @@ public final class ProportionalLayout implements LayoutManager2 {
 
       for (int i = 0; i < componentCount; i++) {
         Component comp = parent.getComponent(i);
+        if (!comp.isVisible()) continue;;
         Dimension d = comp.getMinimumSize();
 
         int row = myConstraints.get(comp).getRow();
@@ -426,6 +431,7 @@ public final class ProportionalLayout implements LayoutManager2 {
 
       for (int i = 0; i < componentCount; i++) {
         Component comp = parent.getComponent(i);
+        if (!comp.isVisible()) continue;
         int col = myConstraints.get(comp).getCol();
         int row = myConstraints.get(comp).getRow();
         comp.setBounds(colXs[col], rowYs[row], colWs[col], rowHs[row]);
