@@ -50,13 +50,14 @@ public class OpenVmTraceHandler implements ClientData.IMethodProfilingHandler {
   }
 
   @Override
-  public void onSuccess(@NotNull final byte[] data, @NotNull Client client) {
+  public void onSuccess(@NotNull final byte[] data, @NotNull final Client client) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
         try {
           final CaptureService service = CaptureService.getInstance(myProject);
-          CaptureHandle handle = service.startCaptureFile(VmTraceCaptureType.class);
+          String name = service.getSuggestedName(client);
+          CaptureHandle handle = service.startCaptureFile(VmTraceCaptureType.class, name);
           service.appendData(handle, data);
           service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
             @Override
