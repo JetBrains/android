@@ -20,13 +20,11 @@ import com.android.builder.model.ApiVersion;
 import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.structure.configurables.ModuleConfigurationState;
+import com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,22 +39,15 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 class AndroidSdkRepositorySearch extends ArtifactRepositorySearch {
   private final List<GradleCoordinate> myGradleCoordinates = Lists.newArrayList();
 
-  AndroidSdkRepositorySearch(@NotNull ModuleConfigurationState configurationState) {
-    this(configurationState, IdeSdks.getAndroidSdkPath());
+  AndroidSdkRepositorySearch(@NotNull ModuleMergedModel model) {
+    this(model, IdeSdks.getAndroidSdkPath());
   }
 
   @VisibleForTesting
-  AndroidSdkRepositorySearch(@NotNull ModuleConfigurationState configurationState, @Nullable File androidSdkPath) {
+  AndroidSdkRepositorySearch(@NotNull ModuleMergedModel model, @Nullable File androidSdkPath) {
     if (androidSdkPath != null) {
-      boolean preview = false;
-      Module module = configurationState.getModule();
-      if (module != null) {
-        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
-        if (androidModel != null) {
-          preview = includePreview(androidModel);
-        }
-      }
-
+      AndroidProject androidProject = model.getAndroidProject();
+      boolean preview = includePreview(androidProject);
       for (String libraryId : EXTRAS_REPOSITORY.keySet()) {
         GradleCoordinate coordinate = getLibraryCoordinate(libraryId, androidSdkPath, preview);
         if (coordinate != null) {
@@ -85,8 +76,7 @@ class AndroidSdkRepositorySearch extends ArtifactRepositorySearch {
     return coordinateText != null ? parseCoordinateString(coordinateText) : null;
   }
 
-  private static boolean includePreview(@NotNull AndroidGradleModel androidModel) {
-    AndroidProject androidProject = androidModel.getAndroidProject();
+  private static boolean includePreview(@NotNull AndroidProject androidProject) {
     for (Variant variant : androidProject.getVariants()) {
       ApiVersion minSdkVersion = variant.getMergedFlavor().getMinSdkVersion();
       if (minSdkVersion != null) {
@@ -96,7 +86,6 @@ class AndroidSdkRepositorySearch extends ArtifactRepositorySearch {
         }
       }
     }
-
     return false;
   }
 

@@ -35,6 +35,24 @@ public class DependenciesModel {
     myDslElement = dslElement;
   }
 
+  /**
+   * @return all the dependencies (artifact, module, etc.)
+   * WIP: Do not use.
+   */
+  @NotNull
+  public List<DependencyModel> all() {
+    List<DependencyModel> dependencies = Lists.newArrayList();
+    for (String configurationName : myDslElement.getProperties()) {
+      GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+      if (list != null) {
+        for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
+          dependencies.addAll(ArtifactDependencyModel.create(element));
+        }
+      }
+    }
+    return dependencies;
+  }
+
   @NotNull
   public List<ArtifactDependencyModel> artifactDependencies(@NotNull String configurationName) {
     List<ArtifactDependencyModel> dependencies = Lists.newArrayList();

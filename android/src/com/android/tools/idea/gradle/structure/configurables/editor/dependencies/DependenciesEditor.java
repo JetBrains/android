@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.editor.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.ModuleConfigurationState;
+import com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel;
 import com.android.tools.idea.gradle.structure.configurables.editor.ModuleElementsEditor;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.ProjectBundle;
@@ -28,14 +28,14 @@ import javax.swing.*;
 public class DependenciesEditor extends ModuleElementsEditor {
   private DependenciesPanel myPanel;
 
-  public DependenciesEditor(@NotNull ModuleConfigurationState configurationState) {
-    super(configurationState);
+  public DependenciesEditor(@NotNull ModuleMergedModel model) {
+    super(model);
   }
 
   @Override
   @Nullable
   protected JComponent doCreateComponent() {
-    myPanel = new DependenciesPanel(getConfigurationState());
+    myPanel = new DependenciesPanel(getModel());
     return myPanel;
   }
 

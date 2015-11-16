@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.editor.dependencies;
 
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.structure.configurables.ModuleConfigurationState;
+import com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 import static org.fest.assertions.Assertions.assertThat;
@@ -40,9 +43,14 @@ public class AndroidSdkRepositorySearchTest {
   @Before
   public void setUp() {
     myAndroidSdkPath = getAndroidSdkPath();
-    ModuleConfigurationState configurationState = mock(ModuleConfigurationState.class);
-    myRepositorySearch = new AndroidSdkRepositorySearch(configurationState, myAndroidSdkPath);
-    when(configurationState.getModule()).thenReturn(null);
+
+    AndroidProject androidProject = mock(AndroidProject.class);
+    when(androidProject.getVariants()).thenReturn(Collections.<Variant>emptyList());
+
+    ModuleMergedModel model = mock(ModuleMergedModel.class);
+    when(model.getAndroidProject()).thenReturn(androidProject);
+
+    myRepositorySearch = new AndroidSdkRepositorySearch(model, myAndroidSdkPath);
   }
 
   @Test
