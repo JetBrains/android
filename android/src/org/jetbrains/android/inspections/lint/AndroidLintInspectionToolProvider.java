@@ -24,10 +24,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
@@ -36,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
@@ -1232,10 +1230,28 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.resource.name"), ResourcePrefixDetector.ISSUE);
     }
   }
+
+  private static final Pattern QUOTED_PARAMETER = Pattern.compile("`.+:(.+)=\"(.*)\"`");
+
   public static class AndroidLintRtlCompatInspection extends AndroidLintInspectionBase {
     public AndroidLintRtlCompatInspection() {
       super(AndroidBundle.message("android.lint.inspections.rtl.compat"), RtlDetector.COMPAT);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      if (message.startsWith("To support older versions than API 17")) {
+        Matcher matcher = QUOTED_PARAMETER.matcher(message);
+        if (matcher.find()) {
+          final String name = matcher.group(1);
+          final String value = matcher.group(2);
+          return new AndroidLintQuickFix[]{new SetAttributeQuickFix(String.format("Set %s", name), name, value)};
+        }
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
+
   }
   public static class AndroidLintRtlEnabledInspection extends AndroidLintInspectionBase {
     public AndroidLintRtlEnabledInspection() {
