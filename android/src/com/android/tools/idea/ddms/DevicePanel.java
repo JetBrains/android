@@ -20,6 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,6 +37,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IDebugBridgeChangeListener,
@@ -254,23 +257,21 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
         }
       }
 
-      Client[] clients = device.getClients();
-      // There's a chance we got this update because a client we were debugging
-      // just crashed or was closed. We still want to keep it in the list
-      // though so the user can look over any final error messages / profiling
-      // states.
-      boolean selectedClientDied = true;
-      Arrays.sort(clients, new ClientCellRenderer.ClientComparator());
-      for (Client client : clients) {
-        myClientCombo.addItem(client);
-        if (selected == client) {
-          selectedClientDied = false;
-        }
-      }
+      List<Client> clients = Lists.newArrayList(device.getClients());
+      // There's a chance we got this update because a client we were debugging just crashed or was
+      // closed. At this point we have our old handle to it but it's not in the client list
+      // reported by the phone anymore. We still want to keep it in the list though, so the user
+      // can look over any final error messages / profiling states.
+      boolean selectedClientDied = selected != null && !clients.contains(selected);
       if (selectedClientDied) {
-        myClientCombo.addItem(selected);
+        clients.add(selected);
       }
+      Collections.sort(clients, new ClientCellRenderer.ClientComparator());
 
+      for (Client client : clients) {
+        //noinspection unchecked
+        myClientCombo.addItem(client);
+      }
       myClientCombo.setSelectedItem(toSelect);
       update = toSelect != selected;
     }
