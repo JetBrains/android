@@ -701,7 +701,9 @@ public class ArchiveInstaller {
       }
 
       // Cleanup if the unzip folder is still set.
-      mFileOp.deleteFileOrFolder(oldDestFolder);
+      if (oldDestFolder != null) {
+        mFileOp.deleteFileOrFolder(oldDestFolder);
+      }
     }
   }
 
