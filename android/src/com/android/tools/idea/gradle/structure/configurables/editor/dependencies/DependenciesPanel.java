@@ -26,10 +26,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ex.CheckboxAction;
-import com.intellij.ui.HyperlinkAdapter;
-import com.intellij.ui.JBSplitter;
-import com.intellij.ui.OnePixelSplitter;
-import com.intellij.ui.ToggleActionButton;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.TableView;
@@ -40,9 +37,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -51,18 +51,26 @@ import static com.intellij.icons.AllIcons.FileTypes.Any_type;
 import static com.intellij.icons.AllIcons.Nodes.Module;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
-import static com.intellij.util.ui.UIUtil.ComponentStyle.SMALL;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.getHTMLEditorKit;
+import static com.intellij.util.ui.UIUtil.getInactiveTextColor;
+import static javax.swing.BorderFactory.createCompoundBorder;
+import static javax.swing.BorderFactory.createEmptyBorder;
 import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 class DependenciesPanel extends JPanel {
-  private static final int DIVIDER_WIDTH = 3;
-
   @NotNull private final ModuleMergedModel myModel;
   @NotNull private final TableView<DependencyMergedModel> myDependencyTable;
 
-  @NotNull private final JBSplitter mySplitter;
+  @NotNull private final JBSplitter myMainSplitter;
   @NotNull private final List<AddDependencyPanel> myDependenciesPanels;
+
+  @NotNull private final JPanel myEditorPanel;
+  @NotNull private JPanel myEmptyEditorPanel;
+  @NotNull private final JBScrollPane myEditorScrollPane;
+  @NotNull private final ArtifactDependencyEditor myArtifactDependencyEditor;
 
   private boolean myShowGroupId = true;
   private int mySelectedAddDependencyActionIndex;
@@ -87,36 +95,97 @@ class DependenciesPanel extends JPanel {
     myModel = model;
     myDependenciesPanels = Lists.newArrayList(new LibrariesPanel(), new ModulesPanel(), new FilesPanel());
     DependenciesTableModel tableModel = new DependenciesTableModel();
-    tableModel.setItems(model.getDependencies());
+    List<DependencyMergedModel> dependencies = model.getDependencies();
+    tableModel.setItems(dependencies);
     myDependencyTable = new TableView<DependencyMergedModel>(tableModel);
-    mySplitter = new OnePixelSplitter(true, .55f);
-    setUpTableView();
+    if (!dependencies.isEmpty()) {
+      myDependencyTable.changeSelection(0, 0, false, false);
+    }
+
+    myMainSplitter = new JBSplitter(true, "psd.dependencies.main.splitter.proportion", .55f);
+
+    myEditorPanel = new JPanel(new BorderLayout());
+    myEditorScrollPane = new JBScrollPane(VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    myEditorPanel.add(new HeaderPanel("Details"), BorderLayout.NORTH);
+    myEditorPanel.add(myEditorScrollPane, BorderLayout.CENTER);
+
+    myEmptyEditorPanel = new JPanel(new BorderLayout());
+    JBLabel emptyText = new JBLabel("Please select a dependency");
+    emptyText.setForeground(getInactiveTextColor());
+    emptyText.setHorizontalAlignment(SwingConstants.CENTER);
+    myEmptyEditorPanel.add(emptyText, BorderLayout.CENTER);
+
+    myArtifactDependencyEditor = new ArtifactDependencyEditor();
+
+    setUpUI();
   }
 
-  private void setUpTableView() {
+  private void setUpUI() {
     myDependencyTable.setDragEnabled(false);
     myDependencyTable.setIntercellSpacing(new Dimension(0, 0));
     myDependencyTable.setShowGrid(false);
+    myDependencyTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent e) {
+        if (e.getValueIsAdjusting()) {
+          return;
+        }
+        updateCurrentEditor();
+      }
+    });
 
     myDependencyTable.getSelectionModel().setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
 
     JPanel mainPanel = new JPanel(new BorderLayout());
-    mainPanel.add(new JBScrollPane(myDependencyTable), BorderLayout.CENTER);
+    mainPanel.add(createDependenciesEditorPanel(), BorderLayout.CENTER);
     mainPanel.add(createActionsPanel(), BorderLayout.SOUTH);
-    mainPanel.setBorder(BorderFactory.createEmptyBorder());
+    mainPanel.setBorder(createEmptyBorder());
 
-    mySplitter.setDividerWidth(DIVIDER_WIDTH);
-    mySplitter.setFirstComponent(mainPanel);
-    mySplitter.setSecondComponent(getSelectedPanel());
-    mySplitter.setShowDividerControls(true);
-    add(mySplitter, BorderLayout.CENTER);
+    myMainSplitter.setFirstComponent(mainPanel);
+    myMainSplitter.setSecondComponent(getSelectedPanel());
+    myMainSplitter.setShowDividerControls(true);
+    add(myMainSplitter, BorderLayout.CENTER);
+
+    updateCurrentEditor();
+    myDependencyTable.updateColumnSizes();
+  }
+
+  private void updateCurrentEditor() {
+    Collection<DependencyMergedModel> selection = myDependencyTable.getSelection();
+    if (selection.size() == 1) {
+      DependencyMergedModel dependency = getFirstItem(selection);
+      if (dependency instanceof ArtifactDependencyMergedModel) {
+        myArtifactDependencyEditor.update((ArtifactDependencyMergedModel)dependency);
+        setCurrentEditor(myArtifactDependencyEditor.getPanel());
+        return;
+      }
+    }
+    setCurrentEditor(myEmptyEditorPanel);
+  }
+
+  @NotNull
+  private JPanel createDependenciesEditorPanel() {
+    JBSplitter splitter = new OnePixelSplitter(false, "psd.dependencies.editor.splitter.proportion", 0.65f);
+    splitter.setFirstComponent(new JBScrollPane(myDependencyTable));
+    splitter.setSecondComponent(myEditorPanel);
+    setCurrentEditor(myEmptyEditorPanel);
+
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(splitter, BorderLayout.CENTER);
+    return panel;
+  }
+
+  private void setCurrentEditor(@NotNull JPanel editorPanel) {
+    myEditorScrollPane.setViewportView(editorPanel);
   }
 
   @NotNull
   private JPanel createActionsPanel() {
+    int borders = SideBorder.TOP | SideBorder.BOTTOM;
+
     JBLabel addLabel = new JBLabel("Add:");
-    addLabel.setComponentStyle(SMALL);
-    addLabel.setBorder(BorderFactory.createEmptyBorder(3, 3, 0, 2));
+    addLabel.setBorder(IdeBorderFactory.createBorder(borders));
+    addLabel.setBorder(createCompoundBorder(IdeBorderFactory.createBorder(borders), createEmptyBorder(0, 3, 0, 3)));
 
     JPanel actionsPanel = new JPanel(new BorderLayout());
     actionsPanel.add(addLabel, BorderLayout.WEST);
@@ -140,13 +209,17 @@ class DependenciesPanel extends JPanel {
     });
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("BOTTOM", group, true);
-    actionsPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
+    JComponent toolbarComponent = toolbar.getComponent();
+    toolbarComponent.setBorder(IdeBorderFactory.createBorder(borders));
+    actionsPanel.add(toolbarComponent, BorderLayout.CENTER);
     return actionsPanel;
   }
 
   private void setShowGroupId(boolean showGroupId) {
     myShowGroupId = showGroupId;
+    Collection<DependencyMergedModel> selection = myDependencyTable.getSelection();
     myDependencyTable.getListTableModel().fireTableDataChanged();
+    myDependencyTable.setSelection(selection);
   }
 
   @NotNull
@@ -193,9 +266,15 @@ class DependenciesPanel extends JPanel {
         }
 
         @Override
-        @Nullable
+        @NotNull
         public TableCellRenderer getRenderer(DependencyMergedModel model) {
           return new DependencyCellRenderer(model);
+        }
+
+        @Override
+        @NotNull
+        public String getPreferredStringValue() {
+          return "com.android.support:appcompat-v7:23.1.0";
         }
       };
 
@@ -206,12 +285,17 @@ class DependenciesPanel extends JPanel {
           return model.getConfigurationName();
         }
 
+        @Override
+        @NotNull
+        public String getPreferredStringValue() {
+          return "flavor1AndroidTestCompile";
+        }
       };
       setColumnInfos(new ColumnInfo[]{dependency, scope});
     }
   }
 
-  private static class DependencyCellRenderer extends DefaultTableCellRenderer {
+  private class DependencyCellRenderer extends DefaultTableCellRenderer {
     @NotNull private final DependencyMergedModel myModel;
 
     DependencyCellRenderer(@NotNull DependencyMergedModel model) {
@@ -222,6 +306,10 @@ class DependenciesPanel extends JPanel {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       JLabel label = (JLabel)super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
       label.setIcon(myModel.getIcon());
+      if (!myShowGroupId && myModel instanceof ArtifactDependencyMergedModel) {
+        // Show the complete compact notation (including group ID) if the table hides group ID.
+        label.setToolTipText(myModel.toString());
+      }
       return label;
     }
   }
@@ -244,7 +332,7 @@ class DependenciesPanel extends JPanel {
     @Override
     public void setSelected(AnActionEvent e, boolean state) {
       mySelectedAddDependencyActionIndex = myIndex;
-      mySplitter.setSecondComponent(myDependencyPanel);
+      myMainSplitter.setSecondComponent(myDependencyPanel);
     }
   }
 
@@ -262,7 +350,7 @@ class DependenciesPanel extends JPanel {
   private class LibrariesPanel extends AddDependencyPanel {
     LibrariesPanel() {
       super("Library", LIBRARY_ICON);
-      JBSplitter splitter = new OnePixelSplitter(false, 0.80f);
+      JBSplitter splitter = new OnePixelSplitter(false, "psd.dependencies.libraries.splitter.proportion", 0.80f);
 
       ArtifactRepositorySearch[] searches = {new MavenCentralRepositorySearch(), new AndroidSdkRepositorySearch(myModel)};
       JPanel librarySearchPanel = new JPanel(new BorderLayout());
@@ -289,7 +377,7 @@ class DependenciesPanel extends JPanel {
         buffer.append(String.format("<a href='%1$s'>", library.coordinate)).append(library.name).append("</a><br/>");
       }
       textPane.setText(buffer.toString());
-      textPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+      textPane.setBorder(createEmptyBorder(5, 5, 5, 5));
 
       textPane.addHyperlinkListener(new HyperlinkAdapter() {
         @Override
@@ -302,7 +390,7 @@ class DependenciesPanel extends JPanel {
 
       add(new HeaderPanel("Popular Libraries"), BorderLayout.NORTH);
       add(new JBScrollPane(textPane), BorderLayout.CENTER);
-      setBorder(BorderFactory.createEmptyBorder());
+      setBorder(createEmptyBorder());
     }
   }
 
