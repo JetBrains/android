@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,9 +29,59 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class OptionalProperty<T> extends ObservableProperty<Optional<T>> implements ObservableOptional<T> {
 
-  public abstract void setValue(@NotNull T value);
+  public final void setValue(@NotNull T value) {
+    Optional<T> opt = get();
+    if (!opt.isPresent() || !opt.get().equals(value)) {
+      set(Optional.of(value));
+    }
+  }
 
-  public abstract void clear();
+  public final void clear() {
+    if (get().isPresent()) {
+      set(Optional.<T>absent());
+    }
+  }
 
-  public abstract void setNullableValue(@Nullable T value);
+  public final void setNullableValue(@Nullable T value) {
+    if (value != null) {
+      setValue(value);
+    }
+    else {
+      clear();
+    }
+  }
+
+  @NotNull
+  @Override
+  public final ObservableBool isPresent() {
+    return new BooleanExpression(this) {
+      @NotNull
+      @Override
+      public Boolean get() {
+        return OptionalProperty.this.get().isPresent();
+      }
+    };
+  }
+
+  @Override
+  @NotNull
+  public final T getValue() {
+    Optional<T> opt = get();
+    return opt.get();
+  }
+
+  @Override
+  @NotNull
+  public final T getValueOr(@NotNull T defaultValue) {
+    Optional<T> opt = get();
+    return opt.or(defaultValue);
+  }
+
+  @Override
+  @Nullable
+  public final T getValueOrNull() {
+    Optional<T> opt = get();
+    return opt.orNull();
+  }
+
 }
