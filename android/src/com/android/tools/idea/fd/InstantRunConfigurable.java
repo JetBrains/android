@@ -29,6 +29,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.Nls;
@@ -49,11 +50,11 @@ public class InstantRunConfigurable
   private final AndroidGradleBuildConfiguration myBuildConfiguration;
   private final Project myProject;
   private JPanel myContentPanel;
-  private JCheckBox myInstantRunCheckBox;
-  private JCheckBox myRestartActivityCheckBox;
+  private JBCheckBox myInstantRunCheckBox;
+  private JBCheckBox myRestartActivityCheckBox;
   private JBLabel myGradleLabel;
   private HyperlinkLabel myOldVersionLabel;
-  private JCheckBox myShowToastCheckBox;
+  private JBCheckBox myShowToastCheckBox;
   private MessageBusConnection myConnection;
 
   public InstantRunConfigurable(@NotNull Project project) {
