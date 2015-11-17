@@ -23,13 +23,6 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Mar 23, 2009
- * Time: 4:30:00 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AnimationDomFileDescription extends AndroidResourceDomFileDescription<AnimationElement> {
   public AnimationDomFileDescription() {
     super(AnimationElement.class, "set", ResourceType.ANIM.getName());

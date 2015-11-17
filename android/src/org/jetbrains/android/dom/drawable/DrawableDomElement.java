@@ -18,12 +18,5 @@ package org.jetbrains.android.dom.drawable;
 
 import org.jetbrains.android.dom.AndroidDomElement;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 22, 2009
- * Time: 1:36:56 PM
- * To change this template use File | Settings | File Templates.
- */
-public interface DrawableDomElement extends AndroidDomElement{
+public interface DrawableDomElement extends AndroidDomElement {
 }
