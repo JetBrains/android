@@ -347,6 +347,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
 
+    // When performing a full launch, always terminate the previous sessions. Otherwise, we might end up with 2 active sessions of the same
+    // launch, esp. if we first think we can do a fast deploy, then one of the conditionals above fails and we end up doing a full launch.
+    // TODO: this probably means that AndroidDebugRunner will never need to embed to an existing session?
+    if (info != null) {
+      info.getProcessHandler().detachProcess();
+    }
+
     DeployTarget deployTarget;
     if (currentTargetProvider.requiresRuntimePrompt()) {
       deployTarget = currentTargetProvider
