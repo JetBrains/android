@@ -157,7 +157,7 @@ public class ViewLoader {
         checkModified(className);
         return createNewInstance(aClass, constructorSignature, constructorArgs, isView);
       }
-      aClass = loadClass(className);
+      aClass = loadClass(className, true);
 
       if (aClass != null) {
         checkModified(className);
@@ -221,12 +221,12 @@ public class ViewLoader {
   }
 
   @Nullable
-  public Class<?> loadClass(@NotNull String className) throws InconvertibleClassError {
+  public Class<?> loadClass(@NotNull String className, boolean logError) throws InconvertibleClassError {
     try {
       return getModuleClassLoader().loadClass(className);
     }
     catch (ClassNotFoundException e) {
-      if (!className.equals(VIEW_FRAGMENT)) {
+      if (logError && !className.equals(VIEW_FRAGMENT)) {
         myLogger.addMissingClass(className);
       }
       return null;

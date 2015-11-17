@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -38,7 +37,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.RecyclerViewHelper;
@@ -678,7 +676,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   public Class<?> findClass(@NotNull String name) throws ClassNotFoundException {
     try {
-      Class<?> aClass = myClassLoader.loadClass(name);
+      Class<?> aClass = myClassLoader.loadClass(name, false);
       if (aClass != null) {
         return aClass;
       }
