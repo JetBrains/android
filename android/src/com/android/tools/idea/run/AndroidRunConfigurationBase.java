@@ -391,7 +391,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       appLauncher = androidDebuggerState.getApplicationLauncher(appLauncher);
     }
 
-    return new AndroidRunningState(env, facet, getApkProvider(facet), deviceFutures, printer, appLauncher, launchOptions, this);
+    return new AndroidRunningState(
+      env,
+      facet,
+      getApkProvider(facet),
+      deviceFutures,
+      printer,
+      appLauncher,
+      launchOptions,
+      getUniqueID(),
+      getType().getId(),
+      this
+    );
   }
 
   private static boolean canFastDeploy(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
@@ -412,7 +423,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Nullable
   private DeviceFutures getOldSessionTarget(@NotNull Project project, @NotNull Executor executor) {
-    AndroidSessionInfo sessionInfo = AndroidSessionManager.findOldSession(project, executor, this);
+    AndroidSessionInfo sessionInfo = AndroidSessionManager.findOldSession(project, executor, getUniqueID());
     if (sessionInfo != null) {
       if (sessionInfo.isEmbeddable()) {
         Collection<IDevice> oldDevices = sessionInfo.getState().getDevices();

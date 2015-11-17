@@ -148,7 +148,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   protected static RunContentDescriptor embedToExistingSession(@NotNull final Project project,
                                                                @NotNull final Executor executor,
                                                                @NotNull final AndroidRunningState state) {
-    final AndroidSessionInfo oldSessionInfo = AndroidSessionManager.findOldSession(project, executor, state.getConfiguration());
+    final AndroidSessionInfo oldSessionInfo = AndroidSessionManager.findOldSession(project, executor, state.getRunConfigurationId());
 
     if (oldSessionInfo == null || !oldSessionInfo.isEmbeddable()) {
       return null;

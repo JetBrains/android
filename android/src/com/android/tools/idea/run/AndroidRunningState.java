@@ -103,6 +103,9 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   private ConsoleView myConsole;
   private final List<AndroidRunningStateListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
 
+  private final int myRunConfigId;
+  @NotNull private final String myRunConfigTypeId;
+
   public AndroidRunningState(@NotNull ExecutionEnvironment environment,
                              @NotNull AndroidFacet facet,
                              @NotNull ApkProvider apkProvider,
@@ -110,12 +113,13 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
                              @NotNull ProcessHandlerConsolePrinter printer,
                              @NotNull AndroidApplicationLauncher applicationLauncher,
                              @NotNull LaunchOptions launchOptions,
-                             @NotNull AndroidRunConfigurationBase configuration) throws ExecutionException {
+                             int runConfigId,
+                             @NotNull String runConfigTypeId,
+                             @NotNull AndroidRunConfigurationBase config) throws ExecutionException {
     myFacet = facet;
     myApkProvider = apkProvider;
     myDeviceFutures = deviceFutures;
     myPrinter = printer;
-    myConfiguration = configuration;
 
     myEnv = environment;
     myApplicationLauncher = applicationLauncher;
@@ -126,6 +130,10 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     } catch (ApkProvisionException e) {
       throw new ExecutionException("Unable to determine package name", e);
     }
+
+    myRunConfigId = runConfigId;
+    myRunConfigTypeId = runConfigTypeId;
+    myConfiguration = config;
   }
 
   // Used by downstream plugins.
@@ -142,6 +150,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     return myLaunchOptions.isDebug();
   }
 
+  @Deprecated
   @Override
   @NotNull
   public AndroidRunConfigurationBase getConfiguration() {
@@ -201,6 +210,17 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
   @NotNull
   public ConsolePrinter getPrinter() {
     return myPrinter;
+  }
+
+  @Override
+  public int getRunConfigurationId() {
+    return myRunConfigId;
+  }
+
+  @Override
+  @NotNull
+  public String getRunConfigurationTypeId() {
+    return myRunConfigTypeId;
   }
 
   /** Listener which launches the debugger once the target device is ready. */
