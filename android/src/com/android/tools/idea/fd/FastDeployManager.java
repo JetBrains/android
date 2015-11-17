@@ -1333,6 +1333,14 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
                     @NotNull final List<ApplicationPatch> changes,
                     @NotNull UpdateMode updateMode) {
     if (changes.isEmpty() || updateMode == UpdateMode.NO_CHANGES) {
+      // Sync the build id to the device; Gradle might rev the build id even when there are no changes,
+      // and we need to make sure that the device id reflects this new build id, or the next
+      // build will discover different id's and will conclude that it needs to do a full rebuild
+      AndroidFacet facet = findAppModule(module);
+      if (device != null && facet != null) {
+        transferLocalIdToDeviceId(device, facet.getModule());
+      }
+
       Notification notification = NOTIFICATION_GROUP.createNotification("Instant Run:", "No Changes.", NotificationType.INFORMATION, null);
       notification.notify(myProject);
       return;
