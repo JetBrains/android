@@ -36,6 +36,7 @@ import com.google.common.hash.HashCode;
 import com.google.common.io.Files;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.JavaExecutionStack;
+import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.engine.SuspendContextImpl;
 import com.intellij.debugger.engine.events.DebuggerCommandImpl;
 import com.intellij.debugger.impl.DebuggerContextImpl;
@@ -271,6 +272,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       if (processHandler instanceof AndroidMultiProcessHandler) {
         AndroidMultiProcessHandler handler = (AndroidMultiProcessHandler)processHandler;
         devices.addAll(handler.getDevices());
+      }
+      else if (processHandler != null) {
+        Client c = processHandler.getUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT);
+        if (c != null && c.isValid()) {
+          devices.add(c.getDevice());
+        }
       }
     }
 
@@ -1157,36 +1164,31 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     // Now we refresh the call-stacks and the variable panes.
     DebuggerManagerEx debugger = DebuggerManagerEx.getInstanceEx(myProject);
     for (final DebuggerSession session : debugger.getSessions()) {
-      //TODO: We should do something like getProcessHandler().getUserData(AndroidDebugRunner.CLIENT)
-      AndroidSessionInfo sessionInfo = session.getProcess().getProcessHandler().getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
-      if (sessionInfo != null) {
-        Module module = sessionInfo.getState().getConfiguration().getConfigurationModule().getModule();
-        AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
-        if (facet != null && packageName == getPackageName(facet)) {
-          session.getProcess().getManagerThread().invoke(new DebuggerCommandImpl() {
-            @Override
-            protected void action() throws Exception {
-              DebuggerContextImpl context = session.getContextManager().getContext();
-              SuspendContextImpl suspendContext = context.getSuspendContext();
-              if (suspendContext != null) {
-                XExecutionStack stack = suspendContext.getActiveExecutionStack();
-                if (stack != null) {
-                  ((JavaExecutionStack)stack).initTopFrame();
+      Client client = session.getProcess().getProcessHandler().getUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT);
+      if (client != null && client.isValid() && StringUtil.equals(packageName, client.getClientData().getClientDescription())) {
+        session.getProcess().getManagerThread().invoke(new DebuggerCommandImpl() {
+          @Override
+          protected void action() throws Exception {
+            DebuggerContextImpl context = session.getContextManager().getContext();
+            SuspendContextImpl suspendContext = context.getSuspendContext();
+            if (suspendContext != null) {
+              XExecutionStack stack = suspendContext.getActiveExecutionStack();
+              if (stack != null) {
+                ((JavaExecutionStack)stack).initTopFrame();
+              }
+            }
+            ApplicationManager.getApplication().invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                session.refresh(false);
+                XDebugSession xSession = session.getXDebugSession();
+                if (xSession != null) {
+                  xSession.rebuildViews();
                 }
               }
-              ApplicationManager.getApplication().invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                  session.refresh(false);
-                  XDebugSession xSession = session.getXDebugSession();
-                  if (xSession != null) {
-                    xSession.rebuildViews();
-                  }
-                }
-              });
-            }
-          });
-        }
+            });
+          }
+        });
       }
     }
   }

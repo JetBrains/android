@@ -47,6 +47,7 @@ import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
 
 public class AndroidDebugRunner extends DefaultProgramRunner {
   public static final Key<AndroidSessionInfo> ANDROID_SESSION_INFO = new Key<AndroidSessionInfo>("ANDROID_SESSION_INFO");
+  public static final Key<Client> ANDROID_DEBUG_CLIENT = new Key<Client>("ANDROID_DEBUG_CLIENT");
 
   private static final Object myDebugLock = new Object();
   public static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
@@ -285,6 +286,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
           ProcessHandler handler = myRunningState.getProcessHandler();
           handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, debugDescriptor, debugState, myExecutor.getId()));
+          handler.putUserData(ANDROID_DEBUG_CLIENT, client);
           debugDescriptor.setActivateToolWindowWhenAdded(false);
         }
       });
