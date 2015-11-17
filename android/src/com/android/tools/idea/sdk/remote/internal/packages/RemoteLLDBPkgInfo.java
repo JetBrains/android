@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.local.LocalLLDBPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
@@ -48,6 +49,16 @@ public class RemoteLLDBPkgInfo extends RemotePkgInfo {
   @NonNull
   @Override
   public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-    return new File(osSdkRoot, SdkConstants.FD_LLDB);
+    String pathToLLDB = new File(osSdkRoot, SdkConstants.FD_LLDB).getPath();
+    return new File(pathToLLDB, getRevision().toString());
+  }
+
+  @Override
+  public boolean hasCompatibleArchive() {
+    if (!getRevision().equals(LocalLLDBPkgInfo.PINNED_REVISION)) {
+      return false;
+    }
+
+    return super.hasCompatibleArchive();
   }
 }
