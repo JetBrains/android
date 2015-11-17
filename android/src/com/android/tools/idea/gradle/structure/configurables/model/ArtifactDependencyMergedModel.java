@@ -28,7 +28,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel.convert;
+import static com.android.tools.idea.gradle.structure.configurables.model.Coordinates.areEqual;
+import static com.android.tools.idea.gradle.structure.configurables.model.Coordinates.convert;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
 public class ArtifactDependencyMergedModel extends DependencyMergedModel {
@@ -71,8 +72,7 @@ public class ArtifactDependencyMergedModel extends DependencyMergedModel {
       }
       MavenCoordinates resolved = library.getResolvedCoordinates();
       if (resolved != null) {
-        GradleCoordinate coordinate = convert(resolved);
-        if (coordinate.isSameArtifact(myCoordinate) && coordinate.getRevision().equals(myCoordinate.getRevision())) {
+        if (areEqual(myCoordinate, convert(resolved))) {
           return true;
         }
       }
