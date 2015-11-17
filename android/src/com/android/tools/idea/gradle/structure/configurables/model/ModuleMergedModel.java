@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.structure.configurables.model;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleCoordinate.RevisionComponent;
-import com.android.ide.common.repository.GradleCoordinate.StringComponent;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
@@ -37,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
+import static com.android.tools.idea.gradle.structure.configurables.model.Coordinates.areEqual;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 import static com.intellij.icons.AllIcons.Nodes.Module;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
@@ -145,8 +144,7 @@ public class ModuleMergedModel {
         List<LogicalArtifactDependency> fromGradleModel = Lists.newArrayList();
         for (LogicalArtifactDependency dependency : dependenciesInConfiguration) {
           GradleCoordinate logicalCoordinate = dependency.coordinate;
-          if (logicalCoordinate.isSameArtifact(parsedCoordinate) &&
-              logicalCoordinate.getRevision().equals(parsedCoordinate.getRevision())) {
+          if (areEqual(logicalCoordinate, parsedCoordinate)) {
             fromGradleModel.add(dependency);
             logicalDependencies.markAsFound(dependency);
           }
@@ -183,14 +181,6 @@ public class ModuleMergedModel {
   @NotNull
   public List<DependencyMergedModel> getDependencies() {
     return myDependencyModels;
-  }
-
-  @NotNull
-  static GradleCoordinate convert(@NotNull MavenCoordinates coordinates) {
-    RevisionComponent version = new StringComponent(coordinates.getVersion());
-    List<RevisionComponent> components = Lists.newArrayList(version);
-    GradleCoordinate.ArtifactType artifactType = GradleCoordinate.ArtifactType.getArtifactType(coordinates.getPackaging());
-    return new GradleCoordinate(coordinates.getGroupId(), coordinates.getArtifactId(), components, artifactType);
   }
 
   /**
@@ -252,7 +242,7 @@ public class ModuleMergedModel {
     static LogicalArtifactDependency create(@NotNull Library dependency) {
       MavenCoordinates resolved = dependency.getResolvedCoordinates();
       if (resolved != null) {
-        return new LogicalArtifactDependency(convert(resolved), dependency);
+        return new LogicalArtifactDependency(Coordinates.convert(resolved), dependency);
       }
       return null;
     }
