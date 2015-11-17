@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw;
+package com.android.tools.idea.templates;
 
-import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.utils.XmlUtils;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 import org.w3c.dom.Document;
 
 import java.util.Map;
 
-public final class ParameterDefaultValueComputerTest extends TestCase {
+import static org.fest.assertions.Fail.fail;
+import static org.junit.Assert.assertEquals;
+
+public final class ParameterValueResolverTest {
   private static final String NORMAL_TEMPLATE = "<?xml version=\"1.0\"?>\n" +
                                                 "<template\n" +
                                                 "    format=\"4\"\n" +
@@ -163,66 +163,64 @@ public final class ParameterDefaultValueComputerTest extends TestCase {
     return new TemplateMetadata(document);
   }
 
-  public void testSimpleValuesDerival() throws CircularParameterDependencyException {
+  @Test
+  public void testSimpleValuesResolution() throws CircularParameterDependencyException {
     TemplateMetadata template = parseTemplateMetadata(NORMAL_TEMPLATE);
-    ParameterDefaultValueComputer computer =
-      new ParameterDefaultValueComputer(template.getParameters(), ImmutableMap.<Parameter, Object>of(), ImmutableMap.<String, Object>of(),
-                                        null);
-    Map<Parameter, Object> defaultValuesMap = computer.getParameterValues();
+    Map<Parameter, Object> defaultValuesMap =
+      ParameterValueResolver.resolve(template.getParameters(), ImmutableMap.<Parameter, Object>of(), ImmutableMap.<String, Object>of());
     assertEquals(Boolean.FALSE, defaultValuesMap.get(getParameterObject(template, "p1")));
     assertEquals("Hello", defaultValuesMap.get(getParameterObject(template, "p2")));
     assertEquals("", defaultValuesMap.get(getParameterObject(template, "p3")));
   }
 
-  public void testComputedValuesDerival() throws CircularParameterDependencyException {
+  @Test
+  public void testComputedValuesResolution() throws CircularParameterDependencyException {
     TemplateMetadata template = parseTemplateMetadata(NORMAL_TEMPLATE);
-    ParameterDefaultValueComputer computer =
-      new ParameterDefaultValueComputer(template.getParameters(), ImmutableMap.<Parameter, Object>of(), ImmutableMap.<String, Object>of(),
-                                        null);
-    Map<Parameter, Object> defaultValuesMap = computer.getParameterValues();
+    Map<Parameter, Object> defaultValuesMap =
+      ParameterValueResolver.resolve(template.getParameters(), ImmutableMap.<Parameter, Object>of(), ImmutableMap.<String, Object>of());
     assertEquals("Hello, World", defaultValuesMap.get(getParameterObject(template, "p4")));
     assertEquals("Hello, World!", defaultValuesMap.get(getParameterObject(template, "p5")));
     assertEquals(Boolean.TRUE, defaultValuesMap.get(getParameterObject(template, "p6")));
   }
 
+  @Test
   public void testComputedValuesDerivedFromNotNull() throws CircularParameterDependencyException {
     TemplateMetadata template = parseTemplateMetadata(NORMAL_TEMPLATE);
     Map<Parameter, Object> values = Maps.newHashMap();
     values.put(getParameterObject(template, "p2"), "Goodbye");
 
-    ParameterDefaultValueComputer computer1 =
-      new ParameterDefaultValueComputer(template.getParameters(), values, ImmutableMap.<String, Object>of(), null);
-    Map<Parameter, Object> defaultValuesMap = computer1.getParameterValues();
+    Map<Parameter, Object> defaultValuesMap =
+      ParameterValueResolver.resolve(template.getParameters(), values, ImmutableMap.<String, Object>of());
     assertEquals("Goodbye, World", defaultValuesMap.get(getParameterObject(template, "p4")));
     assertEquals("Goodbye, World!", defaultValuesMap.get(getParameterObject(template, "p5")));
   }
 
+  @Test
   public void testCustomComputedParameterValue() throws CircularParameterDependencyException {
     TemplateMetadata template = parseTemplateMetadata(NORMAL_TEMPLATE);
     Map<Parameter, Object> values = Maps.newHashMap();
     values.put(getParameterObject(template, "p2"), "Goodbye");
     values.put(getParameterObject(template, "p4"), "Value");
 
-    ParameterDefaultValueComputer computer =
-      new ParameterDefaultValueComputer(template.getParameters(), values, ImmutableMap.<String, Object>of(), null);
-    assertEquals("Value!", computer.getParameterValues().get(getParameterObject(template, "p5")));
+    Map<Parameter, Object> parameterValues =
+      ParameterValueResolver.resolve(template.getParameters(), values, ImmutableMap.<String, Object>of());
+    assertEquals("Value!", parameterValues.get(getParameterObject(template, "p5")));
   }
 
+  @Test
   public void testParameterLoop() {
     TemplateMetadata template = parseTemplateMetadata(PARAMETER_LOOP);
 
-    ParameterDefaultValueComputer computer =
-      new ParameterDefaultValueComputer(template.getParameters(), ImmutableMap.<Parameter, Object>of(), ImmutableMap.<String, Object>of(),
-                                        null);
     try {
-      computer.getParameterValues();
+      ParameterValueResolver.resolve(template.getParameters(), ImmutableMap.<Parameter, Object>of(), ImmutableMap.<String, Object>of());
       fail("No exception was thrown");
     }
     catch (CircularParameterDependencyException e) {
-      System.out.printf("Parameters in cycle: %s\n", Joiner.on(", ").join(e.getParameterIds()));
+      System.out.printf(e.getMessage());
     }
   }
 
+  @Test
   public void testNoComputedParameters() throws CircularParameterDependencyException {
     TemplateMetadata template = parseTemplateMetadata(NO_COMPUTED_PARAMS);
 
@@ -230,10 +228,8 @@ public final class ParameterDefaultValueComputerTest extends TestCase {
     assert p1 != null;
 
     String expectedValue = "test";
-    ParameterDefaultValueComputer computer =
-      new ParameterDefaultValueComputer(template.getParameters(), ImmutableMap.<Parameter, Object>of(p1, expectedValue),
-                                        ImmutableMap.<String, Object>of(), null);
-    Map<Parameter, Object> values = computer.getParameterValues();
+    Map<Parameter, Object> values = ParameterValueResolver
+      .resolve(template.getParameters(), ImmutableMap.<Parameter, Object>of(p1, expectedValue), ImmutableMap.<String, Object>of());
     assertEquals(expectedValue, values.get(p1));
     assertEquals("p2", values.get(template.getParameter("p2")));
   }
