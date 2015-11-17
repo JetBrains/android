@@ -526,6 +526,20 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     toTestCompletion("tn13.xml", "tn13_after.xml");
   }
 
+  // Test that support library component alternatives are pushed higher in completion
+  public void testSupportLibraryCompletion() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/GridLayout.java", "src/android/support/v7/widget/GridLayout.java");
+    VirtualFile file = copyFileToProject("tn14.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    List<String> completionResult = myFixture.getLookupElementStrings();
+
+    assertNotNull(completionResult);
+    // Check the elements are in the right order
+    assertEquals("android.support.v7.widget.GridLayout", completionResult.get(0));
+    assertEquals("GridLayout", completionResult.get(1));
+  }
+
   public void testTagNameIcons1() throws Throwable {
     doTestTagNameIcons("tn10.xml");
   }
