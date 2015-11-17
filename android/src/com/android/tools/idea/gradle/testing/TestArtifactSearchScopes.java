@@ -90,6 +90,9 @@ public final class TestArtifactSearchScopes {
   private FileRootSearchScope myUnitTestSourceScope;
   private FileRootSearchScope myAndroidTestExcludeScope;
   private FileRootSearchScope myUnitTestExcludeScope;
+  private FileRootSearchScope myAndroidTestDependencyExcludeScope;
+  private FileRootSearchScope mySharedTestsExcludeScope;
+  private FileRootSearchScope myUnitTestDependencyExcludeScope;
 
   private TestArtifactSearchScopes(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
     myModule = module;
@@ -138,7 +141,9 @@ public final class TestArtifactSearchScopes {
   @NotNull
   public FileRootSearchScope getAndroidTestExcludeScope() {
     if (myAndroidTestExcludeScope == null) {
-      myAndroidTestExcludeScope = getExcludedScope(ARTIFACT_ANDROID_TEST);
+      myAndroidTestExcludeScope = getUnitTestSourceScope()
+        .exclude(getAndroidTestSourceScope())
+        .merge(getAndroidTestDependencyExcludeScope());
     }
     return myAndroidTestExcludeScope;
   }
@@ -146,22 +151,38 @@ public final class TestArtifactSearchScopes {
   @NotNull
   public FileRootSearchScope getUnitTestExcludeScope() {
     if (myUnitTestExcludeScope == null) {
-      myUnitTestExcludeScope = getExcludedScope(ARTIFACT_UNIT_TEST);
+      myUnitTestExcludeScope = getAndroidTestSourceScope()
+        .exclude(getUnitTestSourceScope())
+        .merge(getUnitTestDependencyExcludeScope());
     }
     return myUnitTestExcludeScope;
   }
 
   @NotNull
-  private FileRootSearchScope getExcludedScope(@NotNull String artifactName) {
-    FileRootSearchScope excludedSource;
-    if (ARTIFACT_ANDROID_TEST.equals(artifactName)) {
-      excludedSource = getUnitTestSourceScope();
+  public FileRootSearchScope getSharedTestsExcludeScope() {
+    if (mySharedTestsExcludeScope == null) {
+      // When a file is shared by both tests, then the test should only access the dependencies that android test and unit test both
+      // have. Since the API requires us return a excluding scope. So we want to exclude all the dependencies android test doesn't
+      // includes and the ones that unit test doesn't have.
+      mySharedTestsExcludeScope = getAndroidTestDependencyExcludeScope().merge(getUnitTestDependencyExcludeScope());
     }
-    else {
-      excludedSource = getAndroidTestSourceScope();
+    return mySharedTestsExcludeScope;
+  }
+
+  @NotNull
+  public FileRootSearchScope getAndroidTestDependencyExcludeScope() {
+    if (myAndroidTestDependencyExcludeScope == null) {
+      myAndroidTestDependencyExcludeScope = getExcludedDependenciesScope(ARTIFACT_ANDROID_TEST);
     }
-    FileRootSearchScope excludedLibs = getExcludedDependenciesScope(artifactName);
-    return excludedSource.uniteWith(excludedLibs);
+    return myAndroidTestDependencyExcludeScope;
+  }
+
+  @NotNull
+  public FileRootSearchScope getUnitTestDependencyExcludeScope() {
+    if (myUnitTestDependencyExcludeScope == null) {
+      myUnitTestDependencyExcludeScope = getExcludedDependenciesScope(ARTIFACT_UNIT_TEST);
+    }
+    return myUnitTestDependencyExcludeScope;
   }
 
   @NotNull

@@ -38,7 +38,7 @@ public class FileRootSearchScopeTest extends PlatformTestCase {
     File genSrcRoot = createTempDir("genSrcRoot");
     FileRootSearchScope scope2 = new FileRootSearchScope(getProject(), ImmutableList.of(genSrcRoot));
 
-    FileRootSearchScope unitedScope = scope1.uniteWith(scope2);
+    FileRootSearchScope unitedScope = scope1.merge(scope2);
     assertTrue(unitedScope.accept(getVirtualFile(srcRoot)));
     assertTrue(unitedScope.accept(getVirtualFile(genSrcRoot)));
   }

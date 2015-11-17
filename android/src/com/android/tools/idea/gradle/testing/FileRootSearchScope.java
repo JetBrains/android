@@ -23,6 +23,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import gnu.trove.TObjectIntHashMap;
 import gnu.trove.TObjectProcedure;
 import org.jetbrains.annotations.NotNull;
@@ -135,19 +136,32 @@ public class FileRootSearchScope extends GlobalSearchScope {
     return myProjectFileIndex.getClassRootForFile(file);
   }
 
-  @Override
   @NotNull
+  @Override
   public GlobalSearchScope uniteWith(@NotNull GlobalSearchScope scope) {
-    if (scope == this) {
-      return scope;
-    }
     if (scope instanceof FileRootSearchScope) {
-      return uniteWith((FileRootSearchScope)scope);
+      return merge((FileRootSearchScope)scope);
     }
     return super.uniteWith(scope);
   }
 
-  public FileRootSearchScope uniteWith(@NotNull FileRootSearchScope scope) {
+  /**
+   * Create a scope whose {@link #myDirRootPaths} is the merge of those two scopes. The scope created is equivalent to the ones created
+   * using {@link GlobalSearchScope#uniteWith} or {@link SearchScope#union} but has better query time performance and worse creation time
+   * performance. This method is only supposed to be used in {@link TestArtifactSearchScopes} where we create the base scopes.
+   */
+  @NotNull
+  protected FileRootSearchScope merge(@NotNull FileRootSearchScope scope) {
+    return calculate(scope, true);
+  }
+
+  @NotNull
+  protected FileRootSearchScope exclude(@NotNull FileRootSearchScope scope) {
+    return calculate(scope, false);
+  }
+
+  @NotNull
+  private FileRootSearchScope calculate(@NotNull FileRootSearchScope scope, final boolean merge) {
     final Set<File> roots = Sets.newHashSet();
     myDirRootPaths.forEach(new TObjectProcedure<File>() {
       @Override
@@ -160,7 +174,11 @@ public class FileRootSearchScope extends GlobalSearchScope {
     scope.myDirRootPaths.forEach(new TObjectProcedure<File>() {
       @Override
       public boolean execute(File file) {
-        roots.add(file);
+        if (merge) {
+          roots.add(file);
+        } else {
+          roots.remove(file);
+        }
         return true;
       }
     });
