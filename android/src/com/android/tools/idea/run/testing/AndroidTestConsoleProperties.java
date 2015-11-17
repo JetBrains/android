@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.testing;
 
 import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
 import com.intellij.execution.testframework.sm.runner.SMTestLocator;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * @since Aug 28, 2009
  */
 public class AndroidTestConsoleProperties extends SMTRunnerConsoleProperties {
-  public AndroidTestConsoleProperties(@NotNull AndroidTestRunConfiguration configuration, @NotNull Executor executor) {
+  public AndroidTestConsoleProperties(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
     super(configuration, "Android", executor);
   }
 

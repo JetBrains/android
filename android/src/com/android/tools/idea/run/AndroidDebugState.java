@@ -80,4 +80,15 @@ public class AndroidDebugState implements RemoteState, AndroidExecutionState {
   public AndroidRunConfigurationBase getConfiguration() {
     return myState.getConfiguration();
   }
+
+  @Override
+  public int getRunConfigurationId() {
+    return myState.getRunConfigurationId();
+  }
+
+  @NotNull
+  @Override
+  public String getRunConfigurationTypeId() {
+    return myState.getRunConfigurationTypeId();
+  }
 }
