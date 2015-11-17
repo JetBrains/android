@@ -78,7 +78,7 @@ public class HprofView implements Disposable {
         DefaultActionGroup group = new DefaultActionGroup();
         assert mySnapshot != null;
         for (final Heap heap : mySnapshot.getHeaps()) {
-          if ("default".equals(heap.getName()) && heap.getClasses().isEmpty() && heap.getInstances().isEmpty()) {
+          if ("default".equals(heap.getName()) && heap.getClasses().isEmpty() && heap.getInstancesCount() == 0) {
             continue;
           }
           group.add(new AnAction(StringUtil.capitalize(heap.getName() + " heap")) {
