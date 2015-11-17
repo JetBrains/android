@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.ui.wizard.PathValidator;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.CharMatcher;
 import com.intellij.ide.RecentProjectsManager;
@@ -123,7 +124,7 @@ public class WizardUtils {
   /**
    * A Validation Result for Wizard Validations, contains a status and a message
    *
-   * @deprecated Use {@link com.android.tools.idea.ui.wizard.ValidationResult} instead.
+   * @deprecated Use {@link PathValidator} instead.
    * TODO: Post wizard migration: delete
    */
   public static class ValidationResult {
