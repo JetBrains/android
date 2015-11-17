@@ -49,7 +49,10 @@ public enum AccelerationErrorCode {
   HYPERV_ENABLED(15, "Android Emulator is incompatible with Hyper-V.", NONE, SOLUTION_TURN_OFF_HYPER_V),
   EMULATOR_ERROR(138, "Accelerator Detection Problem.", NONE, "Please file a bug against Android Studio."),
   UNKNOWN_ERROR(-1, "Unknown Error", NONE, "Please file a bug against Android Studio."),
-  TOOLS_UPDATE_REQUIRED(-2, "Emulator is outdated", NONE, "Please download the newest tools");
+  TOOLS_UPDATE_REQUIRED(-2, "Emulator is outdated", NONE, "Please download the newest tools"),
+  NOT_ENOUGH_MEMORY(-3, "Not enough memory to run HAXM", NONE, "Get more available memory for HAXM"),
+  CANNOT_INSTALL_ON_WINDOWS(-4, "Cannot install on Windows.", NONE, "Install HAXM by hand."),
+  CANNOT_INSTALL_ON_THIS_OS(-5, "HAXM can only be installed on Windows or Mac.", NONE, "Please file a bug against Android Studio.");
 
   private int myErrorCode;
   private String myProblem;

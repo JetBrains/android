@@ -24,6 +24,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
@@ -58,6 +59,10 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,16 +81,18 @@ public class AvdManagerConnection {
   private static final IdDisplay GOOGLE_APIS_TAG = new IdDisplay("google_apis", "");
   private static final int MNC_API_LEVEL_23 = 23;
   private static final int LMP_MR1_API_LEVEL_22 = 22;
-  private static final int MNC_AOSP_MIN_REVISION = 2;
-  private static final int MNC_GAPI_MIN_REVISION = 2;
-  private static final int LMP_AOSP_MIN_REVISION = 5;
-  private static final int LMP_GAPI_MIN_REVISION = 9;
+  private static final int MNC_AOSP_MIN_REVISION = 6;
+  private static final int MNC_GAPI_MIN_REVISION = 10;
+  private static final int LMP_AOSP_MIN_REVISION = 2;
+  private static final int LMP_GAPI_MIN_REVISION = 2;
   private static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0");
 
   private AvdManager ourAvdManager;
   private Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
   private File ourEmulatorBinary;
   private static Map<LocalSdk, AvdManagerConnection> ourCache = new WeakHashMap<LocalSdk, AvdManagerConnection>();
+  private static long ourMemorySize = -1;
+
   @Nullable private final LocalSdk myLocalSdk;
 
   @NotNull
@@ -422,6 +429,10 @@ public class AvdManagerConnection {
       // TODO: For now just ignore the rest of the checks
       return AccelerationErrorCode.ALREADY_INSTALLED;
     }
+    if (getMemorySize() < Storage.Unit.GiB.getNumberOfBytes()) {
+      // TODO: The emulator -accel-check current does not check for the available memory, do it here instead:
+      return AccelerationErrorCode.NOT_ENOUGH_MEMORY;
+    }
     GeneralCommandLine commandLine = new GeneralCommandLine();
     commandLine.setExePath(ourEmulatorBinary.getPath());
     commandLine.addParameter("-accel-check");
@@ -543,11 +554,11 @@ public class AvdManagerConnection {
       return false;
     }
     else if (apiLevel == LMP_MR1_API_LEVEL_22) {
-      int minRevision = GOOGLE_APIS_TAG.equals(tag) ? MNC_GAPI_MIN_REVISION : MNC_AOSP_MIN_REVISION;
+      int minRevision = GOOGLE_APIS_TAG.equals(tag) ? LMP_GAPI_MIN_REVISION : LMP_AOSP_MIN_REVISION;
       return revision.getMajor() >= minRevision;
     }
     else if (apiLevel == MNC_API_LEVEL_23) {
-      int minRevision = GOOGLE_APIS_TAG.equals(tag) ? LMP_GAPI_MIN_REVISION : LMP_AOSP_MIN_REVISION;
+      int minRevision = GOOGLE_APIS_TAG.equals(tag) ? MNC_GAPI_MIN_REVISION : MNC_AOSP_MIN_REVISION;
       return revision.getMajor() >= minRevision;
     }
     else {
@@ -630,5 +641,41 @@ public class AvdManagerConnection {
       }
     }
     return false;
+  }
+
+  public static long getMemorySize() {
+    if (ourMemorySize < 0) {
+      ourMemorySize = checkMemorySize();
+    }
+    return ourMemorySize;
+  }
+
+  private static long checkMemorySize() {
+    OperatingSystemMXBean osMXBean = ManagementFactory.getOperatingSystemMXBean();
+    // This is specific to JDKs derived from Oracle JDK (including OpenJDK and Apple JDK among others).
+    // Other then this, there's no standard way of getting memory size
+    // without adding 3rd party libraries or using native code.
+    try {
+      Class<?> oracleSpecificMXBean = Class.forName("com.sun.management.OperatingSystemMXBean");
+      Method getPhysicalMemorySizeMethod = oracleSpecificMXBean.getMethod("getTotalPhysicalMemorySize");
+      Object result = getPhysicalMemorySizeMethod.invoke(osMXBean);
+      if (result instanceof Number) {
+        return ((Number)result).longValue();
+      }
+    }
+    catch (ClassNotFoundException e) {
+      // Unsupported JDK
+    }
+    catch (NoSuchMethodException e) {
+      // Unsupported JDK
+    }
+    catch (InvocationTargetException e) {
+      IJ_LOG.error(e); // Shouldn't happen (unsupported JDK?)
+    }
+    catch (IllegalAccessException e) {
+      IJ_LOG.error(e); // Shouldn't happen (unsupported JDK?)
+    }
+    // Maximum memory allocatable to emulator - 32G. Only used if non-Oracle JRE.
+    return 32L * Storage.Unit.GiB.getNumberOfBytes();
   }
 }
