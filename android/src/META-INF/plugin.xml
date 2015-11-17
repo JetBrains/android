@@ -267,9 +267,9 @@
                         serviceImplementation="com.android.tools.idea.stats.UsageTrackerAnalyticsImpl"/>
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
-    <projectConfigurable groupId="build" id="gradle.compiler" parentId="project.propCompiler"
+    <projectConfigurable groupId="build" id="gradle.compiler"
                          provider="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurableProvider"/>
-    <projectConfigurable groupId="build" id="instant.run" parentId="project.propCompiler"
+    <projectConfigurable groupId="build" id="instant.run"
                          provider="com.android.tools.idea.fd.InstantRunConfigurableProvider"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.compiler.HideCompilerOptions" />
 
