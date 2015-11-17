@@ -18,13 +18,6 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 11, 2009
- * Time: 9:26:14 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidAnimationDomTest extends AndroidDomTest {
   public AndroidAnimationDomTest() {
     super(false, "dom/anim");
@@ -60,4 +53,30 @@ public class AndroidAnimationDomTest extends AndroidDomTest {
   public void testChildren1() throws Throwable {
     toTestCompletion("tn1.xml", "tn1_after.xml");
   }
+
+  // An example of statelist animator is highlighted without errors
+  public void testSelectorAnimationHiglighting() throws Throwable {
+    doTestHighlighting("selectorAnimationHighlighting.xml");
+  }
+
+  // <selector> top-level tag in anim resource files is completed
+  public void testSelectorTagCompletion() throws Throwable {
+    toTestCompletion("selector_tag_completion.xml", "selector_tag_completion_after.xml");
+  }
+
+  // Inside <selector> tag, <item> tags are autocompleted
+  public void testItemTagCompletion() throws Throwable {
+    toTestCompletion("item_tag_completion.xml", "item_tag_completion_after.xml");
+  }
+
+  // Inside <item> tag, "state_" attributes are autocompleted
+  public void testItemAttributeCompletion() throws Throwable {
+    toTestCompletion("item_attribute_completion.xml", "item_attribute_completion_after.xml");
+  }
+
+  // <objectAnimator> is completed as a possible subtag of <item> tag
+  public void testItemContentsCompletion() throws Throwable {
+    toTestCompletion("item_contents_completion.xml", "item_contents_completion_after.xml");
+  }
+
 }

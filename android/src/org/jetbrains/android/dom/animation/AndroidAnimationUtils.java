@@ -16,25 +16,17 @@
 
 package org.jetbrains.android.dom.animation;
 
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
+import com.google.common.collect.Lists;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiClass;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ClassMapConstructor;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ArrayUtil;
-import com.intellij.psi.PsiClass;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 19, 2009
- * Time: 5:50:35 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidAnimationUtils {
   @NonNls public static final String ANIMATION_PACKAGE = "android.view.animation";
   @NonNls private static final String INTERPOLATOR_CLASS_NAME = "android.view.animation.Interpolator";
@@ -58,8 +50,11 @@ public class AndroidAnimationUtils {
   }
 
   public static List<String> getPossibleChildren(@NotNull AndroidFacet facet) {
-    List<String> children = new ArrayList<String>();
-    Collections.addAll(children, TAG_NAMES);
+    List<String> children = Lists.newArrayList(TAG_NAMES);
+
+    // Animation file could be an animator statelist, add "<selector>" to a list of root tags completions
+    children.add("selector");
+
     children.addAll(facet.getClassMap(INTERPOLATOR_CLASS_NAME, new ClassMapConstructor() {
       @Override
       @NotNull
