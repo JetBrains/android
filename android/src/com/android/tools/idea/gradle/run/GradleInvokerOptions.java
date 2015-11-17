@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -65,19 +66,24 @@ public class GradleInvokerOptions {
                                             @NotNull ExecutionEnvironment env,
                                             @Nullable String userGoal) {
     Collection<IDevice> devices = getTargetDevices(env);
-    final List<String> cmdLineArgs = getGradleArgumentsToTarget(devices);
+    List<String> cmdLineArgs = getGradleArgumentsToTarget(devices);
 
     if (!StringUtil.isEmpty(userGoal)) {
       return new GradleInvokerOptions(Collections.singletonList(userGoal), null, cmdLineArgs);
     }
 
+    boolean isDexSwap = Boolean.TRUE.equals(env.getCopyableUserData(AndroidRunConfigurationBase.DEXSWAP));
     final Module[] modules = getModules(project, context, configuration);
-    if (Boolean.TRUE.equals(env.getCopyableUserData(AndroidRunConfigurationBase.FAST_DEPLOY))) {
+    if (isDexSwap || Boolean.TRUE.equals(env.getCopyableUserData(AndroidRunConfigurationBase.FAST_DEPLOY))) {
       Module module = modules[0];
       LOG.info(String.format("Module %1$s can be updated incrementally.", module.getName()));
       AndroidGradleModel model = AndroidGradleModel.get(module);
       assert model != null : "Module selected for fast deploy, but doesn't seem to have the right gradle model";
       String dexTask = FastDeployManager.getIncrementalDexTask(model, module);
+      if (isDexSwap) {
+        cmdLineArgs = Lists.newArrayList(cmdLineArgs);
+        cmdLineArgs.add("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_DEX_ONLY");
+      }
       return new GradleInvokerOptions(Collections.singletonList(dexTask), null, cmdLineArgs);
     }
 
