@@ -59,7 +59,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   /** The key used to store the selected device target as copyable user data on each execution environment. */
   public static final Key<DeviceFutures> DEVICE_FUTURES_KEY = Key.create("android.device.futures");
 
-  public static final Key<Collection<IDevice>> DEPLOY_DEVICES = Key.create("android.deploy.devices");
   public static final Key<Boolean> FAST_DEPLOY = Key.create("android.fast.deploy");
 
   private static final DialogWrapper.DoNotAskOption ourKillLaunchOption = new MyDoNotPromptOption();
@@ -338,7 +337,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
               }
 
               env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
-              env.putCopyableUserData(DEPLOY_DEVICES, devices);
               return new PatchDeployState(info.getDescriptor(), facet, devices);
             }
           }
