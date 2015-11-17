@@ -34,8 +34,8 @@ class DependenciesTreeBuilder extends AbstractTreeBuilder {
   @Override
   protected boolean isAutoExpandNode(NodeDescriptor nodeDescriptor) {
     if (nodeDescriptor instanceof GradleNode) {
-      GradleNode descriptor = (GradleNode)nodeDescriptor;
-      return descriptor.isAutoExpand();
+      GradleNode node = (GradleNode)nodeDescriptor;
+      return node.isAutoExpand();
     }
     return super.isAutoExpandNode(nodeDescriptor);
   }
