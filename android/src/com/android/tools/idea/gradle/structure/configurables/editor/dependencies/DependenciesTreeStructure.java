@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.structure.configurables.editor.dependencies;
 
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.structure.configurables.editor.treeview.ContainerNode;
 import com.android.tools.idea.gradle.structure.configurables.editor.treeview.GradleNode;
 import com.android.tools.idea.gradle.structure.configurables.editor.treeview.VariantNode;
+import com.android.tools.idea.gradle.structure.configurables.model.ArtifactDependencyMergedModel;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
@@ -32,6 +34,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.structure.configurables.model.Coordinates.convert;
 import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
@@ -42,7 +45,7 @@ class DependenciesTreeStructure extends AbstractTreeStructure {
   DependenciesTreeStructure(@NotNull DependenciesPanel dependenciesPanel) {
     myDependenciesPanel = dependenciesPanel;
     AndroidProject androidProject = myDependenciesPanel.getModel().getAndroidProject();
-    myRoot = new ContainerNode.Variants(androidProject);
+    myRoot = new ContainerNode.Variants(androidProject, true);
     myRoot.setAutoExpand(true);
   }
 
@@ -86,10 +89,10 @@ class DependenciesTreeStructure extends AbstractTreeStructure {
           ArtifactNode n1 = (ArtifactNode)o1;
           if (o2 instanceof ArtifactNode) {
             ArtifactNode n2 = (ArtifactNode)o2;
-            if (n1.unknown == n2.unknown) {
+            if (n1.isInBuildFile() == n2.isInBuildFile()) {
               return Collator.getInstance().compare(n1.getName(), n2.getName());
             }
-            return n1.unknown ? 1 : -1;
+            return n1.isInBuildFile() ? -1 : 1;
           }
         }
         return -1;
@@ -112,21 +115,19 @@ class DependenciesTreeStructure extends AbstractTreeStructure {
 
   @NotNull
   private ArtifactNode addIfMatching(@NotNull GradleNode node, @NotNull Library library, @NotNull List<GradleNode> children) {
-    ArtifactNode child = new ArtifactNode(library, node);
+    ArtifactNode child = new ArtifactNode(library, node, myDependenciesPanel.find(library));
     children.add(child);
-    if (!myDependenciesPanel.contains(library)) {
-      child.showAsUnknown();
-    }
     return child;
   }
 
-  private static void addTransitiveDependencies(@NotNull ArtifactNode node, @NotNull List<? extends Library> dependencies) {
-    List<GradleNode> transitive = Lists.newArrayList();
+  private void addTransitiveDependencies(@NotNull ArtifactNode node, @NotNull List<? extends Library> dependencies) {
+    List<GradleNode> transitiveNodes = Lists.newArrayList();
     for (Library dependency : dependencies) {
-      transitive.add(new ArtifactNode(dependency, node));
+      ArtifactNode child = new ArtifactNode(dependency, node, myDependenciesPanel.find(dependency));
+      transitiveNodes.add(child);
     }
-    if (!transitive.isEmpty()) {
-      node.setChildren(transitive);
+    if (!transitiveNodes.isEmpty()) {
+      node.setChildren(transitiveNodes);
     }
   }
 
@@ -159,25 +160,29 @@ class DependenciesTreeStructure extends AbstractTreeStructure {
     return false;
   }
 
-  @Override
-  public boolean isToBuildChildrenInBackground(Object element) {
-    return true;
-  }
+  static class ArtifactNode extends GradleNode {
+    @NotNull final GradleCoordinate coordinate;
+    @Nullable final ArtifactDependencyMergedModel dependencyModel;
 
-  private static class ArtifactNode extends GradleNode {
-    boolean unknown;
-
-    protected ArtifactNode(@NotNull Library library, @Nullable GradleNode parentDescriptor) {
+    ArtifactNode(@NotNull Library library, @Nullable GradleNode parentDescriptor, @Nullable ArtifactDependencyMergedModel dependencyModel) {
       super(parentDescriptor);
+      this.dependencyModel = dependencyModel;
       MavenCoordinates coordinates = library.getResolvedCoordinates();
+      coordinate = dependencyModel != null ? dependencyModel.getCoordinate() : convert(coordinates);
       myName = coordinates.getArtifactId() + GRADLE_PATH_SEPARATOR + coordinates.getVersion();
-      myClosedIcon = LIBRARY_ICON;
+      myClosedIcon = dependencyModel != null ? LIBRARY_ICON : AndroidIcons.ProjectStructure.UnknownLibrary;
       setChildren(NO_CHILDREN);
+      setAutoExpand(true);
     }
 
-    void showAsUnknown() {
-      unknown = true;
-      myClosedIcon = AndroidIcons.ProjectStructure.UnknownLibrary;
+    boolean isInBuildFile() {
+      return dependencyModel != null;
+    }
+
+    @Override
+    @NotNull
+    public Object[] getEqualityObjects() {
+      return dependencyModel != null ? new Object[]{dependencyModel} : super.getEqualityObjects();
     }
   }
 }
