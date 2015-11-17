@@ -22,6 +22,7 @@ import javax.swing.*;
 import java.awt.*;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public final class ProportionalLayoutTest {
   @Test
@@ -266,6 +267,52 @@ public final class ProportionalLayoutTest {
     assertThat(panel.getWidth()).isEqualTo(300);
     assertThat(panel.getHeight()).isEqualTo(30);
     assertThat(cell.getWidth()).isEqualTo(300 - left - right);
+  }
+
+  @Test
+  public void cellsCanSpanAcrossMultipleColumns() throws Exception {
+    final JPanel panel = new JPanel(ProportionalLayout.fromString("Fit,Fit"));
+
+    final Component row0col0 = Box.createHorizontalStrut(20);
+    final Component row0col1 = Box.createHorizontalStrut(50);
+    final JPanel row1 = new JPanel();
+    final Component row2col0 = Box.createHorizontalStrut(10);
+    final Component row2col1 = Box.createHorizontalStrut(100);
+
+    panel.add(row0col0, new ProportionalLayout.Constraint(0, 0));
+    panel.add(row0col1, new ProportionalLayout.Constraint(0, 1));
+    panel.add(row1, new ProportionalLayout.Constraint(1, 0, 2));
+    panel.add(row2col0, new ProportionalLayout.Constraint(2, 0));
+    panel.add(row2col1, new ProportionalLayout.Constraint(2, 1));
+
+    mockPackPanel(panel);
+    assertThat(row1.getWidth()).isEqualTo(120);
+  }
+
+  @Test
+  public void columnSpanMustBeWithinBounds() throws Exception {
+    final JPanel panel = new JPanel(ProportionalLayout.fromString("Fit,Fit"));
+    final JPanel row = new JPanel();
+
+    try {
+      panel.add(row, new ProportionalLayout.Constraint(0, 0, 3));
+      fail();
+    }
+    catch (IllegalArgumentException ignored) {
+    }
+  }
+
+  @Test
+  public void columnSpanMustBeGreaterThanZero() throws Exception {
+    final JPanel panel = new JPanel(ProportionalLayout.fromString("Fit,Fit"));
+    final JPanel row = new JPanel();
+
+    try {
+      panel.add(row, new ProportionalLayout.Constraint(0, 0, 0));
+      fail();
+    }
+    catch (IllegalArgumentException ignored) {
+    }
   }
 
   /**
