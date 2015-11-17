@@ -78,6 +78,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -888,5 +889,14 @@ public class ThemeEditorUtils {
   public static Font scaleFontForAttribute(@NotNull Font font) {
     // Use Math.ceil to ensure that the result is a font with an integer point size
     return font.deriveFont((float)Math.ceil(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
+  }
+
+  public static void setInheritsPopupMenuRecursive(JComponent comp) {
+    comp.setInheritsPopupMenu(true);
+    for (Component child : comp.getComponents()) {
+      if (child instanceof JComponent) {
+        setInheritsPopupMenuRecursive((JComponent) child);
+      }
+    }
   }
 }

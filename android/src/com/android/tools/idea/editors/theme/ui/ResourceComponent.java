@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.ui;
 
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.editor.event.DocumentListener;
@@ -62,6 +63,8 @@ public class ResourceComponent extends JPanel {
 
     mySwatchComponent = new SwatchComponent(project);
     add(mySwatchComponent, BorderLayout.SOUTH);
+
+    ThemeEditorUtils.setInheritsPopupMenuRecursive(this);
   }
 
   @Override
@@ -132,14 +135,6 @@ public class ResourceComponent extends JPanel {
     if (myNameLabel != null) {
       myNameLabel.setFont(font);
     }
-  }
-
-  @Override
-  public void setComponentPopupMenu(JPopupMenu popup) {
-    super.setComponentPopupMenu(popup);
-    myNameLabel.setComponentPopupMenu(popup);
-    myWarningLabel.setComponentPopupMenu(popup);
-    mySwatchComponent.setComponentPopupMenu(popup);
   }
 
   public void addSwatchListener(@NotNull final ActionListener listener) {
