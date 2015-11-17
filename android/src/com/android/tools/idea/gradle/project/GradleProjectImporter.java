@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
+import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -626,6 +624,13 @@ public class GradleProjectImporter {
             return true;
           }
         }
+      }
+    }
+    NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(module);
+    if (nativeAndroidFacet != null) {
+      DataNode<NativeAndroidGradleModel> nativeAndroidGradleDataNode = find(cache, NATIVE_ANDROID_MODEL);
+      if (nativeAndroidGradleDataNode == null) {
+        return true;
       }
     }
     return false;

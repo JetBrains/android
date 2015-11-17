@@ -47,7 +47,11 @@ public final class AndroidProjectKeys {
   public static final Key<AndroidGradleModel> ANDROID_MODEL = Key.create(AndroidGradleModel.class, GRADLE_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<JavaProject> JAVA_PROJECT = Key.create(JavaProject.class, ANDROID_MODEL.getProcessingWeight() + 10);
+  public static final Key<NativeAndroidGradleModel> NATIVE_ANDROID_MODEL =
+    Key.create(NativeAndroidGradleModel.class, ANDROID_MODEL.getProcessingWeight() + 10);
+
+  @NotNull
+  public static final Key<JavaProject> JAVA_PROJECT = Key.create(JavaProject.class, NATIVE_ANDROID_MODEL.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<ImportedModule> IMPORTED_MODULE = Key.create(ImportedModule.class, JAVA_PROJECT.getProcessingWeight() + 10);
