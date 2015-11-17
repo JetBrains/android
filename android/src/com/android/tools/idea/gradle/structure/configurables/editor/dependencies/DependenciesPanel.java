@@ -44,6 +44,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -130,7 +131,7 @@ class DependenciesPanel extends JPanel {
         if (e.getValueIsAdjusting()) {
           return;
         }
-        updateCurrentEditor();
+        updateSelection();
       }
     });
 
@@ -149,8 +150,24 @@ class DependenciesPanel extends JPanel {
 
     add(myMainVerticalSplitter, BorderLayout.CENTER);
 
-    updateCurrentEditor();
+    updateSelection();
     myDependencyTable.updateColumnSizes();
+  }
+
+  private void updateSelection() {
+    updateCurrentEditor();
+    selectInTreeView();
+  }
+
+  void selectInTreeView() {
+    Collection<DependencyMergedModel> selection = myDependencyTable.getSelection();
+    if (selection.size() == 1) {
+      DependencyMergedModel dependency = getFirstItem(selection);
+      assert dependency != null;
+      myDependenciesTreePanel.select(dependency);
+      return;
+    }
+    myDependenciesTreePanel.clearSelection();
   }
 
   private void updateCurrentEditor() {
@@ -247,16 +264,21 @@ class DependenciesPanel extends JPanel {
 
   }
 
-  public boolean contains(@NotNull Library library) {
+  @Nullable
+  ArtifactDependencyMergedModel find(@NotNull Library library) {
     for (DependencyMergedModel dependency : myModel.getDependencies()) {
       if (dependency instanceof ArtifactDependencyMergedModel) {
         ArtifactDependencyMergedModel artifactDependency = (ArtifactDependencyMergedModel)dependency;
         if (artifactDependency.matches(library)) {
-          return true;
+          return artifactDependency;
         }
       }
     }
-    return false;
+    return null;
+  }
+
+  void select(@NotNull DependencyMergedModel dependency) {
+    myDependencyTable.setSelection(Collections.singleton(dependency));
   }
 
   private class DependenciesTableModel extends ListTableModel<DependencyMergedModel> {

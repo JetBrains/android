@@ -34,17 +34,19 @@ public class ContainerNode extends GradleNode {
   }
 
   public static class Variants extends ContainerNode {
-    public Variants(@NotNull AndroidProject androidProject) {
-      this(androidProject, null);
+    public Variants(@NotNull AndroidProject androidProject, boolean autoExpandVariants) {
+      this(androidProject, null, autoExpandVariants);
     }
 
-    public Variants(@NotNull AndroidProject androidProject, @Nullable GradleNode parent) {
+    public Variants(@NotNull AndroidProject androidProject, @Nullable GradleNode parent, boolean autoExpandVariants) {
       super("Variants", parent);
       Collection<Variant> variants = androidProject.getVariants();
       int variantCount = variants.size();
       List<GradleNode> children = Lists.newArrayListWithExpectedSize(variantCount);
       for (Variant variant : variants) {
-        children.add(new VariantNode(variant, this));
+        VariantNode child = new VariantNode(variant, this);
+        child.setAutoExpand(autoExpandVariants);
+        children.add(child);
       }
       setChildren(children);
     }
