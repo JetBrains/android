@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.android.tools.idea.gradle.stubs.android.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
 /**
- * Factory of {@link com.android.builder.model.AndroidProject}s for testing purposes. The created projects mimic the structure of the
- * sample projects distributed with the Android Gradle plug-in.
+ * Factory of {@link com.android.builder.model.AndroidProject}s and {@link com.android.builder.model.NativeAndroidProject}s for testing
+ * purposes. The created projects mimic the structure of the sample projects distributed with the Android Gradle plug-in.
  */
 public final class TestProjects {
   private static final String BASIC_PROJECT_NAME = "basic";
+  private static final String NATIVE_PROJECT_NAME = "name";
 
   private TestProjects() {
   }
@@ -97,5 +96,30 @@ public final class TestProjects {
     project.addProductFlavor("fa");
 
     return project;
+  }
+
+  @NotNull
+  public static NativeAndroidProjectStub createNativeProject() {
+    NativeAndroidProjectStub nativeAndroidProject = new NativeAndroidProjectStub(NATIVE_PROJECT_NAME);
+    createNativeProject(nativeAndroidProject);
+    return nativeAndroidProject;
+  }
+
+  @NotNull
+  public static NativeAndroidProjectStub createNativeProject(@NotNull File parentDir) {
+    return createNativeProject(parentDir, NATIVE_PROJECT_NAME);
+  }
+
+  @NotNull
+  public static NativeAndroidProjectStub createNativeProject(@NotNull File parentDir, @NotNull String name) {
+    NativeAndroidProjectStub nativeAndroidProject = new NativeAndroidProjectStub(parentDir, name);
+    createNativeProject(nativeAndroidProject);
+    return nativeAndroidProject;
+  }
+
+  private static void createNativeProject(@NotNull NativeAndroidProjectStub nativeAndroidProjectStub) {
+    NativeArtifactStub artifactStub = nativeAndroidProjectStub.addNativeArtifact("lib");
+    artifactStub.addSourceFolder("src/main/xyz/");
+    artifactStub.addSourceFile("src/main/abc/foo.c");
   }
 }
