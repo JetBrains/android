@@ -157,7 +157,7 @@ public class ViewLoader {
         checkModified(className);
         return createNewInstance(aClass, constructorSignature, constructorArgs, isView);
       }
-      aClass = loadClass(className, true);
+      aClass = loadClass(className, isView);
 
       if (aClass != null) {
         checkModified(className);
