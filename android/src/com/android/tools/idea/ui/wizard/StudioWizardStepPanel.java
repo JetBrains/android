@@ -27,7 +27,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.NotNullProducer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -47,7 +46,6 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
   private final ListenerManager myListeners = new ListenerManager();
   private final Map<ObservableValue<?>, String> myErrors = Maps.newLinkedHashMap();
   private final Map<ObservableValue<?>, String> myWarnings = Maps.newLinkedHashMap();
-  private final Map<ObservableValue<?>, ValidationResult> myValidators = Maps.newLinkedHashMap();
   private final BoolProperty myHasErrors = new BoolValueProperty();
 
   private JPanel myRootPanel;
@@ -68,74 +66,36 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
   }
 
   /**
-   * Register a validation handler for the current property. The errorProducer callback should
-   * return a readable error string if there's a problem worth blocking on, or {@code ""} to
-   * indicate everything is fine.
-   * <p/>
-   * Registration order matters - the first error reported takes precedence over later errors if
-   * more than one error occurs at the same time.
-   * <p/>
-   * See also {@link #hasErrors()}, which will be true if at least one error is returned.
-   */
-  public <T> void registerErrorValidator(@NotNull final ObservableValue<T> value, @NotNull final NotNullProducer<String> errorProducer) {
-    myListeners.listenAndFire(value, new InvalidationListener() {
-      @Override
-      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myErrors.put(value, errorProducer.produce());
-        updateValidationLabel();
-      }
-    });
-  }
-
-  /**
-   * Register a validation handler for the current property. The warningProducer callback should
-   * return a readable warning string if there's something that should be brought to the user's
-   * attention (but not worth blocking progress over), or {@code ""} to indicate everything is
-   * fine.
-   * <p/>
-   * Registration order matters - the first warning reported takes precedence over later warnings
-   * if more than one warning occurs at the same time. Any error will trump any warning.
-   */
-  public <T> void registerWarningValidator(@NotNull final ObservableValue<T> value,
-                                           @NotNull final NotNullProducer<String> warningProducer) {
-    myListeners.listenAndFire(value, new InvalidationListener() {
-      @Override
-      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myWarnings.put(value, warningProducer.produce());
-        updateValidationLabel();
-      }
-    });
-  }
-
-  /**
-   * Register a validation handler for the current property. See {@link ValidationResult} for more
-   * information about the sort of conditions it can validate for.
-   * <p/>
+   * Register a {@link Validator} linked to a target property.
+   *
    * Registration order matters - the first error reported takes precedence over later errors
    * if more than one error occurs at the same time; the same is true for warnings. Any error will
    * trump any warning.
-   * <p/>
-   * See also {@link #hasErrors()}, which will be true if a {@link ValidationResult.Status#ERROR}
-   * is returned.
+   *
+   * See also {@link #hasErrors()}, which will be true if any validator has returned an
+   * {@link Validator.Severity#ERROR} result.
    */
   public <T> void registerValidator(@NotNull final ObservableValue<T> value,
-                                    @NotNull final NotNullProducer<ValidationResult> validationProducer) {
+                                    @NotNull final Validator<T> validator) {
     myListeners.listenAndFire(value, new InvalidationListener() {
       @Override
       protected void onInvalidated(@NotNull ObservableValue<?> sender) {
-        ValidationResult result = validationProducer.produce();
-        if (result.getStatus() == ValidationResult.Status.ERROR) {
-          myWarnings.put(value, "");
-          myErrors.put(value, result.getMessage());
+        Validator.Result result = validator.validate(value.get());
+        switch (result.getSeverity()) {
+          case ERROR:
+            myWarnings.put(value, "");
+            myErrors.put(value, result.getMessage());
+            break;
+          case WARNING:
+            myErrors.put(value, "");
+            myWarnings.put(value, result.getMessage());
+            break;
+          default:
+            myErrors.put(value, "");
+            myWarnings.put(value, "");
+            break;
         }
-        else if (result.getStatus() == ValidationResult.Status.WARN) {
-          myErrors.put(value, "");
-          myWarnings.put(value, result.getMessage());
-        }
-        else {
-          myErrors.put(value, "");
-          myWarnings.put(value, "");
-        }
+
         updateValidationLabel();
       }
     });
