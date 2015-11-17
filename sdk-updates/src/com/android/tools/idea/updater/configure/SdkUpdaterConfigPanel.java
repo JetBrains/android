@@ -19,30 +19,39 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.npw.WizardUtils.ValidationResult;
+import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.*;
+import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
 import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.idea.ui.Colors;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.wizard.ConsolidatedProgressStep;
 import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.android.utils.ILogger;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.updateSettings.impl.UpdateSettingsConfigurable;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
@@ -67,6 +76,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -83,11 +93,11 @@ public class SdkUpdaterConfigPanel {
   private HyperlinkLabel myChannelLink;
   private HyperlinkLabel myEditSdkLink;
   private JBTabbedPane myTabPane;
-  private JPanel mySdkLocationPanel;
+  @SuppressWarnings("unused") private JPanel mySdkLocationPanel;
   private JBLabel mySdkLocationLabel;
   private JBLabel mySdkErrorLabel;
-  private SdkSources mySdkSources;
-  private Runnable mySourcesChangeListener = new DispatchRunnable() {
+  private final SdkSources mySdkSources;
+  private final Runnable mySourcesChangeListener = new DispatchRunnable() {
     @Override
     public void doRun() {
       refresh();
@@ -98,7 +108,7 @@ public class SdkUpdaterConfigPanel {
   private boolean myHasPreview;
   private boolean myIncludePreview;
 
-  SdkLoadedCallback myUpdater = new SdkLoadedCallback(true) {
+  private final SdkLoadedCallback myUpdater = new SdkLoadedCallback(true) {
     @Override
     public void doRun(@NotNull SdkPackages packages) {
       updateItems(packages);
@@ -121,7 +131,10 @@ public class SdkUpdaterConfigPanel {
     myLaunchStandaloneLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
-        RunAndroidSdkManagerAction.runSpecificSdkManager(null, IdeSdks.getAndroidSdkPath());
+        File sdkDirectory = IdeSdks.getAndroidSdkPath();
+        assert sdkDirectory != null;
+
+        RunAndroidSdkManagerAction.runSpecificSdkManager(null, sdkDirectory);
       }
     });
     myChannelLink.setHyperlinkText("Preview packages available! ", "Switch", " to Preview Channel to see them");
@@ -137,61 +150,129 @@ public class SdkUpdaterConfigPanel {
     myEditSdkLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
-        final DynamicWizardHost host = new DialogWrapperHost(null);
-        DynamicWizard wizard = new DynamicWizard(null, null, "SDK Setup", host) {
-          @Override
-          public void init() {
-            ConsolidatedProgressStep progressStep = new ConsolidatedProgressStep(myHost.getDisposable(), host);
-            String sdkPath = mySdkLocation.getText();
-            File location;
-            if (StringUtil.isEmpty(sdkPath)) {
-              location = FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK);
-            }
-            else {
-              location = new File(sdkPath);
-            }
-            InstallComponentsPath path =
-              new InstallComponentsPath(progressStep, FirstRunWizardMode.MISSING_SDK, location,
-                                        mySdkState.getPackages().getRemotePkgInfos(), false);
-            progressStep.setPaths(Lists.newArrayList(path));
-            addPath(path);
-            addPath(new SingleStepPath(progressStep));
-            super.init();
-          }
+        DynamicWizard wizard = new SdkSetupWizard();
 
-          @Override
-          public void performFinishingActions() {
-            final File newPath = IdeSdks.getAndroidSdkPath();
-            if (newPath != null) {
-              mySdkState = SdkState.getInstance(AndroidSdkData.getSdkData(newPath));
-              ApplicationManager.getApplication().invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                  mySdkLocation.setText(newPath.getAbsolutePath());
-                  refresh();
-                }
-              });
-            }
-          }
-
-          @NotNull
-          @Override
-          protected String getProgressTitle() {
-            return "Setting up SDK...";
-          }
-
-          @Override
-          protected String getWizardActionDescription() {
-            return "Setting up SDK...";
-          }
-        };
         wizard.init();
         wizard.show();
       }
     });
     mySdkLocation.setEditable(false);
-    mySdkErrorLabel.setIcon(AllIcons.General.BalloonError);
-    mySdkErrorLabel.setForeground(JBColor.RED);
+  }
+
+  private final class SdkSetupWizard extends DynamicWizard {
+    private SdkSetupWizard() {
+      super(null, null, "SDK Setup", new DialogWrapperHost(null));
+    }
+
+    @Override
+    public void init() {
+      DownloadingComponentsStep step = new DownloadingComponentsStep(myHost.getDisposable(), myHost);
+
+      String sdkDirectoryPath = mySdkLocation.getText();
+      File sdkDirectory;
+
+      if (Strings.isNullOrEmpty(sdkDirectoryPath)) {
+        sdkDirectory = FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK);
+      }
+      else {
+        sdkDirectory = new File(sdkDirectoryPath);
+      }
+
+      Multimap<PkgType, RemotePkgInfo> packages = mySdkState.getPackages().getRemotePkgInfos();
+      InstallComponentsPath path = new InstallComponentsPath(step, FirstRunWizardMode.MISSING_SDK, sdkDirectory, packages, false);
+
+      step.setInstallComponentsPath(path);
+
+      addPath(path);
+      addPath(new SingleStepPath(step));
+
+      super.init();
+    }
+
+    @Override
+    public void performFinishingActions() {
+      File sdkLocation = IdeSdks.getAndroidSdkPath();
+
+      if (sdkLocation == null) {
+        return;
+      }
+
+      String stateSdkLocationPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
+      assert stateSdkLocationPath != null;
+
+      File stateSdkLocation = new File(stateSdkLocationPath);
+
+      if (!FileUtil.filesEqual(sdkLocation, stateSdkLocation)) {
+        setAndroidSdkLocation(stateSdkLocation);
+        sdkLocation = stateSdkLocation;
+      }
+
+      mySdkState = SdkState.getInstance(AndroidSdkData.getSdkData(sdkLocation));
+      setAndroidSdkLocationText(sdkLocation.getAbsolutePath());
+    }
+
+    private void setAndroidSdkLocationText(final String text) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          mySdkLocation.setText(text);
+          refresh();
+        }
+      });
+    }
+
+    @NotNull
+    @Override
+    protected String getProgressTitle() {
+      return "Setting up SDK...";
+    }
+
+    @Override
+    protected String getWizardActionDescription() {
+      return "Setting up SDK...";
+    }
+  }
+
+  private static final class DownloadingComponentsStep extends ConsolidatedProgressStep {
+    private InstallComponentsPath myInstallComponentsPath;
+
+    private DownloadingComponentsStep(@NotNull Disposable disposable, @NotNull DynamicWizardHost host) {
+      super(disposable, host);
+    }
+
+    private void setInstallComponentsPath(InstallComponentsPath installComponentsPath) {
+      setPaths(Collections.singletonList(installComponentsPath));
+      myInstallComponentsPath = installComponentsPath;
+    }
+
+    @Override
+    public boolean isStepVisible() {
+      return myInstallComponentsPath.shouldDownloadingComponentsStepBeShown();
+    }
+  }
+
+  private static void setAndroidSdkLocation(final File sdkLocation) {
+    Runnable writeAction = new Runnable() {
+      @Override
+      public void run() {
+        IdeSdks.setAndroidSdkPath(sdkLocation, null);
+      }
+    };
+
+    invokeWriteActionAndWait(writeAction, ApplicationManager.getApplication().getAnyModalityState());
+  }
+
+  private static void invokeWriteActionAndWait(final Runnable writeAction, ModalityState state) {
+    final Application application = ApplicationManager.getApplication();
+
+    Runnable runnable = new Runnable() {
+      @Override
+      public void run() {
+        application.runWriteAction(writeAction);
+      }
+    };
+
+    application.invokeAndWait(runnable, state);
   }
 
   public void setIncludePreview(boolean includePreview) {
@@ -233,7 +314,9 @@ public class SdkUpdaterConfigPanel {
       @Override
       public void keyTyped(KeyEvent e) {
         if (e.getKeyChar() == KeyEvent.VK_ENTER || e.getKeyChar() == KeyEvent.VK_SPACE) {
-          List<MultiStateRow> selection = (List<MultiStateRow>)((SelectionProvider)table).getSelection();
+          @SuppressWarnings("unchecked") Iterable<MultiStateRow> selection =
+            (Iterable<MultiStateRow>)((SelectionProvider)table).getSelection();
+
           for (MultiStateRow node : selection) {
             node.cycleState();
             table.repaint();
@@ -302,18 +385,43 @@ public class SdkUpdaterConfigPanel {
 
   private void validate() {
     AndroidSdkData data = mySdkState.getSdkData();
-    File sdkLocation = null;
-    if (data != null) {
-      sdkLocation = data.getLocation();
-    }
-    WizardUtils.ValidationResult result =
-      WizardUtils.validateLocation(sdkLocation != null ? sdkLocation.getAbsolutePath() : null, "Android SDK Location", false);
-    myTabPane.setEnabled(!result.isError());
-    myPlatformComponentsPanel.setEnabled(!result.isError());
-    mySdkLocationLabel.setForeground(result.isOk() ? JBColor.foreground() : JBColor.RED);
-    mySdkErrorLabel.setVisible(!result.isOk());
-    if (!result.isOk()) {
-      mySdkErrorLabel.setText(result.getFormattedMessage());
+    String sdkDirectoryPath = data == null ? null : data.getLocation().getAbsolutePath();
+
+    ValidationResult result =
+      WizardUtils.validateLocation(sdkDirectoryPath, "Android SDK location", false, WritableCheckMode.NOT_WRITABLE_IS_WARNING);
+
+    switch (result.getStatus()) {
+      case OK:
+        mySdkLocationLabel.setForeground(JBColor.foreground());
+        mySdkErrorLabel.setVisible(false);
+        myPlatformComponentsPanel.setEnabled(true);
+        myTabPane.setEnabled(true);
+
+        break;
+      case WARN:
+        mySdkLocationLabel.setForeground(Colors.WARNING);
+
+        mySdkErrorLabel.setForeground(Colors.WARNING);
+        mySdkErrorLabel.setIcon(AllIcons.General.BalloonWarning);
+        mySdkErrorLabel.setText(result.getFormattedMessage());
+        mySdkErrorLabel.setVisible(true);
+
+        myPlatformComponentsPanel.setEnabled(false);
+        myTabPane.setEnabled(false);
+
+        break;
+      case ERROR:
+        mySdkLocationLabel.setForeground(Colors.ERROR);
+
+        mySdkErrorLabel.setForeground(Colors.ERROR);
+        mySdkErrorLabel.setIcon(AllIcons.General.BalloonError);
+        mySdkErrorLabel.setText(result.getFormattedMessage());
+        mySdkErrorLabel.setVisible(true);
+
+        myPlatformComponentsPanel.setEnabled(false);
+        myTabPane.setEnabled(false);
+
+        break;
     }
   }
 
@@ -383,7 +491,7 @@ public class SdkUpdaterConfigPanel {
   }
 
   private static class CycleAction extends AbstractAction {
-    boolean myBackward;
+    private final boolean myBackward;
 
     CycleAction(boolean backward) {
       myBackward = backward;

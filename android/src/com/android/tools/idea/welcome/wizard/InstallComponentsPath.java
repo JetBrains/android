@@ -30,8 +30,6 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope;
 import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -63,8 +61,6 @@ import java.util.Set;
  * perform component setup.
  */
 public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
-  private static final Key<String> KEY_SDK_INSTALL_LOCATION = ScopedStateStore.createKey("download.sdk.location", Scope.PATH, String.class);
-
   private final ProgressStep myProgressStep;
   @NotNull private final FirstRunWizardMode myMode;
   @NotNull private final ComponentInstaller myComponentInstaller;
@@ -221,12 +217,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   protected void init() {
     boolean createAvd = myMode.shouldCreateAvd();
     String pathString = mySdkLocation.getAbsolutePath();
-    myState.put(KEY_SDK_INSTALL_LOCATION, pathString);
+    myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, pathString);
 
     myComponentTree = createComponentTree(myMode, myState, createAvd);
     myComponentTree.init(myProgressStep);
 
-    addStep(new SdkComponentsStep(myComponentTree, FirstRunWizard.KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, myMode));
+    addStep(new SdkComponentsStep(myComponentTree, FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, myMode));
 
     SdkManager manager = SdkManager.createManager(pathString, new NullLogger());
     myComponentTree.init(myProgressStep);
@@ -239,34 +235,37 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         @Override
         public Collection<RemotePkgInfo> get() {
           Iterable<InstallableComponent> components = myComponentTree.getChildrenToInstall();
-          return myComponentInstaller.getPackagesToInstallInfos(myState.get(KEY_SDK_INSTALL_LOCATION), components);
+          return myComponentInstaller.getPackagesToInstallInfos(myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION), components);
         }
       };
 
-      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, KEY_SDK_INSTALL_LOCATION, supplier));
+      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, supplier));
     }
   }
 
   @Override
   public void deriveValues(Set<ScopedStateStore.Key> modified) {
     super.deriveValues(modified);
-    if (modified.contains(KEY_SDK_INSTALL_LOCATION)) {
-      String sdkPath = myState.get(KEY_SDK_INSTALL_LOCATION);
+    if (modified.contains(WizardConstants.KEY_SDK_INSTALL_LOCATION)) {
+      String sdkPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
       SdkManager manager = null;
       if (sdkPath != null) {
         manager = SdkManager.createManager(sdkPath, new NullLogger());
       }
       myComponentTree.updateState(manager);
     }
-    if (modified.contains(FirstRunWizard.KEY_CUSTOM_INSTALL) || modified.contains(KEY_SDK_INSTALL_LOCATION) ||
+    if (modified.contains(FirstRunWizard.KEY_CUSTOM_INSTALL) || modified.contains(WizardConstants.KEY_SDK_INSTALL_LOCATION) ||
         myComponentTree.componentStateChanged(modified)) {
       myState.put(WizardConstants.INSTALL_REQUESTS_KEY, getPackageDescriptions());
     }
   }
 
   private List<IPkgDesc> getPackageDescriptions() {
-    Collection<RemotePkgInfo> installIds =
-      myComponentInstaller.getPackagesToInstallInfos(myState.get(KEY_SDK_INSTALL_LOCATION), myComponentTree.getChildrenToInstall());
+    String sdkLocationPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
+
+    Iterable<RemotePkgInfo> installIds =
+      myComponentInstaller.getPackagesToInstallInfos(sdkLocationPath, myComponentTree.getChildrenToInstall());
+
     ImmutableList.Builder<IPkgDesc> packages = ImmutableList.builder();
     for (RemotePkgInfo remotePackage : installIds) {
       packages.add(remotePackage.getPkgDesc());
@@ -331,7 +330,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   @NotNull
   private File getDestination() throws WizardException {
-    String destinationPath = myState.get(KEY_SDK_INSTALL_LOCATION);
+    String destinationPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
     assert destinationPath != null;
 
     final File destination = new File(destinationPath);
@@ -352,8 +351,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     return true;
   }
 
-  boolean shouldDownloadingComponentsStepBeShown() {
-    String path = myState.get(KEY_SDK_INSTALL_LOCATION);
+  public boolean shouldDownloadingComponentsStepBeShown() {
+    String path = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
     assert path != null;
 
     return new File(path).canWrite();
