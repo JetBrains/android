@@ -22,7 +22,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-
 /**
  * Extension to control the search scope of resolving a PSI element when multiple test artifacts are enabled simultaneously.
  * For a PSI element inside a unit test, it returns the (module scope) - (the android test source/library scope) and vice versa.
@@ -42,10 +41,16 @@ public class TestArtifactResolveScopeProvider extends ResolveScopeProvider {
     GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(testScopes.getModule(), true);
     GlobalSearchScope excludedScope;
 
-    if (testScopes.isAndroidTestSource(file)) {
+    boolean inAndroidTest = testScopes.isAndroidTestSource(file);
+    boolean inUnitTest = testScopes.isUnitTestSource(file);
+
+    if (inAndroidTest && inUnitTest) {
+      excludedScope = testScopes.getSharedTestsExcludeScope();
+    }
+    else if (inAndroidTest) {
       excludedScope = testScopes.getAndroidTestExcludeScope();
     }
-    else if (testScopes.isUnitTestSource(file)) {
+    else if (inUnitTest) {
       excludedScope = testScopes.getUnitTestExcludeScope();
     }
     else {
