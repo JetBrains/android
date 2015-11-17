@@ -51,7 +51,6 @@ public class InstantRunConfigurable
   private JPanel myContentPanel;
   private JCheckBox myInstantRunCheckBox;
   private JCheckBox myRestartActivityCheckBox;
-  private JCheckBox myCrashHandlerCheckBox;
   private JBLabel myGradleLabel;
   private HyperlinkLabel myOldVersionLabel;
   private JCheckBox myShowToastCheckBox;
@@ -97,7 +96,6 @@ public class InstantRunConfigurable
   public boolean isModified() {
     return myBuildConfiguration.INSTANT_RUN != isInstantRunEnabled() ||
            myBuildConfiguration.RESTART_ACTIVITY != isRestartActivity() ||
-           myBuildConfiguration.CRASH_HANDLER != isCrashHandlerEnabled() ||
            myBuildConfiguration.SHOW_TOAST != isShowToast();
 
   }
@@ -106,7 +104,6 @@ public class InstantRunConfigurable
   public void apply() throws ConfigurationException {
     myBuildConfiguration.INSTANT_RUN = isInstantRunEnabled();
     myBuildConfiguration.RESTART_ACTIVITY = isRestartActivity();
-    myBuildConfiguration.CRASH_HANDLER = isCrashHandlerEnabled();
     myBuildConfiguration.SHOW_TOAST = isShowToast();
 
     FastDeployManager.updateFileListener(myProject);
@@ -116,7 +113,6 @@ public class InstantRunConfigurable
   public void reset() {
     myInstantRunCheckBox.setSelected(myBuildConfiguration.INSTANT_RUN);
     myRestartActivityCheckBox.setSelected(myBuildConfiguration.RESTART_ACTIVITY);
-    myCrashHandlerCheckBox.setSelected(myBuildConfiguration.CRASH_HANDLER);
     myShowToastCheckBox.setSelected(myBuildConfiguration.SHOW_TOAST);
   }
 
@@ -130,10 +126,6 @@ public class InstantRunConfigurable
 
   private boolean isRestartActivity() {
     return myRestartActivityCheckBox.isSelected();
-  }
-
-  private boolean isCrashHandlerEnabled() {
-    return myCrashHandlerCheckBox.isSelected();
   }
 
   private boolean isShowToast() {
@@ -172,7 +164,6 @@ public class InstantRunConfigurable
 
     myInstantRunCheckBox.setEnabled(enabled);
     myRestartActivityCheckBox.setEnabled(enabled);
-    myCrashHandlerCheckBox.setEnabled(enabled);
     myShowToastCheckBox.setEnabled(enabled);
   }
 
