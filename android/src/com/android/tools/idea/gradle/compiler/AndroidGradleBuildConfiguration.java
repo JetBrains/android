@@ -36,7 +36,6 @@ import java.util.List;
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
   public boolean INSTANT_RUN = true;
   public boolean RESTART_ACTIVITY = false;
-  public boolean CRASH_HANDLER = true;
   public boolean SHOW_TOAST = true;
   public boolean USE_CONFIGURATION_ON_DEMAND = true;
   public boolean USE_EXPERIMENTAL_FASTER_BUILD = AndroidStudioInitializer.isAndroidStudio();
