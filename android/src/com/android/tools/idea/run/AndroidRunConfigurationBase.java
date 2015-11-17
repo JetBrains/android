@@ -29,10 +29,13 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.*;
 import icons.AndroidIcons;
 import org.jdom.Element;
@@ -58,6 +61,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   public static final Key<Collection<IDevice>> DEPLOY_DEVICES = Key.create("android.deploy.devices");
   public static final Key<Boolean> FAST_DEPLOY = Key.create("android.fast.deploy");
+
+  private static final DialogWrapper.DoNotAskOption ourKillLaunchOption = new MyDoNotPromptOption();
 
   public String TARGET_SELECTION_MODE = TargetSelectionMode.SHOW_DIALOG.name();
   public String PREFERRED_AVD = "";
@@ -305,6 +310,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (info != null) {
       if (!info.getExecutorId().equals(executor.getId())) {
         // only run or debug of a config can be active at a time
+        String msg = "You currently have an active " + info.getExecutorId() + " session of the same launch configuration.\n" +
+                     "Do you want to kill that session and proceed with the current launch?";
+        if (ourKillLaunchOption.isToBeShown() && Messages.NO ==
+            Messages.showYesNoDialog(project, msg, "Launching " + getName(), AllIcons.General.QuestionDialog, ourKillLaunchOption)) {
+          return null;
+        }
+
         info.getProcessHandler().detachProcess();
         LOG.info("Disconnecting existing session with a different executor: " + info.getExecutorId());
       } else {
@@ -502,5 +514,35 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Nullable
   public <T extends AndroidDebuggerState> T getAndroidDebuggerState() {
     return getAndroidDebuggerState(DEBUGGER_TYPE);
+  }
+
+  private static class MyDoNotPromptOption implements DialogWrapper.DoNotAskOption {
+    private boolean myShow;
+
+    @Override
+    public boolean isToBeShown() {
+      return !myShow;
+    }
+
+    @Override
+    public void setToBeShown(boolean toBeShown, int exitCode) {
+      myShow = !toBeShown;
+    }
+
+    @Override
+    public boolean canBeHidden() {
+      return true;
+    }
+
+    @Override
+    public boolean shouldSaveOptionsOnCancel() {
+      return true;
+    }
+
+    @NotNull
+    @Override
+    public String getDoNotShowMessage() {
+      return "Do not ask again";
+    }
   }
 }
