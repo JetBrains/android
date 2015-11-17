@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.android.sdklib.devices.Storage;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.install.Haxm;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -62,7 +63,7 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
     myKeyInstallHaxm = keyInstallHaxm;
     myUnitLabel.setText(UI_UNITS.toString());
     myKeyEmulatorMemory = keyEmulatorMemory;
-    final long memorySize = Haxm.getMemorySize();
+    final long memorySize = AvdManagerConnection.getMemorySize();
     myIntelHAXMDocumentationButton.setHyperlinkText("Intel® HAXM Documentation");
     myIntelHAXMDocumentationButton.setHyperlinkTarget(FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL);
     myRecommendedMemorySize = setupSliderAndSpinner(memorySize, myMemorySlider, myMemorySize);
