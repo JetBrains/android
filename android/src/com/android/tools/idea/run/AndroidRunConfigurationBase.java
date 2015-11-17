@@ -17,13 +17,6 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.editor.DeployTarget;
-import com.android.tools.idea.run.editor.DeployTargetProvider;
-import com.android.tools.idea.run.editor.DeployTargetState;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
 import com.android.tools.idea.run.editor.*;
 import com.google.common.collect.*;
 import com.intellij.execution.ExecutionException;
@@ -318,12 +311,23 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       appLauncher = androidDebuggerState.getApplicationLauncher(appLauncher);
     }
 
-    return new AndroidRunningState(env, facet, getApkProvider(facet), deviceFutures, printer, appLauncher, launchOptions, this);
+    return new AndroidRunningState(
+      env,
+      facet,
+      getApkProvider(facet),
+      deviceFutures,
+      printer,
+      appLauncher,
+      launchOptions,
+      getUniqueID(),
+      getType().getId(),
+      this
+    );
   }
 
   @Nullable
   private DeviceFutures getOldSessionTarget(@NotNull Project project, @NotNull Executor executor) {
-    AndroidSessionInfo sessionInfo = AndroidSessionManager.findOldSession(project, executor, this);
+    AndroidSessionInfo sessionInfo = AndroidSessionManager.findOldSession(project, executor, getUniqueID());
     if (sessionInfo != null) {
       if (sessionInfo.isEmbeddable()) {
         Collection<IDevice> oldDevices = sessionInfo.getState().getDevices();
