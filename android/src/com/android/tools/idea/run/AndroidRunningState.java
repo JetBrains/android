@@ -401,7 +401,16 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myPrinter.stdout("Target device: " + device.getName());
     try {
       if (myLaunchOptions.isDeploy()) {
-        if (!installApks(device)) {
+        if (myLaunchOptions.isDexSwap()) {
+          if (!FastDeployManager.installDex(myFacet, device)) {
+            // TODO: Can we figure out a way to automatically kick off another full build and push here?
+            // TODO: Although it seems like a full rebuild isn't necessary since by the time you see this, the build id has changed,
+            // and so the next launch will not hit the dexswap path
+            myPrinter.stdout("Pushing incremental patch to the device failed; you might need to do a clean build.");
+            return false;
+          }
+        }
+        else if (!installApks(device)) {
           return false;
         }
         trackInstallation(device);

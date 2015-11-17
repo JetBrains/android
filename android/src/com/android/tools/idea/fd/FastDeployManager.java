@@ -30,13 +30,14 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.*;
 import com.android.utils.XmlUtils;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Charsets;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.google.common.io.Files;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.JavaExecutionStack;
-import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.engine.SuspendContextImpl;
 import com.intellij.debugger.engine.events.DebuggerCommandImpl;
 import com.intellij.debugger.impl.DebuggerContextImpl;
@@ -211,16 +212,20 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   private static final String VERIFIER_COMPATIBLE_VALUE = "COMPATIBLE";
   /** The name of the build timestamp file on the device in the data folder */
   private static final String BUILD_ID_TXT = "build-id.txt";
+  /** Prefix for classes.dex files */
+  private static final String CLASSES_DEX_PREFIX = "classes";
+  /** Suffix for classes.dex files */
+  public static final String CLASSES_DEX_SUFFIX = ".dex";
 
   private static String getDataFolder(@NotNull String applicationId) {
-    // Location on the device where application data is stored. Currently using sdcard location
-    // such that app can write to itself via socket traffic; we can switch to /data here if we use
-    // adb to push data over -- but that means we have to push *all* the resources, we can't just push
-    // deltas and have the app copy from previous version locally.
-    //return "/storage/sdcard/studio-fd/" + pkg;
-
     // Keep in sync with FileManager#getDataFolder in the runtime library
     return "/data/data/" + applicationId + "/files/studio-fd";
+  }
+
+  @NotNull
+  private static String getDexFileFolder(@NotNull String pkg) {
+    // Keep in sync with FileManager#getDexFileFolder in the runtime library
+    return getDataFolder(pkg) + "/dex";
   }
 
   private static final String RESOURCE_FILE_NAME = "resources.ap_";
@@ -291,6 +296,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   @NotNull
   public List<String> updateGradleCommandLine(@NotNull List<String> original) {
     assert isInstantRunEnabled(myProject);
+    for (String arg : original) {
+      if (arg.startsWith("-Pandroid.optional.compilation=")) {
+        // Already handled (e.g. RESTART_DEX_ONLY)
+        return original;
+      }
+    }
     List<String> arguments = Lists.newArrayListWithExpectedSize(original.size() + 1);
     arguments.addAll(original);
     //noinspection SpellCheckingInspection
@@ -695,16 +706,149 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     try {
       local = FileUtil.createTempFile("data", "fdr");
       Files.write(contents.getBytes(Charsets.UTF_8), local);
-
-      String remoteTmpBuildId = "/data/local/tmp/" + pkgName + "-data.fdr";
-      device.pushFile(local.getAbsolutePath(), remoteTmpBuildId);
-      return remoteTmpBuildId;
+      return copyToDeviceScratchFile(device, pkgName, local);
     } finally {
       if (local != null) {
         //noinspection ResultOfMethodCallIgnored
         local.delete();
       }
     }
+  }
+
+  @NotNull
+  private static String copyToDeviceScratchFile(@NotNull IDevice device, @NotNull String pkgName, @NotNull File local)
+    throws IOException, AdbCommandRejectedException, SyncException, TimeoutException {
+    String remoteTmpBuildId = "/data/local/tmp/" + pkgName + "-data.fdr";
+    device.pushFile(local.getAbsolutePath(), remoteTmpBuildId);
+    return remoteTmpBuildId;
+  }
+
+  /**
+   * Returns true if the app associated with the given module can be dex swapped.
+   * That's the case if the app is already installed, and the build id's match.
+   *
+   * @param module  a module context, normally the main app module (but if it's a library module
+   *                the infrastructure will look for other app modules
+   * @param devices the set of devices to check
+   * @return true if the app can be dex swapped in one or more of the given devices
+   */
+  public static boolean canDexSwap(@NotNull Module module, @NotNull Collection<IDevice> devices) {
+    for (IDevice device : devices) {
+      if (buildIdsMatch(device, module)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Dex swap the app on the given device. Should only be called if {@link #canDexSwap(Module, Collection)} returned true
+   *
+   * @param facet  the app module's facet
+   * @param device the device to install it on
+   * @return true if installation succeeded
+   */
+  public static boolean installDex(@NotNull AndroidFacet facet, @NotNull IDevice device) {
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    if (model == null) {
+      return false;
+    }
+
+    File restart = DexFileType.RESTART_DEX.getFile(model);
+    if (!restart.exists()) {
+      LOG.warn("Couldn't find restart file " + restart);
+      return false;
+    }
+
+    String pkg = getPackageName(facet);
+    if (pkg == null) {
+      return false;
+    }
+
+    try {
+      String dexFolder = getDexFileFolder(pkg);
+
+      // Ensure the dir exists
+      CollectingOutputReceiver receiver = new CollectingOutputReceiver();
+      device.executeShellCommand("run-as " + pkg + " mkdir -p " + dexFolder, receiver);
+      receiver = new CollectingOutputReceiver();
+      String output = receiver.getOutput();
+      if (!output.trim().isEmpty()) {
+        LOG.warn(output);
+      }
+
+      // List the files in the dex folder to compute a new .dex file name that follows the existing
+      // naming pattern but is numbered higher than any existing .dex files
+      device.executeShellCommand("run-as " + pkg + " ls " + dexFolder, receiver);
+      int max = getMaxDexFileNumber(receiver.getOutput());
+      String fileName = String.format("%s0x%04x%s", CLASSES_DEX_PREFIX, max + 1, CLASSES_DEX_SUFFIX);
+      String target = dexFolder + "/" + fileName;
+
+      // Copy the restart .dex file over to the device in the dex folder with the new, unique name
+      String remote = copyToDeviceScratchFile(device, pkg, restart);
+      String cmd = "run-as " + pkg + " cp " + remote + " " + target;
+      receiver = new CollectingOutputReceiver();
+      device.executeShellCommand(cmd, receiver);
+      output = receiver.getOutput();
+      if (!output.trim().isEmpty()) {
+        LOG.warn(output);
+      }
+
+      // TODO: Push a .dex.index file too? We can't do it right now;
+      // on the device side we iterate through the .dex file and write
+      // entries like this:
+      //    DexFile dexFile = new DexFile(file);
+      //    Enumeration<String> entries = dexFile.entries();
+      //    while (entries.hasMoreElements()) {
+      //      String nextPath = entries.nextElement();
+      //      if (nextPath.indexOf('$') != -1) {
+      //          (write entry, one per line)
+      // However, we don't have a DexFile implementation here.
+      // Instead, rely on this being handled on the server side. (For now
+      // this means the classes won't be cleaned up.)
+
+      // Record the new build id on the device
+      transferLocalIdToDeviceId(device, facet.getModule());
+
+      return true;
+    } catch (IOException ioe) {
+      LOG.warn("Couldn't write build id file", ioe);
+    }
+    catch (AdbCommandRejectedException e) {
+      LOG.warn(e);
+    }
+    catch (TimeoutException e) {
+      LOG.warn(e);
+    }
+    catch (ShellCommandUnresponsiveException e) {
+      LOG.warn(e);
+    }
+    catch (SyncException e) {
+      LOG.warn(e);
+    }
+
+    return false;
+  }
+
+  private static int getMaxDexFileNumber(@NotNull String fileListing) {
+    int max = -1;
+
+    for (String name : Splitter.on(CharMatcher.WHITESPACE).omitEmptyStrings().splitToList(fileListing)) {
+      if (name.startsWith(CLASSES_DEX_PREFIX) && name.endsWith(CLASSES_DEX_SUFFIX)) {
+        String middle = name.substring(CLASSES_DEX_PREFIX.length(),
+                                       name.length() - CLASSES_DEX_SUFFIX.length());
+        try {
+          int version = Integer.decode(middle);
+          if (version > max) {
+            max = version;
+          }
+        } catch (NumberFormatException ignore) {
+        }
+      }
+    }
+
+    return max;
   }
 
   /**

@@ -60,6 +60,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public static final Key<DeviceFutures> DEVICE_FUTURES_KEY = Key.create("android.device.futures");
 
   public static final Key<Boolean> FAST_DEPLOY = Key.create("android.fast.deploy");
+  public static final Key<Boolean> DEXSWAP = Key.create("android.fast.deploy.dexswap");
 
   private static final DialogWrapper.DoNotAskOption ourKillLaunchOption = new MyDoNotPromptOption();
 
@@ -388,8 +389,22 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
+    boolean dexSwap = false;
+    Collection<IDevice> devices = deviceFutures.getIfReady();
+    if (devices != null && !devices.isEmpty()) {
+      // At this point, we've determined that we can't do a hot or cold swap.
+      // But we do have a bunch of devices, and rather than installing the full apk, we could potentially do a dex swap
+      if (FastDeployManager.isPatchableApp(module)) {
+        if (FastDeployManager.canDexSwap(module, devices)) {
+          env.putCopyableUserData(DEXSWAP, Boolean.TRUE);
+          dexSwap = true;
+        }
+      }
+    }
+
     LaunchOptions launchOptions = getLaunchOptions()
       .setDebug(debug)
+      .setDexSwap(dexSwap)
       .build();
 
     AndroidApplicationLauncher appLauncher = getApplicationLauncher(facet);
