@@ -148,7 +148,9 @@ public class ClassConverterTest extends TestCase {
         }
       };
       cl.loadClass("Test");
-      fail("Expected class loading error");
+      if (getCurrentClassVersion() < 52) {
+        fail("Expected class loading error");
+      }
     } catch (UnsupportedClassVersionError e) {
       // pass
     } catch (Throwable t) {
