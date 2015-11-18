@@ -16,12 +16,10 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
 import com.android.repository.Revision;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.ImportedModule;
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -155,8 +153,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
     }
 
+    NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
+    if (nativeAndroidProject != null) {
+      ideModule.createChild(NATIVE_ANDROID_MODEL,
+                            new NativeAndroidGradleModel(gradleModule.getName(), moduleRootDirPath, nativeAndroidProject));
+    }
+
     File gradleSettingsFile = new File(moduleRootDirPath, FN_SETTINGS_GRADLE);
-    if (gradleSettingsFile.isFile() && androidProject == null) {
+    if (gradleSettingsFile.isFile() && androidProject == null && nativeAndroidProject == null) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
       createJavaProject(gradleModule, ideModule, false);
@@ -170,7 +174,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     GradleModel gradleModel = GradleModel.create(gradleModule.getName(), gradleProject, buildFilePath, gradleVersion);
     ideModule.createChild(GRADLE_MODEL, gradleModel);
 
-    if (androidProject == null || androidProjectWithoutVariants) {
+    if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
       // This is a Java lib module.
       createJavaProject(gradleModule, ideModule, androidProjectWithoutVariants);
     }
@@ -201,9 +205,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
   }
 
-  // Indicates it is an "Android" project if at least one module has an AndroidProject.
+  // Indicates it is an "Android" project if at least one module has an AndroidProject or NativeAndroidProjct.
   private boolean isAndroidGradleProject(@NotNull IdeaModule gradleModule) {
-    if (!resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty()) {
+    if (!resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty() ||
+        !resolverCtx.findModulesWithModel(NativeAndroidProject.class).isEmpty()) {
       return true;
     }
     if (BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName()) && isAndroidStudio()) {
@@ -218,7 +223,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   @NotNull
   public Set<Class> getExtraProjectModelClasses() {
-    return Sets.<Class>newHashSet(AndroidProject.class);
+    return Sets.<Class>newHashSet(AndroidProject.class, NativeAndroidProject.class);
   }
 
   @Override
