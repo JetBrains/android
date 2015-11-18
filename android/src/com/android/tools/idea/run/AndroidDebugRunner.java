@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
+import com.android.ddmlib.*;
 import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
@@ -27,6 +26,8 @@ import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -41,6 +42,8 @@ import com.intellij.openapi.util.Key;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
 
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
@@ -246,7 +249,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
         @Override
         @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})
         public void run() {
-          IDevice device = client.getDevice();
+          final IDevice device = client.getDevice();
           String debugPort = Integer.toString(client.getDebuggerListenPort());
 
           RemoteConnection connection = new RemoteConnection(true, "localhost", debugPort, false);
@@ -284,10 +287,26 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
             oldText.printTo(newProcessHandler);
           }
 
-          ProcessHandler handler = myRunningState.getProcessHandler();
+          final ProcessHandler handler = myRunningState.getProcessHandler();
           handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, debugDescriptor, debugState, myExecutor.getId()));
           handler.putUserData(ANDROID_DEBUG_CLIENT, client);
           debugDescriptor.setActivateToolWindowWhenAdded(false);
+
+          // kill the process when the debugger is stopped
+          handler.addProcessListener(new ProcessAdapter() {
+            @Override
+            public void processTerminated(ProcessEvent event) {
+              handler.removeProcessListener(this);
+
+              // Note: client.kill() doesn't work when the debugger is attached, we explicitly stop by package id..
+              try {
+                device.executeShellCommand("am force-stop " + myRunningState.getPackageName(), new NullOutputReceiver());
+              }
+              catch (Exception e) {
+                // don't care..
+              }
+            }
+          });
         }
       });
     }
