@@ -32,6 +32,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
+import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.notification.NotificationType;
@@ -43,18 +44,17 @@ import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
 
 public class AndroidDebugRunner extends DefaultProgramRunner {
+  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidDebugRunner");
+
+  public static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
   public static final Key<AndroidSessionInfo> ANDROID_SESSION_INFO = new Key<AndroidSessionInfo>("ANDROID_SESSION_INFO");
   public static final Key<Client> ANDROID_DEBUG_CLIENT = new Key<Client>("ANDROID_DEBUG_CLIENT");
 
-  private static final Object myDebugLock = new Object();
-  public static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidDebugRunner");
+  private static final Object ourDebugLock = new Object();
 
   @Override
   protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment environment)
@@ -119,14 +119,15 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     return descriptor;
   }
 
-  private RunContentDescriptor doExec(AndroidRunningState state, ExecutionEnvironment environment) throws ExecutionException {
+  private RunContentDescriptor doExec(@NotNull AndroidRunningState state, @NotNull ExecutionEnvironment environment)
+    throws ExecutionException {
     if (!(environment.getExecutor() instanceof DefaultDebugExecutor)) {
       return doExecSimple(state, environment);
     }
 
     RunContentDescriptor descriptor;
-    synchronized (myDebugLock) {
-      MyDebugLauncher launcher = new MyDebugLauncher(state, environment);
+    synchronized (ourDebugLock) {
+      MyDebugLauncher launcher = new MyDebugLauncher(this, state, environment);
       state.setDebugLauncher(launcher);
 
       descriptor = embedToExistingSession(environment.getProject(), environment.getExecutor(), state);
@@ -224,22 +225,23 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     return ((AndroidRunConfigurationBase)profile).usesSimpleLauncher();
   }
 
-  private class MyDebugLauncher implements DebugLauncher {
+  private static class MyDebugLauncher implements DebugLauncher {
     private final Project myProject;
+    private final ProgramRunner myRunner;
     private final Executor myExecutor;
     private final AndroidRunningState myRunningState;
     private final ExecutionEnvironment myEnvironment;
     private RunContentDescriptor myRunDescriptor;
 
-    public MyDebugLauncher(AndroidRunningState state,
-                           ExecutionEnvironment environment) {
+    public MyDebugLauncher(@NotNull ProgramRunner runner, @NotNull AndroidRunningState state, @NotNull ExecutionEnvironment environment) {
+      myRunner = runner;
       myProject = environment.getProject();
       myRunningState = state;
       myEnvironment = environment;
       myExecutor = environment.getExecutor();
     }
 
-    public void setRunDescriptor(RunContentDescriptor runDescriptor) {
+    public void setRunDescriptor(@NotNull RunContentDescriptor runDescriptor) {
       myRunDescriptor = runDescriptor;
     }
 
@@ -258,13 +260,13 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           final ProcessHandler processHandler = myRunningState.getProcessHandler();
           processHandler.detachProcess();
           try {
-            synchronized (myDebugLock) {
+            synchronized (ourDebugLock) {
               assert myRunDescriptor != null;
 
               // @formatter:off
               ExecutionEnvironment env = new ExecutionEnvironmentBuilder(myEnvironment)
                 .executor(myExecutor)
-                .runner(AndroidDebugRunner.this)
+                .runner(myRunner)
                 .contentToReuse(myRunDescriptor)
                 .build();
               debugDescriptor = DebuggerPanelsManager.getInstance(myProject).attachVirtualMachine(
@@ -292,21 +294,22 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           handler.putUserData(ANDROID_DEBUG_CLIENT, client);
           debugDescriptor.setActivateToolWindowWhenAdded(false);
 
+          // Reverted: b/25506206
           // kill the process when the debugger is stopped
-          handler.addProcessListener(new ProcessAdapter() {
-            @Override
-            public void processTerminated(ProcessEvent event) {
-              handler.removeProcessListener(this);
-
-              // Note: client.kill() doesn't work when the debugger is attached, we explicitly stop by package id..
-              try {
-                device.executeShellCommand("am force-stop " + myRunningState.getPackageName(), new NullOutputReceiver());
-              }
-              catch (Exception e) {
-                // don't care..
-              }
-            }
-          });
+          //handler.addProcessListener(new ProcessAdapter() {
+          //  @Override
+          //  public void processTerminated(ProcessEvent event) {
+          //    handler.removeProcessListener(this);
+          //
+          //    // Note: client.kill() doesn't work when the debugger is attached, we explicitly stop by package id..
+          //    try {
+          //      device.executeShellCommand("am force-stop " + myRunningState.getPackageName(), new NullOutputReceiver());
+          //    }
+          //    catch (Exception e) {
+          //      // don't care..
+          //    }
+          //  }
+          //});
         }
       });
     }
