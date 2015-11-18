@@ -424,8 +424,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     String incompatible = "";
     String modules = "";
     if (RenderErrorPanel.isBuiltByJdk7OrHigher(myModule)) {
-      incompatible = "" +
-                     "The following modules are built with incompatible JDK:<BR/>" +
+      incompatible = "The following modules are built with incompatible JDK:<BR/>" +
                      myModule.getName() + "<BR/>";
       modules = "<A HREF=\"runnable:1\">Change Java SDK to 1.6</A><BR/>";
     }
