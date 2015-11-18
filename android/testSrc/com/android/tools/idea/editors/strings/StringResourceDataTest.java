@@ -139,25 +139,25 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertNotNull(stringsFile);
 
     assertFalse(data.getUntranslatableKeys().contains("key1"));
-    XmlTag tag = getNthXmlTag(stringsFile, "string", 0);
+    XmlTag tag = getNthXmlTag(stringsFile, 0);
     assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertNull(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
     data.setDoNotTranslate("key1", true);
 
     assertTrue(data.getUntranslatableKeys().contains("key1"));
-    tag = getNthXmlTag(stringsFile, "string", 0);
+    tag = getNthXmlTag(stringsFile, 0);
     assertEquals(SdkConstants.VALUE_FALSE, tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
     assertTrue(data.getUntranslatableKeys().contains("key5"));
-    tag = getNthXmlTag(stringsFile, "string", 3);
+    tag = getNthXmlTag(stringsFile, 3);
     assertEquals("key5", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(SdkConstants.VALUE_FALSE, tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
     data.setDoNotTranslate("key5", false);
 
     assertFalse(data.getUntranslatableKeys().contains("key5"));
-    tag = getNthXmlTag(stringsFile, "string", 3);
+    tag = getNthXmlTag(stringsFile, 3);
     assertNull(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
   }
 
@@ -183,7 +183,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
     assert file != null;
 
-    XmlTag tag = getNthXmlTag(file, "string", 0);
+    XmlTag tag = getNthXmlTag(file, 0);
     assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(expected, tag.getValue().getText());
   }
@@ -196,16 +196,13 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end", currentData);
     assertTrue(data.setTranslation(key, locale, currentData.replace("%s", "%1$s")));
 
-    String expected = "start<xliff:g>middle1</xliff:g>%1$s\n" +
-                      "      <xliff:g>middle3</xliff:g>\n" +
-                      "      end";
-
+    String expected = "start <xliff:g>middle1</xliff:g>%1$s<xliff:g>middle3</xliff:g> end";
     assertEquals(expected, StringResourceData.resourceToString(data.getTranslations().get(key, locale)));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
     assert file != null;
 
-    XmlTag tag = getNthXmlTag(file, "string", 2);
+    XmlTag tag = getNthXmlTag(file, 2);
     assertEquals("key3", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(expected, tag.getValue().getText().trim());
   }
@@ -220,20 +217,20 @@ public class StringResourceDataTest extends AndroidTestCase {
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en/strings.xml");
     assert file != null;
 
-    XmlTag tag = getNthXmlTag(file, "string", 4);
+    XmlTag tag = getNthXmlTag(file, 4);
     assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals("Hello", tag.getValue().getText());
 
     assertEquals("Hello", StringResourceData.resourceToString(data.getTranslations().get(key, locale)));
   }
 
-  private XmlTag getNthXmlTag(@NotNull VirtualFile file, @NotNull String tag, int index) {
+  private XmlTag getNthXmlTag(@NotNull VirtualFile file, int index) {
     PsiFile psiFile = PsiManager.getInstance(myFacet.getModule().getProject()).findFile(file);
     assert psiFile != null;
 
     XmlTag rootTag = ((XmlFile)psiFile).getRootTag();
     assert rootTag != null;
 
-    return rootTag.findSubTags(tag)[index];
+    return rootTag.findSubTags("string")[index];
   }
 }
