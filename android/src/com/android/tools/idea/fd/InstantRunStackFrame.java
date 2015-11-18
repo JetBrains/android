@@ -20,6 +20,7 @@ import com.intellij.debugger.jdi.StackFrameProxyImpl;
 import com.intellij.debugger.jdi.ThreadReferenceProxyImpl;
 import com.sun.jdi.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * When running with instant run, some of the internal aspects of the objects
@@ -27,30 +28,6 @@ import org.jetbrains.annotations.NotNull;
  * stack frame proxy that hides all these internal details.
  */
 public class InstantRunStackFrame extends StackFrameProxyImpl {
-
-  /**
-   * When an instant method is edited, the new version will translate
-   * the "this" variable to an argument called "$this". We use
-   * this indication to readjust the variable names.
-   */
-  public static String INSTANT_RUN_THIS = "$this";
-  /**
-   * When a class is modified, the new implementation has this suffix.
-   */
-  public static String INSTANT_RUN_CLASS_SUFFIX = "$override";
-  /**
-   * The static variable that contains the patch of the class.
-   */
-  public static String INSTANT_RUN_CHANGE = "$change";
-  /**
-   * A flag on a patch class that tells whether it's obsolete.
-   */
-  public static String INSTANT_RUN_CHANGE_OBSOLETE = "$obsolete";
-  /**
-   * When a class is enhanced to support instant run, the redirection
-   * part of the method as a special line number assigned to it.
-   */
-  public static int REDIRECTION_LINE_NUMBER = 0;
 
   private ObjectReference myThisReference;
 
@@ -67,7 +44,7 @@ public class InstantRunStackFrame extends StackFrameProxyImpl {
     if (ref == null) {
       // We might be in an edited method
       try {
-        LocalVariable newThis = getStackFrame().visibleVariableByName(INSTANT_RUN_THIS);
+        LocalVariable newThis = getStackFrame().visibleVariableByName(InstantRunDebuggerExtension.INSTANT_RUN_THIS);
         if (newThis != null) {
           Value value = getStackFrame().getValue(newThis);
           if (value instanceof ObjectReference) {
@@ -80,7 +57,7 @@ public class InstantRunStackFrame extends StackFrameProxyImpl {
         // ignore
       }
     }
-    else if (getStackFrame().location().declaringType().name().endsWith(INSTANT_RUN_CLASS_SUFFIX)) {
+    else if (getStackFrame().location().declaringType().name().endsWith(InstantRunDebuggerExtension.INSTANT_RUN_CLASS_SUFFIX)) {
       // Avoid seeing the "$change" object's "this".
       return null;
     }
@@ -89,8 +66,8 @@ public class InstantRunStackFrame extends StackFrameProxyImpl {
 
 
   @Override
-  public boolean isHiddenVariable(@NotNull  String name) {
-    return INSTANT_RUN_THIS.equals(name);
+  public boolean isHiddenVariable(@NotNull String name) {
+    return InstantRunDebuggerExtension.INSTANT_RUN_THIS.equals(name);
   }
 
   @Override
@@ -100,8 +77,8 @@ public class InstantRunStackFrame extends StackFrameProxyImpl {
     }
     else {
       ReferenceType clazz = getStackFrame().location().method().declaringType();
-      if (!clazz.name().endsWith(INSTANT_RUN_CLASS_SUFFIX)) {
-        Field field = clazz.fieldByName(INSTANT_RUN_CHANGE);
+      if (!clazz.name().endsWith(InstantRunDebuggerExtension.INSTANT_RUN_CLASS_SUFFIX)) {
+        Field field = clazz.fieldByName(InstantRunDebuggerExtension.INSTANT_RUN_CHANGE);
         if (field != null && field.isSynthetic() && field.isStatic()) {
           // This is one of ours and can be patched.
           return clazz.getValue(field) != null;
@@ -110,7 +87,7 @@ public class InstantRunStackFrame extends StackFrameProxyImpl {
       else {
         // We are now in a patch, this patch can still be obsolete if other patch was applied after it.
         // Here, we use the special flag on the patch class:
-        Field field = clazz.fieldByName(INSTANT_RUN_CHANGE_OBSOLETE);
+        Field field = clazz.fieldByName(InstantRunDebuggerExtension.INSTANT_RUN_CHANGE_OBSOLETE);
         if (field != null) {
           Value value = clazz.getValue(field);
           if (value instanceof BooleanValue) {
@@ -123,6 +100,29 @@ public class InstantRunStackFrame extends StackFrameProxyImpl {
   }
 
   private boolean isRedirectionFrame() throws EvaluateException {
-    return getStackFrame().location().lineNumber() == REDIRECTION_LINE_NUMBER;
+    return getStackFrame().location().lineNumber() == InstantRunDebuggerExtension.REDIRECTION_LINE_NUMBER;
+  }
+
+  @Nullable
+  @Override
+  public ReferenceType getDeclaringType() throws EvaluateException {
+    ReferenceType type = super.getDeclaringType();
+
+    if (type != null && type.name().endsWith(InstantRunDebuggerExtension.INSTANT_RUN_CLASS_SUFFIX)) {
+      if (getFrameIndex() < threadProxy().frameCount()) {
+        StackFrameProxyImpl caller = threadProxy().frame(getFrameIndex() + 1);
+        if (caller != null) {
+          return caller.getDeclaringType();
+        }
+      }
+    }
+
+    return type;
+  }
+
+  @Override
+  protected void clearCaches() {
+    super.clearCaches();
+    myThisReference = null;
   }
 }
