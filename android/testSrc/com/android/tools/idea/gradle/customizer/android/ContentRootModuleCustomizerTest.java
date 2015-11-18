@@ -23,8 +23,10 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.openapi.roots.*;
-import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ExceptionUtil;
@@ -36,6 +38,7 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.TestProjects.createBasicProject;
+import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.sort;
 
@@ -114,7 +117,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     for (SourceFolder folder : sourceFolders) {
       if (!folder.isTestSource()) {
-        String path = VfsUtilCore.urlToPath(folder.getUrl());
+        String path = urlToPath(folder.getUrl());
         sourcePaths.add(path);
       }
     }
