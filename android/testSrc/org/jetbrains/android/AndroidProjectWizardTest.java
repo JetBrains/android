@@ -91,4 +91,9 @@ public class AndroidProjectWizardTest extends NewProjectWizardTestCase {
     });
 
   }
+
+  @Override
+  protected boolean isRunInWriteAction() {
+    return false;  // Android Studio: project setup triggers CLion indexing in OCSymbolTablesBuildingActivity#buildSymbolsInternal.
+  }
 }
