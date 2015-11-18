@@ -54,7 +54,7 @@ public class AndroidDebugState implements RemoteState, AndroidExecutionState {
   public ExecutionResult execute(final Executor executor, @NotNull final ProgramRunner runner) throws ExecutionException {
     RemoteDebugProcessHandler process = new RemoteDebugProcessHandler(myProject);
     myState.setProcessHandler(process);
-    myConsoleView = myState.getConfiguration().attachConsole(myState, executor);
+    myConsoleView = myState.attachConsole(executor);
     return new DefaultExecutionResult(myConsoleView, process);
   }
 
