@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
+import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.intellij.ui.DocumentAdapter;
@@ -46,6 +47,11 @@ public final class TextProperty extends StringProperty implements DocumentListen
   public TextProperty(JLabel label) {
     myComponent = label;
     label.addPropertyChangeListener("text", this);
+  }
+
+  public TextProperty(LabelWithEditLink editLabel) {
+    myComponent = editLabel;
+    editLabel.getDocument().addDocumentListener(this);
   }
 
   @Override
@@ -80,6 +86,9 @@ public final class TextProperty extends StringProperty implements DocumentListen
     else if (myComponent instanceof JLabel) {
       return ((JLabel)myComponent).getText();
     }
+    else if (myComponent instanceof LabelWithEditLink) {
+      return ((LabelWithEditLink)myComponent).getText();
+    }
     else {
       throw new IllegalStateException("Unexpected text component type: " + myComponent.getClass().getSimpleName());
     }
@@ -95,6 +104,9 @@ public final class TextProperty extends StringProperty implements DocumentListen
     }
     else if (myComponent instanceof JLabel) {
       ((JLabel)myComponent).setText(value);
+    }
+    else if (myComponent instanceof LabelWithEditLink) {
+      ((LabelWithEditLink)myComponent).setText(value);
     }
     else {
       throw new IllegalStateException("Unexpected text component type: " + myComponent.getClass().getSimpleName());

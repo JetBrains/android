@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
+import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.ui.properties.CountListener;
 import org.junit.Test;
 
@@ -74,10 +75,29 @@ public final class TextPropertyTest {
 
     field.setText("Field text updated directly");
     assertThat(textProperty.get()).isEqualTo("Field text updated directly");
-    assertThat(listener.getCount()).isEqualTo(2); // +2 here: TextField fires two events when setText is called direclty (remove and insert)
+    assertThat(listener.getCount()).isEqualTo(2); // +2 here: TextField fires two events when setText is called directly (remove and insert)
 
     textProperty.set("Field text updated via property");
     assertThat(field.getText()).isEqualTo("Field text updated via property");
     assertThat(listener.getCount()).isEqualTo(3); // Only +1 here: Property.set hides extra validation calls
+  }
+
+  @Test
+  public void textPropertyCanWrapLabelWithEditLink() {
+    LabelWithEditLink editLabel = new LabelWithEditLink();
+    TextProperty textProperty = new TextProperty(editLabel);
+    CountListener listener = new CountListener();
+    textProperty.addListener(listener);
+
+    assertThat(textProperty.get()).isEqualTo("");
+    assertThat(listener.getCount()).isEqualTo(0);
+
+    editLabel.setText("Edit label set directly");
+    assertThat(textProperty.get()).isEqualTo("Edit label set directly");
+    assertThat(listener.getCount()).isEqualTo(1);
+
+    textProperty.set("Edit label updated via property");
+    assertThat(editLabel.getText()).isEqualTo("Edit label updated via property");
+    assertThat(listener.getCount()).isEqualTo(2);
   }
 }
