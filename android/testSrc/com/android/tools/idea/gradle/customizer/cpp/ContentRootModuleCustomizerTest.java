@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.TestProjects.createNativeProject;
+import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 
 /**
  * Tests for {@link ContentRootModuleCustomizer}.
@@ -108,9 +109,8 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     List<String> sourcePaths = Lists.newArrayListWithExpectedSize(sourceFolders.length);
 
     for (SourceFolder folder : sourceFolders) {
-      VirtualFile file = folder.getFile();
-      assertNotNull(file);
-      sourcePaths.add(file.getPath());
+      String path = urlToPath(folder.getUrl());
+      sourcePaths.add(path);
     }
 
     List<String> allExpectedPaths = Lists.newArrayList();
