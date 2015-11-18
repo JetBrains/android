@@ -301,10 +301,6 @@ public class GradleInvoker {
       LOG.info(msg);
       return;
     }
-    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
-    if (androidGradleModel == null) {
-      return;
-    }
 
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null) {
@@ -314,18 +310,18 @@ public class GradleInvoker {
       // generate them at sync time, so Gradle will just skip those tasks. The generated files can be missing if this is a "Rebuild
       // Project" run or if the user cleaned the project from the command line. The mockable jar is necessary to run unit tests, but the
       // compilation tasks don't depend on it, so we have to call it explicitly.
+      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
       BaseArtifact testArtifact = getArtifactForTestCompileType(testCompileType, androidGradleModel);
       if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
         addAfterSyncTasks(tasks, gradlePath, properties);
         // properties.AFTER_SYNC_TASK_NAMES include main artifacts IDE setup tasks, so we need to add additional tasks according to
         // the test
         if (testArtifact != null) {
-          for (String taskName : getIdeSetupTasks(testArtifact)) {
+          Set<String> ideSetupTasks = getIdeSetupTasks(testArtifact);
+          for (String taskName : ideSetupTasks) {
             addTaskIfSpecified(tasks, gradlePath, taskName);
           }
         }
-      } else {
-        addAfterSyncTasks(tasks, gradlePath, properties);
       }
 
       switch (buildMode) {
@@ -378,8 +374,8 @@ public class GradleInvoker {
 
   @Nullable
   private static BaseArtifact getArtifactForTestCompileType(@NotNull TestCompileType testCompileType,
-                                                            @NotNull AndroidGradleModel androidGradleModel) {
-    if (testCompileType == TestCompileType.NONE) {
+                                                            @Nullable AndroidGradleModel androidGradleModel) {
+    if (testCompileType == TestCompileType.NONE || androidGradleModel == null) {
       return null;
     }
     if (testCompileType == TestCompileType.ANDROID_TESTS) {
@@ -403,7 +399,10 @@ public class GradleInvoker {
                                          @NotNull String gradlePath,
                                          @Nullable String gradleTaskName) {
     if (isNotEmpty(gradleTaskName)) {
-      tasks.add(createBuildTask(gradlePath, gradleTaskName));
+      String buildTask = createBuildTask(gradlePath, gradleTaskName);
+      if (!tasks.contains(buildTask)) {
+        tasks.add(buildTask);
+      }
     }
   }
 
