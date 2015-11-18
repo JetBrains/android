@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -53,13 +54,17 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
   private JBLabel myValidationLabel;
   private JBLabel myDescriptionLabel;
 
-  public StudioWizardStepPanel(@NotNull ModelWizardStep<?> parentStep, @NotNull JPanel innerPanel, @NotNull String description) {
+  public StudioWizardStepPanel(@NotNull ModelWizardStep<?> parentStep, @NotNull JPanel innerPanel){
+    this(parentStep, innerPanel, null);
+  }
+
+  public StudioWizardStepPanel(@NotNull ModelWizardStep<?> parentStep, @NotNull JPanel innerPanel, @Nullable String description) {
     super(new BorderLayout());
 
     add(myRootPanel);
     myRootPanel.add(innerPanel);
 
-    myDescriptionLabel.setText(description);
+    myDescriptionLabel.setText(description != null ? description : "");
     updateValidationLabel();
 
     Disposer.register(parentStep, this);
