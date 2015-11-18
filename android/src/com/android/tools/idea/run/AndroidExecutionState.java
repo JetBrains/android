@@ -31,10 +31,6 @@ public interface AndroidExecutionState {
   @Nullable
   ConsoleView getConsoleView();
 
-  @Deprecated
-  @NotNull
-  AndroidRunConfigurationBase getConfiguration();
-
   /**
    * The ID of the run configuration that produced this state. This is used to correlate existing execution states to run
    * configurations.
