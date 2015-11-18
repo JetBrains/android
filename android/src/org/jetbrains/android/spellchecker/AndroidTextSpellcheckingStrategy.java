@@ -15,11 +15,11 @@
  */
 package org.jetbrains.android.spellchecker;
 
-import com.android.utils.Pair;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -27,8 +27,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
@@ -40,7 +38,7 @@ import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_
  * over 80 spelling errors from these files!
  */
 public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy {
-  private final AtomicReference<Pair<VirtualFile, Boolean>> myLastVirtualFileIgnoredState = new AtomicReference<Pair<VirtualFile, Boolean>>();
+  private static final Key<Boolean> mySpellcheckingIgnoredStateKey = Key.create("android.spellchecking.ignored.state");
 
   @Override
   public boolean isMyContext(@NotNull PsiElement element) {
@@ -52,38 +50,43 @@ public class AndroidTextSpellcheckingStrategy extends SpellcheckingStrategy {
     return isIgnored(file.getViewProvider().getVirtualFile());
   }
 
-  private boolean isIgnored(@NotNull VirtualFile virtualFile) {
-    Pair<VirtualFile, Boolean> pair = myLastVirtualFileIgnoredState.get();
+  private static boolean isIgnored(@NotNull VirtualFile virtualFile) {
+    Boolean spellcheckingIgnoredState = virtualFile.getUserData(mySpellcheckingIgnoredStateKey);
 
-    if (pair != null && virtualFile.equals(pair.getFirst())) {
-      return Boolean.TRUE == pair.getSecond();
-    }
+    if (spellcheckingIgnoredState == null) {
+      synchronized (mySpellcheckingIgnoredStateKey) {
+        spellcheckingIgnoredState = virtualFile.getUserData(mySpellcheckingIgnoredStateKey);
 
-    FileType fileType = virtualFile.getFileType();
-    boolean lastIgnore = false;
+        if (spellcheckingIgnoredState == null) {
+          FileType fileType = virtualFile.getFileType();
+          boolean lastIgnore = false;
 
-    if (fileType == FileTypes.PLAIN_TEXT) {
-      String name = virtualFile.getName();
-      if (Comparing.equal(name, FN_RESOURCE_TEXT, SystemInfo.isFileSystemCaseSensitive) ||
-          Comparing.equal(name, FN_GRADLE_WRAPPER_UNIX, SystemInfo.isFileSystemCaseSensitive) ||
-          Comparing.equal(name, FN_GRADLE_WRAPPER_WIN, SystemInfo.isFileSystemCaseSensitive) ||
-          Comparing.equal(name, IMPORT_SUMMARY_TXT, SystemInfo.isFileSystemCaseSensitive) ||
-          Comparing.equal(name, ".gitignore", SystemInfo.isFileSystemCaseSensitive)) {
-        lastIgnore = true;
+          if (fileType == FileTypes.PLAIN_TEXT) {
+            String name = virtualFile.getName();
+            if (Comparing.equal(name, FN_RESOURCE_TEXT, SystemInfo.isFileSystemCaseSensitive) ||
+                Comparing.equal(name, FN_GRADLE_WRAPPER_UNIX, SystemInfo.isFileSystemCaseSensitive) ||
+                Comparing.equal(name, FN_GRADLE_WRAPPER_WIN, SystemInfo.isFileSystemCaseSensitive) ||
+                Comparing.equal(name, IMPORT_SUMMARY_TXT, SystemInfo.isFileSystemCaseSensitive) ||
+                Comparing.equal(name, ".gitignore", SystemInfo.isFileSystemCaseSensitive)) {
+              lastIgnore = true;
+            }
+          }
+          else if (fileType == StdFileTypes.PROPERTIES) {
+            String name = virtualFile.getName();
+            if (Comparing.equal(name, FN_GRADLE_WRAPPER_PROPERTIES, SystemInfo.isFileSystemCaseSensitive) ||
+                Comparing.equal(name, FN_LOCAL_PROPERTIES, SystemInfo.isFileSystemCaseSensitive) ||
+                Comparing.equal(name, FN_GRADLE_PROPERTIES, SystemInfo.isFileSystemCaseSensitive)) {
+              lastIgnore = true;
+            }
+          }
+
+          spellcheckingIgnoredState = Boolean.valueOf(lastIgnore);
+          virtualFile.putUserData(mySpellcheckingIgnoredStateKey, spellcheckingIgnoredState);
+        }
       }
     }
-    else if (fileType == StdFileTypes.PROPERTIES) {
-      String name = virtualFile.getName();
-      if (Comparing.equal(name, FN_GRADLE_WRAPPER_PROPERTIES, SystemInfo.isFileSystemCaseSensitive) ||
-          Comparing.equal(name, FN_LOCAL_PROPERTIES, SystemInfo.isFileSystemCaseSensitive) ||
-          Comparing.equal(name, FN_GRADLE_PROPERTIES, SystemInfo.isFileSystemCaseSensitive)) {
-        lastIgnore = true;
-      }
-    }
 
-    myLastVirtualFileIgnoredState.lazySet(Pair.of(virtualFile, Boolean.valueOf(lastIgnore)));
-
-    return lastIgnore;
+    return spellcheckingIgnoredState;
   }
 
   @NotNull
