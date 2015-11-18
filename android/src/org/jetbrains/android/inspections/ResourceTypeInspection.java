@@ -368,7 +368,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         checkPermissionRequirement(methodCall, holder, method, annotation);
       } else if (CHECK_RESULT_ANNOTATION.equals(qualifiedName)) {
         checkReturnValueUsage(methodCall, holder, method);
-      } else if (qualifiedName.endsWith(THREAD_SUFFIX)) {
+      } else if (qualifiedName.endsWith(THREAD_SUFFIX) && qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
         checkThreadAnnotation(methodCall, holder, method, qualifiedName);
       }
     }
@@ -378,7 +378,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       annotations = getAllAnnotations(cls);
       for (PsiAnnotation annotation : annotations) {
         String qualifiedName = annotation.getQualifiedName();
-        if (qualifiedName != null && qualifiedName.endsWith(THREAD_SUFFIX)) {
+        if (qualifiedName != null && qualifiedName.endsWith(THREAD_SUFFIX) && qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
           checkThreadAnnotation(methodCall, holder, method, qualifiedName);
         } else if (qualifiedName != null && !qualifiedName.startsWith(DEFAULT_PACKAGE)) {
           // Look for annotation that itself is annotated; we allow this for the @RequiresPermission annotation
