@@ -24,6 +24,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.roots.*;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ExceptionUtil;
@@ -113,9 +114,8 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     for (SourceFolder folder : sourceFolders) {
       if (!folder.isTestSource()) {
-        VirtualFile file = folder.getFile();
-        assertNotNull(file);
-        sourcePaths.add(file.getPath());
+        String path = VfsUtilCore.urlToPath(folder.getUrl());
+        sourcePaths.add(path);
       }
     }
 
