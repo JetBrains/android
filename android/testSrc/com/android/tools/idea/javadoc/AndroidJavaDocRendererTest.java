@@ -319,5 +319,10 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></body></html>");
   }
 
+  public void testStyleName() {
+    checkJavadoc("/javadoc/styles/styles_attribute_documentation.xml", "res/values/styles.xml",
+                 "Default text typeface style.");
+  }
+
   // TODO: Test flavor docs
 }
