@@ -17,12 +17,12 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.sdk.VersionCheck;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.npw.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.NewProjectWizardState;
+import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.ManifestDetector;
@@ -53,11 +53,11 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
+import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
-import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 
 /**
  * Test for template instantiation.
@@ -735,8 +735,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     String projectName;
     for (Parameter parameter : parameters) {
-      if (parameter.type == Parameter.Type.SEPARATOR
-          || parameter.type == Parameter.Type.STRING) {
+      if (parameter.type == Parameter.Type.SEPARATOR || parameter.type == Parameter.Type.STRING) {
         // TODO: Consider whether we should attempt some strings here
         continue;
       }
