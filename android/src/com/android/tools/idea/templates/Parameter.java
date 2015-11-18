@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceFolderRegistry;
 import com.android.tools.idea.rendering.ResourceFolderRepository;
 import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
@@ -56,37 +57,22 @@ import static com.android.tools.idea.templates.Template.*;
  * data entry.
  */
 public class Parameter {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Parameter");
-  private static final Set<String> typeValues = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+  private static Logger getLog() { return Logger.getInstance(Parameter.class); }
 
   public enum Type {
     STRING,
     BOOLEAN,
     ENUM,
-    SEPARATOR,
-    EXTERNAL,
-    CUSTOM;
-    // TODO: Numbers?
+    SEPARATOR;
 
-    public static Type get(String name) {
+    public static Type get(@NotNull String name) {
+      name = name.toUpperCase(Locale.US);
       try {
-        if (typeValues.isEmpty()) {
-          for(Type t : Type.values()) {
-            typeValues.add(t.name().toUpperCase(Locale.US));
-          }
-        }
-
-        String upperCaseName = name.toUpperCase(Locale.US);
-        if (!typeValues.contains(upperCaseName)) {
-          return Type.CUSTOM;
-        }
-        return Type.valueOf(upperCaseName);
-      } catch (IllegalArgumentException e) {
-        LOG.error("Unexpected template type '" + name + "'");
-        LOG.error("Expected one of :");
-        for (Type s : Type.values()) {
-          LOG.error("  " + s.name().toLowerCase(Locale.US));
-        }
+        return valueOf(name);
+      }
+      catch (IllegalArgumentException e) {
+        getLog().error(String.format("Unexpected template type: %1$s.\nExpected one or more of: (%2$s)", name,
+                                     Joiner.on(',').join(Constraint.values())));
       }
 
       return STRING;
@@ -157,19 +143,14 @@ public class Parameter {
     /** The associated value should represent a valid string resource name */
     STRING;
 
-    public static Constraint get(String name) {
+    public static Constraint get(@NotNull String name) {
+      name = name.toUpperCase(Locale.US);
       try {
-        return Constraint.valueOf(name.toUpperCase(Locale.US));
-      } catch (IllegalArgumentException e) {
-        LOG.error("Unexpected template constraint '" + name + "'");
-        if (name.indexOf(',') != -1) {
-          LOG.error("Use | to separate constraints");
-        } else {
-          LOG.error("Expected one of :");
-          for (Constraint s : Constraint.values()) {
-            LOG.error("  " + s.name().toLowerCase(Locale.US));
-          }
-        }
+        return valueOf(name);
+      }
+      catch (IllegalArgumentException e) {
+        getLog().error(String.format("Unexpected template constraint: %1$s.\nExpected one or more of: (%2$s)", name,
+                                     Joiner.on('|').join(Constraint.values())));
       }
 
       return NONEMPTY;
@@ -223,12 +204,6 @@ public class Parameter {
   @Nullable
   public final String enabled;
 
-  /**
-   * A URL for externally sourced values.
-   */
-  @Nullable
-  public final String sourceUrl;
-
   /** Help for the parameter, if any */
   @Nullable
   public final String help;
@@ -241,16 +216,12 @@ public class Parameter {
   @NotNull
   public final EnumSet<Constraint> constraints;
 
-  /** The dsl name of the type that will be created in the ui for the user to enter this parameter.
-   *  This should correspond to a name registered by an ExternalWizardParameterFactory extension. */
-  public String externalTypeName;
-
   Parameter(@NotNull TemplateMetadata template, @NotNull Element parameter) {
     this.template = template;
     element = parameter;
 
-    String typeName = parameter.getAttribute(Template.ATTR_TYPE);
-    assert typeName != null && !typeName.isEmpty() : Template.ATTR_TYPE;
+    String typeName = parameter.getAttribute(ATTR_TYPE);
+    assert typeName != null && !typeName.isEmpty() : ATTR_TYPE;
     type = Type.get(typeName);
 
     id = parameter.getAttribute(ATTR_ID);
@@ -258,15 +229,8 @@ public class Parameter {
     suggest = parameter.getAttribute(ATTR_SUGGEST);
     visibility = parameter.getAttribute(ATTR_VISIBILITY);
     enabled = parameter.getAttribute(ATTR_ENABLED);
-    sourceUrl = type == Type.EXTERNAL ? parameter.getAttribute(ATTR_SOURCE_URL) : null;
     name = parameter.getAttribute(ATTR_NAME);
     help = parameter.getAttribute(ATTR_HELP);
-    if (type == Type.CUSTOM) {
-      externalTypeName = typeName;
-    }
-    else {
-      externalTypeName = null;
-    }
     String constraintString = parameter.getAttribute(ATTR_CONSTRAINTS);
     if (constraintString != null && !constraintString.isEmpty()) {
       EnumSet<Constraint> constraintSet = null;
@@ -293,8 +257,6 @@ public class Parameter {
   public String validate(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                          @Nullable String packageName, @Nullable Object value, Set<Object> relatedValues) {
     switch (type) {
-      case EXTERNAL:
-      case CUSTOM:
       case STRING:
         return getErrorMessageForStringType(project, module, provider, packageName, value.toString(), relatedValues);
       case BOOLEAN:
