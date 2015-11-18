@@ -20,17 +20,15 @@ import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.templates.Parameter;
+import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.ui.LabelWithEditLink;
-import com.android.tools.idea.ui.TextFieldWithLaunchBrowserButton;
-import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.*;
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -42,7 +40,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -115,7 +112,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   private boolean myUpdatingDefaults = false;
   private Map<Parameter, List<JComponent>> myParameterComponents = new WeakHashMap<Parameter, List<JComponent>>();
   private final StringEvaluator myEvaluator = new StringEvaluator();
-  private Map<String, WizardParameterFactory> myExternalWizardParameterFactoryMap = null;
   private Map<JComponent, Parameter> myDataComponentParameters = new WeakHashMap<JComponent, Parameter>();
   private final String myStepTitle;
 
@@ -138,15 +134,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     myTemplateDescription.setBorder(BorderFactory.createEmptyBorder(0, 0, myTemplateDescription.getFont().getSize(), 0));
     setBodyComponent(myRootPanel);
     myStepTitle = stepTitle;
-  }
-
-  private static JComponent createTextFieldWithBrowse(Parameter parameter) {
-    String sourceUrl = parameter.sourceUrl;
-    if (sourceUrl == null) {
-      LOG.warn(String.format("Source URL is missing for parameter %1$s", parameter.name));
-      sourceUrl = "";
-    }
-    return new TextFieldWithLaunchBrowserButton(sourceUrl);
   }
 
   public void setPresetValue(@NotNull String key, @Nullable Object value) {
@@ -290,33 +277,11 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
         case ENUM:
           dataComponent = createEnumCombo(parameter);
           break;
-        case EXTERNAL:
-          dataComponent = createTextFieldWithBrowse(parameter);
-          break;
         case STRING:
           dataComponent = new JTextField();
           break;
         case SEPARATOR:
           return Collections.<JComponent>singletonList(new JSeparator(SwingConstants.HORIZONTAL));
-        case CUSTOM:
-          JComponent createdComponent = null;
-          try {
-            WizardParameterFactory factory = getExternalFactory(parameter.externalTypeName);
-            if (factory != null) {
-              createdComponent = factory.createComponent(parameter.externalTypeName, parameter);
-            }
-            if (createdComponent == null) {
-              LOG.error(String.format("Bad registration for custom wizard type %1$s.  See ExternalWizardParameterFactory extension point.",
-                                      Strings.isNullOrEmpty(parameter.externalTypeName) ? "(null)" : parameter.externalTypeName));
-              createdComponent = new JTextField();
-            }
-          }
-          catch(Exception e) {
-            LOG.error(String.format("Exception creating class %1$s", parameter.externalTypeName), e);
-            createdComponent = new JTextField();
-          }
-          dataComponent = createdComponent;
-          break;
         default:
           throw new IllegalStateException(parameter.type.toString());
       }
@@ -329,33 +294,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
       label.setLabelFor(dataComponent);
     }
     return label != null ? Arrays.asList(label, dataComponent) : Arrays.asList(dataComponent);
-  }
-
-  @Nullable
-  private WizardParameterFactory getExternalFactory(String uiTypeName) {
-    if (Strings.isNullOrEmpty(uiTypeName)) {
-      return null;
-    }
-
-    if (myExternalWizardParameterFactoryMap == null) {
-      Map<String,WizardParameterFactory> externalWizardParameterFactoryHashMap = new HashMap<String,WizardParameterFactory>();
-      WizardParameterFactory[] factories = Extensions.getExtensions(WizardParameterFactory.EP_NAME);
-      for(WizardParameterFactory factory : factories) {
-        String[] types = factory.getSupportedTypes();
-        if (types != null) {
-          for(String type : types) {
-            if (externalWizardParameterFactoryHashMap.containsKey(type)) {
-              LOG.error("Duplicate ExternalWizardParameterFactory registration on Type:" + type);
-              continue;
-            }
-            externalWizardParameterFactoryHashMap.put(type, factory);
-          }
-        }
-      }
-      myExternalWizardParameterFactoryMap = externalWizardParameterFactoryHashMap;
-    }
-
-    return myExternalWizardParameterFactoryMap.get(uiTypeName);
   }
 
   private JComponent createClassEntry(@NotNull Parameter parameter, @NotNull Module module) {
@@ -474,13 +412,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
       });
     }
     else {
-      WizardParameterFactory factory = getExternalFactory(parameter.externalTypeName);
-      if (factory != null) {
-        register((Key<String>)key, dataComponent, factory.createBinding(dataComponent, parameter));
-      }
-      else {
-        throw new IllegalArgumentException(dataComponent.getClass().getName());
-      }
+      throw new IllegalArgumentException(dataComponent.getClass().getName());
     }
   }
 
@@ -922,10 +854,8 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
           clazz = Boolean.class;
           break;
         case ENUM:
-        case EXTERNAL:
         case STRING:
         case SEPARATOR:
-        case CUSTOM:
           clazz = String.class;
           break;
         default:
