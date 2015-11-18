@@ -154,7 +154,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
-    if (nativeAndroidProject != null) {
+    if (androidProject == null && nativeAndroidProject != null) {
+      // For a hybrid app which contains both java and native code, the information about the native code is present in both AndroidProject
+      // and NativeAndroidProject. Until we figure out the correct way to handle that, using the NativeAndroidProject only for the pure
+      // native modules and will be falling back to the information in AndroidProject model for hybrid modules.
       ideModule.createChild(NATIVE_ANDROID_MODEL,
                             new NativeAndroidGradleModel(gradleModule.getName(), moduleRootDirPath, nativeAndroidProject));
     }
