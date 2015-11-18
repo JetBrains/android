@@ -103,12 +103,6 @@ public class GradleSpecificInitializer implements Runnable {
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
 
-    ActionManager actionManager = ActionManager.getInstance();
-    // "Configure Plugins..." Not sure why it's called StartupWizard.
-    AnAction pluginAction = actionManager.getAction("StartupWizard");
-    // Never applicable in the context of android studio, so just set to invisible.
-    pluginAction.getTemplatePresentation().setVisible(false);
-
     try {
       // Setup JDK and Android SDK if necessary
       setupSdks();
