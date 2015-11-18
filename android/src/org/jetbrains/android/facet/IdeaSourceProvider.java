@@ -16,6 +16,8 @@
 package org.jetbrains.android.facet;
 
 import com.android.builder.model.*;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -61,6 +63,11 @@ public abstract class IdeaSourceProvider {
       ideaProviders.add(create(provider));
     }
     return ideaProviders;
+  }
+
+  @NotNull
+  public static IdeaSourceProvider create(@NotNull final NativeAndroidGradleFacet facet) {
+    return new IdeaSourceProvider.Native(facet);
   }
 
   @NotNull
@@ -216,6 +223,119 @@ public abstract class IdeaSourceProvider {
     @Override
     public int hashCode() {
       return myProvider.getManifestFile().getPath().hashCode();
+    }
+  }
+
+  /** {@linkplain IdeaSourceProvider} for a Native Android Gradle project */
+  private static class Native extends IdeaSourceProvider {
+    @NotNull private final NativeAndroidGradleFacet myFacet;
+
+    private Native(@NotNull NativeAndroidGradleFacet facet) {
+      myFacet = facet;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return "";
+    }
+
+    @Nullable
+    @Override
+    public VirtualFile getManifestFile() {
+      return null;
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getJavaDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getResourcesDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getAidlDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getRenderscriptDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getJniDirectories() {
+      NativeAndroidGradleModel nativeAndroidGradleModel = myFacet.getNativeAndroidGradleModel();
+      NativeAndroidProject nativeAndroidProject = null;
+      if (nativeAndroidGradleModel != null) {
+        nativeAndroidProject = nativeAndroidGradleModel.getNativeAndroidProject();
+      }
+      if (nativeAndroidProject == null) {
+        return Collections.emptyList();
+      }
+
+      Set<File> sourceFolders = Sets.newLinkedHashSet();
+      for (NativeArtifact artifact : nativeAndroidProject.getArtifacts()) {
+        for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
+          sourceFolders.add(sourceFolder.getFolderPath());
+        }
+        for (NativeFile sourceFile : artifact.getSourceFiles()) {
+          File parentFile = sourceFile.getFilePath().getParentFile();
+          if (parentFile != null) {
+            sourceFolders.add(parentFile);
+          }
+        }
+      }
+
+      Collection<VirtualFile> result = Sets.newLinkedHashSetWithExpectedSize(sourceFolders.size());
+      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+      for (File file : sourceFolders) {
+        VirtualFile virtualFile = fileSystem.findFileByIoFile(file);
+        if (virtualFile != null) {
+          result.add(virtualFile);
+        }
+      }
+      return result;
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getJniLibsDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getResDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getAssetsDirectories() {
+      return Collections.emptySet();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Native that = (Native)o;
+      return myFacet.equals(that.myFacet);
+    }
+
+    @Override
+    public int hashCode() {
+      return myFacet.hashCode();
     }
   }
 
