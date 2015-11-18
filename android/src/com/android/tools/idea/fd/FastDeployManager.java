@@ -733,11 +733,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    * @return true if the app can be dex swapped in one or more of the given devices
    */
   public static boolean canDexSwap(@NotNull Module module, @NotNull Collection<IDevice> devices) {
-    for (IDevice device : devices) {
-      if (buildIdsMatch(device, module)) {
-        return true;
-      }
-    }
+    // TODO: we need to fix 2 things: a) update resources, b) handle no-changes
+    //for (IDevice device : devices) {
+    //  if (buildIdsMatch(device, module)) {
+    //    return true;
+    //  }
+    //}
 
     return false;
   }
@@ -757,6 +758,8 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
 
     File restart = DexFileType.RESTART_DEX.getFile(model);
     if (!restart.exists()) {
+      // TODO: is this really a "no changes" scenario?
+      // TODO: to reproduce: launch app, terminate it, restart IDE, re-launch (no changes to code in the IDE)
       LOG.warn("Couldn't find restart file " + restart);
       return false;
     }
