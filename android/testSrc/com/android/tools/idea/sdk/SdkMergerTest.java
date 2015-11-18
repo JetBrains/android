@@ -30,59 +30,59 @@ import java.util.EnumSet;
 
 public class SdkMergerTest extends AndroidTestCase {
   private static final Logger LOG = Logger.getInstance(SdkMergerTest.class);
-  public static final String SDK_20_FINGERPRINT = "tools,23.0.2,null\n" +
-                                                  "platform-tools,20.0.0,null\n" +
-                                                  "build-tools-20.0.0,20.0.0,null\n" +
-                                                  "doc,null,1\n" +
-                                                  "android-19,null,2\n" +
-                                                  "android-20,null,2\n";
-  public static final String SDK_L_FINGERPRINT = "tools,23.0.2,null\n" +
-                                                 "platform-tools,20.0.0,null\n" +
-                                                 "build-tools-18.1.1,18.1.1,null\n" +
-                                                 "build-tools-19.0.0,19.0.0,null\n" +
-                                                 "build-tools-19.0.1,19.0.1,null\n" +
-                                                 "build-tools-19.0.2,19.0.2,null\n" +
-                                                 "build-tools-19.0.3,19.0.3,null\n" +
-                                                 "build-tools-19.1.0,19.1.0,null\n" +
-                                                 "build-tools-20.0.0,20.0.0,null\n" +
-                                                 "android-8,null,3\n" +
-                                                 "android-10,null,2\n" +
-                                                 "android-14,null,3\n" +
-                                                 "android-15,null,3\n" +
-                                                 "android-16,null,4\n" +
-                                                 "android-17,null,2\n" +
-                                                 "android-18,null,2\n" +
-                                                 "android-19,null,3\n" +
-                                                 "android-20,null,1\n" +
-                                                 "android-l,null,4\n" +
-                                                 "addon-google_gdk-google-19,null,8\n" +
-                                                 "extra-android-m2repository,6.0.0,null\n" +
-                                                 "extra-android-support,20.0.0,null\n" +
-                                                 "extra-google-m2repository,11.0.0,null\n";
-  public static final String MERGED_FINGERPRINT = "tools,23.0.2,null\n" +
-                                                  "platform-tools,20.0.0,null\n" +
-                                                  "build-tools-18.1.1,18.1.1,null\n" +
-                                                  "build-tools-19.0.0,19.0.0,null\n" +
-                                                  "build-tools-19.0.1,19.0.1,null\n" +
-                                                  "build-tools-19.0.2,19.0.2,null\n" +
-                                                  "build-tools-19.0.3,19.0.3,null\n" +
-                                                  "build-tools-19.1.0,19.1.0,null\n" +
-                                                  "build-tools-20.0.0,20.0.0,null\n" +
-                                                  "doc,null,1\n" +
-                                                  "android-8,null,3\n" +
-                                                  "android-10,null,2\n" +
-                                                  "android-14,null,3\n" +
-                                                  "android-15,null,3\n" +
-                                                  "android-16,null,4\n" +
-                                                  "android-17,null,2\n" +
-                                                  "android-18,null,2\n" +
-                                                  "android-19,null,3\n" +
-                                                  "android-20,null,2\n" +
-                                                  "android-l,null,4\n" +
-                                                  "addon-google_gdk-google-19,null,8\n" +
-                                                  "extra-android-m2repository,6.0.0,null\n" +
-                                                  "extra-android-support,20.0.0,null\n" +
-                                                  "extra-google-m2repository,11.0.0,null\n";
+  public static final String SDK_20_FINGERPRINT = "tools,23.0.2\n" +
+                                                  "platform-tools,20.0.0\n" +
+                                                  "build-tools-20.0.0,20.0.0\n" +
+                                                  "doc,1\n" +
+                                                  "android-19,2\n" +
+                                                  "android-20,2\n";
+  public static final String SDK_L_FINGERPRINT = "tools,23.0.2\n" +
+                                                 "platform-tools,20.0.0\n" +
+                                                 "build-tools-18.1.1,18.1.1\n" +
+                                                 "build-tools-19.0.0,19.0.0\n" +
+                                                 "build-tools-19.0.1,19.0.1\n" +
+                                                 "build-tools-19.0.2,19.0.2\n" +
+                                                 "build-tools-19.0.3,19.0.3\n" +
+                                                 "build-tools-19.1.0,19.1.0\n" +
+                                                 "build-tools-20.0.0,20.0.0\n" +
+                                                 "android-8,3\n" +
+                                                 "android-10,2\n" +
+                                                 "android-14,3\n" +
+                                                 "android-15,3\n" +
+                                                 "android-16,4\n" +
+                                                 "android-17,2\n" +
+                                                 "android-18,2\n" +
+                                                 "android-19,3\n" +
+                                                 "android-20,1\n" +
+                                                 "android-l,4\n" +
+                                                 "addon-google_gdk-google-19,8.0.0\n" +
+                                                 "extra-android-m2repository,6.0.0\n" +
+                                                 "extra-android-support,20.0.0\n" +
+                                                 "extra-google-m2repository,11.0.0\n";
+  public static final String MERGED_FINGERPRINT = "tools,23.0.2\n" +
+                                                  "platform-tools,20.0.0\n" +
+                                                  "build-tools-18.1.1,18.1.1\n" +
+                                                  "build-tools-19.0.0,19.0.0\n" +
+                                                  "build-tools-19.0.1,19.0.1\n" +
+                                                  "build-tools-19.0.2,19.0.2\n" +
+                                                  "build-tools-19.0.3,19.0.3\n" +
+                                                  "build-tools-19.1.0,19.1.0\n" +
+                                                  "build-tools-20.0.0,20.0.0\n" +
+                                                  "doc,1\n" +
+                                                  "android-8,3\n" +
+                                                  "android-10,2\n" +
+                                                  "android-14,3\n" +
+                                                  "android-15,3\n" +
+                                                  "android-16,4\n" +
+                                                  "android-17,2\n" +
+                                                  "android-18,2\n" +
+                                                  "android-19,3\n" +
+                                                  "android-20,2\n" +
+                                                  "android-l,4\n" +
+                                                  "addon-google_gdk-google-19,8.0.0\n" +
+                                                  "extra-android-m2repository,6.0.0\n" +
+                                                  "extra-android-support,20.0.0\n" +
+                                                  "extra-google-m2repository,11.0.0\n";
 
   public void testMerge() throws Exception {
     String tempDirPath = myFixture.getTempDirPath();
