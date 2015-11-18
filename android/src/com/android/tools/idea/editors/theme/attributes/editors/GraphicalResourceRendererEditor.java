@@ -91,7 +91,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
                                          boolean isEditor) {
     myContext = context;
     // Override isShowing because of the use of a {@link CellRendererPane}
-    myComponent = new ResourceComponent(context.getProject()) {
+    myComponent = new ResourceComponent(context.getProject(), isEditor) {
       @Override
       public boolean isShowing() {
         return true;
