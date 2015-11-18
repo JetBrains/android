@@ -21,6 +21,7 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
@@ -220,6 +221,12 @@ public final class GradleUtil {
   public static AndroidProject getAndroidProject(@NotNull Module module) {
     AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
     return gradleModel != null ? gradleModel.getAndroidProject() : null;
+  }
+
+  @Nullable
+  public static NativeAndroidProject getNativeAndroidProject(@NotNull Module module) {
+    NativeAndroidGradleModel gradleModel = NativeAndroidGradleModel.get(module);
+    return gradleModel != null ? gradleModel.getNativeAndroidProject() : null;
   }
 
   /**
