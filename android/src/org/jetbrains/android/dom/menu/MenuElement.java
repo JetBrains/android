@@ -18,12 +18,5 @@ package org.jetbrains.android.dom.menu;
 
 import org.jetbrains.android.dom.AndroidDomElement;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Mar 27, 2009
- * Time: 2:59:54 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface MenuElement extends AndroidDomElement {
 }
