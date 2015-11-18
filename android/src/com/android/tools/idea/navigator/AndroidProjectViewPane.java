@@ -21,6 +21,7 @@ import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.google.common.collect.Lists;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectPaneSelectInTarget;
+import com.intellij.ide.impl.ProjectViewSelectInTarget;
 import com.intellij.ide.projectView.BaseProjectTreeBuilder;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
@@ -96,8 +97,22 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   @Override
   public SelectInTarget createSelectInTarget() {
-    // No implementation needed, we piggy back on the default ProjectViewPane for select in target
-    return null;
+    return new ProjectViewSelectInTarget(myProject) {
+      @Override
+      public String toString() {
+        return getTitle();
+      }
+
+      @Override
+      public String getMinorViewId() {
+        return getId();
+      }
+
+      @Override
+      public float getWeight() {
+        return AndroidProjectViewPane.this.getWeight();
+      }
+    };
   }
 
   @Override
