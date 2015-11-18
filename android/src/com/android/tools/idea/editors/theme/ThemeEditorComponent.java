@@ -1152,7 +1152,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
     // We calculate the size of the resource cell (drawable and color cells) by creating a ResourceComponent that
     // we use to measure the preferred size.
-    ResourceComponent sampleComponent = new ResourceComponent(myProject);
+    ResourceComponent sampleComponent = new ResourceComponent(myProject, false);
     int bigCellSize = sampleComponent.getPreferredSize().height;
     myAttributesTable.setClassHeights(ImmutableMap.of(
       Object.class, regularFontSize + REGULAR_CELL_PADDING,
