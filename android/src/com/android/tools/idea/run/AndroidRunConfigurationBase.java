@@ -28,7 +28,6 @@ import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -423,6 +422,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       launchOptions,
       getUniqueID(),
       getType().getId(),
+      getConsoleProvider(),
       this
     );
   }
@@ -462,7 +462,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet);
 
   @NotNull
-  protected abstract ConsoleView attachConsole(AndroidRunningState state, Executor executor) throws ExecutionException;
+  protected abstract ConsoleProvider getConsoleProvider();
 
   @NotNull
   protected abstract AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet);
