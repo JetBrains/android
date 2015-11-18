@@ -55,18 +55,18 @@ public final class TestProjects {
     VariantStub debugVariant = androidProject.addVariant("debug");
 
     AndroidArtifactStub mainArtifactInfo = debugVariant.getMainArtifact();
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/aidl/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/r/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/rs/debug");
-    mainArtifactInfo.addGeneratedResourceFolder("build/res/rs/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/rs/debug");
+    mainArtifactInfo.addGeneratedResourceFolder("build/generated/res/rs/debug");
 
     AndroidArtifactStub testArtifactInfo = debugVariant.getInstrumentTestArtifact();
-    testArtifactInfo.addGeneratedSourceFolder("build/source/aidl/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/r/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/rs/test");
-    testArtifactInfo.addGeneratedResourceFolder("build/res/rs/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/rs/test");
+    testArtifactInfo.addGeneratedResourceFolder("build/generated/res/rs/test");
   }
 
   @NotNull
@@ -77,18 +77,18 @@ public final class TestProjects {
     VariantStub f1faDebugVariant = project.addVariant("f1fa-debug", "debug");
 
     AndroidArtifactStub mainArtifactInfo = f1faDebugVariant.getMainArtifact();
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/aidl/f1fa/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/f1fa/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/r/f1fa/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/rs/f1fa/debug");
-    mainArtifactInfo.addGeneratedResourceFolder("build/res/rs/f1fa/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/f1fa/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/f1fa/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/f1fa/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/rs/f1fa/debug");
+    mainArtifactInfo.addGeneratedResourceFolder("build/generated/res/rs/f1fa/debug");
 
     AndroidArtifactStub testArtifactInfo = f1faDebugVariant.getInstrumentTestArtifact();
-    testArtifactInfo.addGeneratedSourceFolder("build/source/aidl/f1fa/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/f1fa/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/r/f1fa/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/rs/f1fa/test");
-    testArtifactInfo.addGeneratedResourceFolder("build/res/rs/f1fa/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/f1fa/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/f1fa/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/f1fa/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/rs/f1fa/test");
+    testArtifactInfo.addGeneratedResourceFolder("build/generated/res/rs/f1fa/test");
 
     f1faDebugVariant.addProductFlavors("f1", "fa");
 
