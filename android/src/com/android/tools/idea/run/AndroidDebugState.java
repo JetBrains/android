@@ -75,12 +75,6 @@ public class AndroidDebugState implements RemoteState, AndroidExecutionState {
     return myConsoleView;
   }
 
-  @NotNull
-  @Override
-  public AndroidRunConfigurationBase getConfiguration() {
-    return myState.getConfiguration();
-  }
-
   @Override
   public int getRunConfigurationId() {
     return myState.getRunConfigurationId();
