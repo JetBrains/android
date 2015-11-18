@@ -65,6 +65,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
 
   public SmwOldApiDirectInstall(@NotNull Disposable disposable) {
     super(disposable);
+    mySdkManagerOutput.setEditable(false);
     setBodyComponent(myContentPanel);
   }
 
