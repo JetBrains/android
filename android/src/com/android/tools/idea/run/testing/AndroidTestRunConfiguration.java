@@ -34,9 +34,11 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.junit.JUnitUtil;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
@@ -272,11 +274,20 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @NotNull
   @Override
-  protected ConsoleView attachConsole(AndroidRunningState state, Executor executor) throws ExecutionException {
-    AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
-    ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", state.getProcessHandler(), properties);
-    Disposer.register(state.getFacet().getModule().getProject(), consoleView);
-    return consoleView;
+  protected ConsoleProvider getConsoleProvider() {
+    return new ConsoleProvider() {
+
+      @NotNull
+      @Override
+      public ConsoleView createAndAttach(@NotNull Disposable parent,
+                                         @NotNull ProcessHandler handler,
+                                         @NotNull Executor executor) throws ExecutionException {
+        AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(AndroidTestRunConfiguration.this, executor);
+        ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties);
+        Disposer.register(parent, consoleView);
+        return consoleView;
+      }
+    };
   }
 
   @Override

@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.*;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -27,7 +28,9 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.junit.RefactoringListeners;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -152,12 +155,20 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @NotNull
   @Override
-  protected ConsoleView attachConsole(AndroidRunningState state, Executor executor) {
-    Project project = getConfigurationModule().getProject();
-    final TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
-    ConsoleView console = builder.getConsole();
-    console.attachToProcess(state.getProcessHandler());
-    return console;
+  protected ConsoleProvider getConsoleProvider() {
+    return new ConsoleProvider() {
+      @NotNull
+      @Override
+      public ConsoleView createAndAttach(@NotNull Disposable parent,
+                                         @NotNull ProcessHandler handler,
+                                         @NotNull Executor executor) throws ExecutionException {
+        Project project = getConfigurationModule().getProject();
+        final TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
+        ConsoleView console = builder.getConsole();
+        console.attachToProcess(handler);
+        return console;
+      }
+    };
   }
 
   @Override

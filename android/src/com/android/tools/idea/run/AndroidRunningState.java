@@ -69,7 +69,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class AndroidRunningState implements RunProfileState, AndroidExecutionState {
+public final class AndroidRunningState implements RunProfileState, AndroidExecutionState {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunningState");
 
   public static final int WAITING_TIME_SECS = 20;
@@ -103,6 +103,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
   private final int myRunConfigId;
   @NotNull private final String myRunConfigTypeId;
+  @NotNull private final ConsoleProvider myConsoleProvider;
 
   public AndroidRunningState(@NotNull ExecutionEnvironment environment,
                              @NotNull AndroidFacet facet,
@@ -113,6 +114,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
                              @NotNull LaunchOptions launchOptions,
                              int runConfigId,
                              @NotNull String runConfigTypeId,
+                             @NotNull ConsoleProvider consoleProvider,
                              @NotNull AndroidRunConfigurationBase config) throws ExecutionException {
     myFacet = facet;
     myApkProvider = apkProvider;
@@ -131,6 +133,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
 
     myRunConfigId = runConfigId;
     myRunConfigTypeId = runConfigTypeId;
+    myConsoleProvider = consoleProvider;
     myConfiguration = config;
   }
 
@@ -271,13 +274,18 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     myConsole = console;
   }
 
+  @NotNull
+  public ConsoleView attachConsole(@NotNull Executor executor) throws ExecutionException {
+    return myConsoleProvider.createAndAttach(myEnv.getProject(), getProcessHandler(), executor);
+  }
+
   // Note: execute isn't called if we are re-attaching to an existing session and there is no need to create
   // a new process handler and console. In such a scenario, control flow directly goes to #start().
   @Override
   public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
     myProcessHandler = new DefaultDebugProcessHandler();
     AndroidProcessText.attach(myProcessHandler);
-    myConsole = myConfiguration.attachConsole(this, executor);
+    myConsole = attachConsole(executor);
     myPrinter.setProcessHandler(myProcessHandler);
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
@@ -294,7 +302,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
           UIUtil.invokeLaterIfNeeded(new Runnable() {
             @Override
             public void run() {
-              ToolWindowManager.getInstance(myFacet.getModule().getProject()).getToolWindow(executor.getToolWindowId())
+              ToolWindowManager.getInstance(myEnv.getProject()).getToolWindow(executor.getToolWindowId())
                 .activate(null, true, false);
             }
           });
@@ -391,7 +399,7 @@ public class AndroidRunningState implements RunProfileState, AndroidExecutionSta
     }
 
     if (myLaunchOptions.isClearLogcatBeforeStart()) {
-      clearLogcatAndConsole(getModule().getProject(), device);
+      clearLogcatAndConsole(myEnv.getProject(), device);
     }
 
     myPrinter.stdout("Target device: " + device.getName());
