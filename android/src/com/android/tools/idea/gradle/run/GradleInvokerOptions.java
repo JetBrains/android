@@ -78,7 +78,7 @@ public class GradleInvokerOptions {
       AndroidGradleModel model = AndroidGradleModel.get(module);
       assert model != null : "Module selected for fast deploy, but doesn't seem to have the right gradle model";
       String dexTask = FastDeployManager.getIncrementalDexTask(model, module);
-      return new GradleInvokerOptions(Collections.singletonList(dexTask), null, Collections.<String>emptyList());
+      return new GradleInvokerOptions(Collections.singletonList(dexTask), null, cmdLineArgs);
     }
 
     if (MakeBeforeRunTaskProvider.isUnitTestConfiguration(configuration)) {

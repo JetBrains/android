@@ -337,6 +337,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
               }
 
               env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
+              env.putCopyableUserData(DEVICE_FUTURES_KEY, DeviceFutures.forDevices(devices));
+
               return new PatchDeployState(info.getDescriptor(), facet, devices);
             }
           }
