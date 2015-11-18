@@ -1447,7 +1447,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     return "debug";
   }
 
-  static void postBalloon(@NotNull final MessageType type, @NotNull final String message, @NotNull final Project project) {
+  public static void postBalloon(@NotNull final MessageType type, @NotNull final String message, @NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
