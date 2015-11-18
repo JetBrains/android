@@ -10,6 +10,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.PomTarget;
 import com.intellij.pom.PomTargetPsiElement;
@@ -175,30 +176,46 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
       if (ATTR_NAME.equals(attribute.getName())) {
         XmlTag tag = attribute.getParent();
-        String typeName = tag.getName();
-        if (TAG_ITEM.equals(typeName)) {
-          typeName = tag.getAttributeValue(ATTR_TYPE);
-          if (typeName == null) {
-            return null;
+        XmlTag parentTag = tag.getParentTag();
+        if (parentTag == null) {
+          return null;
+        }
+
+        if (TAG_RESOURCES.equals(parentTag.getName())) {
+          // Handle ID definitions, http://developer.android.com/guide/topics/resources/more-resources.html#Id
+          String typeName = tag.getName();
+          if (TAG_ITEM.equals(typeName)) {
+            typeName = tag.getAttributeValue(ATTR_TYPE);
+          }
+          ResourceType type = ResourceType.getEnum(typeName);
+          if (type != null) {
+            return generateDoc(element, type, value, false);
           }
         }
-        ResourceType type = ResourceType.getEnum(typeName);
-        if (type != null) {
-          return generateDoc(element, type, value, false);
+        else if (TAG_STYLE.equals(parentTag.getName())) {
+          // Handle style item definitions, http://developer.android.com/guide/topics/resources/style-resource.html
+          AttributeDefinitions definitions = getAttributeDefinitionsForElement(element);
+          if (definitions == null) {
+            return null;
+          }
+
+          if (!value.startsWith(ANDROID_NS_NAME_PREFIX)) {
+            return null;
+          }
+          value = value.substring(ANDROID_NS_NAME_PREFIX.length());
+          AttributeDefinition attributeDefinition = definitions.getAttrDefByName(value);
+
+          if (attributeDefinition == null) {
+            return null;
+          }
+
+          return StringUtil.trim(attributeDefinition.getDocValue(null));
         }
       }
 
       // Display documentation for enum values defined in attrs.xml file, if it's present
       if (ANDROID_URI.equals(attribute.getNamespace())) {
-        AndroidFacet facet = AndroidFacet.getInstance(element);
-        if (facet == null) {
-          return null;
-        }
-        ResourceManager manager = facet.getSystemResourceManager();
-        if (manager == null) {
-          return null;
-        }
-        AttributeDefinitions definitions = manager.getAttributeDefinitions();
+        AttributeDefinitions definitions = getAttributeDefinitionsForElement(element);
         if (definitions == null) {
           return null;
         }
@@ -206,13 +223,23 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         if (attributeDefinition == null) {
           return null;
         }
-        else {
-          String doc = attributeDefinition.getValueDoc(value);
-          return doc == null ? null : doc.trim();
-        }
+        return StringUtil.trim(attributeDefinition.getValueDoc(value));
       }
     }
     return null;
+  }
+
+  @Nullable
+  private static AttributeDefinitions getAttributeDefinitionsForElement(@NotNull PsiElement element) {
+    AndroidFacet facet = AndroidFacet.getInstance(element);
+    if (facet == null) {
+      return null;
+    }
+    ResourceManager manager = facet.getSystemResourceManager();
+    if (manager == null) {
+      return null;
+    }
+    return manager.getAttributeDefinitions();
   }
 
   @Nullable
