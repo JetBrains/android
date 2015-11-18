@@ -516,8 +516,6 @@ public class StateListPicker extends JPanel {
       myResourceComponent.setVariantComboVisible(false);
 
       myAlphaComponent = new SwatchComponent(project, true);
-      myAlphaComponent.setBackground(JBColor.WHITE);
-      myAlphaComponent.setForeground(null);
       add(myAlphaComponent);
 
       Font font = StateListPicker.this.getFont();
