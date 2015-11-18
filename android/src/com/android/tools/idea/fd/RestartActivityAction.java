@@ -16,14 +16,22 @@
 package com.android.tools.idea.fd;
 
 import com.android.ddmlib.IDevice;
-import com.intellij.icons.AllIcons;
+import com.google.common.collect.Lists;
+import com.intellij.execution.ExecutionManager;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XDebuggerManager;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Action which restarts an activity in the running app
@@ -36,7 +44,32 @@ public class RestartActivityAction extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     Module module = LangDataKeys.MODULE.getData(e.getDataContext());
-    e.getPresentation().setEnabled(module != null && FastDeployManager.isPatchableApp(module));
+    Project project = e.getProject();
+    e.getPresentation().setEnabled(
+      module != null && FastDeployManager.isPatchableApp(module) && !getActiveSessions(project).isEmpty() && !isDebuggerPaused(project));
+  }
+
+  private static List<ProcessHandler> getActiveSessions(@Nullable Project project) {
+    if (project == null) {
+      return Collections.emptyList();
+    }
+
+    List<ProcessHandler> activeHandlers = Lists.newArrayList();
+    for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
+      if (!handler.isProcessTerminated() && !handler.isProcessTerminating()) {
+        activeHandlers.add(handler);
+      }
+    }
+    return activeHandlers;
+  }
+
+  private static boolean isDebuggerPaused(@Nullable Project project) {
+    if (project == null) {
+      return false;
+    }
+
+    XDebugSession session = XDebuggerManager.getInstance(project).getCurrentSession();
+    return session != null && !session.isStopped() && session.isPaused();
   }
 
   @Override
