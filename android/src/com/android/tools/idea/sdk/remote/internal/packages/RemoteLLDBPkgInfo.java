@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
+import com.android.repository.Revision;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalLLDBPkgInfo;
@@ -50,12 +51,15 @@ public class RemoteLLDBPkgInfo extends RemotePkgInfo {
   @Override
   public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
     String pathToLLDB = new File(osSdkRoot, SdkConstants.FD_LLDB).getPath();
-    return new File(pathToLLDB, getRevision().toString());
+    Revision rev = getRevision();
+    return new File(pathToLLDB, new Revision(rev.getMajor(), rev.getMinor()).toString());
   }
 
   @Override
   public boolean hasCompatibleArchive() {
-    if (!getRevision().equals(LocalLLDBPkgInfo.PINNED_REVISION)) {
+    Revision rev = getRevision();
+    if (rev.getMajor() != LocalLLDBPkgInfo.PINNED_REVISION.getMajor() ||
+        rev.getMinor() != LocalLLDBPkgInfo.PINNED_REVISION.getMinor()) {
       return false;
     }
 
