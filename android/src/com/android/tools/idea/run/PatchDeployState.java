@@ -21,10 +21,7 @@ import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
-import com.intellij.execution.DefaultExecutionResult;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.ExecutionResult;
-import com.intellij.execution.Executor;
+import com.intellij.execution.*;
 import com.intellij.execution.configurations.RemoteConnection;
 import com.intellij.execution.configurations.RemoteState;
 import com.intellij.execution.configurations.RunProfileState;
@@ -110,6 +107,20 @@ public class PatchDeployState implements RunProfileState {
         myProcessHandler.notifyTextAvailable(msg, ProcessOutputTypes.STDOUT);
 
         boolean coldSwap = FastDeployManager.isColdSwap(AndroidGradleModel.get(myFacet));
+        if (coldSwap && !FastDeployManager.isColdSwapEnabled(myFacet.getModule().getProject())) {
+          LOG.info("Cold swap is not supported yet, restarting run configuration");
+          myProcessHandler.destroyProcess();
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              Project project = myFacet.getModule().getProject();
+              RunnerAndConfigurationSettings config = RunManager.getInstance(project)
+                .createConfiguration(myConfiguration, AndroidRunConfigurationType.getInstance().getFactory());
+              ProgramRunnerUtil.executeConfiguration(project, config, myExecutor);
+            }
+          });
+          return;
+        }
 
         if (coldSwap && (myProcessHandler instanceof AndroidMultiProcessHandler)) {
           LOG.info("Performing a cold swap, application will restart\n");
