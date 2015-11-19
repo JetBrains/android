@@ -117,6 +117,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
       .parent().expectXml("<AbsoluteLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                           "                android:layout_width=\"match_parent\"\n" +
                           "                android:layout_height=\"match_parent\">\n" +
+                          "\n" +
                           "    <TextView\n" +
                           "            android:id=\"@id/myText\"\n" +
                           "            android:layout_width=\"100dp\"\n" +
@@ -175,10 +176,13 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
                  "    android:layout_width=\"match_parent\"\n" +
                  "    android:layout_height=\"0dp\"\n" +
                  "    android:layout_weight=\"1\">\n" +
+                 "\n" +
                  "      <TextView\n" +
-                 "        android:id=\"@id/myText\"\n" +
-                 "        android:layout_width=\"1000px\"\n" +
-                 "        android:layout_height=\"150px\" android:layout_x=\"50dp\" android:layout_y=\"550dp\"/>\n" +
+                 "              android:id=\"@id/myText\"\n" +
+                 "              android:layout_width=\"1000px\"\n" +
+                 "              android:layout_height=\"150px\"\n" +
+                 "              android:layout_x=\"50dp\"\n" +
+                 "              android:layout_y=\"550dp\"/>\n" +
                  "  </AbsoluteLayout>\n" +
                  "</LinearLayout>");
   }
@@ -214,6 +218,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
     assertEquals("<AbsoluteLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "                android:layout_width=\"match_parent\"\n" +
                  "                android:layout_height=\"match_parent\">\n" +
+                 "\n" +
                  "    <TextView\n" +
                  "            android:id=\"@id/myText\"\n" +
                  "            android:layout_width=\"100dp\"\n" +
