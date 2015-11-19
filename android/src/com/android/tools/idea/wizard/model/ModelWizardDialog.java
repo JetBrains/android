@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 
 import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
@@ -62,8 +63,11 @@ public final class ModelWizardDialog extends DialogWrapper {
     init(wizard, title, customLayout);
   }
 
-  public ModelWizardDialog(@NotNull ModelWizard wizard, @NotNull String title, @Nullable CustomLayout customLayout, @Nullable Project project) {
-    super(project);
+  public ModelWizardDialog(@NotNull ModelWizard wizard,
+                           @NotNull String title,
+                           @NotNull Component parent,
+                           @Nullable CustomLayout customLayout) {
+    super(parent, true);
     init(wizard, title, customLayout);
   }
 
