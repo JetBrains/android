@@ -297,10 +297,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       debug = true;
     }
 
-    if (AndroidSdkUtils.getDebugBridge(getProject()) == null) {
-      throw new ExecutionException("Unable to obtain debug bridge");
-    }
-
     DeployTargetProvider currentTargetProvider = getCurrentDeployTargetProvider();
     DeployTargetState deployTargetState = getCurrentDeployTargetState();
     ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
