@@ -93,8 +93,8 @@ public final class NewProjectWizardDemo {
     });
   }
 
-  private static void runWizard(ModelWizard wizard, String title) {
-    ModelWizardDialog dialog = new ModelWizardDialog(wizard, title, new DemoWizardLayout(), null);
+  private void runWizard(ModelWizard wizard, String title) {
+    ModelWizardDialog dialog = new ModelWizardDialog(wizard, title, myRootPanel, new DemoWizardLayout());
     dialog.setSize(-1, 300);
     dialog.show();
   }
