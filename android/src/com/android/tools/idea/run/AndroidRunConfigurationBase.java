@@ -339,7 +339,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
               env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
               env.putCopyableUserData(DEVICE_FUTURES_KEY, DeviceFutures.forDevices(devices));
 
-              return new PatchDeployState(info.getDescriptor(), facet, devices);
+              return new PatchDeployState(executor, env, this, getConsoleProvider(), info.getDescriptor(), facet, devices);
             }
           }
           LOG.info("Skipping fast deploy, devices from last run: " + (devices == null ? "none" : devices.size()));
