@@ -57,7 +57,7 @@ import static com.android.tools.idea.templates.Template.*;
  * human-readable information to be displayed in the UI, and type and validation specifications that can be used in the UI to assist in
  * data entry.
  */
-public class Parameter {
+public final class Parameter {
   private static Logger getLog() { return Logger.getInstance(Parameter.class); }
 
   public enum Type {
@@ -279,50 +279,50 @@ public class Parameter {
       return "Please specify " + name;
 
     } else if (violations.contains(Constraint.ACTIVITY)) {
-      return name + " is not a valid activity name";
+      return name + " is not set to a valid activity name";
 
     } else if (violations.contains(Constraint.APILEVEL)) {
       // TODO: validity check
     } else if (violations.contains(Constraint.CLASS)) {
-      return name + " is not a valid class name";
+      return name + " is not set to a valid class name";
 
     } else if (violations.contains(Constraint.PACKAGE)) {
-      return name + " is not a valid package name";
+      return name + " is not set to a valid package name";
 
     } else if (violations.contains(Constraint.MODULE)) {
-      return name + " is not a valid module name";
+      return name + " is not set to a valid module name";
 
     } else if (violations.contains(Constraint.APP_PACKAGE) && value != null) {
       String message = AndroidUtils.validateAndroidPackageName(value);
       if (message != null) {
-        return  message;
+        return message;
 
       }
     } else if (violations.contains(Constraint.LAYOUT) && value != null) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.LAYOUT).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name. " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.DRAWABLE)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name. " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.ID)) {
-      return name + " is not a valid id.";
+      return name + " is not set to a valid id.";
 
     } else if (violations.contains(Constraint.STRING)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name. " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.VALUES)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name. " + resourceNameError;
       }
     }
 
