@@ -28,6 +28,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -64,7 +65,6 @@ import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
 import org.jetbrains.android.resourceManagers.FileResourceProcessor;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,13 +102,13 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   private static final String NONE = "None";
 
   private static final Icon RESOURCE_ITEM_ICON = AllIcons.Css.Property;
+  public static final String APP_NAMESPACE_LABEL = "(app)";
 
   private final Module myModule;
   @Nullable private final XmlTag myTag;
 
   private final JBTabbedPane myContentPanel;
-  private final ResourcePanel myProjectPanel;
-  private final ResourcePanel mySystemPanel;
+  private final ResourcePanel[] myPanels;
 
   private ResourceDialogTabComponent myColorPickerPanel;
   private ColorPicker myColorPicker;
@@ -188,33 +188,56 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     setTitle("Resources");
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    myProjectPanel = new ResourcePanel(facet, types, false);
-    mySystemPanel = new ResourcePanel(facet, types, true);
 
-    myContentPanel = new JBTabbedPane();
-    myContentPanel.addTab("Project", myProjectPanel.myComponent);
-    myContentPanel.addTab("System", mySystemPanel.myComponent);
+    if (ArrayUtil.contains(ResourceType.DRAWABLE, types) && !ArrayUtil.contains(ResourceType.COLOR, types)) {
+      myPanels = new ResourcePanel[types.length + 1];
+      myPanels[types.length] = new ResourcePanel(facet, ResourceType.COLOR, false);
+    }
+    else {
+      myPanels = new ResourcePanel[types.length];
+    }
 
-    myProjectPanel.myTreeBuilder.expandAll(null);
-    mySystemPanel.myTreeBuilder.expandAll(null);
+    for (int i = 0; i < types.length; i++) {
+      myPanels[i] = new ResourcePanel(facet, types[i], true);
+    }
+
+
+    myContentPanel = new JBTabbedPane(SwingConstants.LEFT);
+    for (ResourcePanel panel : myPanels) {
+      myContentPanel.addTab(panel.getType().getDisplayName(), panel.myComponent);
+      panel.myTreeBuilder.expandAll(null);
+    }
 
     if (value != null && value.startsWith("@")) {
       value = StringUtil.replace(value, "+", "");
       int index = value.indexOf('/');
       if (index != -1) {
-        ResourcePanel panel;
-        String type;
         String name = value.substring(index + 1);
+        String namespace;
+        String type;
         if (value.startsWith(SdkConstants.ANDROID_PREFIX)) {
-          panel = mySystemPanel;
+          namespace = SdkConstants.ANDROID_NS_NAME;
+          // TODO actually get the package name from the resource
           type = value.substring(SdkConstants.ANDROID_PREFIX.length(), index);
         }
         else {
-          panel = myProjectPanel;
+          namespace = null;
           type = value.substring(1, index);
         }
+
+        ResourcePanel panel = null;
+        for (ResourcePanel aPanel : myPanels) {
+          if (aPanel.getType().getName().equals(type)) {
+            panel = aPanel;
+            break;
+          }
+        }
+        if (panel == null) {
+          throw new IllegalStateException("can not find panel for type: " + type);
+        }
+
         myContentPanel.setSelectedComponent(panel.myComponent);
-        panel.select(type, name);
+        panel.select(namespace, name);
       }
     }
 
@@ -269,7 +292,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myColorPickerPanel = new ResourceDialogTabComponent(new JPanel(new BorderLayout()), ResourceType.COLOR, ResourceFolderType.VALUES);
       myColorPickerPanel.setBorder(null);
       myColorPickerPanel.addCenter(myColorPicker);
-      myContentPanel.addTab("Color", myColorPickerPanel);
+      myContentPanel.addTab("new Color", myColorPickerPanel);
       myContentPanel.setSelectedIndex(myContentPanel.getTabCount() - 1);
 
       if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
@@ -281,7 +304,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
 
     if (myStateListPicker != null) {
-      myContentPanel.addTab("StateList", myStateListPickerPanel);
+      myContentPanel.addTab("new StateList", myStateListPickerPanel);
       myContentPanel.setSelectedIndex(myContentPanel.getTabCount() - 1);
     }
 
@@ -343,6 +366,18 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     return result;
   }
 
+  @Nullable("when it is not a ResourcePanel that is currently selected (e.g creating a new color)")
+  private ResourcePanel getSelectedPanel() {
+    Component selectedComponent = myContentPanel.getSelectedComponent();
+    for (ResourcePanel panel : myPanels) {
+      if (panel.myComponent == selectedComponent) {
+        return panel;
+      }
+    }
+    // TODO when the color picker is inside the color type tab, this method will never return null
+    return null;
+  }
+
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
@@ -351,9 +386,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     final boolean okActionEnabled;
     ValidationInfo error = null;
 
-    if (selectedComponent == mySystemPanel.myComponent || selectedComponent == myProjectPanel.myComponent) {
-      boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
-      ResourcePanel panel = isProjectPanel ? myProjectPanel : mySystemPanel;
+    ResourcePanel panel = getSelectedPanel();
+    if (panel != null) {
       ResourceItem element = getSelectedElement(panel.myTreeBuilder, ResourceItem.class);
       okActionEnabled = element != null;
     }
@@ -422,26 +456,25 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     ActionManager actionManager = ActionManager.getInstance();
     DefaultActionGroup actionGroup = new DefaultActionGroup();
 
-    ResourceGroup resourceGroup = getSelectedElement(myProjectPanel.myTreeBuilder, ResourceGroup.class);
-    if (resourceGroup == null) {
-      resourceGroup = getSelectedElement(myProjectPanel.myTreeBuilder, ResourceItem.class).getGroup();
-    }
+    ResourcePanel panel = getSelectedPanel();
+    assert panel != null; // this popup menu is ONLY visible when the panel is not null
+    ResourceType resourceType = panel.getType();
 
-    if (AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resourceGroup.getType())) {
-      myNewResourceFileAction.getTemplatePresentation().setText("New " + resourceGroup + " File...");
-      myNewResourceFileAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceGroup.getType());
+    if (AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resourceType)) {
+      myNewResourceFileAction.getTemplatePresentation().setText("New " + resourceType + " File...");
+      myNewResourceFileAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceType);
       actionGroup.add(myNewResourceFileAction);
     }
-    if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resourceGroup.getType())) {
-      String title = "New " + resourceGroup + " Value...";
-      if (resourceGroup.getType() == ResourceType.LAYOUT) {
+    if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resourceType)) {
+      String title = "New " + resourceType + " Value...";
+      if (resourceType == ResourceType.LAYOUT) {
         title = "New Layout Alias";
       }
       myNewResourceValueAction.getTemplatePresentation().setText(title);
-      myNewResourceValueAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceGroup.getType());
+      myNewResourceValueAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceType);
       actionGroup.add(myNewResourceValueAction);
     }
-    if (myTag != null && ResourceType.STYLE.equals(resourceGroup.getType())) {
+    if (myTag != null && ResourceType.STYLE.equals(resourceType)) {
       final boolean enabled = AndroidBaseLayoutRefactoringAction.getLayoutViewElement(myTag) != null &&
                               AndroidExtractStyleAction.doIsEnabled(myTag);
       myExtractStyleAction.getTemplatePresentation().setEnabled(enabled);
@@ -503,7 +536,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myProjectPanel.myTree;
+    return myPanels[0].myTree;
   }
 
   @Override
@@ -537,8 +570,9 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   @Override
   protected void dispose() {
     super.dispose();
-    Disposer.dispose(myProjectPanel.myTreeBuilder);
-    Disposer.dispose(mySystemPanel.myTreeBuilder);
+    for (ResourcePanel panel : myPanels) {
+      Disposer.dispose(panel.myTreeBuilder);
+    }
   }
 
   public String getResourceName() {
@@ -609,17 +643,18 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myResultResourceName = null;
     }
     else {
-      boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
-      ResourcePanel panel = isProjectPanel ? myProjectPanel : mySystemPanel;
+      ResourcePanel panel = getSelectedPanel();
+      assert panel != null; // we are only ever here if we have a panel
       ResourceItem element = getSelectedElement(panel.myTreeBuilder, ResourceItem.class);
 
-      myNewResourceAction.setEnabled(isProjectPanel && !panel.myTreeBuilder.getSelectedElements().isEmpty());
+      myNewResourceAction.setEnabled(!panel.myTreeBuilder.getSelectedElements().isEmpty());
 
       if (element == null) {
         myResultResourceName = null;
       }
       else {
-        String prefix = panel == myProjectPanel ? "@" : SdkConstants.ANDROID_PREFIX;
+        // TODO actually get prefix name from namespace
+        String prefix = element.getGroup().getNamespace() == null ? "@" : SdkConstants.ANDROID_PREFIX;
         myResultResourceName = prefix + element.getName();
       }
 
@@ -633,6 +668,12 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   }
 
   private class ResourcePanel {
+
+    /**
+     * list of namespaces that we can get resources from, null means the application,
+     */
+    private final String[] NAMESPACES = {null, SdkConstants.ANDROID_NS_NAME};
+
     public final Tree myTree;
     public final AbstractTreeBuilder myTreeBuilder;
     public final JBSplitter myComponent;
@@ -645,9 +686,11 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     private final JLabel myNoPreviewComponent;
 
     private final ResourceGroup[] myGroups;
-    private final ResourceManager myManager;
+    private final ResourceType myType;
 
-    public ResourcePanel(AndroidFacet facet, ResourceType[] types, boolean system) {
+    public ResourcePanel(@NotNull AndroidFacet facet, @NotNull ResourceType type, boolean includeFileResources) {
+      myType = type;
+
       myTree = new Tree();
       myTree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode()));
       myTree.setScrollsOnExpand(true);
@@ -667,18 +710,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       ToolTipManager.sharedInstance().registerComponent(myTree);
       TreeUtil.installActions(myTree);
 
-      myManager = facet.getResourceManager(system ? AndroidUtils.SYSTEM_RESOURCE_PACKAGE : null);
-
-      if (ArrayUtil.contains(ResourceType.DRAWABLE, types) && !ArrayUtil.contains(ResourceType.COLOR, types)) {
-        myGroups = new ResourceGroup[types.length + 1];
-        myGroups[types.length] = new ResourceGroup(ResourceType.COLOR, myManager, false);
-      }
-      else {
-        myGroups = new ResourceGroup[types.length];
-      }
-
-      for (int i = 0; i < types.length; i++) {
-        myGroups[i] = new ResourceGroup(types[i], myManager);
+      myGroups = new ResourceGroup[NAMESPACES.length];
+      for (int c = 0; c < NAMESPACES.length; c++) {
+        ResourceManager manager = facet.getResourceManager(NAMESPACES[c]);
+        myGroups[c] = new ResourceGroup(NAMESPACES[c], type, manager, includeFileResources);
       }
 
       myTreeBuilder =
@@ -692,7 +727,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myTree.setCellRenderer(new NodeRenderer());
       new TreeSpeedSearch(myTree, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true);
 
-      myComponent = new JBSplitter(true, 0.8f);
+      myComponent = new JBSplitter(false, 0.8f);
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
 
       myComponent.setFirstComponent(ScrollPaneFactory.createScrollPane(myTree));
@@ -742,6 +777,11 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myPreviewPanel.add(myNoPreviewComponent, NONE);
     }
 
+    @NotNull
+    public ResourceType getType() {
+      return myType;
+    }
+
     public void showPreview(@Nullable ResourceItem element) {
       CardLayout layout = (CardLayout)myPreviewPanel.getLayout();
 
@@ -759,7 +799,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
             if (resources == null) {
               long time = System.currentTimeMillis();
-              resources = myManager.findValueResources(element.getGroup().getType().getName(), element.toString());
+              ResourceGroup group = element.getGroup();
+              resources = group.getManager().findValueResources(group.getType().getName(), element.toString());
               if (ApplicationManagerEx.getApplicationEx().isInternal()) {
                 System.out.println("Time: " + (System.currentTimeMillis() - time)); // XXX
               }
@@ -874,9 +915,9 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       layout.show(myPreviewPanel, COMBO);
     }
 
-    private void select(String type, String name) {
+    private void select(@Nullable String namespace, @NotNull String name) {
       for (ResourceGroup group : myGroups) {
-        if (type.equalsIgnoreCase(group.getName())) {
+        if (Objects.equal(namespace, group.getNamespace())) {
           for (ResourceItem item : group.getItems()) {
             if (name.equals(item.toString())) {
               myTreeBuilder.select(item);
@@ -899,14 +940,14 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   public static class ResourceGroup {
     private List<ResourceItem> myItems = new ArrayList<ResourceItem>();
+    private final String myNamespace;
     private final ResourceType myType;
+    private final ResourceManager myManager;
 
-    public ResourceGroup(ResourceType type, ResourceManager manager) {
-      this(type, manager, true);
-    }
-
-    public ResourceGroup(ResourceType type, ResourceManager manager, boolean includeFileResources) {
+    public ResourceGroup(@Nullable String namespace, @NotNull ResourceType type, @NotNull ResourceManager manager, boolean includeFileResources) {
       myType = type;
+      myManager = manager;
+      myNamespace = namespace;
 
       final String resourceType = type.getName();
 
@@ -944,12 +985,19 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       });
     }
 
+    @NotNull
     public ResourceType getType() {
       return myType;
     }
 
-    public String getName() {
-      return myType.getName();
+    @NotNull
+    public ResourceManager getManager() {
+      return myManager;
+    }
+
+    @Nullable("null for app namespace")
+    public String getNamespace() {
+      return myNamespace;
     }
 
     public List<ResourceItem> getItems() {
@@ -958,7 +1006,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
     @Override
     public String toString() {
-      return myType.getDisplayName();
+      return myNamespace == null ? APP_NAMESPACE_LABEL : myNamespace;
     }
   }
 
@@ -985,7 +1033,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
 
     public String getName() {
-      return myGroup.getName() + "/" + myName;
+      return myGroup.getType().getName() + "/" + myName;
     }
 
     public VirtualFile getFile() {
