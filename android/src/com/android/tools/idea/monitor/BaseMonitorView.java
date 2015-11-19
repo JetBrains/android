@@ -25,6 +25,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithActions;
+import com.intellij.openapi.util.Key;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBLayeredPane;
@@ -42,6 +43,8 @@ import java.util.PriorityQueue;
 
 public abstract class BaseMonitorView<T extends DeviceSampler>
   implements HierarchyListener, TimelineEventListener, DeviceContext.DeviceSelectionListener {
+  public static final Key<BaseMonitorView> MONITOR_VIEW_KEY = Key.create("MONITOR_VIEW_KEY");
+
   @NotNull private static final String PAUSED_KEY = ".paused";
   @NotNull private static final String PAUSED_LABEL = "This monitor is disabled.";
   @NotNull private static final Integer OVERLAY_LAYER = JLayeredPane.DEFAULT_LAYER + 10;
