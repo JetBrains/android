@@ -141,6 +141,7 @@ public class InstantRunConfigurable
 
   private void setSyncLinkMessage(@NotNull String syncMessage) {
     myOldVersionLabel.setHyperlinkText("Instant Run requires a newer version of the Gradle plugin. ", "Update Project", syncMessage);
+    myOldVersionLabel.repaint();
   }
 
   private void updateLinkState() {
