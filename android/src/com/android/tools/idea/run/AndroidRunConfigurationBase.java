@@ -34,6 +34,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.*;
 import icons.AndroidIcons;
@@ -327,6 +328,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
           if (devices != null && canFastDeploy(module, devices)) {
             if (FastDeployManager.isRebuildRequired(devices, module)) {
               LOG.info("Cannot patch update since a full rebuild is required (typically because the manifest has changed)");
+              FastDeployManager.postBalloon(MessageType.INFO,
+                                            "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)",
+                                            project);
             } else {
               if (FastDeployManager.DISPLAY_STATISTICS) {
                 FastDeployManager.notifyBegin();
