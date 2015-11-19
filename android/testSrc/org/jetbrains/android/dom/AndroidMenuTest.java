@@ -201,6 +201,18 @@ public class AndroidMenuTest extends AndroidDomTest {
     toTestCompletion("actionProviderFramework.xml", "actionProviderFramework_after.xml");
   }
 
+  // Bogus attribute "action-layout" should not be shown in menu item tags
+  // Regression test for http://b.android.com/191448
+  public void testMenuItemAttributeCompletion() throws Throwable {
+    doTestCompletionVariants("menu_item_attribute.xml", "actionLayout", "actionProviderClass", "actionViewClass", "showAsAction");
+  }
+
+  // One more regression test for http://b.android.com/191448
+  // Non-existing "title-condensed" attribute shouldn't show up in autocompletion
+  public void testMenuItemAttributeCompletion2() throws Throwable {
+    doTestCompletionVariants("menu_item_attribute_2.xml", "title", "titleCondensed");
+  }
+
   public void testActionViewClass() throws Throwable {
     copyFileToProject("MyProvider.java", "src/p1/p2/MyProvider.java");
     copyFileToProject("MyView.java", "src/p1/p2/MyView.java");
