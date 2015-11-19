@@ -274,6 +274,10 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   private void updateModel() {
+    if (!AndroidDebugBridge.getBridge().isConnected()) {
+      return;
+    }
+
     if (!ApplicationManager.getApplication().isDispatchThread()) {
       UIUtil.invokeLaterIfNeeded(new Runnable() {
         @Override
