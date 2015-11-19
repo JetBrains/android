@@ -15,13 +15,28 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
+import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.ui.properties.CountListener;
+import com.intellij.ui.EditorComboBox;
 import org.junit.Test;
 
 import javax.swing.*;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+/**
+ * Note: This class skips testing {@link EditorComboBox}.
+ *
+ * EditorComboBox is *gnarly* for unit testing. It's an IntelliJ Swing Component which makes
+ * WAY too many assumptions about IntelliJ being up and running in the background. If you don't
+ * set up the code *just* right or know way too much about implementation details, you're going
+ * to run into NPE after NPE after NPE...
+ *
+ * There is a TextProperty that wraps one of these in our new project creation flow, so it's
+ * common enough that we can rely on the regular product to catch an issue if one ever arises
+ * (which is so unlikely as the logic that we'd put under test is so trivial that it probably
+ * won't break).
+ */
 public final class TextPropertyTest {
 
   @Test
@@ -74,10 +89,29 @@ public final class TextPropertyTest {
 
     field.setText("Field text updated directly");
     assertThat(textProperty.get()).isEqualTo("Field text updated directly");
-    assertThat(listener.getCount()).isEqualTo(2); // +2 here: TextField fires two events when setText is called direclty (remove and insert)
+    assertThat(listener.getCount()).isEqualTo(2); // +2 here: TextField fires two events when setText is called directly (remove and insert)
 
     textProperty.set("Field text updated via property");
     assertThat(field.getText()).isEqualTo("Field text updated via property");
     assertThat(listener.getCount()).isEqualTo(3); // Only +1 here: Property.set hides extra validation calls
+  }
+
+  @Test
+  public void textPropertyCanWrapLabelWithEditLink() {
+    LabelWithEditLink editLabel = new LabelWithEditLink();
+    TextProperty textProperty = new TextProperty(editLabel);
+    CountListener listener = new CountListener();
+    textProperty.addListener(listener);
+
+    assertThat(textProperty.get()).isEqualTo("");
+    assertThat(listener.getCount()).isEqualTo(0);
+
+    editLabel.setText("Edit label set directly");
+    assertThat(textProperty.get()).isEqualTo("Edit label set directly");
+    assertThat(listener.getCount()).isEqualTo(1);
+
+    textProperty.set("Edit label updated via property");
+    assertThat(editLabel.getText()).isEqualTo("Edit label updated via property");
+    assertThat(listener.getCount()).isEqualTo(2);
   }
 }
