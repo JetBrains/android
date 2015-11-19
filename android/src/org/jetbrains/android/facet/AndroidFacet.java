@@ -24,7 +24,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.avdmanager.RunAvdAction;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.gradle.GradleSyncState;
@@ -85,7 +84,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
-import javax.swing.*;
 import java.io.File;
 import java.util.*;
 
@@ -517,7 +515,11 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   private void addResourceFolderToSdkRootsIfNecessary() {
-    Sdk sdk = ModuleRootManager.getInstance(getModule()).getSdk();
+    Module module = getModule();
+    if (module.isDisposed()) {
+      return;
+    }
+    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     if (sdk == null || !isAndroidSdk(sdk)) {
       return;
     }
