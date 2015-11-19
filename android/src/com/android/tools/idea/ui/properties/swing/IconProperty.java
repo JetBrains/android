@@ -28,7 +28,7 @@ import java.beans.PropertyChangeListener;
  * {@link ObservableProperty} that wraps a label and exposes its icon value.
  */
 public final class IconProperty extends OptionalProperty<Icon> implements PropertyChangeListener {
-  private final JLabel myLabel;
+  @NotNull private final JLabel myLabel;
 
   public IconProperty(@NotNull JLabel label) {
     myLabel = label;

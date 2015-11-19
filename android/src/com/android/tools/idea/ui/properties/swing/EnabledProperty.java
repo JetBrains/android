@@ -27,7 +27,7 @@ import java.beans.PropertyChangeListener;
  * {@link ObservableProperty} that wraps a Swing component and exposes its enabled state.
  */
 public final class EnabledProperty extends BoolProperty implements PropertyChangeListener {
-  private final JComponent myComponent;
+  @NotNull private final JComponent myComponent;
 
   public EnabledProperty(@NotNull JComponent component) {
     myComponent = component;

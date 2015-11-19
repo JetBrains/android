@@ -34,29 +34,29 @@ import java.beans.PropertyChangeListener;
  */
 public final class TextProperty extends StringProperty implements DocumentListener, PropertyChangeListener,
                                                                   com.intellij.openapi.editor.event.DocumentListener {
-  private final JComponent myComponent;
+  @NotNull private final JComponent myComponent;
 
-  public TextProperty(JTextComponent textComponent) {
+  public TextProperty(@NotNull JTextComponent textComponent) {
     myComponent = textComponent;
     textComponent.getDocument().addDocumentListener(this);
   }
 
-  public TextProperty(AbstractButton button) {
+  public TextProperty(@NotNull AbstractButton button) {
     myComponent = button;
     button.addPropertyChangeListener("text", this);
   }
 
-  public TextProperty(JLabel label) {
+  public TextProperty(@NotNull JLabel label) {
     myComponent = label;
     label.addPropertyChangeListener("text", this);
   }
 
-  public TextProperty(LabelWithEditLink editLabel) {
+  public TextProperty(@NotNull LabelWithEditLink editLabel) {
     myComponent = editLabel;
     editLabel.getDocument().addDocumentListener(this);
   }
 
-  public TextProperty(EditorComboBox editorComboBox) {
+  public TextProperty(@NotNull EditorComboBox editorComboBox) {
     myComponent = editorComboBox;
     editorComboBox.getDocument().addDocumentListener(this);
   }
