@@ -38,7 +38,6 @@ import java.awt.*;
 public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout {
 
   private static final JBColor STUDIO_LAYOUT_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
-  public static final Dimension MINIMUM_SIZE = JBUI.size(1080, 650);
 
   private final BindingsManager myBindings = new BindingsManager();
 
@@ -56,17 +55,6 @@ public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout 
     myIcon.setIcon(icon);
 
     myHeaderPanel.setBackground(STUDIO_LAYOUT_HEADER_COLOR);
-  }
-
-  /**
-   * Convenience method to create a model wizard dialog with Studio Look and Feel automatically,
-   * since we pretty much should be doing that everywhere.
-   */
-  @NotNull
-  public static ModelWizardDialog createDialog(@NotNull ModelWizard wizard, @NotNull String title, @Nullable Project project) {
-    ModelWizardDialog dialog = new ModelWizardDialog(wizard, title, new StudioWizardLayout(), project);
-    dialog.setSize(MINIMUM_SIZE.width, MINIMUM_SIZE.height);
-    return dialog;
   }
 
   @NotNull
