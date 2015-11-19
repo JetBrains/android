@@ -15,17 +15,25 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.run.*;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.DoubleClickListener;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.Alarm;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +42,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +60,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
 
   private final DevicePicker myDevicePicker;
   private final ProcessHandlerConsolePrinter myPrinter;
+  private final ListenableFuture<AndroidDebugBridge> myAdbFuture;
 
   private JPanel myContentPane;
   private JBTabbedPane myTabbedPane;
@@ -113,6 +123,12 @@ public class DeployTargetPickerDialog extends DialogWrapper {
       myDeployTargetConfigurable = null;
     }
 
+    File adb = AndroidSdkUtils.getAdb(myFacet.getModule().getProject());
+    if (adb == null) {
+      throw new IllegalArgumentException("Unable to locate adb");
+    }
+    myAdbFuture = AdbService.getInstance().getDebugBridge(adb);
+
     DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
     setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
     setTitle("Select Deployment Target");
@@ -123,7 +139,30 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
-    return myDeployTargetProvider == null ? myDevicesPanel : myContentPane;
+    final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), myFacet.getModule().getProject());
+    loadingPanel.add(myDeployTargetProvider == null ? myDevicesPanel : myContentPane);
+
+    loadingPanel.setLoadingText("Initializing ADB");
+
+    if (!myAdbFuture.isDone()) {
+      loadingPanel.startLoading();
+      Futures.addCallback(myAdbFuture, new FutureCallback<AndroidDebugBridge>() {
+        @Override
+        public void onSuccess(AndroidDebugBridge result) {
+          loadingPanel.stopLoading();
+          Logger.getInstance(DeployTargetPickerDialog.class).info("Successfully obtained debug bridge");
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+          loadingPanel.stopLoading();
+          Logger.getInstance(DeployTargetPickerDialog.class).info("Unable to obtain debug bridge", t);
+          // TODO: show an inline banner to restart adb?
+        }
+      }, EdtExecutor.INSTANCE);
+    }
+
+    return loadingPanel;
   }
 
   @Nullable
