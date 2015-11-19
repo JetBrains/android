@@ -934,6 +934,26 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        public void paint() {\n" +
             "        }\n" +
             "    }\n" +
+            "    @some.pkg.UnrelatedNameEndsWithThread\n" +
+            "    public static void test1(View view) {\n" +
+            "        view.paint();\n" +
+            "    }\n" +
+            "\n" +
+            "    @UiThread\n" +
+            "    public static void test2(View view) {\n" +
+            "        test1(view);\n" +
+            "    }\n" +
+            "\n" +
+            "    @UiThread\n" +
+            "    public static void test3(View view) {\n" +
+            "        TestClass.test4();\n" +
+            "    }\n" +
+            "\n" +
+            "    @some.pkg.UnrelatedNameEndsWithThread\n" +
+            "    public static class TestClass {\n" +
+            "        public static void test4() {\n" +
+            "        }\n" +
+            "    }\n" +
             "\n" +
             "    public static class CustomView extends View {\n" +
             "    }\n" +
@@ -1206,6 +1226,18 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                     "public @interface AnyRes {\n" +
                     "}";
     classes.add(header + anyRes);
+
+    @Language("JAVA")
+    String unrelatedThread = "package some.pkg;\n" +
+                             "import java.lang.annotation.*;\n" +
+                             "import static java.lang.annotation.ElementType.*;\n" +
+                             "import static java.lang.annotation.RetentionPolicy.*;\n" +
+                             "@Retention(SOURCE)\n" +
+                             "@Target({METHOD,CONSTRUCTOR,TYPE})\n" +
+                             "public @interface UnrelatedNameEndsWithThread {\n" +
+                             "}";
+    classes.add(unrelatedThread);
+
     return ArrayUtil.toStringArray(classes);
   }
 
