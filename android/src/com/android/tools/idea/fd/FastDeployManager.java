@@ -753,6 +753,10 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    * @return true if the app can be dex swapped in one or more of the given devices
    */
   public static boolean canDexSwap(@NotNull Module module, @NotNull Collection<IDevice> devices) {
+    if (!isColdSwapEnabled(module.getProject())) {
+      return false;
+    }
+
     // TODO: we need to fix 2 things: a) update resources, b) handle no-changes
     //for (IDevice device : devices) {
     //  if (buildIdsMatch(device, module)) {
@@ -1092,6 +1096,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   public static boolean isShowToastEnabled(@NotNull Project project) {
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     return buildConfiguration.SHOW_TOAST;
+  }
+
+  /** Is cold swap enabled in the given project */
+  public static boolean isColdSwapEnabled(@NotNull Project project) {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    return buildConfiguration.COLD_SWAP;
   }
 
   /** Synchronizes the file listening state with whether instant run is enabled */
