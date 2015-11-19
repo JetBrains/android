@@ -75,7 +75,7 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
     return updated;
   }
 
-  static boolean updateGradleVersion(@NotNull Project project, @NotNull File wrapperPropertiesFile, @NotNull String gradleVersion) {
+  public static boolean updateGradleVersion(@NotNull Project project, @NotNull File wrapperPropertiesFile, @NotNull String gradleVersion) {
     try {
       boolean updated = GradleUtil.updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFile);
       if (updated) {
