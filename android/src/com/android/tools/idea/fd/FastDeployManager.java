@@ -589,20 +589,37 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     }
 
     try {
-      File localIdFile = FileUtil.createTempFile("build-id", "txt");
-
       String remoteIdFile = getDataFolder(pkg) + "/" + BUILD_ID_TXT;
 
-      // on a user device, we cannot pull from a path where the segments aren't readable (I think this is a ddmlib limitation)
-      // So we first copy to /data/local/tmp and pull from there..
-      String remoteTmpFile = "/data/local/tmp/build-id.txt";
-      device.executeShellCommand("cp " + remoteIdFile + " " + remoteTmpFile, new CollectingOutputReceiver());
-      device.pullFile(remoteTmpFile, localIdFile.getPath());
+      CollectingOutputReceiver receiver = new CollectingOutputReceiver();
+      device.executeShellCommand("run-as " + pkg + " cat " + remoteIdFile, receiver);
+      String output = receiver.getOutput().trim();
+      String id;
+      if (output.contains(":")) { // cat: command not found, cat: permission denied etc
+        if (output.startsWith(remoteIdFile)) {
+          // /data/data/my.pkg.path/files/studio-fd/build-id.txt: No such file or directory
+          return null;
+        }
+        // on a user device, we cannot pull from a path where the segments aren't readable (I think this is a ddmlib limitation)
+        // So we first copy to /data/local/tmp and pull from there..
+        String remoteTmpFile = "/data/local/tmp/build-id.txt";
+        device.executeShellCommand("cp " + remoteIdFile + " " + remoteTmpFile, receiver);
+        output = receiver.getOutput().trim();
+        if (!output.isEmpty()) {
+          LOG.info(output);
+        }
+        File localIdFile = FileUtil.createTempFile("build-id", "txt");
+        device.pullFile(remoteTmpFile, localIdFile.getPath());
 
-      String id = Files.toString(localIdFile, Charsets.UTF_8).trim();
+        id = Files.toString(localIdFile, Charsets.UTF_8).trim();
 
-      //noinspection ResultOfMethodCallIgnored
-      localIdFile.delete();
+        //noinspection ResultOfMethodCallIgnored
+        localIdFile.delete();
+      } else {
+        id = output;
+      }
+
+
 
       return id;
     } catch (IOException ignore) {
@@ -673,13 +690,16 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
 
       String dataDir = getDataFolder(pkg);
 
-      // Essentially does: cp /data/local/tmp/build.txt /data/data/pkg/files/studio-fd/build.txt
-      String cmd = "run-as " + pkg + " mkdir -p " + dataDir + "; run-as " + pkg + " cp " + remote + " " + dataDir + "/" + BUILD_ID_TXT;
+      // We used to do this here:
+      //String cmd = "run-as " + pkg + " mkdir -p " + dataDir + "; run-as " + pkg + " cp " + remote + " " + dataDir + "/" + BUILD_ID_TXT;
+      // but it turns out "cp" is missing on API 15! Let's use cat and sh instead which seems to be available everywhere.
+      // (Note: echo is not, it's missing on API 19.)
+      String cmd = "run-as " + pkg + " mkdir -p " + dataDir + "; cat " + remote + " | run-as " + pkg + " sh -c 'cat > " + dataDir + "/" + BUILD_ID_TXT + "'";
       CollectingOutputReceiver receiver = new CollectingOutputReceiver();
       device.executeShellCommand(cmd, receiver);
       String output = receiver.getOutput();
       if (!output.trim().isEmpty()) {
-        LOG.warn(output);
+        LOG.warn("Unexpected shell output: " + output);
       }
     } catch (IOException ioe) {
       LOG.warn("Couldn't write build id file", ioe);
@@ -778,7 +798,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       receiver = new CollectingOutputReceiver();
       String output = receiver.getOutput();
       if (!output.trim().isEmpty()) {
-        LOG.warn(output);
+        LOG.warn("Unexpected shell output: " + output);
       }
 
       // List the files in the dex folder to compute a new .dex file name that follows the existing
@@ -795,7 +815,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       device.executeShellCommand(cmd, receiver);
       output = receiver.getOutput();
       if (!output.trim().isEmpty()) {
-        LOG.warn(output);
+        LOG.warn("Unexpected shell output: " + output);
       }
 
       // TODO: Push a .dex.index file too? We can't do it right now;
