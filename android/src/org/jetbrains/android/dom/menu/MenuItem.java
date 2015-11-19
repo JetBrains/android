@@ -38,10 +38,12 @@ public interface MenuItem extends MenuElement {
   @AndroidResourceType("string")
   AndroidAttributeValue<ResourceValue> getTitle();
 
+  @Attribute("titleCondensed")
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("string")
   AndroidAttributeValue<ResourceValue> getTitleCondensed();
 
+  @Attribute("actionLayout")
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("layout")
   AndroidAttributeValue<ResourceValue> getActionLayout();
