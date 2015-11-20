@@ -179,6 +179,9 @@ public class GradleSpecificInitializer implements Runnable {
   }
 
   private static void setUpWelcomeScreenActions() {
+    // Force the new "flat" welcome screen.
+    System.setProperty("ide.new.welcome.screen.force", "true");
+
     // Update the Welcome Screen actions
     replaceAction("WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an existing Android Studio project"));
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Start a new Android Studio project"));

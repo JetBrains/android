@@ -17,10 +17,12 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.npw.NewProjectWizardDynamic;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidNewProjectAction extends AnAction implements DumbAware {
@@ -30,6 +32,13 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
 
   public AndroidNewProjectAction(@NotNull String text) {
     super(text);
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    if (NewWelcomeScreen.isNewWelcomeScreen(e)) {
+      e.getPresentation().setIcon(AllIcons.Welcome.CreateNewProject);
+    }
   }
 
   @Override
