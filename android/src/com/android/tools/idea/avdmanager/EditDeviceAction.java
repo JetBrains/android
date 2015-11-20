@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
+import com.android.tools.idea.avdmanager.legacy.DeviceEditWizard;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;
