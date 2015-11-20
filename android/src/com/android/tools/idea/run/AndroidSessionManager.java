@@ -24,23 +24,35 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidSessionManager {
   @Nullable
-  public static AndroidSessionInfo findOldSession(@NotNull Project project, int currentId) {
-    return findOldSession(project, null, currentId);
-  }
-
-  @Nullable
   public static AndroidSessionInfo findOldSession(@NotNull Project project,
-                                                  @Nullable Executor executor,
+                                                  @NotNull Executor executor,
                                                   int currentID) {
     for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
       AndroidSessionInfo info = handler.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
 
       if (info != null &&
           currentID == info.getState().getRunConfigurationId() &&
-          (executor == null || executor.getId().equals(info.getExecutorId()))) {
+          executor.getId().equals(info.getExecutorId())) {
         return info;
       }
     }
+    return null;
+  }
+
+  @Nullable
+  public static AndroidSessionInfo findOldSession(@NotNull Project project, @NotNull String configName) {
+    for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
+      if (handler.isProcessTerminated() || handler.isProcessTerminating()) {
+        continue;
+      }
+
+      AndroidSessionInfo info = handler.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
+
+      if (info != null && configName.equals(info.getState().getConfiguration().getName())) {
+        return info;
+      }
+    }
+
     return null;
   }
 }
