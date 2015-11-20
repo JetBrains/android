@@ -56,6 +56,7 @@ public class RenderedViewHierarchy {
     return new RenderedViewHierarchy(file, convert(null, roots, 0, 0), computeIncludeBounds);
   }
 
+  @NotNull
   public List<RenderedView> getRoots() {
     return myRoots;
   }
