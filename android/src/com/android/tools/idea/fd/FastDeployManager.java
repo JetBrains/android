@@ -21,6 +21,8 @@ import com.android.builder.model.InstantRun;
 import com.android.builder.model.SourceProvider;
 import com.android.ddmlib.*;
 import com.android.repository.Revision;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -33,6 +35,7 @@ import com.android.utils.XmlUtils;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.google.common.io.Files;
@@ -81,6 +84,7 @@ import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.frame.XExecutionStack;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -269,7 +273,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     return project.getComponent(FastDeployManager.class);
   }
 
-  /** Finds the devices associated with run configurations for the given project */
+  /** Finds the devices associated with all run configurations for the given project */
   @NotNull
   public static List<IDevice> findDevices(@Nullable Project project) {
     if (project == null) {
@@ -283,19 +287,39 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     List<IDevice> devices = Lists.newArrayList();
     for (RunContentDescriptor descriptor : runningProcesses) {
       ProcessHandler processHandler = descriptor.getProcessHandler();
-      if (processHandler instanceof AndroidMultiProcessHandler) {
-        AndroidMultiProcessHandler handler = (AndroidMultiProcessHandler)processHandler;
-        devices.addAll(handler.getDevices());
+      if (processHandler == null || processHandler.isProcessTerminated() || processHandler.isProcessTerminating()) {
+        continue;
       }
-      else if (processHandler != null) {
-        Client c = processHandler.getUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT);
-        if (c != null && c.isValid()) {
-          devices.add(c.getDevice());
-        }
-      }
+
+      devices.addAll(getConnectedDevices(processHandler));
     }
 
     return devices;
+  }
+
+  @NotNull
+  public static List<IDevice> getConnectedDevices(@NotNull ProcessHandler processHandler) {
+    if (processHandler.isProcessTerminated() || processHandler.isProcessTerminating()) {
+      return Collections.emptyList();
+    }
+
+    if (processHandler instanceof AndroidMultiProcessHandler) {
+      return ImmutableList.copyOf(((AndroidMultiProcessHandler)processHandler).getDevices());
+    }
+    else if (processHandler instanceof DefaultDebugProcessHandler) {
+      Client c = processHandler.getUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT);
+      if (c != null && c.isValid()) {
+        return Collections.singletonList(c.getDevice());
+      }
+    }
+
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  public static AndroidVersion getMinDeviceApiLevel(@NotNull ProcessHandler processHandler) {
+    AndroidVersion version = processHandler.getUserData(AndroidDebugRunner.ANDROID_DEVICE_API_LEVEL);
+    return version == null ? AndroidVersion.DEFAULT : version;
   }
 
   /**
@@ -969,6 +993,11 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     }
   }
 
+  /** Returns true if the device is capable of running Instant Run */
+  public static boolean isInstantRunCapableDeviceVersion(@NotNull AndroidVersion version) {
+    return version.getApiLevel() >= 15;
+  }
+
   /**
    * Returns whether an update will result in a cold swap by looking at the results of a gradle build.
    */
@@ -1033,6 +1062,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    * edits such as whitespace or comments.
    */
   private static boolean isRebuildRequired(@NotNull IDevice device, @NotNull Module module) {
+    AndroidVersion deviceVersion = DevicePropertyUtil.getDeviceVersion(device);
+    if (!isInstantRunCapableDeviceVersion(deviceVersion)) {
+      LOG.info("Device with API level " + deviceVersion + " not capable of instant run.");
+      return true;
+    }
+
     FastDeployManager manager = get(module.getProject());
     AndroidFacet facet = manager.findAppModule(module);
     if (facet == null) {

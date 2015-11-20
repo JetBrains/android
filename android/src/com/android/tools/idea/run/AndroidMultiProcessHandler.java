@@ -18,6 +18,8 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.process.ProcessOutputTypes;
@@ -66,6 +68,7 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
 
   public void addTargetDevice(@NotNull IDevice device) {
     myDevices.add(device.getSerialNumber());
+    setMinDeviceApiLevel(DevicePropertyUtil.getDeviceVersion(device));
 
     Client client = device.getClient(myApplicationId);
     if (client != null) {
@@ -78,6 +81,13 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
 
     LOG.info("Adding device " + device.getName() + " to monitor for launched app: " + myApplicationId);
     myDeviceAdded = System.currentTimeMillis();
+  }
+
+  private void setMinDeviceApiLevel(@NotNull AndroidVersion deviceVersion) {
+    AndroidVersion apiLevel = getUserData(AndroidDebugRunner.ANDROID_DEVICE_API_LEVEL);
+    if (apiLevel == null || apiLevel.compareTo(deviceVersion) > 0) {
+      putUserData(AndroidDebugRunner.ANDROID_DEVICE_API_LEVEL, deviceVersion);
+    }
   }
 
   @Override
@@ -219,6 +229,11 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
     }
 
     return null;
+  }
+
+  @NotNull
+  public Set<Client> getClients() {
+    return myClients;
   }
 
   private void print(@NotNull String s) {
