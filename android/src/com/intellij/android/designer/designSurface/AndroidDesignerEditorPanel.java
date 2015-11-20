@@ -15,18 +15,20 @@
  */
 package com.intellij.android.designer.designSurface;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.google.common.collect.Queues;
 import com.google.common.primitives.Ints;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
@@ -56,6 +58,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
@@ -88,9 +91,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -413,10 +414,49 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     });
   }
 
+  /**
+   * Method that checks if a given {@link RenderedViewHierarchy} is likely to contain a custom view.
+   */
+  private static boolean hasCustomViews(@Nullable RenderedViewHierarchy hierarchy) {
+    if (hierarchy == null) {
+      return false;
+    }
+
+    Deque<RenderedView> views = Queues.newArrayDeque(hierarchy.getRoots());
+    List<RenderedView> includedViews = hierarchy.getIncludedRoots();
+    if (includedViews != null) {
+      views.addAll(includedViews);
+    }
+
+    while (!views.isEmpty()) {
+      RenderedView renderedView = views.pop();
+      String className = renderedView.view.getClassName();
+      if (!StringUtil.startsWith(className, SdkConstants.ANDROID_PKG_PREFIX) && !StringUtil.startsWith(className, "com.android.")) {
+        // This is probably a custom view
+        return true;
+      }
+      views.addAll(renderedView.getChildren());
+    }
+
+    return false;
+  }
+
   private void createRenderer(final ThrowableConsumer<RenderResult, Throwable> runnable) {
     disposeRenderer();
     if (myConfiguration == null) {
       return;
+    }
+
+    DumbService dumbService = DumbService.getInstance(getProject());
+    if (dumbService.isDumb()) {
+      dumbService.runWhenSmart(new Runnable() {
+        @Override
+        public void run() {
+          if (myActive && hasCustomViews(getViewHierarchy())) {
+            updateRenderer(false);
+          }
+        }
+      });
     }
 
     mySessionAlarm.addRequest(new Runnable() {

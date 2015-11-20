@@ -35,6 +35,7 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
@@ -61,6 +62,8 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 /**
  * Handler for loading views for the layout editor on demand, and reporting issues with class
  * loading, instance creation, etc.
+ * If the project is indexing, the ViewLoader will not be able to detect the modification times
+ * in the project so it will not report outdated classes.
  */
 @SuppressWarnings("deprecation") // The Pair class is required by the IProjectCallback
 public class ViewLoader {
@@ -209,6 +212,11 @@ public class ViewLoader {
 
   /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
   private void checkModified(@NotNull String fqcn) {
+    if (DumbService.getInstance(myModule.getProject()).isDumb()) {
+      // If the index is not ready, we can not check the modified time since it requires accessing the PSI
+      return;
+    }
+
     if (myModuleClassLoader != null && myModuleClassLoader.isSourceModified(fqcn, myCredential) && !myRecentlyModifiedClasses.contains(fqcn)) {
       myRecentlyModifiedClasses.add(fqcn);
       RenderProblem.Html problem = RenderProblem.create(WARNING);
