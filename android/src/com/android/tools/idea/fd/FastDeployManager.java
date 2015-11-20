@@ -215,7 +215,11 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   /** Prefix for classes.dex files */
   private static final String CLASSES_DEX_PREFIX = "classes";
   /** Suffix for classes.dex files */
-  public static final String CLASSES_DEX_SUFFIX = ".dex";
+  private static final String CLASSES_DEX_SUFFIX = ".dex";
+  /** Temp directory on the device */
+  private static final String DEVICE_TEMP_DIR = "/data/local/tmp";
+  /** Instead of writing to the data folder, we can read/write to a local temp file instead */
+  private static final boolean USE_BUILD_ID_TEMP_FILE = !Boolean.getBoolean("instantrun.use_datadir");
 
   private static String getDataFolder(@NotNull String applicationId) {
     // Keep in sync with FileManager#getDataFolder in the runtime library
@@ -226,6 +230,11 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   private static String getDexFileFolder(@NotNull String pkg) {
     // Keep in sync with FileManager#getDexFileFolder in the runtime library
     return getDataFolder(pkg) + "/dex";
+  }
+
+  @NotNull
+  private static String getDeviceIdFolder(String pkg) {
+    return DEVICE_TEMP_DIR + "/" + pkg + "-" + BUILD_ID_TXT;
   }
 
   private static final String RESOURCE_FILE_NAME = "resources.ap_";
@@ -589,39 +598,48 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     }
 
     try {
-      String remoteIdFile = getDataFolder(pkg) + "/" + BUILD_ID_TXT;
-
-      CollectingOutputReceiver receiver = new CollectingOutputReceiver();
-      device.executeShellCommand("run-as " + pkg + " cat " + remoteIdFile, receiver);
-      String output = receiver.getOutput().trim();
-      String id;
-      if (output.contains(":")) { // cat: command not found, cat: permission denied etc
-        if (output.startsWith(remoteIdFile)) {
-          // /data/data/my.pkg.path/files/studio-fd/build-id.txt: No such file or directory
-          return null;
-        }
-        // on a user device, we cannot pull from a path where the segments aren't readable (I think this is a ddmlib limitation)
-        // So we first copy to /data/local/tmp and pull from there..
-        String remoteTmpFile = "/data/local/tmp/build-id.txt";
-        device.executeShellCommand("cp " + remoteIdFile + " " + remoteTmpFile, receiver);
-        output = receiver.getOutput().trim();
-        if (!output.isEmpty()) {
-          LOG.info(output);
-        }
+      if (USE_BUILD_ID_TEMP_FILE) {
+        String remoteIdFile = getDeviceIdFolder(pkg);
         File localIdFile = FileUtil.createTempFile("build-id", "txt");
-        device.pullFile(remoteTmpFile, localIdFile.getPath());
-
-        id = Files.toString(localIdFile, Charsets.UTF_8).trim();
-
-        //noinspection ResultOfMethodCallIgnored
-        localIdFile.delete();
+        try {
+          device.pullFile(remoteIdFile, localIdFile.getPath());
+          return Files.toString(localIdFile, Charsets.UTF_8).trim();
+        } catch (SyncException ignore) {
+          return null;
+        } finally {
+          //noinspection ResultOfMethodCallIgnored
+          localIdFile.delete();
+        }
       } else {
-        id = output;
+        String remoteIdFile = getDataFolder(pkg) + "/" + BUILD_ID_TXT;
+        CollectingOutputReceiver receiver = new CollectingOutputReceiver();
+        device.executeShellCommand("run-as " + pkg + " cat " + remoteIdFile, receiver);
+        String output = receiver.getOutput().trim();
+        String id;
+        if (output.contains(":")) { // cat: command not found, cat: permission denied etc
+          if (output.startsWith(remoteIdFile)) {
+            // /data/data/my.pkg.path/files/studio-fd/build-id.txt: No such file or directory
+            return null;
+          }
+          // on a user device, we cannot pull from a path where the segments aren't readable (I think this is a ddmlib limitation)
+          // So we first copy to /data/local/tmp and pull from there..
+          String remoteTmpFile = "/data/local/tmp/build-id.txt";
+          device.executeShellCommand("cp " + remoteIdFile + " " + remoteTmpFile, receiver);
+          output = receiver.getOutput().trim();
+          if (!output.isEmpty()) {
+            LOG.info(output);
+          }
+          File localIdFile = FileUtil.createTempFile("build-id", "txt");
+          device.pullFile(remoteTmpFile, localIdFile.getPath());
+          id = Files.toString(localIdFile, Charsets.UTF_8).trim();
+          //noinspection ResultOfMethodCallIgnored
+          localIdFile.delete();
+        }
+        else {
+          id = output;
+        }
+        return id;
       }
-
-
-
-      return id;
     } catch (IOException ignore) {
     }
     catch (AdbCommandRejectedException e) {
@@ -686,20 +704,26 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
 
     String buildId = StringUtil.notNullize(getLocalBuildId(module));
     try {
-      String remote = copyToDeviceScratchFile(device, pkg, buildId);
+      if (USE_BUILD_ID_TEMP_FILE) {
+        String remoteIdFile = getDeviceIdFolder(pkg);
+        File local = FileUtil.createTempFile("build-id", "txt");
+        Files.write(buildId, local, Charsets.UTF_8);
+        device.pushFile(local.getPath(), remoteIdFile);
+      } else {
+        String remote = copyToDeviceScratchFile(device, pkg, buildId);
+        String dataDir = getDataFolder(pkg);
 
-      String dataDir = getDataFolder(pkg);
-
-      // We used to do this here:
-      //String cmd = "run-as " + pkg + " mkdir -p " + dataDir + "; run-as " + pkg + " cp " + remote + " " + dataDir + "/" + BUILD_ID_TXT;
-      // but it turns out "cp" is missing on API 15! Let's use cat and sh instead which seems to be available everywhere.
-      // (Note: echo is not, it's missing on API 19.)
-      String cmd = "run-as " + pkg + " mkdir -p " + dataDir + "; cat " + remote + " | run-as " + pkg + " sh -c 'cat > " + dataDir + "/" + BUILD_ID_TXT + "'";
-      CollectingOutputReceiver receiver = new CollectingOutputReceiver();
-      device.executeShellCommand(cmd, receiver);
-      String output = receiver.getOutput();
-      if (!output.trim().isEmpty()) {
-        LOG.warn("Unexpected shell output: " + output);
+        // We used to do this here:
+        //String cmd = "run-as " + pkg + " mkdir -p " + dataDir + "; run-as " + pkg + " cp " + remote + " " + dataDir + "/" + BUILD_ID_TXT;
+        // but it turns out "cp" is missing on API 15! Let's use cat and sh instead which seems to be available everywhere.
+        // (Note: echo is not, it's missing on API 19.)
+        String cmd = "run-as " + pkg + " mkdir -p " + dataDir + "; cat " + remote + " | run-as " + pkg + " sh -c 'cat > " + dataDir + "/" + BUILD_ID_TXT + "'";
+        CollectingOutputReceiver receiver = new CollectingOutputReceiver();
+        device.executeShellCommand(cmd, receiver);
+        String output = receiver.getOutput();
+        if (!output.trim().isEmpty()) {
+          LOG.warn("Unexpected shell output: " + output);
+        }
       }
     } catch (IOException ioe) {
       LOG.warn("Couldn't write build id file", ioe);
@@ -738,7 +762,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   @NotNull
   private static String copyToDeviceScratchFile(@NotNull IDevice device, @NotNull String pkgName, @NotNull File local)
     throws IOException, AdbCommandRejectedException, SyncException, TimeoutException {
-    String remoteTmpBuildId = "/data/local/tmp/" + pkgName + "-data.fdr";
+    String remoteTmpBuildId = DEVICE_TEMP_DIR + "/" + pkgName + "-data.fdr";
     device.pushFile(local.getAbsolutePath(), remoteTmpBuildId);
     return remoteTmpBuildId;
   }
@@ -752,7 +776,8 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    * @param devices the set of devices to check
    * @return true if the app can be dex swapped in one or more of the given devices
    */
-  public static boolean canDexSwap(@NotNull Module module, @NotNull Collection<IDevice> devices) {
+  public static boolean canDexSwap(@NotNull Module module, @SuppressWarnings("UnusedParameters") @NotNull Collection<IDevice> devices) {
+    //noinspection IfStatementWithIdenticalBranches
     if (!isColdSwapEnabled(module.getProject())) {
       return false;
     }
