@@ -17,6 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.repository.Revision;
 import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.fd.InstantRunConfigurable;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -244,19 +245,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   @Override
   public void hyperlinkUpdate(HyperlinkEvent e) {
-    String version = MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
-    // Pick max version of "recommended Gradle plugin" and "minimum required for instant run"
-    if (Revision.parseRevision(GRADLE_PLUGIN_RECOMMENDED_VERSION).compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) > 0) {
-      version = GRADLE_PLUGIN_RECOMMENDED_VERSION;
-    }
-
     Project project = getModuleSelector().getModule().getProject();
-    if (FixGradleModelVersionHyperlink.updateGradlePluginVersion(project, version, GRADLE_LATEST_VERSION)) {
-      // request a sync
-      GradleProjectImporter.getInstance().syncProjectSynchronously(project, true, this);
-    }
-    else {
-      setSyncLinkMessage("Error updating to " + version);
+    if (!InstantRunConfigurable.updateProjectToInstantRunTools(project, this)) {
+      setSyncLinkMessage("Error updating to new Gradle version");
     }
   }
 
