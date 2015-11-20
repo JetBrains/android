@@ -19,8 +19,6 @@ import com.android.repository.Revision;
 import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-
 /**
  * ColumnInfo that shows the {@link Revision} of a package.
  */
@@ -35,6 +33,6 @@ class VersionColumnInfo extends ColumnInfo<UpdaterTreeNode, Revision> {
     if (!(node instanceof PlatformDetailsTreeNode)) {
       return null;
     }
-    return ((PlatformDetailsTreeNode)node).getItemDesc().getRevision();
+    return ((PlatformDetailsTreeNode)node).getPackage().getVersion();
   }
 }
