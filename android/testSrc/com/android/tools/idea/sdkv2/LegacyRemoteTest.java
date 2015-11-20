@@ -77,7 +77,7 @@ public class LegacyRemoteTest extends AndroidTestCase {
     UpdatablePackage doc = consolidatedPkgs.get("docs");
     assertEquals(new Revision(43), doc.getRemote(false).getVersion());
     UpdatablePackage pastry = consolidatedPkgs.get("platforms;android-Pastry");
-    TypeDetails pastryDetails = pastry.getRepresentative(true).getTypeDetails();
+    TypeDetails pastryDetails = pastry.getRepresentative().getTypeDetails();
     assertInstanceOf(pastryDetails, DetailsTypes.PlatformDetailsType.class);
     DetailsTypes.PlatformDetailsType platformDetails = (DetailsTypes.PlatformDetailsType)pastryDetails;
     assertEquals(5, platformDetails.getApiLevel());

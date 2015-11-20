@@ -15,23 +15,29 @@
  */
 package com.android.tools.idea.updater.configure.v2;
 
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.tools.idea.sdk.SdkState;
-import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.updater.SdkComponentSource;
-import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.ui.AncestorListenerAdapter;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +54,7 @@ import java.util.List;
 public class SdkUpdaterConfigurable implements SearchableConfigurable {
   private SdkUpdaterConfigPanel myPanel;
   private boolean myIncludePreview;
+  private AndroidSdkHandler mySdkHandler;
 
   @NotNull
   @Override
@@ -76,7 +83,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nullable
   @Override
   public JComponent createComponent() {
-    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
     final Runnable channelChangedCallback = new Runnable() {
       @Override
       public void run() {
@@ -88,8 +94,8 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         }
       }
     };
-    SdkState state = SdkState.getInstance(data);
-    myPanel = new SdkUpdaterConfigPanel(state, channelChangedCallback);
+    mySdkHandler = AndroidSdkHandler.getInstance();
+    myPanel = new SdkUpdaterConfigPanel(mySdkHandler, channelChangedCallback, StudioDownloader.getInstance(), StudioSettingsController.getInstance());
     JComponent component = myPanel.getComponent();
     component.addAncestorListener(new AncestorListenerAdapter() {
       @Override
@@ -99,6 +105,10 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     });
 
     return myPanel.getComponent();
+  }
+
+  private RepoManager getRepoManager() {
+    return mySdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
   }
 
   @Override
@@ -112,17 +122,17 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
     HtmlBuilder message = new HtmlBuilder();
     message.openHtmlBody();
-    List<UpdatablePkgInfo> toDelete = Lists.newArrayList();
-    List<IPkgDesc> requestedPackages = Lists.newArrayList();
+    final List<LocalPackage> toDelete = Lists.newArrayList();
+    final List<RemotePackage> requestedPackages = Lists.newArrayList();
     for (NodeStateHolder holder : myPanel.getStates()) {
       if (holder.getState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
         if (holder.getPkg().hasLocal()) {
-          toDelete.add(holder.getPkg());
+          toDelete.add(holder.getPkg().getLocalInfo());
         }
       }
       else if (holder.getState() == NodeStateHolder.SelectedState.INSTALLED &&
                (holder.getPkg().isUpdate(myIncludePreview) || !holder.getPkg().hasLocal())) {
-        requestedPackages.add(holder.getPkg().getRemote(myIncludePreview).getPkgDesc());
+        requestedPackages.add(holder.getPkg().getRemote(myIncludePreview));
       }
     }
     boolean found = false;
@@ -130,9 +140,9 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       found = true;
       message.add("The following components will be deleted: \n");
       message.beginList();
-      for (UpdatablePkgInfo item : toDelete) {
-        message.listItem().add(item.getPkgDesc(myIncludePreview).getListDescription()).add(", Revision: ")
-          .add(item.getPkgDesc(myIncludePreview).getRevision().toString());
+      for (LocalPackage item : toDelete) {
+        message.listItem().add(item.getDisplayName()).add(", Revision: ")
+          .add(item.getVersion().toString());
       }
       message.endList();
     }
@@ -140,24 +150,35 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       found = true;
       message.add("The following components will be installed: \n");
       message.beginList();
-      for (IPkgDesc item : requestedPackages) {
-        message.listItem().add(String.format("%1$s %2$s %3$s", item.getListDescription(), item.hasAndroidVersion() ? "revision" : "version",
-                                             item.getRevision()));
+      for (RemotePackage item : requestedPackages) {
+        message.listItem().add(String.format("%1$s %2$s %3$s", item.getDisplayName(),
+                                             item.getTypeDetails() instanceof DetailsTypes.ApiDetailsType ? "revision" : "version",
+                                             item.getVersion()));
       }
       message.endList();
     }
     message.closeHtmlBody();
     if (found) {
       if (Messages.showOkCancelDialog((Project)null, message.getHtml(), "Confirm Change", AllIcons.General.Warning) == Messages.OK) {
-        for (UpdatablePkgInfo item : toDelete) {
-          item.getLocalInfo().delete();
-        }
-        if (!requestedPackages.isEmpty()) {
-          ModelWizardDialog sdkQuickfixWizard = SdkQuickfixUtils.createDialog(null, requestedPackages);
-          if (sdkQuickfixWizard != null) {
-            sdkQuickfixWizard.show();
+        ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
+          @Override
+          public void run() {
+            ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
+            com.android.repository.api.ProgressIndicator repoProgress = new RepoProgressIndicatorAdapter(progress);
+            FileOp fop = FileOpUtils.create();
+            for (LocalPackage item : toDelete) {
+              AndroidSdkHandler.findBestInstaller(item).uninstall(item, repoProgress, getRepoManager(), fop);
+            }
+            if (!requestedPackages.isEmpty()) {
+              for (RemotePackage remote : requestedPackages) {
+                AndroidSdkHandler.findBestInstaller(remote)
+                  .install(remote, StudioDownloader.getInstance(), StudioSettingsController.getInstance(), repoProgress, getRepoManager(),
+                           fop);
+              }
+            }
           }
-        }
+        }, "Installing", false, null, myPanel.getComponent());
+
         myPanel.refresh();
       }
       else {
@@ -173,8 +194,5 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
   @Override
   public void disposeUIResources() {
-    if (myPanel != null) {
-      myPanel.disposeUIResources();
-    }
   }
 }
