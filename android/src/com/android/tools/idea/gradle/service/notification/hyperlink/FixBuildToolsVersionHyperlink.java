@@ -39,7 +39,10 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
     fixBuildToolsVersionAndSync(project, myBuildFile, myVersion);
   }
 
-  static void fixBuildToolsVersionAndSync(@NotNull Project project, @NotNull VirtualFile buildFile, @NotNull final String version) {
+  public static void fixBuildToolsVersion(@NotNull Project project,
+                                          @NotNull VirtualFile buildFile,
+                                          @NotNull final String version,
+                                          boolean requestSync) {
     final GradleBuildFile gradleBuildFile = new GradleBuildFile(buildFile, project);
     Object pluginVersion = gradleBuildFile.getValue(BUILD_TOOLS_VERSION);
     if (pluginVersion != null) {
@@ -49,7 +52,13 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
           gradleBuildFile.setValue(BUILD_TOOLS_VERSION, version);
         }
       });
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      if (requestSync) {
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      }
     }
+  }
+
+  static void fixBuildToolsVersionAndSync(@NotNull Project project, @NotNull VirtualFile buildFile, @NotNull final String version) {
+    fixBuildToolsVersion(project, buildFile, version, true);
   }
 }
