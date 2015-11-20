@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.utils.HtmlBuilder;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.BrowserHyperlinkListener;
+import com.intellij.util.ui.SwingHelper;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -25,15 +29,13 @@ import javax.swing.*;
  */
 public class LinuxHaxmInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
-  private com.intellij.ui.HyperlinkLabel myLink;
+  private JEditorPane myUrlPane;
 
   private static final String KVM_DOCUMENTATION_URL = "http://developer.android.com/tools/devices/emulator.html#vm-linux";
 
   public LinuxHaxmInfoStep() {
     super("Emulator Settings");
     setComponent(myRoot);
-    myLink.setHyperlinkText("Android KVM Linux Installation");
-    myLink.setHyperlinkTarget(KVM_DOCUMENTATION_URL);
   }
 
   @Override
@@ -49,11 +51,24 @@ public class LinuxHaxmInfoStep extends FirstRunWizardStep {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myLink;
+    return myUrlPane;
   }
 
   @Override
   public boolean isStepVisible() {
     return SystemInfo.isLinux;
+  }
+
+  private void createUIComponents() {
+    myUrlPane = SwingHelper.createHtmlViewer(true, null, null, null);
+    myUrlPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+    HtmlBuilder description = new HtmlBuilder();
+    description.addHtml("Search for install instructions for your particular Linux configuration (");
+    description.addLink("Android KVM Linux Installation", KVM_DOCUMENTATION_URL);
+    description.addHtml(") that KVM is enabled for faster Android emulator performance.");
+    myUrlPane.setText(description.getHtml());
+    SwingHelper.setHtml(myUrlPane, description.getHtml(), UIUtil.getLabelForeground());
+    myUrlPane.setBackground(UIUtil.getLabelBackground());
+
   }
 }
