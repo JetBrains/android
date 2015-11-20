@@ -24,11 +24,8 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,21 +46,18 @@ public class RenameCaptureFileAction extends DumbAwareAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    assert project != null;
     VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
-    PsiFile psiFile = virtualFile != null ? PsiManager.getInstance(e.getProject()).findFile(virtualFile) : null;
-    assert psiFile != null;
-    DialogWrapper dialog = new RenameDialog(project, psiFile);
+    DialogWrapper dialog = new RenameDialog(project, virtualFile);
     dialog.show();
   }
 
   protected static class RenameDialog extends DialogWrapper {
 
     private final Project myProject;
-    private final PsiFile myFile;
+    private final VirtualFile myFile;
     private JBTextField myInput;
 
-    protected RenameDialog(@NotNull Project project, @NotNull PsiFile file) {
+    protected RenameDialog(@NotNull Project project, @NotNull VirtualFile file) {
       super(project);
       myProject = project;
       myFile = file;
@@ -76,7 +70,7 @@ public class RenameCaptureFileAction extends DumbAwareAction {
       JPanel panel = new JPanel();
       panel.setLayout(new GridBagLayout());
       GridBagConstraints constraints = new GridBagConstraints();
-      String fileNameWithoutExtension = myFile.getVirtualFile().getNameWithoutExtension();
+      String fileNameWithoutExtension = myFile.getNameWithoutExtension();
       JLabel description = new JLabel(String.format("Rename %1$s to", fileNameWithoutExtension));
       constraints.gridx = 0;
       constraints.gridy = 0;
@@ -113,15 +107,20 @@ public class RenameCaptureFileAction extends DumbAwareAction {
 
     @Override
     protected void doOKAction() {
-      String extension = myFile.getVirtualFile().getExtension();
+      String extension = myFile.getExtension();
       final String newName = myInput.getText().trim() + (extension != null && extension.length() > 0 ? "." + extension : "");
       String commandName = String.format("Rename %1$s to %2$s", myFile.getName(), newName);
-      new WriteCommandAction(myProject, commandName, myFile) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          myFile.setName(newName);
-        }
-      }.execute();
+      try {
+        new WriteCommandAction(myProject, commandName) {
+          @Override
+          protected void run(@NotNull Result result) throws Throwable {
+            myFile.rename(this, newName);
+          }
+        }.execute();
+      } catch (Exception e) {
+        setErrorText(String.format("Could not rename to %1$s: %2$s", newName, e.getCause().getMessage()));
+        return;
+      }
       super.doOKAction();
     }
   }
