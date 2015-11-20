@@ -16,6 +16,8 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.*;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
@@ -53,6 +55,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   public static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
   public static final Key<AndroidSessionInfo> ANDROID_SESSION_INFO = new Key<AndroidSessionInfo>("ANDROID_SESSION_INFO");
   public static final Key<Client> ANDROID_DEBUG_CLIENT = new Key<Client>("ANDROID_DEBUG_CLIENT");
+  public static final Key<AndroidVersion> ANDROID_DEVICE_API_LEVEL = new Key<AndroidVersion>("ANDROID_DEVICE_API_LEVEL");
 
   private static final Object ourDebugLock = new Object();
 
@@ -247,6 +250,8 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
     @Override
     public void launchDebug(@NotNull final Client client) {
+      final AndroidVersion apiVersion = DevicePropertyUtil.getDeviceVersion(client.getDevice());
+
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})
@@ -292,6 +297,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           final ProcessHandler handler = myRunningState.getProcessHandler();
           handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, debugDescriptor, debugState, myExecutor.getId()));
           handler.putUserData(ANDROID_DEBUG_CLIENT, client);
+          handler.putUserData(ANDROID_DEVICE_API_LEVEL, apiVersion);
           debugDescriptor.setActivateToolWindowWhenAdded(false);
 
           // Reverted: b/25506206
