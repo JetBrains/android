@@ -269,7 +269,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    AndroidSessionInfo info = AndroidSessionManager.findOldSession(getProject(), getName());
+    AndroidSessionInfo info = AndroidSessionManager.findOldSession(getProject(), getUniqueID());
     if (info == null) {
       return null;
     }
@@ -302,7 +302,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     DeployTargetState deployTargetState = getCurrentDeployTargetState();
     ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
 
-    AndroidSessionInfo info = AndroidSessionManager.findOldSession(project, getName());
+    AndroidSessionInfo info = AndroidSessionManager.findOldSession(project, getUniqueID());
     if (info != null) {
       if (!info.getExecutorId().equals(executor.getId())) {
         // only run or debug of a config can be active at a time
