@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.forms;
 
 import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.editors.gfxtrace.widgets.TextField;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
 import com.google.common.base.Function;
@@ -30,13 +31,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -51,15 +51,17 @@ public class ActivitySelector extends JDialog {
   private JTree myTree;
   private JBLabel myStatus;
   private RegexFilterComponent mySearchBox;
+  private TextField myTraceName;
 
   private DeviceInfo.Package mySelectedPackage;
   private DeviceInfo.Activity mySelectedActivity;
+  private boolean myUserHasChangedTraceName = false;
 
   @NotNull private Listener myListener = NULL_LISTENER;
 
   private static final Listener NULL_LISTENER = new Listener() {
     @Override
-    public void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity activity) {
+    public void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity activity, String name) {
     }
 
     @Override
@@ -69,7 +71,7 @@ public class ActivitySelector extends JDialog {
 
 
   public interface Listener {
-    void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity activity);
+    void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity activity, String name);
 
     void OnCancel();
   }
@@ -82,9 +84,7 @@ public class ActivitySelector extends JDialog {
     buttonOK.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (myListener != null) {
-          myListener.OnLaunch(mySelectedPackage, mySelectedActivity);
-        }
+        myListener.OnLaunch(mySelectedPackage, mySelectedActivity, myTraceName.getText().trim());
         dispose();
       }
     });
@@ -94,6 +94,13 @@ public class ActivitySelector extends JDialog {
       public void actionPerformed(ActionEvent e) {
         myListener.OnCancel();
         dispose();
+      }
+    });
+
+    myTraceName.addChangedListener(new ChangeListener() {
+      @Override
+      public void stateChanged(ChangeEvent e) {
+        myUserHasChangedTraceName = !myTraceName.getText().isEmpty();
       }
     });
 
@@ -186,6 +193,9 @@ public class ActivitySelector extends JDialog {
           if (object instanceof DeviceInfo.Activity) {
             mySelectedActivity = (DeviceInfo.Activity)object;
           }
+        }
+        if (mySelectedPackage != null && !myUserHasChangedTraceName) {
+          myTraceName.setText(mySelectedPackage.getDisplayName(), false);
         }
         buttonOK.setEnabled(mySelectedPackage != null && mySelectedActivity != null);
       }
