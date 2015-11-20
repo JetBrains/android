@@ -167,8 +167,8 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
       final ActivitySelector selector = new ActivitySelector(provider);
       selector.setListener(new ActivitySelector.Listener() {
         @Override
-        public void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity act) {
-          showTraceDialog(selector, device, pkg, act);
+        public void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity act, String name) {
+          showTraceDialog(selector, device, pkg, act, name);
         }
 
         @Override
@@ -182,7 +182,11 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
       setActiveForm(selector);
     }
 
-    private void showTraceDialog(final Component owner, final IDevice device, final DeviceInfo.Package pkg, final DeviceInfo.Activity act) {
+    private void showTraceDialog(final Component owner,
+                                 final IDevice device,
+                                 final DeviceInfo.Package pkg,
+                                 final DeviceInfo.Activity act,
+                                 String name) {
       final TraceDialog dialog = new TraceDialog();
       dialog.setListener(new TraceDialog.Listener() {
         private GfxTracer myTracer = null;
@@ -206,17 +210,12 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
         }
       });
 
-      // Use the package name as the suggested trace name.
-      String name = pkg.myName;
-      int lastDot = name.lastIndexOf('.');
-      if (lastDot >= 0 && lastDot < name.length() - 1) {
-        name = name.substring(lastDot + 1);
-      }
-
       dialog.setLocationRelativeTo(owner);
-      dialog.setDefaultName(name);
+      // Use the package name as the suggested trace name if none was provided.
+      dialog.setDefaultName(name.isEmpty() ? pkg.getDisplayName() : name);
       dialog.setVisible(true);
       setActiveForm(dialog);
+      dialog.onBegin();
     }
   }
 
