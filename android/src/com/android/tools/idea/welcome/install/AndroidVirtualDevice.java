@@ -133,7 +133,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
     displayName = connection.uniquifyDisplayName(displayName);
     String internalName = AvdEditWizard.cleanAvdName(connection, displayName, true);
     Abi abi = Abi.getEnum(systemImageDescription.getAbiType());
-    boolean useRanchu = systemImageDescription.getVersion().getApiLevel() >= MIN_SDK_FOR_RANCHU_EMULATOR;
+    boolean useRanchu = AvdManagerConnection.doesSystemImageSupportRanchu(systemImageDescription);
     boolean supportsSmp = abi != null && abi.supportsMultipleCpuCores() && getMaxCpuCores() > 1;
     Map<String, String> settings = getAvdSettings(internalName, d);
     settings.put(AvdManagerConnection.AVD_INI_DISPLAY_NAME, displayName);

@@ -150,9 +150,6 @@ public class AvdWizardConstants {
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
   private static final int MAX_RAM_MB = 1536;
 
-  /** The first SDK level supported by the Ranchu emulator */
-  public static final int MIN_SDK_FOR_RANCHU_EMULATOR = 22;
-
   /**
    * Get the default amount of ram to use for the given hardware in an AVD. This is typically
    * the same RAM as is used in the hardware, but it is maxed out at {@link #MAX_RAM_MB} since more than that

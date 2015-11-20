@@ -17,12 +17,17 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.prefs.AndroidLocation;
+import com.android.repository.Revision;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.run.ExternalToolRunner;
 import com.android.tools.idea.sdk.LogWrapper;
@@ -42,6 +47,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,6 +69,13 @@ public class AvdManagerConnection {
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
   public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
   private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null);
+  private static final IdDisplay GOOGLE_APIS_TAG = new IdDisplay("google_apis", "");
+  private static final int MNC_API_LEVEL_23 = 23;
+  private static final int LMP_MR1_API_LEVEL_22 = 22;
+  private static final int MNC_AOSP_MIN_REVISION = 2;
+  private static final int MNC_GAPI_MIN_REVISION = 2;
+  private static final int LMP_AOSP_MIN_REVISION = 5;
+  private static final int LMP_GAPI_MIN_REVISION = 9;
 
   private AvdManager ourAvdManager;
   private Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
@@ -298,7 +311,7 @@ public class AvdManagerConnection {
     final String scaleFactor = properties.get(AvdWizardConstants.AVD_INI_SCALE_FACTOR);
     final String netDelay = properties.get(AvdWizardConstants.AVD_INI_NETWORK_LATENCY);
     final String netSpeed = properties.get(AvdWizardConstants.AVD_INI_NETWORK_SPEED);
-    final boolean useRanchu = properties.containsKey(AvdWizardConstants.CPU_CORES_KEY.name);
+    final boolean useRanchu = properties.containsKey(AvdWizardConstants.CPU_CORES_KEY.name) && doesSystemImageSupportRanchu(info);
 
     final ProgressWindow p = new ProgressWindow(false, true, project);
     p.setIndeterminate(false);
@@ -462,6 +475,42 @@ public class AvdManagerConnection {
       }
     }
     return null;
+  }
+
+  public static boolean doesSystemImageSupportRanchu(SystemImageDescription description) {
+    return doesSystemImageSupportRanchu(description.getVersion(), description.getTag(), description.getRevision());
+  }
+
+  private static boolean doesSystemImageSupportRanchu(@NotNull AvdInfo info) {
+    IAndroidTarget target = info.getTarget();
+    assert target != null;
+    ISystemImage systemImage = target.getSystemImage(info.getTag(), info.getAbiType());
+    assert systemImage != null;
+    return doesSystemImageSupportRanchu(target.getVersion(), info.getTag(), systemImage.getRevision());
+  }
+
+  @Contract("null, _ -> false")
+  private static boolean doesSystemImageSupportRanchu(@Nullable AndroidVersion version,
+                                                      @NotNull IdDisplay tag,
+                                                      @Nullable Revision revision) {
+    if (version == null || revision == null) {
+      return false;
+    }
+    int apiLevel = version.getApiLevel();
+    if (apiLevel < LMP_MR1_API_LEVEL_22) {
+      return false;
+    }
+    else if (apiLevel == LMP_MR1_API_LEVEL_22) {
+      int minRevision = GOOGLE_APIS_TAG.equals(tag) ? MNC_GAPI_MIN_REVISION : MNC_AOSP_MIN_REVISION;
+      return revision.getMajor() >= minRevision;
+    }
+    else if (apiLevel == MNC_API_LEVEL_23) {
+      int minRevision = GOOGLE_APIS_TAG.equals(tag) ? LMP_GAPI_MIN_REVISION : LMP_AOSP_MIN_REVISION;
+      return revision.getMajor() >= minRevision;
+    }
+    else {
+      return true;
+    }
   }
 
   public boolean avdExists(String candidate) {

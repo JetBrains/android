@@ -457,6 +457,12 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     return valid;
   }
 
+  private boolean doesSystemImageSupportRanchu() {
+    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
+    assert systemImage != null;
+    return AvdManagerConnection.doesSystemImageSupportRanchu(systemImage);
+  }
+
   private int getSelectedApiLevel() {
     SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
     assert systemImage != null;
@@ -1016,7 +1022,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   }
 
   private void toggleSystemOptionals(boolean useRanchuChanged) {
-    boolean showMultiCoreOption = isAdvancedPanel() && getSelectedApiLevel() >= MIN_SDK_FOR_RANCHU_EMULATOR;
+    boolean showMultiCoreOption = isAdvancedPanel() && doesSystemImageSupportRanchu();
     myRanchuCheckBox.setVisible(showMultiCoreOption);
     myCoreCount.setVisible(showMultiCoreOption);
     myMultiCoreExperimentalLabel.setVisible(showMultiCoreOption);
