@@ -165,6 +165,10 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
       }
     };
 
+    installValidationListener(mySdkLocationTextField.getTextField());
+    installValidationListener(myJdkLocationTextField.getTextField());
+    installValidationListener(myNdkLocationTextField.getTextField());
+
     addHistoryUpdater("mySdkLocationTextField", mySdkLocationTextField.getTextField(), historyUpdater);
     addHistoryUpdater("myJdkLocationTextField", myJdkLocationTextField.getTextField(), historyUpdater);
     addHistoryUpdater("myNdkLocationTextField", myNdkLocationTextField.getTextField(), historyUpdater);
@@ -282,7 +286,6 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
     });
 
     final JTextField textField = new JTextField(10);
-    installValidationListener(textField);
     return new TextFieldWithBrowseButton(textField, new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -346,7 +349,6 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
         chooseJdkLocation();
       }
     });
-    installValidationListener(textField);
   }
 
   public void chooseJdkLocation() {
