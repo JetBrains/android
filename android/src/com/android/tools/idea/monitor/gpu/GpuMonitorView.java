@@ -27,7 +27,6 @@ import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
-import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
@@ -120,9 +119,26 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
     }
   }
 
+  @NotNull
+  @Override
+  public String getTitleName() {
+    return "GPU";
+  }
+
+  @NotNull
+  @Override
+  public Icon getTitleIcon() {
+    return AndroidIcons.GpuMonitor;
+  }
+
   @Override
   protected boolean getPreferredPausedState() {
     return true;
+  }
+
+  @Override
+  protected int getDefaultPosition() {
+    return 3;
   }
 
   @NotNull
