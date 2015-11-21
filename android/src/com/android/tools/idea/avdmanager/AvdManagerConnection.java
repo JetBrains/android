@@ -85,11 +85,11 @@ public class AvdManagerConnection {
   private static final int MNC_GAPI_MIN_REVISION = 10;
   private static final int LMP_AOSP_MIN_REVISION = 2;
   private static final int LMP_GAPI_MIN_REVISION = 2;
-  private static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0");
+  public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0");
+  public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
 
   private AvdManager ourAvdManager;
   private Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
-  private File ourEmulatorBinary;
   private static Map<LocalSdk, AvdManagerConnection> ourCache = new WeakHashMap<LocalSdk, AvdManagerConnection>();
   private static long ourMemorySize = -1;
 
@@ -138,17 +138,17 @@ public class AvdManagerConnection {
         IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);
         return false;
       }
-      ourEmulatorBinary =
-        new File(ourAvdManager.getLocalSdk().getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR));
-      if (!ourEmulatorBinary.isFile()) {
-        IJ_LOG.error("No emulator binary found!");
-        return false;
-      }
     }
     return true;
   }
 
+  private File getEmulatorBinary() {
+    assert ourAvdManager != null;
+    return new File(ourAvdManager.getLocalSdk().getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR));
+  }
+
   private boolean hasQEMU2Installed() {
+    assert myLocalSdk != null;
     LocalPkgInfo info = myLocalSdk.getPkgInfo(PkgType.PKG_TOOLS);
     if (info == null) {
       return false;
@@ -304,6 +304,12 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return;
     }
+    final File emulatorBinary = getEmulatorBinary();
+    if (!emulatorBinary.isFile()) {
+      IJ_LOG.error("No emulator binary found!");
+      return;
+    }
+
     final String avdName = info.getName();
 
     // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
@@ -341,7 +347,7 @@ public class AvdManagerConnection {
       @Override
       public void run() {
         GeneralCommandLine commandLine = new GeneralCommandLine();
-        commandLine.setExePath(ourEmulatorBinary.getPath());
+        commandLine.setExePath(emulatorBinary.getPath());
 
         // Don't explicitly set auto since that seems to be the default behavior, but when set
         // can cause the emulator to fail to launch with this error message:
@@ -423,18 +429,22 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return AccelerationErrorCode.UNKNOWN_ERROR;
     }
+    File emulatorBinary = getEmulatorBinary();
+    if (!emulatorBinary.isFile()) {
+      return AccelerationErrorCode.NO_EMULATOR_INSTALLED;
+    }
+    if (getMemorySize() < Storage.Unit.GiB.getNumberOfBytes()) {
+      // TODO: The emulator -accel-check current does not check for the available memory, do it here instead:
+      return AccelerationErrorCode.NOT_ENOUGH_MEMORY;
+    }
     if (!hasQEMU2Installed()) {
       // TODO: Return this error when the new emulator has been released.
       // return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED;
       // TODO: For now just ignore the rest of the checks
       return AccelerationErrorCode.ALREADY_INSTALLED;
     }
-    if (getMemorySize() < Storage.Unit.GiB.getNumberOfBytes()) {
-      // TODO: The emulator -accel-check current does not check for the available memory, do it here instead:
-      return AccelerationErrorCode.NOT_ENOUGH_MEMORY;
-    }
     GeneralCommandLine commandLine = new GeneralCommandLine();
-    commandLine.setExePath(ourEmulatorBinary.getPath());
+    commandLine.setExePath(emulatorBinary.getPath());
     commandLine.addParameter("-accel-check");
     int exitValue;
     try {

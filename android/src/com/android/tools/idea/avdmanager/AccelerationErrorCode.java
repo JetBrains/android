@@ -32,7 +32,7 @@ public enum AccelerationErrorCode {
   NO_CPU_SUPPORT(3, "Your CPU does not support required features (VT-x or SVM).", NONE, SOLUTION_ACCERATION_NOT_SUPPORTED),
   NO_CPU_VTX_SUPPORT(4, "Your CPU does not support VT-x.", NONE, SOLUTION_ACCERATION_NOT_SUPPORTED),
   NO_CPU_NX_SUPPORT(5, "Your CPU does not support NX.", NONE, SOLUTION_ACCERATION_NOT_SUPPORTED),
-  ACCELERATION_NOT_INSTALLED_LINUX(6, "KVM is not installed.", NONE, "Enable Linux KVM for better emulation performance."),
+  ACCELERATION_NOT_INSTALLED_LINUX(6, "KVM is not installed.", INSTALL_KVM, "Enable Linux KVM for better emulation performance."),
   ACCELERATION_NOT_INSTALLED_WIN_MAC(6, "HAXM is not installed.", INSTALL_HAXM, "Install Intel HAXM for better emulation performance."),
   ACCELERATION_OBSOLETE(7, "Virtual machine acceleration driver is out-of-date.", REINSTALL_HAXM, "A newer HAXM Version is required. Please update."),
   DEV_NOT_FOUND(8, "/dev/kvm is not found.", NONE, "Enable VT-x in your BIOS security settings, ensure that your Linux distro has working KVM module."),
@@ -49,10 +49,11 @@ public enum AccelerationErrorCode {
   HYPERV_ENABLED(15, "Android Emulator is incompatible with Hyper-V.", NONE, SOLUTION_TURN_OFF_HYPER_V),
   EMULATOR_ERROR(138, "Accelerator Detection Problem.", NONE, "Please file a bug against Android Studio."),
   UNKNOWN_ERROR(-1, "Unknown Error", NONE, "Please file a bug against Android Studio."),
-  TOOLS_UPDATE_REQUIRED(-2, "Emulator is outdated", NONE, "Please download the newest tools"),
-  NOT_ENOUGH_MEMORY(-3, "Not enough memory to run HAXM", NONE, "Get more available memory for HAXM"),
-  CANNOT_INSTALL_ON_WINDOWS(-4, "Cannot install on Windows.", NONE, "Install HAXM by hand."),
-  CANNOT_INSTALL_ON_THIS_OS(-5, "HAXM can only be installed on Windows or Mac.", NONE, "Please file a bug against Android Studio.");
+  NO_EMULATOR_INSTALLED(-2, "No emulator installed", DOWNLOAD_EMULATOR, "Please download the emulator"),
+  TOOLS_UPDATE_REQUIRED(-3, "Emulator is outdated", UPDATE_EMULATOR, "Please download the newest tools"),
+  NOT_ENOUGH_MEMORY(-4, "Not enough memory to run HAXM", NONE, "Get more available memory for HAXM"),
+  CANNOT_INSTALL_ON_WINDOWS(-5, "Cannot install on Windows.", NONE, "Install HAXM by hand."),
+  CANNOT_INSTALL_ON_THIS_OS(-6, "HAXM can only be installed on Windows or Mac.", NONE, "Please file a bug against Android Studio.");
 
   private int myErrorCode;
   private String myProblem;
