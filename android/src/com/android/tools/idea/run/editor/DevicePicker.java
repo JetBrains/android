@@ -274,7 +274,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   private void updateModel() {
-    if (!AndroidDebugBridge.getBridge().isConnected()) {
+    AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+    if (bridge == null || !bridge.isConnected()) {
       return;
     }
 
@@ -290,7 +291,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
     Set<String> selectedSerials = getSelectedSerials(myDevicesList.getSelectedValues());
 
-    List<IDevice> connectedDevices = Lists.newArrayList(AndroidDebugBridge.getBridge().getDevices());
+    List<IDevice> connectedDevices = Lists.newArrayList(bridge.getDevices());
     myModel.reset(connectedDevices, myAvdInfos);
 
     if (selectedSerials.isEmpty()) {
