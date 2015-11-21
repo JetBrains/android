@@ -309,18 +309,6 @@ public class UpdaterData {
           }
         }
 
-        if (installedAddon) {
-          // Update the USB vendor ids for adb
-          try {
-            mSdkManager.updateAdb();
-            monitor.log("Updated ADB to support the USB devices declared in the SDK add-ons.");
-          }
-          catch (Exception e) {
-            mSdkLog.error(e, "Update ADB failed");
-            monitor.logError("failed to update adb to support the USB devices declared in the SDK add-ons.");
-          }
-        }
-
         if (preInstallHookInvoked) {
           broadcastPostInstallHook();
         }

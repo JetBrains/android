@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.npw.ChooseApiLevelDialog;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
