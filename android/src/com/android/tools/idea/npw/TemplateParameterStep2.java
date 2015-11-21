@@ -23,13 +23,12 @@ import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.*;
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -144,7 +143,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
 
   private static JComponent createEnumCombo(Parameter parameter) {
     List<Element> options = parameter.getOptions();
-    ComboBoxItemWithApiTag[] items = new ComboBoxItemWithApiTag[options.size()];
+    ApiComboBoxItem[] items = new ApiComboBoxItem[options.size()];
     int initialSelection = -1;
     int i = 0;
     assert !options.isEmpty();
@@ -162,7 +161,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     return comboBox;
   }
 
-  public static ComboBoxItemWithApiTag createItemForOption(Parameter parameter, Element option) {
+  public static ApiComboBoxItem createItemForOption(Parameter parameter, Element option) {
     String optionId = option.getAttribute(SdkConstants.ATTR_ID);
     assert optionId != null && !optionId.isEmpty() : SdkConstants.ATTR_ID;
     NodeList childNodes = option.getChildNodes();
@@ -170,7 +169,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     String optionLabel = childNodes.item(0).getNodeValue().trim();
     int minSdk = getIntegerOptionValue(option, TemplateMetadata.ATTR_MIN_API, parameter.name, 1);
     int minBuildApi = getIntegerOptionValue(option, TemplateMetadata.ATTR_MIN_BUILD_API, parameter.name, 1);
-    return new ComboBoxItemWithApiTag(optionId, optionLabel, minSdk, minBuildApi);
+    return new ApiComboBoxItem(optionId, optionLabel, minSdk, minBuildApi);
   }
 
   private static int getIntegerOptionValue(Element option, String attribute, @Nullable String parameterName, int defaultValue) {
@@ -506,17 +505,16 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
         }
 
         // Check to see that the selection's constraints are met if this is a combo box
-        if (value instanceof ComboBoxItemWithApiTag) {
-          ComboBoxItemWithApiTag selectedItem = (ComboBoxItemWithApiTag)value;
+        if (value instanceof ApiComboBoxItem) {
+          ApiComboBoxItem selectedItem = (ApiComboBoxItem)value;
 
-          if (minApi != null && selectedItem.minApi > minApi.getFeatureLevel()) {
-            setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d",
-                                       selectedItem.label, param.name, selectedItem.minApi));
+          if (minApi == null || buildApi == null) {
             return false;
           }
-          if (buildApi != null && selectedItem.minBuildApi > buildApi) {
-            setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d",
-                                       selectedItem.label, param.name, selectedItem.minBuildApi));
+
+          String message = selectedItem.validate(minApi.getFeatureLevel(), buildApi);
+          if (message != null) {
+            setErrorHtml(message);
             return false;
           }
         }
@@ -678,7 +676,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
       mySourceSet.removeAllItems();
       for (SourceProvider sourceProvider : mySourceProviders) {
         //noinspection unchecked
-        mySourceSet.addItem(new ComboBoxItemWithApiTag(sourceProvider, sourceProvider.getName(), 0, 0));
+        mySourceSet.addItem(new ApiComboBoxItem(sourceProvider, sourceProvider.getName(), 0, 0));
       }
       addComponent(myTemplateParameters, mySourceSetLabel, row, 0, false);
       addComponent(myTemplateParameters, mySourceSet, row, 1, true);
