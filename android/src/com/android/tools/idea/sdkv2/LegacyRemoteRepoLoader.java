@@ -162,7 +162,7 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
       if (myWrapped instanceof RemotePlatformPkgInfo) {
         layoutlibVersion = ((RemotePlatformPkgInfo)myWrapped).getLayoutLibVersion();
       }
-      ProgressIndicator progress = new RepoProgressIndicatorAdapter(null);
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
       return LegacyRepoUtils.createTypeDetails(myWrapped.getPkgDesc(), layoutlibVersion, progress);
     }
 
@@ -248,7 +248,7 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     public Archive getArchive() {
       for (com.android.tools.idea.sdk.remote.internal.archives.Archive archive : myWrapped.getArchives()) {
         if (archive.isCompatible()) {
-          ProgressIndicator progress = new RepoProgressIndicatorAdapter(null);
+          ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
           SchemaModule commonModule = AndroidSdkHandler.getInstance().getSdkManager(progress).getCommonModule();
           CommonFactory f = (CommonFactory)commonModule.createLatestFactory();
           Archive arch = f.createArchiveType();
