@@ -22,6 +22,7 @@ import com.android.repository.impl.sources.LocalSourceProvider;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;

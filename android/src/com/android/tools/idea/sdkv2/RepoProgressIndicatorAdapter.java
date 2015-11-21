@@ -18,6 +18,7 @@ package com.android.tools.idea.sdkv2;
 import com.android.repository.api.ProgressIndicator;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.NonCancelableSection;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link ProgressIndicator} that wraps a {@link com.intellij.openapi.progress.ProgressIndicator} and a {@link Logger}.
@@ -26,7 +27,7 @@ public class RepoProgressIndicatorAdapter implements ProgressIndicator {
   private com.intellij.openapi.progress.ProgressIndicator myWrappedIndicator;
   private Logger myLogger = Logger.getInstance(RepoProgressIndicatorAdapter.class);
 
-  public RepoProgressIndicatorAdapter(com.intellij.openapi.progress.ProgressIndicator p) {
+  public RepoProgressIndicatorAdapter(@NotNull com.intellij.openapi.progress.ProgressIndicator p) {
     myWrappedIndicator = p;
   }
 
