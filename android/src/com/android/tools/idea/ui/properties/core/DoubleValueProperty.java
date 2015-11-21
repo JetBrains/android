@@ -13,32 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.properties.expressions.integer;
+package com.android.tools.idea.ui.properties.core;
 
-import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.ObservableProperty;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * An expression which returns a sum of all {@link ObservableValue<Integer>} arguments.
+ * An double-backed {@link ObservableProperty}.
  */
-public final class SumExpression extends IntExpression {
-  private final List<ObservableValue<Integer>> myValues;
+public final class DoubleValueProperty extends DoubleProperty {
 
-  public SumExpression(ObservableValue<Integer>... values) {
-    super(values);
-    myValues = Arrays.asList(values);
+  private Double myValue;
+
+  public DoubleValueProperty(final Double value) {
+    myValue = value;
+  }
+
+  public DoubleValueProperty() {
+    this(0.0);
+  }
+
+  @Override
+  protected void setDirectly(@NotNull Double value) {
+    myValue = value;
   }
 
   @NotNull
   @Override
-  public Integer get() {
-    int sum = 0;
-    for (ObservableValue<Integer> value : myValues) {
-      sum += value.get();
-    }
-    return sum;
+  public Double get() {
+    return myValue;
   }
 }
