@@ -199,9 +199,11 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
+        // Setting the Sdk path will trigger the project sync. Set the Ndk path and Jdk path before the Sdk path to get the changes to them
+        // to take effect during the sync.
+        saveAndroidNdkPath();
         IdeSdks.setJdkPath(getJdkLocation());
         IdeSdks.setAndroidSdkPath(getSdkLocation(), myProject);
-        saveAndroidNdkPath();
 
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
           RunAndroidSdkManagerAction.updateInWelcomePage(myDetailsComponent.getComponent());
