@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.avdmanager.legacy;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.tools.idea.avdmanager.AvdEditWizard;
+import com.android.tools.idea.avdmanager.DeviceManagerConnection;
+import com.android.tools.idea.avdmanager.SystemImageDescription;
+import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextComponentAccessor;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ComboboxWithBrowseButton;
@@ -41,9 +44,10 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.avdmanager.AvdWizardConstants.NO_SKIN;
 
 /**
+ * @deprecated Replace by {@link com.android.tools.idea.avdmanager.SkinChooser}
  * Combobox that populates itself with the skins used by existing devices. Also allows adding a
  * new skin by browsing.
  */
@@ -55,18 +59,15 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     getComboBox().setRenderer(new ColoredListCellRenderer() {
       @Override
       protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        File skinFile = ((value) == null) ? NO_SKIN : (File)value;
+        File skinFile = (File)value;
         String skinPath = skinFile.getPath();
-        if (FileUtil.filesEqual(skinFile, NO_SKIN)) {
+        if (skinFile.equals(NO_SKIN)) {
           append("No Skin");
-        }
-        else if (skinPath.contains("/sdk/platforms/")) {
-          append(skinPath.replaceAll(".*/sdk/platforms/(.*)/skins/(.*)", "$2 ($1)"));
-        }
-        else if (skinPath.contains("/sdk/system-images/")) {
-          append(skinPath.replaceAll(".*/sdk/system-images/(.*)/(.*)/(.*)/skins/(.*)", "$4 ($1 $3)"));
-        }
-        else {
+        } else if (skinPath.contains("/sdk/platforms/")) {
+          append(skinPath.replaceAll(".*/sdk/platforms/(.*)/skins/(.*)","$2 ($1)"));
+        } else if (skinPath.contains("/sdk/system-images/")) {
+          append(skinPath.replaceAll(".*/sdk/system-images/(.*)/(.*)/(.*)/skins/(.*)","$4 ($1 $3)"));
+        } else {
           append(skinFile.getName());
         }
       }
@@ -90,11 +91,10 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
       });
     getComboBox().addItemListener(this);
     setTextFieldPreferredWidth(20);
-
   }
 
   private void setItems(List<File> items) {
-    getComboBox().setModel(new CollectionComboBoxModel<File>(items));
+    getComboBox().setModel(new CollectionComboBoxModel(items));
   }
 
   private static List<File> getSkins() {
@@ -108,21 +108,21 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
       }
     }
     AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-
-    if (androidSdkData != null) {
-      LocalSdk mySdk = androidSdkData.getLocalSdk();
-      List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
-      for (IAndroidTarget target : targets) {
-        ISystemImage[] systemImages = target.getSystemImages();
-        if (systemImages != null) {
-          for (ISystemImage image : systemImages) {
-            SystemImageDescription desc = new SystemImageDescription(target, image);
-            for (File skin : desc.getSkins()) if (skin.exists()) result.add(skin);
+    LocalSdk mySdk = androidSdkData.getLocalSdk();
+    List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
+    for (IAndroidTarget target : targets) {
+      ISystemImage[] systemImages = target.getSystemImages();
+      if (systemImages != null) {
+        for (ISystemImage image : systemImages) {
+          SystemImageDescription desc = new SystemImageDescription(target, image);
+          for (File skin : desc.getSkins()) {
+            if (skin.exists()) {
+              result.add(skin);
+            }
           }
         }
       }
     }
-
     List<File> resultList = Lists.newArrayList();
     resultList.add(NO_SKIN);
     resultList.addAll(result);
@@ -135,6 +135,26 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     for (ItemListener listener : myListeners) {
       listener.itemStateChanged(newEvent);
     }
+  }
+
+  public ScopedDataBinder.ComponentBinding<File, SkinChooser> getBinding() {
+    return new ScopedDataBinder.ComponentBinding<File, SkinChooser>() {
+      @Override
+      public void addItemListener(@NotNull ItemListener listener, @NotNull SkinChooser component) {
+        myListeners.add(listener);
+      }
+
+      @Override
+      public void setValue(@Nullable File newValue, @NotNull SkinChooser component) {
+        component.getComboBox().setSelectedItem(newValue);
+      }
+
+      @Nullable
+      @Override
+      public File getValue(@NotNull SkinChooser component) {
+        return (File)component.getComboBox().getSelectedItem();
+      }
+    };
   }
 
   @Override
