@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.tools.idea.updater.AndroidSdkUpdaterPlugin;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableProvider;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +26,7 @@ public class SdkUpdaterConfigurableProvider extends ConfigurableProvider {
   @Nullable
   @Override
   public Configurable createConfigurable() {
-    if (AndroidSdkUpdaterPlugin.useSdkV2()) {
+    if (AndroidSdkHandler.getInstance().useSdkV2()) {
       return new com.android.tools.idea.updater.configure.v2.SdkUpdaterConfigurable();
     }
     return new SdkUpdaterConfigurable();

@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Objects;
