@@ -29,10 +29,6 @@ import com.android.tools.idea.ddms.actions.ScreenshotAction;
 import com.android.tools.idea.ddms.actions.TerminateVMAction;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.logcat.AndroidLogcatView;
-import com.android.tools.idea.monitor.cpu.CpuMonitorView;
-import com.android.tools.idea.monitor.gpu.GpuMonitorView;
-import com.android.tools.idea.monitor.memory.MemoryMonitorView;
-import com.android.tools.idea.monitor.network.NetworkMonitorView;
 import com.android.tools.idea.run.AndroidDebugRunner;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.util.concurrent.FutureCallback;
@@ -124,19 +120,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     logcatContent.setSearchComponent(logcatView.createSearchComponent());
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
 
-    Content memoryContent =
-      createViewContent(new MemoryMonitorView(project, deviceContext), "Memory", AndroidIcons.MemoryMonitor, layoutUi);
-    layoutUi.addContent(memoryContent, 1, PlaceInGrid.center, false);
-
-    Content cpuContent = createViewContent(new CpuMonitorView(project, deviceContext), "CPU", AndroidIcons.CpuMonitor, layoutUi);
-    layoutUi.addContent(cpuContent, 2, PlaceInGrid.center, false);
-
-    Content gpuContent = createViewContent(new GpuMonitorView(project, deviceContext), "GPU", AndroidIcons.GpuMonitor, layoutUi);
-    layoutUi.addContent(gpuContent, 3, PlaceInGrid.center, false);
-
-    Content networkContent =
-      createViewContent(new NetworkMonitorView(project, deviceContext), "Network", AndroidIcons.NetworkMonitor, layoutUi);
-    layoutUi.addContent(networkContent, 4, PlaceInGrid.center, false);
+    MonitorContentFactory.createMonitorContent(project, deviceContext, layoutUi);
 
     layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
     layoutUi.addListener(new ContentManagerAdapter() {
@@ -200,7 +184,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
       }
 
       @Override
-      public void onFailure(Throwable t) {
+      public void onFailure(@NotNull Throwable t) {
         loadingPanel.stopLoading();
 
         // If we cannot connect to ADB in a reasonable amount of time (10 seconds timeout in AdbService), then something is seriously
@@ -224,16 +208,6 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
         Messages.showErrorDialog(msg, "ADB Connection Error");
       }
     }, EdtExecutor.INSTANCE);
-  }
-
-  private static Content createViewContent(@NotNull BaseMonitorView view,
-                                           @NotNull String contentId,
-                                           @NotNull Icon icon,
-                                           @NotNull RunnerLayoutUi layoutUi) {
-    Content content = layoutUi.createContent(contentId, view.createComponent(), contentId, icon, null);
-    content.setCloseable(false);
-    content.putUserData(BaseMonitorView.MONITOR_VIEW_KEY, view);
-    return content;
   }
 
   @NotNull
