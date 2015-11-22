@@ -53,6 +53,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.application.ApplicationManager;
@@ -73,6 +74,7 @@ import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -263,6 +265,13 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     myProject = project;
     if (isInstantRunEnabled(project)) {
       startFileListener();
+      Disposer.register(project, new Disposable() {
+        @Override
+        public void dispose() {
+          // If the project is disposed, remove subscription
+          stopFileListener();
+        }
+      });
     }
   }
 
