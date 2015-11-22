@@ -58,7 +58,6 @@ import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.execution.junit.JUnitConfigurationType;
-import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -77,7 +76,6 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
-import com.intellij.ui.tabs.FileColorConfigurationUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -197,10 +195,10 @@ public class PostProjectSetupTasksExecutor {
 
     if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
       TestArtifactSearchScopes.initializeScopes(myProject);
-      FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(myProject);
+      //FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(myProject);
       // Before sync, android test files are just considered as normal test file which has different FileColor configuration.
       // If there is any opening tab for android test file, the tab color will not change unless we refresh it.
-      UISettings.getInstance().fireUISettingsChanged();
+      //UISettings.getInstance().fireUISettingsChanged();
     }
 
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
