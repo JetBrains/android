@@ -49,9 +49,10 @@ public class DevicePickerListModelTest {
   public void testEmptyList() {
     myModel.reset(Collections.<IDevice>emptyList(), Collections.<AvdInfo>emptyList());
     List<DevicePickerEntry> items = myModel.getItems();
-    assertEquals("When there are no devices, an info message and the connected devices separator should be shown", 2, items.size());
+    assertEquals("When there are no devices, an info message and the 2 empty messages should be shown", 3, items.size());
     assertTrue(items.get(0).isMarker());
     assertTrue(items.get(1).isMarker());
+    assertTrue(items.get(2).isMarker());
   }
 
   @Test
@@ -72,9 +73,11 @@ public class DevicePickerListModelTest {
     myModel.reset(Collections.singletonList(device1), Collections.<AvdInfo>emptyList());
 
     List<DevicePickerEntry> items = myModel.getItems();
-    assertEquals("Expected 2 items (separator, device1)", 2, items.size());
+    assertEquals("Expected 3 items (separator, device1, separator)", 3, items.size());
 
+    assertTrue(items.get(0).isMarker());
     assertNotNull(items.get(1).getAndroidDevice());
+    assertTrue(items.get(2).isMarker());
   }
 
   @Test

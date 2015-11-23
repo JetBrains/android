@@ -25,6 +25,8 @@ import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ide.ui.search.SearchUtil;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
@@ -155,6 +157,10 @@ public class ConnectedAndroidDevice implements AndroidDevice {
 
   @Nullable
   private static DeviceNameRendererEx getRendererExtension(@NotNull IDevice device) {
+    Application application = ApplicationManager.getApplication();
+    if (application == null || application.isUnitTestMode()) {
+      return null;
+    }
     for (DeviceNameRendererEx extensionRenderer : EP_NAME.getExtensions()) {
       if (extensionRenderer.isApplicable(device)) {
         return extensionRenderer;

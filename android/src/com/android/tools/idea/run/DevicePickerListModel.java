@@ -84,8 +84,9 @@ public class DevicePickerListModel extends AbstractListModel {
       for (AndroidDevice device : connected) {
         myEntries.add(DevicePickerEntry.create(device));
       }
-    } else {
-      myEntries.add(DevicePickerEntry.NO_DEVICES_PROMPT);
+    }
+    else {
+      myEntries.add(DevicePickerEntry.NONE);
     }
 
     if (!launchable.isEmpty()) {
@@ -94,6 +95,9 @@ public class DevicePickerListModel extends AbstractListModel {
       for (AndroidDevice device : launchable) {
         myEntries.add(DevicePickerEntry.create(device));
       }
+    }
+    else {
+      myEntries.add(DevicePickerEntry.NONE);
     }
 
     int size = myEntries.size();
