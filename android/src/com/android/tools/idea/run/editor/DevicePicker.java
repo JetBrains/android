@@ -20,6 +20,8 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.avdmanager.AccelerationErrorCode;
+import com.android.tools.idea.avdmanager.AccelerationErrorNotificationPanel;
 import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -55,10 +57,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -75,7 +74,9 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   private HyperlinkLabel myHelpHyperlink;
   @SuppressWarnings("unused") // custom create
   private JScrollPane myScrollPane;
+  private JPanel myNotificationPanel;
   private JBList myDevicesList;
+  private int myDeviceCount;
 
   @NotNull private final AndroidFacet myFacet;
   private final int myRunContextId;
@@ -240,6 +241,45 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     });
   }
 
+  private void updateErrorCheck() {
+    myNotificationPanel.removeAll();
+    if (myDeviceCount == 0) {
+      EditorNotificationPanel panel = new EditorNotificationPanel();
+      panel.setText("No USB devices or emulators detected");
+      panel.createActionLabel("Troubleshoot", new Runnable() {
+        @Override
+        public void run() {
+          launchDiagnostics(null);
+        }
+      });
+
+      myNotificationPanel.add(panel);
+    }
+    else {
+      ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+        @Override
+        public void run() {
+          final AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceration();
+          if (error != AccelerationErrorCode.ALREADY_INSTALLED) {
+            UIUtil.invokeLaterIfNeeded(new Runnable() {
+              @Override
+              public void run() {
+                myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myFacet.getModule().getProject(), new Runnable() {
+                  @Override
+                  public void run() {
+                    updateErrorCheck();
+                  }
+                }));
+                myPanel.revalidate();
+                myPanel.repaint();
+              }
+            });
+          }
+        }
+      });
+    }
+  }
+
   private void postUpdate() {
     myUpdateQueue.queue(new Update("updateDevicePickerModel") {
       @Override
@@ -293,6 +333,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
     List<IDevice> connectedDevices = Lists.newArrayList(bridge.getDevices());
     myModel.reset(connectedDevices, myAvdInfos);
+    myDeviceCount = connectedDevices.size() + myAvdInfos.size();
 
     if (selectedSerials.isEmpty()) {
       selectedSerials = getDefaultSelection();
@@ -301,6 +342,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
     // The help hyper link is shown only when there is no inline troubleshoot link
     myHelpHyperlink.setVisible(!connectedDevices.isEmpty());
+
+    updateErrorCheck();
   }
 
   @NotNull
@@ -447,6 +490,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
       }
 
       JList list = (JList)e.getSource();
+      int startIndex = list.getSelectedIndex();
 
       int keyCode = e.getKeyCode();
       switch (keyCode) {
@@ -469,13 +513,14 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
       // move up or down if the current selection is a marker
       DevicePickerEntry entry = (DevicePickerEntry)list.getSelectedValue();
-      if (entry.isMarker()) {
+      while (entry.isMarker() && list.getSelectedIndex() != startIndex) {
         if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_PAGE_UP) {
           ListScrollingUtil.moveUp(list, e.getModifiersEx());
         }
         else {
           ListScrollingUtil.moveDown(list, e.getModifiersEx());
         }
+        entry = (DevicePickerEntry)list.getSelectedValue();
       }
 
       e.consume();
