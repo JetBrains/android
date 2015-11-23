@@ -215,7 +215,10 @@ public final class AndroidSdkUtils {
   @Nullable
   private static VirtualFile getPlatformDir(@NotNull IAndroidTarget target) {
     String platformPath = target.isPlatform() ? target.getLocation() : target.getParent().getLocation();
-    return LocalFileSystem.getInstance().refreshAndFindFileByPath(toSystemIndependentName((platformPath)));
+    if (platformPath == null) {
+      return null;
+    }
+    return LocalFileSystem.getInstance().refreshAndFindFileByPath(toSystemIndependentName(platformPath));
   }
 
   @Nullable
