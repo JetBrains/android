@@ -113,6 +113,21 @@ public class ResourceHelperTest extends AndroidTestCase {
     c = ResourceHelper.parseColor("#08123456");
     assert c != null;
     assertEquals(0x08123456, c.getRGB());
+
+    // Test that spaces are correctly trimmed
+    c = ResourceHelper.parseColor("#0f4 ");
+    assert c != null;
+    assertEquals(0xff00ff44, c.getRGB());
+
+    c = ResourceHelper.parseColor(" #1237");
+    assert c != null;
+    assertEquals(0x11223377, c.getRGB());
+
+    c = ResourceHelper.parseColor("#123456\n\n ");
+    assert c != null;
+    assertEquals(0xff123456, c.getRGB());
+
+    assertNull(ResourceHelper.parseColor("#123 456"));
   }
 
   public void testColorToString() {
