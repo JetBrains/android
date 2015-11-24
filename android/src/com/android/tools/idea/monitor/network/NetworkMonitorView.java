@@ -16,12 +16,14 @@
 package com.android.tools.idea.monitor.network;
 
 import com.android.ddmlib.Client;
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
@@ -41,7 +43,7 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
   private static final String MISSING_LABEL = "Network monitoring is not available on your device.";
   private static final String STARTING_LABEL =
-    "Starting... If it is not finished within seconds, the device may not be properly connected, please reconnect.";
+    "Starting... If this doesn't finish within seconds, the device may not be properly connected. Please reconnect.";
 
   private Future<?> checkStatsFileFuture;
 
@@ -68,6 +70,8 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new RecordingAction(this));
+    group.add(new Separator());
+    group.add(new BrowserHelpAction("Network monitor", "http://developer.android.com/r/studio-ui/am-network.html"));
     return group;
   }
 

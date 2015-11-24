@@ -18,6 +18,7 @@ package com.android.tools.idea.monitor.gpu;
 import com.android.ddmlib.Client;
 import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.chartlib.TimelineData;
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.actions.GfxTraceCaptureAction;
@@ -88,6 +89,8 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
       group.add(new Separator());
       group.add(new GfxTraceCaptureAction.Listen(this));
       group.add(new GfxTraceCaptureAction.Launch(this));
+      group.add(new Separator());
+      group.add(new BrowserHelpAction("GPU monitor", "http://developer.android.com/r/studio-ui/am-gpu.html"));
     }
     return group;
   }

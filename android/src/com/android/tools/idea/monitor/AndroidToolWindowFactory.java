@@ -18,6 +18,7 @@ package com.android.tools.idea.monitor;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.ClientData;
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.EdtExecutor;
@@ -284,7 +285,8 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
     group.add(new TerminateVMAction(deviceContext));
     //group.add(new MyAllocationTrackerAction());
-    //group.add(new Separator());
+    group.add(new Separator());
+    group.add(new BrowserHelpAction("Android Monitor", "http://developer.android.com/r/studio-ui/android-monitor.html"));
 
     return group;
   }
