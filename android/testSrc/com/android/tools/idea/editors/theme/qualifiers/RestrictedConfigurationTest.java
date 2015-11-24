@@ -21,12 +21,13 @@ import com.google.common.collect.Lists;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
 public class RestrictedConfigurationTest extends AndroidTestCase {
 
-  private void checkRestrictConfigurationFor(String compatibleQualifier, String answerQualifier, String... incompatibleQualifiers) {
+  private void checkRestrictFor(String compatibleQualifier, String answerQualifier, String... incompatibleQualifiers) {
     ArrayList<FolderConfiguration> incompatibles = Lists.newArrayList();
     for (int i = 0; i < incompatibleQualifiers.length; ++i) {
       incompatibles.add(FolderConfiguration.getConfigForQualifierString(incompatibleQualifiers[i]));
@@ -34,7 +35,7 @@ public class RestrictedConfigurationTest extends AndroidTestCase {
     }
     final FolderConfiguration compatible = FolderConfiguration.getConfigForQualifierString(compatibleQualifier);
     assertNotNull(compatible);
-    FolderConfiguration restrictedConfiguration = RestrictedConfiguration.restrictConfiguration(compatible, incompatibles).getAny();
+    FolderConfiguration restrictedConfiguration = RestrictedConfiguration.restrict(compatible, incompatibles).getAny();
     assertNotNull(restrictedConfiguration);
 
     // folderConfiguration.getUniqueKey() returns with a "-"
@@ -56,35 +57,35 @@ public class RestrictedConfigurationTest extends AndroidTestCase {
   }
 
   /**
-   * Tests restrictConfiguration method, which should work backward to algorithm from the following link
+   * Tests {@link RestrictedConfiguration#restrict(FolderConfiguration, Collection)}, which should work backward to algorithm from the following link
    * See: http://developer.android.com/guide/topics/resources/providing-resources.html
    */
-  public void testRestrictConfiguration() {
+  public void testRestrict() {
 
     assertEquals(21, FolderConfiguration.getQualifierCount());
 
-    checkRestrictConfigurationFor("en-v21", "en", "ldrtl", "ldltr");
-    checkRestrictConfigurationFor("en", "en", "fr-v23", "fr-v19");
+    checkRestrictFor("en-v21", "en", "ldrtl", "ldltr");
+    checkRestrictFor("en", "en", "fr-v23", "fr-v19");
     // "__" - is a fake language qualifier, see: LocaleQualifier.FAKE_VALUE
-    checkRestrictConfigurationFor("v11", "__-v11", "v7", "en");
-    checkRestrictConfigurationFor("en", "en", "v9");
-    checkRestrictConfigurationFor("fr", "fr", "en-v7", "en-v11");
-    checkRestrictConfigurationFor("land-hdpi", "land-hdpi", "land");
-    checkRestrictConfigurationFor("en", "en-port", "en-land", "port");
-    checkRestrictConfigurationFor("en", "en-night-v19", "en-notnight-v21", "en-notnight-v21", "en-v20", "fr-night-v18");
-    checkRestrictConfigurationFor("land", "land", "v21", "v19");
-    checkRestrictConfigurationFor("", "__-sw599dp-v14", "v21", "de", "sw600dp", "ar", "v15", "pt-rPT", "pt-rBR", "v16");
+    checkRestrictFor("v11", "__-v11", "v7", "en");
+    checkRestrictFor("en", "en", "v9");
+    checkRestrictFor("fr", "fr", "en-v7", "en-v11");
+    checkRestrictFor("land-hdpi", "land-hdpi", "land");
+    checkRestrictFor("en", "en-port", "en-land", "port");
+    checkRestrictFor("en", "en-night-v19", "en-notnight-v21", "en-notnight-v21", "en-v20", "fr-night-v18");
+    checkRestrictFor("land", "land", "v21", "v19");
+    checkRestrictFor("", "__-sw599dp-v14", "v21", "de", "sw600dp", "ar", "v15", "pt-rPT", "pt-rBR", "v16");
 
-    checkRestrictConfigurationFor("", "__", "en", "fr", "kz", "ru"); // LocaleQualifier
-    checkRestrictConfigurationFor("", "ldltr", "ldrtl", "ldrtl"); // LayoutDirectionQualifier
-    checkRestrictConfigurationFor("", "long", "notlong"); // ScreenRationQualifier
-    checkRestrictConfigurationFor("", "notround", "round", "round"); // ScreenRoundQualifier
-    checkRestrictConfigurationFor("", "land", "port", "port"); // ScreenOrientationQualifier
-    checkRestrictConfigurationFor("", "notnight", "night"); // NightModeQualifier
-    checkRestrictConfigurationFor("", "finger", "notouch", "stylus"); // TouchScreenQualifier
-    checkRestrictConfigurationFor("", "keysexposed", "keyshidden", "keyssoft"); // KeyboardStateQualifier
-    checkRestrictConfigurationFor("", "nokeys", "qwerty", "12key"); // TextInputMethodQualifier
-    checkRestrictConfigurationFor("", "nonav", "dpad", "trackball", "wheel"); // NavigationMethodQualifier
-    checkRestrictConfigurationFor("", "v14", "v21", "v16", "v15", "v16"); // VersionQualifier
+    checkRestrictFor("", "__", "en", "fr", "kz", "ru"); // LocaleQualifier
+    checkRestrictFor("", "ldltr", "ldrtl", "ldrtl"); // LayoutDirectionQualifier
+    checkRestrictFor("", "long", "notlong"); // ScreenRationQualifier
+    checkRestrictFor("", "notround", "round", "round"); // ScreenRoundQualifier
+    checkRestrictFor("", "land", "port", "port"); // ScreenOrientationQualifier
+    checkRestrictFor("", "notnight", "night"); // NightModeQualifier
+    checkRestrictFor("", "finger", "notouch", "stylus"); // TouchScreenQualifier
+    checkRestrictFor("", "keysexposed", "keyshidden", "keyssoft"); // KeyboardStateQualifier
+    checkRestrictFor("", "nokeys", "qwerty", "12key"); // TextInputMethodQualifier
+    checkRestrictFor("", "nonav", "dpad", "trackball", "wheel"); // NavigationMethodQualifier
+    checkRestrictFor("", "v14", "v21", "v16", "v15", "v16"); // VersionQualifier
   }
 }

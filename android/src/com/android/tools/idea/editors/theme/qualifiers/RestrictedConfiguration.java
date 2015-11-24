@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme.qualifiers;
 
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,14 +76,33 @@ public class RestrictedConfiguration {
   }
 
   /**
+   * @return any {@link FolderConfiguration} that matches to constraints
+   */
+  @NotNull
+  public FolderConfiguration getAny() {
+    FolderConfiguration configuration = new FolderConfiguration();
+
+    for (int i = 0; i < FolderConfiguration.getQualifierCount(); ++i) {
+      if (myRestrictedQualifiers[i] == null) {
+        continue;
+      }
+      Object value = myRestrictedQualifiers[i].getAny();
+      if (value != null) {
+        configuration.addQualifier(QualifierUtils.createNewResourceQualifier(myQualifiersClasses[i], value));
+      }
+    }
+    return configuration;
+  }
+
+  /**
    * @param compatible FolderConfiguration that needs to be matching
    * @param incompatibles Collection of FolderConfigurations need to avoid matching
    * @return FolderConfiguration that matches with compatible, but doesn't match with any from incompatibles.
    * Backward implementation to the <a href="http://developer.android.com/guide/topics/resources/providing-resources.html">algorithm</a>.
    */
   @Nullable("if there is no configuration that matches the constraints")
-  public static RestrictedConfiguration restrictConfiguration(@NotNull FolderConfiguration compatible,
-                                                              @NotNull Collection<FolderConfiguration> incompatibles) {
+  public static RestrictedConfiguration restrict(@NotNull FolderConfiguration compatible,
+                                                 @NotNull Collection<FolderConfiguration> incompatibles) {
     RestrictedConfiguration restricted = new RestrictedConfiguration();
     if (incompatibles.isEmpty()) {
       return restricted;
@@ -136,21 +156,26 @@ public class RestrictedConfiguration {
   }
 
   /**
-   * @return any {@link FolderConfiguration} that matches to constraints
+   * Returns a restricted version of the passed configuration. The value returned will be incompatible with any other configuration in the
+   * item. This configuration can be used when we want to make sure that the configuration selected will be displayed.
+   * Note: allItems should contain compatible
    */
-  @NotNull
-  public FolderConfiguration getAny() {
-    FolderConfiguration configuration = new FolderConfiguration();
-
-    for (int i = 0; i < FolderConfiguration.getQualifierCount(); ++i) {
-      if (myRestrictedQualifiers[i] == null) {
+  @Nullable("if there is no configuration that matches the constraints")
+  public static <T> FolderConfiguration restrict(@NotNull ConfiguredElement<T> compatible,
+                                                 Collection<ConfiguredElement<T>> allItems) {
+    ArrayList<FolderConfiguration> incompatibleConfigurations = Lists.newArrayListWithCapacity(allItems.size());
+    boolean found = false;
+    for (ConfiguredElement configuredItem : allItems) {
+      FolderConfiguration configuration = configuredItem.getConfiguration();
+      if (configuredItem.equals(compatible)) {
+        found = true;
         continue;
       }
-      Object value = myRestrictedQualifiers[i].getAny();
-      if (value != null) {
-        configuration.addQualifier(QualifierUtils.createNewResourceQualifier(myQualifiersClasses[i], value));
-      }
+      incompatibleConfigurations.add(configuration);
     }
-    return configuration;
+    assert found;
+    RestrictedConfiguration restricted = restrict(compatible.getConfiguration(), incompatibleConfigurations);
+    return (restricted != null) ? restricted.getAny() : null;
   }
+
 }

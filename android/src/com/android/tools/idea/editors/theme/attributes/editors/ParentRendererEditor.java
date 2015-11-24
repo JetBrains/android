@@ -24,7 +24,7 @@ import com.android.tools.idea.editors.theme.attributes.variants.VariantItemListe
 import com.android.tools.idea.editors.theme.attributes.variants.VariantsComboItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
-import com.android.tools.idea.editors.theme.qualifiers.QualifierUtils;
+import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
 import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -173,7 +173,7 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorSty
     }
 
     for (ConfiguredElement<String> configuredParent : allParents) {
-      FolderConfiguration restrictedConfig = QualifierUtils.restrictConfiguration(configuredParent, allParents);
+      FolderConfiguration restrictedConfig = RestrictedConfiguration.restrict(configuredParent, allParents);
       String parentName = configuredParent.getElement();
 
       if (restrictedConfig == null) {
