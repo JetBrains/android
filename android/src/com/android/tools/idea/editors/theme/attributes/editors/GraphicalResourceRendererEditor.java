@@ -28,7 +28,7 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
-import com.android.tools.idea.editors.theme.qualifiers.QualifierUtils;
+import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
 import com.android.tools.idea.rendering.ResourceHelper;
@@ -147,8 +147,9 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
     final String currentVariantColor = ColorUtil.toHex(ThemeEditorConstants.CURRENT_VARIANT_COLOR);
     final String notSelectedVariantColor = ColorUtil.toHex(ThemeEditorConstants.NOT_SELECTED_VARIANT_COLOR);
 
-    FolderConfiguration restrictedConfig = QualifierUtils.restrictConfiguration(item.getSelectedItemResourceValue(),
-                                                                                item.getAllConfiguredItems());
+    FolderConfiguration restrictedConfig = RestrictedConfiguration.restrict(item.getSelectedItemResourceValue(),
+                                                                          item.getAllConfiguredItems());
+
     String description = String.format(ThemeEditorConstants.CURRENT_VARIANT_TEMPLATE, currentVariantColor,
                                        item.getSelectedValueConfiguration().toShortDisplayString());
     VariantsComboItem selectedItem =
@@ -157,7 +158,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
     // All the not selected elements are sorted alphabetically
     TreeSet<VariantsComboItem> notSelectedItems = Sets.newTreeSet(VARIANTS_COMBO_ITEM_COMPARATOR);
     for (ConfiguredElement<ItemResourceValue> configuredItem : item.getNonSelectedItemResourceValues()) {
-      restrictedConfig = QualifierUtils.restrictConfiguration(configuredItem, item.getAllConfiguredItems());
+      restrictedConfig = RestrictedConfiguration.restrict(configuredItem, item.getAllConfiguredItems());
 
       if (restrictedConfig == null) {
         // This type is not visible
