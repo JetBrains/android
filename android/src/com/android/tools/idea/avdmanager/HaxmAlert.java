@@ -16,10 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
@@ -33,6 +30,8 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.View;
 import java.awt.*;
+
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
 
 /**
  * Component for displaying an alert on the installation state of HAXM/KVM.
@@ -92,17 +91,29 @@ public class HaxmAlert extends JPanel {
 
     AccelerationErrorCode accelerationError = getAccelerationState(false);
     if (accelerationError != AccelerationErrorCode.ALREADY_INSTALLED) {
-      switch (accelerationError.getSolution()) {
-        case INSTALL_HAXM:
-        case REINSTALL_HAXM:
-          hasLink = true;
-          setupDownloadLink();
-          warningTextBuilder.append(accelerationError.getSolutionMessage()).append("\n");
-          break;
-        default:
-          warningTextBuilder.append(accelerationError.getProblem()).append("\n");
-          warningTextBuilder.append(accelerationError.getSolutionMessage()).append("\n");
+      hasLink = true;
+      warningTextBuilder.append(accelerationError.getProblem());
+      warningTextBuilder.append("\n");
+      myErrorInstructionsLink.setHyperlinkText(accelerationError.getSolution().getDescription());
+      if (myErrorLinkListener != null) {
+        myErrorInstructionsLink.removeHyperlinkListener(myErrorLinkListener);
       }
+      Runnable refresh = new Runnable() {
+        @Override
+        public void run() {
+          refresh();
+        }
+      };
+      final Runnable action = AccelerationErrorSolution.getActionForFix(accelerationError, null, refresh);
+      myErrorLinkListener =
+        new HyperlinkAdapter() {
+          @Override
+          protected void hyperlinkActivated(HyperlinkEvent e) {
+            action.run();
+          }
+        };
+      myErrorInstructionsLink.addHyperlinkListener(myErrorLinkListener);
+      myErrorInstructionsLink.setToolTipText(accelerationError.getSolution() != NONE ? accelerationError.getSolutionMessage() : null);
     }
 
     if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
@@ -123,52 +134,6 @@ public class HaxmAlert extends JPanel {
     } else {
       setVisible(false);
     }
-  }
-
-  private void setupDownloadLink() {
-    if (SystemInfo.isLinux) {
-      setupDownloadLinkForLinux();
-    }
-    else {
-      setupDownloadLinkForWindowsAndMac();
-    }
-  }
-
-  private void setupDownloadLinkForWindowsAndMac() {
-    myErrorInstructionsLink.setHyperlinkTarget(null);
-    myErrorInstructionsLink.setHtmlText("<a>Download and install HAXM<a>");
-    if (myErrorLinkListener != null) {
-      myErrorInstructionsLink.removeHyperlinkListener(myErrorLinkListener);
-    }
-    myErrorLinkListener =
-      new HyperlinkAdapter() {
-        @Override
-        protected void hyperlinkActivated(HyperlinkEvent e) {
-          HaxmWizard wizard = new HaxmWizard();
-          wizard.init();
-          wizard.show();
-          getAccelerationState(true);
-          refresh();
-        }
-      };
-    myErrorInstructionsLink.addHyperlinkListener(myErrorLinkListener);
-  }
-
-  private void setupDownloadLinkForLinux() {
-    myErrorInstructionsLink.setHyperlinkTarget(FirstRunWizardDefaults.KVM_LINUX_INSTALL_URL);
-    myErrorInstructionsLink.setHtmlText("<a>KVM Instructions</a>");
-    if (myErrorLinkListener != null) {
-      myErrorInstructionsLink.removeHyperlinkListener(myErrorLinkListener);
-    }
-    myErrorLinkListener =
-      new HyperlinkAdapter() {
-        @Override
-        protected void hyperlinkActivated(HyperlinkEvent e) {
-          // Invalidate the current cached acceleration status:
-          ourAccelerationError = null;
-        }
-      };
-    myErrorInstructionsLink.addHyperlinkListener(myErrorLinkListener);
   }
 
   @NotNull
