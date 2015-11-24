@@ -18,7 +18,10 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel.NativeVariant;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
@@ -56,26 +59,26 @@ class BuildVariantUpdater {
    * @param project          the module's project.
    * @param moduleName       the module's name.
    * @param buildVariantName the name of the selected build variant.
-   * @return the facets affected by the build variant selection, if the module update was successful; an empty list otherwise.
+   * @return {@code true} if the module update was successful, {@code false} otherwise.
    */
-  @NotNull
-  List<AndroidFacet> updateSelectedVariant(@NotNull final Project project,
-                                           @NotNull final String moduleName,
-                                           @NotNull final String buildVariantName) {
-    final List<AndroidFacet> affectedFacets = Lists.newArrayList();
+  boolean updateSelectedVariant(@NotNull final Project project,
+                                @NotNull final String moduleName,
+                                @NotNull final String buildVariantName) {
+    final List<AndroidFacet> affectedAndroidFacets = Lists.newArrayList();
+    final List<NativeAndroidGradleFacet> affectedNativeAndroidFacets = Lists.newArrayList();
     executeProjectChanges(project, new Runnable() {
       @Override
       public void run() {
-        Module updatedModule = doUpdate(project, moduleName, buildVariantName, affectedFacets);
+        Module updatedModule = doUpdate(project, moduleName, buildVariantName, affectedAndroidFacets, affectedNativeAndroidFacets);
         if (updatedModule != null) {
           ConflictSet conflicts = findConflicts(project);
           conflicts.showSelectionConflicts();
         }
 
-        generateSourcesIfNeeded(affectedFacets);
+        generateSourcesIfNeeded(affectedAndroidFacets);
       }
     });
-    return affectedFacets;
+    return !affectedAndroidFacets.isEmpty() || !affectedNativeAndroidFacets.isEmpty();
   }
 
   /**
@@ -83,19 +86,21 @@ class BuildVariantUpdater {
    *
    * @param modules          modules to be updated. All have to have a corresponding facet and android project.
    * @param testArtifactName new test artifact name.
-   * @return modules that were affected by the change.
+   * @return {@code true} if the module update was successful, {@code false} otherwise.
    */
-  @NotNull
-  List<AndroidFacet> updateTestArtifactsNames(@NotNull Project project,
-                                              @NotNull final Iterable<Module> modules,
-                                              @NotNull final String testArtifactName) {
+  boolean updateTestArtifactsNames(@NotNull Project project,
+                                   @NotNull final Iterable<Module> modules,
+                                   @NotNull final String testArtifactName) {
     final List<AndroidFacet> affectedFacets = Lists.newArrayList();
     executeProjectChanges(project, new Runnable() {
       @Override
       public void run() {
         for (Module module : modules) {
           AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-          assert androidFacet != null;
+          if (androidFacet == null) {
+            continue;
+          }
+
           AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
           assert androidModel != null;
 
@@ -110,32 +115,50 @@ class BuildVariantUpdater {
         generateSourcesIfNeeded(affectedFacets);
       }
     });
-    return affectedFacets;
+    return !affectedFacets.isEmpty();
   }
 
   @Nullable
   private Module doUpdate(@NotNull Project project,
                           @NotNull String moduleName,
                           @NotNull String variant,
-                          @NotNull List<AndroidFacet> affectedFacets) {
+                          @NotNull List<AndroidFacet> affectedAndroidFacets,
+                          @NotNull List<NativeAndroidGradleFacet> affectedNativeAndroidFacets) {
     Module moduleToUpdate = findModule(project, moduleName);
     if (moduleToUpdate == null) {
       logAndShowUpdateFailure(variant, String.format("Cannot find module '%1$s'.", moduleName));
       return null;
     }
-    AndroidFacet facet = getAndroidFacet(moduleToUpdate, variant);
-    if (facet == null) {
-      return null;
-    }
-    AndroidGradleModel androidModel = getAndroidModel(facet, variant);
-    if (androidModel == null) {
-      return null;
-    }
 
-    if (!updateSelectedVariant(facet, androidModel, variant, affectedFacets)) {
-      return null;
+    AndroidFacet androidFacet = AndroidFacet.getInstance(moduleToUpdate);
+    NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(moduleToUpdate);
+
+    if (androidFacet == null && nativeAndroidFacet == null) {
+      logAndShowUpdateFailure(variant,
+                              String.format("Cannot find 'Android' or 'Native-Android-Gradle' facets in module '%1$s'.",
+                                            moduleToUpdate.getName()));
     }
-    affectedFacets.add(facet);
+    if (androidFacet != null) {
+      AndroidGradleModel androidModel = getAndroidModel(androidFacet, variant);
+      if (androidModel == null) {
+        return null;
+      }
+
+      if (!updateSelectedVariant(androidFacet, androidModel, variant, affectedAndroidFacets)) {
+        return null;
+      }
+      affectedAndroidFacets.add(androidFacet);
+    }
+    if (nativeAndroidFacet != null) {
+      NativeAndroidGradleModel nativeAndroidModel = getNativeAndroidModel(nativeAndroidFacet, variant);
+      if (nativeAndroidModel == null) {
+        return null;
+      }
+      if (!updateSelectedVariant(nativeAndroidFacet, nativeAndroidModel, variant)) {
+        return null;
+      }
+      affectedNativeAndroidFacets.add(nativeAndroidFacet);
+    }
     return moduleToUpdate;
   }
 
@@ -168,6 +191,20 @@ class BuildVariantUpdater {
         ensureVariantIsSelected(module.getProject(), gradlePath, projectVariant, affectedFacets);
       }
     }
+    return true;
+  }
+
+  private static boolean updateSelectedVariant(@NotNull NativeAndroidGradleFacet nativeAndroidFacet,
+                                               @NotNull NativeAndroidGradleModel nativeAndroidModel,
+                                               @NotNull String variantToSelect) {
+    NativeVariant selectedVariant = nativeAndroidModel.getSelectedVariant();
+    if (variantToSelect.equals(selectedVariant.getName())) {
+      return false;
+    }
+    nativeAndroidModel.setSelectedVariantName(variantToSelect);
+    invokeCustomizers(nativeAndroidFacet.getModule(), nativeAndroidModel);
+
+    // TODO: Also update the dependent modules variants.
     return true;
   }
 
@@ -222,6 +259,48 @@ class BuildVariantUpdater {
     return customizers;
   }
 
+  @NotNull
+  private static Module invokeCustomizers(@NotNull Module module, @NotNull NativeAndroidGradleModel nativeAndroidModel) {
+    final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
+    try {
+      for (ModuleCustomizer<NativeAndroidGradleModel> customizer : getNativeAndroidCustomizers(nativeAndroidModel.getProjectSystemId())) {
+        customizer.customizeModule(module.getProject(), module, modelsProvider, nativeAndroidModel);
+      }
+      modelsProvider.commit();
+    }
+    catch (Throwable t) {
+      modelsProvider.dispose();
+      ExceptionUtil.rethrowAllAsUnchecked(t);
+    }
+    return module;
+  }
+
+  @NotNull
+  private static List<BuildVariantModuleCustomizer<NativeAndroidGradleModel>> getNativeAndroidCustomizers(
+    @NotNull ProjectSystemId targetProjectSystemId) {
+    return getNativeAndroidCustomizers(targetProjectSystemId, BuildVariantModuleCustomizer.EP_NAME.getExtensions());
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static List<BuildVariantModuleCustomizer<NativeAndroidGradleModel>> getNativeAndroidCustomizers(
+    @NotNull ProjectSystemId targetProjectSystemId,
+    @NotNull BuildVariantModuleCustomizer... allCustomizers) {
+    List<BuildVariantModuleCustomizer<NativeAndroidGradleModel>> customizers = Lists.newArrayList();
+    for (BuildVariantModuleCustomizer customizer : allCustomizers) {
+      // Supported model type must be NativeAndroidGradleModel or subclass.
+      if (NativeAndroidGradleModel.class.isAssignableFrom(customizer.getSupportedModelType())) {
+        // Build system should be ProjectSystemId.IDE or match the build system sent as parameter.
+        ProjectSystemId projectSystemId = customizer.getProjectSystemId();
+        if (Objects.equal(projectSystemId, targetProjectSystemId) || Objects.equal(projectSystemId, ProjectSystemId.IDE)) {
+          //noinspection unchecked
+          customizers.add(customizer);
+        }
+      }
+    }
+    return customizers;
+  }
+
   private void ensureVariantIsSelected(@NotNull Project project,
                                        @NotNull String moduleGradlePath,
                                        @NotNull String variant,
@@ -231,10 +310,13 @@ class BuildVariantUpdater {
       logAndShowUpdateFailure(variant, String.format("Cannot find module with Gradle path '%1$s'.", moduleGradlePath));
       return;
     }
-    AndroidFacet facet = getAndroidFacet(module, variant);
+
+    AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
+      logAndShowUpdateFailure(variant, String.format("Cannot find 'Android' facet in module '%1$s'.", module.getName()));
       return;
     }
+
     AndroidGradleModel androidModel = getAndroidModel(facet, variant);
     if (androidModel == null) {
       return;
@@ -248,21 +330,22 @@ class BuildVariantUpdater {
 
 
   @Nullable
-  private static AndroidFacet getAndroidFacet(@NotNull Module module, @NotNull String variantToSelect) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      logAndShowUpdateFailure(variantToSelect, String.format("Cannot find 'Android' facet in module '%1$s'.", module.getName()));
-    }
-    return facet;
-  }
-
-  @Nullable
   private static AndroidGradleModel getAndroidModel(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
     AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
     if (androidModel == null) {
       logAndShowUpdateFailure(variantToSelect, String.format("Cannot find AndroidProject for module '%1$s'.", facet.getModule().getName()));
     }
     return androidModel;
+  }
+
+  @Nullable
+  private static NativeAndroidGradleModel getNativeAndroidModel(@NotNull NativeAndroidGradleFacet facet, @NotNull String variantToSelect) {
+    NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(facet);
+    if (nativeAndroidModel == null) {
+      logAndShowUpdateFailure(variantToSelect,
+                              String.format("Cannot find NativeAndroidProject for module '%1$s'.", facet.getModule().getName()));
+    }
+    return nativeAndroidModel;
   }
 
   private static void logAndShowUpdateFailure(@NotNull String buildVariantName, @NotNull String reason) {
