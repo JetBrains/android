@@ -78,6 +78,8 @@ public class AccelerationErrorSolution {
     NONE("Troubleshoot"),
     DOWNLOAD_EMULATOR("Install Emulator"),
     UPDATE_EMULATOR("Update Emulator"),
+    UPDATE_PLATFORM_TOOLS("Update Platform Tools"),
+    UPDATE_SYSTEM_IMAGES("Update System Images"),
     INSTALL_KVM("Install KVM"),
     INSTALL_HAXM("Install Haxm"),
     REINSTALL_HAXM("Reinstall Haxm");
@@ -127,16 +129,27 @@ public class AccelerationErrorSolution {
           public void run() {
             List<IPkgDesc> requested = Lists.newArrayList();
             requested.add(PkgDesc.Builder.newTool(TOOLS_REVISION_WITH_FIRST_QEMU2, PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2).create());
-            ModelWizardDialog sdkQuickfixWizard = SdkQuickfixUtils.createDialog(null, requested);
-            if (sdkQuickfixWizard != null) {
-              sdkQuickfixWizard.show();
-              if (sdkQuickfixWizard.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-                if (myProject != null) {
-                  GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
-                }
-                refresh();
-              }
-            }
+            showQuickFix(requested);
+          }
+        };
+
+      case UPDATE_PLATFORM_TOOLS:
+        return new Runnable() {
+          @Override
+          public void run() {
+            List<IPkgDesc> requested = Lists.newArrayList();
+            requested.add(PkgDesc.Builder.newPlatformTool(PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2).create());
+            showQuickFix(requested);
+          }
+        };
+
+      case UPDATE_SYSTEM_IMAGES:
+        return new Runnable() {
+          @Override
+          public void run() {
+            AvdManagerConnection avdManager = AvdManagerConnection.getDefaultAvdManagerConnection();
+            List<IPkgDesc> requested = avdManager.getSystemImageUpdates();
+            showQuickFix(requested);
           }
         };
 
@@ -255,6 +268,19 @@ public class AccelerationErrorSolution {
       version = version.substring(0, index);
     }
     return Revision.parseRevision(version);
+  }
+
+  private void showQuickFix(@NotNull List<IPkgDesc> requested) {
+    ModelWizardDialog sdkQuickfixWizard = SdkQuickfixUtils.createDialog(null, requested);
+    if (sdkQuickfixWizard != null) {
+      sdkQuickfixWizard.show();
+      if (sdkQuickfixWizard.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
+        if (myProject != null) {
+          GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+        }
+        refresh();
+      }
+    }
   }
 
   private void refresh() {

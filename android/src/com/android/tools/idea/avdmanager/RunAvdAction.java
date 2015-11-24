@@ -60,7 +60,9 @@ public class RunAvdAction extends AvdUiAction {
     switch (error) {
       case ALREADY_INSTALLED:
       case TOOLS_UPDATE_REQUIRED:
-        // Do not block emulator from running if we have the old tools:
+      case PLATFORM_TOOLS_UPDATE_ADVISED:
+      case SYSTEM_IMAGE_UPDATE_ADVISED:
+        // Do not block emulator from running if we need updates (run with degradated performance):
         startAvd(avdInfo);
         return true;
       case NO_EMULATOR_INSTALLED:
