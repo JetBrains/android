@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogFormatter;
@@ -426,6 +427,8 @@ public abstract class AndroidLogcatView implements Disposable {
         c.addCustomConsoleAction(new Separator());
         c.addCustomConsoleAction(new MyRestartAction());
         c.addCustomConsoleAction(new MyConfigureLogcatHeaderAction());
+        c.addCustomConsoleAction(new Separator());
+        c.addCustomConsoleAction(new BrowserHelpAction("logcat", "http://developer.android.com/r/studio-ui/am-logcat.html"));
       }
       myPreferences = AndroidLogcatPreferences.getInstance(project);
       myRegexFilterComponent.setFilter(myPreferences.TOOL_WINDOW_CUSTOM_FILTER);
