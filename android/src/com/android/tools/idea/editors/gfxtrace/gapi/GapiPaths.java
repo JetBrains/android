@@ -46,6 +46,7 @@ public final class GapiPaths {
   private static final Map<String, String> ABI_TARGET = Collections.unmodifiableMap(new HashMap<String, String>() {{
     put("armeabi-v7a", "android-arm");
     put("arm64-v8a", "android-arm64");
+    put("x86", "android-x86");
   }});
 
   @NotNull private static final String HOST_OS;

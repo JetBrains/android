@@ -44,7 +44,7 @@ public class GfxTracer {
   @NotNull private static final String GAPII_ABSTRACT_PORT = "gapii";
 
   @NotNull private static final Pattern ENFORCING_PATTERN = Pattern.compile("^Enforcing$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-  @NotNull private static final Pattern PERMISSIVE_PATTERN = Pattern.compile("^Permissive$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+  @NotNull private static final Pattern PERMISSIVE_PATTERN = Pattern.compile("^Permissive$|^Disabled$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
   @NotNull private final IDevice myDevice;
   @NotNull final CaptureService myCaptureService;
