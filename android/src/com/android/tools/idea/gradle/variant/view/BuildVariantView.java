@@ -20,6 +20,8 @@ import com.android.repository.Revision;
 import com.android.repository.Revision.PreviewComparison;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
@@ -155,7 +157,7 @@ public class BuildVariantView {
   }
 
   private void updateModulesWithTestArtifact(@NotNull String artifactType) {
-    if (!myUpdater.updateTestArtifactsNames(myProject, getGradleModulesWithAndroidProjects(), artifactType).isEmpty()) {
+    if (myUpdater.updateTestArtifactsNames(myProject, getGradleModulesWithAndroidProjects(), artifactType)) {
       invokeListeners();
     }
   }
@@ -214,17 +216,33 @@ public class BuildVariantView {
 
     for (Module module : getGradleModulesWithAndroidProjects()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      assert androidFacet != null; // getGradleModules() returns only relevant modules.
+      NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(module);
 
-      JpsAndroidModuleProperties facetProperties = androidFacet.getProperties();
-      String variantName = facetProperties.SELECTED_BUILD_VARIANT;
+      assert androidFacet != null || nativeAndroidFacet != null; // getGradleModules() returns only relevant modules.
 
-      BuildVariantItem[] variantNames = getVariantNames(module);
+      String variantName = null;
+
+      if (androidFacet != null) {
+        JpsAndroidModuleProperties facetProperties = androidFacet.getProperties();
+        variantName = facetProperties.SELECTED_BUILD_VARIANT;
+      }
+
+      BuildVariantItem[] variantNames = getVariantItems(module);
       if (variantNames != null) {
-        // If we got here AndroidGradleModel is *not* null.
-        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
-        assert androidModel != null;
-        variantName = androidModel.getSelectedVariant().getName();
+        if (androidFacet != null) {
+          // If we got here AndroidGradleModel is *not* null.
+          AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+          assert androidModel != null;
+          variantName = androidModel.getSelectedVariant().getName();
+        }
+        else {
+          // As only the modules backed by either AndroidGradleModel or NativeAndroidGradleModel are shown in the Build Variants View,
+          // when a module is not backed by AndroidGradleModel, it surely contains a valid NativeAndroidGradleModel.
+          NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
+          assert nativeAndroidModel != null;
+          variantName = nativeAndroidModel.getSelectedVariant().getName();
+        }
+
         variantNamesPerRow.add(variantNames);
       }
 
@@ -256,6 +274,11 @@ public class BuildVariantView {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null && androidFacet.requiresAndroidModel() && androidFacet.getAndroidModel() != null) {
         gradleModules.add(module);
+        continue;
+      }
+      NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(module);
+      if (nativeAndroidFacet != null && nativeAndroidFacet.getNativeAndroidGradleModel() != null) {
+        gradleModules.add(module);
       }
     }
 
@@ -272,12 +295,12 @@ public class BuildVariantView {
   }
 
   @Nullable
-  private static BuildVariantItem[] getVariantNames(@NotNull Module module) {
-    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
-    if (androidModel == null) {
+  private static BuildVariantItem[] getVariantItems(@NotNull Module module) {
+    Collection<String> variantNames = getVariantNames(module);
+    if (variantNames == null) {
       return null;
     }
-    Collection<String> variantNames = androidModel.getVariantNames();
+
     BuildVariantItem[] items = new BuildVariantItem[variantNames.size()];
     int i = 0;
     for (String name : variantNames) {
@@ -285,6 +308,21 @@ public class BuildVariantView {
     }
     Arrays.sort(items);
     return items;
+  }
+
+  @Nullable
+  private static Collection<String> getVariantNames(@NotNull Module module) {
+    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    if (androidModel != null) {
+      return androidModel.getVariantNames();
+    }
+
+    NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
+    if (nativeAndroidModel != null) {
+      return nativeAndroidModel.getVariantNames();
+    }
+
+    return null;
   }
 
   private void updateTestArtifactComboBox() {
@@ -578,11 +616,9 @@ public class BuildVariantView {
 
   @VisibleForTesting
   void buildVariantSelected(@NotNull String moduleName, @NotNull String variantName) {
-    final List<AndroidFacet> facets = myUpdater.updateSelectedVariant(myProject, moduleName, variantName);
-    if (facets.isEmpty()) {
-      return;
+    if (myUpdater.updateSelectedVariant(myProject, moduleName, variantName)) {
+      invokeListeners();
     }
-    invokeListeners();
   }
 
   private void invokeListeners() {
@@ -747,26 +783,37 @@ public class BuildVariantView {
 
       String moduleName = null;
       Icon moduleIcon = null;
+      boolean isAndriodGradleModule = false;
       if (value instanceof Module) {
         Module module = (Module)value;
         if (!module.isDisposed()) {
           moduleName = module.getName();
           moduleIcon = GradleUtil.getModuleIcon(module);
+          isAndriodGradleModule = AndroidGradleModel.get(module) != null;
         }
       }
 
       myModuleNameLabel.setText(moduleName == null ? "" : moduleName);
       myModuleNameLabel.setIcon(moduleIcon);
 
-      myConflict = ((BuildVariantTable)table).findConflict(row);
-
-      myModuleNameLabel.setToolTipText(myConflict != null ? myConflict.toString() : null);
-      myFixButton.setVisible(myConflict != null);
-
       Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
-      if (myConflict != null) {
-        background = CONFLICT_CELL_BACKGROUND;
+
+      if (isAndriodGradleModule) {
+        myInfoButton.setVisible(true);
+        myConflict = ((BuildVariantTable)table).findConflict(row);
+
+        myModuleNameLabel.setToolTipText(myConflict != null ? myConflict.toString() : null);
+        myFixButton.setVisible(myConflict != null);
+        if (myConflict != null) {
+          background = CONFLICT_CELL_BACKGROUND;
+        }
       }
+      else {
+        // TODO: Consider showing dependency graph and conflict resolution options for native android modules also.
+        myInfoButton.setVisible(false);
+        myFixButton.setVisible(false);
+      }
+
       myPanel.setBackground(background);
 
       Border border = hasFocus ? UIUtil.getTableFocusCellHighlightBorder() : EMPTY_BORDER;

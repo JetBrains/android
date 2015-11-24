@@ -38,6 +38,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.gradle.TestProjects.createNativeProject;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 /**
  * Tests for {@link ContentRootModuleCustomizer}.
@@ -57,7 +58,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     File baseDir = new File(basePath);
     myNativeAndroidProject = createNativeProject(baseDir, myProject.getName());
 
-    myNativeAndroidGradleModel = new NativeAndroidGradleModel(myNativeAndroidProject.getName(), baseDir, myNativeAndroidProject);
+    myNativeAndroidGradleModel = new NativeAndroidGradleModel(SYSTEM_ID, myNativeAndroidProject.getName(), baseDir, myNativeAndroidProject);
 
     addContentEntry();
     myCustomizer = new ContentRootModuleCustomizer();

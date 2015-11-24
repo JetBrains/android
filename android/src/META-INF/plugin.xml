@@ -939,6 +939,7 @@
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer"/>
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer"/>
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer"/>
+    <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.cpp.ContentRootModuleCustomizer"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.ide">

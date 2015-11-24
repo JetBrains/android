@@ -19,10 +19,13 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.android.builder.model.NativeFolder;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
+import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
@@ -34,9 +37,12 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 
-public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<NativeAndroidGradleModel> {
+public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<NativeAndroidGradleModel>
+  implements BuildVariantModuleCustomizer<NativeAndroidGradleModel> {
+
   @Override
   @NotNull
   protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel moduleModel,
@@ -49,10 +55,8 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                      @NotNull Collection<ContentEntry> contentEntries,
                                      @NotNull NativeAndroidGradleModel nativeAndroidGradleModel,
                                      @NotNull List<RootSourceFolder> orphans) {
-    NativeAndroidProject nativeAndroidProject = nativeAndroidGradleModel.getNativeAndroidProject();
     Set<File> sourceFolders = Sets.newLinkedHashSet();
-
-    for (NativeArtifact artifact : nativeAndroidProject.getArtifacts()) {
+    for (NativeArtifact artifact : nativeAndroidGradleModel.getSelectedVariant().getArtifacts()) {
       for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
         sourceFolders.add(sourceFolder.getFolderPath());
       }
@@ -76,5 +80,17 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     for (File path : sourceDirPaths) {
       addSourceFolder(contentEntries, path, type, generated, orphans);
     }
+  }
+
+  @NotNull
+  @Override
+  public ProjectSystemId getProjectSystemId() {
+    return GRADLE_SYSTEM_ID;
+  }
+
+  @NotNull
+  @Override
+  public Class<NativeAndroidGradleModel> getSupportedModelType() {
+    return NativeAndroidGradleModel.class;
   }
 }

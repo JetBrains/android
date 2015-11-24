@@ -26,6 +26,8 @@ import com.intellij.util.ExceptionUtil;
 
 import java.io.File;
 
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
+
 /**
  * Tests for {@link NativeAndroidGradleFacetModuleCustomizer}.
  */
@@ -43,7 +45,7 @@ public class NativeAndroidGradleFacetModuleCustomizerTest extends IdeaTestCase {
 
   public void testCustomizeModule() {
     File rootDir = myNativeAndroidProject.getRootDir();
-    NativeAndroidGradleModel model = new NativeAndroidGradleModel(myNativeAndroidProject.getName(), rootDir, myNativeAndroidProject);
+    NativeAndroidGradleModel model = new NativeAndroidGradleModel(SYSTEM_ID, myNativeAndroidProject.getName(), rootDir, myNativeAndroidProject);
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
       myCustomizer.customizeModule(myProject, myModule, modelsProvider, model);

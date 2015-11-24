@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.builder.model.NativeAndroidProject;
-import com.android.builder.model.NativeArtifact;
-import com.android.builder.model.NativeSettings;
-import com.android.builder.model.NativeToolchain;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
+
+import static java.util.Collections.sort;
 
 public class NativeAndroidGradleModel implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
+  @NotNull private final ProjectSystemId myProjectSystemId;
   @NotNull private final String myModuleName;
   @NotNull private final File myRootDirPath;
   @NotNull private final NativeAndroidProject myNativeAndroidProject;
@@ -42,6 +44,9 @@ public class NativeAndroidGradleModel implements Serializable {
   @NotNull private final Map<String, NativeVariant> myVariantsByName = Maps.newHashMap();
   @NotNull private final Map<String, NativeToolchain> myToolchainsByName = Maps.newHashMap();
   @NotNull private final Map<String, NativeSettings> mySettingsByName = Maps.newHashMap();
+
+  @SuppressWarnings("NullableProblems") // Set in the constructor.
+  @NotNull private String mySelectedVariantName;
 
   @Nullable
   public static NativeAndroidGradleModel get(@NotNull Module module) {
@@ -58,9 +63,11 @@ public class NativeAndroidGradleModel implements Serializable {
     return androidModel;
   }
 
-  public NativeAndroidGradleModel(@NotNull String moduleName,
+  public NativeAndroidGradleModel(@NotNull ProjectSystemId projectSystemId,
+                                  @NotNull String moduleName,
                                   @NotNull File rootDirPath,
                                   @NotNull NativeAndroidProject nativeAndroidProject) {
+    myProjectSystemId = projectSystemId;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
     myNativeAndroidProject = nativeAndroidProject;
@@ -68,6 +75,8 @@ public class NativeAndroidGradleModel implements Serializable {
     populateVariantsByName();
     populateToolchainsByName();
     populateSettingsByName();
+
+    initializeSelectedVariant();
   }
 
   private void populateVariantsByName() {
@@ -75,7 +84,11 @@ public class NativeAndroidGradleModel implements Serializable {
       // TODO: Use the artifact group name as variant name when available.
       NativeVariant variant = new NativeVariant(artifact.getName());
       variant.addArtifact(artifact);
-      myVariantsByName.put(artifact.getName(), variant);
+      myVariantsByName.put(variant.getName(), variant);
+    }
+    if (myVariantsByName.isEmpty()) {
+      // There will mostly be at least one variant, but create a dummy variant when there are none.
+      myVariantsByName.put("-----", new NativeVariant("-----"));
     }
   }
 
@@ -89,6 +102,33 @@ public class NativeAndroidGradleModel implements Serializable {
     for (NativeSettings settings : myNativeAndroidProject.getSettings()) {
       mySettingsByName.put(settings.getName(), settings);
     }
+  }
+
+  private void initializeSelectedVariant() {
+    Set<String> variantNames = myVariantsByName.keySet();
+    assert !variantNames.isEmpty();
+
+    if (variantNames.size() == 1) {
+      mySelectedVariantName = Iterables.getOnlyElement(variantNames);
+      return;
+    }
+
+    for (String variantName : variantNames) {
+      if (variantName.equals("debug")) {
+        mySelectedVariantName = variantName;
+        return;
+      }
+    }
+
+    List<String> sortedVariantNames = Lists.newArrayList(variantNames);
+    sort(sortedVariantNames);
+    assert !sortedVariantNames.isEmpty();
+    mySelectedVariantName = sortedVariantNames.get(0);
+  }
+
+  @NotNull
+  public ProjectSystemId getProjectSystemId() {
+    return myProjectSystemId;
   }
 
   @NotNull
@@ -107,8 +147,30 @@ public class NativeAndroidGradleModel implements Serializable {
   }
 
   @NotNull
+  public Collection<String> getVariantNames() {
+    return myVariantsByName.keySet();
+  }
+
+  @NotNull
   public Collection<NativeVariant> getVariants() {
     return myVariantsByName.values();
+  }
+
+  @NotNull
+  public NativeVariant getSelectedVariant() {
+    NativeVariant selected = myVariantsByName.get(mySelectedVariantName);
+    assert selected != null;
+    return selected;
+  }
+
+  public void setSelectedVariantName(@NotNull String name) {
+    Collection<String> variantNames = getVariantNames();
+    if (variantNames.contains(name)) {
+      mySelectedVariantName = name;
+    }
+    else {
+      initializeSelectedVariant();
+    }
   }
 
   @Nullable
