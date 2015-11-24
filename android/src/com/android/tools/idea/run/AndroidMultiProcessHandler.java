@@ -112,7 +112,12 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
       return;
     }
 
-    for (IDevice device : AndroidDebugBridge.getBridge().getDevices()) {
+    AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+    if (bridge == null) {
+      return;
+    }
+
+    for (IDevice device : bridge.getDevices()) {
       if (myDevices.contains(device.getSerialNumber())) {
         Client client = device.getClient(myApplicationId);
         if (client != null) {
