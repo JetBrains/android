@@ -607,15 +607,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       @Nullable
       @Override
       public Boolean deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable Boolean currentValue) {
-        Device device = myState.get(DEVICE_DEFINITION_KEY);
-        if (device != null && device.isScreenRound()) {
-          // 79243: Emulator skin doesn't work for round device with Host GPU enabled.
-          // Therefore, turn it off by default; if a developer is deliberately trying
-          // to emulate a round device, that's probably more important than acceleration.
-          // (And with the small screen resolution of the wear devices, lack of Host GPU
-          // is less severe than say for a tablet AVD.)
-          return false;
-        }
         return myState.get(USE_HOST_GPU_KEY);
       }
     });
