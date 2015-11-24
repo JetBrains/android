@@ -54,6 +54,72 @@ public class QualifierUtils {
     .build();
 
   /**
+   * Invokes getValue method of a ResourceQualifier and returns the result
+   */
+  @NotNull
+  public static Object getValue(@NotNull ResourceQualifier qualifier) {
+    try {
+      Method getValue = qualifier.getClass().getMethod("getValue");
+      return getValue.invoke(qualifier);
+    }
+    catch (NoSuchMethodException e) {
+      LOG.error(e);
+      throw new IllegalArgumentException(e);
+    }
+    catch (IllegalAccessException e) {
+      LOG.error(e);
+      throw new IllegalArgumentException(e);
+    }
+    catch (InvocationTargetException e) {
+      LOG.error(e);
+      throw new IllegalArgumentException(e);
+    }
+  }
+
+  /**
+   * @return class of the return value of the "getValue" method of resourceQualifierClass
+   * For Example: return class of {@link LayoutDirectionQualifier#getValue()} is LayoutDirection
+   */
+  @Nullable("if there is no getValue method")
+  public static Class getValueReturnType(@NotNull Class<? extends ResourceQualifier> resourceQualifierClass) {
+    try {
+      return resourceQualifierClass.getMethod("getValue").getReturnType();
+    }
+    catch (NoSuchMethodException e) {
+      return null;
+    }
+  }
+
+  @NotNull
+  public static ResourceQualifier createNewResourceQualifier(@NotNull Class<? extends ResourceQualifier> qualifierClass, @NotNull Object value) {
+    try {
+      Class valueClass = value.getClass();
+      if (valueClass.equals(Integer.class)) {
+        Constructor constructor = qualifierClass.getConstructor(int.class);
+        return (ResourceQualifier)constructor.newInstance(((Integer)value).intValue());
+      }
+      Constructor constructor = qualifierClass.getConstructor(value.getClass());
+      return (ResourceQualifier)constructor.newInstance(value);
+    }
+    catch (NoSuchMethodException e) {
+      LOG.error(e);
+      throw new IllegalArgumentException(e);
+    }
+    catch (InstantiationException e) {
+      LOG.error(e);
+      throw new IllegalArgumentException(e);
+    }
+    catch (IllegalAccessException e) {
+      LOG.error(e);
+      throw new IllegalArgumentException(e);
+    }
+    catch (InvocationTargetException e) {
+      LOG.error(e);
+      throw new IllegalArgumentException(e);
+    }
+  }
+
+  /**
    * @return one enum value that it's not present in the passed set
    */
   @Nullable("if all the values are contained in the set")
