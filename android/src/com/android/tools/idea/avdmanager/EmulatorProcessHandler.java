@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.intellij.execution.CommandLineUtil;
 import com.intellij.execution.TaskExecutor;
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
@@ -43,9 +45,11 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
   private static final Logger LOG = Logger.getInstance(EmulatorProcessHandler.class);
 
   @NotNull private final Process myProcess;
+  @NotNull private final GeneralCommandLine myCommandLine;
 
-  public EmulatorProcessHandler(@NotNull Process process) {
+  public EmulatorProcessHandler(@NotNull Process process, @NotNull GeneralCommandLine commandLine) {
     myProcess = process;
+    myCommandLine = commandLine;
   }
 
   @Override
@@ -55,8 +59,11 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
       @Override
       public void startNotified(final ProcessEvent event) {
         try {
-          final BaseDataReader stdoutReader = new EmulatorOutputReader(myProcess.getInputStream(), ProcessOutputTypes.STDOUT);
-          final BaseDataReader stderrReader = new EmulatorOutputReader(myProcess.getErrorStream(), ProcessOutputTypes.STDERR);
+          String presentableName = CommandLineUtil.extractPresentableName(myCommandLine.getCommandLineString());
+          final BaseDataReader stdoutReader = new EmulatorOutputReader(myProcess.getInputStream(), ProcessOutputTypes.STDOUT,
+                                                                       presentableName);
+          final BaseDataReader stderrReader = new EmulatorOutputReader(myProcess.getErrorStream(), ProcessOutputTypes.STDERR,
+                                                                       presentableName);
 
           executeTask(new Runnable() {
             @Override
@@ -144,14 +151,14 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
     private final BufferedReader myBufferedReader;
     private final Key myProcessOutputType;
 
-    private EmulatorOutputReader(@NotNull InputStream stream, @NotNull Key processOutputType) {
+    private EmulatorOutputReader(@NotNull InputStream stream, @NotNull Key processOutputType, @NotNull String presentableName) {
       super(BaseDataReader.SleepingPolicy.SIMPLE);
 
       // TODO: charset for the input stream reader?
       myBufferedReader = new BufferedReader(new InputStreamReader(stream));
       myProcessOutputType = processOutputType;
 
-      start();
+      start(presentableName);
     }
 
     @NotNull
