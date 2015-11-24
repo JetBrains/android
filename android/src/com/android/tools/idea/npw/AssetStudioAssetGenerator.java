@@ -24,6 +24,7 @@ import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.Density;
+import com.android.tools.idea.npw.assetstudio.AndroidIconType;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.base.Strings;
@@ -50,6 +51,9 @@ import java.util.concurrent.ExecutionException;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
+/**
+ * @deprecated Replaced by {@link com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator}
+ */
 public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   public static final String ATTR_TEXT = "text";
   public static final String ATTR_SCALING = "scaling";
@@ -203,6 +207,8 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
   /**
    * The type of asset to create: launcher icon, menu icon, etc.
+   *
+   * @deprecated Replaced by {@link AndroidIconType}
    */
   public enum AssetType {
     /**
@@ -237,6 +243,11 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
      * Default asset name format
      */
     private String myDefaultNameFormat;
+
+    // Temporary conversion method before we can delete this class
+    public static AssetType of(@NotNull AndroidIconType assetType) {
+      return AssetType.values()[assetType.ordinal()];
+    }
 
     AssetType(String displayName, String defaultNameFormat) {
       myDisplayName = displayName;
