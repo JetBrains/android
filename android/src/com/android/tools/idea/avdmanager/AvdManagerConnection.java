@@ -23,12 +23,15 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
@@ -154,6 +157,90 @@ public class AvdManagerConnection {
       return false;
     }
     return info.getDesc().getRevision().compareTo(TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0;
+  }
+
+  private boolean hasPlatformToolsForQEMU2Installed() {
+    assert myLocalSdk != null;
+    LocalPkgInfo[] infos = myLocalSdk.getPkgsInfos(PkgType.PKG_PLATFORM_TOOLS);
+    if (infos.length == 0) {
+      return false;
+    }
+    for (LocalPkgInfo info : infos) {
+      if (info.getDesc().getRevision().compareTo(PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean hasSystemImagesForQEMU2Installed() {
+    return getSystemImageUpdates().isEmpty();
+  }
+
+  /**
+   * The qemu2 emulator has changes in the system images for platform 22 and 23 (Intel CPU architecture only).
+   * This method will generate package updates if we detect that we have outdated system images for platform
+   * 22 and 23. We also check the addon system images which includes the Google API.
+   * @return a list of packages that need to be updated.
+   */
+  @NotNull
+  public List<IPkgDesc> getSystemImageUpdates() {
+    List<IPkgDesc> requested = Lists.newArrayList();
+
+    assert myLocalSdk != null;
+    LocalPkgInfo[] infos = myLocalSdk.getPkgsInfos(PkgType.PKG_SYS_IMAGE);
+    for (LocalPkgInfo info : infos) {
+      IPkgDesc desc = info.getDesc();
+      Abi abi = desc.getPath() != null ? Abi.getEnum(desc.getPath()) : Abi.ARMEABI;
+      boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
+
+      if (isAvdIntel &&
+          desc.getAndroidVersion() != null &&
+          desc.getAndroidVersion().getApiLevel() == LMP_MR1_API_LEVEL_22 &&
+          desc.getRevision().getMajor() < LMP_AOSP_MIN_REVISION &&
+          desc.getTag() != null) {
+        requested.add(
+          PkgDesc.Builder.newSysImg(desc.getAndroidVersion(), desc.getTag(), abi.toString(), new Revision(LMP_AOSP_MIN_REVISION)).create());
+      }
+
+      if (isAvdIntel &&
+          desc.getAndroidVersion() != null &&
+          desc.getAndroidVersion().getApiLevel() == MNC_API_LEVEL_23 &&
+          desc.getRevision().getMajor() < MNC_AOSP_MIN_REVISION &&
+          desc.getTag() != null) {
+        requested.add(
+          PkgDesc.Builder.newSysImg(desc.getAndroidVersion(), desc.getTag(), abi.toString(), new Revision(MNC_AOSP_MIN_REVISION)).create());
+      }
+    }
+
+    infos = myLocalSdk.getPkgsInfos(PkgType.PKG_ADDON_SYS_IMAGE);
+    for (LocalPkgInfo info : infos) {
+      IPkgDesc desc = info.getDesc();
+      Abi abi = desc.getPath() != null ? Abi.getEnum(desc.getPath()) : Abi.ARMEABI;
+      boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
+
+      if (isAvdIntel &&
+          desc.getAndroidVersion() != null &&
+          desc.getAndroidVersion().getApiLevel() == LMP_MR1_API_LEVEL_22 &&
+          GOOGLE_APIS_TAG.equals(desc.getTag()) &&
+          desc.getRevision().getMajor() < LMP_GAPI_MIN_REVISION &&
+          desc.getVendor() != null &&
+          desc.getTag() != null) {
+        requested.add(PkgDesc.Builder.newAddonSysImg(
+          desc.getAndroidVersion(), desc.getVendor(), desc.getTag(), abi.toString(), new Revision(LMP_GAPI_MIN_REVISION)).create());
+      }
+      if (isAvdIntel &&
+          desc.getAndroidVersion() != null &&
+          desc.getAndroidVersion().getApiLevel() == MNC_API_LEVEL_23 &&
+          GOOGLE_APIS_TAG.equals(desc.getTag()) &&
+          desc.getRevision().getMajor() < MNC_GAPI_MIN_REVISION &&
+          desc.getVendor() != null &&
+          desc.getTag() != null) {
+        requested.add(PkgDesc.Builder.newAddonSysImg(
+          desc.getAndroidVersion(), desc.getVendor(), desc.getTag(), desc.getPath(), new Revision(MNC_GAPI_MIN_REVISION)).create());
+      }
+    }
+    return requested;
   }
 
   /**
@@ -455,7 +542,16 @@ public class AvdManagerConnection {
     catch (ExecutionException e) {
       exitValue = AccelerationErrorCode.UNKNOWN_ERROR.getErrorCode();
     }
-    return AccelerationErrorCode.fromExitCode(exitValue);
+    if (exitValue != 0) {
+      return AccelerationErrorCode.fromExitCode(exitValue);
+    }
+    if (!hasPlatformToolsForQEMU2Installed()) {
+      return AccelerationErrorCode.PLATFORM_TOOLS_UPDATE_ADVISED;
+    }
+    if (!hasSystemImagesForQEMU2Installed()) {
+      return AccelerationErrorCode.SYSTEM_IMAGE_UPDATE_ADVISED;
+    }
+    return AccelerationErrorCode.ALREADY_INSTALLED;
   }
 
   /**
