@@ -733,8 +733,6 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     @Override
     protected void paintComponent(Graphics g) {
-      Graphics2D g2d = (Graphics2D)g;
-
       final Dimension size = getSize();
 
       myComponent = new Rectangle(BORDER_SIZE, BORDER_SIZE, size.width, size.height);
@@ -743,10 +741,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       g.setColor(UIManager.getColor("Panel.background"));
       g.fillRect(0, 0, getWidth(), getHeight());
 
-      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ((float)myOpacity) / 255f));
       g.drawImage(myImage, myComponent.x, myComponent.y, null);
-
-      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 1.0f));
 
       final int x = Math.round(mySaturation * (myComponent.width - 2 * BORDER_SIZE));
       final int y = Math.round((myComponent.height - 2 * BORDER_SIZE) * (1.0f - myBrightness));
