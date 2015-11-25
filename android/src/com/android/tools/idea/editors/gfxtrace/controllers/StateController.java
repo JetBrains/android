@@ -25,14 +25,24 @@ import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
 import com.android.tools.rpclib.schema.Map;
 import com.android.tools.rpclib.schema.Type;
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.containers.IntArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class StateController extends TreeController {
   public static JComponent createUI(GfxTraceEditor editor) {
@@ -40,75 +50,16 @@ public class StateController extends TreeController {
   }
 
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
+  @NotNull private static final TypedValue ROOT_TYPE = new TypedValue(null, "state");
 
   private final PathStore<StatePath> myStatePath = new PathStore<StatePath>();
+  private final StateTreeModel model = new StateTreeModel(new Node(ROOT_TYPE, null));
 
   private StateController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
     myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU State"));
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-  }
-
-  public static class Typed {
-    @NotNull public final Type type;
-    @NotNull public final Object value;
-
-    public Typed(@NotNull Type type, @NotNull Object value) {
-      this.type = type;
-      this.value = value;
-    }
-  }
-
-  public static class Node {
-    @Nullable public final Object key;
-    @Nullable public final Object value;
-
-    public Node(@Nullable Object key, @Nullable Object value) {
-      this.key = key;
-      this.value = value;
-    }
-  }
-
-  @Nullable
-  private static DefaultMutableTreeNode createNode(@Nullable Object key, @Nullable Type type, @Nullable Object value) {
-    DefaultMutableTreeNode child = new DefaultMutableTreeNode();
-    fillNode(child, key, value);
-    if (child.getChildCount() != 0) {
-      child.setUserObject(new Node(key, null));
-    }
-    else if ((type != null) && (value != null)) {
-      child.setUserObject(new Node(key, new Typed(type, value)));
-    }
-    else {
-      child.setUserObject(new Node(key, value));
-    }
-    return child;
-  }
-
-  private static void fillNode(@NotNull DefaultMutableTreeNode parent, @Nullable Object key, @Nullable Object value) {
-    if (value instanceof Dynamic) {
-      Dynamic dynamic = (Dynamic)value;
-      for (int index = 0; index < dynamic.getFieldCount(); ++index) {
-        Field field = dynamic.getFieldInfo(index);
-        if (field.getDeclared().length() == 0) {
-          // embed anonymous fields directly into the parent
-          fillNode(parent, field, dynamic.getFieldValue(index));
-        }
-        else {
-          parent.add(createNode(field, field.getType(), dynamic.getFieldValue(index)));
-        }
-      }
-    }
-    else if (key instanceof Field) {
-      Field field = (Field)key;
-      if (field.getType() instanceof Map) {
-        assert (value instanceof java.util.Map);
-        Map map = (Map)field.getType();
-        for (java.util.Map.Entry entry : ((java.util.Map<?, ?>)value).entrySet()) {
-          parent.add(createNode(new Typed(map.getKeyType(), entry.getKey()), map.getValueType(), entry.getValue()));
-        }
-      }
-    }
+    setModel(model);
   }
 
   @Override
@@ -119,9 +70,237 @@ public class StateController extends TreeController {
       Futures.addCallback(myEditor.getClient().get(myStatePath.getPath()), new LoadingCallback<Object>(LOG, myLoadingPanel) {
         @Override
         public void onSuccess(@Nullable final Object state) {
-          setRoot(createNode("state", null, state));
+          model.setRoot(convert(new TypedValue(null, "state"), new TypedValue(null, state)));
         }
       }, EdtExecutor.INSTANCE);
     }
   }
-}
+
+  private static Node convert(TypedValue key, TypedValue value) {
+    Node result = new Node(key, value);
+    if (value.value instanceof Dynamic || value.type instanceof Map) {
+      if (value.value instanceof Dynamic) {
+        Dynamic dynamic = (Dynamic)value.value;
+        for (int i = 0; i < dynamic.getFieldCount(); i++) {
+          Field field = dynamic.getFieldInfo(i);
+          result.addChild(convert(new TypedValue(null, field.getDeclared()), new TypedValue(field.getType(), dynamic.getFieldValue(i))));
+        }
+      }
+      else {
+        java.util.Map<Object, Object> map = (java.util.Map<Object, Object>)value.value;
+        Type keyType = ((Map)value.type).getKeyType(), valueType = ((Map)value.type).getValueType();
+        for (java.util.Map.Entry<Object, Object> e : map.entrySet()) {
+          result.addChild(convert(new TypedValue(keyType, e.getKey()), new TypedValue(valueType, e.getValue())));
+        }
+      }
+    }
+    return result;
+  }
+
+  public static class TypedValue {
+    public final Type type;
+    public final Object value;
+
+    public TypedValue(Type type, Object value) {
+      this.type = type;
+      this.value = value;
+    }
+
+    @Override
+    public int hashCode() {
+      return (type == null ? 0 : type.hashCode()) ^ value.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      } else if (!(obj instanceof TypedValue)) {
+        return false;
+      }
+      TypedValue other = (TypedValue)obj;
+      return Objects.equal(type, other.type) && Objects.equal(value, other.value);
+    }
+  }
+
+  public static class Node {
+    public final TypedValue key;
+    public TypedValue value;
+    private final List<Node> childrenByIndex = Lists.newArrayList();
+    private final HashMap<TypedValue, Node> childrenByKey = Maps.newHashMap();
+
+    public Node(TypedValue key, TypedValue value) {
+      this.key = key;
+      this.value = value;
+    }
+
+    public void addChild(Node node) {
+      childrenByIndex.add(node);
+      childrenByKey.put(node.key, node);
+    }
+
+    public void merge(Node other, List<Object> path, TreeModelListener listener) {
+      IntArrayList changedIndecies = new IntArrayList(Math.max(getChildCount(), other.getChildCount()));
+      List<Node> changedChildren = Lists.newArrayListWithCapacity(Math.max(getChildCount(), other.getChildCount()));
+      path.add(this);
+
+      // First handle deletions.
+      for (int i = 0; i < childrenByIndex.size(); i++) {
+        Node child = childrenByIndex.get(i);
+        if (!other.childrenByKey.containsKey(child.key)) {
+          changedIndecies.add(i + changedIndecies.size());
+          changedChildren.add(child);
+          childrenByIndex.remove(i);
+          childrenByKey.remove(child.key);
+          i--;
+        }
+      }
+      if (!changedIndecies.isEmpty()) {
+        listener.treeNodesRemoved(new TreeModelEvent(this, path.toArray(), changedIndecies.toArray(), changedChildren.toArray()));
+        changedIndecies.clear();
+        changedChildren.clear();
+      }
+
+      // Handle additions.
+      for (int i = 0; i < other.childrenByIndex.size(); i++) {
+        Node child = other.childrenByIndex.get(i);
+        if (!childrenByKey.containsKey(child.key)) {
+          changedIndecies.add(childrenByIndex.size());
+          changedChildren.add(child);
+          addChild(child);
+        }
+      }
+      if (!changedIndecies.isEmpty()) {
+        listener.treeNodesInserted(new TreeModelEvent(this, path.toArray(), changedIndecies.toArray(), changedChildren.toArray()));
+        changedIndecies.clear();
+        changedChildren.clear();
+      }
+
+      // Process the children.
+      for (Node child : childrenByIndex) {
+        child.merge(other.childrenByKey.get(child.key), path, listener);
+      }
+
+      // Fire event if we're a leaf that has changed.
+      if (isLeaf() && !Objects.equal(value, other.value)) {
+        this.value = other.value;
+        listener.treeNodesChanged(new TreeModelEvent(this, path.toArray()));
+      }
+      else {
+        this.value = other.value;
+      }
+      path.remove(path.size() - 1);
+    }
+
+    public int getChildCount() {
+      return childrenByIndex.size();
+    }
+
+    public Node getChild(int index) {
+      return childrenByIndex.get(index);
+    }
+
+    public int getChildIndex(Object child) {
+      return childrenByIndex.indexOf(child);
+    }
+
+    public boolean isLeaf() {
+      return childrenByIndex.isEmpty();
+    }
+  }
+
+  private static class StateTreeModel implements TreeModel {
+    private final Listeners listeners = new Listeners();
+    private Node root;
+
+    public StateTreeModel(Node root) {
+      this.root = root;
+    }
+
+    public void setRoot(Node state) {
+      if (root.isLeaf()) {
+        root = state;
+        listeners.treeStructureChanged(new TreeModelEvent(this, new Object[] { root }));
+      }
+      else {
+        root.merge(state, Lists.newArrayList(), listeners);
+      }
+    }
+
+    @Override
+    public Object getRoot() {
+      return root;
+    }
+
+    @Override
+    public int getChildCount(Object parent) {
+      return ((Node)parent).getChildCount();
+    }
+
+    @Override
+    public Object getChild(Object parent, int index) {
+      return ((Node)parent).getChild(index);
+    }
+
+    @Override
+    public boolean isLeaf(Object node) {
+      return ((Node)node).isLeaf();
+    }
+
+    @Override
+    public void valueForPathChanged(TreePath path, Object newValue) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int getIndexOfChild(Object parent, Object child) {
+      if (!(parent instanceof Node) || child == null) {
+        return -1;
+      }
+      return ((Node)parent).getChildIndex(child);
+    }
+
+    @Override
+    public void addTreeModelListener(TreeModelListener l) {
+      listeners.add(l);
+    }
+
+    @Override
+    public void removeTreeModelListener(TreeModelListener l) {
+      listeners.remove(l);
+    }
+
+    private static class Listeners extends ArrayList<TreeModelListener> implements TreeModelListener {
+      public Listeners() {
+      }
+
+      @Override
+      public void treeNodesChanged(TreeModelEvent e) {
+        for (TreeModelListener listener : toArray(new TreeModelListener[size()])) {
+          listener.treeNodesChanged(e);
+        }
+      }
+
+      @Override
+      public void treeNodesInserted(TreeModelEvent e) {
+        for (TreeModelListener listener : toArray(new TreeModelListener[size()])) {
+          listener.treeNodesInserted(e);
+        }
+      }
+
+      @Override
+      public void treeNodesRemoved(TreeModelEvent e) {
+        for (TreeModelListener listener : toArray(new TreeModelListener[size()])) {
+          listener.treeNodesRemoved(e);
+        }
+      }
+
+      @Override
+      public void treeStructureChanged(TreeModelEvent e) {
+        for (TreeModelListener listener : toArray(new TreeModelListener[size()])) {
+          listener.treeStructureChanged(e);
+        }
+      }
+    }
+  }
+ }
