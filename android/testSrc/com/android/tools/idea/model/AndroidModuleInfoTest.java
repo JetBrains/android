@@ -75,5 +75,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
 
     List<Service> services = ManifestInfo.get(myAndroidFacet.getModule(), true).getServices();
     assertEquals(1, services.size());
+
+    assertEquals("@style/AppTheme", ManifestInfo.get(myAndroidFacet.getModule(), false).getManifestTheme());
   }
 }

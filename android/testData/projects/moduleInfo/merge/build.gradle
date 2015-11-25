@@ -38,6 +38,7 @@ android {
     minSdkVersion 9
     targetSdkVersion 17
     applicationId "from.gradle"
+    manifestPlaceholders = [ defaultTheme:"@style/AppTheme"]
   }
 
   buildTypes {
