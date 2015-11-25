@@ -70,9 +70,26 @@ public class RestrictedConfiguration {
     }
   }
 
-  @Nullable
-  public RestrictedQualifier getRestrictedQualifierAt(int index) {
-    return myRestrictedQualifiers[index];
+  @Nullable("if empty intersection, i.e some of the qualifiers can't have any value due to the restrictions in both")
+  RestrictedConfiguration intersect(@NotNull RestrictedConfiguration otherRestricted) {
+    RestrictedConfiguration resultRestricted = new RestrictedConfiguration();
+
+    for (int i = 0; i < FolderConfiguration.getQualifierCount(); ++i) {
+      RestrictedQualifier thisQualifier = myRestrictedQualifiers[i];
+      RestrictedQualifier otherQualifier = otherRestricted.myRestrictedQualifiers[i];
+
+      // TODO: we have't supported all ResourceQualifiers yet
+      if (thisQualifier == null) {
+        assert otherQualifier == null;
+        continue;
+      }
+      RestrictedQualifier intersection = thisQualifier.intersect(otherQualifier);
+      if (intersection == null) {
+        return null;
+      }
+      resultRestricted.myRestrictedQualifiers[i] = intersection;
+    }
+    return resultRestricted;
   }
 
   /**
@@ -111,7 +128,7 @@ public class RestrictedConfiguration {
 
     for (int qualifierIndex = 0; qualifierIndex < FolderConfiguration.getQualifierCount(); ++qualifierIndex) {
       ResourceQualifier compatibleQualifier = compatible.getQualifier(qualifierIndex);
-      RestrictedQualifier restrictedQualifier = restricted.getRestrictedQualifierAt(qualifierIndex);
+      RestrictedQualifier restrictedQualifier = restricted.myRestrictedQualifiers[qualifierIndex];
 
       ArrayList<ResourceQualifier> incompatibleQualifiers = Lists.newArrayList();
       for (FolderConfiguration matching : matchingIncompatibles) {
