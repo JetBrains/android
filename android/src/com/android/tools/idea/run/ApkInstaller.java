@@ -66,6 +66,15 @@ public class ApkInstaller {
                                      @NotNull String packageName,
                                      @NotNull File localFile,
                                      @NotNull AtomicBoolean cancelInstallation) {
+
+    if (FastDeployManager.isInstantRunEnabled(myProject) && FastDeployManager.isPatchableApp(myFacet.getModule())) {
+      try {
+        FastDeployManager.transferLocalIdToDeviceId(device, myFacet.getModule());
+      } catch (Exception e) {
+        myPrinter.stderr(e.toString());
+      }
+    }
+
     if (!needsInstall(device, localFile, packageName)) {
       return true;
     }
@@ -79,14 +88,6 @@ public class ApkInstaller {
       boolean installed = installApp(device, remotePath, packageName, cancelInstallation);
       if (installed) {
         myInstalledApkCache.setInstalled(device, localFile, packageName);
-
-        if (FastDeployManager.isInstantRunEnabled(myProject) && FastDeployManager.isPatchableApp(myFacet.getModule())) {
-          try {
-            FastDeployManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-          } catch (Exception e) {
-            myPrinter.stderr(e.toString());
-          }
-        }
       }
       return installed;
     } catch (Exception e) {
