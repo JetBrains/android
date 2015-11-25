@@ -65,4 +65,56 @@ public class RestrictedLocale implements  RestrictedQualifier {
     }
     return myNeedsToMatch;
   }
+
+  @Nullable
+  @Override
+  public RestrictedQualifier intersect(@NotNull RestrictedQualifier otherRestrictedQualifier) {
+    assert otherRestrictedQualifier instanceof RestrictedLocale;
+    RestrictedLocale otherRestrictedLocale = (RestrictedLocale)otherRestrictedQualifier;
+
+    RestrictedLocale result = new RestrictedLocale();
+    result.myNeedsToNotMatch.addAll(myNeedsToNotMatch);
+    result.myNeedsToNotMatch.addAll(otherRestrictedLocale.myNeedsToNotMatch);
+
+    if (!otherRestrictedLocale.myNeedsToMatch.equals(LocaleQualifier.FAKE_VALUE)) {
+      result.myNeedsToMatch = otherRestrictedLocale.myNeedsToMatch;
+    }
+
+    if (!myNeedsToMatch.equals(LocaleQualifier.FAKE_VALUE)) {
+      if (!result.myNeedsToMatch.equals(LocaleQualifier.FAKE_VALUE) && !result.myNeedsToMatch.equals(myNeedsToMatch)) {
+        return null;
+      }
+      result.myNeedsToMatch = myNeedsToMatch;
+    }
+
+    if (result.myNeedsToMatch.equals(LocaleQualifier.FAKE_VALUE)) {
+      return result;
+    }
+
+    if (result.myNeedsToNotMatch.contains(result.myNeedsToMatch)) {
+      return null;
+    }
+    result.myNeedsToNotMatch.clear();
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RestrictedLocale that = (RestrictedLocale)o;
+
+    if (myNeedsToMatch != null ? !myNeedsToMatch.equals(that.myNeedsToMatch) : that.myNeedsToMatch != null) return false;
+    if (!myNeedsToNotMatch.equals(that.myNeedsToNotMatch)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = myNeedsToMatch != null ? myNeedsToMatch.hashCode() : 0;
+    result = 31 * result + myNeedsToNotMatch.hashCode();
+    return result;
+  }
 }
