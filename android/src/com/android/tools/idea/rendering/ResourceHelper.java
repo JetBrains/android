@@ -811,12 +811,12 @@ public class ResourceHelper {
       boolean includeFileResources = (type != ResourceType.COLOR) || completionTypesContainsColor;
       ChooseResourceDialog.ResourceGroup group = new ChooseResourceDialog.ResourceGroup(SdkConstants.ANDROID_NS_NAME, type, systemManager, includeFileResources);
       for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
-        resourceNamesList.add(SdkConstants.ANDROID_PREFIX  + item.getName());
+        resourceNamesList.add(SdkConstants.ANDROID_PREFIX  + item.getPath());
       }
 
       group = new ChooseResourceDialog.ResourceGroup(null, type, localManager, includeFileResources);
       for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
-        resourceNamesList.add(SdkConstants.PREFIX_RESOURCE_REF + item.getName());
+        resourceNamesList.add(SdkConstants.PREFIX_RESOURCE_REF + item.getPath());
       }
     }
 
