@@ -18,12 +18,11 @@ package com.android.tools.idea.model;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,20 +35,34 @@ public class ManifestPlaceholderResolver {
    */
   public static Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{(\\w+)\\}");
 
-  private final Map<String, Object> myPlaceholders = Maps.newHashMap();
+  private final ImmutableMap<String, Object> myPlaceholders;
 
   public ManifestPlaceholderResolver(@NotNull Module module) {
     AndroidGradleModel model = AndroidGradleModel.get(module);
 
     if (model != null) {
+      ImmutableMap.Builder<String, Object> placeholdersBuilder = ImmutableMap.builder();
+
       Variant selectedVariant = model.getSelectedVariant();
       BuildTypeContainer buildType = model.findBuildType(selectedVariant.getBuildType());
       if (buildType != null) {
-        myPlaceholders.putAll(buildType.getBuildType().getManifestPlaceholders());
+        placeholdersBuilder.putAll(buildType.getBuildType().getManifestPlaceholders());
       }
       // flavors and default config
-      myPlaceholders.putAll(selectedVariant.getMergedFlavor().getManifestPlaceholders());
+      placeholdersBuilder.putAll(selectedVariant.getMergedFlavor().getManifestPlaceholders());
+
+      myPlaceholders = placeholdersBuilder.build();
+    } else {
+      myPlaceholders = ImmutableMap.of();
     }
+  }
+
+  /**
+   * Returns a map of all the existing placeholders and its associated value.
+   */
+  @NotNull
+  public ImmutableMap<String, Object> getPlaceholders() {
+    return myPlaceholders;
   }
 
   /**
