@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.updater.configure;
+package com.android.tools.idea.updater.configure.v2;
 
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.options.ConfigurableProvider;
+import com.android.repository.Revision;
+import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
+import javax.swing.*;
 
-public class SdkUpdaterConfigurableProvider extends ConfigurableProvider {
-  @Nullable
-  @Override
-  public Configurable createConfigurable() {
-    if (Boolean.parseBoolean(System.getProperty("use.new.sdk", "false"))) {
-      return new com.android.tools.idea.updater.configure.v2.SdkUpdaterConfigurable();
-    }
-    return new SdkUpdaterConfigurable();
+/**
+ * ColumnInfo that shows the {@link Revision} of a package.
+ */
+class VersionColumnInfo extends ColumnInfo<UpdaterTreeNode, Revision> {
+  VersionColumnInfo() {
+    super("Version");
   }
 
+  @Nullable
   @Override
-  public boolean canCreateConfigurable() {
-    return isAndroidSdkManagerEnabled();
+  public Revision valueOf(UpdaterTreeNode node) {
+    if (!(node instanceof PlatformDetailsTreeNode)) {
+      return null;
+    }
+    return ((PlatformDetailsTreeNode)node).getItemDesc().getRevision();
   }
 }

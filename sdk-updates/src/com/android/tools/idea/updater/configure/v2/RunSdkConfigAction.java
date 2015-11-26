@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.updater.configure;
+package com.android.tools.idea.updater.configure.v2;
 
 import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.idea.updater.configure.SdkUpdaterConfigurableProvider;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
