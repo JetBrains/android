@@ -221,7 +221,7 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
     private static List<String> getResNames(List<ChooseResourceDialog.ResourceItem> resItems, String prefix) {
       List<String> result = Lists.newArrayListWithExpectedSize(resItems.size());
       for (ChooseResourceDialog.ResourceItem item : resItems) {
-        result.add(prefix + item.getName());
+        result.add(prefix + item.getPath());
       }
       return result;
     }
