@@ -16,7 +16,9 @@
 package org.jetbrains.android.dom.drawable;
 
 import com.intellij.util.xml.DefinesXml;
+import org.jetbrains.android.dom.Styleable;
 
 @DefinesXml
+@Styleable("VectorDrawablePath")
 public interface VectorPath extends DrawableDomElement {
 }

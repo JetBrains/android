@@ -314,19 +314,22 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       return null;
     }
     final Ref<Pair<AttributeDefinition, String>> result = Ref.create();
-    AndroidDomExtender.processAttrsAndSubtags((AndroidDomElement)parentDomElement, new AndroidDomExtender.MyCallback() {
-
-      @Nullable
-      @Override
-      DomExtension processAttribute(@NotNull XmlName xn, @NotNull AttributeDefinition attrDef, @Nullable String parentStyleableName) {
-        if (xn.getLocalName().equals(localName) &&
-            namespace.equals(xn.getNamespaceKey())) {
-          result.set(Pair.of(attrDef, parentStyleableName));
-          stop();
+    try {
+      AndroidDomExtender.processAttrsAndSubtags((AndroidDomElement)parentDomElement, new AndroidDomExtender.MyCallback() {
+        @Nullable
+        @Override
+        DomExtension processAttribute(@NotNull XmlName xn, @NotNull AttributeDefinition attrDef, @Nullable String parentStyleableName) {
+          if (xn.getLocalName().equals(localName) && namespace.equals(xn.getNamespaceKey())) {
+            result.set(Pair.of(attrDef, parentStyleableName));
+            throw new MyStopException();
+          }
+          return null;
         }
-        return null;
-      }
-    }, facet, false, true);
+      }, facet, false, true);
+    }
+    catch (MyStopException e) {
+      // ignore
+    }
 
     final Pair<AttributeDefinition, String> pair = result.get();
 
@@ -540,5 +543,8 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     public PsiElement getParent() {
       return myParent;
     }
+  }
+
+  private static class MyStopException extends RuntimeException {
   }
 }

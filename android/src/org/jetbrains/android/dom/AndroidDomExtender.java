@@ -20,7 +20,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlAttribute;
@@ -48,7 +47,6 @@ import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.manifest.UsesSdk;
-import org.jetbrains.android.dom.menu.MenuElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.transition.*;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
@@ -144,12 +142,13 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                     @Nullable String namespace,
                                                     MyCallback callback,
                                                     MyAttributeProcessor processor,
-                                                    Set<XmlName> skippedAttrSet) {
+                                                    Set<XmlName> skippedAttributes) {
     for (StyleableDefinition styleable : styleables) {
       for (AttributeDefinition attrDef : styleable.getAttributes()) {
         String attrName = attrDef.getName();
-        if (!skippedAttrSet.contains(new XmlName(attrName, namespace))) {
-          skippedAttrSet.add(new XmlName(attrName, namespace));
+        final XmlName xmlName = new XmlName(attrName, namespace);
+        if (!skippedAttributes.contains(xmlName)) {
+          skippedAttributes.add(xmlName);
           registerAttribute(attrDef, styleable.getName(), namespace, callback, processor, element);
         }
       }
@@ -582,14 +581,14 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                    ManifestElement element,
                                                    MyCallback callback,
                                                    Set<String> registeredSubtags,
-                                                   Set<XmlName> skippedNames,
+                                                   Set<XmlName> skippedAttributes,
                                                    boolean processStaticallyDefinedElements) {
     String styleableName = AndroidManifestUtils.getStyleableNameForElement(element);
 
     if (styleableName == null) {
       styleableName = AndroidManifestUtils.getStyleableNameByTagName(tagName);
     }
-    final Set<XmlName> newSkippedNames = new HashSet<XmlName>(skippedNames);
+    final Set<XmlName> newSkippedNames = new HashSet<XmlName>(skippedAttributes);
 
     if (!processStaticallyDefinedElements) {
       for (String attrName : AndroidManifestUtils.getStaticallyDefinedAttrs(element)) {
@@ -615,18 +614,17 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                   }
                                 }, newSkippedNames);
 
-    Set<String> subtagSet;
-
+    Set<String> skippedTagNames;
     if (!processStaticallyDefinedElements) {
-      subtagSet = new HashSet<String>();
-      Collections.addAll(subtagSet, AndroidManifestUtils.getStaticallyDefinedSubtags(element));
+      skippedTagNames = new HashSet<String>();
+      Collections.addAll(skippedTagNames, AndroidManifestUtils.getStaticallyDefinedSubtags(element));
     }
     else {
-      subtagSet = Collections.emptySet();
+      skippedTagNames = Collections.emptySet();
     }
     for (StyleableDefinition child : styleable.getChildren()) {
       String childTagName = AndroidManifestUtils.getTagNameByStyleableName(child.getName());
-      if (childTagName != null && !subtagSet.contains(childTagName)) {
+      if (childTagName != null && !skippedTagNames.contains(childTagName)) {
         registerSubtags(childTagName, ManifestElement.class, callback, registeredSubtags);
       }
     }
@@ -637,80 +635,71 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                             @NotNull AndroidFacet facet,
                                             boolean processAllExistingAttrsFirst,
                                             boolean processStaticallyDefinedElements) {
-    try {
-      XmlTag tag = element.getXmlTag();
+    XmlTag tag = element.getXmlTag();
 
-      final Set<XmlName> skippedAttributes = processAllExistingAttrsFirst
-                                             ? registerExistingAttributes(facet, tag, callback, element)
-                                             : new HashSet<XmlName>();
-      String tagName = tag.getName();
-      Set<String> registeredSubtags = new HashSet<String>();
-      if (element instanceof ManifestElement) {
-        registerExtensionsForManifest(facet, tagName, (ManifestElement)element, callback, registeredSubtags,
-                                      skippedAttributes, processStaticallyDefinedElements);
-        if (tag.getParentTag() != null) {
-          // Don't register attributes for root element
-          registerToolsAttribute(ToolsAttributeUtil.ATTR_NODE, callback);
-          registerToolsAttribute(ToolsAttributeUtil.ATTR_STRICT, callback);
-          registerToolsAttribute(ToolsAttributeUtil.ATTR_REMOVE, callback);
-          registerToolsAttribute(ToolsAttributeUtil.ATTR_REPLACE, callback);
-        }
-        if (element instanceof UsesSdk) {
-          registerToolsAttribute(ToolsAttributeUtil.ATTR_OVERRIDE_LIBRARY, callback);
-        }
+    final Set<XmlName> skippedAttributes =
+      processAllExistingAttrsFirst ? registerExistingAttributes(facet, tag, callback, element) : new HashSet<XmlName>();
+    String tagName = tag.getName();
+    Set<String> registeredSubtags = new HashSet<String>();
+    if (element instanceof ManifestElement) {
+      registerExtensionsForManifest(facet, tagName, (ManifestElement)element, callback, registeredSubtags, skippedAttributes,
+                                    processStaticallyDefinedElements);
+      if (tag.getParentTag() != null) {
+        // Don't register attributes for root element
+        registerToolsAttribute(ToolsAttributeUtil.ATTR_NODE, callback);
+        registerToolsAttribute(ToolsAttributeUtil.ATTR_STRICT, callback);
+        registerToolsAttribute(ToolsAttributeUtil.ATTR_REMOVE, callback);
+        registerToolsAttribute(ToolsAttributeUtil.ATTR_REPLACE, callback);
       }
-      else if (element instanceof LayoutElement) {
-        registerExtensionsForLayout(facet, tag, (LayoutElement)element, callback, registeredSubtags, skippedAttributes);
-
-        // Add tools namespace attributes to layout tags, but not those that are databinding-specific ones
-        if (!(element instanceof DataBindingElement)) {
-          registerToolsAttribute(ATTR_TARGET_API, callback);
-          if (tag.getParentTag() == null) {
-            registerToolsAttribute(ATTR_CONTEXT, callback);
-            registerToolsAttribute(ATTR_MENU, callback);
-            registerToolsAttribute(ATTR_ACTION_BAR_NAV_MODE, callback);
-            registerToolsAttribute(ATTR_SHOW_IN, callback);
-          }
-
-          final Map<String, PsiClass> classMap = getViewClassMap(facet);
-
-          // AdapterView resides in android.widget package and thus is acquired from class map by short name
-          final PsiClass adapterView = classMap.get(ADAPTER_VIEW);
-          final PsiClass psiClass = classMap.get(tag.getName());
-          if (adapterView != null && psiClass != null && psiClass.isInheritor(adapterView, true)) {
-            registerToolsAttribute(ATTR_LISTITEM, callback);
-            registerToolsAttribute(ATTR_LISTHEADER, callback);
-            registerToolsAttribute(ATTR_LISTFOOTER, callback);
-          }
-        }
-      }
-      else if (element instanceof AnimationElement) {
-        registerExtensionsForAnimation(facet, tagName, (AnimationElement)element, callback, registeredSubtags, skippedAttributes);
-      }
-      else if (element instanceof AnimatorElement) {
-        registerExtensionsForAnimator(facet, tagName, (AnimatorElement)element, callback, registeredSubtags, skippedAttributes);
-      }
-      else if (element instanceof MenuElement) {
-        String styleableName = StringUtil.capitalize(tagName);
-        if (!styleableName.equals("Menu")) {
-          styleableName = "Menu" + styleableName;
-        }
-        registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, skippedAttributes);
-      }
-      else if (element instanceof XmlResourceElement) {
-        registerExtensionsForXmlResources(facet, tag, (XmlResourceElement)element, callback, registeredSubtags, skippedAttributes);
-      }
-      else if (element instanceof DrawableDomElement || element instanceof ColorDomElement) {
-        registerExtensionsForDrawable(facet, tagName, element, callback, skippedAttributes);
-      }
-      else if (element instanceof TransitionDomElement) {
-        registerExtensionsForTransition(facet, tagName, (TransitionDomElement)element, callback, registeredSubtags, skippedAttributes);
-      }
-      if (!processStaticallyDefinedElements) {
-        Collections.addAll(registeredSubtags, AndroidDomUtil.getStaticallyDefinedSubtags(element));
+      if (element instanceof UsesSdk) {
+        registerToolsAttribute(ToolsAttributeUtil.ATTR_OVERRIDE_LIBRARY, callback);
       }
     }
-    catch (MyStopException ignored) {
+    else if (element instanceof LayoutElement) {
+      registerExtensionsForLayout(facet, tag, (LayoutElement)element, callback, registeredSubtags, skippedAttributes);
+
+      // Add tools namespace attributes to layout tags, but not those that are databinding-specific ones
+      if (!(element instanceof DataBindingElement)) {
+        registerToolsAttribute(ATTR_TARGET_API, callback);
+        if (tag.getParentTag() == null) {
+          registerToolsAttribute(ATTR_CONTEXT, callback);
+          registerToolsAttribute(ATTR_MENU, callback);
+          registerToolsAttribute(ATTR_ACTION_BAR_NAV_MODE, callback);
+          registerToolsAttribute(ATTR_SHOW_IN, callback);
+        }
+
+        final Map<String, PsiClass> classMap = getViewClassMap(facet);
+
+        // AdapterView resides in android.widget package and thus is acquired from class map by short name
+        final PsiClass adapterView = classMap.get(ADAPTER_VIEW);
+        final PsiClass psiClass = classMap.get(tag.getName());
+        if (adapterView != null && psiClass != null && psiClass.isInheritor(adapterView, true)) {
+          registerToolsAttribute(ATTR_LISTITEM, callback);
+          registerToolsAttribute(ATTR_LISTHEADER, callback);
+          registerToolsAttribute(ATTR_LISTFOOTER, callback);
+        }
+      }
+    }
+    else if (element instanceof AnimationElement) {
+      registerExtensionsForAnimation(facet, tagName, (AnimationElement)element, callback, registeredSubtags, skippedAttributes);
+    }
+    else if (element instanceof AnimatorElement) {
+      registerExtensionsForAnimator(facet, tagName, (AnimatorElement)element, callback, registeredSubtags, skippedAttributes);
+    }
+    else if (element instanceof XmlResourceElement) {
+      registerExtensionsForXmlResources(facet, tag, (XmlResourceElement)element, callback, registeredSubtags, skippedAttributes);
+    }
+    else if (element instanceof DrawableDomElement || element instanceof ColorDomElement) {
+      registerExtensionsForDrawable(facet, tagName, element, callback, skippedAttributes);
+    }
+    else if (element instanceof TransitionDomElement) {
+      registerExtensionsForTransition(facet, tagName, (TransitionDomElement)element, callback, registeredSubtags, skippedAttributes);
+    }
+
+    final Styleable styleable = element.getAnnotation(Styleable.class);
+    if (styleable != null) {
+      final String value = styleable.value();
+      registerAttributes(facet, element, value, SYSTEM_RESOURCE_PACKAGE, callback, skippedAttributes);
     }
   }
 
@@ -745,30 +734,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       if (attrDefs != null) {
         registerAttributes(facet, element, attrDefs.getStateStyleables(), SYSTEM_RESOURCE_PACKAGE, callback, null, skipAttrNames);
       }
-    }
-    else if (element instanceof LayerListItem) {
-      registerAttributes(facet, element, "LayerDrawableItem", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    }
-    else if (element instanceof LevelListItem) {
-      registerAttributes(facet, element, "LevelListDrawableItem", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    }
-    else if (element instanceof AnimationListItem) {
-      registerAttributes(facet, element, "AnimationDrawableItem", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    }
-    else if (element instanceof AnimatedStateListTransition) {
-      registerAttributes(facet, element, "AnimatedStateListDrawableTransition", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    }
-    else if (element instanceof VectorPath) {
-      registerAttributes(facet, element, "VectorDrawablePath", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    }
-    else if (element instanceof VectorGroup) {
-      registerAttributes(facet, element, "VectorDrawableGroup", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    }
-    else if (element instanceof VectorClipPath) {
-      registerAttributes(facet, element, "VectorDrawableClipPath", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    }
-    else if (element instanceof AnimatedVectorTarget) {
-      registerAttributes(facet, element, "AnimatedVectorDrawableTarget", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
     }
   }
 
@@ -947,19 +912,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
   }
 
-  private static class MyStopException extends RuntimeException {
-  }
-
-  public static class MyCallback {
-
-    protected void stop() {
-      throw new MyStopException();
-    }
-
+  public static abstract class MyCallback {
     @Nullable
-    DomExtension processAttribute(@NotNull XmlName xmlName, @NotNull AttributeDefinition attrDef, @Nullable String parentStyleableName) {
-      return null;
-    }
+    abstract DomExtension processAttribute(@NotNull XmlName xmlName, @NotNull AttributeDefinition attrDef, @Nullable String parentStyleableName);
 
     void processSubtag(@NotNull XmlName xmlName, @NotNull Type type) {
     }
