@@ -25,24 +25,9 @@ import static org.fest.assertions.Assertions.assertThat;
 
 public final class IconPropertyTest {
   @Test
-  public void testIconProperty() throws Exception {
+  public void iconPropertyCanWrapLabel() throws Exception {
     JLabel label = new JLabel();
-    Icon dummyIcon = new Icon() {
-      @Override
-      public void paintIcon(Component c, Graphics g, int x, int y) {
-
-      }
-
-      @Override
-      public int getIconWidth() {
-        return 0;
-      }
-
-      @Override
-      public int getIconHeight() {
-        return 0;
-      }
-    };
+    Icon dummyIcon = new DummyIcon();
 
     IconProperty iconProperty = new IconProperty(label);
     CountListener listener = new CountListener();
@@ -59,5 +44,44 @@ public final class IconPropertyTest {
     label.setIcon(null);
     assertThat(iconProperty.get().isPresent()).isFalse();
     assertThat(listener.getCount()).isEqualTo(2);
+  }
+
+  @Test
+  public void iconPropertyCanWrapButton() throws Exception {
+    JButton button = new JButton();
+    Icon dummyIcon = new DummyIcon();
+
+    IconProperty iconProperty = new IconProperty(button);
+    CountListener listener = new CountListener();
+    iconProperty.addListener(listener);
+
+    assertThat(iconProperty.get().isPresent()).isFalse();
+    assertThat(listener.getCount()).isEqualTo(0);
+
+    button.setIcon(dummyIcon);
+    assertThat(iconProperty.get().isPresent()).isTrue();
+    assertThat(iconProperty.getValue()).isEqualTo(dummyIcon);
+    assertThat(listener.getCount()).isEqualTo(1);
+
+    button.setIcon(null);
+    assertThat(iconProperty.get().isPresent()).isFalse();
+    assertThat(listener.getCount()).isEqualTo(2);
+  }
+
+  private static class DummyIcon implements Icon {
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+
+    }
+
+    @Override
+    public int getIconWidth() {
+      return 0;
+    }
+
+    @Override
+    public int getIconHeight() {
+      return 0;
+    }
   }
 }
