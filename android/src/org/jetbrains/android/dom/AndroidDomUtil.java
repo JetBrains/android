@@ -149,6 +149,9 @@ public class AndroidDomUtil {
       if (resourceTypes.contains(ResourceType.COLOR.getName())) {
         resourceTypes.add(ResourceType.DRAWABLE.getName());
       }
+      if (resourceTypes.contains(ResourceType.DRAWABLE.getName())) {
+        resourceTypes.add(ResourceType.MIPMAP.getName());
+      }
       if (resourceTypes.size() == 0) {
         resourceTypes.addAll(AndroidResourceUtil.getNames(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES));
       }

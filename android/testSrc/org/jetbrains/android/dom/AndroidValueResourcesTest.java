@@ -267,6 +267,15 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     doTestCompletionVariants(getTestName(true) + ".xml");
   }
 
+  public void testDrawableResourceReference() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/" + getTestName(true) + ".xml", "res/layout/main.xml");
+    // mipmap won't be offered as an option since there are not mipmap resources
+    myFixture.testCompletionVariants("res/layout/main.xml", "@android:", "@color/", "@drawable/");
+
+    myFixture.copyFileToProject(testFolder + "/icon.png", "res/mipmap/icon.png");
+    myFixture.testCompletionVariants("res/layout/main.xml", "@android:", "@color/", "@drawable/", "@mipmap/");
+  }
+
   public void testParentStyleReference() throws Throwable {
     VirtualFile file = myFixture.copyFileToProject(testFolder + "/psreference.xml", getPathToCopy("psreference.xml"));
     myFixture.configureFromExistingVirtualFile(file);
