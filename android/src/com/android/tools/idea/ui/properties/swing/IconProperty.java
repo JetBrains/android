@@ -28,11 +28,16 @@ import java.beans.PropertyChangeListener;
  * {@link ObservableProperty} that wraps a label and exposes its icon value.
  */
 public final class IconProperty extends OptionalProperty<Icon> implements PropertyChangeListener {
-  @NotNull private final JLabel myLabel;
+  @NotNull private final JComponent myComponent;
 
   public IconProperty(@NotNull JLabel label) {
-    myLabel = label;
+    myComponent = label;
     label.addPropertyChangeListener("icon", this);
+  }
+
+  public IconProperty(@NotNull AbstractButton button) {
+    myComponent = button;
+    button.addPropertyChangeListener("icon", this);
   }
 
   @Override
@@ -40,15 +45,30 @@ public final class IconProperty extends OptionalProperty<Icon> implements Proper
     notifyInvalidated();
   }
 
-
   @Override
   protected void setDirectly(@NotNull Optional<Icon> value) {
-    myLabel.setIcon(value.orNull());
+    if (myComponent instanceof JLabel) {
+      ((JLabel)myComponent).setIcon(value.orNull());
+    }
+    else if (myComponent instanceof AbstractButton) {
+      ((AbstractButton)myComponent).setIcon(value.orNull());
+    }
+    else {
+      throw new IllegalStateException("Unexpected icon component type: " + myComponent.getClass().getSimpleName());
+    }
   }
 
   @NotNull
   @Override
   public Optional<Icon> get() {
-    return Optional.fromNullable(myLabel.getIcon());
+    if (myComponent instanceof JLabel) {
+      return Optional.fromNullable(((JLabel)myComponent).getIcon());
+    }
+    else if (myComponent instanceof AbstractButton) {
+      return Optional.fromNullable(((AbstractButton)myComponent).getIcon());
+    }
+    else {
+      throw new IllegalStateException("Unexpected icon component type: " + myComponent.getClass().getSimpleName());
+    }
   }
 }
