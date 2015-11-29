@@ -150,8 +150,7 @@ public class StackTraceExpanderTest {
     List<String> output = new ArrayList<String>();
 
     for (String line: Splitter.on('\n').split(input)) {
-      expander.process(line);
-      for (String s : expander.getProcessedLines()) {
+      for (String s : expander.process(line)) {
         output.add(s);
       }
     }
