@@ -106,6 +106,69 @@ public class AndroidLogcatReceiverTest {
   }
 
   @Test
+  public void processNewLineHandlesUserNewlines() {
+    // Logcat output for "1: {\n}"
+    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("1: {");
+    myReceiver.processNewLine("}");
+    myReceiver.processNewLine("");
+    // Logcat output for "2: {\n\n}"
+    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("2: {");
+    myReceiver.processNewLine("");
+    myReceiver.processNewLine("}");
+    myReceiver.processNewLine("");
+    // Logcat output for "3: {\n\n\n}"
+    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("3: {");
+    myReceiver.processNewLine("");
+    myReceiver.processNewLine("");
+    myReceiver.processNewLine("}");
+    myReceiver.processNewLine("");
+    // Logcat output for "\n\nleading-trimmed"
+    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("");
+    myReceiver.processNewLine("");
+    myReceiver.processNewLine("leading-trimmed");
+    myReceiver.processNewLine("");
+    // Logcat output for "trailing-trimmed: {\n\n"
+    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("trailing-trimmed: {");
+    myReceiver.processNewLine("");
+    myReceiver.processNewLine("");
+    myReceiver.processNewLine("");
+    // Logcat output for "spaces: { \n \n \n }"
+    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("spaces: { ");
+    myReceiver.processNewLine(" ");
+    myReceiver.processNewLine(" ");
+    myReceiver.processNewLine(" }");
+    myReceiver.processNewLine("");
+
+    // One final entry so any remaining newlines are processed
+    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("normal log entry");
+
+    String expected = "01-23 12:34:56.789 99-99/? V/UnknownClient: 1: {\n" +
+                      "+ }\n" +
+                      "01-23 12:34:56.789 99-99/? V/UnknownClient: 2: {\n" +
+                      "+ \n" +
+                      "+ }\n" +
+                      "01-23 12:34:56.789 99-99/? V/UnknownClient: 3: {\n" +
+                      "+ \n" +
+                      "+ \n" +
+                      "+ }\n" +
+                      "01-23 12:34:56.789 99-99/? V/UnknownClient: leading-trimmed\n" +
+                      "01-23 12:34:56.789 99-99/? V/UnknownClient: trailing-trimmed: {\n" +
+                      "01-23 12:34:56.789 99-99/? V/UnknownClient: spaces: { \n" +
+                      "+  \n" +
+                      "+  \n" +
+                      "+  }\n" +
+                      "01-23 12:34:56.789 99-99/? V/UnknownClient: normal log entry\n";
+    assertThat(myWriter.toString()).isEqualTo(expected);
+  }
+
+  @Test
   public void processNewLineHandlesException() {
     myReceiver.processNewLine("[ 08-18 18:59:48.771 11698:11811 E/AndroidRuntime ]");
 

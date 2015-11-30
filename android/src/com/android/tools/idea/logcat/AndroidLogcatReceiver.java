@@ -47,6 +47,12 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   private final AndroidConsoleWriter myWriter;
   private final IDevice myDevice;
 
+  /**
+   * We don't always want to add a newline when we get one, as we can't tell if it came from the
+   * user or from logcat. We'll flush any enqueued newlines to the log if we get more context that
+   * verifies the newlines came from a user.
+   */
+  private int myDelayedNewlineCount;
   private final StackTraceExpander myStackTraceExpander;
   @Nullable private LogCatHeader myActiveHeader;
   private int myLineIndex;
@@ -60,29 +66,54 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   @Override
   public void processNewLine(@NotNull String line) {
     if (line.isEmpty()) {
-      myStackTraceExpander.reset();
-      myActiveHeader = null;
+      myDelayedNewlineCount++;
       return;
     }
 
     LogCatHeader header = myParser.processLogHeader(line, myDevice);
     if (header != null) {
+      myStackTraceExpander.reset();
       myActiveHeader = header;
       myLineIndex = 0;
+      // Intentionally drop any trailing newlines once we hit a new header. Usually, logcat
+      // separates log entries with a single newline but sometimes it outputs more than one. As we
+      // can't know which is user newlines vs. system newlines, just drop all of them.
+      myDelayedNewlineCount = 0;
     }
     else if (myActiveHeader != null) {
-      myStackTraceExpander.process(line);
-      for (String processedLine : myStackTraceExpander.getProcessedLines()) {
-        if (myLineIndex == 0) {
-          processedLine = AndroidLogcatFormatter.formatMessageFull(myActiveHeader, processedLine);
-        }
-        else {
-          processedLine = AndroidLogcatFormatter.formatContinuation(processedLine);
-        }
-        myWriter.addMessage(processedLine);
-        myLineIndex++;
+      if (myDelayedNewlineCount > 0 && myLineIndex == 0) {
+        // Note: Since we trim trailing newlines, we trim leading newlines too. Most users won't
+        // use them intentionally and they don't look great, anyway.
+        myDelayedNewlineCount = 0;
+      }
+      else {
+        processAnyDelayedNewlines(myActiveHeader);
+      }
+      for (String processedLine : myStackTraceExpander.process(line)) {
+        writeLineToLog(myActiveHeader, processedLine);
       }
     }
+  }
+
+  private void writeLineToLog(@NotNull LogCatHeader header, @NotNull String line) {
+    if (myLineIndex == 0) {
+      line = AndroidLogcatFormatter.formatMessageFull(header, line);
+    }
+    else {
+      line = AndroidLogcatFormatter.formatContinuation(line);
+    }
+    myWriter.addMessage(line);
+    myLineIndex++;
+  }
+
+  private void processAnyDelayedNewlines(@NotNull LogCatHeader header) {
+    if (myDelayedNewlineCount == 0) {
+      return;
+    }
+    for (int i = 0; i < myDelayedNewlineCount; i++) {
+      writeLineToLog(header, "");
+    }
+    myDelayedNewlineCount = 0;
   }
 
   @Override
