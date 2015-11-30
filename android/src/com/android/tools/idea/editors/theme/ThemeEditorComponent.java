@@ -179,6 +179,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   }
 
   private AttributesTableModel myModel;
+  private SwingWorker<Boolean, Object> mySwingWorker;
 
   public ThemeEditorComponent(@NotNull final Project project) {
     myProject = project;
@@ -905,7 +906,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       // Check whenever we reload the theme as any external file could have been changed that would affect this.
       // e.g. change to the manifest to use a theme.
       final PsiElement name = selectedTheme.getNamePsiElement();
-      new SwingWorker<Boolean, Object>() {
+      mySwingWorker = new SwingWorker<Boolean, Object>() {
         @Override
         protected Boolean doInBackground() throws Exception {
           assert name != null; // it's a project theme, so we should always have a name.
@@ -914,6 +915,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
         @Override
         protected void done() {
+          if (isCancelled()) {
+            return;
+          }
           try {
             myPanel.setShowThemeNotUsedWarning(get());
           }
@@ -922,7 +926,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
             throw new RuntimeException(ex);
           }
         }
-      }.execute();
+      };
+      mySwingWorker.execute();
     }
 
     myPreviewPanel.setError(null);
@@ -1052,6 +1057,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     // First remove the table editor so that it won't be called after
     // objects it relies on, like the module, have themselves been disposed
     myAttributesTable.removeEditor();
+    if (mySwingWorker != null) {
+      mySwingWorker.cancel(true);
+    }
     super.dispose();
   }
 
