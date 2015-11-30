@@ -15,288 +15,452 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import com.android.tools.idea.gradle.dsl.dependencies.CommonConfigurationNames;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.RUNTIME;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static org.fest.assertions.Assertions.assertThat;
 
 public class ArtifactDependencyTest extends GradleFileModelTestCase {
-  public void testMapNotation() throws Exception {
+  public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
-                  "  compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
-                  "}";
-
-    checkReadAndModify(text);
-  }
-
-  public void testCompactNotation() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile 'com.google.code.guice:guice:1.0'\n" +
-                  "}";
-    checkReadAndModify(text);
-  }
-
-  public void testMapNotationMethodCall() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile(group: 'com.google.code.guice', name: 'guice', version: '1.0')\n" +
-                  "}";
-    checkReadAndModify(text);
-  }
-
-  public void testCompactNotationMethodCall() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile('com.google.code.guice:guice:1.0')\n" +
-                  "}";
-    checkReadAndModify(text);
-  }
-
-  public void testDependenciesWithSingleConfigurationName_CompactListOne() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile('com.google.code.guice:guice:1.0',\n" +
-                  "          'com.google.guava:guava:19.0')\n" +
-                  "}";
-    checkTwoDependenciesWithSingleConfigurationName(text);
-  }
-
-  public void testDependenciesWithSingleConfigurationName_CompactListTwo() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile(['com.google.code.guice:guice:1.0',\n" +
-                  "           'com.google.guava:guava:19.0'])\n" +
-                  "}";
-    checkTwoDependenciesWithSingleConfigurationName(text);
-  }
-
-  public void testDependenciesWithSingleConfigurationName_CompactListThree() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile(['com.google.code.guice:guice:1.0'],\n" +
-                  "          'com.google.guava:guava:19.0')\n" +
-                  "}";
-    checkTwoDependenciesWithSingleConfigurationName(text);
-  }
-
-  public void testDependenciesWithSingleConfigurationName_CompactListFour() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile(['com.google.code.guice:guice:1.0'],\n" +
-                  "          ['com.google.guava:guava:19.0'])\n" +
-                  "}";
-    checkTwoDependenciesWithSingleConfigurationName(text);
-  }
-
-  public void testDependenciesWithSingleConfigurationName_MapListOne() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0'],\n" +
-                  "          [group: 'com.google.guava', name: 'guava', version: '19.0'])\n" +
-                  "}";
-    checkTwoDependenciesWithSingleConfigurationName(text);
-  }
-
-  public void testDependenciesWithSingleConfigurationName_MapListTwo() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0'],\n" +
-                  "          group: 'com.google.guava', name: 'guava', version: '19.0')\n" +
-                  "}";
-    checkTwoDependenciesWithSingleConfigurationName(text);
-  }
-
-  public void testDependenciesWithSingleConfigurationName_CompactAndMapListOne() throws Exception {
-    String text = "dependencies {\n" +
-           "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0'],\n" +
-           "          ['com.google.guava:guava:19.0'])\n" +
-           "}";
-    checkTwoDependenciesWithSingleConfigurationName(text);
-  }
-
-  public void testDependenciesWithSingleConfigurationName_CompactAndMapListTwo() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile([group: 'com.google.code.guice', name: 'guice', version: '1.0'],\n" +
-                  "          'com.google.guava:guava:19.0')\n" +
-                  "}";
-    checkTwoDependenciesWithSingleConfigurationName(text);
-  }
-
-  private void checkTwoDependenciesWithSingleConfigurationName(@NotNull final String text) throws Exception {
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        try {
-          writeToBuildFile(text);
-        }
-        catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-    });
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
-    List<ArtifactDependencyModel> artifacts = dependenciesModel.artifactDependencies("compile");
-    assertSize(2, artifacts);
-
-    dependenciesModel.remove(artifacts.get(0));
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    buildModel.reparse();
-    dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
-
-    assertSize(1, dependenciesModel.artifactDependencies("compile"));
-
-    dependenciesModel.remove(getDependency(dependenciesModel));
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    buildModel.reparse();
-    dependenciesModel = buildModel.dependenciesV2();
-    assertNull(dependenciesModel);
-  }
-
-  public void testAddingDependency() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile 'com.google.code.guice:guice:1.0'\n" +
+                  "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
+                  "    runtime 'com.google.guava:guava:18.0'\n" +
+                  "    test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
                   "}";
     writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
 
-    assertEquals("com.google.code.guice:guice:1.0", getDependency(dependenciesModel).getCompactNotation());
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
 
-    dependenciesModel.addArtifactDependency("compile", "com.google.guava:guava:19.0");
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(3);
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    expected.assertMatches(dependencies.get(0));
 
-    dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
+    expected = new ExpectedArtifactDependency(RUNTIME, "guava", "com.google.guava", "18.0");
+    expected.assertMatches(dependencies.get(1));
 
-    List<ArtifactDependencyModel> artifacts = dependenciesModel.artifactDependencies("compile");
-    assertSize(2, artifacts);
-
-    assertEquals("com.google.code.guice:guice:1.0", artifacts.get(0).getCompactNotation());
-    assertEquals("com.google.guava:guava:19.0", artifacts.get(1).getCompactNotation());
+    expected = new ExpectedArtifactDependency("test", "service", "org.gradle.test.classifiers", "1.0");
+    expected.classifier = "jdk15";
+    expected.extension = "jar";
+    expected.assertMatches(dependencies.get(2));
   }
 
-  public void testAddingDependencyForEmptyFile() throws Exception {
-    writeToBuildFile("");
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
-    assertNull(dependenciesModel);
-    dependenciesModel = buildModel.addDependenciesModelV2().dependenciesV2();
-    assertNotNull(dependenciesModel);
-
-    dependenciesModel.addArtifactDependency("compile", "com.google.code.guice:guice:1.0");
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
-
-    dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
-
-    assertEquals("com.google.code.guice:guice:1.0", getDependency(dependenciesModel).getCompactNotation());
-  }
-
-  public void testAddingInvalidDependency() throws Exception {
+  public void testParsingWithMapNotation() throws IOException {
     String text = "dependencies {\n" +
+                  "    runtime group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14', ext: 'jar'\n" +
                   "}";
     writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
 
-    try {
-      dependenciesModel.addArtifactDependency("compile", "1:2:3:4:5:6");
-      fail();
-    } catch (IllegalArgumentException e) {
-      // ingore
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
+    expected.classifier = "jdk14";
+    expected.extension = "jar";
+    expected.assertMatches(dependencies.get(0));
+  }
+
+  public void testAddDependency() throws IOException {
+    String text = "dependencies {\n" +
+                  "    runtime group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14', ext: 'jar'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    ArtifactDependencySpec newDependency = new ArtifactDependencySpec("appcompat-v7", "com.android.support", "22.1.1");
+    dependenciesModel.addArtifact(COMPILE, newDependency);
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
+    expected.classifier = "jdk14";
+    expected.extension = "jar";
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+
+  public void testSetVersionOnDependencyWithCompactNotation() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+
+    ArtifactDependencyModel appCompat = dependencies.get(0);
+    appCompat.setVersion("1.2.3");
+
+    assertTrue(buildModel.isModified());
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+
+    dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "1.2.3");
+    expected.assertMatches(dependencies.get(0));
+  }
+
+  public void testSetVersionOnDependencyWithMapNotation() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+
+    ArtifactDependencyModel guice = dependencies.get(0);
+    guice.setVersion("1.2.3");
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+
+    dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guice", "com.google.code.guice", "1.2.3");
+    expected.assertMatches(dependencies.get(0));
+  }
+
+  public void /*test*/ParseDependenciesWithCompactNotationInSingleLine() throws IOException {
+    String text = "dependencies {\n" +
+                  "    runtime 'org.springframework:spring-core:2.5', 'org.springframework:spring-aop:2.5'\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "spring-core", "org.springframework", "2.5");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(RUNTIME, "spring-aop", "org.springframework", "2.5");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  public void /*test*/ParseDependenciesWithCompactNotationInSingleLineWithComments() throws IOException {
+    String text = "dependencies {\n" +
+                  "    runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "spring-core", "org.springframework", "2.5");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(RUNTIME, "spring-aop", "org.springframework", "2.5");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  public void testParseDependenciesWithMapNotationUsingSingleConfigurationName() throws IOException {
+    String text = "dependencies {\n" +
+                  "    runtime(\n" +
+                  "        [group: 'org.springframework', name: 'spring-core', version: '2.5'],\n" +
+                  "        [group: 'org.springframework', name: 'spring-aop', version: '2.5']\n" +
+                  "    )\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "spring-core", "org.springframework", "2.5");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(RUNTIME, "spring-aop", "org.springframework", "2.5");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+
+  public void testReset() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+
+    ArtifactDependencyModel guice = dependencies.get(0);
+    guice.setVersion("1.2.3");
+
+    assertTrue(buildModel.isModified());
+
+    buildModel.resetState();
+
+    assertFalse(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+
+    dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guice", "com.google.code.guice", "1.0");
+    expected.assertMatches(dependencies.get(0));
+  }
+
+  public void testRemoveDependencyWithCompactNotation() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
+                  "    runtime 'com.google.guava:guava:18.0'\n" +
+                  "    test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(3);
+
+    ArtifactDependencyModel guava = dependencies.get(1);
+    dependenciesModel.remove(guava);
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+    buildModel.reparse();
+
+    dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency("test", "service", "org.gradle.test.classifiers", "1.0");
+    expected.classifier = "jdk15";
+    expected.extension = "jar";
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  public void /*test*/RemoveDependencyWithCompactNotationAndSingleConfigurationName() throws IOException {
+    String text = "dependencies {\n" +
+                  "    runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'\n" +
+                  "    test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(3);
+
+    ArtifactDependencyModel springAop = dependencies.get(1);
+    dependenciesModel.remove(springAop);
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+    buildModel.reparse();
+
+    dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "spring-core", "org.springframework", "2.5");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency("test", "service", "org.gradle.test.classifiers", "1.0");
+    expected.classifier = "jdk15";
+    expected.extension = "jar";
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  public void testRemoveDependencyWithMapNotation() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
+                  "    compile group: 'com.google.guava', name: 'guava', version: '18.0'\n" +
+                  "    compile group: 'com.android.support', name: 'appcompat-v7', version: '22.1.1'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(3);
+
+    ArtifactDependencyModel guava = dependencies.get(1);
+    dependenciesModel.remove(guava);
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+    buildModel.reparse();
+
+    dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency("compile", "guice", "com.google.code.guice", "1.0");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  public void testRemoveDependencyWithMapNotationAndSingleConfigurationName() throws IOException {
+    String text = "dependencies {\n" +
+                  "    runtime(\n" +
+                  "        [group: 'com.google.code.guice', name: 'guice', version: '1.0'],\n" +
+                  "        [group: 'com.google.guava', name: 'guava', version: '18.0'],\n" +
+                  "        [group: 'com.android.support', name: 'appcompat-v7', version: '22.1.1']\n" +
+                  "    )\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(3);
+
+    ArtifactDependencyModel guava = dependencies.get(1);
+    dependenciesModel.remove(guava);
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+    buildModel.reparse();
+
+    dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "guice", "com.google.code.guice", "1.0");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(RUNTIME, "appcompat-v7", "com.android.support", "22.1.1");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  public static class ExpectedArtifactDependency extends ArtifactDependencySpec {
+    @NotNull public String configurationName;
+
+    public ExpectedArtifactDependency(@NotNull String configurationName,
+                                      @NotNull String name,
+                                      @Nullable String group,
+                                      @Nullable String version) {
+      super(name, group, version);
+      this.configurationName = configurationName;
     }
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    public void assertMatches(@NotNull ArtifactDependencyModel actual) {
+      assertEquals("configurationName", configurationName, actual.configurationName());
+      assertEquals("group", group, actual.group());
+      assertEquals("name", name, actual.name());
+      assertEquals("version", version, actual.version());
+      assertEquals("classifier", classifier, actual.classifier());
+      assertEquals("extension", extension, actual.extension());
+    }
 
-    dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
-    assertEmpty(dependenciesModel.artifactDependencies("compile"));
-  }
-
-  private void checkReadAndModify(@NotNull String text) throws IOException {
-    writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    ArtifactDependencyModel dependencyModel = getDependency(buildModel.dependenciesV2());
-
-    // Test Read
-    assertEquals("com.google.code.guice:guice:1.0", dependencyModel.getCompactNotation());
-
-    // Test reset
-    dependencyModel.setVersion("1.1");
-    assertEquals("1.1", dependencyModel.version());
-    buildModel.resetState();
-    dependencyModel = getDependency(buildModel.dependenciesV2());
-    assertEquals("1.0", dependencyModel.version());
-
-    // Test Read after write
-    dependencyModel.setVersion("1.2");
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
-
-    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
-    dependencyModel = getDependency(dependenciesModel);
-
-    assertEquals("com.google.code.guice:guice:1.2", dependencyModel.getCompactNotation());
-
-    // Test Remove
-    dependenciesModel.remove(dependencyModel);
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
-    dependenciesModel = buildModel.dependenciesV2();
-    assertNull(dependenciesModel);
-  }
-
-  private static ArtifactDependencyModel getDependency(@Nullable DependenciesModel dependenciesModel) {
-    assertNotNull(dependenciesModel);
-    List<ArtifactDependencyModel> artifactDependencies = dependenciesModel.artifactDependencies(CommonConfigurationNames.COMPILE);
-    assertSize(1, artifactDependencies);
-    return artifactDependencies.get(0);
+    public boolean matches(@NotNull ArtifactDependencyModel dependency) {
+      return configurationName.equals(dependency.configurationName()) &&
+             name.equals(dependency.name()) &&
+             Objects.equal(group, dependency.group()) &&
+             Objects.equal(version, dependency.version()) &&
+             Objects.equal(classifier, dependency.classifier()) &&
+             Objects.equal(extension, dependency.extension());
+    }
   }
 }

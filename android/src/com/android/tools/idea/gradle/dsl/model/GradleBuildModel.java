@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModel;
@@ -34,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
@@ -88,20 +88,27 @@ public class GradleBuildModel extends GradleFileModel {
     return this;
   }
 
-  @NotNull
-  public Dependencies dependencies() {
-    return ((GradleBuildDslFile)myGradleDslFile).myDependencies;
+  @Contract("true -> !null")
+  @Nullable
+  public DependenciesModel dependencies(boolean createIfNeeded) {
+    DependenciesModel dependenciesModel = dependencies();
+    if (createIfNeeded && dependenciesModel == null) {
+      addDependenciesModel();
+      dependenciesModel = dependencies();
+      assert dependenciesModel != null;
+    }
+    return dependenciesModel;
   }
 
   @Nullable
-  public DependenciesModel dependenciesV2() {
+  public DependenciesModel dependencies() {
     DependenciesDslElement dependenciesDslElement = myGradleDslFile.getProperty(DependenciesDslElement.NAME, DependenciesDslElement.class);
     return dependenciesDslElement != null ? new DependenciesModel(dependenciesDslElement) : null;
   }
 
   @NotNull
-  public GradleBuildModel addDependenciesModelV2() {
-    if (dependenciesV2() != null) {
+  public GradleBuildModel addDependenciesModel() {
+    if (dependencies() != null) {
       return this;
     }
     DependenciesDslElement dependenciesDslElement = new DependenciesDslElement(myGradleDslFile);
@@ -154,25 +161,20 @@ public class GradleBuildModel extends GradleFileModel {
   }
 
   private static class GradleBuildDslFile extends GradleDslFile {
-    @NotNull private Dependencies myDependencies = new Dependencies(this);
-
     private GradleBuildDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
       super(file, project, moduleName);
     }
 
     @Override
     public void reparse() {
-      myDependencies = new Dependencies(this);
       super.reparse();
     }
 
     @Override
     protected void parse(@NotNull GroovyFile psiFile) {
-      myDependencies.setPsiFile(psiFile);
       psiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
         @Override
         public void visitMethodCallExpression(GrMethodCallExpression e) {
-          myDependencies.parse(e);
           process(e);
         }
 
@@ -211,13 +213,11 @@ public class GradleBuildModel extends GradleFileModel {
     @Override
     protected void reset() {
       super.reset();
-      myDependencies.resetState();
     }
 
     @Override
     protected void apply() {
       super.apply();
-      myDependencies.applyChanges();
     }
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.Lists;
@@ -54,57 +53,48 @@ public class DependenciesModel {
   }
 
   @NotNull
-  public List<ArtifactDependencyModel> artifactDependencies(@NotNull String configurationName) {
+  public List<ArtifactDependencyModel> artifacts() {
     List<ArtifactDependencyModel> dependencies = Lists.newArrayList();
-    GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
-    if (list != null) {
-      for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
-        dependencies.addAll(ArtifactDependencyModel.create(element));
+    for (String configurationName : myDslElement.getProperties()) {
+      GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+      if (list != null) {
+        for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
+          dependencies.addAll(ArtifactDependencyModel.create(element));
+        }
       }
     }
     return dependencies;
   }
 
   @NotNull
-  public DependenciesModel addArtifactDependency(@NotNull String configurationName, @NotNull String compactNotation) {
-    ExternalDependencySpec spec = ExternalDependencySpec.create(compactNotation);
-    if (spec == null) {
-      throw new IllegalArgumentException("'" + compactNotation + "' is not a valid dependency specification");
-    }
+  public DependenciesModel addArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency) {
     GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
     if (list == null) {
       list = new GradleDslElementList(myDslElement, configurationName);
       myDslElement.setNewElement(configurationName, list);
     }
     GradleDslLiteral literal = new GradleDslLiteral(list, configurationName);
-    literal.setValue(compactNotation);
+    literal.setValue(dependency.compactNotation());
     list.addNewElement(literal);
     return this;
   }
 
   @NotNull
-  public List<ModuleDependencyModel> moduleDependencies(@NotNull String configurationName) {
+  public List<ModuleDependencyModel> modules() {
     List<ModuleDependencyModel> dependencies = Lists.newArrayList();
-    GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
-    if (list != null) {
-      for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
-        dependencies.addAll(ModuleDependencyModel.create(configurationName, element));
+    for (String configurationName : myDslElement.getProperties()) {
+      GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+      if (list != null) {
+        for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
+          dependencies.addAll(ModuleDependencyModel.create(configurationName, element));
+        }
       }
     }
     return dependencies;
   }
 
   @NotNull
-  public List<ModuleDependencyModel> moduleDependencies() {
-    List<ModuleDependencyModel> dependencies = Lists.newArrayList();
-    for (String configurationName : myDslElement.getProperties()) {
-      dependencies.addAll(moduleDependencies(configurationName));
-    }
-    return dependencies;
-  }
-
-  @NotNull
-  public DependenciesModel addModuleDependency(@NotNull String configurationName, @NotNull String path, @Nullable String config) {
+  public DependenciesModel addModule(@NotNull String configurationName, @NotNull String path, @Nullable String config) {
     GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
     if (list == null) {
       list = new GradleDslElementList(myDslElement, configurationName);
@@ -121,8 +111,9 @@ public class DependenciesModel {
     return this;
   }
 
+  @NotNull
   public DependenciesModel remove(@NotNull DependencyModel dependency) {
-    GradleDslElementList gradleDslElementList = myDslElement.getProperty(dependency.getConfigurationName(), GradleDslElementList.class);
+    GradleDslElementList gradleDslElementList = myDslElement.getProperty(dependency.configurationName(), GradleDslElementList.class);
     if (gradleDslElementList != null) {
       GradleDslElement dependencyElement = dependency.getDslElement();
       GradleDslElement parent = dependencyElement.getParent();

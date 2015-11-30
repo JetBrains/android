@@ -19,9 +19,9 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
-import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
-import static com.android.tools.idea.gradle.dsl.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.roots.libraries.LibraryUtil.findLibrary;
@@ -107,15 +107,15 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   public Promise<Void> addExternalLibraryDependency(@NotNull Collection<Module> modules,
                                                     @NotNull ExternalLibraryDescriptor descriptor,
                                                     @NotNull DependencyScope scope) {
-    ExternalDependencySpec dependencySpec;
+    ArtifactDependencySpec dependencySpec;
     // TODO update
     // com.intellij.codeInsight.daemon.impl.quickfix.JetBrainsAnnotationsExternalLibraryResolver.JetBrainsAnnotationsLibraryDescriptor
     if ("com.intellij".equals(descriptor.getLibraryGroupId()) && "annotations".equals(descriptor.getLibraryArtifactId())) {
-      dependencySpec = new ExternalDependencySpec("annotations", "org.jetbrains", "13.0");
+      dependencySpec = new ArtifactDependencySpec("annotations", "org.jetbrains", "13.0");
     }
     else {
       dependencySpec =
-        new ExternalDependencySpec(descriptor.getLibraryArtifactId(), descriptor.getLibraryGroupId(), selectVersion(descriptor));
+        new ArtifactDependencySpec(descriptor.getLibraryArtifactId(), descriptor.getLibraryGroupId(), selectVersion(descriptor));
     }
     return addExternalLibraryDependency(modules, dependencySpec, scope);
   }
@@ -126,7 +126,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     if (!isBuildWithGradle(from)) {
       return null;
     }
-    ExternalDependencySpec dependencySpec = findNewExternalDependency(library);
+    ArtifactDependencySpec dependencySpec = findNewExternalDependency(library);
     if (dependencySpec == null) {
       return Promise.REJECTED;
     }
@@ -135,25 +135,25 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @Nullable
   private Promise<Void> addExternalLibraryDependency(@NotNull Collection<Module> modules,
-                                                     @NotNull ExternalDependencySpec dependencySpec,
+                                                     @NotNull ArtifactDependencySpec dependencySpec,
                                                      @NotNull DependencyScope scope) {
-    final List<Dependencies> dependenciesToChange = Lists.newArrayList();
+    final List<GradleBuildModel> buildModelsToUpdate = Lists.newArrayList();
     for (Module module : modules) {
       GradleBuildModel buildModel = GradleBuildModel.get(module);
       if (buildModel == null) {
         return null;
       }
       String configurationName = getConfigurationName(module, scope);
-      Dependencies dependencies = buildModel.dependencies();
-      dependencies.add(configurationName, dependencySpec);
-      dependenciesToChange.add(dependencies);
+      DependenciesModel dependencies = buildModel.dependencies(true);
+      dependencies.addArtifact(configurationName, dependencySpec);
+      buildModelsToUpdate.add(buildModel);
     }
 
     new WriteCommandAction(myProject, "Add Gradle Dependency") {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        for (Dependencies dependencies : dependenciesToChange) {
-          dependencies.applyChanges();
+        for (GradleBuildModel buildModel : buildModelsToUpdate) {
+          buildModel.applyChanges();
         }
         registerUndoAction(myProject);
       }
@@ -247,11 +247,11 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
    * Given a library entry, find out its corresponded gradle dependency entry like 'group:name:version".
    */
   @Nullable
-  private ExternalDependencySpec findNewExternalDependency(@NotNull Library library) {
+  private ArtifactDependencySpec findNewExternalDependency(@NotNull Library library) {
     if (library.getName() == null) {
       return null;
     }
-    ExternalDependencySpec result = null;
+    ArtifactDependencySpec result = null;
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
       if (androidGradleModel != null && findLibrary(module, library.getName()) != null) {
@@ -267,7 +267,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @Nullable
-  private static ExternalDependencySpec findNewExternalDependency(@NotNull Library library, @NotNull AndroidGradleModel androidModel) {
+  private static ArtifactDependencySpec findNewExternalDependency(@NotNull Library library, @NotNull AndroidGradleModel androidModel) {
     BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
 
     com.android.builder.model.Library matchedLibrary = null;
@@ -287,7 +287,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     if (coordinates == null) {
       return null;
     }
-    return new ExternalDependencySpec(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
+    return new ArtifactDependencySpec(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
   }
 
   @Nullable
@@ -306,7 +306,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
    * therefor, if we can't get the artifact information from model, then try to extract from path.
    */
   @Nullable
-  private static ExternalDependencySpec findNewExternalDependencyByExaminingPath(@NotNull Library library) {
+  private static ArtifactDependencySpec findNewExternalDependencyByExaminingPath(@NotNull Library library) {
     VirtualFile[] files = library.getFiles(OrderRootType.CLASSES);
     if (files.length == 0) {
       return null;
@@ -325,7 +325,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         String artifactId = pathSegments.get(i);
         String version = pathSegments.get(i + 1);
         if (libraryName.endsWith(version)) {
-          return new ExternalDependencySpec(artifactId, groupId, version);
+          return new ArtifactDependencySpec(artifactId, groupId, version);
         }
       }
     }

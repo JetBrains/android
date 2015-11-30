@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
-import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -25,14 +25,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.idea.gradle.dsl.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS;
@@ -97,8 +95,8 @@ public class AddGradleDependencyTest extends GuiTestCase {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     GradleBuildModelFixture library3BuildModel = myProjectFrame.parseBuildFileForModule("library3", false);
-    ExternalDependencySpec gson = new ExternalDependencySpec("gson", "com.google.code.gson", "2.4");
-    library3BuildModel.getTarget().dependencies().add(COMPILE, gson);
+    ArtifactDependencySpec gson = new ArtifactDependencySpec("gson", "com.google.code.gson", "2.4");
+    library3BuildModel.getTarget().dependencies(true).addArtifact(COMPILE, gson);
     library3BuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -124,8 +122,8 @@ public class AddGradleDependencyTest extends GuiTestCase {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    ExternalDependencySpec gson = new ExternalDependencySpec("gson", "com.google.code.gson", "2.4");
-    appBuildModel.getTarget().dependencies().add(COMPILE, gson);
+    ArtifactDependencySpec gson = new ArtifactDependencySpec("gson", "com.google.code.gson", "2.4");
+    appBuildModel.getTarget().dependencies(true).addArtifact(COMPILE, gson);
     appBuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -194,7 +192,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    ExternalDependencySpec expected = new ExternalDependencySpec("junit", "junit", "4.12");
+    ArtifactDependencySpec expected = new ArtifactDependencySpec("junit", "junit", "4.12");
     appBuildModel.requireDependency(TEST_COMPILE, expected);
 
     verifyUndo(editor, 6);
@@ -217,7 +215,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    ExternalDependencySpec expected = new ExternalDependencySpec("annotations", "org.jetbrains", "13.0");
+    ArtifactDependencySpec expected = new ArtifactDependencySpec("annotations", "org.jetbrains", "13.0");
     appBuildModel.requireDependency(COMPILE, expected);
 
     editor.invokeAction(UNDO); // Undo the import statement first
