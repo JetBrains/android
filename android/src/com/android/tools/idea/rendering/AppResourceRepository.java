@@ -25,13 +25,10 @@ import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -116,26 +113,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     List<LocalResourceRepository> delegates = computeRepositories(facet, libraries);
     final AppResourceRepository repository = new AppResourceRepository(facet, delegates, libraries);
 
-    facet.addListener(new GradleSyncListener.Adapter() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        repository.updateRoots();
-      }
-    });
-
-    // Add notification listener for builds, so we can update extracted AARs, if necessary.
-    // This is necessary because after sync, but before the source generation build target has completed,
-    // we can look for but not find the exploded AAR directories. When the build is done we need to revisit
-    // this and create them if necessary.
-    // TODO: When https://code.google.com/p/android/issues/detail?id=76744 is implemented we can
-    // optimize this to only check changes in AAR files
-    Project project = facet.getModule().getProject();
-    AndroidProjectBuildNotifications.subscribe(project, facet, new AndroidProjectBuildNotifications.AndroidProjectBuildListener() {
-      @Override
-      public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
-        repository.updateRoots();
-      }
-    });
+    ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
 
     return repository;
   }
