@@ -1489,14 +1489,18 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       Logger.getInstance(FastDeployManager.class).error("Couldn't generate dex", t);
     }
 
+    displayVerifierStatus(model, facet);
+
+    return updateMode;
+  }
+
+  public static void displayVerifierStatus(@NotNull AndroidGradleModel model, @NotNull AndroidFacet facet) {
     String status = getVerifierStatus(model);
     if (status != null && !status.equals(VERIFIER_COMPATIBLE_VALUE)) {
       // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
       status = StringUtil.capitalizeWords(status.toLowerCase(Locale.US).replace('_', ' '), true);
       postBalloon(MessageType.WARNING, "Couldn't apply changes on the fly: " + status, facet.getModule().getProject());
     }
-
-    return updateMode;
   }
 
   public static void removeOldPatches(@NotNull Module module) {
