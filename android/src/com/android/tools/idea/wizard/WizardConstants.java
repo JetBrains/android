@@ -17,10 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.npw.ModuleTemplate;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.wizard.StudioWizardLayout;
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
@@ -38,12 +35,10 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZAR
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
- * Constants for template based wizards
- * <p/>
- * TODO: Post wizard migration: delete (or at least severely reduce) All keys must go!
+ * Constants for template based wizards.
  *
- * @deprecated These concepts should now exist in appropriate locations inside the
- * {@link com.android.tools.idea.ui.wizard} package
+ * <p>These concepts are effectively deprecated and should now exist in appropriate locations inside the com.android.tools.idea.ui.wizard
+ * package.
  */
 public class WizardConstants {
 
@@ -76,40 +71,35 @@ public class WizardConstants {
   public static final Dimension DEFAULT_GALLERY_THUMBNAIL_SIZE = JBUI.size(192, 192);
 
   // State Store Keys
-  public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
-  public static final Key<String> SDK_HOME_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
-  @SuppressWarnings("unchecked") public static final Key<List<IPkgDesc>> INSTALL_REQUESTS_KEY =
-    createKey("packagesToInstall", WIZARD, (Class<List<IPkgDesc>>)(Class)List.class);
-  @SuppressWarnings("unchecked") public static final Key<List<IPkgDesc>> SKIPPED_INSTALL_REQUESTS_KEY =
-    createKey("packagesSkipped", WIZARD, (Class<List<IPkgDesc>>)(Class)List.class);
-  public static final Key<String> GRADLE_VERSION_KEY = createKey(TemplateMetadata.ATTR_GRADLE_VERSION, WIZARD, String.class);
-  public static final Key<String> GRADLE_PLUGIN_VERSION_KEY = createKey(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, WIZARD, String.class);
-  public static final Key<Boolean> USE_PER_MODULE_REPOS_KEY = createKey(TemplateMetadata.ATTR_PER_MODULE_REPOS, WIZARD, Boolean.class);
-  public static final Key<Boolean> IS_NEW_PROJECT_KEY = createKey(ATTR_IS_NEW_PROJECT, WIZARD, Boolean.class);
-  public static final Key<Boolean> IS_GRADLE_PROJECT_KEY = createKey(ATTR_IS_GRADLE, WIZARD, Boolean.class);
-  public static final Key<String> SDK_DIR_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
-  public static final Key<String> MAVEN_URL_KEY = createKey(ATTR_MAVEN_URL, WIZARD, String.class);
-  public static final Key<String> DEBUG_KEYSTORE_SHA_1_KEY = createKey(ATTR_DEBUG_KEYSTORE_SHA1, WIZARD, String.class);
+  // TODO After the wizard migration delete as many of these keys as possible
   public static final Key<String> APPLICATION_NAME_KEY = createKey(ATTR_APP_TITLE, WIZARD, String.class);
-  public static final Key<ModuleTemplate> SELECTED_MODULE_TYPE_KEY =
-    createKey("selectedModuleType", ScopedStateStore.Scope.WIZARD, ModuleTemplate.class);
+  public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
   public static final Key<String> COMPANY_DOMAIN_KEY = createKey("companyDomain", STEP, String.class);
-  public static final Key<String> PACKAGE_NAME_KEY = createKey(ATTR_PACKAGE_NAME, WIZARD, String.class);
-  public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
-  public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
-  public static final Key<Boolean> IS_LIBRARY_KEY = createKey(ATTR_IS_LIBRARY_MODULE, WIZARD, Boolean.class);
-
-  /**
-   * Files to open in the editor window after the Wizard is finished.
-   */
+  public static final Key<String> DEBUG_KEYSTORE_SHA_1_KEY = createKey(ATTR_DEBUG_KEYSTORE_SHA1, WIZARD, String.class);
+  @SuppressWarnings("unchecked") public static final Key<List<String>> DEPENDENCIES_KEY =
+    createKey(ATTR_DEPENDENCIES_LIST, WIZARD, (Class<List<String>>)(Class)String.class);
   @SuppressWarnings("unchecked") public static final Key<List<File>> FILES_TO_OPEN_KEY =
     createKey("files.to.open", WIZARD, (Class<List<File>>)(Class)List.class);
-
+  public static final Key<String> GRADLE_PLUGIN_VERSION_KEY = createKey(ATTR_GRADLE_PLUGIN_VERSION, WIZARD, String.class);
+  public static final Key<String> GRADLE_VERSION_KEY = createKey(ATTR_GRADLE_VERSION, WIZARD, String.class);
+  @SuppressWarnings("unchecked") public static final Key<List<IPkgDesc>> INSTALL_REQUESTS_KEY =
+    createKey("packagesToInstall", WIZARD, (Class<List<IPkgDesc>>)(Class)List.class);
+  public static final Key<Boolean> IS_GRADLE_PROJECT_KEY = createKey(ATTR_IS_GRADLE, WIZARD, Boolean.class);
+  public static final Key<Boolean> IS_LIBRARY_KEY = createKey(ATTR_IS_LIBRARY_MODULE, WIZARD, Boolean.class);
+  public static final Key<Boolean> IS_NEW_PROJECT_KEY = createKey(ATTR_IS_NEW_PROJECT, WIZARD, Boolean.class);
+  public static final Key<String> KEY_SDK_INSTALL_LOCATION = createKey("download.sdk.location", WIZARD, String.class);
+  public static final Key<String> MAVEN_URL_KEY = createKey(ATTR_MAVEN_URL, WIZARD, String.class);
+  public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
+  public static final Key<String> PACKAGE_NAME_KEY = createKey(ATTR_PACKAGE_NAME, WIZARD, String.class);
+  public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
+  public static final Key<String> SDK_DIR_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
+  public static final Key<String> SDK_HOME_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
+  public static final Key<ModuleTemplate> SELECTED_MODULE_TYPE_KEY = createKey("selectedModuleType", WIZARD, ModuleTemplate.class);
+  @SuppressWarnings("unchecked") public static final Key<List<IPkgDesc>> SKIPPED_INSTALL_REQUESTS_KEY =
+    createKey("packagesSkipped", WIZARD, (Class<List<IPkgDesc>>)(Class)List.class);
   @SuppressWarnings("unchecked") public static final Key<Collection<File>> TARGET_FILES_KEY =
-    createKey("target.files", Scope.WIZARD, (Class<Collection<File>>)(Object)Collection.class);
-
-  @SuppressWarnings("unchecked") public static final Key<List<String>> DEPENDENCIES_KEY =
-    createKey(ATTR_DEPENDENCIES_LIST, Scope.WIZARD, (Class<List<String>>)(Class)String.class);
+    createKey("target.files", WIZARD, (Class<Collection<File>>)(Object)Collection.class);
+  public static final Key<Boolean> USE_PER_MODULE_REPOS_KEY = createKey(ATTR_PER_MODULE_REPOS, WIZARD, Boolean.class);
 
   // Patterns
   /**
