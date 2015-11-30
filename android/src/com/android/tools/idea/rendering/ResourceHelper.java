@@ -45,7 +45,6 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorUtil;
-import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
@@ -809,12 +808,12 @@ public class ResourceHelper {
       // color was present in completionTypes, and not if we added it because of the presence of ResourceType.DRAWABLES.
       // For any other ResourceType, we always include file resources.
       boolean includeFileResources = (type != ResourceType.COLOR) || completionTypesContainsColor;
-      ChooseResourceDialog.ResourceGroup group = new ChooseResourceDialog.ResourceGroup(type, systemManager, includeFileResources);
+      ChooseResourceDialog.ResourceGroup group = new ChooseResourceDialog.ResourceGroup(SdkConstants.ANDROID_NS_NAME, type, systemManager, includeFileResources);
       for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
         resourceNamesList.add(SdkConstants.ANDROID_PREFIX  + item.getName());
       }
 
-      group = new ChooseResourceDialog.ResourceGroup(type, localManager, includeFileResources);
+      group = new ChooseResourceDialog.ResourceGroup(null, type, localManager, includeFileResources);
       for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
         resourceNamesList.add(SdkConstants.PREFIX_RESOURCE_REF + item.getName());
       }

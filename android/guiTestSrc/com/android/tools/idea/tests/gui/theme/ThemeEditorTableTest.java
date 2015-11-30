@@ -28,6 +28,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Condition;
+import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -320,7 +321,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
         return (component.isShowing() && !component.equals(dialog.target()));
       }
     });
-    secondDialog.getResourceTree().clickPath("Dimension/abc_disabled_alpha_material_dark");
+    secondDialog.getResourceTree().clickPath(ChooseResourceDialog.APP_NAMESPACE_LABEL + "/abc_disabled_alpha_material_dark");
     secondDialog.focus();
     secondDialog.clickOK();
     pause(new Condition("Waiting for component update") {
