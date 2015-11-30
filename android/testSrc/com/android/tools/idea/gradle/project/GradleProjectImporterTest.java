@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -34,6 +35,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -118,7 +120,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
       model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
     } finally {
-      model.commit();
+      commitModelChanges(model);
     }
 
     myCachedModule.createChild(GRADLE_MODEL, createMock(GradleModel.class));
@@ -133,7 +135,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
       model.addFacet(facetManager.createFacet(JavaGradleFacet.getFacetType(), JavaGradleFacet.NAME, null));
     } finally {
-      model.commit();
+      commitModelChanges(model);
     }
 
     myCachedModule.createChild(GRADLE_MODEL, createMock(GradleModel.class));
@@ -148,7 +150,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
       model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
     } finally {
-      model.commit();
+      commitModelChanges(model);
     }
 
     myCachedModule.createChild(GRADLE_MODEL, createMock(GradleModel.class));
@@ -162,11 +164,26 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
       model.addFacet(facetManager.createFacet(JavaGradleFacet.getFacetType(), JavaGradleFacet.NAME, null));
     } finally {
-      model.commit();
+      commitModelChanges(model);
     }
 
     myCachedModule.createChild(GRADLE_MODEL, createMock(GradleModel.class));
     assertTrue(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
+  }
+
+  private static void commitModelChanges(final ModifiableFacetModel model) {
+    // Committing the model in a write action as the test is not running in a write action.
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            model.commit();
+          }
+        });
+      }
+    });
   }
 
   private class MyGradleSyncListener extends GradleSyncListener.Adapter {
@@ -192,5 +209,12 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
       fail(errorMessage);
     }
+  }
+
+  @Override
+  protected boolean isRunInWriteAction() {
+    return false;
+    // Android Studio: Tests that perform project setup are failing due to CLion indexing in
+    // OCSymbolTablesBuildingActivity#buildSymbolsInternal is triggered in write action.
   }
 }
