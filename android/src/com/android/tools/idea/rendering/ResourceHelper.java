@@ -435,6 +435,11 @@ public class ResourceHelper {
     if (stateList != null) {
       List<StateListState> states = stateList.getStates();
 
+      if (states.isEmpty()) {
+        // In the case of an empty selector, we don't want to crash.
+        return null;
+      }
+
       // Getting the last color of the state list, because it's supposed to be the simplest / fallback one
       StateListState state = states.get(states.size() - 1);
 
