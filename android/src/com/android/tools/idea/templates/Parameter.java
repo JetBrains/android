@@ -24,8 +24,10 @@ import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceFolderRegistry;
 import com.android.tools.idea.rendering.ResourceFolderRepository;
 import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -47,7 +49,6 @@ import org.w3c.dom.Element;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.android.tools.idea.templates.Template.*;
 
@@ -71,7 +72,7 @@ public class Parameter {
         return valueOf(name);
       }
       catch (IllegalArgumentException e) {
-        getLog().error(String.format("Unexpected template type: %1$s.\nExpected one or more of: (%2$s)", name,
+        getLog().error(String.format("Unexpected template type: %1$s.\nExpected one of: (%2$s)", name,
                                      Joiner.on(',').join(Constraint.values())));
       }
 
@@ -233,17 +234,11 @@ public class Parameter {
     help = parameter.getAttribute(ATTR_HELP);
     String constraintString = parameter.getAttribute(ATTR_CONSTRAINTS);
     if (constraintString != null && !constraintString.isEmpty()) {
-      EnumSet<Constraint> constraintSet = null;
+      List<Constraint> constraintsList = Lists.newArrayListWithExpectedSize(1);
       for (String s : Splitter.on('|').omitEmptyStrings().split(constraintString)) {
-        Constraint constraint = Constraint.get(s);
-        if (constraintSet == null) {
-          constraintSet = EnumSet.of(constraint);
-        } else {
-          constraintSet = EnumSet.copyOf(constraintSet);
-          constraintSet.add(constraint);
-        }
+        constraintsList.add(Constraint.get(s));
       }
-      constraints = constraintSet;
+      constraints = EnumSet.copyOf(constraintsList);
     } else {
       constraints = EnumSet.noneOf(Constraint.class);
     }
@@ -258,7 +253,7 @@ public class Parameter {
                          @Nullable String packageName, @Nullable Object value, Set<Object> relatedValues) {
     switch (type) {
       case STRING:
-        return getErrorMessageForStringType(project, module, provider, packageName, value.toString(), relatedValues);
+        return getErrorMessageForStringType(project, module, provider, packageName, String.valueOf(value), relatedValues);
       case BOOLEAN:
       case ENUM:
       case SEPARATOR:
@@ -276,7 +271,7 @@ public class Parameter {
    * @return An error message detailing why the given value is invalid.
    */
   @Nullable
-  protected String getErrorMessageForStringType(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
+  private String getErrorMessageForStringType(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                                                 @Nullable String packageName, @Nullable String value, @Nullable Set<Object> relatedValues) {
     Collection<Constraint> violations = validateStringType(project, module, provider, packageName, value, relatedValues);
 
@@ -347,14 +342,15 @@ public class Parameter {
    * @return All constraints of this parameter that are violated by the proposed value.
    */
   @NotNull
-  protected Collection<Constraint> validateStringType(@Nullable Project project,
-                                                      @Nullable Module module,
-                                                      @Nullable SourceProvider provider,
-                                                      @Nullable String packageName,
-                                                      @Nullable String value,
-                                                      @Nullable Set<Object> relatedValues) {
-    GlobalSearchScope searchScope = module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) :
-                                    GlobalSearchScope.EMPTY_SCOPE;
+  @VisibleForTesting
+  Collection<Constraint> validateStringType(@Nullable Project project,
+                                            @Nullable Module module,
+                                            @Nullable SourceProvider provider,
+                                            @Nullable String packageName,
+                                            @Nullable String value,
+                                            @Nullable Set<Object> relatedValues) {
+    GlobalSearchScope searchScope =
+      module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) : GlobalSearchScope.EMPTY_SCOPE;
 
     Set<Constraint> violations = Sets.newHashSet();
     if (value == null || value.isEmpty()) {
@@ -372,7 +368,8 @@ public class Parameter {
       }
       if (project != null) {
         PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(fqName, searchScope);
-        PsiClass activityClass = JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY, GlobalSearchScope.allScope(project));
+        PsiClass activityClass =
+          JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY, GlobalSearchScope.allScope(project));
         exists = aClass != null && activityClass != null && aClass.isInheritor(activityClass, true);
       }
     }
@@ -392,7 +389,7 @@ public class Parameter {
         violations.add(Constraint.PACKAGE);
       }
       if (project != null) {
-        exists = existsPackage(project, searchScope, provider, value);
+        exists = existsPackage(project, provider, value);
       }
     }
     if (constraints.contains(Constraint.MODULE)) {
@@ -407,7 +404,7 @@ public class Parameter {
         violations.add(Constraint.APP_PACKAGE);
       }
       if (project != null) {
-        exists = existsPackage(project, searchScope, provider, value);
+        exists = existsPackage(project, provider, value);
       }
     }
     if (constraints.contains(Constraint.LAYOUT)) {
@@ -415,16 +412,18 @@ public class Parameter {
       if (resourceNameError != null) {
         violations.add(Constraint.LAYOUT);
       }
-      exists = provider != null ? existsResourceFile(provider, module, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, value) :
-               existsResourceFile(module, ResourceType.LAYOUT, value);
+      exists = provider != null
+               ? existsResourceFile(provider, module, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, value)
+               : existsResourceFile(module, ResourceType.LAYOUT, value);
     }
     if (constraints.contains(Constraint.DRAWABLE)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
         violations.add(Constraint.DRAWABLE);
       }
-      exists = provider != null ? existsResourceFile(provider, module, ResourceFolderType.DRAWABLE, ResourceType.DRAWABLE, value) :
-               existsResourceFile(module, ResourceType.DRAWABLE, value);
+      exists = provider != null
+               ? existsResourceFile(provider, module, ResourceFolderType.DRAWABLE, ResourceType.DRAWABLE, value)
+               : existsResourceFile(module, ResourceType.DRAWABLE, value);
     }
     if (constraints.contains(Constraint.ID)) {
       // TODO: validity and existence check
@@ -471,7 +470,8 @@ public class Parameter {
 
     if (constraints.contains(Constraint.UNIQUE) && exists) {
       violations.add(Constraint.UNIQUE);
-    } else if (constraints.contains(Constraint.EXISTS) && !exists) {
+    }
+    else if (constraints.contains(Constraint.EXISTS) && !exists) {
       violations.add(Constraint.EXISTS);
     }
     return violations;
@@ -573,8 +573,7 @@ public class Parameter {
     }
   }
 
-  public static boolean existsPackage(@Nullable Project project, @NotNull GlobalSearchScope searchScope,
-                                      @Nullable SourceProvider sourceProvider, @NotNull String packageName) {
+  private static boolean existsPackage(@Nullable Project project, @Nullable SourceProvider sourceProvider, @NotNull String packageName) {
     if (project == null) {
       return false;
     }
