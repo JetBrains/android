@@ -310,46 +310,35 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     AndroidSessionInfo info = AndroidSessionManager.findOldSession(project, getUniqueID());
     if (info != null) {
-      if (!info.getExecutorId().equals(executor.getId())) {
-        // only run or debug of a config can be active at a time
-        String msg = "You currently have an active " + info.getExecutorId() + " session of the same launch configuration.\n" +
-                     "Do you want to kill that session and proceed with the current launch?";
-        if (ourKillLaunchOption.isToBeShown() && Messages.NO ==
-            Messages.showYesNoDialog(project, msg, "Launching " + getName(), AllIcons.General.QuestionDialog, ourKillLaunchOption)) {
-          return null;
-        }
+      if (info.getExecutorId().equals(executor.getId()) && FastDeployManager.isPatchableApp(module)) {
+        // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
+        // we need to save the files a bit earlier than that here (turning the Gradle file save into
+        // a no-op) because we need to check whether the manifest file has been edited since an
+        // edited manifest changes what the incremental run build has to do.
+        GradleInvoker.saveAllFilesSafely();
 
-        info.getProcessHandler().detachProcess();
-        LOG.info("Disconnecting existing session with a different executor: " + info.getExecutorId());
-      } else {
-        if (FastDeployManager.isPatchableApp(module)) {
-          // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
-          // we need to save the files a bit earlier than that here (turning the Gradle file save into
-          // a no-op) because we need to check whether the manifest file has been edited since an
-          // edited manifest changes what the incremental run build has to do.
-          GradleInvoker.saveAllFilesSafely();
-
-          // For incremental run, we don't want to show any dialogs and just redeploy directly to the last used devices
-          Collection<IDevice> devices = info.getState().getDevices();
-          if (devices != null && canFastDeploy(module, devices)) {
-            if (FastDeployManager.isRebuildRequired(devices, module)) {
-              LOG.info("Cannot patch update since a full rebuild is required (typically because the manifest has changed)");
-              FastDeployManager.postBalloon(MessageType.INFO,
-                                            "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)",
-                                            project);
-            } else {
-              if (FastDeployManager.DISPLAY_STATISTICS) {
-                FastDeployManager.notifyBegin();
-              }
-
-              env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
-              env.putCopyableUserData(DEVICE_FUTURES_KEY, DeviceFutures.forDevices(devices));
-
-              return new PatchDeployState(executor, env, this, getConsoleProvider(), info.getDescriptor(), facet, devices);
-            }
+        // For incremental run, we don't want to show any dialogs and just redeploy directly to the last used devices
+        Collection<IDevice> devices = info.getState().getDevices();
+        if (devices != null && canFastDeploy(module, devices)) {
+          if (FastDeployManager.isRebuildRequired(devices, module)) {
+            LOG.info("Cannot patch update since a full rebuild is required (typically because the manifest has changed)");
+            FastDeployManager.postBalloon(MessageType.INFO,
+                                          "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)",
+                                          project);
           }
-          LOG.info("Skipping fast deploy, devices from last run: " + (devices == null ? "none" : devices.size()));
+          else {
+            if (FastDeployManager.DISPLAY_STATISTICS) {
+              FastDeployManager.notifyBegin();
+            }
+
+            env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
+            env.putCopyableUserData(DEVICE_FUTURES_KEY, DeviceFutures.forDevices(devices));
+
+            return new PatchDeployState(executor, env, this, getConsoleProvider(), info.getDescriptor(), facet, devices);
+          }
         }
+
+        LOG.info("Skipping fast deploy, devices from last run: " + (devices == null ? "none" : devices.size()));
       }
     }
 
@@ -357,6 +346,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // launch, esp. if we first think we can do a fast deploy, then one of the conditionals above fails and we end up doing a full launch.
     // TODO: this probably means that AndroidDebugRunner will never need to embed to an existing session?
     if (info != null) {
+      // only run or debug of a config can be active at a time
+      String msg = "You currently have an active " + info.getExecutorId() + " session of the same launch configuration.\n" +
+                   "Do you want to kill that session and proceed with the current launch?";
+      if (ourKillLaunchOption.isToBeShown() &&
+          Messages.NO ==
+          Messages.showYesNoDialog(project, msg, "Launching " + getName(), AllIcons.General.QuestionDialog, ourKillLaunchOption)) {
+        return null;
+      }
+
+      LOG.info("Disconnecting existing session of the same launch configuration");
       info.getProcessHandler().detachProcess();
     }
 

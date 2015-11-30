@@ -103,6 +103,12 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
   @Override
   protected void detachProcessImpl() {
     super.detachProcessImpl();
+    cleanup();
+  }
+
+  @Override
+  protected void destroyProcessImpl() {
+    super.destroyProcessImpl();
     killProcesses();
     cleanup();
   }
@@ -120,13 +126,6 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
         }
       }
     }
-  }
-
-  @Override
-  protected void destroyProcessImpl() {
-    super.destroyProcessImpl();
-    killProcesses();
-    cleanup();
   }
 
   public void setNoKill() {
