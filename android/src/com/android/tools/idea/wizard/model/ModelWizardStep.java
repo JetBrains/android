@@ -45,7 +45,7 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
    * Returns the title of this step.
    */
   @NotNull
-  public String getTitle() {
+  public final String getTitle() {
     return myTitle;
   }
 
@@ -66,7 +66,7 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
   }
 
   @NotNull
-  protected M getModel() {
+  protected final M getModel() {
     return myModel;
   }
 
