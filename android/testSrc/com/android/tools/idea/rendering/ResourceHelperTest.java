@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -26,6 +29,7 @@ import java.util.List;
 
 import static com.android.tools.idea.rendering.ResourceHelper.getResourceName;
 import static com.android.tools.idea.rendering.ResourceHelper.getResourceUrl;
+import static com.android.tools.idea.rendering.ResourceHelper.resolveColor;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class ResourceHelperTest extends AndroidTestCase {
@@ -212,5 +216,14 @@ public class ResourceHelperTest extends AndroidTestCase {
       .containsExactly("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list",
                        "@android:drawable/menuitem_background");
     assertThat(dimenOnly).containsExactly("@dimen/myAlpha", "@dimen/myDimen");
+  }
+
+  public void testResolveEmptyStatelist() {
+    VirtualFile file = myFixture.copyFileToProject("resourceHelper/empty_state_list.xml", "res/color/empty_state_list.xml");
+    RenderResources rr = myFacet.getConfigurationManager().getConfiguration(file).getResourceResolver();
+    assertNotNull(rr);
+    ResourceValue rv = rr.getProjectResource(ResourceType.COLOR, "empty_state_list");
+    assertNotNull(rv);
+    assertNull(resolveColor(rr, rv, myModule.getProject()));
   }
 }
