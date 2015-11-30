@@ -612,7 +612,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
       public void run() throws Throwable {
         myFixture.doHighlighting();
       }
-    }).attempts(2).cpuBound().usesAllCPUCores().assertTiming();
+    }).attempts(2).cpuBound().usesAllCPUCores().useLegacyScaling().assertTiming();
   }
 
   /*public void testResourceHighlightingPerformance() throws Throwable {
