@@ -179,6 +179,21 @@ public final class BindingsManager {
   }
 
   /**
+   * Releases all two-way bindings registered via {@link #bindTwoWay(SettableValue, SettableValue)}
+   * where either the first or second properties match the input value.
+   */
+  public <T> void releaseTwoWay(@NotNull SettableValue<T> value) {
+    Iterator<TwoWayBinding<?>> i = myTwoWayBindings.iterator();
+    while (i.hasNext()) {
+      TwoWayBinding<?> binding = i.next();
+      if (binding.myLhs == value || binding.myRhs == value) {
+        binding.dispose();
+        i.remove();
+      }
+    }
+  }
+
+  /**
    * Release all bindings (one-way and two-way) registered with this bindings manager.
    */
   public void releaseAll() {

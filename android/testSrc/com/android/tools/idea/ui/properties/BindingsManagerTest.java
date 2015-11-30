@@ -130,6 +130,27 @@ public final class BindingsManagerTest {
   }
 
   @Test
+  public void releaseTwoWayWithOneArgDisconnectsAllMatchingBindings() throws Exception {
+    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    StringValueProperty property1 = new StringValueProperty("First");
+    StringValueProperty property2 = new StringValueProperty("Second");
+    StringValueProperty property3 = new StringValueProperty("Third");
+
+    bindings.bindTwoWay(property1, property2);
+    bindings.bindTwoWay(property3, property2);
+    assertThat(property1.get()).isEqualTo("Second");
+    assertThat(property3.get()).isEqualTo("Second");
+
+    bindings.releaseTwoWay(property2);
+
+    property1.set("Property1");
+    assertThat(property2.get()).isEqualTo("Second");
+
+    property3.set("Property3");
+    assertThat(property2.get()).isEqualTo("Second");
+  }
+
+  @Test
   public void releaseDisconnectsListBindings() throws Exception {
     BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
     ObservableList<String> dest = new ObservableList<String>();
