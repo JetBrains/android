@@ -196,8 +196,6 @@ public class PostProjectSetupTasksExecutor {
     checkSdkToolsVersion(myProject);
     addSdkLinkIfNecessary();
 
-    ProjectResourceRepository.moduleRootsChanged(myProject);
-
     if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
       TestArtifactSearchScopes.initializeScopes(myProject);
       //FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(myProject);

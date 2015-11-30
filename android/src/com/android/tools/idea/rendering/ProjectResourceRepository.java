@@ -16,11 +16,8 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
@@ -74,15 +71,7 @@ public final class ProjectResourceRepository extends MultiResourceRepository {
     List<LocalResourceRepository> resources = computeRepositories(facet);
     final ProjectResourceRepository repository = new ProjectResourceRepository(facet, resources);
 
-    // TODO: Avoid this in non-Gradle projects?
-    facet.addListener(new GradleSyncListener.Adapter() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        // Dependencies can change when we sync with Gradle
-        repository.updateRoots();
-      }
-    });
-
+    ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
     return repository;
   }
 
@@ -120,53 +109,6 @@ public final class ProjectResourceRepository extends MultiResourceRepository {
     }
 
     setChildren(resourceDirectories);
-  }
-
-  /**
-   * Called when module roots have changed in the given project. Locates all
-   * the {@linkplain ProjectResourceRepository} instances (but only those that
-   * have already been initialized) and updates the roots, if necessary.
-   *
-   * @param project the project whose module roots changed.
-   */
-  public static void moduleRootsChanged(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      moduleRootsChanged(module);
-    }
-  }
-
-  /**
-   * Called when module roots have changed in the given module. Locates the
-   * {@linkplain ProjectResourceRepository} instance (but only if it has
-   * already been initialized) and updates its roots, if necessary.
-   * <p>
-   * TODO: Currently, this method is only called during a Gradle project import.
-   * We should call it for non-Gradle projects after modules are changed in the
-   * project structure dialog etc. with
-   *   project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() { ... }
-   *
-   * @param module the module whose roots changed
-   */
-  private static void moduleRootsChanged(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      if (facet.requiresAndroidModel() && facet.getAndroidModel() == null) {
-        // Project not yet fully initialized; no need to do a sync now because our
-        // GradleProjectAvailableListener will be called as soon as it is and do a proper sync
-        return;
-      }
-      ProjectResourceRepository projectResources = getProjectResources(facet, false);
-      if (projectResources != null) {
-        projectResources.updateRoots();
-
-        AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, false);
-        if (appResources != null) {
-          appResources.invalidateCache(projectResources);
-          appResources.updateRoots();
-        }
-      }
-    }
   }
 
   @VisibleForTesting
