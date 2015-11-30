@@ -44,10 +44,6 @@ public final class Render {
       render((StateController.Node)value, component, attributes);
       return;
     }
-    if (value instanceof StateController.Typed) {
-      render((StateController.Typed)value, component, attributes);
-      return;
-    }
     if (value instanceof AtomController.Node) {
       render((AtomController.Node)value, component, attributes);
       return;
@@ -93,19 +89,15 @@ public final class Render {
   public static void render(@NotNull StateController.Node node,
                             @NotNull SimpleColoredComponent component,
                             SimpleTextAttributes attributes) {
-    if (node.key != null) {
-      render(node.key, component, attributes);
+    if (node.key.type != null) {
+      render(node.key.value, node.key.type, component, attributes);
+    } else {
+      component.append(String.valueOf(node.key.value), attributes);
     }
-    if (node.value != null) {
+    if (node.isLeaf() && node.value != null) {
       component.append(": ", attributes);
-      render(node.value, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+      render(node.value.value, node.value.type, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
     }
-  }
-
-  public static void render(@NotNull StateController.Typed typed,
-                            @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
-    render(typed.value, typed.type, component, attributes);
   }
 
   public static void render(@NotNull AtomController.Node node, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
