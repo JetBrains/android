@@ -21,6 +21,7 @@ import com.android.tools.idea.npw.WizardUtils.ValidationResult;
 import com.android.tools.idea.npw.WizardUtils.ValidationResult.Status;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.ui.Colors;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallableComponent;
@@ -33,7 +34,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -67,8 +67,6 @@ import java.util.Set;
  */
 public class SdkComponentsStep extends FirstRunWizardStep {
   public static final String FIELD_SDK_LOCATION = "SDK location";
-  private static final Color WARNING = JBColor.YELLOW.darker();
-  private static final Color ERROR = JBColor.RED;
 
   @NotNull private final ComponentTreeNode myRootNode;
   @NotNull private final FirstRunWizardMode myMode;
@@ -97,6 +95,8 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     myRootNode = rootNode;
     myMode = mode;
     myKeyCustomInstall = keyCustomInstall;
+
+    // noinspection DialogTitleCapitalization
     myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
                                    FileChooserDescriptorFactory.createSingleFolderDescriptor());
 
@@ -218,10 +218,10 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
     switch (status) {
       case WARN:
-        myErrorMessage.setForeground(WARNING);
+        myErrorMessage.setForeground(Colors.WARNING);
         break;
       case ERROR:
-        myErrorMessage.setForeground(ERROR);
+        myErrorMessage.setForeground(Colors.ERROR);
         break;
       default:
         break;
