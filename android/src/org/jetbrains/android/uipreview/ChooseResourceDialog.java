@@ -25,13 +25,14 @@ import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.android.tools.idea.editors.theme.MaterialColors;
 import com.android.tools.idea.editors.theme.StateListPicker;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
@@ -53,6 +54,9 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.ColorIcon;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.actions.CreateResourceFileAction;
@@ -78,7 +82,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -98,13 +101,12 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   private static final String TEXT = "Text";
   private static final String COMBO = "Combo";
-  private static final String IMAGE = "Image";
   private static final String NONE = "None";
 
   private static final Icon RESOURCE_ITEM_ICON = AllIcons.Css.Property;
   public static final String APP_NAMESPACE_LABEL = "(app)";
 
-  private final Module myModule;
+  @NotNull private final Module myModule;
   @Nullable private final XmlTag myTag;
 
   private final JBTabbedPane myContentPanel;
@@ -674,15 +676,15 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
      */
     private final String[] NAMESPACES = {null, SdkConstants.ANDROID_NS_NAME};
 
-    public final Tree myTree;
-    public final AbstractTreeBuilder myTreeBuilder;
     public final JBSplitter myComponent;
 
+    public final Tree myTree;
+    public final AbstractTreeBuilder myTreeBuilder;
+
     private final JPanel myPreviewPanel;
-    private final JTextArea myTextArea;
+    private final JTextPane myHtmlTextArea;
     private final JTextArea myComboTextArea;
     private final JComboBox myComboBox;
-    private final JLabel myImageComponent;
     private final JLabel myNoPreviewComponent;
 
     private final ResourceGroup[] myGroups;
@@ -735,9 +737,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myPreviewPanel = new JPanel(new CardLayout());
       myComponent.setSecondComponent(myPreviewPanel);
 
-      myTextArea = new JTextArea(5, 20);
-      myTextArea.setEditable(false);
-      myPreviewPanel.add(ScrollPaneFactory.createScrollPane(myTextArea), TEXT);
+      myHtmlTextArea = new JTextPane();
+      myHtmlTextArea.setEditable(false);
+      myHtmlTextArea.setContentType(UIUtil.HTML_MIME);
+      myPreviewPanel.add(ScrollPaneFactory.createScrollPane(myHtmlTextArea), TEXT);
 
       myComboTextArea = new JTextArea(5, 20);
       myComboTextArea.setEditable(false);
@@ -766,11 +769,6 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       comboPanel.add(myComboBox, BorderLayout.SOUTH);
       myPreviewPanel.add(comboPanel, COMBO);
 
-      myImageComponent = new JLabel();
-      myImageComponent.setHorizontalAlignment(SwingConstants.CENTER);
-      myImageComponent.setVerticalAlignment(SwingConstants.CENTER);
-      myPreviewPanel.add(myImageComponent, IMAGE);
-
       myNoPreviewComponent = new JLabel("No Preview");
       myNoPreviewComponent.setHorizontalAlignment(SwingConstants.CENTER);
       myNoPreviewComponent.setVerticalAlignment(SwingConstants.CENTER);
@@ -790,123 +788,58 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
         return;
       }
 
-      try {
-        VirtualFile file = element.getFile();
-        if (file == null) {
-          String value = element.getPreviewString();
-          if (value == null) {
-            List<ResourceElement> resources = element.getPreviewResources();
-
-            if (resources == null) {
-              long time = System.currentTimeMillis();
-              ResourceGroup group = element.getGroup();
-              resources = group.getManager().findValueResources(group.getType().getName(), element.toString());
-              if (ApplicationManagerEx.getApplicationEx().isInternal()) {
-                System.out.println("Time: " + (System.currentTimeMillis() - time)); // XXX
-              }
-
-              int size = resources.size();
-              if (size == 1) {
-                value = getResourceElementValue(resources.get(0));
-                element.setPreviewString(value);
-              }
-              else if (size > 1) {
-                resources = new ArrayList<ResourceElement>(resources);
-                Collections.sort(resources, new Comparator<ResourceElement>() {
-                  @Override
-                  public int compare(ResourceElement element1, ResourceElement element2) {
-                    PsiDirectory directory1 = element1.getXmlTag().getContainingFile().getParent();
-                    PsiDirectory directory2 = element2.getXmlTag().getContainingFile().getParent();
-
-                    if (directory1 == null && directory2 == null) {
-                      return 0;
-                    }
-                    if (directory2 == null) {
-                      return 1;
-                    }
-                    if (directory1 == null) {
-                      return -1;
-                    }
-
-                    return directory1.getName().compareTo(directory2.getName());
-                  }
-                });
-
-                DefaultComboBoxModel model = new DefaultComboBoxModel();
-                String defaultSelection = null;
-                for (int i = 0; i < size; i++) {
-                  ResourceElement resource = resources.get(i);
-                  PsiDirectory directory = resource.getXmlTag().getContainingFile().getParent();
-                  String name = directory == null ? "unknown-" + i : directory.getName();
-                  model.addElement(name);
-                  if (defaultSelection == null && "values".equalsIgnoreCase(name)) {
-                    defaultSelection = name;
-                  }
-                }
-                element.setPreviewResources(resources, model, defaultSelection);
-
-                showComboPreview(element);
-                return;
-              }
-              else {
-                layout.show(myPreviewPanel, NONE);
-                return;
-              }
-            }
-            else {
-              showComboPreview(element);
-              return;
-            }
-          }
-          if (value == null) {
-            layout.show(myPreviewPanel, NONE);
-            return;
-          }
-
-          myTextArea.setText(value);
-          layout.show(myPreviewPanel, TEXT);
-        }
-        else if (ImageFileTypeManager.getInstance().isImage(file)) {
-          Icon icon = element.getPreviewIcon();
-          if (icon == null) {
-            icon = new SizedIcon(100, 100, new ImageIcon(file.getPath()));
-            element.setPreviewIcon(icon);
-          }
-          myImageComponent.setIcon(icon);
-          layout.show(myPreviewPanel, IMAGE);
-        }
-        else if (file.getFileType() == XmlFileType.INSTANCE) {
-          String value = element.getPreviewString();
-          if (value == null) {
-            value = new String(file.contentsToByteArray());
-            element.setPreviewString(value);
-          }
-          myTextArea.setText(value);
-          myTextArea.setEditable(false);
-          layout.show(myPreviewPanel, TEXT);
-        }
-        else {
-          layout.show(myPreviewPanel, NONE);
-        }
-      }
-      catch (IOException e) {
-        layout.show(myPreviewPanel, NONE);
-      }
+      String doc = AndroidJavaDocRenderer.render(myModule, element.getGroup().getType(), element.toString(), SdkConstants.ANDROID_NS_NAME.equals(element.getGroup().getNamespace()));
+      myHtmlTextArea.setText(doc);
+      layout.show(myPreviewPanel, TEXT);
     }
 
-    private void showComboPreview(ResourceItem element) {
-      List<ResourceElement> resources = element.getPreviewResources();
-      String selection = (String)myComboBox.getSelectedItem();
-      if (selection == null) {
-        selection = element.getPreviewComboDefaultSelection();
+    private void showComboPreview(@NotNull List<ResourceElement> resources) {
+      assert resources.size() > 1;
+
+      resources = Lists.newArrayList(resources);
+      Collections.sort(resources, new Comparator<ResourceElement>() {
+        @Override
+        public int compare(ResourceElement element1, ResourceElement element2) {
+          PsiDirectory directory1 = element1.getXmlTag().getContainingFile().getParent();
+          PsiDirectory directory2 = element2.getXmlTag().getContainingFile().getParent();
+
+          if (directory1 == null && directory2 == null) {
+            return 0;
+          }
+          if (directory2 == null) {
+            return 1;
+          }
+          if (directory1 == null) {
+            return -1;
+          }
+
+          return directory1.getName().compareTo(directory2.getName());
+        }
+      });
+
+      DefaultComboBoxModel model = new DefaultComboBoxModel();
+      String defaultSelection = null;
+      for (int i = 0; i < resources.size(); i++) {
+        ResourceElement resource = resources.get(i);
+        PsiDirectory directory = resource.getXmlTag().getContainingFile().getParent();
+        String name = directory == null ? "unknown-" + i : directory.getName();
+        model.addElement(name);
+        if (defaultSelection == null && "values".equalsIgnoreCase(name)) {
+          defaultSelection = name;
+        }
       }
 
-      int index = element.getPreviewComboModel().getIndexOf(selection);
+      String selection = (String)myComboBox.getSelectedItem();
+      if (selection == null) {
+        selection = defaultSelection;
+      }
+
+      int index = model.getIndexOf(selection);
       if (index == -1) {
         index = 0;
       }
 
-      myComboBox.setModel(element.getPreviewComboModel());
+      myComboBox.setModel(model);
       myComboBox.putClientProperty(COMBO, resources);
       myComboBox.setSelectedIndex(index);
       myComboTextArea.setText(getResourceElementValue(resources.get(index)));
@@ -953,7 +886,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
       Collection<String> resourceNames = manager.getValueResourceNames(resourceType);
       for (String resourceName : resourceNames) {
-        myItems.add(new ResourceItem(this, resourceName, null, RESOURCE_ITEM_ICON));
+        myItems.add(new ResourceItem(this, resourceName, null));
       }
       final Set<String> fileNames = new HashSet<String>();
 
@@ -962,7 +895,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
           @Override
           public boolean process(@NotNull VirtualFile resFile, @NotNull String resName, @NotNull String resFolderType) {
             if (fileNames.add(resName)) {
-              myItems.add(new ResourceItem(ResourceGroup.this, resName, resFile, resFile.getFileType().getIcon()));
+              myItems.add(new ResourceItem(ResourceGroup.this, resName, resFile));
             }
             return true;
           }
@@ -972,7 +905,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       if (type == ResourceType.ID) {
         for (String id : manager.getIds(true)) {
           if (!resourceNames.contains(id)) {
-            myItems.add(new ResourceItem(this, id, null, RESOURCE_ITEM_ICON));
+            myItems.add(new ResourceItem(this, id, null));
           }
         }
       }
@@ -1014,18 +947,12 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     private final ResourceGroup myGroup;
     private final String myName;
     private final VirtualFile myFile;
-    private final Icon myIcon;
-    private String myPreviewString;
-    private List<ResourceElement> myPreviewResources;
-    private DefaultComboBoxModel myPreviewComboModel;
-    private String myDefaultSelection;
-    private Icon myPreviewIcon;
+    private Icon myIcon;
 
-    public ResourceItem(@NotNull ResourceGroup group, @NotNull String name, @Nullable VirtualFile file, Icon icon) {
+    public ResourceItem(@NotNull ResourceGroup group, @NotNull String name, @Nullable VirtualFile file) {
       myGroup = group;
       myName = name;
       myFile = file;
-      myIcon = icon;
     }
 
     public ResourceGroup getGroup() {
@@ -1041,43 +968,36 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
 
     public Icon getIcon() {
+      if (myIcon == null) {
+        Icon icon = RESOURCE_ITEM_ICON;
+        if (myFile != null) {
+          if (ImageFileTypeManager.getInstance().isImage(myFile)) {
+            icon = new SizedIcon(16, 16, new ImageIcon(myFile.getPath()));
+          }
+          else {
+            icon = myFile.getFileType().getIcon();
+          }
+        }
+        if (myGroup.getType() == ResourceType.COLOR) {
+          long time = System.currentTimeMillis();
+          List<ResourceElement> resources = myGroup.getManager().findValueResources(myGroup.getType().getName(), myName);
+          if (ApplicationManagerEx.getApplicationEx().isInternal()) {
+            System.out.println("Time: " + (System.currentTimeMillis() - time)); // XXX
+          }
+          if (!resources.isEmpty()) {
+            String value = getResourceElementValue(resources.get(0));
+            if (value.startsWith("#")) {
+              Color color = ResourceHelper.parseColor(value);
+              if (color != null) { // maybe null for invalid color
+                icon = new ColorIcon(JBUI.scale(16), color);
+              }
+            }
+          }
+          // TODO maybe have a different icon when the resource points to more then 1 color
+        }
+        myIcon = icon;
+      }
       return myIcon;
-    }
-
-    public String getPreviewString() {
-      return myPreviewString;
-    }
-
-    public void setPreviewString(String previewString) {
-      myPreviewString = previewString;
-    }
-
-    public List<ResourceElement> getPreviewResources() {
-      return myPreviewResources;
-    }
-
-    public DefaultComboBoxModel getPreviewComboModel() {
-      return myPreviewComboModel;
-    }
-
-    public String getPreviewComboDefaultSelection() {
-      return myDefaultSelection;
-    }
-
-    public void setPreviewResources(List<ResourceElement> previewResources,
-                                    DefaultComboBoxModel previewComboModel,
-                                    String defaultSelection) {
-      myPreviewResources = previewResources;
-      myPreviewComboModel = previewComboModel;
-      myDefaultSelection = defaultSelection;
-    }
-
-    public Icon getPreviewIcon() {
-      return myPreviewIcon;
-    }
-
-    public void setPreviewIcon(Icon previewIcon) {
-      myPreviewIcon = previewIcon;
     }
 
     @Override
@@ -1174,8 +1094,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     private final Image myImage;
 
     public SizedIcon(int maxWidth, int maxHeight, Image image) {
-      myWidth = Math.min(maxWidth, image.getWidth(null));
-      myHeight = Math.min(maxHeight, image.getHeight(null));
+      myWidth = JBUI.scale(Math.min(maxWidth, image.getWidth(null)));
+      myHeight = JBUI.scale(Math.min(maxHeight, image.getHeight(null)));
       myImage = image;
     }
 
