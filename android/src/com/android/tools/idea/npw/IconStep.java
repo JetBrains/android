@@ -23,7 +23,7 @@ import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.templates.*;
-import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
@@ -162,7 +162,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     myBackgroundColor.setSelectedColor(Color.WHITE);
 
     for (String font : GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()) {
-      myFontFamily.addItem(new ComboBoxItemWithApiTag(font, font, 1, 1));
+      myFontFamily.addItem(new ApiComboBoxItem(font, font, 1, 1));
       if (font.equals(myState.get(ATTR_FONT))) {
         myFontFamily.setSelectedIndex(myFontFamily.getItemCount() - 1);
       }
@@ -341,9 +341,9 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
       showLabelAndCombo = folders.size() > 1;
       mySourceSetComboBox.removeAllItems();
       if (showLabelAndCombo) {
-        ComboBoxItemWithApiTag selected = null;
+        ApiComboBoxItem selected = null;
         for (File directory : folders) {
-          ComboBoxItemWithApiTag item = new ComboBoxItemWithApiTag(directory, getResourceDirLabel(getModule(), directory), 0, 0);
+          ApiComboBoxItem item = new ApiComboBoxItem(directory, getResourceDirLabel(getModule(), directory), 0, 0);
           if (Objects.equal(directory, res)) {
             selected = item;
           }
