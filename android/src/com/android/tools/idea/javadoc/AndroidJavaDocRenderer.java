@@ -38,6 +38,8 @@ import com.android.tools.idea.rendering.*;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -49,6 +51,7 @@ import org.jetbrains.android.AndroidColorAnnotator;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,9 +145,10 @@ public class AndroidJavaDocRenderer {
     if (!resUrl.framework && resValue.isFramework()) {
       // sometimes the framework people forgot to put android: in the value, so we need to fix for this.
       // To do that, we just reparse the resource adding the android: namespace.
-      resUrl = ResourceUrl.parse(resUrl.toString().replace(resUrl.type.getName(), SdkConstants.PREFIX_ANDROID + resUrl.type.getName()));
+      resUrl = ResourceUrl.parse(resUrl.toString().replace(resUrl.type.getName(), PREFIX_ANDROID + resUrl.type.getName()));
     }
 
+    assert resUrl != null;
     String render = render(module, configuration, resUrl);
 
     // Render value as a string
@@ -173,6 +177,7 @@ public class AndroidJavaDocRenderer {
   /** Renders the Javadoc for a color resource and name. */
   private static String renderColor(Module module, @NotNull Color color) {
     ColorValueRenderer renderer = (ColorValueRenderer) ResourceValueRenderer.create(ResourceType.COLOR, module, null);
+    assert renderer != null;
     HtmlBuilder builder = new HtmlBuilder();
     builder.openHtmlBody();
     renderer.renderColorToHtml(builder, color);
@@ -332,65 +337,81 @@ public class AndroidJavaDocRenderer {
       List<ItemInfo> results = Lists.newArrayList();
 
       AppResourceRepository resources = getAppResources();
-      // TODO: b/22927607
-      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
-      if (androidModel != null) {
-        assert facet.requiresAndroidModel();
-        AndroidProject androidProject = androidModel.getAndroidProject();
-        Variant selectedVariant = androidModel.getSelectedVariant();
-        Set<SourceProvider> selectedProviders = Sets.newHashSet();
 
-        BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
-        assert buildType != null;
-        SourceProvider sourceProvider = buildType.getSourceProvider();
-        String buildTypeName = selectedVariant.getName();
-        int rank = 0;
-        addItemsFromSourceSet(buildTypeName, MASK_FLAVOR_SELECTED, rank++, sourceProvider, type, resourceName, results, facet);
-        selectedProviders.add(sourceProvider);
+      List<AndroidFacet> dependencies =  AndroidUtils.getAllAndroidDependencies(myModule, true);
+      boolean hasGradleModel = false;
+      int rank = 0;
 
-        List<String> productFlavors = selectedVariant.getProductFlavors();
-        // Iterate in *reverse* order
-        for (int i = productFlavors.size() - 1; i >= 0; i--) {
-          String flavorName = productFlavors.get(i);
-          ProductFlavorContainer productFlavor = androidModel.findProductFlavor(flavorName);
-          assert productFlavor != null;
-          SourceProvider provider = productFlavor.getSourceProvider();
-          addItemsFromSourceSet(flavorName, MASK_FLAVOR_SELECTED, rank++, provider, type, resourceName, results, facet);
-          selectedProviders.add(provider);
-        }
+      for (AndroidFacet reachableFacet : Iterables.concat(ImmutableList.of(facet), dependencies)) {
+        // TODO: b/22927607
+        AndroidGradleModel androidModel = AndroidGradleModel.get(reachableFacet);
+        if (androidModel != null) {
+          hasGradleModel = true;
+          String facetModuleName = reachableFacet.getModule().getName();
+          assert reachableFacet.requiresAndroidModel();
+          AndroidProject androidProject = androidModel.getAndroidProject();
+          Variant selectedVariant = androidModel.getSelectedVariant();
+          Set<SourceProvider> selectedProviders = Sets.newHashSet();
 
-        SourceProvider main = androidProject.getDefaultConfig().getSourceProvider();
-        addItemsFromSourceSet("main", MASK_FLAVOR_SELECTED, rank++, main, type, resourceName, results, facet);
-        selectedProviders.add(main);
+          BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
+          assert buildType != null;
+          SourceProvider sourceProvider = buildType.getSourceProvider();
+          String buildTypeName = selectedVariant.getName();
+          addItemsFromSourceSet(buildTypeName + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, sourceProvider, type,
+                                resourceName, results, reachableFacet);
+          selectedProviders.add(sourceProvider);
 
-        // Next display any source sets that are *not* in the selected flavors or build types!
-        Collection<BuildTypeContainer> buildTypes = androidProject.getBuildTypes();
-        for (BuildTypeContainer container : buildTypes) {
-          SourceProvider provider = container.getSourceProvider();
-          if (!selectedProviders.contains(provider)) {
-            addItemsFromSourceSet(container.getBuildType().getName(), MASK_NORMAL, rank++, provider, type, resourceName, results, facet);
+          List<String> productFlavors = selectedVariant.getProductFlavors();
+          // Iterate in *reverse* order
+          for (int i = productFlavors.size() - 1; i >= 0; i--) {
+            String flavorName = productFlavors.get(i);
+            ProductFlavorContainer productFlavor = androidModel.findProductFlavor(flavorName);
+            assert productFlavor != null;
+            SourceProvider provider = productFlavor.getSourceProvider();
+            addItemsFromSourceSet(flavorName + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, provider, type, resourceName,
+                                  results, reachableFacet);
             selectedProviders.add(provider);
           }
-        }
 
-        Collection<ProductFlavorContainer> flavors = androidProject.getProductFlavors();
-        for (ProductFlavorContainer container : flavors) {
-          SourceProvider provider = container.getSourceProvider();
-          if (!selectedProviders.contains(provider)) {
-            addItemsFromSourceSet(container.getProductFlavor().getName(), MASK_NORMAL, rank++, provider, type, resourceName, results, facet);
-            selectedProviders.add(provider);
+          SourceProvider main = androidProject.getDefaultConfig().getSourceProvider();
+          addItemsFromSourceSet("main" + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, main, type, resourceName, results,
+                                reachableFacet);
+          selectedProviders.add(main);
+
+          // Next display any source sets that are *not* in the selected flavors or build types!
+          Collection<BuildTypeContainer> buildTypes = androidProject.getBuildTypes();
+          for (BuildTypeContainer container : buildTypes) {
+            SourceProvider provider = container.getSourceProvider();
+            if (!selectedProviders.contains(provider)) {
+              addItemsFromSourceSet(container.getBuildType().getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, provider, type,
+                                    resourceName, results, reachableFacet);
+              selectedProviders.add(provider);
+            }
+          }
+
+          Collection<ProductFlavorContainer> flavors = androidProject.getProductFlavors();
+          for (ProductFlavorContainer container : flavors) {
+            SourceProvider provider = container.getSourceProvider();
+            if (!selectedProviders.contains(provider)) {
+              addItemsFromSourceSet(container.getProductFlavor().getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, provider,
+                                    type, resourceName, results, reachableFacet);
+              selectedProviders.add(provider);
+            }
           }
         }
+      }
 
-        // Also pull in items from libraries; this will include items from the current module as well,
-        // so add them to a temporary list so we can only add the items that are missing
-        if (resources != null) {
+      if (resources != null) {
+        if (hasGradleModel) {
+          // Go through all the binary libraries and look for additional resources there
           for (LocalResourceRepository dependency : resources.getLibraries()) {
-              addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, type, resourceName, results);
+            addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, type, resourceName, results);
           }
         }
-      } else if (resources != null) {
-        addItemsFromRepository(null, MASK_NORMAL, 0, resources, type, resourceName, results);
+        else {
+          // If we do not have any gradle model, get the resources from the app repository
+          addItemsFromRepository(null, MASK_NORMAL, 0, resources, type, resourceName, results);
+        }
       }
 
       return results;
