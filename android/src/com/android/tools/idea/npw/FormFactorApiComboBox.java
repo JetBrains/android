@@ -31,7 +31,7 @@ import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Iterables;
@@ -162,7 +162,7 @@ public final class FormFactorApiComboBox extends JComboBox {
       if (targetItem == null) {
         return;
       }
-      stateStore.put(getMinApiKey(myFormFactor), targetItem.id.toString());
+      stateStore.put(getMinApiKey(myFormFactor), targetItem.getData().toString());
       stateStore.put(getMinApiLevelKey(myFormFactor), targetItem.apiLevel);
       IAndroidTarget target = targetItem.target;
       if (target != null && (target.getVersion().isPreview() || !target.isPlatform())) {
@@ -221,7 +221,7 @@ public final class FormFactorApiComboBox extends JComboBox {
           populateApiLevels(targetItem.apiLevel, null, stateStore);
         }
       }
-      PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(myFormFactor), targetItem.id.toString());
+      PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(myFormFactor), targetItem.getData().toString());
 
       // Check Java language level; should be 7 for L; eventually this will be automatically defaulted by the Android Gradle plugin
       // instead: https://code.google.com/p/android/issues/detail?id=76252
@@ -328,7 +328,7 @@ public final class FormFactorApiComboBox extends JComboBox {
     return list.toArray(new IAndroidTarget[list.size()]);
   }
 
-  public static class AndroidTargetComboBoxItem extends ComboBoxItemWithApiTag {
+  public static class AndroidTargetComboBoxItem extends ApiComboBoxItem {
     public int apiLevel = -1;
     public IAndroidTarget target = null;
 
@@ -371,11 +371,6 @@ public final class FormFactorApiComboBox extends JComboBox {
     @NotNull
     private static String getId(@NotNull IAndroidTarget target) {
       return target.getVersion().getApiString();
-    }
-
-    @Override
-    public String toString() {
-      return label;
     }
   }
 

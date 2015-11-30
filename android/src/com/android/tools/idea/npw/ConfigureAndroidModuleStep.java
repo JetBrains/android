@@ -16,17 +16,17 @@
 package com.android.tools.idea.npw;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.base.CharMatcher;
@@ -864,7 +864,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
   }
 
-  public static class SourceLevelComboBoxItem extends ComboBoxItemWithApiTag {
+  public static class SourceLevelComboBoxItem extends ApiComboBoxItem {
     public final LanguageLevel level;
 
     public SourceLevelComboBoxItem(@NotNull LanguageLevel level) {
@@ -878,7 +878,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
   }
 
-  public static class AndroidTargetComboBoxItem extends ComboBoxItemWithApiTag {
+  public static class AndroidTargetComboBoxItem extends ApiComboBoxItem {
     public int apiLevel = -1;
     public IAndroidTarget target = null;
 
@@ -891,11 +891,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       super(getId(target), AndroidSdkUtils.getTargetLabel(target), 1, 1);
       this.target = target;
       apiLevel = target.getVersion().getFeatureLevel();
-    }
-
-    @Override
-    public String toString() {
-      return label;
     }
 
     @NotNull
