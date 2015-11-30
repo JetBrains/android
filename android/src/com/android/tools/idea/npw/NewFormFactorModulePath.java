@@ -275,7 +275,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private boolean performFinishingOperation(boolean dryRun) {
     ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
     if (progress != null) {
-      progress.setText("Initializing " + myFormFactor.toString());
+      progress.setText(String.format("Initializing module (%1$s)", myFormFactor));
     }
     String projectLocation = myState.get(PROJECT_LOCATION_KEY);
     if (projectLocation != null) {
