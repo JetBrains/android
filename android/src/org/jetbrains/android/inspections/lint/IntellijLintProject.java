@@ -314,6 +314,8 @@ class IntellijLintProject extends Project {
       AndroidModel androidModel = facet.getAndroidModel();
       if (androidModel instanceof AndroidGradleModel) {
         project = new LintGradleProject(client, dir, dir, facet, (AndroidGradleModel)androidModel);
+      } else {
+        project = new LintAndroidProject(client, dir, dir, facet);
       }
     }
     else {
