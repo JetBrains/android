@@ -168,9 +168,9 @@ public class TraceDialog extends JDialog {
     pack();
   }
 
-  private void onBegin() {
+  public void onBegin() {
     setState(State.TRACING);
-    myListener.onStartTrace(myTraceName.getText());
+    myListener.onStartTrace(myTraceName.getText().trim());
   }
 
   private void cancelStopOrClose() {
