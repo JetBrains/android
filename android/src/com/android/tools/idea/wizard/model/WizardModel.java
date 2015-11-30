@@ -20,7 +20,8 @@ package com.android.tools.idea.wizard.model;
  * share the same model and, therefore, each claim responsibility for some subset of it.
  * <p/>
  * Note: Wizard models should never be aware of the UI that's filling them out, or expose data
- * properties which exist just for UI convenience.
+ * properties which exist just for UI convenience. A good rule of thumb is: if your model's
+ * {@link #handleFinished()} doesn't need it, it probably shouldn't be in here.
  */
 public abstract class WizardModel {
   /**
