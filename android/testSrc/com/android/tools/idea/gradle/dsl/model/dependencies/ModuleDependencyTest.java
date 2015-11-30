@@ -15,130 +15,102 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import com.android.tools.idea.gradle.dsl.dependencies.CommonConfigurationNames;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
 
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static org.fest.assertions.Assertions.assertThat;
 
 public class ModuleDependencyTest extends GradleFileModelTestCase {
-  public void testCompactNotation() throws Exception {
+  public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
-                  "  compile project(':a')\n" +
-                  "}";
-
-    checkReadAndModify(text);
-  }
-
-  public void testMapNotation() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile project(path: ':a')\n" +
-                  "}";
-
-    checkReadAndModify(text);
-  }
-
-  private void checkReadAndModify(@NotNull String text) throws IOException {
-    writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
-
-    // Read
-    ModuleDependencyModel dependencyModel = getDependency(buildModel.dependenciesV2());
-    assertEquals(":a", dependencyModel.path());
-    assertNull(dependencyModel.configuration());
-
-    // Set Config
-    dependencyModel.setConfiguration("myConf");
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    buildModel.reparse();
-
-    dependencyModel = getDependency(buildModel.dependenciesV2());
-    assertEquals(":a", dependencyModel.path());
-    assertEquals("myConf", dependencyModel.configuration());
-
-    // Set Project
-    dependencyModel.setPath(":new_a");
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    buildModel.reparse();
-
-    dependencyModel = getDependency(buildModel.dependenciesV2());
-    assertEquals(":new_a", dependencyModel.path());
-    assertEquals("myConf", dependencyModel.configuration());
-
-    // Remove Config
-    dependencyModel.removeConfiguration();
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    buildModel.reparse();
-
-    dependencyModel = getDependency(buildModel.dependenciesV2());
-    assertEquals(":new_a", dependencyModel.path());
-    assertNull(dependencyModel.configuration());
-
-
-    // Delete the dependency
-    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
-    dependenciesModel.remove(dependencyModel);
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
-    assertNull(buildModel.dependenciesV2());
-  }
-
-  public void testMapNotationWithConfiguration() throws Exception {
-    String text = "dependencies {\n" +
-                  "  compile project(path: ':a', configuration: 'myConf')\n" +
+                  "    compile project(':javalib1')\n" +
                   "}";
     writeToBuildFile(text);
+
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    ModuleDependencyModel dependency = getDependency(buildModel.dependenciesV2());
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    assertThat(dependencies).hasSize(1);
 
-    assertEquals(":a", dependency.path());
-    assertEquals("myConf", dependency.configuration());
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.path = ":javalib1";
+    expected.assertMatches(dependencies.get(0));
   }
 
-  public void testAddingDependency() throws Exception {
+  public void testParsingWithDependencyOnRoot() throws IOException {
     String text = "dependencies {\n" +
-                  "  compile project(':a')\n" +
+                  "    compile project(':')\n" +
                   "}";
     writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    assertThat(dependencies).hasSize(1);
+
+    ModuleDependencyModel actual = dependencies.get(0);
+
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.path = ":";
+    expected.assertMatches(actual);
+
+    assertEquals("", actual.name());
+  }
+
+  public void /*test*/ParsingWithMapNotation() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile project(path: ':androidlib1', configuration: 'flavor1Release')\n" +
+                  "    runtime project(path: ':javalib2')\n" +
+                  "    compile project(path: ':androidlib2', configuration: 'flavor2Release')\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    assertThat(dependencies).hasSize(3);
+
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.path = ":androidlib1";
+    expected.configuration = "flavor1Release";
+    expected.assertMatches(dependencies.get(0));
+
+    expected.reset();
+
+    expected.configurationName = "runtime";
+    expected.path = ":javalib2";
+    expected.assertMatches(dependencies.get(1));
+
+    expected.reset();
+
+    expected.configurationName = "compile";
+    expected.path = ":androidlib2";
+    expected.configuration = "flavor2Release";
+    expected.assertMatches(dependencies.get(2));
+  }
+
+  public void testSetNameOnCompactNotation() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile project(':javalib1')\n" +
+                  "}";
+    writeToBuildFile(text);
+
     final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
 
-    ModuleDependencyModel moduleDependency = getDependency(dependenciesModel);
-    assertEquals(":a", moduleDependency.path());
-    assertNull(moduleDependency.configuration());
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    ModuleDependencyModel dependency = dependencies.get(0);
+    dependency.setName("newName");
 
-    dependenciesModel.addModuleDependency("compile", ":b", "myConfig");
+    assertTrue(buildModel.isModified());
 
     runWriteCommandAction(myProject, new Runnable() {
       @Override
@@ -146,29 +118,32 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
         buildModel.applyChanges();
       }
     });
-    buildModel.reparse();
 
-    dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
+    assertFalse(buildModel.isModified());
 
-    List<ModuleDependencyModel> moduleDependencies = dependenciesModel.moduleDependencies("compile");
-    assertSize(2, moduleDependencies);
+    dependencies = buildModel.dependencies(true).modules();
+    assertThat(dependencies).hasSize(1);
 
-    assertEquals(":a", moduleDependencies.get(0).path());
-    assertNull(moduleDependencies.get(0).configuration());
-    assertEquals(":b", moduleDependencies.get(1).path());
-    assertEquals("myConfig", moduleDependencies.get(1).configuration());
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.path = ":newName";
+    expected.assertMatches(dependency);
   }
 
-  public void testAddingDependencyForEmptyFile() throws Exception {
-    writeToBuildFile("");
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependenciesV2();
-    assertNull(dependenciesModel);
-    dependenciesModel = buildModel.addDependenciesModelV2().dependenciesV2();
-    assertNotNull(dependenciesModel);
+  public void testSetNameOnMapNotationWithConfiguration() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile project(path: ':androidlib1', configuration: 'flavor1Release')\n" +
+                  "}";
 
-    dependenciesModel.addModuleDependency("compile", ":a", null);
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    ModuleDependencyModel dependency = dependencies.get(0);
+    dependency.setName("newName");
+
+    assertTrue(buildModel.isModified());
 
     runWriteCommandAction(myProject, new Runnable() {
       @Override
@@ -176,20 +151,138 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
         buildModel.applyChanges();
       }
     });
-    buildModel.reparse();
 
-    dependenciesModel = buildModel.dependenciesV2();
-    assertNotNull(dependenciesModel);
+    assertFalse(buildModel.isModified());
 
-    ModuleDependencyModel moduleDependency = getDependency(dependenciesModel);
-    assertEquals(":a", moduleDependency.path());
-    assertNull(moduleDependency.configuration());
+    dependencies = buildModel.dependencies(true).modules();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.path = ":newName";
+    expected.configuration = "flavor1Release";
+    expected.assertMatches(dependency);
   }
 
-  private static ModuleDependencyModel getDependency(@Nullable DependenciesModel dependenciesModel) {
-    assertNotNull(dependenciesModel);
-    List<ModuleDependencyModel> moduleDependencies = dependenciesModel.moduleDependencies(CommonConfigurationNames.COMPILE);
-    assertSize(1, moduleDependencies);
-    return moduleDependencies.get(0);
+  public void testSetNameOnMapNotationWithoutConfiguration() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile project(path: ':androidlib1')\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    ModuleDependencyModel dependency = dependencies.get(0);
+    dependency.setName("newName");
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+
+    dependencies = buildModel.dependencies(true).modules();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.path = ":newName";
+    expected.assertMatches(dependency);
+  }
+
+  public void testSetNameWithPathHavingSameSegmentNames() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile project(path: ':name:name')\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    ModuleDependencyModel dependency = dependencies.get(0);
+    dependency.setName("helloWorld");
+
+    assertTrue(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+
+    dependencies = buildModel.dependencies(true).modules();
+    assertThat(dependencies).hasSize(1);
+
+    ModuleDependencyModel actual = dependencies.get(0);
+
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.path = ":name:helloWorld";
+    expected.assertMatches(actual);
+
+    assertEquals("helloWorld", actual.name());
+  }
+
+  public void testReset() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile project(':javalib1')\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    ModuleDependencyModel dependency = dependencies.get(0);
+    dependency.setName("newName");
+
+    assertTrue(buildModel.isModified());
+
+    buildModel.resetState();
+
+    assertFalse(buildModel.isModified());
+
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+
+    dependencies = buildModel.dependencies(true).modules();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.path = ":javalib1";
+    expected.assertMatches(dependency);
+  }
+
+  public static class ExpectedModuleDependency {
+    public String configurationName;
+    public String path;
+    public String configuration;
+
+    public void assertMatches(@NotNull ModuleDependencyModel actual) {
+      assertEquals("configurationName", configurationName, actual.configurationName());
+      assertEquals("path", path, actual.path());
+      assertEquals("configuration", configuration, actual.configuration());
+    }
+
+    public void reset() {
+      configurationName = path = configuration = null;
+    }
   }
 }

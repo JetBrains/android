@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -59,8 +58,8 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
   public abstract String extension();
 
   @NotNull
-  public String getCompactNotation() {
-    return new ExternalDependencySpec(name(), group(), version(), classifier(), extension()).compactNotation();
+  public String compactNotation() {
+    return new ArtifactDependencySpec(name(), group(), version(), classifier(), extension()).compactNotation();
   }
 
   @NotNull
@@ -81,9 +80,9 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
       GradleDslExpression dslLiteral = (GradleDslLiteral)element;
       String value = dslLiteral.getValue(String.class);
       if (value != null) {
-        ExternalDependencySpec spec = ExternalDependencySpec.create(value);
+        ArtifactDependencySpec spec = ArtifactDependencySpec.create(value);
         if (spec != null) {
-          results.add(new CompactNotationModel((GradleDslLiteral)element, spec));
+          results.add(new CompactNotation((GradleDslLiteral)element, spec));
         }
       }
     }
@@ -97,22 +96,22 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
       myDslElement = dslElement;
     }
 
-    @NotNull
     @Override
+    @NotNull
     public String name() {
       String value = myDslElement.getProperty("name", String.class);
       assert value != null;
       return value;
     }
 
-    @Nullable
     @Override
+    @Nullable
     public String group() {
       return myDslElement.getProperty("group", String.class);
     }
 
-    @Nullable
     @Override
+    @Nullable
     public String version() {
       return myDslElement.getProperty("version", String.class);
     }
@@ -122,15 +121,14 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
       myDslElement.setNewLiteral("version", name);
     }
 
-    @Nullable
     @Override
+    @Nullable
     public String classifier() {
       return myDslElement.getProperty("classifier", String.class);
     }
 
-
-    @Nullable
     @Override
+    @Nullable
     public String extension() {
       return myDslElement.getProperty("ext", String.class);
     }
@@ -142,29 +140,29 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
     }
   }
 
-  private static class CompactNotationModel extends ArtifactDependencyModel {
+  private static class CompactNotation extends ArtifactDependencyModel {
     @NotNull private GradleDslExpression myDslExpression;
-    @NotNull private ExternalDependencySpec mySpec;
+    @NotNull private ArtifactDependencySpec mySpec;
 
-    private CompactNotationModel(@NotNull GradleDslExpression dslExpression, @NotNull  ExternalDependencySpec spec) {
+    private CompactNotation(@NotNull GradleDslExpression dslExpression, @NotNull ArtifactDependencySpec spec) {
       myDslExpression = dslExpression;
       mySpec = spec;
     }
 
-    @NotNull
     @Override
+    @NotNull
     public String name() {
       return mySpec.name;
     }
 
-    @Nullable
     @Override
+    @Nullable
     public String group() {
       return mySpec.group;
     }
 
-    @Nullable
     @Override
+    @Nullable
     public String version() {
       return mySpec.version;
     }
@@ -175,20 +173,20 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
       myDslExpression.setValue(mySpec.toString());
     }
 
-    @Nullable
     @Override
+    @Nullable
     public String classifier() {
       return mySpec.classifier;
     }
 
-    @Nullable
     @Override
+    @Nullable
     public String extension() {
       return mySpec.extension;
     }
 
-    @Override
     @NotNull
+    @Override
     protected GradleDslElement getDslElement() {
       return myDslExpression;
     }
