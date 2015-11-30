@@ -18,22 +18,21 @@ package com.android.tools.idea.editors.theme.qualifiers;
 import com.android.ide.common.resources.configuration.ResourceQualifier;
 
 import com.android.resources.ResourceEnum;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 
 public class RestrictedEnum implements RestrictedQualifier {
 
-  private final Collection<ResourceEnum> myPossibleValues;
-  private final ImmutableList<ResourceEnum> myAllValues;
+  private final Class<? extends ResourceEnum> myEnumClass;
+  private final EnumSet<? extends ResourceEnum> myPossibleValues;
 
   public RestrictedEnum(@NotNull Class<? extends ResourceEnum> enumClass) {
-    myPossibleValues = Lists.newArrayList(Arrays.asList(enumClass.getEnumConstants()));
-    myAllValues = ImmutableList.copyOf(myPossibleValues);
+    myPossibleValues = EnumSet.copyOf((Collection)Arrays.asList(enumClass.getEnumConstants()));
+    myEnumClass = enumClass;
   }
 
   @NotNull
@@ -45,7 +44,7 @@ public class RestrictedEnum implements RestrictedQualifier {
   public void setRestrictions(@Nullable ResourceQualifier compatible, @NotNull Collection<ResourceQualifier> incompatibles) {
     if (compatible != null) {
       myPossibleValues.clear();
-      myPossibleValues.add(getValue(compatible));
+      myPossibleValues.addAll((Collection)Arrays.asList(getValue(compatible)));
     } else {
       for (ResourceQualifier qualifier : incompatibles) {
         myPossibleValues.remove(getValue(qualifier));
@@ -70,9 +69,47 @@ public class RestrictedEnum implements RestrictedQualifier {
   @Nullable("if there is no boundary for a value")
   public Object getAny() {
     assert !myPossibleValues.isEmpty();
-    if (myAllValues.size() == myPossibleValues.size()) {
+    if (myEnumClass.getEnumConstants().length == myPossibleValues.size()) {
       return null;
     }
     return myPossibleValues.iterator().next();
+  }
+
+  @Nullable
+  @Override
+  public RestrictedQualifier intersect(@NotNull RestrictedQualifier otherRestricted) {
+    assert otherRestricted instanceof RestrictedEnum;
+    RestrictedEnum otherRestrictedEnum = (RestrictedEnum)otherRestricted;
+    assert myEnumClass.equals(otherRestrictedEnum.myEnumClass);
+
+    RestrictedEnum result = new RestrictedEnum(myEnumClass);
+
+    result.myPossibleValues.retainAll(myPossibleValues);
+    result.myPossibleValues.retainAll(otherRestrictedEnum.myPossibleValues);
+
+    if (result.myPossibleValues.isEmpty()) {
+      return null;
+    }
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RestrictedEnum that = (RestrictedEnum)o;
+
+    if (!myPossibleValues.equals(that.myPossibleValues)) return false;
+    if (!myEnumClass.equals(that.myEnumClass)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = myPossibleValues.hashCode();
+    result = 31 * result + myEnumClass.hashCode();
+    return result;
   }
 }

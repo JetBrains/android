@@ -27,7 +27,7 @@ import java.util.List;
 
 public class RestrictedConfigurationTest extends AndroidTestCase {
 
-  private void checkRestrictFor(String compatibleQualifier, String answerQualifier, String... incompatibleQualifiers) {
+  private static void checkRestrictFor(String compatibleQualifier, String answerQualifier, String... incompatibleQualifiers) {
     ArrayList<FolderConfiguration> incompatibles = Lists.newArrayList();
     for (int i = 0; i < incompatibleQualifiers.length; ++i) {
       incompatibles.add(FolderConfiguration.getConfigForQualifierString(incompatibleQualifiers[i]));
@@ -61,7 +61,6 @@ public class RestrictedConfigurationTest extends AndroidTestCase {
    * See: http://developer.android.com/guide/topics/resources/providing-resources.html
    */
   public void testRestrict() {
-
     assertEquals(21, FolderConfiguration.getQualifierCount());
 
     checkRestrictFor("en-v21", "en", "ldrtl", "ldltr");

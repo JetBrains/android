@@ -43,4 +43,7 @@ public interface RestrictedQualifier{
    */
   @Nullable("if there is no restrictions for this qualifier")
   Object getAny();
+
+  @Nullable("if empty intersection")
+  RestrictedQualifier intersect(@NotNull RestrictedQualifier otherRestricted);
 }

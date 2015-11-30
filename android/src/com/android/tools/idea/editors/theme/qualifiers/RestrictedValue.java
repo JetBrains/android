@@ -31,6 +31,11 @@ public class RestrictedValue implements RestrictedQualifier {
     myMaxValue = Integer.MAX_VALUE;
   }
 
+  RestrictedValue(int minValue, int maxValue) {
+    myMinValue = minValue;
+    myMaxValue = maxValue;
+  }
+
   private static int getValue(ResourceQualifier qualifier) {
     if (qualifier instanceof VersionQualifier) {
       return ((VersionQualifier)qualifier).getVersion();
@@ -75,5 +80,38 @@ public class RestrictedValue implements RestrictedQualifier {
       return Integer.valueOf(myMaxValue);
     }
     return Integer.valueOf(myMinValue);
+  }
+
+  @Nullable
+  @Override
+  public RestrictedQualifier intersect(@NotNull RestrictedQualifier otherRestricted) {
+    assert otherRestricted instanceof RestrictedValue;
+    int resultMinValue = Math.max(myMinValue, ((RestrictedValue)otherRestricted).myMinValue);
+    int resultMaxValue = Math.min(myMaxValue, ((RestrictedValue)otherRestricted).myMaxValue);
+
+    if (resultMinValue > resultMaxValue) {
+      return null;
+    }
+    return new RestrictedValue(resultMinValue, resultMaxValue);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    RestrictedValue that = (RestrictedValue)o;
+
+    if (myMinValue != that.myMinValue) return false;
+    if (myMaxValue != that.myMaxValue) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = myMinValue;
+    result = 31 * result + myMaxValue;
+    return result;
   }
 }

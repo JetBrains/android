@@ -16,20 +16,9 @@
 package com.android.tools.idea.editors.theme.qualifiers;
 
 import com.android.ide.common.resources.configuration.*;
-import com.android.resources.Density;
 import com.android.resources.LayoutDirection;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.AndroidTestCase;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@SuppressWarnings("ConstantConditions")
 public class QualifierUtilsTest extends AndroidTestCase {
 
   /**
