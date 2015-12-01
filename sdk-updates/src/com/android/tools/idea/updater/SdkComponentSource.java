@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.updater;
 
+import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
@@ -28,7 +28,7 @@ import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.utils.ILogger;
 import com.android.utils.StdLogger;
 import com.google.common.collect.ImmutableList;
@@ -81,7 +81,7 @@ public class SdkComponentSource implements ExternalComponentSource {
   }
 
   /**
-   * Install the given new versions of components using the {@link SdkQuickfixWizard}.
+   * Install the given new versions of components using the {@link SdkQuickfixUtils} dialog.
    *
    * @param request The components to install.
    */

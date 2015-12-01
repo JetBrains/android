@@ -44,8 +44,9 @@ import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDia
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -650,9 +651,8 @@ public class PostProjectSetupTasksExecutor {
         requested.add(PkgDesc.Builder.newPlatformTool(minBuildToolsRev).create());
       }
       requested.add(PkgDesc.Builder.newTool(myVersion, myVersion).create());
-      SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
-      wizard.init();
-      if (wizard.showAndGet()) {
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(project, requested);
+      if (dialog != null && dialog.showAndGet()) {
         GradleProjectImporter.getInstance().requestProjectSync(project, null);
       }
     }

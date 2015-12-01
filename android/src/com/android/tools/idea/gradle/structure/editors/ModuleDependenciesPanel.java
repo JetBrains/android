@@ -20,9 +20,10 @@ import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.structure.EditorPanel;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -326,16 +327,16 @@ public class ModuleDependenciesPanel extends EditorPanel {
       return coordinateText + ':' + REVISION_ANY;
     }
     requested.add(repository.getPackageDescription());
-    SdkQuickfixWizard wizard = new SdkQuickfixWizard(myProject, null, requested);
-    wizard.init();
-    wizard.setTitle("Install Missing Components");
-    if (wizard.showAndGet()) {
-      return RepositoryUrlManager.get().getLibraryCoordinate(gradleCoordinate.getArtifactId());
+    ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(myProject, requested);
+    if (dialog != null) {
+      dialog.setTitle("Install Missing Components");
+      if (dialog.showAndGet()) {
+        return RepositoryUrlManager.get().getLibraryCoordinate(gradleCoordinate.getArtifactId());
+      }
     }
-    else {
-      // Installation wizard didn't complete - skip adding the dependency.
-      return null;
-    }
+
+    // Installation wizard didn't complete - skip adding the dependency.
+    return null;
   }
 
   private void addFileDependency() {

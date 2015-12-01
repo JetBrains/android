@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.repository.Revision;
 import com.android.sdklib.*;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.repository.Revision;
 import com.android.tools.idea.sdk.SdkLoadedCallback;
 import com.android.tools.idea.sdk.SdkPackages;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -35,7 +35,6 @@ import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
@@ -381,10 +380,11 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
                                                     Abi.X86.toString(), new Revision(1)).create());
     requestedPackages.add(PkgDesc.Builder.newSysImg(new AndroidVersion(apiLevel, null), TV_TAG,
                                                     Abi.X86.toString(), new Revision(1)).create());
-    SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
-    sdkQuickfixWizard.init();
-    sdkQuickfixWizard.show();
-    refreshImages(true);
+    ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(null, requestedPackages);
+    if (dialog != null) {
+      dialog.show();
+      refreshImages(true);
+    }
   }
 
   /**
@@ -582,17 +582,12 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     private void downloadImage(SystemImageDescription image) {
       IPkgDesc request = image.getRemotePackage();
       List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
-      SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages,
-                                                                  new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT)) {
-        @Nullable
-        @Override
-        public JComponent getProgressParentComponent() {
-          return SystemImageList.this;
-        }
-      };
-      sdkQuickfixWizard.init();
-      sdkQuickfixWizard.show();
-      refreshImages(true);
+      ModelWizardDialog dialog =
+        SdkQuickfixUtils.createDialogWithParent(SystemImageList.this, requestedPackages);
+      if (dialog != null) {
+        dialog.show();
+        refreshImages(true);
+      }
     }
 
     @Nullable

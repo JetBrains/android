@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.sdk.wizard.InstallMissingPackagesStep">
+  <grid id="27dc6" binding="myRootPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+    <constraints>
+      <xy x="20" y="20" width="521" height="400"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <grid id="6cc6e" binding="myOptionsPanel" custom-create="true" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+        <constraints border-constraint="South"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="e6780" class="com.intellij.ui.components.JBRadioButton" binding="myStandaloneSdkManagerButton">
+            <constraints/>
+            <properties>
+              <text value="Exit and Launch SDK Manager"/>
+            </properties>
+          </component>
+          <component id="dd43e" class="com.intellij.ui.components.JBRadioButton" binding="mySkipInstallationButton">
+            <constraints/>
+            <properties>
+              <text value="Skip Installation"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <component id="39fdc" class="com.intellij.ui.components.JBLabel" binding="myErrorMessageLabel">
+        <constraints border-constraint="North"/>
+        <properties>
+          <font style="1"/>
+          <text value=""/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>

@@ -13,29 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sdk.wizard;
+package com.android.tools.idea.sdk.wizard.legacy;
 
 import com.android.repository.api.License;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
-import com.android.tools.idea.wizard.model.ModelWizard;
-import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.sdk.wizard.AndroidSdkLicenseTemporaryData;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBRadioButton;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,87 +42,102 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * {@link ModelWizardStep} that displays all the licenses related to the packages the user is about to install
- * and prompts the user to accept them prior to installation.
- */
-public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel> {
+import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 
+/**
+ * A review step for reviewing the changes about to be made and accepting the required licences.
+ *
+ * @deprecated Replaced by {@link com.android.tools.idea.sdk.wizard.LicenseAgreementStep}
+ */
+public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   private JTextPane myLicenseTextField;
   private Tree myChangeTree;
-  private JBRadioButton myDeclineRadioButton;
-  private JBRadioButton myAcceptRadioButton;
-  private JPanel myRootPanel;
-  private Splitter splitter;
-  private JPanel optionsPanel;
-  private JBScrollPane myTreeScroll;
-  private JBScrollPane myLicensePane;
+  private JRadioButton myDeclineRadioButton;
+  private JRadioButton myAcceptRadioButton;
 
   private DefaultTreeModel myTreeModel = new DefaultTreeModel(null);
-  @Nullable private String myCurrentLicense;
-
-  // Licenses accepted by the user.
   private Map<String, Boolean> myAcceptances = Maps.newHashMap();
-
-  // Only licenses that have not been accepted in the past by the user are displayed.
   private Set<String> myVisibleLicenses = Sets.newHashSet();
+  private String myCurrentLicense;
+  private Set<License> myLicenses = Sets.newHashSet();
 
-  // All packages that will get installed.
-  private List<IPkgDesc> myInstallRequests;
+  private final File mySdkRoot;
 
-  // True when all the visible licenses have been accepted.
-  private BoolProperty myAllLicensesAreAccepted = new BoolValueProperty();
-
-  protected LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<IPkgDesc> installRequests) {
-    super(model, "License Agreement");
-    myInstallRequests = installRequests;
-  }
-
-  @Override
-  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    createUI();
-    initUI();
-  }
-
-  private void createUI() {
+  public LicenseAgreementStep(@NotNull Disposable disposable) {
+    super(disposable);
+    Splitter splitter = new Splitter(false, .30f);
     splitter.setHonorComponentsMinimumSize(true);
+
+    myChangeTree = new Tree();
+    splitter.setFirstComponent(ScrollPaneFactory.createScrollPane(myChangeTree));
+
+    myLicenseTextField = new JTextPane();
+    splitter.setSecondComponent(ScrollPaneFactory.createScrollPane(myLicenseTextField));
+
+    myDeclineRadioButton = new JBRadioButton("Decline");
+    myAcceptRadioButton = new JBRadioButton("Accept");
 
     ButtonGroup optionsGroup = new ButtonGroup();
     optionsGroup.add(myDeclineRadioButton);
     optionsGroup.add(myAcceptRadioButton);
 
-    myRootPanel.add(splitter, BorderLayout.CENTER);
-    myRootPanel.add(optionsPanel, BorderLayout.SOUTH);
+    JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
+    optionsPanel.add(myDeclineRadioButton);
+    optionsPanel.add(myAcceptRadioButton);
 
-    myLicenseTextField.setFont(UIUtil.getLabelFont());
+    JPanel mainPanel = new JPanel(new BorderLayout());
+    mainPanel.add(splitter, BorderLayout.CENTER);
+    mainPanel.add(optionsPanel, BorderLayout.SOUTH);
+
+    setBodyComponent(mainPanel);
+
+    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (data != null) {
+      mySdkRoot = data.getLocalSdk().getLocation();
+    }
+    else {
+      mySdkRoot = null;
+    }
   }
 
-  private void initUI() {
+  @Override
+  public void init() {
+    super.init();
     myChangeTree.setModel(myTreeModel);
     myChangeTree.setShowsRootHandles(false);
     myLicenseTextField.setEditable(false);
 
-    final SelectedProperty accepted = new SelectedProperty(myAcceptRadioButton);
-    accepted.addListener(new InvalidationListener() {
+    // Initialize radio buttons
+    ButtonGroup group = new ButtonGroup();
+    group.add(myDeclineRadioButton);
+    group.add(myAcceptRadioButton);
+
+    myDeclineRadioButton.addActionListener(new ActionListener() {
       @Override
-      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myAcceptances.put(myCurrentLicense, accepted.get());
-        checkAllLicensesAreAccepted();
+      public void actionPerformed(ActionEvent e) {
+        myAcceptances.put(myCurrentLicense, Boolean.FALSE);
+        invokeUpdate(null);
         myChangeTree.repaint();
       }
     });
 
-    myChangeTree.addTreeSelectionListener(createTreeSelectionListener());
-    myChangeTree.setCellRenderer(createCellRenderer());
-    setChanges(createChangesList());
-  }
+    myAcceptRadioButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myAcceptances.put(myCurrentLicense, Boolean.TRUE);
+        invokeUpdate(null);
+        myChangeTree.repaint();
+      }
+    });
 
-  private TreeSelectionListener createTreeSelectionListener() {
-    return new TreeSelectionListener() {
+    myChangeTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent e) {
         DefaultMutableTreeNode selected = (DefaultMutableTreeNode)myChangeTree.getLastSelectedPathComponent();
@@ -151,11 +162,9 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
         }
         myLicenseTextField.setCaretPosition(0);
       }
-    };
-  }
+    });
 
-  private ColoredTreeCellRenderer createCellRenderer() {
-    return new ColoredTreeCellRenderer() {
+    myChangeTree.setCellRenderer(new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(@NotNull JTree tree,
                                         Object value,
@@ -180,7 +189,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
             return;
           }
           appendLicenseText(change.license, change.toString());
-          setIcon(AllIcons.Actions.Download);
+          setIcon(change.getIcon());
         }
       }
 
@@ -192,31 +201,78 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
         }
         else {
           append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+
         }
       }
-    };
+    });
+
+    setChanges(createChangesList());
   }
 
-  /**
-   * Ensures that all the nodes in the tree are expanded and viewable.
-   */
+  @Override
+  public boolean isStepVisible() {
+    return myState.listSize(INSTALL_REQUESTS_KEY) > 0 && !myLicenses.isEmpty();
+  }
+
+  @Override
+  public boolean validate() {
+    for (String licenseRef : myVisibleLicenses) {
+      if (!myAcceptances.get(licenseRef)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @NotNull
+  @Override
+  public String getStepName() {
+    return "License Agreement";
+  }
+
+  @NotNull
+  @Override
+  protected String getStepTitle() {
+    return "License Agreement";
+  }
+
+  @Nullable
+  @Override
+  protected String getStepDescription() {
+    return "Read and agree to the licenses for the components which will be installed";
+  }
+
   private void expandTree() {
     for (int i = 0; i < myChangeTree.getRowCount(); ++i) {
       myChangeTree.expandRow(i);
     }
   }
 
-  /**
-   * Respond to a new set of changes, by modifying which licenses the user will need to accept to proceed,
-   * and updating related UI components.
-   */
+  private List<Change> createChangesList() {
+    List<Change> toReturn = Lists.newArrayList();
+    List requestedPackageNames = myState.get(INSTALL_REQUESTS_KEY);
+    if (requestedPackageNames != null) {
+      for (Object o : requestedPackageNames) {
+        IPkgDesc desc = (IPkgDesc)o;
+        License license = desc.getLicense();
+        if (license == null) { // Android SDK license
+          license = AndroidSdkLicenseTemporaryData.getLicense(desc.getAndroidVersion() != null && desc.getAndroidVersion().isPreview());
+        }
+        myLicenses.add(license);
+        if (!license.checkAccepted(mySdkRoot)) {
+          toReturn.add(new Change(ChangeType.INSTALL, (IPkgDesc)o, license));
+        }
+      }
+    }
+    return toReturn;
+  }
+
   private void setChanges(List<Change> changes) {
     Map<String, DefaultMutableTreeNode> licenseNodeMap = Maps.newHashMap();
     myVisibleLicenses.clear();
 
     DefaultMutableTreeNode root = new DefaultMutableTreeNode();
     DefaultMutableTreeNode firstChild = null;
-    //For every change in the list, if we don't have that license in our tree we add it with a declined value
     for (Change change : changes) {
       String licenseRef = change.license.getId();
       myVisibleLicenses.add(licenseRef);
@@ -233,72 +289,36 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     }
     myTreeModel = new DefaultTreeModel(root);
     myChangeTree.setModel(myTreeModel);
-    // We expand the tree and change the selection path to reflect changes
     expandTree();
     if (firstChild != null) {
       myChangeTree.setSelectionPath(new TreePath(firstChild.getPath()));
     }
   }
 
-  @NotNull
   @Override
-  protected JComponent getComponent() {
-    return myRootPanel;
-  }
-
-  @Override
-  protected boolean shouldShow() {
-    return myVisibleLicenses.size() > 0 && !getModel().getLicenses().isEmpty();
-  }
-
-  @Nullable
-  @Override
-  protected JComponent getPreferredFocusComponent() {
+  public JComponent getPreferredFocusedComponent() {
     return myChangeTree;
   }
 
-  private void checkAllLicensesAreAccepted() {
-    myAllLicensesAreAccepted.set(true);
-    for (String licenseRef : myVisibleLicenses) {
-      if (!myAcceptances.get(licenseRef)) {
-        myAllLicensesAreAccepted.set(false);
-        break;
-      }
+  public void performFinishingActions() {
+    for (License license : myLicenses) {
+      license.setAccepted(mySdkRoot);
     }
   }
 
-  @NotNull
-  @Override
-  protected ObservableBool canGoForward() {
-    return myAllLicensesAreAccepted;
+  protected enum ChangeType {
+    INSTALL,
+    UPDATE,
+    REMOVE
   }
 
-  private List<Change> createChangesList() {
-    List<Change> toReturn = Lists.newArrayList();
-    if (myInstallRequests != null) {
-      for (IPkgDesc desc : myInstallRequests) {
-        License license = desc.getLicense();
-        if (license == null) { // Android SDK license
-          license = AndroidSdkLicenseTemporaryData.getLicense(desc.getAndroidVersion() != null && desc.getAndroidVersion().isPreview());
-        }
-        getModel().getLicenses().add(license);
-        if (!license.checkAccepted(getModel().sdkRoot().getValue())) {
-          toReturn.add(new Change(desc, license));
-        }
-      }
-    }
-    return toReturn;
-  }
-
-  private void createUIComponents() {
-    optionsPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
-  }
-
-  private final static class Change {
+  protected static class Change {
+    public ChangeType type;
     public IPkgDesc packageDescription;
     public License license;
 
-    public Change(@NotNull IPkgDesc packageDescription, @NotNull License license) {
+    public Change(@NotNull ChangeType type, @NotNull IPkgDesc packageDescription, @NotNull License license) {
+      this.type = type;
       this.packageDescription = packageDescription;
       this.license = license;
     }
@@ -307,11 +327,22 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     public String toString() {
       if (packageDescription.getListDescription() != null) {
         return packageDescription.getListDescription();
-      }
-      else {
+      } else {
         return "INCORRECT PACKAGE DESCRIPTION";
+      }
+    }
+
+    public Icon getIcon() {
+      switch (type) {
+        case INSTALL:
+          return AllIcons.Actions.Download;
+        case UPDATE:
+          return AllIcons.Actions.Refresh;
+        case REMOVE:
+          return AllIcons.Actions.Cancel;
+        default:
+          return null;
       }
     }
   }
 }
-
