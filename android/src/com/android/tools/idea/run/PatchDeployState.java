@@ -106,8 +106,10 @@ public class PatchDeployState implements RunProfileState {
         // @formatter:on
         myProcessHandler.notifyTextAvailable(msg, ProcessOutputTypes.STDOUT);
 
-        boolean coldSwap = FastDeployManager.isColdSwap(AndroidGradleModel.get(myFacet));
+        AndroidGradleModel model = AndroidGradleModel.get(myFacet);
+        boolean coldSwap = model != null && FastDeployManager.isColdSwap(model);
         if (coldSwap && !FastDeployManager.isColdSwapEnabled(myFacet.getModule().getProject())) {
+          FastDeployManager.displayVerifierStatus(model, myFacet);
           LOG.info("Cold swap is not supported yet, restarting run configuration");
           myProcessHandler.destroyProcess();
           ApplicationManager.getApplication().invokeLater(new Runnable() {
