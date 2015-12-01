@@ -53,17 +53,39 @@ public class DependenciesModel {
   }
 
   @NotNull
+  public List<ArtifactDependencyModel> artifacts(@NotNull String configurationName) {
+    List<ArtifactDependencyModel> dependencies = Lists.newArrayList();
+    addArtifacts(configurationName, dependencies);
+    return dependencies;
+  }
+
+  @NotNull
   public List<ArtifactDependencyModel> artifacts() {
     List<ArtifactDependencyModel> dependencies = Lists.newArrayList();
     for (String configurationName : myDslElement.getProperties()) {
-      GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
-      if (list != null) {
-        for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
-          dependencies.addAll(ArtifactDependencyModel.create(element));
-        }
-      }
+      addArtifacts(configurationName, dependencies);
     }
     return dependencies;
+  }
+
+  private void addArtifacts(@NotNull String configurationName, @NotNull List<ArtifactDependencyModel> dependencies) {
+    GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+    if (list != null) {
+      for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
+        dependencies.addAll(ArtifactDependencyModel.create(element));
+      }
+    }
+  }
+
+  @NotNull
+  public DependenciesModel addArtifact(@NotNull String configurationName, @NotNull String compactNotation) {
+    ArtifactDependencySpec dependency = ArtifactDependencySpec.create(compactNotation);
+    if (dependency == null) {
+      String msg = String.format("'%1$s' is not a valid artifact dependency", compactNotation);
+      throw new IllegalArgumentException(msg);
+    }
+    addArtifact(configurationName, dependency);
+    return this;
   }
 
   @NotNull
