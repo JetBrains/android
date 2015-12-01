@@ -20,10 +20,12 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.ddms.DeviceNameRendererEx;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ide.ui.search.SearchUtil;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -33,14 +35,18 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class ConnectedAndroidDevice implements AndroidDevice {
+  private static final ExtensionPointName<DeviceNameRendererEx> EP_NAME = ExtensionPointName.create("com.android.run.deviceNameRenderer");
+
   @NotNull private final IDevice myDevice;
   @Nullable private final String myAvdName;
+  @Nullable private final DeviceNameRendererEx myDeviceNameRenderer;
 
   public ConnectedAndroidDevice(@NotNull IDevice device, @Nullable List<AvdInfo> avdInfos) {
     myDevice = device;
 
     AvdInfo avdInfo = getAvdInfo(device, avdInfos);
     myAvdName = avdInfo == null ? null : AvdManagerConnection.getAvdDisplayName(avdInfo);
+    myDeviceNameRenderer = getRendererExtension(device);
   }
 
   @Nullable
@@ -93,11 +99,20 @@ public class ConnectedAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public String getName() {
+    if (myDeviceNameRenderer != null) {
+      return myDeviceNameRenderer.getName(myDevice);
+    }
+
     return myAvdName == null ? getDeviceName() : myAvdName;
   }
 
   @Override
   public void renderName(@NotNull SimpleColoredComponent renderer, boolean isCompatible, @org.jetbrains.annotations.Nullable @Nullable String searchPrefix) {
+    if (myDeviceNameRenderer != null) {
+      myDeviceNameRenderer.render(myDevice, renderer);
+      return;
+    }
+
     renderer.setIcon(myDevice.isEmulator() ? AndroidIcons.Ddms.EmulatorDevice : AndroidIcons.Ddms.RealDevice);
 
     IDevice.DeviceState state = myDevice.getState();
@@ -135,5 +150,16 @@ public class ConnectedAndroidDevice implements AndroidDevice {
   @NotNull
   public IDevice getDevice() {
     return myDevice;
+  }
+
+
+  @Nullable
+  private static DeviceNameRendererEx getRendererExtension(@NotNull IDevice device) {
+    for (DeviceNameRendererEx extensionRenderer : EP_NAME.getExtensions()) {
+      if (extensionRenderer.isApplicable(device)) {
+        return extensionRenderer;
+      }
+    }
+    return null;
   }
 }
