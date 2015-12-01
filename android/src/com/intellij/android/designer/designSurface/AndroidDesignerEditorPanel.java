@@ -100,6 +100,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.MASK_A
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_RENDERING;
 import static com.android.tools.idea.rendering.RenderErrorPanel.SIZE_ERROR_PANEL_DYNAMICALLY;
 import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
+import static com.intellij.designer.designSurface.ZoomType.FIT;
 import static org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener;
 
 /**
@@ -136,7 +137,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   /** Zoom level (1 = 100%). TODO: Persist this setting across IDE sessions (on a per file basis) */
   private double myZoom = 1;
-  private ZoomType myZoomMode = ZoomType.FIT_INTO;
+  private ZoomType myZoomMode = FIT_INTO;
   private RenderPreviewManager myPreviewManager;
   private final HoverOverlay myHover = new HoverOverlay(this);
   private final List<Overlay> myOverlays = Arrays.asList(myHover, new IncludeOverlay(this));
@@ -403,10 +404,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         updateInspections();
 
         if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
-          RenderPreviewManager previewManager = getPreviewManager(true);
-          if (previewManager != null) {
-            previewManager.renderPreviews();
-          }
+          getPreviewManager(true).renderPreviews();
         }
 
         runnable.run();
@@ -618,10 +616,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         }
 
         if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
-          RenderPreviewManager previewManager = getPreviewManager(true);
-          if (previewManager != null) {
-            previewManager.renderPreviews();
-          }
+          getPreviewManager(true).renderPreviews();
         }
       }
     });
@@ -833,13 +828,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       return "";
     }
 
-    String name = SdkVersionInfo.getAndroidName(since);
-
-    if (name == null) {
-      name = String.format("API %1$d", since);
-    }
-
-    return name;
+    return SdkVersionInfo.getAndroidName(since);
   }
 
   @Override
@@ -1035,7 +1024,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private static final double ZOOM_FACTOR = 1.2;
 
   public boolean isZoomToFit() {
-    return myZoomMode == ZoomType.FIT || myZoomMode == ZoomType.FIT_INTO;
+    return myZoomMode == FIT || myZoomMode == FIT_INTO;
   }
 
   @Override
@@ -1054,7 +1043,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       double imageHeight = bounds.getHeight();
       if (imageHeight > 0) {
         zoom = Math.min(myMaxWidth / imageWidth, myMaxHeight / imageHeight);
-        if (myZoomMode == ZoomType.FIT_INTO && zoom > 1) {
+        if (myZoomMode == FIT_INTO && zoom > 1) {
           zoom = 1;
         }
       }
@@ -1398,7 +1387,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   @Override
   public void updateLayout() {
-    zoom(ZoomType.FIT_INTO);
+    zoom(FIT_INTO);
     Component component = getComponent();
     if (component instanceof JComponent) {
       JComponent jc = (JComponent)component;
@@ -1495,7 +1484,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   @Override
   public void zoomFit(boolean onlyZoomOut, boolean allowZoomIn) {
-    zoom(allowZoomIn ? ZoomType.FIT : ZoomType.FIT_INTO);
+    zoom(allowZoomIn ? FIT : FIT_INTO);
   }
 
   @Override
