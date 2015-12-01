@@ -198,29 +198,6 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     // TODO: Test variants
   }
 
-  public void testResolveAllAttributes() {
-    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_resolve_all.xml", "res/values/styles.xml");
-
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
-
-    ThemeEditorStyle theme = ResolutionUtils.getStyle(configuration, "AppTheme", null);
-    assertNotNull(theme);
-    List<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(theme, new ThemeResolver(configuration));
-
-    HashMap<String, EditedStyleItem> items = Maps.newHashMapWithExpectedSize(attributes.size());
-    for (EditedStyleItem item : attributes) {
-      assertNull(items.put(item.getQualifiedName(), item));
-    }
-
-    assertTrue(items.containsKey("android:colorBackground"));
-    assertTrue(items.containsKey("android:colorPrimary"));
-    // Action bar should be there twice, one defined by the framework one defined by us
-    assertTrue(items.containsKey("android:windowActionBar"));
-    assertTrue(items.containsKey("windowActionBar"));
-    assertTrue(items.containsKey("myAttribute"));
-    assertFalse(items.containsKey("android:myBoolean"));
-  }
-
   @NotNull
   private static EditedStyleItem findAttribute(@NotNull final String name, @NotNull Collection<EditedStyleItem> attributes) {
     EditedStyleItem item = Iterables.find(attributes, new Predicate<EditedStyleItem>() {
@@ -233,108 +210,6 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertNotNull(item);
 
     return item;
-  }
-
-  public void testResolveAllMultipleParents() {
-    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/attributeResolution/styles_base.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v17.xml", "res/values-v17/styles.xml");
-    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v20.xml", "res/values-v20/styles.xml");
-    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-port.xml", "res/values-port/styles.xml");
-
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
-    assertNotNull(configuration.getTarget());
-    configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 20, null));
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-
-    ThemeEditorStyle style = themeResolver.getTheme("AppTheme");
-    assertNotNull(style);
-    Collection<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(style, themeResolver);
-
-    EditedStyleItem myBaseAttribute = findAttribute("myBase", attributes);
-    EditedStyleItem myAttribute = findAttribute("myAttribute", attributes);
-
-    assertEquals("V20", myAttribute.getValue());
-    assertEquals("V20", myBaseAttribute.getValue());
-    // This wil contain v17 and default as other configs
-    assertSize(2, myBaseAttribute.getNonSelectedItemResourceValues());
-
-    HashSet<String> values = Sets.newHashSet();
-    for (ConfiguredElement<ItemResourceValue> item : myBaseAttribute.getNonSelectedItemResourceValues()) {
-      values.add(item.getElement().getValue());
-    }
-    assertThat(values).containsOnly("V20", "V17");
-
-    configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 17, null));
-    themeResolver = new ThemeResolver(configuration);
-
-    style = themeResolver.getTheme("AppTheme");
-    assertNotNull(style);
-    attributes = ThemeEditorUtils.resolveAllAttributes(style, themeResolver);
-
-    myBaseAttribute = findAttribute("myBase", attributes);
-    myAttribute = findAttribute("myAttribute", attributes);
-
-    assertEquals("V17", myAttribute.getValue());
-    assertEquals("V17", myBaseAttribute.getValue());
-
-    configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 20, null));
-    themeResolver = new ThemeResolver(configuration);
-
-    style = themeResolver.getTheme("PortraitOnlyTheme");
-    assertNotNull(style);
-    attributes = ThemeEditorUtils.resolveAllAttributes(style, themeResolver);
-    myAttribute = findAttribute("myAttribute", attributes);
-    assertEquals("V20", myAttribute.getValue());
-  }
-
-  /**
-   * Test themes in only one folder but parents in multiple folders
-   */
-  public void testResolveAllOnlyOneFolder() {
-    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/attributeResolution/styles_base.xml", "res/values/styles.xml");
-    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v17.xml", "res/values-v17/styles.xml");
-    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v19.xml", "res/values-v19/styles.xml");
-    myFixture.copyFileToProject("themeEditor/attributeResolution/styles-v20.xml", "res/values-v20/styles.xml");
-
-    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
-    assertNotNull(configuration.getTarget());
-    configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 20, null));
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
-
-    // AppThemeParent is defined in v20 only but its parent is defined in both v20 AND v19
-    ThemeEditorStyle style = themeResolver.getTheme("AppThemeParent");
-    assertNotNull(style);
-    Collection<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(style, new ThemeResolver(configuration));
-
-    EditedStyleItem myAttribute = findAttribute("myAttribute", attributes);
-    assertNotNull(myAttribute);
-  }
-
-  public void testAttributeInheritanceSet() {
-    FolderConfiguration defaultFolder = new FolderConfiguration();
-    FolderConfiguration v21Folder = FolderConfiguration.getConfigForQualifierString("v21");
-    assertNotNull(v21Folder);
-    ThemeEditorUtils.AttributeInheritanceSet inheritanceSet = new ThemeEditorUtils.AttributeInheritanceSet();
-
-    assertFalse(inheritanceSet.iterator().hasNext());
-    ItemResourceValue value = new ItemResourceValue("android:windowBackground", true, "0", true);
-    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value));
-    assertEquals(1, Iterables.size(inheritanceSet));
-
-    // This shouldn't add the attribute again
-    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value));
-    assertEquals(1, Iterables.size(inheritanceSet));
-
-    // Even when the source theme is different, it shouldn't be added
-    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value));
-    assertEquals(1, Iterables.size(inheritanceSet));
-
-    inheritanceSet.add(ConfiguredElement.create(v21Folder, value));
-    assertEquals(2, Iterables.size(inheritanceSet));
-
-    value = new ItemResourceValue("android:colorForeground", true, "0", true);
-    inheritanceSet.add(ConfiguredElement.create(defaultFolder, value));
-    assertEquals(3, Iterables.size(inheritanceSet));
   }
 
   public void testSimplifyName() {

@@ -17,11 +17,11 @@ package com.android.tools.idea.tests.gui.theme;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.ThemeAttributeResolver;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
@@ -76,7 +76,7 @@ public class ThemeEditorTestUtils {
     }
 
     final ThemeResolver resolver = new ThemeResolver(style.getConfiguration());
-    return Collections2.filter(ThemeEditorUtils.resolveAllAttributes(style, resolver), new Predicate<EditedStyleItem>() {
+    return Collections2.filter(ThemeAttributeResolver.resolveAll(style, resolver), new Predicate<EditedStyleItem>() {
       @Override
       public boolean apply(@javax.annotation.Nullable EditedStyleItem input) {
         assert input != null;
