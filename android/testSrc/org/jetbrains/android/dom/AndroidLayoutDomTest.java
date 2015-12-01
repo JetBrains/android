@@ -436,7 +436,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testSystemResourceCompletion() throws Throwable {
-    doTestCompletionVariants("av6.xml", "@android:color/", "@android:drawable/");
+    doTestCompletionVariants("av6.xml", "@android:color/", "@android:drawable/", "@android:mipmap/");
   }
 
   public void testCompletionSpecialCases() throws Throwable {
