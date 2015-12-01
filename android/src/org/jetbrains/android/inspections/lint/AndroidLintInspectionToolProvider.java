@@ -774,6 +774,23 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintNotInterpolatedInspection extends AndroidLintInspectionBase {
+    public AndroidLintNotInterpolatedInspection() {
+      super(AndroidBundle.message("android.lint.inspections.not.interpolated"), GradleDetector.NOT_INTERPOLATED);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      String s = endElement.getText();
+      if (s.startsWith("'") && s.endsWith("'") && s.length() > 2) {
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace single quotes with double quotes", s,
+                                                                   "\"" + s.substring(1, s.length() - 1) + "\"")};
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
+  }
+
   public static class AndroidLintNotSiblingInspection extends AndroidLintInspectionBase {
     public AndroidLintNotSiblingInspection() {
       super(AndroidBundle.message("android.lint.inspections.not.sibling"), WrongIdDetector.NOT_SIBLING);
