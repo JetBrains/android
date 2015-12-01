@@ -617,6 +617,7 @@ public class ResourceHelper {
   @SuppressWarnings("UseJBColor")
   @Nullable
   public static Color parseColor(String s) {
+    s = StringUtil.trim(s);
     if (StringUtil.isEmpty(s)) {
       return null;
     }
