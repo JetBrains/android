@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.tools.idea.gradle.dsl.parser.PsiElements.setLiteralText;
+import static com.android.tools.idea.gradle.util.GradleUtil.getPathSegments;
 
 public class ModuleDependencyModel extends DependencyModel {
   public static final String PROJECT = "project";
@@ -53,8 +53,32 @@ public class ModuleDependencyModel extends DependencyModel {
 
   @Override
   @NotNull
-  public String getConfigurationName() {
+  public String configurationName() {
     return myConfigurationName;
+  }
+
+  @NotNull
+  public String name() {
+    List<String> pathSegments = getPathSegments(path());
+    int segmentCount = pathSegments.size();
+    return segmentCount > 0 ? pathSegments.get(segmentCount - 1) : "";
+  }
+
+  public void setName(@NotNull String name) {
+    String newPath;
+
+    // Keep empty spaces, needed when putting the path back together
+    List<String> segments = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(path());
+    List<String> modifiableSegments = Lists.newArrayList(segments);
+    int segmentCount = modifiableSegments.size();
+    if (segmentCount == 0) {
+      newPath = GRADLE_PATH_SEPARATOR + name.trim();
+    }
+    else {
+      modifiableSegments.set(segmentCount - 1, name);
+      newPath = Joiner.on(GRADLE_PATH_SEPARATOR).join(modifiableSegments);
+    }
+    setPath(newPath);
   }
 
   @NotNull

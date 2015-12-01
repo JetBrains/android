@@ -31,7 +31,7 @@ public abstract class DependencyModel {
   protected abstract GradleDslElement getDslElement();
 
   @NotNull
-  public String getConfigurationName() {
+  public String configurationName() {
     return getDslElement().getName();
   }
 }

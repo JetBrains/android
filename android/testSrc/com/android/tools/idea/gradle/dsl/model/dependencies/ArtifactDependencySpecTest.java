@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.dependencies;
+package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -21,14 +21,14 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link ExternalDependencySpec}.
+ * Tests for {@link ArtifactDependencySpec}.
  */
-public class ExternalDependencySpecTest {
-  private ExternalDependencySpec myDependency;
+public class ArtifactDependencySpecTest {
+  private ArtifactDependencySpec myDependency;
 
   @Before
   public void setUp() {
-    myDependency = new ExternalDependencySpec("name", "group", "version");
+    myDependency = new ArtifactDependencySpec("name", "group", "version");
   }
 
   @Test
