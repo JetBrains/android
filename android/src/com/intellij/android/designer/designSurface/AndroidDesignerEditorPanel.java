@@ -79,6 +79,7 @@ import org.jetbrains.android.refactoring.AndroidInlineIncludeAction;
 import org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.uipreview.RenderingException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -736,11 +737,14 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       myVariantChanged = false;
       updateRenderer(true);
     } else if (myRootComponent != null && myRootView != null) {
+      RenderPreviewManager previewManager = getPreviewManager(false);
+      if (previewManager != null) {
+        // The "current preview mode" may have changed while previewing a different file
+        previewManager.recomputePreviews(false);
+      }
+
       if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
-        RenderPreviewManager previewManager = getPreviewManager(true);
-        if (previewManager != null) {
-          previewManager.renderPreviews();
-        }
+        getPreviewManager(true).renderPreviews();
       }
     }
     myConfigurationDirty = 0;
@@ -1505,7 +1509,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     return true;
   }
 
-  @Nullable
+  @Contract("true -> !null")
   @Override
   public RenderPreviewManager getPreviewManager(boolean createIfNecessary) {
     if (myPreviewManager == null && createIfNecessary) {
