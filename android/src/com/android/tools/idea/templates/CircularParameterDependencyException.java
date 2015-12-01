@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw;
+package com.android.tools.idea.templates;
 
+import com.google.common.base.Joiner;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -22,22 +23,11 @@ import java.util.Collection;
 /**
  * Indicates that parameters have circular dependency and cannot be evaluated.
  */
-public class CircularParameterDependencyException extends Exception {
-  @NotNull private final Collection<String> myParameterIds;
-
+public final class CircularParameterDependencyException extends Exception {
   /**
    * @param parameterIds IDs of parameters that caused the exception.
    */
   public CircularParameterDependencyException(@NotNull Collection<String> parameterIds) {
-    myParameterIds = parameterIds;
-  }
-
-
-  /**
-   * Note that not all parameters that cause the cycle may be listed here.
-   */
-  @NotNull
-  public Collection<String> getParameterIds() {
-    return myParameterIds;
+    super(String.format("Cyclical parameter dependency found: %s", Joiner.on(", ").join(parameterIds)));
   }
 }

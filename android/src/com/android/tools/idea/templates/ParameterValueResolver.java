@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw;
+package com.android.tools.idea.templates;
 
-import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.templates.StringEvaluator;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -31,11 +29,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Function for computing default parameter value based on current values of
- * other parameters.
+ * Class which handles setting up the relationships between a bunch of {@link Parameter}s and then
+ * resolves them.
  */
-public final class ParameterDefaultValueComputer {
-  private static final Deduplicator DO_NOTHING_DEDUPLICATOR = new Deduplicator() {
+public final class ParameterValueResolver {
+
+  @NotNull private static final Deduplicator DO_NOTHING_DEDUPLICATOR = new Deduplicator() {
     @Nullable
     @Override
     public String deduplicate(@NotNull Parameter parameter, @Nullable String value) {
@@ -47,32 +46,41 @@ public final class ParameterDefaultValueComputer {
   @NotNull private final Deduplicator myDeduplicator;
   @NotNull private final StringEvaluator myStringEvaluator = new StringEvaluator();
   @NotNull private final Map<Parameter, Object> myUserValues;
-  @NotNull private final Map<String, Object> myImplicitParameters;
+  @NotNull private final Map<String, Object> myAdditionalValues;
 
-  @Nullable
-  private static Object decodeInitialValue(Parameter input, @Nullable String initial) {
-    if (initial != null && input.type == Parameter.Type.BOOLEAN) {
-      return Boolean.valueOf(initial);
-    }
-    else {
-      return initial;
-    }
+  /**
+   * @see #resolve(Iterable, Map, Map, Deduplicator)
+   */
+  @NotNull
+  public static Map<Parameter, Object> resolve(@NotNull Iterable<Parameter> parameters,
+                                               @NotNull Map<Parameter, Object> userValues,
+                                               @NotNull Map<String, Object> additionalValues) throws CircularParameterDependencyException {
+    return resolve(parameters, userValues, additionalValues, DO_NOTHING_DEDUPLICATOR);
   }
 
   /**
-   * Creates a new computer instance
+   * Resolve input parameters, returning a mapping of parameters to their resolved values.
    *
-   * @param parameters         list of parameters that need to be present in the map
-   * @param userValues         parameter values changed by the user.
-   * @param implicitParameters parameters that were not declared by the template but are instead a part of our "runtime"
-   * @param deduplicator       a function that ensures uniqueness of the parameter value
+   * @param parameters       parameters to resolve
+   * @param userValues       parameter values supplied by the user.
+   * @param additionalValues parameters that were not declared by the template but are instead a part of our "runtime"
+   * @param deduplicator     a function that ensures uniqueness of the parameter value
    */
-  public ParameterDefaultValueComputer(@NotNull Iterable<Parameter> parameters,
-                                       @NotNull Map<Parameter, Object> userValues,
-                                       @NotNull Map<String, Object> implicitParameters,
-                                       @Nullable Deduplicator deduplicator) {
+  @NotNull
+  public static Map<Parameter, Object> resolve(@NotNull Iterable<Parameter> parameters,
+                                               @NotNull Map<Parameter, Object> userValues,
+                                               @NotNull Map<String, Object> additionalValues,
+                                               @NotNull Deduplicator deduplicator) throws CircularParameterDependencyException {
+    ParameterValueResolver resolver = new ParameterValueResolver(parameters, userValues, additionalValues, deduplicator);
+    return resolver.resolve();
+  }
+
+  private ParameterValueResolver(@NotNull Iterable<Parameter> parameters,
+                                 @NotNull Map<Parameter, Object> userValues,
+                                 @NotNull Map<String, Object> additionalValues,
+                                 @NotNull Deduplicator deduplicator) {
     myUserValues = userValues;
-    myImplicitParameters = implicitParameters;
+    myAdditionalValues = additionalValues;
     for (Parameter parameter : parameters) {
       if (parameter != null && !StringUtil.isEmptyOrSpaces(parameter.id)) {
         if (!StringUtil.isEmptyOrSpaces(parameter.suggest) && !userValues.containsKey(parameter)) {
@@ -83,18 +91,25 @@ public final class ParameterDefaultValueComputer {
         }
       }
     }
-    myDeduplicator = deduplicator == null ? DO_NOTHING_DEDUPLICATOR : deduplicator;
+    myDeduplicator = deduplicator;
+  }
+
+  @Nullable
+  private static Object decodeInitialValue(@NotNull Parameter input, @Nullable String initial) {
+    if (initial != null && input.type == Parameter.Type.BOOLEAN) {
+      return Boolean.valueOf(initial);
+    }
+    else {
+      return initial;
+    }
   }
 
   /**
-   * Returns a map of parameter values
-   *
-   * @return mapping between paramaeter and its current value
-   * @throws CircularParameterDependencyException if there is a circular dependecy between
-   *                                              parameters preventing us from computing the default values.
+   * Returns a map of parameters to their resolved values.
    */
-  public Map<Parameter, Object> getParameterValues() throws CircularParameterDependencyException {
-    Map<String, Object> staticValues = getStaticParameterValues(myUserValues, myImplicitParameters);
+  @NotNull
+  public Map<Parameter, Object> resolve() throws CircularParameterDependencyException {
+    Map<String, Object> staticValues = getStaticParameterValues(myUserValues, myAdditionalValues);
     Map<String, Object> computedValues = computeParameterValues(staticValues);
 
     HashMap<Parameter, Object> allValues = Maps.newHashMapWithExpectedSize(computedValues.size() + staticValues.size());
@@ -114,14 +129,18 @@ public final class ParameterDefaultValueComputer {
     return decodeInitialValue(computedParameter, value);
   }
 
-  private Map<String, Object> getStaticParameterValues(@NotNull Map<Parameter, Object> values,
-                                                       @NotNull Map<String, Object> implicitParameters) {
-    final Map<String, Object> knownValues = Maps.newHashMapWithExpectedSize(myStaticParameters.size() + implicitParameters.size());
-    knownValues.putAll(implicitParameters);
+  @NotNull
+  private Map<String, Object> getStaticParameterValues(@NotNull Map<Parameter, Object> userValues,
+                                                       @NotNull Map<String, Object> additionalValues) {
+    final Map<String, Object> knownValues = Maps.newHashMapWithExpectedSize(myStaticParameters.size() + additionalValues.size());
+    knownValues.putAll(additionalValues);
     for (Parameter parameter : myStaticParameters) {
       Object value;
-      if (values.containsKey(parameter)) {
-        value = values.get(parameter);
+      if (userValues.containsKey(parameter)) {
+        value = userValues.get(parameter);
+      }
+      else if (additionalValues.containsKey(parameter.id)) {
+        value = additionalValues.get(parameter.id);
       }
       else {
         String initial = parameter.initial;
@@ -133,16 +152,15 @@ public final class ParameterDefaultValueComputer {
   }
 
   /**
-   * <p>Computes values of the parameters with non-static default values.</p>
-   * <p>These parameters may depend on other computable parameters. We do not have that information
-   * (expressions are evaluated with FreeMarker), so we keep reevaluating the parameter values until
-   * they stabilize.</p>
+   * Computes values of the parameters with non-static default values.
    *
-   * @return a map of parameter ID to parameter values.
-   * @throws CircularParameterDependencyException means it is not possible to stabilize parameter values
-   *                                              due to circular dependency
+   * These parameters may depend on other computable parameters. We do not have that information
+   * (expressions are evaluated with FreeMarker), so we keep reevaluating the parameter values until
+   * they stabilize.
    */
-  private Map<String, Object> computeParameterValues(Map<String, Object> staticValues) throws CircularParameterDependencyException {
+  @NotNull
+  private Map<String, Object> computeParameterValues(@NotNull Map<String, Object> staticValues) throws
+                                                                                                CircularParameterDependencyException {
     Map<String, Object> computedValues = Maps.newHashMapWithExpectedSize(myComputedParameters.size() + staticValues.size());
     computedValues.putAll(staticValues);
     for (Parameter parameter : myComputedParameters) {

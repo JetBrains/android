@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.ui;
 
+import com.android.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.intellij.ui.components.JBLabel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,21 +31,27 @@ import java.beans.PropertyChangeListener;
 /**
  * A label which automatically listens to all focus events whenever it is part of the current UI
  * hierarchy, and sets its text to the focused component's tooltip, if any.
- * <p/>
+ *
  * Normally, tooltips are made visible by mouseover, but it can be useful to explicitly show the
  * tooltip directly on the page as well, for example when the user is tabbing around its fields.
+ *
+ * Important: often components can be complex, nested widgets, and the part of the component that
+ * has the tooltip isn't the part that gets focus. As a result, when we can't find a tooltip on
+ * a target component, we navigate up the hierarchy until we find one that does. You can limit
+ * the scope of the search by calling {@link #setScope(Component)}.
  */
 public final class TooltipLabel extends JBLabel {
 
   private static final String PROPERTY_FOCUS_OWNER = "focusOwner";
+  @Nullable private Component myRootComponent;
 
   public TooltipLabel() {
     final PropertyChangeListener focusListener = new PropertyChangeListener() {
       @Override
       public void propertyChange(PropertyChangeEvent evt) {
-        if ((evt.getNewValue() instanceof JComponent)) {
-          JComponent component = (JComponent)evt.getNewValue();
-          TooltipLabel.super.setText(Strings.nullToEmpty(component.getToolTipText()));
+        if ((evt.getNewValue() instanceof Component)) {
+          Component component = (Component)evt.getNewValue();
+          TooltipLabel.super.setText(Strings.nullToEmpty(getTooltip(component)));
         }
       }
     };
@@ -62,11 +71,55 @@ public final class TooltipLabel extends JBLabel {
         }
       }
     });
-
   }
 
   @Override
   public void setText(String text) {
     // Disabled. Text can only be set internally.
+  }
+
+  /**
+   * Set a parent container which acts as a scope that prevent this class from crawling anywhere
+   * outside of it.
+   */
+  public void setScope(@Nullable Component rootComponent) {
+    myRootComponent = rootComponent;
+  }
+
+  private boolean isInScope(@NotNull Component component) {
+    if (myRootComponent == null) {
+      return true;
+    }
+
+    @Nullable Component currComponent = component;
+    while (currComponent != null) {
+      if (currComponent == myRootComponent) {
+        return true;
+      }
+      currComponent = currComponent.getParent();
+    }
+
+    return false;
+  }
+
+  @VisibleForTesting // Unit testing Swing focus is not trivial, test this directly instead
+  @Nullable
+  String getTooltip(@NotNull Component component) {
+    if (!isInScope(component)) {
+      return null;
+    }
+
+    @Nullable Component currComponent = component;
+    String tooltip = null;
+    while (tooltip == null && currComponent != null) {
+      if (currComponent instanceof JComponent) {
+        tooltip = ((JComponent)currComponent).getToolTipText();
+      }
+      if (currComponent == myRootComponent) {
+        break;
+      }
+      currComponent = currComponent.getParent();
+    }
+    return tooltip;
   }
 }
