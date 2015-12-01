@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.InstantRun;
-import com.android.builder.model.SourceProvider;
+import com.android.builder.model.*;
 import com.android.ddmlib.*;
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
@@ -111,6 +108,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 
 /**
  * The {@linkplain FastDeployManager} is responsible for handling Instant Run related functionality
@@ -337,6 +335,8 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    */
   @NotNull
   public List<String> updateGradleCommandLine(@NotNull List<String> original) {
+    checkForObsoletePreviewGradlePlugins(myProject);
+
     assert isInstantRunEnabled(myProject);
     for (String arg : original) {
       if (arg.startsWith("-Pandroid.optional.compilation=")) {
@@ -1688,6 +1688,95 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   }
 
   private static boolean ourHideRestartTip;
+  private static boolean ourCheckedForOldPlugin;
+
+  /**
+   * Warn if using an obsolete <b>preview</b> version of a Gradle plugin (using older
+   * stable Gradle plugins is expected and possibly intentional, but sticking with
+   * older preview plugins is problematic and probably not intentional. This is how
+   * we can notify users prominently when we've released new versions if they aren't
+   * actually looking at their build.gradle files or running batch lint analysis.
+   *
+   * @param project the project that was just synced or attempted built
+   */
+  public static void checkForObsoletePreviewGradlePlugins(Project project) {
+    if (ourCheckedForOldPlugin) {
+      return;
+    }
+
+    // Only check & warn once per session
+    ourCheckedForOldPlugin = true;
+
+    if (!isInstantRunEnabled(project)) {
+      return;
+    }
+
+    if (isBuildWithGradle(project)) {
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
+        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+        if (androidModel != null) {
+          AndroidProject androidProject = androidModel.getAndroidProject();
+          String modelVersion = androidProject.getModelVersion();
+
+          // It would be nice to have a general-purpose version check
+          // here which ensures that you're using the latest released
+          // plugin for each major version (e.g. for 1.x that would be
+          // 1.5 (and soon 1.5.1), for 2.x it will be 2.0.0 at some point,
+          // etc.
+          //
+          // However, it's tricky to do this in a general way:
+          // (1) the recommended stable versions would probably get
+          //     obsolete, so we'd recommend 1.5.0 instead of 1.5.1 etc
+          // (2) We don't have a good way to parse and compare Gradle
+          //     version numbers; we can't use GradleCoordinate, and
+          //     the Revision class flattens all preview types (alpha,
+          //     beta) into just "rc", so we could erroneously think
+          //     alpha3 > beta2.
+          //
+          // Therefore, we'll just optimize this for the *currently*
+          // active preview version, e.g. at the time of writing making
+          // sure users update from 2.0.0-alpha1 to 2.0.0-alpha2.
+          //
+
+          if (modelVersion.equals(GRADLE_PLUGIN_LATEST_VERSION) ||
+              modelVersion.equals(GRADLE_PLUGIN_RECOMMENDED_VERSION)) {
+            continue;
+          }
+
+          if (modelVersion.equals("2.0.0-alpha1")) {
+            modelVersion = GRADLE_PLUGIN_LATEST_VERSION;
+            showObsoleteWarning(project, modelVersion);
+            break;
+          }
+        }
+      }
+    }
+
+    // TODO: Check build tools version and make sure it's the latest
+    // Requires https://code.google.com/p/android/issues/detail?id=18622
+  }
+
+  private static void showObsoleteWarning(@NotNull final Project project, String modelVersion) {
+    String message = "<html>" +
+                     String.format(
+                       "This project is using a preview version of the Gradle plugin (%1$s) and a newer version is available (%2$s)",
+                       modelVersion, GRADLE_PLUGIN_LATEST_VERSION) +
+                     "<br/>You can <a href=\"update\">update to " + GRADLE_PLUGIN_LATEST_VERSION + "</a>." +
+                     "</html>";
+    final Ref<Notification> notificationRef = Ref.create();
+    NotificationListener listener = new NotificationListener() {
+      @Override
+      public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+          assert "update".equals(event.getDescription()) :  event.getDescription();
+          InstantRunConfigurable.updateProjectToInstantRunTools(project, null);
+        }
+      }
+    };
+    Notification notification = NOTIFICATION_GROUP.createNotification("Instant Run", message, NotificationType.WARNING, listener);
+    notificationRef.set(notification);
+    notification.notify(project);
+  }
 
   @Nullable
   private static String getPackageName(@Nullable AndroidFacet facet) {
