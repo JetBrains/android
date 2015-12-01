@@ -129,7 +129,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       @Override
       protected boolean isMatching(@NotNull IdeFrameImpl frame) {
         Project project = frame.getProject();
-        if (project != null && projectPath.getPath().equals(project.getBasePath())) {
+        if (project != null && toSystemIndependentName(projectPath.getPath()).equals(project.getBasePath())) {
           return projectName == null || projectName.equals(project.getName());
         }
         return false;
