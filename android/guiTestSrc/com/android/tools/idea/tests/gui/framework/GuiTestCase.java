@@ -222,7 +222,13 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    File projectPath = setUpProject(projectDirName, false, true, null);
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
+  }
+
+  @NotNull
+  protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
+    throws IOException {
+    File projectPath = setUpProject(projectDirName, false, true, gradleVersion);
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
@@ -266,12 +272,12 @@ public abstract class GuiTestCase {
    * <p/>
    * </ul>
    *
-   * @param projectDirName the name of the project's root directory. Tests are located in testData/guiTests.
-   * @param forOpen indicates whether the project will be opened by the IDE, or imported.
+   * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
+   * @param forOpen                    indicates whether the project will be opened by the IDE, or imported.
    * @param updateAndroidPluginVersion indicates if the latest supported version of the Android Gradle plug-in should be set in the
    *                                   project.
-   * @param gradleVersion the Gradle version to use in the wrapper. If {@code null} is passed, this method will use the latest supported
-   *                      version of Gradle.
+   * @param gradleVersion              the Gradle version to use in the wrapper. If {@code null} is passed, this method will use the latest supported
+   *                                   version of Gradle.
    * @return the path of project's root directory (the copy of the project, not the original one.)
    * @throws IOException if an unexpected I/O error occurs.
    */
