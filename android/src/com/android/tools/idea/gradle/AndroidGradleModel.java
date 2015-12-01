@@ -220,7 +220,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @NotNull
   public List<SourceProvider> getTestSourceProviders() {
     if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      getTestSourceProviders(mySelectedVariantName, TEST_ARTIFACT_NAMES);
+      return getTestSourceProviders(mySelectedVariantName, TEST_ARTIFACT_NAMES);
     }
     return getTestSourceProviders(mySelectedTestArtifactName);
   }
