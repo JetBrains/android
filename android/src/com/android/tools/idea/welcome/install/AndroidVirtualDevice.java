@@ -16,22 +16,20 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
+import com.android.repository.Revision;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.*;
+import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
-import com.android.tools.idea.avdmanager.AvdEditWizard;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.avdmanager.DeviceManagerConnection;
-import com.android.tools.idea.avdmanager.SystemImageDescription;
+import com.android.tools.idea.avdmanager.*;
 import com.android.tools.idea.sdk.LogWrapper;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
@@ -134,8 +132,14 @@ public class AndroidVirtualDevice extends InstallableComponent {
       String.format("%1$s %2$s %3$s", d.getDisplayName(), systemImageDescription.getVersion(), systemImageDescription.getAbiType());
     displayName = connection.uniquifyDisplayName(displayName);
     String internalName = AvdEditWizard.cleanAvdName(connection, displayName, true);
+    Abi abi = Abi.getEnum(systemImageDescription.getAbiType());
+    boolean useRanchu = AvdManagerConnection.doesSystemImageSupportRanchu(systemImageDescription);
+    boolean supportsSmp = abi != null && abi.supportsMultipleCpuCores() && getMaxCpuCores() > 1;
     Map<String, String> settings = getAvdSettings(internalName, d);
     settings.put(AvdManagerConnection.AVD_INI_DISPLAY_NAME, displayName);
+    if (useRanchu) {
+      settings.put(CPU_CORES_KEY.name, String.valueOf(supportsSmp ? getMaxCpuCores() : 1));
+    }
     return connection
       .createOrUpdateAvd(null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize, hardwareSkinPath,
                          settings, false);

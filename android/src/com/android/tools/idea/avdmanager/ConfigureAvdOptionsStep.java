@@ -20,10 +20,8 @@ import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
-import com.android.sdklib.devices.CameraLocation;
-import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Screen;
-import com.android.sdklib.devices.Storage;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.*;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.dynamic.*;
 import com.android.tools.swing.util.FormScalingUtil;
@@ -50,7 +48,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
-import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -133,8 +130,14 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JSeparator myNetworkSeparator;
   private AvdConfigurationOptionHelpPanel myAvdConfigurationOptionHelpPanel;
   private JBScrollPane myScrollPane;
+  private JCheckBox myRanchuCheckBox;
+  private JComboBox myCoreCount;
+  private JSeparator myMultiCoreDivider;
+  private JLabel myMultiCoreExperimentalLabel;
 
   private PropertyChangeListener myFocusListener;
+  private int myMaxCores;
+  private int mySelectedCoreCount;
 
   // Labels used for the advanced settings toggle button
   private static final String ADVANCED_SETTINGS = "Advanced Settings";
@@ -189,19 +192,18 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     FormScalingUtil.scaleComponentTree(this.getClass(), createStepBody());
 
     registerAdvancedOptionsVisibility();
-    toggleAdvancedSettings(false);
     myShowAdvancedSettingsButton.setText(SHOW);
 
     ActionListener toggleAdvancedSettingsListener = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (myShowAdvancedSettingsButton.getText().equals(SHOW)) {
-          toggleAdvancedSettings(true);
+        if (!isAdvancedPanel()) {
           myShowAdvancedSettingsButton.setText(HIDE);
+          toggleAdvancedSettings(true);
         }
         else {
-          toggleAdvancedSettings(false);
           myShowAdvancedSettingsButton.setText(SHOW);
+          toggleAdvancedSettings(false);
         }
       }
     };
@@ -238,6 +240,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     };
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myFocusListener);
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
+
+    initCpuCoreDropDown();
   }
 
   @Override
@@ -252,7 +256,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
    * Toggle the SD card between using an existing file and creating a new file.
    */
   private void updateSdCardSettings() {
-    boolean useExisting = myState.get(DISPLAY_USE_EXTERNAL_SD_KEY);
+    boolean useExisting = myState.getNotNull(DISPLAY_USE_EXTERNAL_SD_KEY, true);
     if (useExisting) {
       myExistingSdCard.setEnabled(true);
       myNewSdCardStorage.setEnabled(false);
@@ -270,12 +274,13 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     deregister(getDescriptionLabel());
     getDescriptionLabel().setVisible(false);
     Device device = myState.get(DEVICE_DEFINITION_KEY);
+    assert device != null;
     SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
     myAvdConfigurationOptionHelpPanel.setSystemImageDescription(systemImage);
 
-    Boolean editMode = myState.get(AvdWizardConstants.IS_IN_EDIT_MODE_KEY);
+    Boolean editMode = myState.get(IS_IN_EDIT_MODE_KEY);
     editMode = editMode == null ? Boolean.FALSE : editMode;
-    myOriginalName = editMode ? myState.get(AvdWizardConstants.DISPLAY_NAME_KEY) : "";
+    myOriginalName = editMode ? myState.get(DISPLAY_NAME_KEY) : "";
 
     if (device.getDefaultHardware().getKeyboard().equals(Keyboard.QWERTY)) {
       myEnableComputerKeyboard.setEnabled(false);
@@ -295,7 +300,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     File backupSkin = myState.get(BACKUP_SKIN_FILE_KEY);
     // If there is a backup skin but no normal skin, the "use device frame" checkbox should be unchecked.
     myState.put(DEVICE_FRAME_KEY, backupSkin == null || customSkin != null);
-    myState.put(DISPLAY_SKIN_FILE_KEY, AvdEditWizard.resolveSkinPath(myState.get(DEVICE_DEFINITION_KEY).getDefaultHardware().getSkinFile(),
+    myState.put(DISPLAY_SKIN_FILE_KEY, AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(),
                                                                      myState.get(SYSTEM_IMAGE_KEY)));
     // If customSkin is null but backupSkin is defined, we want to show it (with the checkbox unchecked).
     if (customSkin == null) {
@@ -307,11 +312,22 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     if (customSkin != null && !FileUtil.filesEqual(customSkin, hardwareSkin)) {
       mySkinComboBox.getComboBox().setSelectedItem(customSkin);
     }
+    myCoreCount.setPreferredSize(myRamStorage.getPreferredSizeOfUnitsDropdown());
+
+    toggleAdvancedSettings(false);
+  }
+
+  private void initCpuCoreDropDown() {
+    myMaxCores = Math.max(1, getMaxCpuCores());
+    for (int core = 1; core <= myMaxCores; core++) {
+      //noinspection unchecked
+      myCoreCount.addItem(core);
+    }
   }
 
   @Override
   public boolean commitStep() {
-    if (!myState.containsKey(DISPLAY_USE_EXTERNAL_SD_KEY) || !myState.get(DISPLAY_USE_EXTERNAL_SD_KEY)) {
+    if (!myState.getNotNull(DISPLAY_USE_EXTERNAL_SD_KEY, false)) {
       Storage orig = myState.get(SD_CARD_STORAGE_KEY);
       Storage current = myState.get(DISPLAY_SD_SIZE_KEY);
       if (orig != null && !orig.equals(current)) {
@@ -328,6 +344,13 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     myState.put(CUSTOM_SKIN_FILE_KEY,  hasFrame ? displayFile : NO_SKIN);
     myState.put(BACKUP_SKIN_FILE_KEY, hasFrame ? null : displayFile);
 
+    if (!myState.getNotNull(RANCHU_KEY, false)) {
+      myState.remove(CPU_CORES_KEY);  // Do NOT use the new emulator (qemu2)
+    }
+    else if (!myState.containsKey(CPU_CORES_KEY)) {
+      myState.put(CPU_CORES_KEY, 1);  // Force the use the new emulator (qemu2)
+    }
+
     return super.commitStep();
   }
 
@@ -341,7 +364,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     updateSdCardSettings();
 
     // Disable GPU acceleration for images with API <= 15
-    if (myState.get(SYSTEM_IMAGE_KEY).getVersion().getApiLevel() <= 15) {
+    if (getSelectedApiLevel() <= 15) {
       myUseHostGPUCheckBox.setEnabled(false);
       myUseHostGPUCheckBox.setText("Use Host GPU (Requires API > 15)");
       myUseHostGPUCheckBox.setSelected(false);
@@ -396,7 +419,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     }
 
     File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
-    if (skinFile != null && !skinFile.equals(NO_SKIN)) {
+    if (skinFile != null && !FileUtil.filesEqual(skinFile, NO_SKIN)) {
       File layoutFile = new File(skinFile, SdkConstants.FN_SKIN_LAYOUT);
       if (!layoutFile.isFile()) {
         setErrorState("The skin directory does not point to a valid skin.", myDeviceFrameLabel, mySkinComboBox);
@@ -432,6 +455,35 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     }
 
     return valid;
+  }
+
+  private boolean doesSystemImageSupportRanchu() {
+    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
+    assert systemImage != null;
+    return AvdManagerConnection.doesSystemImageSupportRanchu(systemImage);
+  }
+
+  private int getSelectedApiLevel() {
+    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
+    assert systemImage != null;
+    AndroidVersion version = systemImage.getVersion();
+    assert version != null;
+    return version.getApiLevel();
+  }
+
+  private String getSelectedApiString() {
+    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
+    assert systemImage != null;
+    AndroidVersion version = systemImage.getVersion();
+    assert version != null;
+    return version.getApiString();
+  }
+
+  private boolean supportsMultipleCpuCores() {
+    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
+    assert systemImage != null;
+    Abi abi = Abi.getEnum(systemImage.getAbiType());
+    return abi != null && abi.supportsMultipleCpuCores();
   }
 
   /**
@@ -523,6 +575,17 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     register(DEVICE_DEFINITION_KEY, myDeviceDetails, DEVICE_DETAILS_BINDING);
     register(SYSTEM_IMAGE_KEY, mySystemImageName, SYSTEM_IMAGE_NAME_BINDING);
     register(SYSTEM_IMAGE_KEY, mySystemImageDetails, SYSTEM_IMAGE_DESCRIPTION_BINDING);
+    register(RANCHU_KEY, myRanchuCheckBox);
+    setControlDescription(myRanchuCheckBox, myAvdConfigurationOptionHelpPanel.getDescription(CPU_CORES_KEY));
+    if (myState.containsKey(CPU_CORES_KEY)) {
+      mySelectedCoreCount = myState.getNotNull(CPU_CORES_KEY, 1);
+    }
+    else {
+      myState.put(CPU_CORES_KEY, 1);
+      mySelectedCoreCount = myMaxCores;
+    }
+    register(CPU_CORES_KEY, myCoreCount);
+    setControlDescription(myCoreCount, myAvdConfigurationOptionHelpPanel.getDescription(CPU_CORES_KEY));
 
     register(RAM_STORAGE_KEY, myRamStorage, myRamStorage.getBinding());
     setControlDescription(myRamStorage, myAvdConfigurationOptionHelpPanel.getDescription(RAM_STORAGE_KEY));
@@ -547,7 +610,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         @Nullable
         @Override
         protected Storage getStorage(@NotNull Device device) {
-          return AvdWizardConstants.getDefaultRam(device.getDefaultHardware());
+          return getDefaultRam(device.getDefaultHardware());
         }
       });
 
@@ -573,7 +636,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
           SystemImageDescription systemImage = state.get(SYSTEM_IMAGE_KEY);
           if (device != null && systemImage != null) { // Should always be the case
             return connection.uniquifyDisplayName(
-              String.format(Locale.getDefault(), "%1$s API %2$s", device.getDisplayName(), systemImage.getVersion().getApiString()));
+              String.format(Locale.getDefault(), "%1$s API %2$s", device.getDisplayName(), getSelectedApiString()));
           }
           return null; // Should never occur
         }
@@ -592,7 +655,9 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       public File deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable File currentValue) {
         // If there was a skin specified coming in, this field will be marked as user-edited, and so that needn't be
         // taken into account here. The only case we care about is if the device is changed.
-        return AvdEditWizard.resolveSkinPath(myState.get(DEVICE_DEFINITION_KEY).getDefaultHardware().getSkinFile(),
+        Device device = myState.get(DEVICE_DEFINITION_KEY);
+        assert device != null;
+        return AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(),
                                              myState.get(SYSTEM_IMAGE_KEY));
       }
     });
@@ -729,6 +794,13 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     invokeUpdate(null);
   }
 
+  @Override
+  public void deriveValues(Set<Key> modified) {
+    if (modified.contains(RANCHU_KEY) || modified.contains(SYSTEM_IMAGE_KEY)) {
+      toggleSystemOptionals(modified.contains(RANCHU_KEY));
+    }
+  }
+
   private void createUIComponents() {
     myOrientationToggle =
       new ASGallery<ScreenOrientation>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE),
@@ -748,7 +820,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     myOrientationToggle.setForeground(JBColor.foreground());
     myScalingComboBox = new ComboBox(new EnumComboBoxModel<AvdScaleFactor>(AvdScaleFactor.class));
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
-    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardConstants.CREATE_SKIN_HELP_LINK);
+    myHardwareSkinHelpLabel.setHyperlinkTarget(CREATE_SKIN_HELP_LINK);
     mySkinComboBox = new SkinChooser(getProject());
   }
 
@@ -874,6 +946,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     @Nullable
     @Override
     public String getValue(@NotNull JComboBox component) {
+      //noinspection StringToUpperCaseOrToLowerCaseWithoutLocale
       return component.getSelectedItem().toString().toLowerCase();
     }
 
@@ -929,8 +1002,13 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     for (JComponent c : myAdvancedOptionsComponents) {
       c.setVisible(show);
     }
+    toggleSystemOptionals(false);
     validate();
     myRoot.validate();
+  }
+
+  private boolean isAdvancedPanel() {
+    return myShowAdvancedSettingsButton.getText().equals(HIDE);
   }
 
   /**
@@ -941,6 +1019,27 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     myFrontCameraCombo.setEnabled(device.getDefaultHardware().getCamera(CameraLocation.FRONT) != null);
     myBackCameraCombo.setEnabled(device.getDefaultHardware().getCamera(CameraLocation.BACK) != null);
     myOrientationToggle.setEnabled(device.getDefaultState().getOrientation() != ScreenOrientation.SQUARE);
+  }
+
+  private void toggleSystemOptionals(boolean useRanchuChanged) {
+    boolean showMultiCoreOption = isAdvancedPanel() && doesSystemImageSupportRanchu();
+    myRanchuCheckBox.setVisible(showMultiCoreOption);
+    myCoreCount.setVisible(showMultiCoreOption);
+    myMultiCoreExperimentalLabel.setVisible(showMultiCoreOption);
+    myMultiCoreDivider.setVisible(showMultiCoreOption);
+    if (showMultiCoreOption) {
+      boolean showCores = supportsMultipleCpuCores() && myState.getNotNull(RANCHU_KEY, false) && myMaxCores > 1;
+      if (useRanchuChanged) {
+        if (showCores) {
+          myState.put(CPU_CORES_KEY, mySelectedCoreCount);
+        }
+        else {
+          mySelectedCoreCount = myState.getNotNull(CPU_CORES_KEY, 1);
+          myState.put(CPU_CORES_KEY, 1);
+        }
+      }
+      myCoreCount.setEnabled(showCores);
+    }
   }
 
   public static Storage calculateVmHeap(@NotNull Device device) {

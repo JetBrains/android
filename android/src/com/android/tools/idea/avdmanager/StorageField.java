@@ -107,6 +107,10 @@ public class StorageField extends JPanel {
     return new Storage(myBytes);
   }
 
+  public Dimension getPreferredSizeOfUnitsDropdown() {
+    return myUnitsCombo.getPreferredSize();
+  }
+
   public ScopedDataBinder.ComponentBinding<Storage, StorageField> getBinding() {
     return myBinding;
   }

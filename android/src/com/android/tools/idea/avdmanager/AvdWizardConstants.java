@@ -27,7 +27,6 @@ import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.google.common.collect.Lists;
 import com.intellij.util.ui.JBFont;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -92,6 +91,9 @@ public class AvdWizardConstants {
   public static final Key<String> DISPLAY_NAME_KEY = createKey(AvdManagerConnection.AVD_INI_DISPLAY_NAME, WIZARD, String.class);
   public static final String AVD_INI_AVD_ID = "AvdId";
   public static final Key<String> AVD_ID_KEY = createKey(AVD_INI_AVD_ID, WIZARD, String.class);
+
+  public static final Key<Boolean> RANCHU_KEY = createKey(WIZARD_ONLY + "ranchu.emulator", WIZARD, Boolean.class);
+  public static final Key<Integer> CPU_CORES_KEY = createKey(AvdManager.AVD_INI_CPU_CORES, WIZARD, Integer.class);
 
   // Device definition keys
 
@@ -166,5 +168,12 @@ public class AvdWizardConstants {
     }
 
     return ram;
+  }
+
+  /**
+   * Return the max number of cores that an AVD can use on this development system.
+   */
+  public static int getMaxCpuCores() {
+    return Runtime.getRuntime().availableProcessors() / 2;
   }
 }
