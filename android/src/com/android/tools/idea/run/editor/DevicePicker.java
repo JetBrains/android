@@ -199,7 +199,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   @Override
-  public void bridgeChanged(@NotNull AndroidDebugBridge bridge) {
+  public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
     postUpdate();
   }
 
