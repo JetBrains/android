@@ -46,7 +46,6 @@ public class OrientationMenuAction extends FlatComboAction {
     myRenderContext = renderContext;
     myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Go to next state");
     updatePresentation(presentation);
   }
 
@@ -69,9 +68,15 @@ public class OrientationMenuAction extends FlatComboAction {
         if (flip != null) {
           ScreenOrientation orientation = getOrientation(flip);
           presentation.setIcon(getOrientationIcon(orientation, true));
+          presentation.setDescription(getPresentationDescription(flip));
         }
       }
     }
+  }
+
+  @NotNull
+  private static String getPresentationDescription(@NotNull State state) {
+    return String.format("Switch to %1$s", state.getName());
   }
 
   @Override
@@ -97,15 +102,15 @@ public class OrientationMenuAction extends FlatComboAction {
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
       Device device = configuration.getDevice();
-      State current = configuration.getDeviceState();
       if (device != null) {
         List<State> states = device.getAllStates();
+        State current = configuration.getDeviceState();
 
         if (states.size() > 1 && current != null) {
           State flip = configuration.getNextDeviceState(current);
-          String flipName = flip != null ? flip.getName() : current.getName();
-          String title = String.format("Switch to %1$s", flipName);
-          group.add(new SetDeviceStateAction(myRenderContext, title, flip == null ? current : flip, false, true));
+          State nextSate = flip == null ? current : flip;
+          String title = getPresentationDescription(nextSate);
+          group.add(new SetDeviceStateAction(myRenderContext, title, nextSate, false, true));
           group.addSeparator();
         }
 
@@ -179,8 +184,11 @@ public class OrientationMenuAction extends FlatComboAction {
   private static class SetDeviceStateAction extends ConfigurationAction {
     @NotNull private final State myState;
 
-    private SetDeviceStateAction(@NotNull RenderContext renderContext, @NotNull String title, @NotNull State state,
-                                 boolean checked, boolean flip) {
+    private SetDeviceStateAction(@NotNull RenderContext renderContext,
+                                 @NotNull String title,
+                                 @NotNull State state,
+                                 boolean checked,
+                                 boolean flip) {
       super(renderContext, title);
       myState = state;
       ScreenOrientation orientation = getOrientation(state);
