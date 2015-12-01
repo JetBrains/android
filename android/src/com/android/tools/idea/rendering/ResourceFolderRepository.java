@@ -45,6 +45,7 @@ import com.intellij.psi.xml.*;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -487,7 +488,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         for (XmlTag tag : subTags) {
           String name = tag.getAttributeValue(ATTR_NAME);
           if (name != null) {
-            ResourceType type = getType(tag);
+            ResourceType type = AndroidResourceUtil.getType(tag);
             if (type != null) {
               ListMultimap<String, ResourceItem> map = getMap(type, true);
               ResourceItem item = new PsiResourceItem(name, type, tag, file);
@@ -528,33 +529,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     }
 
     return added;
-  }
-
-  /**
-   * Returns the type of the ResourceItem based on a node's attributes.
-   * @param node the node
-   * @return the ResourceType or null if it could not be inferred.
-   */
-  @Nullable
-  private static ResourceType getType(XmlTag node) {
-    String nodeName = node.getLocalName();
-    String typeString = null;
-
-    if (TAG_ITEM.equals(nodeName)) {
-      String attribute = node.getAttributeValue(ATTR_TYPE);
-      if (attribute != null) {
-        typeString = attribute;
-      }
-    } else {
-      // the type is the name of the node.
-      typeString = nodeName;
-    }
-
-    if (typeString != null) {
-      return ResourceType.getEnum(typeString);
-    }
-
-    return null;
   }
 
   private boolean isResourceFolder(@Nullable PsiElement parent) {
@@ -895,7 +869,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 if (resourceFile != null) {
                   String name = tag.getAttributeValue(ATTR_NAME);
                   if (name != null) {
-                    ResourceType type = getType(tag);
+                    ResourceType type = AndroidResourceUtil.getType(tag);
                     if (type == ResourceType.DECLARE_STYLEABLE) {
                       // Can't handle declare styleable additions incrementally yet; need to update paired attr items
                       rescan(psiFile, folderType);
@@ -1093,7 +1067,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                     name = tag.getAttributeValue(ATTR_NAME);
                   }
                   if (name != null) {
-                    ResourceType type = getType(tag);
+                    ResourceType type = AndroidResourceUtil.getType(tag);
                     if (type != null) {
                       ListMultimap<String, ResourceItem> map = myItems.get(type);
                       if (map == null) {
@@ -1394,7 +1368,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 // scenarios.
                 if (isItemElement(xmlTag) && attributeName.equals(ATTR_NAME)) {
                   // Edited the name of the item: replace it
-                  ResourceType type = getType(xmlTag);
+                  ResourceType type = AndroidResourceUtil.getType(xmlTag);
                   if (type != null) {
                     String oldName = event.getOldChild().getText();
                     String newName = event.getNewChild().getText();
@@ -1805,7 +1779,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   @Nullable
   private ResourceItem findValueResourceItem(XmlTag tag, PsiFile file, String name) {
-    ResourceType type = getType(tag);
+    ResourceType type = AndroidResourceUtil.getType(tag);
     return findResourceItem(type, file, name, tag);
   }
 

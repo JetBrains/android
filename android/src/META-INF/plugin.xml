@@ -850,6 +850,7 @@
     <resolveScopeProvider implementation="com.android.tools.idea.gradle.testing.TestArtifactResolveScopeProvider" order="first"/>
     <useScopeOptimizer implementation="com.android.tools.idea.gradle.testing.TestArtifactUseScopeOptimizer"/>
     <customScopesProvider implementation="com.android.tools.idea.gradle.testing.TestArtifactCustomScopeProvider"/>
+    <lang.psiStructureViewFactory language="XML" implementationClass="org.jetbrains.android.dom.ResourceStructureViewFactory" order="first"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
