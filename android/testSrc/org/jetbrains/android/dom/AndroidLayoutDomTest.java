@@ -142,6 +142,11 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestHighlighting("tools_targetapi_error2.xml");
   }
 
+  // fontFamily attribute values are autocompleted
+  public void testFontFamilyCompletion() throws Throwable {
+    doTestCompletionVariants("text_view_font_family.xml", "monospace", "serif-monospace");
+  }
+
   public void testCommonPrefixIdea63531() throws Throwable {
     VirtualFile file = copyFileToProject("commonPrefixIdea63531.xml");
     myFixture.configureFromExistingVirtualFile(file);

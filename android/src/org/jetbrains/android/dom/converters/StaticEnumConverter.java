@@ -32,19 +32,44 @@ import java.util.Set;
 public class StaticEnumConverter extends ResolvingConverter<String> {
   private final Set<String> myValues = new HashSet<String>();
 
+  /**
+   * Flag to control whether converter has information about all available values.
+   * If set to true, entering attribute value that's not present in myValues would
+   * result in validation error and would be highlighted as such.
+   */
+  private boolean myContainsAllValues = true;
+
   public StaticEnumConverter(String... values) {
     Collections.addAll(myValues, values);
   }
 
+  public StaticEnumConverter(Collection<String> values) {
+    myValues.addAll(values);
+  }
+
   @Override
   @NotNull
-  public Collection<? extends String> getVariants(ConvertContext context) {
+  public Collection<String> getVariants(ConvertContext context) {
     return Collections.unmodifiableCollection(myValues);
   }
 
   @Override
   public String fromString(@Nullable @NonNls String s, ConvertContext context) {
-    return myValues.contains(s) ? s : null;
+    if (myContainsAllValues) {
+      return myValues.contains(s) ? s : null;
+    }
+    else {
+      return s;
+    }
+  }
+
+  /**
+   * @see #myContainsAllValues
+   */
+  @NotNull
+  public StaticEnumConverter setContainsAllValues(boolean flag) {
+    myContainsAllValues = flag;
+    return this;
   }
 
   @Override
