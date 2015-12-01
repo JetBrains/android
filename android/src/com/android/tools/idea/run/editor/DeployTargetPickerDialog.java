@@ -59,7 +59,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @Nullable private final DeployTargetConfigurable myDeployTargetConfigurable;
 
   private final DevicePicker myDevicePicker;
-  private final ProcessHandlerConsolePrinter myPrinter;
+  private final ConsolePrinter myPrinter;
   private final ListenableFuture<AndroidDebugBridge> myAdbFuture;
 
   private JPanel myContentPane;
@@ -74,7 +74,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
                                   @NotNull DeviceCount deviceCount,
                                   @NotNull List<DeployTargetProvider> deployTargetProviders,
                                   @NotNull Map<String, DeployTargetState> deployTargetStates,
-                                  @NotNull ProcessHandlerConsolePrinter printer) {
+                                  @NotNull ConsolePrinter printer) {
     super(facet.getModule().getProject(), true);
 
     // TODO: Eventually we may support more than 1 custom run provider. In such a case, there should be
