@@ -280,12 +280,6 @@ public class PatchDeployState implements RunProfileState {
       return myConsoleView;
     }
 
-    @NotNull
-    @Override
-    public AndroidRunConfigurationBase getConfiguration() {
-      return myConfiguration;
-    }
-
     @Override
     public int getRunConfigurationId() {
       return myConfiguration.getUniqueID();
