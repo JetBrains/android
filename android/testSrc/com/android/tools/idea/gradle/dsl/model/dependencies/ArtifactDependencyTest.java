@@ -173,7 +173,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(0));
   }
 
-  public void /*test*/ParseDependenciesWithCompactNotationInSingleLine() throws IOException {
+  public void testParseDependenciesWithCompactNotationInSingleLine() throws IOException {
     String text = "dependencies {\n" +
                   "    runtime 'org.springframework:spring-core:2.5', 'org.springframework:spring-aop:2.5'\n" +
                   "}";
@@ -193,7 +193,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
-  public void /*test*/ParseDependenciesWithCompactNotationInSingleLineWithComments() throws IOException {
+  public void testParseDependenciesWithCompactNotationInSingleLineWithComments() throws IOException {
     String text = "dependencies {\n" +
                   "    runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'\n" +
                   "}";
@@ -314,7 +314,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
-  public void /*test*/RemoveDependencyWithCompactNotationAndSingleConfigurationName() throws IOException {
+  public void testRemoveDependencyWithCompactNotationAndSingleConfigurationName() throws IOException {
     String text = "dependencies {\n" +
                   "    runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'\n" +
                   "    test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +

@@ -30,13 +30,25 @@ public class DependenciesDslElement extends GradlePropertiesDslElement {
   public void addParsedElement(@NotNull String configurationName, @NotNull GradleDslElement dependency) {
     // Treat all expressions and expression maps as dependencies
     if (dependency instanceof GradleDslExpression || dependency instanceof GradleDslExpressionMap) {
-      GradleDslElementList elementList = getProperty(configurationName, GradleDslElementList.class);
-      if (elementList == null) {
-        elementList = new GradleDslElementList(this, configurationName);
-        super.addParsedElement(configurationName, elementList);
-      }
+      GradleDslElementList elementList = getOrCreateParsedElement(configurationName);
       elementList.addParsedElement(dependency);
     }
+    else if (dependency instanceof GradleDslExpressionList) {
+      GradleDslElementList elementList = getOrCreateParsedElement(configurationName);
+      for (GradleDslExpression expression : ((GradleDslExpressionList)dependency).getExpressions()) {
+        elementList.addParsedElement(expression);
+      }
+    }
+  }
+
+  @NotNull
+  private GradleDslElementList getOrCreateParsedElement(@NotNull String configurationName) {
+    GradleDslElementList elementList = getProperty(configurationName, GradleDslElementList.class);
+    if (elementList == null) {
+      elementList = new GradleDslElementList(this, configurationName);
+      super.addParsedElement(configurationName, elementList);
+    }
+    return elementList;
   }
 
   @Override
