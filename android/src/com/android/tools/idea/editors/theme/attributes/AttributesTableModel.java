@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.ThemeAttributeResolver;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -90,8 +91,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   private void reloadContent() {
-    final List<EditedStyleItem> rawAttributes =
-      new ArrayList<EditedStyleItem>(ThemeEditorUtils.resolveAllAttributes(mySelectedStyle, myContext.getThemeResolver()));
+    final List<EditedStyleItem> rawAttributes = ThemeAttributeResolver.resolveAll(mySelectedStyle, myContext.getThemeResolver());
+
     //noinspection unchecked (SIMPLE_MODE_COMPARATOR can compare EditedStyleItem)
     Collections.sort(rawAttributes, ThemeEditorComponent.SIMPLE_MODE_COMPARATOR);
     myAttributes.clear();

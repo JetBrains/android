@@ -71,7 +71,7 @@ public class RestrictedConfiguration {
   }
 
   @Nullable("if empty intersection, i.e some of the qualifiers can't have any value due to the restrictions in both")
-  RestrictedConfiguration intersect(@NotNull RestrictedConfiguration otherRestricted) {
+  public RestrictedConfiguration intersect(@NotNull RestrictedConfiguration otherRestricted) {
     RestrictedConfiguration resultRestricted = new RestrictedConfiguration();
 
     for (int i = 0; i < FolderConfiguration.getQualifierCount(); ++i) {

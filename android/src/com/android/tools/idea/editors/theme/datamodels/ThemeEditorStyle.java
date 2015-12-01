@@ -133,7 +133,6 @@ public class ThemeEditorStyle {
   @NotNull
   private Collection<ResourceItem> getStyleResourceItems() {
     assert !isFramework();
-
     Collection<ResourceItem> resultItems;
     if (isProjectStyle()) {
       final Module module = getModuleForAcquiringResources();
@@ -175,6 +174,21 @@ public class ThemeEditorStyle {
       }
     }
     return resultItems;
+  }
+
+  /**
+   * @return Collection of FolderConfiguration where this style is defined
+   */
+  @NotNull
+  public Collection<FolderConfiguration> getFolders() {
+    if (isFramework()) {
+      return ImmutableList.of(new FolderConfiguration());
+    }
+    Collection<FolderConfiguration> result = Lists.newArrayList();
+    for (ResourceItem styleItem : getStyleResourceItems()) {
+      result.add(styleItem.getConfiguration());
+    }
+    return result;
   }
 
   /**
@@ -245,6 +259,21 @@ public class ThemeEditorStyle {
     return itemResourceValues.build();
   }
 
+  /**
+   * @param configuration FolderConfiguration of the style to lookup
+   * @return all values defined in this style with a FolderConfiguration configuration
+   */
+  @NotNull
+  public Collection<ItemResourceValue> getValues(@NotNull FolderConfiguration configuration) {
+    List<ItemResourceValue> result = Lists.newArrayList();
+    for (ConfiguredElement<ItemResourceValue> value : getConfiguredValues()) {
+      if (configuration.equals(value.getConfiguration())) {
+        result.add(value.getElement());
+      }
+    }
+    return result;
+  }
+
   public boolean hasItem(@Nullable EditedStyleItem item) {
     //TODO: add isOverriden() method to EditedStyleItem
     return item != null && getStyleResourceValue().getItem(item.getName(), item.isFrameworkAttr()) != null;
@@ -270,7 +299,7 @@ public class ThemeEditorStyle {
       // Framework themes do not have multiple parents so we just get the only one.
       ThemeEditorStyle parent = getParent();
       if (parent != null) {
-        return ImmutableList.of(ConfiguredElement.create(getConfiguration().getEditedConfig(), parent.getQualifiedName()));
+        return ImmutableList.of(ConfiguredElement.create(new FolderConfiguration(), parent.getQualifiedName()));
       }
       // The theme has no parent (probably the main "Theme" style)
       return Collections.emptyList();
@@ -286,6 +315,16 @@ public class ThemeEditorStyle {
       }
     }
     return parents.build();
+  }
+
+  @Nullable
+  public String getParentName(FolderConfiguration configuration) {
+    for (final ConfiguredElement<String> parent : getParentNames()) {
+      if (configuration.equals(parent.getConfiguration())) {
+        return parent.getElement();
+      }
+    }
+    return null;
   }
 
   /**
