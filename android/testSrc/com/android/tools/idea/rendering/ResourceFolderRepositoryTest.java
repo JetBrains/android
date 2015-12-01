@@ -768,38 +768,31 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         documentManager.commitDocument(document);
       }
     });
+    assertFalse(resources.isScanPending(psiFile1));
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid"));
+    assertTrue(resources.getModificationCount() > initial);
+
+    final long generation = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        int startOffset = document.getText().indexOf(elementDeclaration);
+        document.deleteString(startOffset, startOffset + elementDeclaration.length());
+        documentManager.commitDocument(document);
+      }
+    });
+
     assertTrue(resources.isScanPending(psiFile1));
-    UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+    resetScanCounter();
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();
-        assertTrue(resources.hasResourceItem(ResourceType.ID, "newid"));
-        assertTrue(resources.getModificationCount() > initial);
-
-        final long generation = resources.getModificationCount();
-        WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-          @Override
-          public void run() {
-            int startOffset = document.getText().indexOf(elementDeclaration);
-            document.deleteString(startOffset, startOffset + elementDeclaration.length());
-            documentManager.commitDocument(document);
-          }
-        });
-
-        assertTrue(resources.isScanPending(psiFile1));
-        resetScanCounter();
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            ensureSingleScan();
-            assertFalse(resources.hasResourceItem(ResourceType.ID, "newid"));
-            assertTrue(resources.getModificationCount() > generation);
-          }
-        });
-        UIUtil.dispatchAllInvocationEvents();
+        assertFalse(resources.hasResourceItem(ResourceType.ID, "newid"));
+        assertTrue(resources.getModificationCount() > generation);
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
   }
 
   public void testEditValueFileNoOp() throws Exception {
@@ -879,19 +872,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         documentManager.commitDocument(document);
       }
     });
-    // Currently, the PSI events delivered for the above edits results in PSI events without enough
-    // info for incremental analysis
-    assertTrue(resources.isScanPending(psiFile1));
-    UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
-        assertTrue(initial < resources.getModificationCount());
-        assertTrue(resources.hasResourceItem(ResourceType.ID, "newid1"));
-        assertTrue(resources.hasResourceItem(ResourceType.ID, "newid2"));
-      }
-    });
+    assertFalse(resources.isScanPending(psiFile1));
+    assertTrue(initial < resources.getModificationCount());
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid1"));
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid2"));
   }
 
   public void testEditIdAttributeValue() throws Exception {
@@ -1949,7 +1933,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name2"));
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
 
-
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
@@ -1966,19 +1949,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
 
+    assertFalse(resources.isScanPending(psiFile1));
     assertTrue(generation < resources.getModificationCount());
-
-    assertTrue(resources.isScanPending(psiFile1));
-    resetScanCounter();
-    UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
-        assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-        assertFalse(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
-      }
-    });
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertFalse(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
   }
 
   public void testEditXmlProcessingInstructionAttr() throws Exception {
@@ -2268,6 +2242,66 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Should have caused a modification but not a rescan
     assertTrue(generation < resources.getModificationCount());
+    ensureIncremental();
+  }
+
+  /**
+   * Check that whitespace edits do not trigger a rescan
+   */
+  public void testEmptyEdits() throws Exception {
+    resetScanCounter();
+
+    VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+
+    long generation = resources.getModificationCount();
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    // Add a space to an attribute name.
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        final int offset = document.getText().indexOf("app_name");
+        document.insertString(offset, " ");
+        documentManager.commitDocument(document);
+      }
+    });
+    assertFalse(resources.isScanPending(psiFile1));
+    assertTrue(generation < resources.getModificationCount());
+    generation = resources.getModificationCount();
+
+    ResourceItem item = getOnlyItem(resources, ResourceType.STRING, "title_zoom");
+    //noinspection ConstantConditions
+    assertEquals("Zoom", item.getResourceValue(false).getValue());
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        final int offset = document.getText().indexOf("Zoom");
+        document.deleteString(offset, offset + "Zoom".length());
+        documentManager.commitDocument(document);
+      }
+    });
+    assertFalse(resources.isScanPending(psiFile1));
+    assertTrue(generation < resources.getModificationCount());
+
+    // Inserting spaces in the middle of a tag shouldn't trigger a rescan or even change the modification count
+    generation = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        final int offset = document.getText().indexOf("Card Flip");
+        document.insertString(offset, "   ");
+        documentManager.commitDocument(document);
+      }
+    });
+    assertFalse(resources.isScanPending(psiFile1));
+    assertEquals(generation, resources.getModificationCount());
+
     ensureIncremental();
   }
 
