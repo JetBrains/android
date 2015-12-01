@@ -19,10 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.templates.StringEvaluator;
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.templates.*;
 import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
@@ -216,17 +213,16 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
                                                        Map<Parameter, Object> parametersWithDefaultValues,
                                                        Map<Parameter, Object> parametersWithNonDefaultValues)
     throws CircularParameterDependencyException {
-    ParameterDefaultValueComputer computer =
-      new ParameterDefaultValueComputer(parameters, parametersWithNonDefaultValues, getImplicitParameters(),
-                                        new DeduplicateValuesFunction());
-    Map<Parameter, Object> computedDefaultValues = computer.getParameterValues();
-    Map<Parameter, Object> parameterValues = Maps.newHashMap(parametersWithDefaultValues);
-    for (Map.Entry<Parameter, Object> entry : computedDefaultValues.entrySet()) {
+    Map<Parameter, Object> computedParameterValues =
+      ParameterValueResolver.resolve(parameters, parametersWithNonDefaultValues, getImplicitParameters(), new DeduplicateValuesFunction());
+
+    Map<Parameter, Object> allParameterValues = Maps.newHashMap(parametersWithDefaultValues);
+    for (Map.Entry<Parameter, Object> entry : computedParameterValues.entrySet()) {
       if (!parametersWithNonDefaultValues.keySet().contains(entry.getKey()) && entry.getValue() != null) {
-        parameterValues.put(entry.getKey(), entry.getValue());
+        allParameterValues.put(entry.getKey(), entry.getValue());
       }
     }
-    return parameterValues;
+    return allParameterValues;
   }
 
   private Map<String, Object> getImplicitParameters() {
@@ -713,9 +709,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
         }
       }
       catch (CircularParameterDependencyException exception) {
-        LOG.error("Circular dependency between parameters in template %1$s, participating parameters: %2$s", exception,
-                  myCurrentTemplate.getTitle(),
-                  Joiner.on(", ").join(exception.getParameterIds()));
+        LOG.error("Circular dependency between parameters in template %1$s", exception, myCurrentTemplate.getTitle());
       }
     }
     finally {
@@ -967,7 +961,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     }
   }
 
-  private class DeduplicateValuesFunction implements ParameterDefaultValueComputer.Deduplicator {
+  private class DeduplicateValuesFunction implements ParameterValueResolver.Deduplicator {
     private final Project project;
     private final Module module;
     private final SourceProvider provider;
