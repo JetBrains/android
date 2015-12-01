@@ -393,6 +393,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @Override
   public ResourceValue fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) return null;
+    if (s.startsWith(PREFIX_BINDING_EXPR)) return ResourceValue.INVALID;
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, true);
     final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
