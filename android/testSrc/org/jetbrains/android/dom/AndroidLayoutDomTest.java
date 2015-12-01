@@ -1237,6 +1237,12 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestCompletion();
   }
 
+  public void testUnknownDataBindingAttribute() throws Throwable {
+    // Regression test for issue http://b.android.com/195485
+    // Don't highlight data binding attributes as unknown
+    doTestHighlighting();
+  }
+
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml");
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
