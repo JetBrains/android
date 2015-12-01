@@ -21,6 +21,8 @@ import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
+import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
@@ -83,7 +85,6 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final AndroidApplicationLauncher myApplicationLauncher;
   @NotNull private final ProcessHandlerConsolePrinter myPrinter;
-  @NotNull private final AndroidRunConfigurationBase myConfiguration;
   @NotNull private final LaunchOptions myLaunchOptions;
 
   private final Object myDebugLock = new Object();
@@ -106,6 +107,8 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
   private final int myRunConfigId;
   @NotNull private final String myRunConfigTypeId;
   @NotNull private final ConsoleProvider myConsoleProvider;
+  @Nullable private final AndroidDebuggerState myAndroidDebuggerState;
+  @Nullable private final AndroidDebugger myAndroidDebugger;
 
   public AndroidRunningState(@NotNull ExecutionEnvironment environment,
                              @NotNull AndroidFacet facet,
@@ -117,7 +120,8 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
                              int runConfigId,
                              @NotNull String runConfigTypeId,
                              @NotNull ConsoleProvider consoleProvider,
-                             @NotNull AndroidRunConfigurationBase config) throws ExecutionException {
+                             @Nullable AndroidDebuggerState androidDebuggerState,
+                             @Nullable AndroidDebugger androidDebugger) throws ExecutionException {
     myFacet = facet;
     myApkProvider = apkProvider;
     myDeviceFutures = deviceFutures;
@@ -136,7 +140,8 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
     myRunConfigId = runConfigId;
     myRunConfigTypeId = runConfigTypeId;
     myConsoleProvider = consoleProvider;
-    myConfiguration = config;
+    myAndroidDebuggerState = androidDebuggerState;
+    myAndroidDebugger = androidDebugger;
   }
 
   // Used by downstream plugins.
@@ -153,11 +158,14 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
     return myLaunchOptions.isDebug();
   }
 
-  @Deprecated
-  @Override
-  @NotNull
-  public AndroidRunConfigurationBase getConfiguration() {
-    return myConfiguration;
+  @Nullable
+  public AndroidDebuggerState getAndroidDebuggerState() {
+    return myAndroidDebuggerState;
+  }
+
+  @Nullable
+  public AndroidDebugger getAndroidDebugger() {
+    return myAndroidDebugger;
   }
 
   public ExecutionEnvironment getEnvironment() {

@@ -16,9 +16,7 @@
 
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.run.editor.*;
@@ -29,7 +27,6 @@ import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
@@ -428,7 +425,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       getUniqueID(),
       getType().getId(),
       getConsoleProvider(),
-      this
+      getAndroidDebuggerState(),
+      getAndroidDebugger()
     );
   }
 
