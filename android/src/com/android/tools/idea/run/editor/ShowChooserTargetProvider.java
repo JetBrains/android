@@ -104,7 +104,7 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
           .setDeployPickerResult(runConfigId, result.hasCustomRunProfileState(executor) ? result : null);
 
         // TODO: we only save the running devices, which means that the AVD selection is lost if the AVD wasn't running
-        // TODO: the getRunningDevices() returns an empty list righ now if there is an AVD to be selected, which atleast makes the dialog
+        // TODO: the getRunningDevices() returns an empty list right now if there is an AVD to be selected, which at least makes the dialog
         // show up again, but eventually, we need to be able to handle a transition from AVD -> running device
         DevicePickerStateService.getInstance(project)
           .setDevicesUsedInLaunch(runConfigId, getRunningDevices(dialog.getSelectedDevices()), ManualTargetChooser.getOnlineDevices(project));
