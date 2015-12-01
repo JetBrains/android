@@ -41,6 +41,7 @@ public final class Factory {
     CallGet.register();
     CallGetCaptures.register();
     CallGetDevices.register();
+    CallGetFeatures.register();
     CallGetFramebufferColor.register();
     CallGetFramebufferDepth.register();
     CallGetSchema.register();
@@ -52,6 +53,7 @@ public final class Factory {
     ResultGet.register();
     ResultGetCaptures.register();
     ResultGetDevices.register();
+    ResultGetFeatures.register();
     ResultGetFramebufferColor.register();
     ResultGetFramebufferDepth.register();
     ResultGetSchema.register();
