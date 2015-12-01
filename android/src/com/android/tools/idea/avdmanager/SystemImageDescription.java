@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.repository.Revision;
 import com.android.sdklib.*;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
@@ -161,6 +162,17 @@ public final class SystemImageDescription {
 
   public IAndroidTarget getTarget() {
     return myTarget;
+  }
+
+  @Nullable
+  Revision getRevision() {
+    if (mySystemImage != null) {
+      return mySystemImage.getRevision();
+    }
+    if (myRemotePackage != null) {
+      return myRemotePackage.getRevision();
+    }
+    return null;
   }
 
   public File[] getSkins() {
