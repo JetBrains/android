@@ -334,6 +334,11 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Replace with com.android.library", "build.gradle", "gradle");
   }
 
+  public void testWrongQuote() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNotInterpolatedInspection(),
+                  "Replace single quotes with double quotes", "build.gradle", "gradle");
+  }
+
   public void testMissingAppIcon() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMissingApplicationIconInspection(),
