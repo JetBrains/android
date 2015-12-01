@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sdk.wizard;
+package com.android.tools.idea.sdk.wizard.legacy;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
@@ -21,6 +21,7 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
+import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
@@ -50,7 +51,9 @@ import java.util.List;
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 
-
+/**
+ * @deprecated Replaced by {@link InstallSelectedPackagesStep}
+ */
 public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
   private Logger LOG = Logger.getInstance(SmwOldApiDirectInstall.class);
   private JBLabel myLabelSdkPath;
@@ -65,7 +68,6 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
 
   public SmwOldApiDirectInstall(@NotNull Disposable disposable) {
     super(disposable);
-    mySdkManagerOutput.setEditable(false);
     setBodyComponent(myContentPanel);
   }
 
@@ -90,8 +92,6 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
   public boolean canGoPrevious() {
     return myInstallFinished;
   }
-
-  //-----------
 
   private void startSdkInstallUsingNonSwtOldApi() {
     // Get the SDK instance.
@@ -264,7 +264,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
   }
 
   /**
-   * Look through the list of completed changes, and set a key if any new platforms
+   * Looks through the list of completed changes, and set a key if any new platforms
    * were installed.
    */
   private void checkForUpgrades(@Nullable List completedChanges) {

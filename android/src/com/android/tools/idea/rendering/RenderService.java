@@ -19,19 +19,20 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
-import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -303,10 +304,9 @@ public class RenderService {
           // The revision to install. Note that this will install a higher version than this if available;
           // e.g. even if we ask for version 4, if revision 7 is available it will be installed, not revision 4.
           requested.add(PkgDesc.Builder.newPlatform(version, new Revision(revision), Revision.NOT_SPECIFIED).create());
-          SdkQuickfixWizard wizard = new SdkQuickfixWizard(module.getProject(), null, requested);
-          wizard.init();
+          ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(module.getProject(), requested);
 
-          if (wizard.showAndGet()) {
+          if (dialog != null && dialog.showAndGet()) {
             if (renderContext != null) {
               // Force the target to be recomputed; this will pick up the new revision object from the local sdk.
               Configuration configuration = renderContext.getConfiguration();
@@ -317,8 +317,8 @@ public class RenderService {
               // However, due to issue https://code.google.com/p/android/issues/detail?id=76096 it may not yet
               // take effect.
               Messages.showInfoMessage(module.getProject(),
-                                     "Note: Due to a bug you may need to restart the IDE for the new layout library to fully take effect",
-                                     "Restart Recommended");
+                                       "Note: Due to a bug you may need to restart the IDE for the new layout library to fully take effect",
+                                       "Restart Recommended");
             }
           }
         }

@@ -33,7 +33,6 @@ import java.util.Collection;
 public abstract class ModelWizardStep<M extends WizardModel> implements Disposable {
 
   @NotNull private final String myTitle;
-
   @NotNull private M myModel;
 
   protected ModelWizardStep(@NotNull M model, @NotNull String title) {
@@ -114,7 +113,6 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
    * Returns a boolean, which when set to {@code true} means the current step can
    * go back to previous step.
    */
-  @NotNull
   protected boolean canGoBack() {
     return true;
   }
@@ -138,5 +136,21 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
 
   @Override
   public void dispose() {
+  }
+
+  private static final class BlankModel extends WizardModel {
+    @Override
+    protected void handleFinished() {
+    }
+  }
+
+  /**
+   * A base class for steps which don't need to store their state in any model, for example a step
+   * that can act simply on data passed into its constructor. Should be relatively rare.
+   */
+  public static abstract class WithoutModel extends ModelWizardStep<BlankModel> {
+    protected WithoutModel(@NotNull String title) {
+      super(new BlankModel(), title);
+    }
   }
 }

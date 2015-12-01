@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.repository.Revision;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -41,9 +42,8 @@ public class InstallPlatformHyperlink extends NotificationHyperlink {
     for (AndroidVersion version : myAndroidVersions) {
       requested.add(PkgDesc.Builder.newPlatform(version, new Revision(1), Revision.NOT_SPECIFIED).create());
     }
-    SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
-    wizard.init();
-    if (wizard.showAndGet()) {
+    ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(project, requested);
+    if (dialog != null && dialog.showAndGet()) {
       GradleProjectImporter.getInstance().requestProjectSync(project, null);
     }
   }

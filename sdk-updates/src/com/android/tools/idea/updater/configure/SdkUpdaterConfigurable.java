@@ -18,19 +18,18 @@ package com.android.tools.idea.updater.configure;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.updater.SdkComponentSource;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.ui.AncestorListenerAdapter;
-import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nls;
@@ -154,9 +153,10 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
           item.getLocalInfo().delete();
         }
         if (!requestedPackages.isEmpty()) {
-          SdkQuickfixWizard sdkQuickfixWizard = new SdkQuickfixWizard(null, null, requestedPackages);
-          sdkQuickfixWizard.init();
-          sdkQuickfixWizard.show();
+          ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(null, requestedPackages);
+          if (dialog != null) {
+            dialog.show();
+          }
         }
         myPanel.refresh();
       }

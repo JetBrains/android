@@ -29,9 +29,10 @@ import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityS
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.components.ServiceManager;
@@ -368,11 +369,12 @@ public class ProjectSyncMessages {
     protected void execute(@NotNull Project project) {
       List<IPkgDesc> requested = Lists.newArrayList();
       requested.add(myRepository.getPackageDescription());
-      SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
-      wizard.init();
-      wizard.setTitle("Install Missing Components");
-      if (wizard.showAndGet()) {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(project, requested);
+      if (dialog != null) {
+        dialog.setTitle("Install Missing Components");
+        if (dialog.showAndGet()) {
+          GradleProjectImporter.getInstance().requestProjectSync(project, null);
+        }
       }
     }
   }

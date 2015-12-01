@@ -25,7 +25,8 @@ import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
@@ -330,9 +331,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
           return;
         }
         List<IPkgDesc> requested = ImmutableList.of(PkgDesc.Builder.newNdk(Revision.NOT_SPECIFIED).create());
-        SdkQuickfixWizard wizard = new SdkQuickfixWizard(null, null, requested);
-        wizard.init();
-        if (wizard.showAndGet()) {
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(null, requested);
+        if (dialog != null && dialog.showAndGet()) {
           File ndk = IdeSdks.getAndroidNdkPath();
           if (ndk != null) {
             myNdkLocationTextField.setText(ndk.getPath());

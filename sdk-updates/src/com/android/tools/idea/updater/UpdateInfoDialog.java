@@ -19,9 +19,9 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
-import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
@@ -68,10 +68,8 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
     actions.add(new AbstractAction("Update Now") {
       @Override
       public void actionPerformed(ActionEvent e) {
-        SdkQuickfixWizard sdkQuickfixWizard =
-          new SdkQuickfixWizard(null, null, myPackages, new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
-        sdkQuickfixWizard.init();
-        if (sdkQuickfixWizard.showAndGet()) {
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(null, myPackages);
+        if (dialog != null && dialog.showAndGet()) {
           close(0);
         }
       }
