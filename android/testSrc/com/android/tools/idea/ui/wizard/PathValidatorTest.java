@@ -91,7 +91,10 @@ public class PathValidatorTest {
   public void illegalFilenameMatches() throws Exception {
     File file = new File("/aux/is/reserved/");
     // "aux" is responsible for the reserved keyword failure
+    myFileOp.setIsWindows(true);
     assertRuleFails(myFileOp, PathValidator.ILLEGAL_FILENAME, file, new File("aux"));
+    myFileOp.setIsWindows(false);
+    assertRulePasses(myFileOp, PathValidator.ILLEGAL_FILENAME, file);
   }
 
   @Test
