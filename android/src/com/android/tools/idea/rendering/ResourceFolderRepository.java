@@ -1630,6 +1630,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
     @Override
     public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
+      PsiElement parent = event.getParent();
       // Called after children have changed. There are typically individual childMoved, childAdded etc
       // calls that we hook into for more specific details. However, there are some events we don't
       // catch using those methods, and for that we have the below handling.
@@ -1638,12 +1639,20 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         // However, we sometimes get some surprising (=bogus) events where the parent and the child
         // are the same, and in those cases there may be other child events we need to process
         // so fall through and process the whole file
-        if (event.getParent() != event.getChild()) {
+        if (parent != event.getChild()) {
           return;
         }
       }
-      else if (event.getNewChild() == null && event.getOldChild() == null && event.getOldParent() == null && event.getNewParent() == null
-        && event.getParent() instanceof PsiFile) {
+      else if (event.getNewChild() == null &&
+               event.getOldChild() == null &&
+               event.getOldParent() == null &&
+               event.getNewParent() == null &&
+               parent instanceof PsiFile) {
+        return;
+      }
+
+      if (parent != null && parent.getChildren().length == 1 && parent.getChildren()[0] instanceof PsiWhiteSpace) {
+        // This event is just adding white spaces
         return;
       }
 
