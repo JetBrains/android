@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.dom;
 
-import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -87,7 +86,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         return;
       }
       if ((element instanceof LayoutViewElement || element instanceof Fragment) &&
-          SdkConstants.NS_RESOURCES.equals(attrName.getNamespaceKey())) {
+          NS_RESOURCES.equals(attrName.getNamespaceKey())) {
         XmlElement xmlElement = element.getXmlElement();
         XmlTag tag = xmlElement instanceof XmlTag ? (XmlTag)xmlElement : null;
         String tagName = tag != null ? tag.getName() : null;
@@ -171,12 +170,12 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                         @Nullable MyAttributeProcessor processor,
                                         @NotNull DomElement element) {
     String name = attrDef.getName();
-    if (!SdkConstants.NS_RESOURCES.equals(namespaceKey) && name.startsWith(SdkConstants.PREFIX_ANDROID)) {
+    if (!NS_RESOURCES.equals(namespaceKey) && name.startsWith(PREFIX_ANDROID)) {
       // A styleable-definition in the app namespace (user specified or from a library) can include
       // a reference to a platform attribute. In such a case, register it under the android namespace
       // as opposed to the app namespace. See https://code.google.com/p/android/issues/detail?id=171162
-      name = name.substring(SdkConstants.PREFIX_ANDROID.length());
-      namespaceKey = SdkConstants.NS_RESOURCES;
+      name = name.substring(PREFIX_ANDROID.length());
+      namespaceKey = NS_RESOURCES;
     }
     XmlName xmlName = new XmlName(name, namespaceKey);
     final DomExtension extension = callback.processAttribute(xmlName, attrDef, parentStyleableName);
@@ -186,7 +185,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
     Converter converter = AndroidDomUtil.getSpecificConverter(xmlName, element);
     if (converter == null) {
-      if (SdkConstants.TOOLS_URI.equals(namespaceKey)) {
+      if (TOOLS_URI.equals(namespaceKey)) {
         converter = ToolsAttributeUtil.getConverter(attrDef);
       } else {
         converter = AndroidDomUtil.getConverter(attrDef);
@@ -316,7 +315,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       final Set<XmlName> newSkipAttrNames = new HashSet<XmlName>();
 
       for (String attrName : attrsToSkip) {
-        newSkipAttrNames.add(new XmlName(attrName, SdkConstants.NS_RESOURCES));
+        newSkipAttrNames.add(new XmlName(attrName, NS_RESOURCES));
       }
 
       registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, newSkipAttrNames);
@@ -388,7 +387,10 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                     MyCallback callback,
                                                     Set<String> registeredSubtags,
                                                     Set<XmlName> skipAttrNames) {
-    if (tagName.equals("set")) {
+    if (tagName.equals(TAG_SELECTOR)) {
+      registerSubtags(TAG_ITEM, AnimatorElement.class, callback, registeredSubtags);
+    }
+    else if (tagName.equals("set")) {
       for (String subtagName : AndroidAnimationUtils.getPossibleChildren(facet)) {
         registerSubtags(subtagName, AnimationElement.class, callback, registeredSubtags);
       }
@@ -424,14 +426,22 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                    MyCallback callback,
                                                    Set<String> registeredSubtags,
                                                    Set<XmlName> skipAttrNames) {
-    if (tagName.equals("set")) {
+    if (tagName.equals("set") || tagName.equals("item")) {
       for (String subtagName : AndroidAnimatorUtil.getPossibleChildren()) {
         registerSubtags(subtagName, AnimatorElement.class, callback, registeredSubtags);
       }
     }
-    registerAttributes(facet, element, "Animator", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    final String styleableName = AndroidAnimatorUtil.getStyleableNameByTagName(tagName);
 
+    // For <item> tags add only "state_" attributes (which are contained in DrawableStates styleable)
+    if (tagName.equals("item")) {
+      registerAttributes(facet, element, "DrawableStates", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+      return;
+    }
+
+    // For all other tags, add attributes from "Animator" styleable
+    registerAttributes(facet, element, "Animator", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+
+    final String styleableName = AndroidAnimatorUtil.getStyleableNameByTagName(tagName);
     if (styleableName != null) {
       registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
     }
@@ -583,7 +593,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
 
     if (!processStaticallyDefinedElements) {
       for (String attrName : AndroidManifestUtils.getStaticallyDefinedAttrs(element)) {
-        newSkippedNames.add(new XmlName(attrName, SdkConstants.NS_RESOURCES));
+        newSkippedNames.add(new XmlName(attrName, NS_RESOURCES));
       }
     }
     SystemResourceManager manager = facet.getSystemResourceManager();
@@ -593,7 +603,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     StyleableDefinition styleable = attrDefs.getStyleableByName(styleableName);
     if (styleable == null) return;
 
-    registerStyleableAttributes(element, new StyleableDefinition[]{styleable}, SdkConstants.NS_RESOURCES, callback,
+    registerStyleableAttributes(element, new StyleableDefinition[]{styleable}, NS_RESOURCES, callback,
                                 new MyAttributeProcessor() {
                                   @Override
                                   public void process(@NotNull XmlName attrName,
@@ -654,7 +664,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
 
         // Add tools namespace attributes to layout tags, but not those that are databinding-specific ones
         if (!(element instanceof DataBindingElement)) {
-          registerToolsAttribute(SdkConstants.ATTR_TARGET_API, callback);
+          registerToolsAttribute(ATTR_TARGET_API, callback);
           if (tag.getParentTag() == null) {
             registerToolsAttribute(ATTR_CONTEXT, callback);
             registerToolsAttribute(ATTR_MENU, callback);
@@ -707,7 +717,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   private static void registerToolsAttribute(@NotNull String attributeName, @NotNull MyCallback callback) {
     final AttributeDefinition definition = ToolsAttributeUtil.getAttrDefByName(attributeName);
     if (definition != null) {
-      final XmlName name = new XmlName(attributeName, SdkConstants.TOOLS_URI);
+      final XmlName name = new XmlName(attributeName, TOOLS_URI);
       final DomExtension domExtension = callback.processAttribute(name, definition, null);
       final ResolvingConverter converter = ToolsAttributeUtil.getConverter(definition);
       if (domExtension != null && converter != null) {
