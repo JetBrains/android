@@ -1,0 +1,9 @@
+<resources>
+  <style name="AppTheme" parent="android:Theme">
+  </style>
+
+  <string name="test_string">Just a string</string>
+
+  <style name="SecondStyle">
+  </style>
+</resources>
