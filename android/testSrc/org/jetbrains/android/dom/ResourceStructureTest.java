@@ -37,7 +37,7 @@ public class ResourceStructureTest extends AndroidDomTest {
     assertNotNull(element);
 
     StructureViewModel model = new ResourceStructureViewBuilder(element).createStructureViewModel();
-    String expected = "Resources file 'styles.xml':\n" +
+    String expected = "Resources file 'styles.xml'\n" +
                       "  Style - AppTheme\n" +
                       "  String - test_string\n" +
                       "  Style - SecondStyle\n";
