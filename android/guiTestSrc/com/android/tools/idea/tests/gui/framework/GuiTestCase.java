@@ -200,7 +200,7 @@ public abstract class GuiTestCase {
         @Override
         public boolean test() {
           for (Frame frame : Frame.getFrames()) {
-            if (frame instanceof WelcomeFrame && frame.isShowing()) {
+            if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
               return true;
             }
           }
