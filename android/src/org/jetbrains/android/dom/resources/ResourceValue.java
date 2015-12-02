@@ -41,6 +41,8 @@ public class ResourceValue {
   private String myResourceType;
   private String myResourceName;
 
+  public static final ResourceValue INVALID = new ResourceValue();
+
   private ResourceValue() {
   }
 
