@@ -27,7 +27,9 @@ import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -51,6 +53,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.rendering.ModuleResourceRepositoryTest.getFirstItem;
@@ -97,6 +100,12 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
       @Override
       protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
         return ArrayListMultimap.create();
+      }
+
+      @NotNull
+      @Override
+      protected Set<VirtualFile> computeResourceDirs() {
+        return ImmutableSet.of();
       }
     };
 
@@ -162,6 +171,41 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     myFacet.getModuleResources(true);
     myFacet.getProjectResources(true);
     myFacet.getAppResources(true);
+  }
+
+  public void testGetResourceDirsAndUpdateRoots() {
+    myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
+    addArchiveLibraries();
+    List<VirtualFile> flavorDirs = Lists.newArrayList(myFacet.getAllResourceDirectories());
+    final ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
+    List<? extends LocalResourceRepository> originalChildren = repository.getChildren();
+    // Should have a bunch repository directories from the various flavors.
+    Set<VirtualFile> resourceDirs = repository.getResourceDirs();
+    assertNotEmpty(resourceDirs);
+    assertNotEmpty(flavorDirs);
+    assertSameElements(resourceDirs, flavorDirs);
+
+    // Now delete a directory, notify the folder manager and updateRoots.
+    final VirtualFile firstFlavor = flavorDirs.remove(0);
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      @Override
+      public void run() {
+        try {
+          firstFlavor.delete(this);
+        }
+        catch (IOException e) {
+          assertFalse("delete failed " + e, false);
+        }
+        myFacet.getResourceFolderManager().invalidate();
+        repository.updateRoots();
+      }
+    });
+    // The child repositories should be the same since the module structure didn't change.
+    List<? extends LocalResourceRepository> newChildren = repository.getChildren();
+    assertTrue(newChildren.equals(originalChildren));
+    // However, the resourceDirs should now be different, missing the first flavor directory.
+    Set<VirtualFile> newResourceDirs = repository.getResourceDirs();
+    assertSameElements(newResourceDirs, flavorDirs);
   }
 
   private void addArchiveLibraries() {

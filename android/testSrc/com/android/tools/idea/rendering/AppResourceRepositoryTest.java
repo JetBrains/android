@@ -32,6 +32,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 
 import static com.android.tools.idea.rendering.ModuleResourceRepositoryTest.getFirstItem;
 
@@ -158,6 +159,31 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
            new AttrResourceValue(ResourceType.ATTR, "framework_attr2", true)).build();
     foundValues = appResources.getDeclaredArrayValues(attrList, "Styleable_with_underscore");
     assertOrderedEquals(foundValues, 0x7f010000, 0x7f010068, 0x01010125, 0x7f010069, 0x01010142);
+  }
+
+  public void testGetResourceDirs() throws IOException {
+    VirtualFile res1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
+    VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
+
+    assertNotSame(res1, res2);
+
+    // res2 is not used as an overlay here; instead we use it to simulate an AAR library below
+    final ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(
+      myFacet, Collections.singletonList(res1));
+    final ProjectResourceRepository projectResources = ProjectResourceRepository.createForTest(
+      myFacet, Collections.<LocalResourceRepository>singletonList(moduleRepository));
+
+    final AppResourceRepository appResources = AppResourceRepository.createForTest(
+      myFacet, Collections.<LocalResourceRepository>singletonList(projectResources), Collections.<FileResourceRepository>emptyList());
+
+    Set<VirtualFile> folders = appResources.getResourceDirs();
+    assertSameElements(folders, res1);
+
+    FileResourceRepository aar1 = FileResourceRepository.get(VfsUtilCore.virtualToIoFile(res2));
+    appResources.updateRoots(Arrays.asList(projectResources, aar1), Collections.singletonList(aar1));
+
+    Set<VirtualFile> foldersWithAar = appResources.getResourceDirs();
+    assertSameElements(foldersWithAar, res1, res2);
   }
 
   static AppResourceRepository createTestAppResourceRepository(AndroidFacet facet) throws IOException {

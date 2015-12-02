@@ -19,11 +19,9 @@ package org.jetbrains.android.resourceManagers;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -43,14 +41,11 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.*;
 
 /**
@@ -69,11 +64,14 @@ public class LocalResourceManager extends ResourceManager {
     return myFacet;
   }
 
+  /**
+   * Gets all resource directories reachable from the facet (modules and libraries).
+   * @return resource directories
+   */
   @NotNull
   @Override
   public VirtualFile[] getAllResourceDirs() {
-    Set<VirtualFile> result = new HashSet<VirtualFile>();
-    collectResourceDirs(getFacet(), result, new HashSet<Module>());
+    Set<VirtualFile> result = AppResourceRepository.getAppResources(myFacet, true).getResourceDirs();
     return VfsUtilCore.toVirtualFileArray(result);
   }
 
@@ -112,38 +110,6 @@ public class LocalResourceManager extends ResourceManager {
   @NotNull
   public List<ResourceElement> getValueResources(@NotNull final String resourceType) {
     return getValueResources(resourceType, null);
-  }
-
-  private static void collectResourceDirs(AndroidFacet facet, Set<VirtualFile> result, Set<Module> visited) {
-    if (!visited.add(facet.getModule())) {
-      return;
-    }
-
-    for (VirtualFile resDir : facet.getAllResourceDirectories()) {
-      if (!result.add(resDir)) {
-        // We've already encountered this resource directory: that means that we are probably
-        // processing a library facet as part of a dependency, when that dependency was present
-        // and processed from an earlier module as well. No need to continue with this module at all;
-        // already handled.
-        return;
-      }
-    }
-
-    // Add in local AAR dependencies, if any
-    Set<File> dirs = Sets.newHashSet();
-    ResourceFolderManager.addAarsFromModuleLibraries(facet, dirs);
-    if (!dirs.isEmpty()) {
-      for (File dir : dirs) {
-        VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(dir);
-        if (virtualFile != null) {
-          result.add(virtualFile);
-        }
-      }
-    }
-
-    for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(facet.getModule(), false)) {
-      collectResourceDirs(depFacet, result, visited);
-    }
   }
 
   @Nullable

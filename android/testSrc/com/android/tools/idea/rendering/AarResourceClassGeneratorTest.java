@@ -22,13 +22,17 @@ import com.android.ide.common.res2.ResourceRepository;
 import com.android.ide.common.resources.TestResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.util.Pair;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 public class AarResourceClassGeneratorTest extends AndroidTestCase {
   public void test() throws Exception {
@@ -81,6 +85,12 @@ public class AarResourceClassGeneratorTest extends AndroidTestCase {
       @Override
       protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
         return repository.getItems().get(type);
+      }
+
+      @NotNull
+      @Override
+      protected Set<VirtualFile> computeResourceDirs() {
+        return ImmutableSet.of();
       }
     };
     AppResourceRepository appResources = new AppResourceRepository(myFacet, Collections.singletonList(resources),

@@ -45,8 +45,8 @@ import static com.android.SdkConstants.DOT_AAR;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
 /**
- * Resource repository which merges in resources from all the libraries and all the modules
- * in a project
+ * Resource repository which merges in resources from the libraries and modules which are
+ * transitive dependencies of the given AndroidFacet / module.
  */
 public class AppResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
@@ -318,6 +318,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   void updateRoots(List<LocalResourceRepository> resources, List<FileResourceRepository> libraries) {
     myResourceVisibility = null;
     myResourceVisibilityProvider = null;
+    invalidateResourceDirs();
 
     if (resources.equals(myChildren)) {
       // Nothing changed (including order); nothing to do

@@ -22,9 +22,12 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.utils.ILogger;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.SoftValueHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import static com.android.SdkConstants.FN_RESOURCE_TEXT;
 
@@ -163,5 +167,15 @@ public class FileResourceRepository extends LocalResourceRepository {
   @Override
   public String toString() {
     return getClass().getSimpleName() + " for " + myFile + ": @" + Integer.toHexString(System.identityHashCode(this));
+  }
+
+  @NotNull
+  @Override
+  protected Set<VirtualFile> computeResourceDirs() {
+    VirtualFile virtualFile = VfsUtil.findFileByIoFile(myFile, true);
+    if (virtualFile == null) {
+      return ImmutableSet.of();
+    }
+    return ImmutableSet.of(virtualFile);
   }
 }
