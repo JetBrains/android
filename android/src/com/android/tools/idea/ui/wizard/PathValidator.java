@@ -212,7 +212,7 @@ public final class PathValidator implements Validator<File> {
 
     @Override
     public boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
-      return RESERVED_WINDOWS_FILENAMES.contains(file.getName().toLowerCase(Locale.US));
+      return fileOp.isWindows() && RESERVED_WINDOWS_FILENAMES.contains(file.getName().toLowerCase(Locale.US));
     }
 
     @NotNull
