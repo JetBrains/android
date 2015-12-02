@@ -51,7 +51,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.ColorIcon;
@@ -71,12 +70,16 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.plaf.UIResource;
+import javax.swing.plaf.basic.BasicTabbedPaneUI;
+import javax.swing.text.View;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
@@ -109,7 +112,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   @NotNull private final Module myModule;
   @Nullable private final XmlTag myTag;
 
-  private final JBTabbedPane myContentPanel;
+  private final JTabbedPane myContentPanel;
   private final ResourcePanel[] myPanels;
 
   private ResourceDialogTabComponent myColorPickerPanel;
@@ -203,8 +206,9 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myPanels[i] = new ResourcePanel(facet, types[i], true);
     }
 
-
-    myContentPanel = new JBTabbedPane(SwingConstants.LEFT);
+    //noinspection UndesirableClassUsage We install our own special UI, intellij stuff will break it
+    myContentPanel = new JTabbedPane(SwingConstants.LEFT);
+    myContentPanel.setUI(new SimpleTabUI());
     for (ResourcePanel panel : myPanels) {
       myContentPanel.addTab(panel.getType().getDisplayName(), panel.myComponent);
       panel.myTreeBuilder.expandAll(null);
@@ -1187,6 +1191,124 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
     public void setChangeFileNameVisible(boolean isVisible) {
       myLocationSettings.setChangeFileNameVisible(isVisible);
+    }
+  }
+
+  private static class SimpleTabUI extends BasicTabbedPaneUI {
+
+    @Override
+    protected void installDefaults() {
+      super.installDefaults();
+      tabInsets = JBUI.insets(8);
+      selectedTabPadInsets = JBUI.emptyInsets();
+    }
+
+    @Override
+    protected void paintTabBorder(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
+      // dont want tab border
+    }
+
+    @Override
+    protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
+      // dont want border here either
+    }
+
+    @Override
+    protected void paintTabBackground(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
+      // dont want a background
+    }
+
+    @Override
+    protected int getTabLabelShiftX(int tabPlacement, int tabIndex, boolean isSelected) {
+      return super.getTabLabelShiftX(tabPlacement, tabIndex, false);
+    }
+
+    @Override
+    protected int getTabLabelShiftY(int tabPlacement, int tabIndex, boolean isSelected) {
+      return super.getTabLabelShiftY(tabPlacement, tabIndex, false);
+    }
+
+    @Override
+    protected void layoutLabel(int tabPlacement,
+                               FontMetrics metrics, int tabIndex,
+                               String title, Icon icon,
+                               Rectangle tabRect, Rectangle iconRect,
+                               Rectangle textRect, boolean isSelected ) {
+      textRect.x = textRect.y = iconRect.x = iconRect.y = 0;
+
+      View v = getTextViewForTab(tabIndex);
+      if (v != null) {
+        tabPane.putClientProperty("html", v);
+      }
+
+      // CHANGE FROM DEFAULT: take tab insets into account
+      Insets insets = getTabInsets(tabPlacement, tabIndex);
+      tabRect = new Rectangle(tabRect);
+      tabRect.x += insets.left;
+      tabRect.y += insets.top;
+      tabRect.width = tabRect.width - insets.left - insets.right;
+      tabRect.height = tabRect.height - insets.top - insets.bottom;
+
+      SwingUtilities.layoutCompoundLabel(tabPane,
+                                         metrics, title, icon,
+                                         SwingUtilities.CENTER,
+                                         SwingUtilities.LEADING, // CHANGE FROM DEFAULT
+                                         SwingUtilities.CENTER,
+                                         SwingUtilities.TRAILING,
+                                         tabRect,
+                                         iconRect,
+                                         textRect,
+                                         textIconGap);
+
+      tabPane.putClientProperty("html", null);
+
+      int xNudge = getTabLabelShiftX(tabPlacement, tabIndex, isSelected);
+      int yNudge = getTabLabelShiftY(tabPlacement, tabIndex, isSelected);
+      iconRect.x += xNudge;
+      iconRect.y += yNudge;
+      textRect.x += xNudge;
+      textRect.y += yNudge;
+    }
+
+    @Override
+    protected void paintText(Graphics g, int tabPlacement,
+                             Font font, FontMetrics metrics, int tabIndex,
+                             String title, Rectangle textRect,
+                             boolean isSelected) {
+
+      g.setFont(font);
+
+      View v = getTextViewForTab(tabIndex);
+      if (v != null) {
+        // html
+        v.paint(g, textRect);
+      } else {
+        // plain text
+        int mnemIndex = tabPane.getDisplayedMnemonicIndexAt(tabIndex);
+
+        if (tabPane.isEnabled() && tabPane.isEnabledAt(tabIndex)) {
+          Color fg = tabPane.getForegroundAt(tabIndex);
+          if (isSelected && (fg instanceof UIResource)) {
+            Color selectedFG = JBColor.BLUE; // CHANGE FROM DEFAULT
+            if (selectedFG != null) {
+              fg = selectedFG;
+            }
+          }
+          g.setColor(fg);
+          SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
+                                                    title, mnemIndex,
+                                                    textRect.x, textRect.y + metrics.getAscent());
+        } else { // tab disabled
+          g.setColor(tabPane.getBackgroundAt(tabIndex).brighter());
+          SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
+                                                    title, mnemIndex,
+                                                    textRect.x, textRect.y + metrics.getAscent());
+          g.setColor(tabPane.getBackgroundAt(tabIndex).darker());
+          SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
+                                                    title, mnemIndex,
+                                                    textRect.x - 1, textRect.y + metrics.getAscent() - 1);
+        }
+      }
     }
   }
 }
