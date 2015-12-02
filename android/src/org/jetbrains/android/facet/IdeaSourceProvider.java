@@ -274,16 +274,12 @@ public abstract class IdeaSourceProvider {
     @Override
     public Collection<VirtualFile> getJniDirectories() {
       NativeAndroidGradleModel nativeAndroidGradleModel = myFacet.getNativeAndroidGradleModel();
-      NativeAndroidProject nativeAndroidProject = null;
-      if (nativeAndroidGradleModel != null) {
-        nativeAndroidProject = nativeAndroidGradleModel.getNativeAndroidProject();
-      }
-      if (nativeAndroidProject == null) {
+      if (nativeAndroidGradleModel == null) {
         return Collections.emptyList();
       }
 
       Set<File> sourceFolders = Sets.newLinkedHashSet();
-      for (NativeArtifact artifact : nativeAndroidProject.getArtifacts()) {
+      for (NativeArtifact artifact : nativeAndroidGradleModel.getSelectedVariant().getArtifacts()) {
         for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
           sourceFolders.add(sourceFolder.getFolderPath());
         }

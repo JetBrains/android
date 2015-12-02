@@ -33,7 +33,6 @@ public class BuildVariantViewTest extends AndroidTestCase {
   private Listener myListener;
   private BuildVariantUpdater myUpdater;
   private BuildVariantView myView;
-  private List<AndroidFacet> myAndroidFacets;
   private String myBuildVariantName;
 
   @Override
@@ -44,12 +43,11 @@ public class BuildVariantViewTest extends AndroidTestCase {
     myView.setUpdater(myUpdater);
     myListener = new Listener();
     myView.addListener(myListener);
-    myAndroidFacets = Collections.singletonList(myFacet);
     myBuildVariantName = "debug";
   }
 
   public void testSelectVariantWithSuccessfulUpdate() {
-    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(myAndroidFacets);
+    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(true);
     replay(myUpdater);
 
     myView.buildVariantSelected(myModule.getName(), myBuildVariantName);
@@ -59,8 +57,7 @@ public class BuildVariantViewTest extends AndroidTestCase {
   }
 
   public void testSelectVariantWithFailedUpdate() {
-    List<AndroidFacet> facets = Collections.emptyList();
-    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(facets);
+    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(false);
     replay(myUpdater);
 
     myView.buildVariantSelected(myModule.getName(), myBuildVariantName);
