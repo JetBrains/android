@@ -405,11 +405,6 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
   }
 
   private boolean prepareAndStartApp(@NotNull final IDevice device) {
-    if (isDebugMode() && !LaunchUtils.canDebugAppOnDevice(myFacet, device)) {
-      myPrinter.stderr(AndroidBundle.message("android.cannot.debug.noDebugPermissions", getPackageName(), device.getName()));
-      return false;
-    }
-
     if (myLaunchOptions.isClearLogcatBeforeStart()) {
       clearLogcatAndConsole(myEnv.getProject(), device);
     }
