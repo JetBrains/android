@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+ <EditText
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:id="@+id/editText_displayName"
+  android:text="@{myprefs.displayName}" />
+
+ <Switch
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:text="Some text"
+   android:checked="@{myprefs.cleanFilesWithoutVideo}"
+   android:id="@+id/checkBox_clean_filesWithoutVideo" />
+
+</RelativeLayout>
+
+
