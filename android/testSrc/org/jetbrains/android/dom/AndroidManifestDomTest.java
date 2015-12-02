@@ -68,6 +68,11 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     toTestCompletion("tn4.xml", "tn4_after.xml");
   }
 
+  // Test tag name completion for "supports" prefix
+  public void testTagNameCompletion5() throws Throwable {
+    doTestCompletionVariants("tag_name_supports.xml", "supports-gl-texture", "supports-screens");
+  }
+
   public void testAttributeValueCompletion1() throws Throwable {
     doTestCompletionVariants("av1.xml", "behind", "landscape", "nosensor", "portrait", "sensor", "unspecified", "user", "fullSensor",
                              "reverseLandscape", "reversePortrait", "sensorLandscape", "sensorPortrait",
