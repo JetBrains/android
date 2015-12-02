@@ -103,12 +103,11 @@ public final class ProjectResourceRepository extends MultiResourceRepository {
 
   @VisibleForTesting
   void updateRoots(List<LocalResourceRepository> resourceDirectories) {
-    if (resourceDirectories.equals(myChildren)) {
-      // Nothing changed (including order); nothing to do
-      return;
+    invalidateResourceDirs();
+    // If nothing changed (including order), then nothing remaining to do.
+    if (!resourceDirectories.equals(myChildren)) {
+      setChildren(resourceDirectories);
     }
-
-    setChildren(resourceDirectories);
   }
 
   @VisibleForTesting
