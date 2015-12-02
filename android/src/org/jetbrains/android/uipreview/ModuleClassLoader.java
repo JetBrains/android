@@ -203,8 +203,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
   /**
    * Determines whether the class specified by the given qualified name has a source file in the IDE that
    * has been edited more recently than its corresponding class file.
-   *
-   * <b></b>Note that this method can only answer queries for classes that this class loader has previously
+   * <p/>This method requires the indexing to have finished
+   * <p/><b>Note that this method can only answer queries for classes that this class loader has previously
    * loaded!</b>
    *
    * @param fqcn the fully qualified class name
