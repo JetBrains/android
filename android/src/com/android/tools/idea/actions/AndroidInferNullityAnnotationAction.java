@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.BuildFileStatement;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.FileModificationService;
@@ -62,10 +60,13 @@ import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 
 /**
@@ -115,6 +116,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
 
     for (UsageInfo info : infos) {
       final PsiElement element = info.getElement();
+      assert element != null;
       Module module = ModuleUtilCore.findModuleForPsiElement(element);
       PsiFile file = element.getContainingFile();
       modules.put(module, file);
@@ -181,19 +183,17 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() <  MIN_SDK_WITH_NULLABLE) {
         modulesWithLowVersion.add(module);
       }
-      GradleBuildFile gradleBuildFile = GradleBuildFile.get(module);
-      if (gradleBuildFile == null) {
-        LOG.warn("Unable to find Gradle build file for module " + module.getModuleFilePath());
+      GradleBuildModel buildModel = GradleBuildModel.get(module);
+      if (buildModel == null) {
+        LOG.warn("Unable to find Gradle build model for module " + module.getModuleFilePath());
         continue;
       }
       boolean dependencyFound = false;
-      for (BuildFileStatement entry : gradleBuildFile.getDependencies()) {
-        if (entry instanceof Dependency) {
-          Dependency dependency = (Dependency)entry;
-          if (dependency.scope == Dependency.Scope.COMPILE &&
-              dependency.type == Dependency.Type.EXTERNAL &&
-              (dependency.getValueAsString().equals(annotationsLibraryCoordinate) ||
-               dependency.getValueAsString().equals(appCompatLibraryCoordinate))) {
+      DependenciesModel dependenciesModel = buildModel.dependencies();
+      if (dependenciesModel != null) {
+        for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(COMPILE)) {
+          String notation = dependency.compactNotation();
+          if (notation.equals(annotationsLibraryCoordinate) || notation.equals(appCompatLibraryCoordinate)) {
             dependencyFound = true;
             break;
           }
@@ -303,7 +303,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   }
 
   // Intellij code from InferNullityAnnotationsAction.
-  private void showUsageView(@NotNull Project project, final UsageInfo[] usageInfos, @NotNull AnalysisScope scope) {
+  private static void showUsageView(@NotNull Project project, final UsageInfo[] usageInfos, @NotNull AnalysisScope scope) {
     final UsageTarget[] targets = UsageTarget.EMPTY_ARRAY;
     final Ref<Usage[]> convertUsagesRef = new Ref<Usage[]>();
     if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
@@ -316,7 +316,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           }
         });
       }
-    }, "Preprocess usages", true, project)) return;
+    }, "Preprocess Usages", true, project)) return;
 
     if (convertUsagesRef.isNull()) return;
     final Usage[] usages = convertUsagesRef.get();
@@ -363,18 +363,18 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     };
   }
 
-  private static void addDependency(final Module module, final String libraryCoordinate) {
-    ModuleRootModificationUtil.updateModel(module, new Consumer<ModifiableRootModel>() {
-      @Override
-      public void consume(ModifiableRootModel model) {
-        GradleBuildFile gradleBuildFile = GradleBuildFile.get(module);
-        if (gradleBuildFile != null) {
-          List<BuildFileStatement> dependencies = Lists.newArrayList(gradleBuildFile.getDependencies());
-          dependencies.add(new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, libraryCoordinate));
-          gradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+  private static void addDependency(@NotNull final Module module, @Nullable final String libraryCoordinate) {
+    if (isNotEmpty(libraryCoordinate)) {
+      ModuleRootModificationUtil.updateModel(module, new Consumer<ModifiableRootModel>() {
+        @Override
+        public void consume(ModifiableRootModel model) {
+          GradleBuildModel buildModel = GradleBuildModel.get(module);
+          if (buildModel != null) {
+            buildModel.dependencies(true).addArtifact(COMPILE, libraryCoordinate);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   /* Android nullable annotations do not support annotations on local variables. */
