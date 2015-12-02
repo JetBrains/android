@@ -41,13 +41,13 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.*;
 import java.util.List;
@@ -64,6 +64,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private final Project myProject;
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
   private final JPanel myCenterCardPanel;
+  private final JPanel myNotificationPanel;
   private final AvdListDialog myDialog;
 
   private TableView<AvdInfo> myTable;
@@ -89,9 +90,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     myTable.setDefaultRenderer(Object.class, new MyRenderer(myTable.getDefaultRenderer(Object.class)));
     setLayout(new BorderLayout());
     myCenterCardPanel = new JPanel(new CardLayout());
+    myNotificationPanel = new JPanel();
+    myNotificationPanel.setLayout(new BoxLayout(myNotificationPanel, 1));
     JPanel nonemptyPanel = new JPanel(new BorderLayout());
     myCenterCardPanel.add(nonemptyPanel, NONEMPTY);
     nonemptyPanel.add(ScrollPaneFactory.createScrollPane(myTable), BorderLayout.CENTER);
+    nonemptyPanel.add(myNotificationPanel, BorderLayout.NORTH);
     myCenterCardPanel.add(new EmptyAvdListPanel(this), EMPTY);
     add(myCenterCardPanel, BorderLayout.CENTER);
     JPanel southPanel = new JPanel(new BorderLayout());
@@ -171,6 +175,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     } else {
       ((CardLayout)myCenterCardPanel.getLayout()).show(myCenterCardPanel, NONEMPTY);
     }
+    refreshErrorCheck();
   }
 
   @Nullable
@@ -369,6 +374,21 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     new AvdSizeColumnInfo("Size on Disk"),
     myActionsColumnRenderer,
   };
+
+  private void refreshErrorCheck() {
+    myNotificationPanel.removeAll();
+    AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceration();
+    if (error != AccelerationErrorCode.ALREADY_INSTALLED) {
+      myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myProject, new Runnable() {
+        @Override
+        public void run() {
+          refreshErrorCheck();
+          revalidate();
+          repaint();
+        }
+      }));
+    }
+  }
 
   /**
    * This class extends {@link ColumnInfo} in order to pull an {@link Icon} value from a given {@link AvdInfo}.

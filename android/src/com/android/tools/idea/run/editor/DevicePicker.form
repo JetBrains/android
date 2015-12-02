@@ -37,6 +37,12 @@
         <border type="none"/>
         <children/>
       </scrollpane>
+      <grid id="11b24" binding="myNotificationPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints border-constraint="North"/>
+        <properties/>
+        <border type="none"/>
+        <children/>
+      </grid>
     </children>
   </grid>
 </form>
