@@ -79,13 +79,13 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
   public static final int WAITING_TIME_SECS = 20;
   public static final String DEVICE_COMMAND_PREFIX = "DEVICE SHELL COMMAND: ";
 
-  private final ApkProvider myApkProvider;
-
+  @NotNull private final ApkProvider myApkProvider;
   @NotNull private final String myPackageName;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final AndroidApplicationLauncher myApplicationLauncher;
   @NotNull private final ProcessHandlerConsolePrinter myPrinter;
   @NotNull private final LaunchOptions myLaunchOptions;
+  @NotNull private final PackageInstaller myPackageInstaller;
 
   private final Object myDebugLock = new Object();
 
@@ -113,6 +113,7 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
   public AndroidRunningState(@NotNull ExecutionEnvironment environment,
                              @NotNull AndroidFacet facet,
                              @NotNull ApkProvider apkProvider,
+                             @NotNull PackageInstaller installer,
                              @NotNull DeviceFutures deviceFutures,
                              @NotNull ProcessHandlerConsolePrinter printer,
                              @NotNull AndroidApplicationLauncher applicationLauncher,
@@ -124,6 +125,7 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
                              @Nullable AndroidDebugger androidDebugger) throws ExecutionException {
     myFacet = facet;
     myApkProvider = apkProvider;
+    myPackageInstaller = installer;
     myDeviceFutures = deviceFutures;
     myPrinter = printer;
 
@@ -411,24 +413,15 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
 
     myPrinter.stdout("Target device: " + device.getName());
     try {
+      LaunchUtils.initiateDismissKeyguard(device);
+
       if (myLaunchOptions.isDeploy()) {
-        if (myLaunchOptions.isDexSwap()) {
-          if (!FastDeployManager.installDex(myFacet, device)) {
-            // TODO: Can we figure out a way to automatically kick off another full build and push here?
-            // TODO: Although it seems like a full rebuild isn't necessary since by the time you see this, the build id has changed,
-            // and so the next launch will not hit the dexswap path
-            myPrinter.stdout("Pushing incremental patch to the device failed; you might need to do a clean build.");
-            return false;
-          }
-        }
-        else if (!installApks(device)) {
+        if (!myPackageInstaller.install(device, myStopped, myPrinter)) {
           return false;
         }
         trackInstallation(device);
         myApplicationDeployed = true;
       }
-
-      LaunchUtils.initiateDismissKeyguard(device);
 
       final AndroidApplicationLauncher.LaunchResult launchResult = myApplicationLauncher.launch(this, device);
       if (launchResult == AndroidApplicationLauncher.LaunchResult.STOP) {
@@ -474,45 +467,6 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
       myPrinter.stderr("I/O Error" + (message != null ? ": " + message : ""));
       return false;
     }
-  }
-
-  private boolean installApks(@NotNull IDevice device) {
-    Collection<ApkInfo> apks;
-    try {
-      apks = myApkProvider.getApks(device);
-    } catch (ApkProvisionException e) {
-      myPrinter.stderr(e.getMessage());
-      LOG.warn(e);
-      return false;
-    }
-
-    File arsc = FastDeployManager.findResourceArsc(myFacet);
-    long arscTimestamp = arsc == null ? 0 : arsc.lastModified();
-    File manifest = FastDeployManager.findMergedManifestFile(myFacet);
-    long manifestTimeStamp = manifest == null ? 0L : manifest.lastModified();
-
-    ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), myPrinter);
-    for (ApkInfo apk : apks) {
-      if (!apk.getFile().exists()) {
-        String message = "The APK file " + apk.getFile().getPath() + " does not exist on disk.";
-        myPrinter.stderr(message);
-        LOG.error(message);
-        return false;
-      }
-
-      String pkgName = apk.getApplicationId();
-      if (!installer.uploadAndInstallApk(device, pkgName, apk.getFile(), myStopped)) {
-        return false;
-      }
-
-      InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
-      patchCache.setInstalledArscTimestamp(device, pkgName, arscTimestamp);
-      patchCache.setInstalledManifestTimestamp(device, pkgName, manifestTimeStamp);
-      HashCode currentHash = InstalledPatchCache.computeManifestResources(myFacet);
-      patchCache.setInstalledManifestResourcesHash(device, pkgName, currentHash);
-    }
-
-    return true;
   }
 
   private static int ourInstallationCount = 0;
