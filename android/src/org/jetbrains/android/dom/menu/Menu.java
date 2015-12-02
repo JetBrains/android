@@ -17,17 +17,12 @@
 package org.jetbrains.android.dom.menu;
 
 import com.intellij.util.xml.DefinesXml;
+import org.jetbrains.android.dom.Styleable;
 
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Mar 27, 2009
- * Time: 2:44:37 PM
- * To change this template use File | Settings | File Templates.
- */
 @DefinesXml
+@Styleable("Menu")
 public interface Menu extends MenuElement {
   List<MenuItem> getItems();
   List<Group> getGroups();

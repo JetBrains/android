@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.drawable;
+package org.jetbrains.android.dom;
 
-import com.intellij.util.xml.DefinesXml;
-import org.jetbrains.android.dom.Styleable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@DefinesXml
-@Styleable("VectorDrawableClipPath")
-public interface VectorClipPath extends DrawableDomElement {
+/**
+ * Used to annotate XML model interfaces with styleable name which should be used to
+ * get attributes from.
+ *
+ * @see AndroidDomExtender
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD, ElementType.TYPE})
+public @interface Styleable {
+  String value();
 }
