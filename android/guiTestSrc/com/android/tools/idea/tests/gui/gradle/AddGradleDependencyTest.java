@@ -209,13 +209,13 @@ public class AddGradleDependencyTest extends GuiTestCase {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
 
     editor.moveTo(editor.findOffset("@Not^Null "));
-    editor.invokeIntentionAction("Add 'annotations' to classpath");
+    editor.invokeIntentionAction("Add 'annotations-java5' to classpath");
 
     myProjectFrame.waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
-    ArtifactDependencySpec expected = new ArtifactDependencySpec("annotations", "org.jetbrains", "13.0");
+    ArtifactDependencySpec expected = new ArtifactDependencySpec("annotations-java5", "org.jetbrains", "15.0");
     appBuildModel.requireDependency(COMPILE, expected);
 
     editor.invokeAction(UNDO); // Undo the import statement first

@@ -22,10 +22,6 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.BuildFileStatement;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.google.common.collect.ImmutableList;
@@ -77,25 +73,24 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @Override
   public Promise<Void> addModuleDependency(@NotNull Module from, @NotNull Module to, @NotNull DependencyScope scope) {
     String gradlePath = getGradlePath(to);
-    // TODO use new gradle API
-    final GradleBuildFile gradleBuildFile = GradleBuildFile.get(from);
+    final GradleBuildModel buildModel = GradleBuildModel.get(from);
 
-    if (gradleBuildFile != null && gradlePath != null) {
-      Dependency dependency = new Dependency(getDependencyScope(from, scope), Dependency.Type.MODULE, gradlePath);
-      final List<BuildFileStatement> dependencies = Lists.newArrayList(gradleBuildFile.getDependencies());
-      dependencies.add(dependency);
+    if (buildModel != null && gradlePath != null) {
+      DependenciesModel dependenciesModel = buildModel.dependencies(true);
+      String configurationName = getConfigurationName(from, scope);
+      dependenciesModel.addModule(configurationName, gradlePath, null);
 
-      new WriteCommandAction(myProject, "Add Gradle Dependency") {
+      new WriteCommandAction(myProject, "Add Gradle Module Dependency") {
         @Override
         protected void run(@NotNull Result result) throws Throwable {
-          gradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+          buildModel.applyChanges();
           registerUndoAction(myProject);
         }
       }.execute();
       return requestProjectSync(myProject);
     }
 
-    if ((gradleBuildFile == null) ^ (gradlePath == null)) {
+    if ((buildModel == null) ^ (gradlePath == null)) {
       // If one of them is gradle module and one of them are not, reject since this is invalid dependency
       return Promise.REJECTED;
     }
@@ -107,16 +102,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   public Promise<Void> addExternalLibraryDependency(@NotNull Collection<Module> modules,
                                                     @NotNull ExternalLibraryDescriptor descriptor,
                                                     @NotNull DependencyScope scope) {
-    ArtifactDependencySpec dependencySpec;
-    // TODO update
-    // com.intellij.codeInsight.daemon.impl.quickfix.JetBrainsAnnotationsExternalLibraryResolver.JetBrainsAnnotationsLibraryDescriptor
-    if ("com.intellij".equals(descriptor.getLibraryGroupId()) && "annotations".equals(descriptor.getLibraryArtifactId())) {
-      dependencySpec = new ArtifactDependencySpec("annotations", "org.jetbrains", "13.0");
-    }
-    else {
-      dependencySpec =
+    ArtifactDependencySpec dependencySpec =
         new ArtifactDependencySpec(descriptor.getLibraryArtifactId(), descriptor.getLibraryGroupId(), selectVersion(descriptor));
-    }
     return addExternalLibraryDependency(modules, dependencySpec, scope);
   }
 
@@ -149,7 +136,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       buildModelsToUpdate.add(buildModel);
     }
 
-    new WriteCommandAction(myProject, "Add Gradle Dependency") {
+    new WriteCommandAction(myProject, "Add Gradle Library Dependency") {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
         for (GradleBuildModel buildModel : buildModelsToUpdate) {
@@ -187,24 +174,12 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     return COMPILE;
   }
 
-  // TODO remove after switch to the new API
-  @NotNull
-  private static Dependency.Scope getDependencyScope(@NotNull Module module, DependencyScope scope) {
-    if (!scope.isForProductionCompile()) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null) {
-        AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
-        if (androidModel != null && ARTIFACT_ANDROID_TEST.equals(androidModel.getSelectedTestArtifactName())) {
-          return Dependency.Scope.ANDROID_TEST_COMPILE;
-        }
-      }
-      return Dependency.Scope.TEST_COMPILE;
-    }
-    return Dependency.Scope.COMPILE;
-  }
-
   private static Map<String, String> externalLibraryVersions = ImmutableMap
-    .of("net.jcip:jcip-annotations", "1.0", "org.jetbrains:annotations", "13.0", "junit:junit", "4.12", "org.testng:testng", "6.9.6");
+    .of("net.jcip:jcip-annotations", "1.0",
+        "org.jetbrains:annotations-java5", "15.0",
+        "org.jetbrains:annotations", "15.0",
+        "junit:junit", "4.12",
+        "org.testng:testng", "6.9.6");
 
   @Nullable
   private static String selectVersion(@NotNull ExternalLibraryDescriptor descriptor) {
