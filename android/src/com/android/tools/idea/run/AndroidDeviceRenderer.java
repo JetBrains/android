@@ -39,8 +39,8 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
       String marker = ((DevicePickerEntry)value).getMarker();
       assert marker != null : "device picker marker entry doesn't have a descriptive string";
 
-      if (value == DevicePickerEntry.NO_DEVICES_PROMPT) {
-        return renderNoDevicesPrompt(marker);
+      if (value == DevicePickerEntry.NONE) {
+        return renderEmptyMarker(marker);
       }
       else {
         return renderTitledSeparator(marker);
@@ -87,6 +87,11 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
     separator.setBackground(UIUtil.getListBackground());
     separator.setTitleFont(UIUtil.getLabelFont());
     return separator;
+  }
+
+  private static Component renderEmptyMarker(@NotNull String title) {
+    JLabel label = new JLabel(title);
+    return label;
   }
 
   private static Component renderNoDevicesPrompt(@NotNull String message) {
