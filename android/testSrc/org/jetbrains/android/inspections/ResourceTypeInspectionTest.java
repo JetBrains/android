@@ -977,6 +977,40 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  /**
+   * Test that the parent class annotations are not inherited by the static methods declared in a child class. In the example below,
+   * android.view.View is annotated with the UiThread annotation. The test checks that workerThreadMethod does not inherit that annotation.
+   */
+  public void testStaticWrongThread() {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.content.Context;\n" +
+            "import android.os.AsyncTask;\n" +
+            "import android.support.annotation.WorkerThread;\n" +
+            "import android.view.View;\n" +
+            "\n" +
+            "public class X extends View {\n" +
+            "    public X(Context context) {\n" +
+            "        super(context);\n" +
+            "    }\n" +
+            "\n" +
+            "    class MyAsyncTask extends AsyncTask<Long, Void, Boolean> {\n" +
+            "        @Override\n" +
+            "        protected Boolean doInBackground(Long... sizes) {\n" +
+            "            return workedThreadMethod();\n" +
+            "        }\n" +
+            "\n" +
+            "        @Override\n" +
+            "        protected void onPostExecute(Boolean isEnoughFree) {\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static boolean workedThreadMethod() {\n" +
+            "        return true;\n" +
+            "    }\n" +
+            "}");
+  }
+
   public void testCombinedIntDefAndIntRange() throws Exception {
     doCheck("package test.pkg;\n" +
             "\n" +
