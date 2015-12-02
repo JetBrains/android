@@ -21,6 +21,8 @@ import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.run.editor.*;
 import com.google.common.collect.*;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunnerIconProvider;
@@ -403,6 +405,30 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
 
+    ApkProvider apkProvider = getApkProvider(facet);
+    String packageName;
+    try {
+      packageName = apkProvider.getPackageName();
+    }
+    catch (ApkProvisionException e) {
+      throw new ExecutionException(e);
+    }
+
+    if (debug) {
+      // If we are debugging on a device, then the app needs to be debuggable
+      for (ListenableFuture<IDevice> future : deviceFutures.get()) {
+        if (!future.isDone()) {
+          // this is an emulator, and we assume that all emulators are debuggable
+          continue;
+        }
+
+        IDevice device = Futures.getUnchecked(future);
+        if (!LaunchUtils.canDebugAppOnDevice(facet, device)) {
+          throw new ExecutionException(AndroidBundle.message("android.cannot.debug.noDebugPermissions", packageName, device.getName()));
+        }
+      }
+    }
+
     LaunchOptions launchOptions = getLaunchOptions()
       .setDebug(debug)
       .setDexSwap(dexSwap)
@@ -417,7 +443,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return new AndroidRunningState(
       env,
       facet,
-      getApkProvider(facet),
+      apkProvider,
       deviceFutures,
       printer,
       appLauncher,
