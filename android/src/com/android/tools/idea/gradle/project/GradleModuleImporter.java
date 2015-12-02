@@ -28,10 +28,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,9 +36,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.google.common.base.Predicates.in;
-import static com.google.common.base.Predicates.not;
-import static com.google.common.base.Predicates.notNull;
+import static com.google.common.base.Predicates.*;
+import static com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Creates new project module from source files with Gradle configuration.
@@ -66,11 +65,12 @@ public final class GradleModuleImporter extends ModuleImporter {
   }
 
   @Override
-  public boolean isStepVisible(ModuleWizardStep step) {
+  public boolean isStepVisible(@NotNull ModuleWizardStep step) {
     return false;
   }
 
   @Override
+  @NotNull
   public List<? extends ModuleWizardStep> createWizardSteps() {
     return Collections.emptyList();
   }
@@ -94,7 +94,7 @@ public final class GradleModuleImporter extends ModuleImporter {
   }
 
   @Override
-  public boolean canImport(VirtualFile importSource) {
+  public boolean canImport(@NotNull VirtualFile importSource) {
     try {
       return Projects.canImportAsGradleProject(importSource) && (myIsWizard || findModules(importSource).size() == 1);
     }
@@ -105,7 +105,8 @@ public final class GradleModuleImporter extends ModuleImporter {
   }
 
   @Override
-  public Set<ModuleToImport> findModules(VirtualFile importSource) throws IOException {
+  @NotNull
+  public Set<ModuleToImport> findModules(@NotNull VirtualFile importSource) throws IOException {
     assert myProject != null;
     return getRelatedProjects(importSource, myProject);
   }
@@ -138,7 +139,7 @@ public final class GradleModuleImporter extends ModuleImporter {
    * Find direct and transitive dependency projects.
    */
   @NotNull
-  private static Set<ModuleToImport> getRequiredProjects(VirtualFile sourceProject, Project destinationProject) {
+  private static Set<ModuleToImport> getRequiredProjects(@NotNull VirtualFile sourceProject, @NotNull Project destinationProject) {
     GradleSiblingLookup subProjectLocations = new GradleSiblingLookup(sourceProject, destinationProject);
     Function<VirtualFile, Iterable<String>> parser = GradleProjectDependencyParser.newInstance(destinationProject);
     Map<String, VirtualFile> modules = Maps.newHashMap();
@@ -160,8 +161,10 @@ public final class GradleModuleImporter extends ModuleImporter {
     return buildModulesSet(modules, parser);
   }
 
-  private static Set<ModuleToImport> buildModulesSet(Map<String, VirtualFile> modules, Function<VirtualFile, Iterable<String>> parser) {
-    Set<ModuleToImport> modulesSet = new HashSet<ModuleToImport>(modules.size());
+  @NotNull
+  private static Set<ModuleToImport> buildModulesSet(@NotNull Map<String, VirtualFile> modules,
+                                                     @NotNull Function<VirtualFile, Iterable<String>> parser) {
+    Set<ModuleToImport> modulesSet = Sets.newHashSetWithExpectedSize(modules.size());
     for (Map.Entry<String, VirtualFile> entry : modules.entrySet()) {
       VirtualFile location = entry.getValue();
       Supplier<Iterable<String>> dependencyComputer;
@@ -178,9 +181,9 @@ public final class GradleModuleImporter extends ModuleImporter {
 
   @NotNull
   public static Map<String, VirtualFile> getSubProjects(@NotNull final VirtualFile settingsGradle, Project destinationProject) {
-    final GradleSettingsFile settingsFile = new GradleSettingsFile(settingsGradle, destinationProject);
+    GradleSettingsFile settingsFile = new GradleSettingsFile(settingsGradle, destinationProject);
     Map<String, File> allProjects = settingsFile.getModulesWithLocation();
-    return Maps.transformValues(allProjects, new ResolvePath(VfsUtilCore.virtualToIoFile(settingsGradle.getParent())));
+    return Maps.transformValues(allProjects, new ResolvePath(virtualToIoFile(settingsGradle.getParent())));
   }
 
   /**
@@ -276,8 +279,8 @@ public final class GradleModuleImporter extends ModuleImporter {
       File targetFile = GradleUtil.getModuleDefaultPath(projectRoot, name);
       VirtualFile moduleSource = module.getValue();
       if (moduleSource != null) {
-        if (!VfsUtilCore.isAncestor(projectRoot, moduleSource, true)) {
-          VirtualFile target = VfsUtil.createDirectoryIfMissing(targetFile.getAbsolutePath());
+        if (!isAncestor(projectRoot, moduleSource, true)) {
+          VirtualFile target = createDirectoryIfMissing(targetFile.getAbsolutePath());
           if (target == null) {
             throw new IOException(String.format("Unable to create directory %1$s", targetFile));
           }
@@ -287,7 +290,7 @@ public final class GradleModuleImporter extends ModuleImporter {
           moduleSource.copy(requestor, target.getParent(), target.getName());
         }
         else {
-          targetFile = VfsUtilCore.virtualToIoFile(moduleSource);
+          targetFile = virtualToIoFile(moduleSource);
         }
       }
       gradleSettingsFile.addModule(name, targetFile);
@@ -310,7 +313,7 @@ public final class GradleModuleImporter extends ModuleImporter {
       if (!path.isAbsolute()) {
         path = new File(mySourceDir, path.getPath());
       }
-      return VfsUtil.findFileByIoFile(path, true);
+      return findFileByIoFile(path, true);
     }
   }
 }
