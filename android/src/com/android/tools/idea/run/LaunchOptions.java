@@ -29,7 +29,6 @@ public final class LaunchOptions {
     private boolean myDebug = false;
     private boolean myOpenLogcatAutomatically = false;
     private boolean myClearLogcatBeforeStart = false;
-    private boolean myDexSwap = false;
     private boolean mySkipNoopApkInstallations = true;
     private boolean myForceStopRunningApp = true;
 
@@ -43,7 +42,6 @@ public final class LaunchOptions {
                                myDebug,
                                myOpenLogcatAutomatically,
                                myClearLogcatBeforeStart,
-                               myDexSwap,
                                mySkipNoopApkInstallations,
                                myForceStopRunningApp);
     }
@@ -79,12 +77,6 @@ public final class LaunchOptions {
     }
 
     @NotNull
-    public Builder setDexSwap(boolean dexSwap) {
-      myDexSwap = dexSwap;
-      return this;
-    }
-
-    @NotNull
     public Builder setSkipNoopApkInstallations(boolean skipNoopApkInstallations) {
       mySkipNoopApkInstallations = skipNoopApkInstallations;
       return this;
@@ -107,7 +99,6 @@ public final class LaunchOptions {
   private final boolean myDebug;
   private final boolean myOpenLogcatAutomatically;
   private final boolean myClearLogcatBeforeStart;
-  private final boolean myDexSwap;
   private final boolean mySkipNoopApkInstallations;
   private final boolean myForceStopRunningApp;
 
@@ -116,7 +107,6 @@ public final class LaunchOptions {
                         boolean debug,
                         boolean openLogcatAutomatically,
                         boolean clearLogcatBeforeStart,
-                        boolean dexSwap,
                         boolean skipNoopApkInstallations,
                         boolean forceStopRunningApp) {
     myDeploy = deploy;
@@ -124,7 +114,6 @@ public final class LaunchOptions {
     myDebug = debug;
     myOpenLogcatAutomatically = openLogcatAutomatically;
     myClearLogcatBeforeStart = clearLogcatBeforeStart;
-    myDexSwap = dexSwap;
     mySkipNoopApkInstallations = skipNoopApkInstallations;
     myForceStopRunningApp = forceStopRunningApp;
   }
@@ -148,10 +137,6 @@ public final class LaunchOptions {
 
   public boolean isClearLogcatBeforeStart() {
     return myClearLogcatBeforeStart;
-  }
-
-  public boolean isDexSwap() {
-    return myDexSwap;
   }
 
   public boolean isSkipNoopApkInstallations() {

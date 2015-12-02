@@ -431,8 +431,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     LaunchOptions launchOptions = getLaunchOptions()
       .setDebug(debug)
-      .setDexSwap(dexSwap)
       .build();
+
+    PackageInstaller installer = getPackageInstaller(facet, dexSwap, launchOptions, apkProvider);
 
     AndroidApplicationLauncher appLauncher = getApplicationLauncher(facet);
     AndroidDebuggerState androidDebuggerState = getAndroidDebuggerState(DEBUGGER_TYPE);
@@ -444,6 +445,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       env,
       facet,
       apkProvider,
+      installer,
       deviceFutures,
       printer,
       appLauncher,
@@ -485,6 +487,19 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
     return null;
+  }
+
+  @NotNull
+  private static PackageInstaller getPackageInstaller(@NotNull AndroidFacet facet,
+                                                      boolean dexSwap,
+                                                      @NotNull LaunchOptions launchOptions,
+                                                      @NotNull ApkProvider apkProvider) {
+    if (dexSwap) {
+      return new DexPatchInstaller(facet);
+    }
+    else {
+      return new InstantRunAwareApkInstaller(facet, launchOptions, apkProvider);
+    }
   }
 
   @NotNull
