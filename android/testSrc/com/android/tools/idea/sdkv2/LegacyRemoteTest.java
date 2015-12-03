@@ -16,12 +16,13 @@
 package com.android.tools.idea.sdkv2;
 
 import com.android.prefs.AndroidLocation;
-import com.android.repository.impl.meta.CommonFactory;
-import com.android.repository.testframework.*;
 import com.android.repository.Revision;
-import com.android.repository.api.*;
+import com.android.repository.api.ConstantSourceProvider;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
+import com.android.repository.testframework.*;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
@@ -32,7 +33,6 @@ import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
 
 
@@ -41,12 +41,14 @@ import java.util.Map;
  */
 public class LegacyRemoteTest extends AndroidTestCase {
   public void testLegacyRemoteSdk() throws Exception {
-    final AndroidSdkHandler handler = AndroidSdkHandler.getInstance();
+    MockFileOp fop = new MockFileOp();
+    final AndroidSdkHandler handler = new AndroidSdkHandler(fop, true);
     FakeProgressIndicator progress = new FakeProgressIndicator();
     RepoManager mgr = handler.getSdkManager(progress);
     progress.assertNoErrorsOrWarnings();
     mgr.getSourceProviders().clear();
     progress.assertNoErrorsOrWarnings();
+    
     mgr.registerSourceProvider(
       new ConstantSourceProvider("http://www.example.com/testRepo", "Repo", ImmutableList.of(handler.getRepositoryModule(progress))));
     mgr.registerSourceProvider(
@@ -54,8 +56,7 @@ public class LegacyRemoteTest extends AndroidTestCase {
     progress.assertNoErrorsOrWarnings();
 
     LegacyRemoteRepoLoader sdk =
-      new LegacyRemoteRepoLoader(new FakeSettingsController(false), (CommonFactory)mgr.getCommonModule().createLatestFactory());
-    MockFileOp fop = new MockFileOp();
+      new LegacyRemoteRepoLoader(new FakeSettingsController(false), handler);
     sdk.setDownloadCache(new DownloadCache(fop, DownloadCache.Strategy.ONLY_CACHE));
     mgr.setFallbackRemoteRepoLoader(sdk);
     FakeDownloader downloader = new FakeDownloader();
@@ -77,7 +78,7 @@ public class LegacyRemoteTest extends AndroidTestCase {
     UpdatablePackage doc = consolidatedPkgs.get("docs");
     assertEquals(new Revision(43), doc.getRemote(false).getVersion());
     UpdatablePackage pastry = consolidatedPkgs.get("platforms;android-Pastry");
-    TypeDetails pastryDetails = pastry.getRepresentative(true).getTypeDetails();
+    TypeDetails pastryDetails = pastry.getRepresentative().getTypeDetails();
     assertInstanceOf(pastryDetails, DetailsTypes.PlatformDetailsType.class);
     DetailsTypes.PlatformDetailsType platformDetails = (DetailsTypes.PlatformDetailsType)pastryDetails;
     assertEquals(5, platformDetails.getApiLevel());
