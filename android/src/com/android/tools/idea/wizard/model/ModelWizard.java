@@ -93,6 +93,17 @@ public final class ModelWizard implements Disposable {
       throw new IllegalStateException("Can't create a wizard with no steps");
     }
 
+    Set<WizardModel> seenModels = Sets.newHashSet();
+    for (ModelWizardStep step : mySteps) {
+      WizardModel model = step.getModel();
+      if (seenModels.contains(model)) {
+        continue;
+      }
+
+      Disposer.register(this, model);
+      seenModels.add(model);
+    }
+
     myCanGoForward.addListener(new InvalidationListener() {
       @Override
       protected void onInvalidated(@NotNull ObservableValue<?> sender) {
