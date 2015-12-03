@@ -251,10 +251,10 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     };
   }
 
-  private static void checkExpression(PsiExpression expression,
-                                      PsiModifierListOwner owner,
+  private static void checkExpression(@NotNull PsiExpression expression,
+                                      @NotNull PsiModifierListOwner owner,
                                       @Nullable PsiType type,
-                                      ProblemsHolder holder) {
+                                      @NotNull ProblemsHolder holder) {
     Constraints allowed = getAllowedValues(owner, type, null);
     if (allowed == null) return;
     //noinspection ConstantConditions
@@ -311,7 +311,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     checkMethodAnnotations(methodCall, holder, method);
   }
 
-  private static void checkMethodAnnotations(PsiCall methodCall, ProblemsHolder holder, PsiMethod method) {
+  private static void checkMethodAnnotations(@NotNull PsiCall methodCall, @NotNull ProblemsHolder holder, @NotNull PsiMethod method) {
     for (PsiAnnotation annotation : getAllAnnotations(method)) {
       String qualifiedName = annotation.getQualifiedName();
       if (qualifiedName == null) {
@@ -412,7 +412,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       if (operand != null) {
         return search(operand, operation);
       }
-    } else if (node instanceof PsiNewExpression && operation == PermissionFinder.Operation.ACTION) {
+    } else if (node instanceof PsiNewExpression && operation == ACTION) {
       // Identifies "new Intent(argument)" calls and, if found, continues
       // resolving the argument instead looking for the action definition
       PsiNewExpression call = (PsiNewExpression)node;
@@ -434,15 +434,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       PsiElement resolved = ((PsiJavaReference)node).resolve();
       if (resolved instanceof PsiField) {
         PsiField field = (PsiField)resolved;
-        if (operation == PermissionFinder.Operation.ACTION) {
+        if (operation == ACTION) {
           for (PsiAnnotation annotation : getAllAnnotations(field)) {
             if (PERMISSION_ANNOTATION.equals(annotation.getQualifiedName())) {
               return getPermissionRequirement(field, annotation, operation);
             }
           }
         }
-        else if (operation == PermissionFinder.Operation.READ || operation == PermissionFinder.Operation.WRITE) {
-          String fqn = operation == PermissionFinder.Operation.READ ? PERMISSION_ANNOTATION_READ : PERMISSION_ANNOTATION_WRITE;
+        else if (operation == READ || operation == WRITE) {
+          String fqn = operation == READ ? PERMISSION_ANNOTATION_READ : PERMISSION_ANNOTATION_WRITE;
           PsiAnnotation annotation = null;
           for (PsiAnnotation a : getAllAnnotations(field)) {
             if (fqn.equals(a.getQualifiedName())) {
@@ -545,7 +545,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     } else {
       name = field.getName();
     }
-    return new PermissionFinder.Result(operation, requirement, name);
+    return new PermissionFinder.Result(operation, requirement, StringUtil.notNullize(name));
   }
 
   private static void checkThreadAnnotation(PsiCall methodCall, ProblemsHolder holder, PsiMethod method, String qualifiedName) {
@@ -599,16 +599,16 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return null;
   }
 
-  private static void checkPermissionRequirement(PsiCall methodCall,
-                                                 ProblemsHolder holder,
-                                                 PsiMethod method,
-                                                 PsiAnnotation annotation) {
+  private static void checkPermissionRequirement(@NotNull PsiCall methodCall,
+                                                 @NotNull ProblemsHolder holder,
+                                                 @Nullable PsiMethod method,
+                                                 @NotNull PsiAnnotation annotation) {
     PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
     checkPermissionRequirement(methodCall, holder, method, null, requirement);
   }
 
-  private static void checkPermissionRequirement(PsiCall methodCall,
-                                                 ProblemsHolder holder,
+  private static void checkPermissionRequirement(@NotNull PsiCall methodCall,
+                                                 @NotNull ProblemsHolder holder,
                                                  @Nullable PsiMethod method,
                                                  @Nullable PermissionFinder.Result result,
                                                  PermissionRequirement requirement) {
@@ -632,7 +632,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           methodName = result.name;
         } else {
           assert method != null;
-          operation = PermissionFinder.Operation.CALL;
+          operation = CALL;
           PsiClass containingClass = method.getContainingClass();
           methodName = containingClass != null ? containingClass.getName() + "." + method.getName() : method.getName();
         }
@@ -680,7 +680,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
   }
 
-  private static PermissionHolder addLocalPermissions(PermissionHolder lookup, PsiCall call) {
+  @NotNull
+  private static PermissionHolder addLocalPermissions(@NotNull PermissionHolder lookup, @NotNull PsiCall call) {
     // Accumulate @RequirePermissions available in the local context
     PsiMethod method = PsiTreeUtil.getParentOfType(call, PsiMethod.class);
     if (method == null) {
@@ -695,7 +696,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return PermissionHolder.SetPermissionLookup.join(lookup, requirement);
   }
 
-  private static void checkReturnValueUsage(PsiCall methodCall, ProblemsHolder holder, PsiMethod method) {
+  private static void checkReturnValueUsage(@NotNull PsiCall methodCall, ProblemsHolder holder, PsiMethod method) {
     if (methodCall.getParent() instanceof PsiExpressionStatement) {
       PsiAnnotation annotation = AnnotationUtil.findAnnotation(method, CHECK_RESULT_ANNOTATION);
       if (annotation == null) {
@@ -731,7 +732,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     private final AndroidFacet myFacet;
     private final String myPermissionName;
 
-    public AddPermissionFix(AndroidFacet facet, String permissionName) {
+    public AddPermissionFix(@NotNull AndroidFacet facet, @NotNull String permissionName) {
       myFacet = facet;
       myPermissionName = permissionName;
     }
@@ -746,7 +747,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     @NotNull
     @Override
     public String getFamilyName() {
-      return "Add Permissions";
+      return "Add permissions";
     }
 
     @Override
@@ -827,13 +828,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     private final AndroidFacet myFacet;
     private final PermissionRequirement myRequirement;
     private final Set<String> myRevocablePermissions;
-    private final PsiCall myCall;
+    private final SmartPsiElementPointer<PsiCall> myCall;
 
-    public AddCheckPermissionFix(AndroidFacet facet, PermissionRequirement requirement, PsiCall call,
-                                 Set<String> revocablePermissions) {
+    public AddCheckPermissionFix(@NotNull AndroidFacet facet, @NotNull PermissionRequirement requirement, @NotNull PsiCall call,
+                                 @NotNull Set<String> revocablePermissions) {
       myFacet = facet;
       myRequirement = requirement;
-      myCall = call;
+      myCall = SmartPointerManager.getInstance(call.getProject()).createSmartPsiElementPointer(call);
       myRevocablePermissions = revocablePermissions;
     }
 
@@ -841,7 +842,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     @NotNull
     @Override
     public String getName() {
-      return "Add Permission Check";
+      return "Add permission check";
     }
 
     @NotNull
@@ -852,8 +853,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+      PsiCall call = myCall.getElement();
+      if (call == null) {
+        return;
+      }
+
       // Find the statement containing the method call;
-      PsiStatement statement = PsiTreeUtil.getParentOfType(myCall, PsiStatement.class, true);
+      PsiStatement statement = PsiTreeUtil.getParentOfType(call, PsiStatement.class, true);
       if (statement == null) {
         return;
       }
@@ -941,7 +947,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                 " //                                          int[] grantResults)\n" +
                 " // to handle the case where the user grants the permission. See the documentation\n" +
                 " // for Activity").append(usingAppCompat ? "Compat" : "").append("#requestPermissions for more details.\n");
-      PsiMethod method = PsiTreeUtil.getParentOfType(myCall, PsiMethod.class, true);
+      PsiMethod method = PsiTreeUtil.getParentOfType(call, PsiMethod.class, true);
 
       // TODO: Add additional information here, perhaps pointing to
       //    http://android-developers.blogspot.com/2015/09/google-play-services-81-and-android-60.html
@@ -955,7 +961,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       sb.append("}\n");
       String code = sb.toString();
 
-      PsiStatement check = factory.createStatementFromText(code, myCall);
+      PsiStatement check = factory.createStatementFromText(code, call);
       JavaCodeStyleManager.getInstance(project).shortenClassReferences(check);
       parent.addBefore(check, statement);
 
@@ -967,11 +973,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
   private static class ReplaceCallFix implements LocalQuickFix {
 
-    private final PsiMethodCallExpression myMethodCall;
+    private final SmartPsiElementPointer<PsiMethodCallExpression> myMethodCall;
     private final String mySuggest;
 
-    public ReplaceCallFix(PsiMethodCallExpression methodCall, String suggest) {
-      myMethodCall = methodCall;
+    public ReplaceCallFix(@NotNull PsiMethodCallExpression methodCall, @NotNull String suggest) {
+      myMethodCall = SmartPointerManager.getInstance(methodCall.getProject()).createSmartPsiElementPointer(methodCall);
       mySuggest = suggest;
     }
 
@@ -985,7 +991,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     @NotNull
     @Override
     public String getFamilyName() {
-      return "Replace Calls";
+      return "Replace calls";
     }
 
     private String getMethodName() {
@@ -1000,18 +1006,19 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-      if (!myMethodCall.isValid()) {
+      PsiMethodCallExpression methodCall = myMethodCall.getElement();
+      if (methodCall == null || !methodCall.isValid()) {
         return;
       }
       String name = getMethodName();
-      final PsiFile file = myMethodCall.getContainingFile();
+      final PsiFile file = methodCall.getContainingFile();
       if (file == null || !FileModificationService.getInstance().prepareFileForWrite(file)) {
         return;
       }
 
       Document document = FileDocumentManager.getInstance().getDocument(file.getVirtualFile());
       if (document != null) {
-        PsiReferenceExpression methodExpression = myMethodCall.getMethodExpression();
+        PsiReferenceExpression methodExpression = methodCall.getMethodExpression();
         PsiElement referenceNameElement = methodExpression.getReferenceNameElement();
         if (referenceNameElement != null) {
           TextRange range = referenceNameElement.getTextRange();
@@ -1022,7 +1029,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             // parameters. Consider using MethodSignatureInsertHandler.
             if (name.startsWith("enforce") && methodExpression.getReferenceName() != null
                 && methodExpression.getReferenceName().startsWith("check")) {
-              PsiExpressionList argumentList = myMethodCall.getArgumentList();
+              PsiExpressionList argumentList = methodCall.getArgumentList();
               int offset = argumentList.getTextOffset() + argumentList.getTextLength() - 1;
               document.insertString(offset, ", \"TODO: message if thrown\"");
             }
@@ -1695,7 +1702,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         PsiClass aClass = (PsiClass)resolved;
         if (visited == null) visited = new THashSet<PsiClass>();
         if (!visited.add(aClass)) continue;
-        constraint = merge(getAllowedValues(aClass, type, visited), constraint);
+        constraint = getAllowedValues(aClass, type, visited);
       }
     }
 
@@ -1817,14 +1824,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
       if (isGoodExpression(argument, a, scope, manager, visited)) return true;
 
-      boolean allowed = processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
+      return processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
         @Override
         public boolean process(PsiExpression expression) {
           return isGoodExpression(expression, a, scope, manager, visited);
         }
       });
-
-      return allowed;
     }
   }
 
@@ -2025,7 +2030,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             if (outerMost instanceof PsiClass && R_CLASS.equals(((PsiClass)outerMost).getName())) {
               PsiClass typeClass = (PsiClass)parent;
               String typeClassName = typeClass.getName();
-              return allowedValues.isTypeAllowed(typeClassName) ? VALID : INVALID;
+              return typeClassName != null && allowedValues.isTypeAllowed(typeClassName) ? VALID : INVALID;
             }
           }
         }
@@ -2298,8 +2303,10 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     params.dataFlowToThis = true;
     params.scope = new AnalysisScope(new LocalSearchScope(scope), manager.getProject());
 
+    SliceLanguageSupportProvider languageSlicing = LanguageSlicing.getProvider(argument);
+    assert languageSlicing != null;
     SliceRootNode rootNode = new SliceRootNode(manager.getProject(), new DuplicateMap(),
-                                               LanguageSlicing.getProvider(argument).createRootUsage(argument, params));
+                                               languageSlicing.createRootUsage(argument, params));
 
     @SuppressWarnings("unchecked")
     Collection<? extends AbstractTreeNode> children = rootNode.getChildren().iterator().next().getChildren();
