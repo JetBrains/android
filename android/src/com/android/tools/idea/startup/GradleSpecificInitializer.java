@@ -279,8 +279,7 @@ public class GradleSpecificInitializer implements Runnable {
     File androidHome = IdeSdks.getAndroidSdkPath();
 
     final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance();
-    sdkHandler.setRemoteFallback(new LegacyRemoteRepoLoader(StudioSettingsController.getInstance(),
-                                                            (CommonFactory)RepoManager.getCommonModule().createLatestFactory()));
+    sdkHandler.setRemoteFallback(new LegacyRemoteRepoLoader(StudioSettingsController.getInstance(), sdkHandler));
 
     if (androidHome != null) {
       sdkHandler.setLocation(androidHome);

@@ -16,7 +16,7 @@
 package com.android.tools.idea.updater.configure.v2;
 
 
-import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
+import com.android.repository.api.UpdatablePackage;
 
 /**
  * State of a row in {@link SdkUpdaterConfigurable}.
@@ -28,14 +28,14 @@ class NodeStateHolder {
     INSTALLED
   }
 
-  private final UpdatablePkgInfo myPkg;
+  private final UpdatablePackage myPkg;
   private SelectedState myState;
 
-  public NodeStateHolder(UpdatablePkgInfo pkg) {
+  public NodeStateHolder(UpdatablePackage pkg) {
     myPkg = pkg;
   }
 
-  public UpdatablePkgInfo getPkg() {
+  public UpdatablePackage getPkg() {
     return myPkg;
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.updater;
 
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.intellij.ide.externalComponents.ExternalComponentManagerImpl;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.openapi.components.ApplicationComponent;
@@ -30,7 +31,12 @@ public class AndroidSdkUpdaterPlugin implements ApplicationComponent {
   @Override
   public void initComponent() {
     if (isAndroidSdkManagerEnabled()) {
-      ExternalComponentManagerImpl.getInstance().registerComponentSource(new SdkComponentSource());
+      if (AndroidSdkHandler.getInstance().useSdkV2()) {
+        ExternalComponentManagerImpl.getInstance().registerComponentSource(new com.android.tools.idea.updater.v2.SdkComponentSource());
+      }
+      else {
+        ExternalComponentManagerImpl.getInstance().registerComponentSource(new SdkComponentSource());
+      }
     }
   }
 

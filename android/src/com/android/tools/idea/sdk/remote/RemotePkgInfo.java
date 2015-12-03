@@ -35,6 +35,7 @@ import com.android.tools.idea.sdk.remote.internal.packages.RemotePackageParserUt
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.base.Objects;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.jetbrains.annotations.NotNull;
@@ -200,7 +201,7 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
       Node ref = usesLicense.getAttributes().getNamedItem(SdkRepoConstants.ATTR_REF);
       if (ref != null) {
         String licenseRef = ref.getNodeValue();
-        ProgressIndicator progress = new RepoProgressIndicatorAdapter(null);
+        ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
         CommonFactory f = (CommonFactory)AndroidSdkHandler.getInstance().getSdkManager(progress).getCommonModule().createLatestFactory();
         License l = f.createLicenseType();
         l.setId(licenseRef);
