@@ -16,8 +16,7 @@
 package com.android.tools.idea.sdk.wizard.v2;
 
 import com.android.repository.api.License;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.tools.idea.sdk.wizard.AndroidSdkLicenseTemporaryData;
+import com.android.repository.api.RemotePackage;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
@@ -76,13 +75,13 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   // Only licenses that have not been accepted in the past by the user are displayed.
   private Set<String> myVisibleLicenses = Sets.newHashSet();
 
-  // All packages that will get installed.
-  private List<IPkgDesc> myInstallRequests;
+  // All package paths that will get installed.
+  private List<RemotePackage> myInstallRequests;
 
   // True when all the visible licenses have been accepted.
   private BoolProperty myAllLicensesAreAccepted = new BoolValueProperty();
 
-  protected LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<IPkgDesc> installRequests) {
+  protected LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<RemotePackage> installRequests) {
     super(model, "License Agreement");
     myInstallRequests = installRequests;
   }
@@ -277,14 +276,13 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   private List<Change> createChangesList() {
     List<Change> toReturn = Lists.newArrayList();
     if (myInstallRequests != null) {
-      for (IPkgDesc desc : myInstallRequests) {
-        License license = desc.getLicense();
-        if (license == null) { // Android SDK license
-          license = AndroidSdkLicenseTemporaryData.getLicense(desc.getAndroidVersion() != null && desc.getAndroidVersion().isPreview());
-        }
-        getModel().getLicenses().add(license);
-        if (!license.checkAccepted(getModel().sdkRoot().getValue())) {
-          toReturn.add(new Change(desc, license));
+      for (RemotePackage p : myInstallRequests) {
+        License license = p.getLicense();
+        if (license != null) {
+          getModel().getLicenses().add(license);
+          if (!license.checkAccepted(getModel().sdkRoot().getValue())) {
+            toReturn.add(new Change(p, license));
+          }
         }
       }
     }
@@ -296,22 +294,17 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   }
 
   private final static class Change {
-    public IPkgDesc packageDescription;
+    public RemotePackage myPackage;
     public License license;
 
-    public Change(@NotNull IPkgDesc packageDescription, @NotNull License license) {
-      this.packageDescription = packageDescription;
+    public Change(@NotNull RemotePackage p, @NotNull License license) {
+      this.myPackage = p;
       this.license = license;
     }
 
     @Override
     public String toString() {
-      if (packageDescription.getListDescription() != null) {
-        return packageDescription.getListDescription();
-      }
-      else {
-        return "INCORRECT PACKAGE DESCRIPTION";
-      }
+      return myPackage.getDisplayName();
     }
   }
 }

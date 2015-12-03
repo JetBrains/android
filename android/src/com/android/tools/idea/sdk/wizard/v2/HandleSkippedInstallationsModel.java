@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 package com.android.tools.idea.sdk.wizard.v2;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
+
+import com.android.repository.api.RemotePackage;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -32,14 +33,14 @@ import java.util.List;
  */
 public final class HandleSkippedInstallationsModel extends WizardModel {
   private final Project myProject;
-  private List<IPkgDesc> mySkippedInstallRequests;
-  private AndroidSdkData mySdkData;
+  private List<RemotePackage> mySkippedInstallRequests;
+  private File mySdkRoot;
   private BoolProperty myUseStandaloneSdkManager = new BoolValueProperty();
 
-  public HandleSkippedInstallationsModel(@Nullable Project project, @NotNull List<IPkgDesc> skippedInstallRequests, AndroidSdkData data) {
+  public HandleSkippedInstallationsModel(@Nullable Project project, @NotNull List<RemotePackage> skippedInstallRequests, File sdkRoot) {
     myProject = project;
     mySkippedInstallRequests = skippedInstallRequests;
-    mySdkData = data;
+    mySdkRoot = sdkRoot;
   }
 
   /**
@@ -50,7 +51,7 @@ public final class HandleSkippedInstallationsModel extends WizardModel {
     return myUseStandaloneSdkManager;
   }
 
-  public List<IPkgDesc> getSkippedInstallRequests() {
+  public List<RemotePackage> getSkippedInstallRequests() {
     return mySkippedInstallRequests;
   }
 
@@ -64,7 +65,7 @@ public final class HandleSkippedInstallationsModel extends WizardModel {
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
-        SdkQuickfixUtils.startSdkManagerAndExit(myProject, mySdkData);
+        SdkQuickfixUtils.startSdkManagerAndExit(myProject, mySdkRoot);
       }
     });
   }
