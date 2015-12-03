@@ -312,8 +312,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   }
 
   private static void checkMethodAnnotations(PsiCall methodCall, ProblemsHolder holder, PsiMethod method) {
-    PsiAnnotation[] annotations = getAllAnnotations(method);
-    for (PsiAnnotation annotation : annotations) {
+    for (PsiAnnotation annotation : getAllAnnotations(method)) {
       String qualifiedName = annotation.getQualifiedName();
       if (qualifiedName == null) {
         continue;
@@ -328,8 +327,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             continue;
           }
           PsiClass cls = (PsiClass)resolved;
-          annotations = getAllAnnotations(cls);
-          for (PsiAnnotation a : annotations) {
+          for (PsiAnnotation a : getAllAnnotations(cls)) {
             qualifiedName = a.getQualifiedName();
             if (qualifiedName != null && qualifiedName.endsWith(PERMISSION_ANNOTATION)) {
               checkPermissionRequirement(methodCall, holder, method, a);
@@ -375,12 +373,17 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
     PsiClass cls = method.getContainingClass();
     if (cls != null) {
-      annotations = getAllAnnotations(cls);
+      // Class annotations only apply to instance methods. Static methods in child classes do not inherit class annotations.
+      PsiAnnotation[] annotations = method.hasModifierProperty(PsiModifier.STATIC) ? getLocalAnnotations(cls) : getAllAnnotations(cls);
       for (PsiAnnotation annotation : annotations) {
         String qualifiedName = annotation.getQualifiedName();
-        if (qualifiedName != null && qualifiedName.endsWith(THREAD_SUFFIX) && qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
+        if (qualifiedName == null) {
+          continue;
+        }
+
+        if (qualifiedName.endsWith(THREAD_SUFFIX) && qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
           checkThreadAnnotation(methodCall, holder, method, qualifiedName);
-        } else if (qualifiedName != null && !qualifiedName.startsWith(DEFAULT_PACKAGE)) {
+        } else if (!qualifiedName.startsWith(DEFAULT_PACKAGE)) {
           // Look for annotation that itself is annotated; we allow this for the @RequiresPermission annotation
           PsiJavaCodeReferenceElement ref = annotation.getNameReferenceElement();
           PsiElement resolved = ref == null ? null : ref.resolve();
@@ -388,8 +391,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             continue;
           }
           cls = (PsiClass)resolved;
-          annotations = getAllAnnotations(cls);
-          for (PsiAnnotation a : annotations) {
+          for (PsiAnnotation a : getAllAnnotations(cls)) {
             qualifiedName = a.getQualifiedName();
             if (qualifiedName != null && qualifiedName.endsWith(PERMISSION_ANNOTATION)) {
               checkPermissionRequirement(methodCall, holder, method, a);
@@ -1704,12 +1706,29 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return constraint;
   }
 
-  public static PsiAnnotation[] getAllAnnotations(final PsiModifierListOwner element) {
+  @NotNull
+  public static PsiAnnotation[] getAllAnnotations(@NotNull final PsiModifierListOwner element) {
     return CachedValuesManager.getCachedValue(element, new CachedValueProvider<PsiAnnotation[]>() {
       @Nullable
       @Override
       public Result<PsiAnnotation[]> compute() {
         return Result.create(AnnotationUtil.getAllAnnotations(element, true, null), PsiModificationTracker.MODIFICATION_COUNT);
+      }
+    });
+  }
+
+  /**
+   * Method that only gets the class annotations and not the ones in any parents.
+   */
+  @NotNull
+  public static PsiAnnotation[] getLocalAnnotations(@NotNull final PsiModifierListOwner element) {
+    // This code is almost identical to getAllAnnotations, just changing the boolean value. The reason to have two separate call is that
+    // CachedValuesManager uses the passed CachedValueProvider class as key for the caching and we want two separate caches.
+    return CachedValuesManager.getCachedValue(element, new CachedValueProvider<PsiAnnotation[]>() {
+      @Nullable
+      @Override
+      public Result<PsiAnnotation[]> compute() {
+        return Result.create(AnnotationUtil.getAllAnnotations(element, false, null), PsiModificationTracker.MODIFICATION_COUNT);
       }
     });
   }
