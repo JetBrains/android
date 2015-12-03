@@ -416,6 +416,30 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Replace commit() with apply()", "/src/test/pkg/CommitToApply.java", "java");
   }
 
+  public void testMissingIntDefSwitch() throws Exception {
+    myFixture.addFileToProject("/src/android/support/annotation/IntDef.java", "package android.support.annotation;\n" +
+                                                                              "\n" +
+                                                                              "import java.lang.annotation.Retention;\n" +
+                                                                              "import java.lang.annotation.RetentionPolicy;\n" +
+                                                                              "import java.lang.annotation.Target;\n" +
+                                                                              "\n" +
+                                                                              "import static java.lang.annotation.ElementType.ANNOTATION_TYPE;\n" +
+                                                                              "import static java.lang.annotation.ElementType.FIELD;\n" +
+                                                                              "import static java.lang.annotation.ElementType.METHOD;\n" +
+                                                                              "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+                                                                              "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                                                                              "import static java.lang.annotation.RetentionPolicy.SOURCE;\n" +
+                                                                              "\n" +
+                                                                              "@Retention(CLASS)\n" +
+                                                                              "@Target({ANNOTATION_TYPE})\n" +
+                                                                              "public @interface IntDef {\n" +
+                                                                              "    long[] value() default {};\n" +
+                                                                              "    boolean flag() default false;\n" +
+                                                                              "}\n");
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintSwitchIntDefInspection(),
+                  "Add Missing @IntDef Constants", "/src/test/pkg/MissingIntDefSwitch.java", "java");
+  }
+
   public void testIncludeParams() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintIncludeLayoutParamInspection(),
                   "Set layout_height", "/res/layout/layout.xml", "xml");
