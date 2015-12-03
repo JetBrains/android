@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.sdk.wizard.v2;
 
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalSdk;
-import com.android.tools.idea.sdk.SdkLoadedCallback;
-import com.android.tools.idea.sdk.SdkLoggerIntegration;
-import com.android.tools.idea.sdk.SdkPackages;
-import com.android.tools.idea.sdk.SdkState;
-import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
+import com.android.repository.api.*;
+import com.android.repository.impl.installer.PackageInstaller;
+import com.android.repository.impl.meta.TypeDetails;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
@@ -33,7 +30,6 @@ import com.android.tools.idea.ui.wizard.Validator;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -45,14 +41,11 @@ import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.TimeoutUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -74,38 +67,47 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   private JProgressBar myProgressBar;
   private JBLabel myProgressDetailLabel;
 
-  /**
-   * Will be {@code null} until set by a background thread.
-   */
-  private Boolean myBackgroundSuccess = null;
-  private List<IPkgDesc> myInstallRequests;
-  private AndroidSdkData mySdkData;
+  private List<RemotePackage> myInstallRequests;
+  // Ok to keep a reference, since the wizard is short-lived and modal.
+  private final RepoManager myRepoManager;
+  private final AndroidSdkHandler mySdkHandler;
+  private CustomLogger myCustomLogger;
+  private static final Object LOGGER_LOCK = new Object();
 
-  public InstallSelectedPackagesStep(@NotNull List<IPkgDesc> installRequests, @NotNull AndroidSdkData data) {
+  @NotNull private final Downloader myDownloader = StudioDownloader.getInstance();
+  @NotNull private final SettingsController mySettings = StudioSettingsController.getInstance();
+
+  @NotNull private final Runnable myOnError = new Runnable() {
+    @Override
+    public void run() {
+      installFailed.set(true);
+      myProgressBar.setEnabled(false);
+    }
+  };
+
+  public InstallSelectedPackagesStep(@NotNull List<RemotePackage> installRequests, @NotNull RepoManager mgr, AndroidSdkHandler sdkHandler) {
     super("Component Installer");
     myInstallRequests = installRequests;
-    mySdkData = data;
+    myRepoManager = mgr;
+    mySdkHandler = sdkHandler;
     myStudioPanel = new StudioWizardStepPanel(this, myContentPanel, "Installing Requested Components");
-  }
-
-  private static Logger getLog() {
-    return Logger.getInstance(InstallSelectedPackagesStep.class);
   }
 
   /**
    * Look through the list of completed changes, and set a key if any new platforms
    * were installed.
    */
-  private static void checkForUpgrades(@Nullable List<IPkgDesc> completedChanges) {
+  private static void checkForUpgrades(@Nullable List<? extends RepoPackage> completedChanges) {
     if (completedChanges == null) {
       return;
     }
     Integer highestNewApiLevel = 0;
-    for (IPkgDesc pkgDesc : completedChanges) {
-      if (pkgDesc.getType().equals(PkgType.PKG_PLATFORM)) {
-        AndroidVersion version = pkgDesc.getAndroidVersion();
-        if (version != null && version.getApiLevel() > highestNewApiLevel) {
-          highestNewApiLevel = version.getApiLevel();
+    for (RepoPackage updated : completedChanges) {
+      TypeDetails details = updated.getTypeDetails();
+      if (details instanceof DetailsTypes.PlatformDetailsType) {
+        int api = ((DetailsTypes.PlatformDetailsType)details).getApiLevel();
+        if (api > highestNewApiLevel) {
+          highestNewApiLevel = api;
         }
       }
     }
@@ -143,7 +145,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   @Override
   protected void onEnter() {
     mySdkManagerOutput.setText("");
-    myLabelSdkPath.setText(mySdkData.getLocation().getPath());
+    myLabelSdkPath.setText(myRepoManager.getLocalPath().getPath());
 
     startSdkInstall();
   }
@@ -170,126 +172,219 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     return myStudioPanel;
   }
 
-  private void startSdkInstall() {
-    final CustomLogger logger = new CustomLogger();
-
-    SdkLoadedCallback onSdkAvailable = new SdkLoadedCallback(true) {
-      @Override
-      public void doRun(@NotNull SdkPackages packages) {
-        // Since this is only run on complete (not on local complete) it's ok that we're not using the passed-in packages
-        final ArrayList<String> requestedPackages = Lists.newArrayList();
-        for (IPkgDesc packageDesc : myInstallRequests) {
-          if (packageDesc != null) {
-            // We look for the package in the local SDK to avoid installing duplicates
-            LocalSdk localSdk = mySdkData.getLocalSdk();
-            if (localSdk.getPkgInfo(packageDesc) == null) {
-              requestedPackages.add(packageDesc.getInstallId());
-            }
-          }
-        }
-
-        InstallTask task = new InstallTask(mySdkData, requestedPackages, logger);
-        BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
-        logger.setIndicator(indicator);
-        ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
+  @Override
+  public void dispose() {
+    synchronized (LOGGER_LOCK) {
+      if (myCustomLogger != null) {
+        myCustomLogger.cancel();
       }
-    };
+    }
+  }
 
-    // loadAsync checks if the timeout expired and/or loads the SDK if it's not loaded yet.
-    // If needed, it does a backgroundable Task to load the SDK and then calls onSdkAvailable.
-    // Otherwise it returns false, in which case we call onSdkAvailable ourselves.
-    logger.info("Loading SDK information...\n");
-    SdkState sdkState = SdkState.getInstance(mySdkData);
-    sdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, onSdkAvailable, null,
-                       false);  // TODO(jbakermalone): display something on error?
+  private void startSdkInstall() {
+    synchronized (LOGGER_LOCK) {
+      myCustomLogger = new CustomLogger();
+    }
+
+    InstallTask task = new InstallTask(myInstallRequests, myCustomLogger);
+    BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
+    myCustomLogger.setIndicator(indicator);
+    ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
   }
 
   private class InstallTask extends Task.Backgroundable {
-    @NotNull private final AndroidSdkData mySdkData;
-    @NotNull private final ArrayList<String> myRequestedPackages;
-    @NotNull private final ILogger myLogger;
+    @NotNull private final List<RemotePackage> myRequestedPackages;
+    @NotNull private final com.android.repository.api.ProgressIndicator myProgress;
 
-    private InstallTask(@NotNull AndroidSdkData sdkData, @NotNull ArrayList<String> requestedPackages, @NotNull ILogger logger) {
-      super(null, "Installing Android SDK", false, PerformInBackgroundOption.ALWAYS_BACKGROUND);
-      mySdkData = sdkData;
+    @Override
+    public void onCancel() {
+      myProgress.cancel();
+    }
+
+    private InstallTask(@NotNull List<RemotePackage> requestedPackages, @NotNull
+                        com.android.repository.api.ProgressIndicator progress) {
+      super(null, "Installing Android SDK", true, PerformInBackgroundOption.ALWAYS_BACKGROUND);
       myRequestedPackages = requestedPackages;
-      myLogger = logger;
+      myProgress = progress;
     }
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
-      // This runs in a background task and isn't interrupted.
-
-      // Perform the install by using the command-line interface and dumping the output into the logger.
-      // The command-line API is a bit archaic and has some drastic limitations, one of them being that
-      // it blindly re-install stuff even if already present IIRC.
-
-      SdkManager sdkManager = SdkManager.createManager(mySdkData.getLocalSdk());
-      SdkUpdaterNoWindow upd = new SdkUpdaterNoWindow(mySdkData.getLocation().getPath(), sdkManager, myLogger, false, null, null);
-
-      upd.updateAll(myRequestedPackages, true, false, null, true);
-
-      while (myBackgroundSuccess == null) {
-        TimeoutUtil.sleep(100);
+      final List<RemotePackage> failures = Lists.newArrayList();
+      try {
+        for (RemotePackage remote : myRequestedPackages) {
+          PackageInstaller installer = AndroidSdkHandler.findBestInstaller(remote);
+          if (!installer.install(remote, myDownloader, mySettings, myProgress, myRepoManager, mySdkHandler.getFileOp())) {
+            failures.add(remote);
+          }
+        }
       }
-
+      finally {
+        synchronized (LOGGER_LOCK) {
+          myCustomLogger = null;
+        }
+      }
       UIUtil.invokeLaterIfNeeded(new Runnable() {
         @Override
         public void run() {
           myProgressBar.setValue(100);
           myProgressOverallLabel.setText("");
 
-          if (!myBackgroundSuccess) {
+          if (!failures.isEmpty()) {
             installFailed.set(true);
             myProgressBar.setEnabled(false);
           }
           else {
             myProgressDetailLabel.setText("Done");
-            checkForUpgrades(myInstallRequests);
+            checkForUpgrades(myRequestedPackages);
           }
           installationFinished.set(true);
 
-          VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(mySdkData.getLocation());
+          VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(myRepoManager.getLocalPath());
           if (sdkDir != null) {
             sdkDir.refresh(true, true);
           }
-          mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
         }
       });
     }
   }
 
-  private final class CustomLogger extends SdkLoggerIntegration {
+  private final class CustomLogger implements com.android.repository.api.ProgressIndicator {
+
+    private BackgroundableProcessIndicator myIndicator;
+    private boolean myCancelled;
+    private Logger myLogger = Logger.getInstance(getClass());
+
     @Override
-    protected void setProgress(int progress) {
-      myProgressBar.setValue(progress);
+    public void setText(@Nullable final String s) {
+      UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          myProgressOverallLabel.setText(s);
+        }
+      });
+      if (myIndicator != null) {
+        myIndicator.setText(s);
+      }
     }
 
     @Override
-    protected void setDescription(String description) {
-      myProgressDetailLabel.setText(description);
+    public boolean isCanceled() {
+      return myCancelled;
     }
 
     @Override
-    protected void setTitle(String title) {
-      myProgressOverallLabel.setText(title);
+    public void cancel() {
+      myCancelled = true;
+      if (myIndicator != null) {
+        myIndicator.cancel();
+      }
     }
 
     @Override
-    protected void lineAdded(String string) {
-      String current = mySdkManagerOutput.getText();
-      if (current == null) {
-        current = "";
+    public void setCancellable(boolean cancellable) {
+      // Nothing
+    }
+
+    @Override
+    public boolean isCancellable() {
+      return true;
+    }
+
+    @Override
+    public void setIndeterminate(final boolean indeterminate) {
+      UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          myProgressBar.setIndeterminate(indeterminate);
+        }
+      });
+      if (myIndicator != null) {
+        myIndicator.setIndeterminate(indeterminate);
       }
-      mySdkManagerOutput.setText(current + string);
-      if (string.contains("Nothing was installed") ||
-          string.contains("Failed") ||
-          string.contains("The package filter removed all packages")) {
-        myBackgroundSuccess = false;
+    }
+
+    @Override
+    public boolean isIndeterminate() {
+      return false;
+    }
+
+    @Override
+    public void setFraction(final double v) {
+      UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          myProgressBar.setValue((int)(v * (double)(myProgressBar.getMaximum() - myProgressBar.getMinimum())));
+        }
+      });
+      if (myIndicator != null) {
+        myIndicator.setFraction(v);
       }
-      else if (string.contains("Done") && !string.contains("othing")) {
-        myBackgroundSuccess = true;
+    }
+
+    @Override
+    public double getFraction() {
+      return myProgressBar.getPercentComplete();
+    }
+
+    @Override
+    public void setSecondaryText(@Nullable final String s) {
+      UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          myProgressOverallLabel.setText(s);
+        }
+      });
+      if (myIndicator != null) {
+        myIndicator.setText2(s);
       }
+    }
+
+    @Override
+    public void logWarning(@NotNull String s) {
+      appendText(s);
+      myLogger.warn(s);
+    }
+
+    @Override
+    public void logWarning(@NotNull String s, @Nullable Throwable e) {
+      appendText(s);
+      myLogger.warn(s, e);
+    }
+
+    @Override
+    public void logError(@NotNull String s) {
+      appendText(s);
+      myLogger.error(s);
+    }
+
+    @Override
+    public void logError(@NotNull String s, @Nullable Throwable e) {
+      appendText(s);
+      myLogger.error(s, e);
+    }
+
+    @Override
+    public void logInfo(@NotNull String s) {
+      appendText(s);
+      myLogger.info(s);
+    }
+
+    private void appendText(@NotNull final String s) {
+      UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          String current = mySdkManagerOutput.getText();
+          if (current == null) {
+            current = "";
+          }
+          mySdkManagerOutput.setText(current + s);
+        }
+      });
+    }
+
+    public void setIndicator(BackgroundableProcessIndicator indicator) {
+      myIndicator = indicator;
     }
   }
 }
