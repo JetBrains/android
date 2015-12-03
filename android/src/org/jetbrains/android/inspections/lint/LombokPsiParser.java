@@ -1182,11 +1182,20 @@ public class LombokPsiParser extends JavaParser {
         PsiArrayInitializerMemberValue mv = (PsiArrayInitializerMemberValue)v;
         PsiAnnotationMemberValue[] values = mv.getInitializers();
         List<Object> list = Lists.newArrayListWithExpectedSize(values.length);
+        boolean fields = true;
         for (PsiAnnotationMemberValue mmv : values) {
           if (mmv instanceof PsiLiteral) {
             PsiLiteral literal = (PsiLiteral)mmv;
             list.add(literal.getValue());
           } else if (mmv instanceof PsiExpression) {
+            if (mmv instanceof PsiReferenceExpression) {
+              PsiElement resolved = ((PsiReferenceExpression)mmv).resolve();
+              if (resolved instanceof PsiField) {
+                list.add(new ResolvedPsiField((PsiField)resolved));
+                fields = true;
+                continue;
+              }
+            }
             Object o = JavaConstantExpressionEvaluator.computeConstantExpression((PsiExpression)mmv, false);
             if (o == null && mmv instanceof PsiReferenceExpression) {
               PsiElement resolved = ((PsiReferenceExpression)mmv).resolve();
@@ -1198,16 +1207,22 @@ public class LombokPsiParser extends JavaParser {
           }
         }
 
+        if (fields) {
+          return list.toArray();
+        }
+
         PsiReference reference = pair.getReference();
         if (reference != null) {
           PsiElement resolved = reference.resolve();
           if (resolved instanceof PsiAnnotationMethod) {
             PsiType returnType = ((PsiAnnotationMethod)resolved).getReturnType();
-            if (returnType != null && returnType.getDeepComponentType().getCanonicalText().equals(CommonClassNames.JAVA_LANG_STRING)) {
+            if (returnType != null) {
+              returnType = returnType.getDeepComponentType();
+            }
+            if (returnType != null && returnType.getCanonicalText().equals(CommonClassNames.JAVA_LANG_STRING)) {
               //noinspection SSBasedInspection,SuspiciousToArrayCall
               return list.toArray(new String[list.size()]);
-            } else if (returnType != null && returnType.getDeepComponentType().getCanonicalText().equals(
-              CommonClassNames.JAVA_LANG_ANNOTATION_ANNOTATION)) {
+            } else if (returnType != null && returnType.getCanonicalText().equals(CommonClassNames.JAVA_LANG_ANNOTATION_ANNOTATION)) {
               //noinspection SSBasedInspection,SuspiciousToArrayCall
               return list.toArray(new Annotation[list.size()]);
             } else if (returnType == PsiType.INT) {
