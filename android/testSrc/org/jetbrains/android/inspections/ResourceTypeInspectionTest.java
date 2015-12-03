@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.collect.Lists;
-import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -1301,13 +1300,6 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
 
     // Now delegate to the real test implementation (it won't find comments to replace with <warning>)
     super.doTest(newText.toString());
-  }
-
-  protected void checkQuickFix(@NotNull String quickFixName, @NotNull String expected) {
-    final IntentionAction quickFix = myFixture.getAvailableIntention(quickFixName);
-    assertNotNull(quickFix);
-    myFixture.launchAction(quickFix);
-    myFixture.checkResult(expected);
   }
 
   @Nullable
