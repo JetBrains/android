@@ -48,6 +48,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.ui.*;
+import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -150,6 +151,7 @@ public class ThemeEditorComponent extends Splitter {
   private ScheduledFuture<?> myScheduledSearch;
 
   private String myHoverPreviewTheme;
+  private final ScheduledExecutorService mySearchUpdateScheduler;
 
   public interface GoToListener {
     void goTo(@NotNull EditedStyleItem value);
@@ -371,7 +373,7 @@ public class ThemeEditorComponent extends Splitter {
       }
     }
 
-    final ScheduledExecutorService searchUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
+    mySearchUpdateScheduler = Executors.newSingleThreadScheduledExecutor(ConcurrencyUtil.newNamedThreadFactory("Theme Editor Searcher"));
     textField.addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {
@@ -379,7 +381,7 @@ public class ThemeEditorComponent extends Splitter {
           myScheduledSearch.cancel(false);
         }
 
-        myScheduledSearch = searchUpdateScheduler.schedule(new Runnable() {
+        myScheduledSearch = mySearchUpdateScheduler.schedule(new Runnable() {
           @Override
           public void run() {
             myPreviewPanel.setSearchTerm(textField.getText());
@@ -860,6 +862,10 @@ public class ThemeEditorComponent extends Splitter {
     myAttributesTable.removeEditor();
     myPreviewPanel.dispose();
     myThemeEditorContext.dispose();
+    if (myScheduledSearch != null) {
+      myScheduledSearch.cancel(false);
+    }
+    mySearchUpdateScheduler.shutdownNow();
     super.dispose();
   }
 
