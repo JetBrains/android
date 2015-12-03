@@ -64,7 +64,6 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
-import static com.intellij.openapi.project.ProjectCoreUtil.DIRECTORY_BASED_PROJECT_DIR;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.delete;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -334,10 +333,10 @@ public abstract class GuiTestCase {
     updateLocalProperties(projectPath);
 
     if (forOpen) {
-      File toDotIdea = new File(projectPath, DIRECTORY_BASED_PROJECT_DIR);
+      File toDotIdea = new File(projectPath, Project.DIRECTORY_STORE_FOLDER);
       ensureExists(toDotIdea);
 
-      File fromDotIdea = new File(getTestProjectsRootDirPath(), join("commonFiles", DIRECTORY_BASED_PROJECT_DIR));
+      File fromDotIdea = new File(getTestProjectsRootDirPath(), join("commonFiles", Project.DIRECTORY_STORE_FOLDER));
       assertThat(fromDotIdea).isDirectory();
 
       for (File from : notNullize(fromDotIdea.listFiles())) {
@@ -399,7 +398,7 @@ public abstract class GuiTestCase {
   }
 
   protected void cleanUpProjectForImport(@NotNull File projectPath) {
-    File dotIdeaFolderPath = new File(projectPath, DIRECTORY_BASED_PROJECT_DIR);
+    File dotIdeaFolderPath = new File(projectPath, Project.DIRECTORY_STORE_FOLDER);
     if (dotIdeaFolderPath.isDirectory()) {
       File modulesXmlFilePath = new File(dotIdeaFolderPath, "modules.xml");
       if (modulesXmlFilePath.isFile()) {
