@@ -30,13 +30,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Mar 27, 2009
- * Time: 2:30:41 PM
- * To change this template use File | Settings | File Templates.
- */
 public abstract class AndroidResourceDomFileDescription<T extends DomElement> extends DomFileDescription<T> {
   private final String[] myResourceTypes;
 

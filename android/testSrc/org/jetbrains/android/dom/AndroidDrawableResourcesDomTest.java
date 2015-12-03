@@ -46,7 +46,7 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
- public void testStateListHighlighting1() throws Throwable {
+  public void testStateListHighlighting1() throws Throwable {
     doTestHighlighting();
   }
 

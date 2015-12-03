@@ -282,18 +282,23 @@
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.DrawableStateListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.BitmapOrNinePatchDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.LayerListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.LevelListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.InsetOrClipOrScaleDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.ShapeDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.AnimationListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.AnimatedStateListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.RippleDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.ColorDrawableDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.VectorDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.AnimatedVectorDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.BitmapDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.NinePatchDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.LayerListDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.LevelListDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ShapeDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimationListDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedStateListDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RippleDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ColorDrawableDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.VectorDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedVectorDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.InsetDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ClipDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ScaleDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedRotateDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RotateDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.color.ColorDomFileDescription"/>
 
     <dom.fileDescription implementation="org.jetbrains.android.dom.manifest.ManifestDomFileDescription"/>

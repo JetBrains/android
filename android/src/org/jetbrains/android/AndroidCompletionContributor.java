@@ -45,7 +45,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.color.ColorDomFileDescription;
 import org.jetbrains.android.dom.converters.FlagConverter;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
-import org.jetbrains.android.dom.drawable.DrawableStateListDomFileDescription;
+import org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutElement;
@@ -130,7 +130,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return false;
     }
     else if (ColorDomFileDescription.isColorResourceFile(xmlFile)) {
-      resultSet.addElement(LookupElementBuilder.create(DrawableStateListDomFileDescription.SELECTOR_TAG_NAME));
+      resultSet.addElement(LookupElementBuilder.create(DrawableStateListDomFileDescription.TAG_NAME));
       return false;
     }
     return true;

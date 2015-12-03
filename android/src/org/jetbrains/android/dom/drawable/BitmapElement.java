@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.color;
+package org.jetbrains.android.dom.drawable;
 
 import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
-import org.jetbrains.android.dom.resources.ResourceValue;
 
-@Styleable("DrawableStates")
-public interface ColorStateListItem extends ColorDomElement {
-  @Convert(ResourceReferenceConverter.class)
-  @AndroidResourceType("color")
+@DefinesXml
+@Styleable("BitmapDrawable")
+public interface BitmapElement extends DrawableDomElement {
   @Required
-  AndroidAttributeValue<ResourceValue> getColor();
+  @Convert(ResourceReferenceConverter.class)
+  @AndroidResourceType("drawable")
+  AndroidAttributeValue<String> getSrc();
 }
