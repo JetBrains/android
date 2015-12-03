@@ -52,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableRowSorter;
 import javax.swing.text.JTextComponent;
@@ -67,7 +68,7 @@ public class StringResourceViewPanel implements HyperlinkListener {
   private static final boolean HIDE_TRANSLATION_ORDER_LINK = Boolean.getBoolean("hide.order.translations");
 
   private final AndroidFacet myFacet;
-  private JBLoadingPanel myLoadingPanel;
+  private final JBLoadingPanel myLoadingPanel;
   private JPanel myContainer;
   private JBTable myTable;
   private JTextField myKey;
@@ -110,10 +111,11 @@ public class StringResourceViewPanel implements HyperlinkListener {
     myTranslation = myTranslationWithBrowseBtn.getTextField();
 
     initEditPanel();
-    initTable();
 
     myTableModel = new StringResourceTableModel();
-    myTable.setModel(myTableModel);
+    initTable();
+    new TableSpeedSearch(myTable);
+
     myLoadingPanel.setLoadingText("Loading string resource data");
     myLoadingPanel.startLoading();
 
@@ -317,18 +319,9 @@ public class StringResourceViewPanel implements HyperlinkListener {
   }
 
   private void initTable() {
-    myTable.setCellSelectionEnabled(true);
-    myTable.getTableHeader().setReorderingAllowed(false);
+    ListSelectionListener selectionListener = new CellSelectionListener();
 
-    MouseAdapter headerListener = new HeaderCellSelectionListener(myTable);
-    myTable.getTableHeader().addMouseListener(headerListener);
-    myTable.getTableHeader().addMouseMotionListener(headerListener);
-
-    CellSelectionListener selectionListener = new CellSelectionListener();
-    myTable.getSelectionModel().addListSelectionListener(selectionListener);
-    myTable.getColumnModel().getSelectionModel().addListSelectionListener(selectionListener);
-
-    CellEditorListener cellEditorListener = new CellEditorListener() {
+    CellEditorListener editorListener = new CellEditorListener() {
       @Override
       public void editingStopped(ChangeEvent event) {
         refilter();
@@ -339,14 +332,24 @@ public class StringResourceViewPanel implements HyperlinkListener {
       }
     };
 
-    myTable.getDefaultEditor(Boolean.class).addCellEditorListener(cellEditorListener);
-
-    TableCellEditor cellEditor = new StringsCellEditor();
-    cellEditor.addCellEditorListener(cellEditorListener);
-
-    myTable.setDefaultEditor(String.class, cellEditor);
-
+    myTable.getColumnModel().getSelectionModel().addListSelectionListener(selectionListener);
+    myTable.getDefaultEditor(Boolean.class).addCellEditorListener(editorListener);
     myTable.getParent().addComponentListener(new ResizeListener(myTable));
+    myTable.getSelectionModel().addListSelectionListener(selectionListener);
+
+    JTableHeader header = myTable.getTableHeader();
+    MouseAdapter mouseListener = new HeaderCellSelectionListener(myTable);
+
+    header.setReorderingAllowed(false);
+    header.addMouseListener(mouseListener);
+    header.addMouseMotionListener(mouseListener);
+
+    TableCellEditor editor = new StringsCellEditor();
+    editor.addCellEditorListener(editorListener);
+
+    myTable.setCellSelectionEnabled(true);
+    myTable.setDefaultEditor(String.class, editor);
+    myTable.setModel(myTableModel);
   }
 
   @NotNull
@@ -431,8 +434,8 @@ public class StringResourceViewPanel implements HyperlinkListener {
   }
 
   private class ParseTask extends Task.Backgroundable {
-    private AtomicReference<LocalResourceRepository> myResourceRepositoryRef = new AtomicReference<LocalResourceRepository>(null);
-    private AtomicReference<StringResourceData> myResourceDataRef = new AtomicReference<StringResourceData>(null);
+    private final AtomicReference<LocalResourceRepository> myResourceRepositoryRef = new AtomicReference<LocalResourceRepository>(null);
+    private final AtomicReference<StringResourceData> myResourceDataRef = new AtomicReference<StringResourceData>(null);
 
     public ParseTask(String description) {
       super(myFacet.getModule().getProject(), description, false);
