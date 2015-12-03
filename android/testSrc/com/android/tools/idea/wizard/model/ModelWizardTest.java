@@ -305,18 +305,52 @@ public class ModelWizardTest {
 
     assertThat(wizard.isFinished()).isTrue();
 
+    assertThat(disposedStep.isDisposed()).isFalse();
     Disposer.dispose(wizard);
-
     assertThat(disposedStep.isDisposed()).isTrue();
+  }
 
+  @Test
+  public void allModelsGetDisposedWhenWizardGetsDisposed() throws Exception {
+    DummyModel modelA = new DummyModel();
+    DummyModel modelB = new DummyModel();
+    DummyModel modelC = new DummyModel();
+
+    DummyStep step1A = new DummyStep(modelA);
+    DummyStep step2A = new DummyStep(modelA);
+    ShouldSkipStep step3B = new ShouldSkipStep(modelB);
+    ShouldSkipStep step4C = new ShouldSkipStep(modelC);
+    DummyStep step5C = new DummyStep(modelC);
+
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder(step1A, step2A, step3B, step4C, step5C);
+    ModelWizard wizard = wizardBuilder.build();
+    wizard.goForward();
+    wizard.goForward();
+    wizard.goForward();
+
+    assertThat(wizard.isFinished()).isTrue();
+
+    assertThat(modelA.myIsDisposed).isFalse();
+    assertThat(modelB.myIsDisposed).isFalse();
+    assertThat(modelC.myIsDisposed).isFalse();
+    Disposer.dispose(wizard);
+    assertThat(modelA.myIsDisposed).isTrue();
+    assertThat(modelB.myIsDisposed).isTrue();
+    assertThat(modelC.myIsDisposed).isTrue();
   }
 
   private static class DummyModel extends WizardModel {
     private boolean myIsFinished;
+    private boolean myIsDisposed;
 
     @Override
     public void handleFinished() {
       myIsFinished = true;
+    }
+
+    @Override
+    public void dispose() {
+      myIsDisposed = true;
     }
   }
 
