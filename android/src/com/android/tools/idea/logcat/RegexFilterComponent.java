@@ -73,7 +73,6 @@ public final class RegexFilterComponent extends FilterComponent {
     }
   }
 
-  private static final String REGEX_MNEMONIC = "Re&gex";
   private static final String REGEX = "Regex";
 
   @NotNull private final EventDispatcher<Listener> myMulticaster = EventDispatcher.create(Listener.class);
@@ -81,9 +80,9 @@ public final class RegexFilterComponent extends FilterComponent {
   @NotNull private final JCheckBox myCheckBox;
   private boolean myIsRegex = true;
 
-  public RegexFilterComponent(@NonNls String propertyName, int historySize, boolean addMnemonic) {
+  public RegexFilterComponent(@NonNls String propertyName, int historySize) {
     super(propertyName, historySize, true);
-    final CheckboxAction regexToggle = new CheckboxAction(addMnemonic ? REGEX_MNEMONIC : REGEX) {
+    final CheckboxAction regexToggle = new CheckboxAction(REGEX) {
       @Override
       public boolean isSelected(AnActionEvent e) {
         return isRegex();
