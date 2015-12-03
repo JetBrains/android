@@ -101,7 +101,7 @@ public final class SdkQuickfixUtils {
 
     String title = "SDK Quickfix Installation";
 
-    return new StudioWizardDialogBuilder(wizard, title, parent).setProject(project).setModalityType(DialogWrapper.IdeModalityType.PROJECT)
+    return new StudioWizardDialogBuilder(wizard, title, parent).setProject(project).setModalityType(DialogWrapper.IdeModalityType.IDE)
       .build();
   }
 
