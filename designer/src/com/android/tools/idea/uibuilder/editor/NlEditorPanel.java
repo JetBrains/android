@@ -327,7 +327,8 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
 
     @Override
     public void setConfiguration(@NonNull Configuration configuration) {
-      throw new UnsupportedOperationException();
+      // This method is used in the layout editor to support the multi-preview
+      // At the moment we don't do anything as we only have a single Configuration (updated from the drop down).
     }
 
     @Override

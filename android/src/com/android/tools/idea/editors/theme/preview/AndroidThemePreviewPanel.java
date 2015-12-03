@@ -565,7 +565,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
   @Override
   public void setConfiguration(@NotNull Configuration configuration) {
     // This method is used in the layout editor to support the multi-preview. The theme editor doesn't support it.
-    throw new UnsupportedOperationException("Configuration can not be changed on AndroidThemePreviewPanel");
+    // We only support the drop down
   }
 
   @Override
