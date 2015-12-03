@@ -1182,7 +1182,7 @@ public class LombokPsiParser extends JavaParser {
         PsiArrayInitializerMemberValue mv = (PsiArrayInitializerMemberValue)v;
         PsiAnnotationMemberValue[] values = mv.getInitializers();
         List<Object> list = Lists.newArrayListWithExpectedSize(values.length);
-        boolean fields = true;
+        boolean fields = false;
         for (PsiAnnotationMemberValue mmv : values) {
           if (mmv instanceof PsiLiteral) {
             PsiLiteral literal = (PsiLiteral)mmv;
