@@ -2063,6 +2063,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintUnsafeDynamicallyLoadedCodeInspection extends AndroidLintInspectionBase {
+    public AndroidLintUnsafeDynamicallyLoadedCodeInspection() {
+      super(AndroidBundle.message("android.lint.inspections.unsafe.dynamically.loaded.code"), UnsafeNativeCodeDetector.LOAD);
+    }
+  }
+
+  public static class AndroidLintUnsafeNativeCodeLocationInspection extends AndroidLintInspectionBase {
+    public AndroidLintUnsafeNativeCodeLocationInspection() {
+      super(AndroidBundle.message("android.lint.inspections.unsafe.native.code.location"), UnsafeNativeCodeDetector.UNSAFE_NATIVE_CODE_LOCATION);
+    }
+  }
+
   public static class AndroidLintUnsupportedTvHardwareInspection extends AndroidLintInspectionBase {
     public AndroidLintUnsupportedTvHardwareInspection() {
       super(AndroidBundle.message("android.lint.inspections.unsupported.tvhardware"), AndroidTvDetector.UNSUPPORTED_TV_HARDWARE);
