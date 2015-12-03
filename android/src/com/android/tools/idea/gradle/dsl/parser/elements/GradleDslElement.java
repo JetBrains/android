@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -264,6 +265,7 @@ public abstract class GradleDslElement {
    */
   @Nullable
   protected <T> T resolveReference(@NotNull String referenceText, @NotNull Class<T> clazz) {
+
     GradleDslElement element = this;
     while(element != null) {
       if (element instanceof GradlePropertiesDslElement) {
@@ -287,6 +289,9 @@ public abstract class GradleDslElement {
     // TODO: Also expand to look at other places like rootProject etc.
 
     if (clazz.isAssignableFrom(String.class)) {
+      if (myPsiElement != null && "rootDir".equals(referenceText)) { // resolve the rootDir reference to project root directory.
+        return clazz.cast(Projects.getBaseDirPath(myPsiElement.getProject()).getPath());
+      }
       return clazz.cast(referenceText);
     }
 
