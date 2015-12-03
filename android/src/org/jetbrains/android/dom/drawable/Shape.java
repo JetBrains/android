@@ -16,18 +16,28 @@
 package org.jetbrains.android.dom.drawable;
 
 import com.intellij.util.xml.DefinesXml;
+import org.jetbrains.android.dom.Styleable;
 
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @DefinesXml
+@Styleable("GradientDrawable")
 public interface Shape extends DrawableDomElement {
+  @Styleable("DrawableCorners")
   List<DrawableDomElement> getCornerss();
+
+  @Styleable("GradientDrawableGradient")
   List<DrawableDomElement> getGradients();
+
+  @Styleable("GradientDrawablePadding")
   List<DrawableDomElement> getPaddings();
+
+  @Styleable("GradientDrawableSize")
   List<DrawableDomElement> getSizes();
+
+  @Styleable("GradientDrawableSolid")
   List<DrawableDomElement> getSolids();
+
+  @Styleable("GradientDrawableStroke")
   List<DrawableDomElement> getStrokes();
 }

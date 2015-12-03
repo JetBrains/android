@@ -50,10 +50,6 @@ public class AndroidAnimationDomTest extends AndroidDomTest {
     toTestCompletion("tn.xml", "tn_after.xml");
   }
 
-  public void testChildren1() throws Throwable {
-    toTestCompletion("tn1.xml", "tn1_after.xml");
-  }
-
   // An example of statelist animator is highlighted without errors
   public void testSelectorAnimationHiglighting() throws Throwable {
     doTestHighlighting("selectorAnimationHighlighting.xml");

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.drawable;
+package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceType;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RippleDomFileDescription extends AndroidResourceDomFileDescription<Ripple> {
-  @NonNls static final String TAG = "ripple";
+public abstract class AbstractSingleRootFileDescription<T extends DomElement> extends AndroidResourceDomFileDescription<T> {
+  private final String myTagName;
 
-  public RippleDomFileDescription() {
-    super(Ripple.class, TAG, ResourceType.DRAWABLE.getName());
+  public AbstractSingleRootFileDescription(@NotNull Class<T> aClass, @NotNull String tagName) {
+    super(aClass, tagName, ResourceType.DRAWABLE.getName());
+    myTagName = tagName;
   }
 
   @Override
@@ -47,7 +48,7 @@ public class RippleDomFileDescription extends AndroidResourceDomFileDescription<
       return false;
     }
 
-    return TAG.equals(rootTag.getName());
+    return myTagName.equals(rootTag.getName());
   }
 }
 

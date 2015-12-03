@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.drawable;
+package org.jetbrains.android.dom.drawable.fileDescriptions;
 
-import com.intellij.util.xml.DefinesXml;
-import org.jetbrains.android.dom.Styleable;
+import org.jetbrains.android.dom.drawable.LevelList;
 
-import java.util.List;
+public class LevelListDomFileDescription extends AbstractSingleRootFileDescription<LevelList> {
+  public static final String TAG_NAME = "level-list";
 
-@DefinesXml
-@Styleable("VectorDrawable")
-public interface Vector extends DrawableDomElement {
-  List<VectorPath> getPaths();
-  List<VectorGroup> getGroups();
-  List<VectorClipPath> getClipPaths();
+  public LevelListDomFileDescription() {
+    super(LevelList.class, TAG_NAME);
+  }
+
+  @Override
+  public boolean acceptsOtherRootTagNames() {
+    return false;
+  }
 }

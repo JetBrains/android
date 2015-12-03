@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android.dom.drawable;
 
-/**
- * @author Eugene.Kudelevsky
- */
+import org.jetbrains.android.dom.Styleable;
+
+@Styleable("DrawableStates")
 public interface DrawableStateListItem extends ListItemBase {
 }

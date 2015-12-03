@@ -356,10 +356,10 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
 
     if (resourceManager != null) {
-      final AttributeDefinitions attrDefs = resourceManager.getAttributeDefinitions();
+      final AttributeDefinitions attributes = resourceManager.getAttributeDefinitions();
 
-      if (attrDefs != null) {
-        return attrDefs.getAttrDefByName(localName);
+      if (attributes != null) {
+        return attributes.getAttrDefByName(localName);
       }
     }
     return null;
@@ -374,7 +374,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       final List<String> formatLabels = new ArrayList<String>(formats.size());
 
       for (AttributeFormat format : formats) {
-        formatLabels.add(format.name().toLowerCase());
+        formatLabels.add(format.name().toLowerCase(Locale.US));
       }
       Collections.sort(formatLabels);
 
