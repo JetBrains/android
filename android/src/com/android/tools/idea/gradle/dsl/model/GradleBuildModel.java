@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
@@ -47,6 +48,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 import static com.android.tools.idea.gradle.dsl.model.java.JavaModel.SOURCE_COMPATIBILITY_FIELD;
 import static com.android.tools.idea.gradle.dsl.model.java.JavaModel.TARGET_COMPATIBILITY_FIELD;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class GradleBuildModel extends GradleFileModel {
   @Nullable
@@ -58,8 +60,39 @@ public class GradleBuildModel extends GradleFileModel {
   @NotNull
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     GradleBuildDslFile buildDslFile = new GradleBuildDslFile(file, project, moduleName);
+    populateWithParentModuleSubProjectsProperties(buildDslFile);
     buildDslFile.parse();
     return new GradleBuildModel(buildDslFile);
+  }
+
+  private static void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildDslFile buildDslFile) {
+    GradleSettingsModel gradleSettingsModel = GradleSettingsModel.get(buildDslFile.getProject());
+    if (gradleSettingsModel == null) {
+      return;
+    }
+
+    String modulePath = gradleSettingsModel.moduleWithDirectory(virtualToIoFile(buildDslFile.getFile().getParent()));
+    if (modulePath == null) {
+      return;
+    }
+
+    GradleBuildModel parentModuleModel = gradleSettingsModel.getParentModuleModel(modulePath);
+    if (parentModuleModel == null) {
+      return;
+    }
+
+    SubProjectsDslElement subProjectsDslElement =
+      parentModuleModel.myGradleDslFile.getProperty(SubProjectsDslElement.NAME, SubProjectsDslElement.class);
+    if (subProjectsDslElement == null) {
+      return;
+    }
+
+    buildDslFile.setParsedElement(SubProjectsDslElement.NAME, subProjectsDslElement);
+    for (String property : subProjectsDslElement.getProperties()) {
+      GradleDslElement propertyElement = subProjectsDslElement.getPropertyElement(property);
+      assert propertyElement != null;
+      buildDslFile.setParsedElement(property, propertyElement);
+    }
   }
 
   private GradleBuildModel(@NotNull GradleBuildDslFile buildDslFile) {
@@ -196,8 +229,8 @@ public class GradleBuildModel extends GradleFileModel {
 
     @Override
     public void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-      if ((SOURCE_COMPATIBILITY_FIELD.equals(property) || TARGET_COMPATIBILITY_FIELD.equals(property))
-          && (element instanceof GradleDslLiteral || element instanceof GradleDslReference)) {
+      if ((SOURCE_COMPATIBILITY_FIELD.equals(property) || TARGET_COMPATIBILITY_FIELD.equals(property)) &&
+          (element instanceof GradleDslLiteral || element instanceof GradleDslReference)) {
         JavaDslElement javaDslElement = getProperty(JavaDslElement.NAME, JavaDslElement.class);
         if (javaDslElement == null) {
           javaDslElement = new JavaDslElement(this);
