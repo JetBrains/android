@@ -20,9 +20,8 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
+import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -995,6 +994,61 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintStateListReachableInspection extends AndroidLintInspectionBase {
     public AndroidLintStateListReachableInspection() {
       super(AndroidBundle.message("android.lint.inspections.state.list.reachable"), StateListDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase {
+    public AndroidLintSwitchIntDefInspection() {
+      super(AndroidBundle.message("android.lint.inspections.switch.int.def"), AnnotationDetector.SWITCH_TYPE_DEF);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      final List<String> missingCases = AnnotationDetector.getMissingCases(message, RAW);
+      if (missingCases != null && !missingCases.isEmpty()) {
+        return new AndroidLintQuickFix[]{new AndroidLintQuickFix() {
+          @Override
+          public void apply(@NotNull PsiElement startElement,
+                            @NotNull PsiElement endElement,
+                            @NotNull AndroidQuickfixContexts.Context context) {
+            if (startElement.getParent() instanceof PsiSwitchStatement) {
+              PsiSwitchStatement switchStatement = (PsiSwitchStatement)startElement.getParent();
+              Project project = switchStatement.getProject();
+              PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
+
+              PsiCodeBlock body = switchStatement.getBody();
+              if (body == null) {
+                return;
+              }
+              PsiElement anchor = body.getLastChild();
+              for (String constant : missingCases) {
+                PsiElement parent = anchor.getParent();
+                PsiStatement caseStatement = factory.createStatementFromText("case " + constant + ":", anchor);
+                parent.addBefore(caseStatement, anchor);
+                PsiStatement breakStatement = factory.createStatementFromText("break;", anchor);
+                parent.addBefore(breakStatement, anchor);
+              }
+
+              CodeStyleManager.getInstance(project).reformat(switchStatement);
+            }
+          }
+
+          @Override
+          public boolean isApplicable(@NotNull PsiElement startElement,
+                                      @NotNull PsiElement endElement,
+                                      @NotNull AndroidQuickfixContexts.ContextType contextType) {
+            return startElement.isValid();
+          }
+
+          @NotNull
+          @Override
+          public String getName() {
+            return "Add Missing @IntDef Constants";
+          }
+        }};
+      }
+      return AndroidLintQuickFix.EMPTY_ARRAY;
     }
   }
 
