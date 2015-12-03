@@ -48,9 +48,9 @@ import java.util.List;
  */
 public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
   /**
-   * Reference to the {@link RepoManager} that's using this loader.
+   * Reference to the {@link AndroidSdkHandler} that's using this loader.
    */
-  private final CommonFactory myFactory;
+  private final AndroidSdkHandler mySdkHandler;
 
   /**
    * Caching downloader used by {@link SdkSource}s.
@@ -71,11 +71,11 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
    * Create a new loader.
    *
    * @param settingsController For download-related settings.
-   * @param repoManager        The {@link RepoManager} that's using this loader.
+   * @param handler            The {@link AndroidSdkHandler} that's using this loader.
    */
-  public LegacyRemoteRepoLoader(@NotNull SettingsController settingsController, @NotNull CommonFactory factory) {
+  public LegacyRemoteRepoLoader(@NotNull SettingsController settingsController, @NotNull AndroidSdkHandler handler) {
     mySettingsController = settingsController;
-    myFactory = factory;
+    mySdkHandler = handler;
     myLocalSdk = new LocalSdk();
   }
 
@@ -105,18 +105,17 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
   @NotNull
   @Override
   public Collection<RemotePackage> parseLegacyXml(@NotNull RepositorySource source, @NotNull ProgressIndicator progress) {
-    AndroidSdkHandler handler = AndroidSdkHandler.getInstance();
     SdkSource legacySource;
     RemotePkgInfo[] packages = null;
     for (SchemaModule module : source.getPermittedModules()) {
       legacySource = null;
-      if (module == handler.getRepositoryModule(progress)) {
+      if (module == mySdkHandler.getRepositoryModule(progress)) {
         legacySource = new SdkRepoSource(source.getUrl(), "Legacy Repo Source");
       }
-      else if (module == handler.getAddonModule(progress)) {
+      else if (module == mySdkHandler.getAddonModule(progress)) {
         legacySource = new SdkAddonSource(source.getUrl(), "Legacy Addon Source");
       }
-      else if (module == handler.getSysImgModule(progress)) {
+      else if (module == mySdkHandler.getSysImgModule(progress)) {
         legacySource = new SdkSysImgSource(source.getUrl(), "Legacy System Image Source");
       }
       if (legacySource != null) {
@@ -202,7 +201,7 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     @NotNull
     @Override
     public CommonFactory createFactory() {
-      return myFactory;
+      return (CommonFactory)mySdkHandler.getCommonModule(new StudioLoggerProgressIndicator(getClass())).createLatestFactory();
     }
 
     @Override
