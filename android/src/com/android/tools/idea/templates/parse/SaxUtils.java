@@ -57,7 +57,7 @@ public final class SaxUtils {
   }
 
   /**
-   * Retrieve the named parameter from the attribute list, or throw an exception.
+   * Retrieve the named parameter from the attribute list and ensure it is set to a non-empty value, or throw an exception.
    *
    * @param tag        the name of the tag these attributes are part of, required for the error string.
    * @param attributes the map of attributes
@@ -69,6 +69,9 @@ public final class SaxUtils {
     if (result == null) {
       throw new RuntimeException(
         String.format("Required attribute \"%1$s\" not found in element <%2$s %3$s>", name, tag, attrsToString(attributes)));
+    } else if ("".equals(result.trim())) {
+      throw new RuntimeException(
+        String.format("Required attribute \"%1$s\" found, but empty in element <%2$s %3$s>", name, tag, attrsToString(attributes)));
     }
     return result;
   }
