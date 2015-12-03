@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
@@ -33,7 +32,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.configurations.ThemeSelectionPanel;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -57,7 +55,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -177,137 +174,6 @@ public class ThemeEditorUtils {
         fileEditorManager.openEditor(descriptor, true);
       }
     });
-  }
-
-  /**
-   * Find every attribute in the theme hierarchy and all the possible configurations where it's present.
-   * @param style the theme to retrieve all the attributes from
-   * @param attributeConfigurations a {@link HashMultimap} where all the attributes and configurations will be stored
-   * @param resolver ThemeResolver that would be used to find themes by name.
-   */
-  private static void findAllAttributes(@NotNull final ThemeEditorStyle style,
-                                        @NotNull HashMultimap<String, FolderConfiguration> attributeConfigurations,
-                                        @NotNull ThemeResolver resolver) {
-    for (ConfiguredElement<String> parentName : style.getParentNames()) {
-      ThemeEditorStyle parent = resolver.getTheme(parentName.getElement());
-
-      /* Parent will be null if the theme does not exist in the current configuration */
-      if (parent != null) {
-        findAllAttributes(parent, attributeConfigurations, resolver);
-      }
-    }
-
-    Collection<ConfiguredElement<ItemResourceValue>> configuredValues = style.getConfiguredValues();
-    for (ConfiguredElement<ItemResourceValue> value : configuredValues) {
-      attributeConfigurations.put(ResolutionUtils.getQualifiedItemName(value.getElement()), value.getConfiguration());
-    }
-  }
-
-  /**
-   * Set of {@link ConfiguredElement} items that allows overwriting elements and uses the folder and the attribute name
-   * as key.
-   */
-  static class AttributeInheritanceSet implements Iterable<ConfiguredElement<ItemResourceValue>> {
-    private final HashSet<ConfiguredElement<ItemResourceValue>> myAttributes = Sets.newHashSet();
-    // Index by attribute configuration and name.
-    private final Map<String, ConfiguredElement<ItemResourceValue>> myAttributesIndex = Maps.newHashMap();
-
-    private static String getItemKey(@NotNull ConfiguredElement<ItemResourceValue> item) {
-      return String.format("%1$s - %2$s", item.getConfiguration(), ResolutionUtils.getQualifiedItemName(item.getElement()));
-    }
-
-    public boolean add(@NotNull ConfiguredElement<ItemResourceValue> value) {
-      String key = getItemKey(value);
-      ConfiguredElement<ItemResourceValue> existingValue = myAttributesIndex.get(key);
-
-      if (existingValue != null) {
-        myAttributes.remove(existingValue);
-      }
-
-      myAttributes.add(value);
-      myAttributesIndex.put(key, value);
-
-      return existingValue != null;
-    }
-
-    @Override
-    public Iterator<ConfiguredElement<ItemResourceValue>> iterator() {
-      return myAttributes.iterator();
-    }
-
-    public void addAll(@NotNull AttributeInheritanceSet existingAttributes) {
-      for (ConfiguredElement<ItemResourceValue> value : existingAttributes) {
-        add(value);
-      }
-    }
-  }
-
-  public static List<EditedStyleItem> resolveAllAttributes(@NotNull final ThemeEditorStyle style, @NotNull ThemeResolver themeResolver) {
-    HashMultimap<String, FolderConfiguration> attributes = HashMultimap.create();
-    findAllAttributes(style, attributes, themeResolver);
-
-    ImmutableSet<FolderConfiguration> allConfigurations = ImmutableSet.copyOf(attributes.values());
-
-    Configuration configuration = style.getConfiguration();
-    // We create new ResourceResolverCache instead of using cache from myConfiguration to optimize memory instead of time/speed
-    // Because, it creates a lot of instances of ResourceResolver here, that won't be used outside of ThemeEditor
-    ResourceResolverCache resolverCache = new ResourceResolverCache(configuration.getConfigurationManager());
-
-    // Go over all the existing configurations and resolve each attribute
-    Map<String, AttributeInheritanceSet> configuredAttributes = Maps.newHashMap();
-    FolderConfiguration fullBaseConfiguration = themeResolver.getConfiguration().getFullConfig();
-    for (FolderConfiguration folderConfiguration : allConfigurations) {
-      // We apply the folderConfiguration to the full configuration that we get from the current theme resolver. We use the full
-      // configuration to simulate what the device would do when resolving attributes and match more specific folders.
-      FolderConfiguration fullFolderConfiguration = FolderConfiguration.copyOf(fullBaseConfiguration);
-      fullFolderConfiguration.add(folderConfiguration);
-      ResourceResolver resolver = resolverCache.getResourceResolver(configuration.getTarget(), style.getStyleResourceUrl(), fullFolderConfiguration);
-      StyleResourceValue resolvedStyle = resolver.getStyle(style.getName(), style.isFramework());
-
-      if (resolvedStyle == null) {
-        // The style doesn't exist for this configuration
-        continue;
-      }
-
-      for (String attributeName : attributes.keys()) {
-        String noPrefixName = StringUtil.trimStart(attributeName, SdkConstants.PREFIX_ANDROID);
-        ResourceValue value = resolver.findItemInStyle(resolvedStyle, noPrefixName, noPrefixName.length() != attributeName.length());
-
-        if (value != null) {
-          AttributeInheritanceSet inheritanceSet = configuredAttributes.get(attributeName);
-          if (inheritanceSet == null) {
-            inheritanceSet = new AttributeInheritanceSet();
-            configuredAttributes.put(attributeName, inheritanceSet);
-          }
-          inheritanceSet.add(ConfiguredElement.create(folderConfiguration, (ItemResourceValue)value));
-        }
-      }
-    }
-
-    // Now build the EditedStyleItems from the resolved attributes
-    final ImmutableList.Builder<EditedStyleItem> allValues = ImmutableList.builder();
-    for (String attributeName : configuredAttributes.keySet()) {
-      Iterable<ConfiguredElement<ItemResourceValue>> configuredValues = configuredAttributes.get(attributeName);
-      //noinspection unchecked
-      final ConfiguredElement<ItemResourceValue> bestMatch =
-        (ConfiguredElement<ItemResourceValue>)style.getConfiguration().getFullConfig()
-          .findMatchingConfigurable(ImmutableList.copyOf(configuredValues));
-
-      if (bestMatch == null) {
-        allValues.add(new EditedStyleItem(configuredValues.iterator().next(), style));
-      }
-      else {
-        allValues.add(new EditedStyleItem(bestMatch, Iterables
-          .filter(configuredValues, new Predicate<ConfiguredElement<ItemResourceValue>>() {
-            @Override
-            public boolean apply(@Nullable ConfiguredElement<ItemResourceValue> input) {
-              return input != bestMatch;
-            }
-          }), style));
-      }
-    }
-
-    return allValues.build();
   }
 
   /**
