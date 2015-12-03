@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wizard.model;
 
+import com.intellij.openapi.Disposable;
+
 /**
  * A model is a set of data which will be filled out by the steps of a wizard. Multiple steps may
  * share the same model and, therefore, each claim responsibility for some subset of it.
@@ -23,9 +25,13 @@ package com.android.tools.idea.wizard.model;
  * properties which exist just for UI convenience. A good rule of thumb is: if your model's
  * {@link #handleFinished()} doesn't need it, it probably shouldn't be in here.
  */
-public abstract class WizardModel {
+public abstract class WizardModel implements Disposable {
   /**
    * Method which is executed when a wizard is completed because the user hit "Finish".
    */
   protected abstract void handleFinished();
+
+  @Override
+  public void dispose() {
+  }
 }
