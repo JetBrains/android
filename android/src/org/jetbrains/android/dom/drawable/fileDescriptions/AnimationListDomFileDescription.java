@@ -15,13 +15,15 @@
  */
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
+import com.android.resources.ResourceFolderType;
+import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.AnimationList;
 
 public class AnimationListDomFileDescription extends AbstractSingleRootFileDescription<AnimationList> {
   public static final String TAG_NAME = "animation-list";
 
   public AnimationListDomFileDescription() {
-    super(AnimationList.class, TAG_NAME);
+    super(AnimationList.class, TAG_NAME, ResourceFolderType.DRAWABLE);
   }
 }
 

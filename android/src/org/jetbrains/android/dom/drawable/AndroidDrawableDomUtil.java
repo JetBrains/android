@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.dom.drawable;
 
-import com.android.resources.ResourceType;
+import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Lists;
@@ -48,7 +48,7 @@ public class AndroidDrawableDomUtil {
   }
 
   public static boolean isDrawableResourceFile(@NotNull XmlFile file) {
-    return AndroidResourceDomFileDescription.doIsMyFile(file, ResourceType.DRAWABLE.getName());
+    return AndroidResourceDomFileDescription.doIsMyFile(file, ResourceFolderType.DRAWABLE);
   }
 
   public static List<String> getPossibleRoots(AndroidFacet facet) {

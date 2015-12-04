@@ -15,12 +15,14 @@
  */
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
+import com.android.resources.ResourceFolderType;
+import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.Clip;
 
 public class ClipDomFileDescription extends AbstractSingleRootFileDescription<Clip> {
   public static final String TAG_NAME = "clip";
 
   public ClipDomFileDescription() {
-    super(Clip.class, TAG_NAME);
+    super(Clip.class, TAG_NAME, ResourceFolderType.DRAWABLE);
   }
 }

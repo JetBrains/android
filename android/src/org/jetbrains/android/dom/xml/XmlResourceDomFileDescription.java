@@ -16,7 +16,7 @@
 
 package org.jetbrains.android.dom.xml;
 
-import com.android.resources.ResourceType;
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
@@ -27,16 +27,9 @@ import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 11, 2009
- * Time: 7:35:15 PM
- * To change this template use File | Settings | File Templates.
- */
 public class XmlResourceDomFileDescription extends AndroidResourceDomFileDescription<XmlResourceElement> {
   public XmlResourceDomFileDescription() {
-    super(XmlResourceElement.class, "PreferenceScreen", ResourceType.XML.getName());
+    super(XmlResourceElement.class, "PreferenceScreen", ResourceFolderType.XML);
   }
 
   @Override
