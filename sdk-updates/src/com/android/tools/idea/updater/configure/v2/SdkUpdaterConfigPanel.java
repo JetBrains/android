@@ -412,7 +412,7 @@ public class SdkUpdaterConfigPanel {
     // TODO: make progress runner handle invokes?
     StudioProgressRunner progressRunner = new StudioProgressRunner(false, false, false, "Loading SDK", false, null);
     getRepoManager().load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater),
-                       ImmutableList.<Runnable>of(), progressRunner, myDownloader, mySettings, false);
+                       null, progressRunner, myDownloader, mySettings, false);
   }
 
   /**

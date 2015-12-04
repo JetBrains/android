@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.updater.configure.v2;
 
-import com.android.repository.api.LocalPackage;
-import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoManager;
+import com.android.repository.api.*;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.tools.idea.sdk.wizard.v2.SdkQuickfixUtils;
 import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdkv2.StudioDownloader;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.updater.SdkComponentSource;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
@@ -123,7 +123,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     HtmlBuilder message = new HtmlBuilder();
     message.openHtmlBody();
     final List<LocalPackage> toDelete = Lists.newArrayList();
-    final List<RemotePackage> requestedPackages = Lists.newArrayList();
+    final List<UpdatablePackage> requestedPackages = Lists.newArrayList();
     for (NodeStateHolder holder : myPanel.getStates()) {
       if (holder.getState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
         if (holder.getPkg().hasLocal()) {
@@ -132,7 +132,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       }
       else if (holder.getState() == NodeStateHolder.SelectedState.INSTALLED &&
                (holder.getPkg().isUpdate(myIncludePreview) || !holder.getPkg().hasLocal())) {
-        requestedPackages.add(holder.getPkg().getRemote(myIncludePreview));
+        requestedPackages.add(holder.getPkg());
       }
     }
     boolean found = false;
@@ -150,7 +150,10 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       found = true;
       message.add("The following components will be installed: \n");
       message.beginList();
-      for (RemotePackage item : requestedPackages) {
+      for (UpdatablePackage p : requestedPackages) {
+        // TODO: channels
+        RepoPackage item = p.getRemote(myIncludePreview);
+        assert item != null;
         message.listItem().add(String.format("%1$s %2$s %3$s", item.getDisplayName(),
                                              item.getTypeDetails() instanceof DetailsTypes.ApiDetailsType ? "revision" : "version",
                                              item.getVersion()));
@@ -169,15 +172,14 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
             for (LocalPackage item : toDelete) {
               AndroidSdkHandler.findBestInstaller(item).uninstall(item, repoProgress, getRepoManager(), fop);
             }
-            if (!requestedPackages.isEmpty()) {
-              for (RemotePackage remote : requestedPackages) {
-                AndroidSdkHandler.findBestInstaller(remote)
-                  .install(remote, StudioDownloader.getInstance(), StudioSettingsController.getInstance(), repoProgress, getRepoManager(),
-                           fop);
-              }
-            }
           }
-        }, "Installing", false, null, myPanel.getComponent());
+        }, "Uninstalling", false, null, myPanel.getComponent());
+        if (!requestedPackages.isEmpty()) {
+          ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(myPanel.getComponent(), requestedPackages);
+          if (dialog != null) {
+            dialog.show();
+          }
+        }
 
         myPanel.refresh();
       }
