@@ -40,6 +40,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -419,20 +420,21 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return sdkData != null ? sdkData.getLocalSdk().getTargetFromHashString(hash) : null;
   }
 
-  public void launchEmulator(@Nullable String avdName) {
+  @Nullable
+  public ProcessHandler launchEmulator(@Nullable String avdName) {
     AvdManager manager = getAvdManagerSilently();
     if (manager == null) {
       LOG.warn("Could not obtain AVD Manager.");
-      return;
+      return null;
     }
 
     AvdInfo avdInfo = manager.getAvd(avdName, true);
     if (avdInfo == null) {
       LOG.warn("Unable to obtain info for AVD: " + avdName);
-      return;
+      return null;
     }
 
-    AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(getModule().getProject(), avdInfo);
+    return AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(getModule().getProject(), avdInfo);
   }
 
   public static void createDynamicTemplateMenu() {
