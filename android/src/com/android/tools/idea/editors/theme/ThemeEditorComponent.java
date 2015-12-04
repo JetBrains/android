@@ -53,6 +53,7 @@ import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.ui.*;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -168,6 +169,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   /** Next pending search. The {@link ScheduledFuture} allows us to cancel the next search before it runs. */
   private ScheduledFuture<?> myScheduledSearch;
 
+  private final ScheduledExecutorService mySearchUpdateScheduler;
   private String myPreviewThemeName;
   private final JPanel myToolbar;
   private final JComponent myActionToolbarComponent;
@@ -413,7 +415,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     // Avoid search box stretching more than 1 line.
     myTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, myTextField.getPreferredSize().height));
 
-    final ScheduledExecutorService searchUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
+    mySearchUpdateScheduler = Executors.newSingleThreadScheduledExecutor(ConcurrencyUtil.newNamedThreadFactory("Theme Editor Searcher"));
     myTextField.addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {
@@ -421,7 +423,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
           myScheduledSearch.cancel(false);
         }
 
-        myScheduledSearch = searchUpdateScheduler.schedule(new Runnable() {
+        myScheduledSearch = mySearchUpdateScheduler.schedule(new Runnable() {
           @Override
           public void run() {
             myPreviewPanel.setSearchTerm(myTextField.getText());
@@ -1060,6 +1062,10 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     if (mySwingWorker != null) {
       mySwingWorker.cancel(true);
     }
+    if (myScheduledSearch != null) {
+      myScheduledSearch.cancel(false);
+    }
+    mySearchUpdateScheduler.shutdownNow();
     super.dispose();
   }
 
