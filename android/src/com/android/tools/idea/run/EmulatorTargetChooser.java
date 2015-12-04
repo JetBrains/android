@@ -24,6 +24,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -39,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class EmulatorTargetChooser {
   private static final Logger LOG = Logger.getInstance(EmulatorTargetChooser.class);
@@ -70,17 +72,9 @@ public class EmulatorTargetChooser {
       // The user canceled.
       return null;
     }
-    myFacet.launchEmulator(avd);
 
-    // Wait for an AVD to come up with name matching the one we just launched.
-    Predicate<IDevice> avdNameFilter = new Predicate<IDevice>() {
-      @Override
-      public boolean apply(IDevice device) {
-        return device.isEmulator() && avd.equals(device.getAvdName());
-      }
-    };
-
-    return DeviceFutures.forFuture(DeviceReadyListener.getReadyDevice(avdNameFilter, printer));
+    ProcessHandler processHandler = myFacet.launchEmulator(avd);
+    return DeviceFutures.forFuture(EmulatorConnectionListener.getDeviceForEmulator(avd, processHandler, 5, TimeUnit.MINUTES));
   }
 
   @Nullable

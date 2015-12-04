@@ -21,18 +21,17 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdWizardConstants;
-import com.google.common.base.Predicate;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.ide.ui.search.SearchUtil;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.TimeUnit;
 
 public class LaunchableAndroidDevice implements AndroidDevice {
   private final AvdInfo myAvdInfo;
@@ -93,22 +92,7 @@ public class LaunchableAndroidDevice implements AndroidDevice {
   @Override
   public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull ConsolePrinter printer) {
     ProcessHandler handler = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
-    if (handler == null || handler.isProcessTerminating() || handler.isProcessTerminated()) {
-      String message = "Unable to start emulator " + myAvdInfo.getName();
-      Logger.getInstance(LaunchableAndroidDevice.class).warn(message);
-      return Futures.immediateFailedFuture(new RuntimeException(message));
-    }
-
-    // Wait for an AVD to come up with name matching the one we just launched.
-    final String avdName = myAvdInfo.getName();
-    Predicate<IDevice> avdNameFilter = new Predicate<IDevice>() {
-      @Override
-      public boolean apply(IDevice device) {
-        return device.isEmulator() && avdName.equals(device.getAvdName());
-      }
-    };
-
-    return DeviceReadyListener.getReadyDevice(avdNameFilter, printer);
+    return EmulatorConnectionListener.getDeviceForEmulator(myAvdInfo.getName(), handler, 5, TimeUnit.MINUTES);
   }
 
   public AvdInfo getAvdInfo() {
