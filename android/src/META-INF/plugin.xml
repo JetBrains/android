@@ -308,6 +308,7 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.animation.AnimationDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.animator.AnimatorDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.transition.TransitionDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.transitionManager.TransitionManagerDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.menu.MenuDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.resources.ResourcesDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.xml.XmlResourceDomFileDescription"/>

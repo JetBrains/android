@@ -15,12 +15,14 @@
  */
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
+import com.android.resources.ResourceFolderType;
+import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.Inset;
 
 public class InsetDomFileDescription extends AbstractSingleRootFileDescription<Inset> {
   public static final String TAG_NAME = "inset";
 
   public InsetDomFileDescription() {
-    super(Inset.class, TAG_NAME);
+    super(Inset.class, TAG_NAME, ResourceFolderType.DRAWABLE);
   }
 }

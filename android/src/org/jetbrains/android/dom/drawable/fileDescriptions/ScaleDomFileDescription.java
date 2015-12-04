@@ -15,12 +15,14 @@
  */
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
+import com.android.resources.ResourceFolderType;
+import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.Scale;
 
 public class ScaleDomFileDescription extends AbstractSingleRootFileDescription<Scale> {
   public static final String TAG_NAME = "scale";
 
   public ScaleDomFileDescription() {
-    super(Scale.class, TAG_NAME);
+    super(Scale.class, TAG_NAME, ResourceFolderType.DRAWABLE);
   }
 }

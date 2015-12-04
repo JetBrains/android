@@ -16,7 +16,9 @@
 package org.jetbrains.android.dom.transition;
 
 import com.intellij.util.xml.DefinesXml;
+import org.jetbrains.android.dom.Styleable;
 
 @DefinesXml
+@Styleable({"Fade", "Transition"})
 public interface Fade extends Transition {
 }

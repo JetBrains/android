@@ -15,12 +15,14 @@
  */
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
+import com.android.resources.ResourceFolderType;
+import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.AnimatedRotate;
 
 public class AnimatedRotateDomFileDescription extends AbstractSingleRootFileDescription<AnimatedRotate> {
   public static final String TAG_NAME = "animated-rotate";
 
   public AnimatedRotateDomFileDescription() {
-    super(AnimatedRotate.class, TAG_NAME);
+    super(AnimatedRotate.class, TAG_NAME, ResourceFolderType.DRAWABLE);
   }
 }

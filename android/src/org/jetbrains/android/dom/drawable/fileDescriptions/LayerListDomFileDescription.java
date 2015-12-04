@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
-import com.android.resources.ResourceType;
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -30,7 +30,7 @@ public class LayerListDomFileDescription extends AndroidResourceDomFileDescripti
   @NonNls static final String[] POSSIBLE_ROOT_TAGS = {"layer-list", "transition"};
 
   public LayerListDomFileDescription() {
-    super(LayerList.class, POSSIBLE_ROOT_TAGS[0], ResourceType.DRAWABLE.getName());
+    super(LayerList.class, POSSIBLE_ROOT_TAGS[0], ResourceFolderType.DRAWABLE);
   }
 
   @Override
