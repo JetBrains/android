@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard.v2;
 
-import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.repository.api.RepoPackage;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -78,8 +78,8 @@ public final class InstallMissingPackagesStep extends ModelWizardStep<HandleSkip
     warningBuilder.newline();
     warningBuilder.newline();
     warningBuilder.beginList();
-    for (IPkgDesc problemPkg : getModel().getSkippedInstallRequests()) {
-      warningBuilder.listItem().add(problemPkg.getListDescription());
+    for (RepoPackage problemPkg : getModel().getSkippedInstallRequests()) {
+      warningBuilder.listItem().add(problemPkg.getDisplayName());
     }
     warningBuilder.endList();
     warningBuilder.newline();
