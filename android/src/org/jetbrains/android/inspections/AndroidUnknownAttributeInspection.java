@@ -39,13 +39,9 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
   private static volatile Set<String> ourSupportedResourceTypes;
 
@@ -93,8 +89,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
         ourSupportedResourceTypes = new HashSet<String>();
         for (DomFileDescription description : DomFileDescription.EP_NAME.getExtensions()) {
           if (description instanceof AndroidResourceDomFileDescription) {
-            String[] resourceTypes = ((AndroidResourceDomFileDescription)description).getResourceTypes();
-            Collections.addAll(ourSupportedResourceTypes, resourceTypes);
+            ourSupportedResourceTypes.add(((AndroidResourceDomFileDescription)description).getResourceType());
           }
         }
       }
