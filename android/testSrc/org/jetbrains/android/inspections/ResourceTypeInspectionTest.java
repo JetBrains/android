@@ -233,6 +233,49 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  /**
+   * Test @IntDef when applied to multiple elements like arrays or varargs.
+   */
+  public void testIntDefMultiple() {
+    doCheck("import android.support.annotation.IntDef;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    private static final int VALUE_A = 0;\n" +
+            "    private static final int VALUE_B = 1;\n" +
+            "\n" +
+            "    private static int[] VALID_ARRAY = {VALUE_A, VALUE_B};\n" +
+            "    private static int[] INVALID_ARRAY = {VALUE_A, 0, VALUE_B};\n" +
+            "    private static int[] INVALID_ARRAY2 = {10};\n" +
+            "\n" +
+            "    @IntDef({VALUE_A, VALUE_B})\n" +
+            "    public @interface MyIntDef {}\n" +
+            "\n" +
+            "    @MyIntDef\n" +
+            "    public int a = 0;\n" +
+            "\n" +
+            "    @MyIntDef\n" +
+            "    public int[] b;\n" +
+            "\n" +
+            "    public void testCall() {\n" +
+            "        restrictedArray(new int[]{VALUE_A}); // OK\n" +
+            "        restrictedArray(new int[]{VALUE_A, VALUE_B}); // OK\n" +
+            "        restrictedArray(/*Must be one of: X.VALUE_A, X.VALUE_B*/new int[]{VALUE_A, 0, VALUE_B}/**/); // ERROR;\n" +
+            "        restrictedArray(VALID_ARRAY); // OK\n" +
+            "        restrictedArray(/*Must be one of: X.VALUE_A, X.VALUE_B*/INVALID_ARRAY/**/); // ERROR\n" +
+            "        restrictedArray(/*Must be one of: X.VALUE_A, X.VALUE_B*/INVALID_ARRAY2/**/); // ERROR\n" +
+            "\n" +
+            "        restrictedEllipsis(VALUE_A); // OK\n" +
+            "        restrictedEllipsis(VALUE_A, VALUE_B); // OK\n" +
+            "        restrictedEllipsis(VALUE_A, /*Must be one of: X.VALUE_A, X.VALUE_B*/0/**/, VALUE_B); // ERROR\n" +
+            "        restrictedEllipsis(/*Must be one of: X.VALUE_A, X.VALUE_B*/0/**/); // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    private void restrictedEllipsis(@MyIntDef int... test) {}\n" +
+            "\n" +
+            "    private void restrictedArray(@MyIntDef int[] test) {}\n" +
+            "}");
+  }
+
   public void testFlow() {
     doCheck("import android.content.res.Resources;\n" +
             "import android.support.annotation.DrawableRes;\n" +
@@ -538,6 +581,62 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printBetweenFromExclusiveToExclusive(/*Value must be > 2.5 and < 5.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
             "    }\n" +
             "}\n");
+  }
+
+  /**
+   * Test @IntRange and @FloatRange support annotation applied to arrays and vargs.
+   */
+  public void testRangesMultiple() {
+    doCheck("import android.support.annotation.FloatRange;\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    private static float[] VALID_FLOAT_ARRAY = new float[] {10.0f, 12.0f, 15.0f};\n" +
+            "    private static float[] INVALID_FLOAT_ARRAY = new float[] {10.0f, 12.0f, 5.0f};\n" +
+            "\n" +
+            "    private static int[] VALID_INT_ARRAY = new int[] {15, 120, 500};\n" +
+            "    private static int[] INVALID_INT_ARRAY = new int[] {15, 120, 5};\n" +
+            "\n" +
+            "    @FloatRange(from = 10.0, to = 15.0)\n" +
+            "    public float[] a;\n" +
+            "\n" +
+            "    @IntRange(from = 10, to = 500)\n" +
+            "    public int[] b;\n" +
+            "\n" +
+            "    public void testCall() {\n" +
+            "        a = new float[2];\n" +
+            "        a[0] = /*Value must be \u2265 10.0 and \u2264 15.0 (was 5f)*/5f/**/; // ERROR\n" +
+            "        a[1] = 14f; // OK\n" +
+            "        varargsFloat(15.0f, 10.0f, /*Value must be \u2265 10.0 and \u2264 15.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
+            "        restrictedFloatArray(VALID_FLOAT_ARRAY); // OK\n" +
+            "        restrictedFloatArray(/*Value must be \u2265 10.0 and \u2264 15.0*/INVALID_FLOAT_ARRAY/**/); // ERROR\n" +
+            "        restrictedFloatArray(new float[]{10.5f, 14.5f}); // OK\n" +
+            "        restrictedFloatArray(/*Value must be \u2265 10.0 and \u2264 15.0*/new float[]{12.0f, 500.0f}/**/); // ERROR\n" +
+            "\n" +
+            "\n" +
+            "        b = new int[2];\n" +
+            "        b[0] = /*Value must be \u2265 10 and \u2264 500 (was 5)*/5/**/; // ERROR\n" +
+            "        b[1] = 100; // OK\n" +
+            "        varargsInt(15, 10, /*Value must be \u2265 10 and \u2264 500 (was 510)*/510/**/); // ERROR\n" +
+            "        restrictedIntArray(VALID_INT_ARRAY); // OK\n" +
+            "        restrictedIntArray(/*Value must be \u2265 10 and \u2264 500*/INVALID_INT_ARRAY/**/); // ERROR\n" +
+            "        restrictedIntArray(new int[]{50, 500}); // OK\n" +
+            "        restrictedIntArray(/*Value must be \u2265 10 and \u2264 500*/new int[]{0, 500}/**/); // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    public void restrictedIntArray(@IntRange(from = 10, to = 500) int[] a) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void varargsInt(@IntRange(from = 10, to = 500) int... a) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void varargsFloat(@FloatRange(from = 10.0, to = 15.0) float... a) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void restrictedFloatArray(@FloatRange(from = 10.0, to = 15.0) float[] a) {\n" +
+            "    }\n" +
+            "}\n" +
+            "\n");
   }
 
   public void testColorInt() {
