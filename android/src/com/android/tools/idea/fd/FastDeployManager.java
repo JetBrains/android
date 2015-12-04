@@ -16,9 +16,14 @@
 package com.android.tools.idea.fd;
 
 import com.android.builder.model.*;
-import com.android.ddmlib.*;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.fd.client.InstantRunClient;
+import com.android.tools.fd.client.UpdateMode;
+import com.android.tools.fd.client.UserFeedback;
+import com.android.tools.fd.runtime.ApplicationPatch;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
@@ -27,11 +32,11 @@ import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.idea.run.*;
+import com.android.utils.ILogger;
 import com.android.utils.XmlUtils;
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Charsets;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
@@ -97,13 +102,8 @@ import org.w3c.dom.Element;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.List;
 
@@ -120,85 +120,8 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
   private static final Object INSTANCE_LOCK = new Object();
 
-  // -----------------------------------------------------------------------
-  // NOTE: Keep all these communication constants (and message send/receive
-  // logic) in sync with the corresponding values in the fast deploy runtime
-  // -----------------------------------------------------------------------
-
-  /**
-   * Magic (random) number used to identify the protocol
-   */
-  private static final long PROTOCOL_IDENTIFIER = 0x35107124L;
-
-  /**
-   * Version of the protocol
-   */
-  private static final int PROTOCOL_VERSION = 4;
-
-  /**
-   * Message: sending patches
-   */
-  private static final int MESSAGE_PATCHES = 1;
-
-  /**
-   * Message: ping, send ack back
-   */
-  private static final int MESSAGE_PING = 2;
-
-  /**
-   * Message: look up a very quick checksum of the given path; this
-   * may not pick up on edits in the middle of the file but should be a
-   * quick way to determine if a path exists and some basic information
-   * about it.
-   */
-  @SuppressWarnings("unused")
-  public static final int MESSAGE_PATH_EXISTS = 3;
-
-  /**
-   * Message: query whether the app has a given file and if so return
-   * its checksum. (This is used to determine whether the app can receive
-   * a small delta on top of a (typically resource ) file instead of resending the whole
-   * file over again.)
-   */
-  @SuppressWarnings("unused")
-  public static final int MESSAGE_PATH_CHECKSUM = 4;
-
-  /**
-   * Message: restart activities
-   */
-  private static final int MESSAGE_RESTART_ACTIVITY = 5;
-
-  /**
-   * Message: show toast
-   */
-  private static final int MESSAGE_SHOW_TOAST = 6;
-
-  /**
-   * Done transmitting
-   */
-  private static final int MESSAGE_EOF = 7;
-
-  /**
-   * No updates
-   */
-  public static final int UPDATE_MODE_NONE = 0;
-
-  /**
-   * Patch changes directly, keep app running without any restarting
-   */
-  public static final int UPDATE_MODE_HOT_SWAP = 1;
-
-  /**
-   * Patch changes, restart activity to reflect changes
-   */
-  public static final int UPDATE_MODE_WARM_SWAP = 2;
-
-  /**
-   * Store change in app directory, restart app
-   */
-  public static final int UPDATE_MODE_COLD_SWAP = 3;
-
   private static final Logger LOG = Logger.getInstance(FastDeployManager.class);
+  private static final ILogger ILOGGER = new LogWrapper(LOG);
 
   /** Display instant run statistics */
   @SuppressWarnings("SimplifiableConditionalExpression")
@@ -207,39 +130,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   /** Local port on the desktop machine that we tunnel to the Android device via */
   private static final int STUDIO_PORT = 8888;
 
-  private static final String LOCAL_HOST = "127.0.0.1";
   /** The name of the attribute in the build-info.xml file from Gradle which names the build-id */
   private static final String BUILD_ID_ATTR = "build-id";
   /** The name of the attribute in the build-info.xml file from Gradle which names the verifier status */
   private static final String VERIFIER_ATTR = "verifier";
   /** The value set on the {@link #VERIFIER_ATTR} if the verifier was successful */
   private static final String VERIFIER_COMPATIBLE_VALUE = "COMPATIBLE";
-  /** The name of the build timestamp file on the device in the data folder */
-  private static final String BUILD_ID_TXT = "build-id.txt";
-  /** Prefix for classes.dex files */
-  private static final String CLASSES_DEX_PREFIX = "classes";
-  /** Suffix for classes.dex files */
-  private static final String CLASSES_DEX_SUFFIX = ".dex";
-  /** Temp directory on the device */
-  private static final String DEVICE_TEMP_DIR = "/data/local/tmp";
-  /** Instead of writing to the data folder, we can read/write to a local temp file instead */
-  private static final boolean USE_BUILD_ID_TEMP_FILE = !Boolean.getBoolean("instantrun.use_datadir");
-
-  private static String getDataFolder(@NotNull String applicationId) {
-    // Keep in sync with FileManager#getDataFolder in the runtime library
-    return "/data/data/" + applicationId + "/files/studio-fd";
-  }
-
-  @NotNull
-  private static String getDexFileFolder(@NotNull String pkg) {
-    // Keep in sync with FileManager#getDexFileFolder in the runtime library
-    return getDataFolder(pkg) + "/dex";
-  }
-
-  @NotNull
-  private static String getDeviceIdFolder(String pkg) {
-    return DEVICE_TEMP_DIR + "/" + pkg + "-" + BUILD_ID_TXT;
-  }
 
   private static final String RESOURCE_FILE_NAME = "resources.ap_";
 
@@ -491,20 +387,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     }
   }
 
-  /**
-   * The application state on device/emulator: the app is not running (or we cannot find it due to
-   * connection problems etc), or it's in the foreground or background.
-   */
-  public enum AppState {
-    /** The app is not running (or we cannot find it due to connection problems etc) */
-    NOT_RUNNING,
-    /** The app is running an obsolete/older version of the runtime library */
-    OBSOLETE,
-    /** The app is actively running in the foreground */
-    FOREGROUND,
-    /** The app is running, but is not in the foreground */
-    BACKGROUND
-  }
+
 
   /**
    * Checks whether the app associated with the given module is already running on the given device
@@ -515,10 +398,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    * @return true if the app is already running and is listening for incremental updates
    */
   public static boolean isAppRunning(@NotNull IDevice device, @NotNull Module module) {
-    AppState appState = getAppState(device, module);
-    // TODO: Use appState != AppState.NOT_RUNNING instead when we automatically
-    // handle fronting background activities here
-    return appState == AppState.FOREGROUND;
+    return getInstantRunClient(module).isAppRunning(device);
   }
 
   /**
@@ -610,86 +490,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     return null;
   }
 
-  /**
-   * Returns the build id on the device
-   *
-   * @param device the device to check
-   * @param module a module context, normally the main app module (but if it's a library module
-   *               the infrastructure will look for other app modules
-   * @return the build id, if found
-   */
-  @Nullable
-  private static String getDeviceBuildId(@NotNull IDevice device, @NotNull Module module) {
-    AndroidFacet facet = findAppModule(module, module.getProject());
-    if (facet == null) {
-      return null;
-    }
 
-    String pkg = getPackageName(facet);
-    if (pkg == null) {
-      return null;
-    }
-
-    try {
-      if (USE_BUILD_ID_TEMP_FILE) {
-        String remoteIdFile = getDeviceIdFolder(pkg);
-        File localIdFile = FileUtil.createTempFile("build-id", "txt");
-        try {
-          device.pullFile(remoteIdFile, localIdFile.getPath());
-          return Files.toString(localIdFile, Charsets.UTF_8).trim();
-        } catch (SyncException ignore) {
-          return null;
-        } finally {
-          //noinspection ResultOfMethodCallIgnored
-          localIdFile.delete();
-        }
-      } else {
-        String remoteIdFile = getDataFolder(pkg) + "/" + BUILD_ID_TXT;
-        CollectingOutputReceiver receiver = new CollectingOutputReceiver();
-        device.executeShellCommand("run-as " + pkg + " cat " + remoteIdFile, receiver);
-        String output = receiver.getOutput().trim();
-        String id;
-        if (output.contains(":")) { // cat: command not found, cat: permission denied etc
-          if (output.startsWith(remoteIdFile)) {
-            // /data/data/my.pkg.path/files/studio-fd/build-id.txt: No such file or directory
-            return null;
-          }
-          // on a user device, we cannot pull from a path where the segments aren't readable (I think this is a ddmlib limitation)
-          // So we first copy to /data/local/tmp and pull from there..
-          String remoteTmpFile = "/data/local/tmp/build-id.txt";
-          device.executeShellCommand("cp " + remoteIdFile + " " + remoteTmpFile, receiver);
-          output = receiver.getOutput().trim();
-          if (!output.isEmpty()) {
-            LOG.info(output);
-          }
-          File localIdFile = FileUtil.createTempFile("build-id", "txt");
-          device.pullFile(remoteTmpFile, localIdFile.getPath());
-          id = Files.toString(localIdFile, Charsets.UTF_8).trim();
-          //noinspection ResultOfMethodCallIgnored
-          localIdFile.delete();
-        }
-        else {
-          id = output;
-        }
-        return id;
-      }
-    } catch (IOException ignore) {
-    }
-    catch (AdbCommandRejectedException e) {
-      LOG.warn(e);
-    }
-    catch (SyncException e) {
-      LOG.warn(e);
-    }
-    catch (TimeoutException e) {
-      LOG.warn(e);
-    }
-    catch (ShellCommandUnresponsiveException e) {
-      LOG.warn(e);
-    }
-
-    return null;
-  }
 
   /**
    * Checks whether the local and remote build id's match
@@ -705,7 +506,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     if (localBuildId == null) {
       return false;
     }
-    String deviceBuildId = getDeviceBuildId(device, module);
+    String deviceBuildId = getInstantRunClient(module).getDeviceBuildId(device);
     return localBuildId.equals(deviceBuildId);
   }
 
@@ -718,87 +519,11 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    *               the infrastructure will look for other app modules
    */
   public static void transferLocalIdToDeviceId(@NotNull IDevice device, @NotNull Module module) {
-    AndroidGradleModel model = getAppModel(module);
-    if (model == null) {
-      return;
-    }
-
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null : module; // because we have an AndroidGradleModel
-    String pkg = getPackageName(facet);
-    if (pkg == null) {
-      return;
-    }
-
-    File file = getLocalBuildInfoFile(model);
-    if (file == null) {
-      return;
-    }
-
     String buildId = StringUtil.notNullize(getLocalBuildId(module));
-    try {
-      if (USE_BUILD_ID_TEMP_FILE) {
-        String remoteIdFile = getDeviceIdFolder(pkg);
-        File local = FileUtil.createTempFile("build-id", "txt");
-        Files.write(buildId, local, Charsets.UTF_8);
-        device.pushFile(local.getPath(), remoteIdFile);
-      } else {
-        String remote = copyToDeviceScratchFile(device, pkg, buildId);
-        String dataDir = getDataFolder(pkg);
-
-        // We used to do this here:
-        //String cmd = "run-as " + pkg + " mkdir -p " + dataDir + "; run-as " + pkg + " cp " + remote + " " + dataDir + "/" + BUILD_ID_TXT;
-        // but it turns out "cp" is missing on API 15! Let's use cat and sh instead which seems to be available everywhere.
-        // (Note: echo is not, it's missing on API 19.)
-        String cmd = "run-as " + pkg + " mkdir -p " + dataDir + "; cat " + remote + " | run-as " + pkg + " sh -c 'cat > " + dataDir + "/" + BUILD_ID_TXT + "'";
-        CollectingOutputReceiver receiver = new CollectingOutputReceiver();
-        device.executeShellCommand(cmd, receiver);
-        String output = receiver.getOutput();
-        if (!output.trim().isEmpty()) {
-          LOG.warn("Unexpected shell output: " + output);
-        }
-      }
-    } catch (IOException ioe) {
-      LOG.warn("Couldn't write build id file", ioe);
-    }
-    catch (AdbCommandRejectedException e) {
-      LOG.warn(e);
-    }
-    catch (TimeoutException e) {
-      LOG.warn(e);
-    }
-    catch (ShellCommandUnresponsiveException e) {
-      LOG.warn(e);
-    }
-    catch (SyncException e) {
-      LOG.warn(e);
-    }
+    getInstantRunClient(module).transferLocalIdToDeviceId(device, buildId);
   }
 
-  @NotNull
-  private static String copyToDeviceScratchFile(@NotNull IDevice device, @NotNull String pkgName, @NotNull String contents)
-    throws IOException, AdbCommandRejectedException, SyncException, TimeoutException {
 
-    File local = null;
-    try {
-      local = FileUtil.createTempFile("data", "fdr");
-      Files.write(contents.getBytes(Charsets.UTF_8), local);
-      return copyToDeviceScratchFile(device, pkgName, local);
-    } finally {
-      if (local != null) {
-        //noinspection ResultOfMethodCallIgnored
-        local.delete();
-      }
-    }
-  }
-
-  @NotNull
-  private static String copyToDeviceScratchFile(@NotNull IDevice device, @NotNull String pkgName, @NotNull File local)
-    throws IOException, AdbCommandRejectedException, SyncException, TimeoutException {
-    String remoteTmpBuildId = DEVICE_TEMP_DIR + "/" + pkgName + "-data.fdr";
-    device.pushFile(local.getAbsolutePath(), remoteTmpBuildId);
-    return remoteTmpBuildId;
-  }
 
   /**
    * Returns true if the app associated with the given module can be dex swapped.
@@ -839,101 +564,8 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     }
 
     File restart = DexFileType.RESTART_DEX.getFile(model);
-    if (!restart.exists()) {
-      // TODO: is this really a "no changes" scenario?
-      // TODO: to reproduce: launch app, terminate it, restart IDE, re-launch (no changes to code in the IDE)
-      LOG.warn("Couldn't find restart file " + restart);
-      return false;
-    }
-
-    String pkg = getPackageName(facet);
-    if (pkg == null) {
-      return false;
-    }
-
-    try {
-      String dexFolder = getDexFileFolder(pkg);
-
-      // Ensure the dir exists
-      CollectingOutputReceiver receiver = new CollectingOutputReceiver();
-      device.executeShellCommand("run-as " + pkg + " mkdir -p " + dexFolder, receiver);
-      receiver = new CollectingOutputReceiver();
-      String output = receiver.getOutput();
-      if (!output.trim().isEmpty()) {
-        LOG.warn("Unexpected shell output: " + output);
-      }
-
-      // List the files in the dex folder to compute a new .dex file name that follows the existing
-      // naming pattern but is numbered higher than any existing .dex files
-      device.executeShellCommand("run-as " + pkg + " ls " + dexFolder, receiver);
-      int max = getMaxDexFileNumber(receiver.getOutput());
-      String fileName = String.format("%s0x%04x%s", CLASSES_DEX_PREFIX, max + 1, CLASSES_DEX_SUFFIX);
-      String target = dexFolder + "/" + fileName;
-
-      // Copy the restart .dex file over to the device in the dex folder with the new, unique name
-      String remote = copyToDeviceScratchFile(device, pkg, restart);
-      String cmd = "run-as " + pkg + " cp " + remote + " " + target;
-      receiver = new CollectingOutputReceiver();
-      device.executeShellCommand(cmd, receiver);
-      output = receiver.getOutput();
-      if (!output.trim().isEmpty()) {
-        LOG.warn("Unexpected shell output: " + output);
-      }
-
-      // TODO: Push a .dex.index file too? We can't do it right now;
-      // on the device side we iterate through the .dex file and write
-      // entries like this:
-      //    DexFile dexFile = new DexFile(file);
-      //    Enumeration<String> entries = dexFile.entries();
-      //    while (entries.hasMoreElements()) {
-      //      String nextPath = entries.nextElement();
-      //      if (nextPath.indexOf('$') != -1) {
-      //          (write entry, one per line)
-      // However, we don't have a DexFile implementation here.
-      // Instead, rely on this being handled on the server side. (For now
-      // this means the classes won't be cleaned up.)
-
-      // Record the new build id on the device
-      transferLocalIdToDeviceId(device, facet.getModule());
-
-      return true;
-    } catch (IOException ioe) {
-      LOG.warn("Couldn't write build id file", ioe);
-    }
-    catch (AdbCommandRejectedException e) {
-      LOG.warn(e);
-    }
-    catch (TimeoutException e) {
-      LOG.warn(e);
-    }
-    catch (ShellCommandUnresponsiveException e) {
-      LOG.warn(e);
-    }
-    catch (SyncException e) {
-      LOG.warn(e);
-    }
-
-    return false;
-  }
-
-  private static int getMaxDexFileNumber(@NotNull String fileListing) {
-    int max = -1;
-
-    for (String name : Splitter.on(CharMatcher.WHITESPACE).omitEmptyStrings().splitToList(fileListing)) {
-      if (name.startsWith(CLASSES_DEX_PREFIX) && name.endsWith(CLASSES_DEX_SUFFIX)) {
-        String middle = name.substring(CLASSES_DEX_PREFIX.length(),
-                                       name.length() - CLASSES_DEX_SUFFIX.length());
-        try {
-          int version = Integer.decode(middle);
-          if (version > max) {
-            max = version;
-          }
-        } catch (NumberFormatException ignore) {
-        }
-      }
-    }
-
-    return max;
+    String buildId = StringUtil.notNullize(getLocalBuildId(facet.getModule()));
+    return getInstantRunClient(facet.getModule()).installDex(restart, buildId, device);
   }
 
   /**
@@ -943,21 +575,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    *               the infrastructure will look for other app modules
    */
   public static void restartActivity(@NotNull IDevice device, @NotNull Module module) {
-    AppState appState = getAppState(device, module);
-    if (appState == AppState.FOREGROUND || appState == AppState.BACKGROUND) {
-      final AndroidFacet facet = findAppModule(module, module.getProject());
-      if (facet == null) {
-        return;
-      }
-      talkToApp(device, facet, new Communicator<Boolean>() {
-        @Override
-        public Boolean communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException {
-          output.writeInt(MESSAGE_RESTART_ACTIVITY);
-          writeToken(facet, output);
-          return false;
-        }
-      }, true);
-    }
+    getInstantRunClient(module).restartActivity(device);
   }
 
   @Nullable
@@ -1358,6 +976,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     abstract File getFile(AndroidGradleModel model);
   }
 
+  @NotNull
+  private static InstantRunClient getInstantRunClient(@NotNull Module module) {
+    String packageName = getPackageName(findAppModule(module, module.getProject()));
+    return new InstantRunClient(packageName, STUDIO_PORT, new BalloonUserFeedback(module), ILOGGER);
+  }
+
   private void afterBuild(@NotNull IDevice device,
                           @NotNull AndroidGradleModel model,
                           @NotNull AndroidFacet facet,
@@ -1368,7 +992,10 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     updateMode = gatherGradleCodeChanges(model, changes, facet, updateMode);
     updateMode = gatherGradleResourceChanges(model, facet, changes, arscBefore, updateMode);
 
-    push(device, facet.getModule(), changes, updateMode);
+    InstantRunClient instantRunClient = getInstantRunClient(facet.getModule());
+    Project project = facet.getModule().getProject();
+    String buildId = StringUtil.notNullize(getLocalBuildId(facet.getModule()));
+    instantRunClient.push(device, buildId, changes, updateMode, isRestartActivity(project), isShowToastEnabled(project));
 
     String pkgName = getPackageName(facet);
     if (pkgName == null) {
@@ -1572,124 +1199,9 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     });
   }
 
-  private static void writeToken(
-    // we'll need this when really looking up the token from the build area
-    @SuppressWarnings("UnusedParameters") @NotNull AndroidFacet facet, @NotNull DataOutputStream output) throws IOException {
-    // TODO: Look up persistent token here
-    long token = 0L;
-    output.writeLong(token);
-  }
 
-  private void push(@Nullable IDevice device,
-                    @Nullable final Module module,
-                    @NotNull final List<ApplicationPatch> changes,
-                    @NotNull UpdateMode updateMode) {
-    if (changes.isEmpty() || updateMode == UpdateMode.NO_CHANGES) {
-      // Sync the build id to the device; Gradle might rev the build id even when there are no changes,
-      // and we need to make sure that the device id reflects this new build id, or the next
-      // build will discover different id's and will conclude that it needs to do a full rebuild
-      AndroidFacet facet = findAppModule(module);
-      if (device != null && facet != null) {
-        transferLocalIdToDeviceId(device, facet.getModule());
-      }
 
-      Notification notification = NOTIFICATION_GROUP.createNotification("Instant Run:", "No Changes.", NotificationType.INFORMATION, null);
-      notification.notify(myProject);
-      return;
-    }
 
-    if (updateMode == UpdateMode.HOT_SWAP && isRestartActivity(myProject)) {
-      updateMode = updateMode.combine(UpdateMode.WARM_SWAP);
-    }
-
-    if (device != null) {
-      final UpdateMode updateMode1 = updateMode;
-      final AndroidFacet facet = findAppModule(module);
-      if (facet != null) {
-        talkToApp(device, facet, new Communicator<Boolean>() {
-          @Override
-          public Boolean communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException {
-            output.writeInt(MESSAGE_PATCHES);
-            writeToken(facet, output);
-            ApplicationPatch.write(output, changes, updateMode1);
-
-            // Let the app know whether it should show toasts
-            output.writeBoolean(isShowToastEnabled(myProject));
-
-            // Finally read a boolean back from the other side; this has the net effect of
-            // waiting until applying/verifying code on the other side is done. (It doesn't
-            // count the actual restart time, but for activity restarts it's typically instant,
-            // and for cold starts we have no easy way to handle it (the process will die and a
-            // new process come up; to measure that we'll need to work a lot harder.)
-            input.readBoolean();
-
-            return false;
-          }
-
-          @Override
-          int getTimeout() {
-            return 8000; // allow up to 8 seconds for resource push
-          }
-        }, true);
-
-        transferLocalIdToDeviceId(device, facet.getModule());
-      }
-    }
-    if (DISPLAY_STATISTICS) {
-      notifyEnd(myProject);
-    }
-
-    if (updateMode == UpdateMode.HOT_SWAP && !isRestartActivity(myProject) && !ourHideRestartTip) {
-      StringBuilder sb = new StringBuilder(300);
-      sb.append("<html>");
-      sb.append("Instant Run applied code changes.\n");
-      sb.append("You can restart the current activity by clicking <a href=\"restart\">here</a>");
-      Shortcut[] shortcuts = ActionManager.getInstance().getAction("Android.RestartActivity").getShortcutSet().getShortcuts();
-      String shortcut;
-      if (shortcuts.length > 0) {
-        shortcut = KeymapUtil.getShortcutText(shortcuts[0]);
-        sb.append(" or pressing ").append(shortcut).append(" anytime");
-      }
-      sb.append(".\n");
-
-      sb.append("You can also <a href=\"configure\">configure</a> restarts to happen automatically. ");
-      sb.append("(<a href=\"dismiss\">Dismiss</a>, <a href=\"dismiss_all\">Dismiss All</a>)");
-      sb.append("</html>");
-      String message = sb.toString();
-      final Ref<Notification> notificationRef = Ref.create();
-      NotificationListener listener = new NotificationListener() {
-        @Override
-        public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-          if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-            String action = event.getDescription();
-            if ("restart".equals(action)) {
-              if (module != null) {
-                RestartActivityAction.restartActivity(module);
-              }
-            }
-            else if ("configure".equals(action)) {
-              InstantRunConfigurable configurable = new InstantRunConfigurable(myProject);
-              ShowSettingsUtil.getInstance().editConfigurable(myProject, configurable);
-            }
-            else if ("dismiss".equals(action)) {
-              notificationRef.get().hideBalloon();
-            }
-            else if ("dismiss_all".equals(action)) {
-              //noinspection AssignmentToStaticFieldFromInstanceMethod
-              ourHideRestartTip = true;
-              notificationRef.get().hideBalloon();
-            }
-            else {
-              assert false : action;
-            }
-          }
-        }
-      };
-      Notification notification = NOTIFICATION_GROUP.createNotification("Instant Run", message, NotificationType.INFORMATION, listener);
-      notificationRef.set(notification);
-      notification.notify(myProject);
-    }
-  }
 
   private static boolean ourHideRestartTip;
   private static boolean ourCheckedForOldPlugin;
@@ -1828,133 +1340,101 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
 
   public static void showToast(@NotNull IDevice device, @NotNull Module module, @NotNull final String message) {
     try {
-      talkToApp(device, findAppModule(module, module.getProject()), new Communicator<Boolean>() {
-        @Override
-        public Boolean communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException {
-          output.writeInt(MESSAGE_SHOW_TOAST);
-          output.writeUTF(message);
-          return false;
-        }
-      }, true);
+      getInstantRunClient(module).showToast(device, message);
     }
     catch (Throwable e) {
       LOG.warn(e);
     }
   }
 
-  /**
-   * Attempts to connect to a given device and sees if an instant run enabled app is running there.
-   */
-  @NotNull
-  public static AppState getAppState(@NotNull IDevice device, @NotNull Module module) {
-    try {
-      return talkToApp(device, findAppModule(module, module.getProject()), new Communicator<AppState>() {
-        @Override
-        public AppState communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException {
-          output.writeInt(MESSAGE_PING);
-          // Wait for "pong"
-          boolean foreground = input.readBoolean();
-          LOG.info("Ping sent and replied successfully, application seems to be running. Foreground=" + foreground);
-          return foreground ? AppState.FOREGROUND : AppState.BACKGROUND;
+
+
+
+
+  private static class BalloonUserFeedback implements UserFeedback {
+
+    private final Module myModule;
+
+    public BalloonUserFeedback(Module module) {
+      myModule = module;
+    }
+
+    @Override
+    public void error(String message) {
+      postBalloon(MessageType.ERROR, message, myModule.getProject());
+    }
+
+    @Override
+    public void warning(String message) {
+      postBalloon(MessageType.WARNING, message, myModule.getProject());
+    }
+
+    @Override
+    public void info(String message) {
+      postBalloon(MessageType.INFO, message, myModule.getProject());
+
+    }
+
+    @Override
+    public void noChanges() {
+      Notification notification = NOTIFICATION_GROUP.createNotification("Instant Run:", "No Changes.", NotificationType.INFORMATION, null);
+      notification.notify(myModule.getProject());
+    }
+
+    @Override
+    public void notifyEnd(UpdateMode updateMode) {
+      if (DISPLAY_STATISTICS) {
+        FastDeployManager.notifyEnd(myModule.getProject());
+      }
+
+      if (updateMode == UpdateMode.HOT_SWAP && !isRestartActivity(myModule.getProject()) && !ourHideRestartTip) {
+        StringBuilder sb = new StringBuilder(300);
+        sb.append("<html>");
+        sb.append("Instant Run applied code changes.\n");
+        sb.append("You can restart the current activity by clicking <a href=\"restart\">here</a>");
+        Shortcut[] shortcuts = ActionManager.getInstance().getAction("Android.RestartActivity").getShortcutSet().getShortcuts();
+        String shortcut;
+        if (shortcuts.length > 0) {
+          shortcut = KeymapUtil.getShortcutText(shortcuts[0]);
+          sb.append(" or pressing ").append(shortcut).append(" anytime");
         }
-      }, AppState.NOT_RUNNING);
-    }
-    catch (Throwable e) {
-      return AppState.NOT_RUNNING;
-    }
-  }
+        sb.append(".\n");
 
-  private static abstract class Communicator <T> {
-    abstract T communicate(@NotNull DataInputStream input, @NotNull DataOutputStream output) throws IOException;
-    int getTimeout() {
-      return 2000;
-    }
-  }
-
-  @NotNull
-  private static <T> T talkToApp(@NotNull IDevice device,
-                                 @Nullable AndroidFacet facet,
-                                 @NotNull Communicator<T> communicator,
-                                 @NotNull T errorValue) {
-    if (facet == null) {
-      return errorValue;
-    }
-
-    String packageName = getPackageName(facet);
-    if (packageName == null) {
-      return errorValue;
-    }
-
-    try {
-      device.createForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-      try {
-        return talkToAppWithinPortForward(communicator, errorValue);
-      }
-      catch (UnknownHostException e) {
-        LOG.warn(e);
-      }
-      catch (SocketException e) {
-        if (e.getMessage().equals("Broken pipe")) {
-          postBalloon(MessageType.ERROR, "No connection to app; cannot sync changes", facet.getModule().getProject());
-          return errorValue;
-        }
-        LOG.warn(e);
-      }
-      catch (IOException e) {
-        LOG.warn(e);
-      }
-      catch (Throwable e) {
-        LOG.warn(e);
-        return errorValue;
-      }
-      finally {
-        device.removeForward(STUDIO_PORT, packageName, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-      }
-    }
-    catch (TimeoutException e) {
-      LOG.warn(e);
-    }
-    catch (AdbCommandRejectedException e) {
-      LOG.warn(e);
-    }
-    catch (Throwable e) {
-      LOG.warn(e);
-    }
-
-    return errorValue;
-  }
-
-  private static <T> T talkToAppWithinPortForward(@NotNull Communicator<T> communicator, @NotNull T errorValue) throws IOException {
-    Socket socket = new Socket(LOCAL_HOST, STUDIO_PORT);
-    try {
-      socket.setSoTimeout(8*1000); // Allow up to 8 second before timing out
-      DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-      try {
-        DataInputStream input = new DataInputStream(socket.getInputStream());
-        try {
-          output.writeLong(PROTOCOL_IDENTIFIER);
-          output.writeInt(PROTOCOL_VERSION);
-
-          int version = input.readInt();
-          if (version != PROTOCOL_VERSION) {
-            return errorValue;
+        sb.append("You can also <a href=\"configure\">configure</a> restarts to happen automatically. ");
+        sb.append("(<a href=\"dismiss\">Dismiss</a>, <a href=\"dismiss_all\">Dismiss All</a>)");
+        sb.append("</html>");
+        String message = sb.toString();
+        final Ref<Notification> notificationRef = Ref.create();
+        NotificationListener listener = new NotificationListener() {
+          @Override
+          public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+              String action = event.getDescription();
+              if ("restart".equals(action)) {
+                RestartActivityAction.restartActivity(myModule);
+              }
+              else if ("configure".equals(action)) {
+                InstantRunConfigurable configurable = new InstantRunConfigurable(myModule.getProject());
+                ShowSettingsUtil.getInstance().editConfigurable(myModule.getProject(), configurable);
+              }
+              else if ("dismiss".equals(action)) {
+                notificationRef.get().hideBalloon();
+              }
+              else if ("dismiss_all".equals(action)) {
+                //noinspection AssignmentToStaticFieldFromInstanceMethod
+                ourHideRestartTip = true;
+                notificationRef.get().hideBalloon();
+              }
+              else {
+                assert false : action;
+              }
+            }
           }
-
-          socket.setSoTimeout(communicator.getTimeout());
-          T value = communicator.communicate(input, output);
-
-          output.writeInt(MESSAGE_EOF);
-
-          return value;
-        }
-        finally {
-          input.close();
-        }
-      } finally {
-        output.close();
+        };
+        Notification notification = NOTIFICATION_GROUP.createNotification("Instant Run", message, NotificationType.INFORMATION, listener);
+        notificationRef.set(notification);
+        notification.notify(myModule.getProject());
       }
-    } finally {
-      socket.close();
     }
   }
 
