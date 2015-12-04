@@ -55,12 +55,10 @@ final public class FmtATCRGBAMD extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtATCRGBAMD o = (FmtATCRGBAMD)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtATCRGBAMD o = (FmtATCRGBAMD)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

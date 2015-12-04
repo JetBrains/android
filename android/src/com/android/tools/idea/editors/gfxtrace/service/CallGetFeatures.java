@@ -22,7 +22,6 @@ import com.android.tools.rpclib.schema.Field;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
@@ -62,12 +61,10 @@ final class CallGetFeatures implements BinaryObject {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      CallGetFeatures o = (CallGetFeatures)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      CallGetFeatures o = (CallGetFeatures)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

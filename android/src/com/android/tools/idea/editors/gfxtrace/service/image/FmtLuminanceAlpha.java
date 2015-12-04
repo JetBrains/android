@@ -55,12 +55,10 @@ final public class FmtLuminanceAlpha extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtLuminanceAlpha o = (FmtLuminanceAlpha)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtLuminanceAlpha o = (FmtLuminanceAlpha)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }
