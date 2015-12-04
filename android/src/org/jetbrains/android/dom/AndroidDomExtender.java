@@ -136,20 +136,18 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     return null;
   }
 
-  protected static void registerStyleableAttributes(DomElement element,
-                                                    @NotNull StyleableDefinition[] styleables,
-                                                    @Nullable String namespace,
-                                                    MyCallback callback,
-                                                    MyAttributeProcessor processor,
-                                                    Set<XmlName> skippedAttributes) {
-    for (StyleableDefinition styleable : styleables) {
-      for (AttributeDefinition attrDef : styleable.getAttributes()) {
-        String attrName = attrDef.getName();
-        final XmlName xmlName = new XmlName(attrName, namespace);
-        if (!skippedAttributes.contains(xmlName)) {
-          skippedAttributes.add(xmlName);
-          registerAttribute(attrDef, styleable.getName(), namespace, callback, processor, element);
-        }
+  private static void registerStyleableAttributes(DomElement element,
+                                                  @NotNull StyleableDefinition styleable,
+                                                  @Nullable String namespace,
+                                                  MyCallback callback,
+                                                  MyAttributeProcessor processor,
+                                                  Set<XmlName> skippedAttributes) {
+    for (AttributeDefinition attrDef : styleable.getAttributes()) {
+      String attrName = attrDef.getName();
+      final XmlName xmlName = new XmlName(attrName, namespace);
+      if (!skippedAttributes.contains(xmlName)) {
+        skippedAttributes.add(xmlName);
+        registerAttribute(attrDef, styleable.getName(), namespace, callback, processor, element);
       }
     }
   }
@@ -252,7 +250,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                          MyAttributeProcessor processor,
                                          Set<XmlName> skipNames) {
     String namespace = getNamespaceKeyByResourcePackage(facet, resPackage);
-    registerStyleableAttributes(element, styleables, namespace, callback, processor, skipNames);
+    for (StyleableDefinition styleable : styleables) {
+      registerStyleableAttributes(element, styleable, namespace, callback, processor, skipNames);
+    }
   }
 
   @NotNull
@@ -604,10 +604,10 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     StyleableDefinition styleable = attrDefs.getStyleableByName(styleableName);
     if (styleable == null) return;
 
-    registerStyleableAttributes(element, new StyleableDefinition[]{styleable}, NS_RESOURCES, callback, new MyAttributeProcessor() {
+    registerStyleableAttributes(element, styleable, NS_RESOURCES, callback, new MyAttributeProcessor() {
       @Override
-      public void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element) {
-        if (AndroidManifestUtils.isRequiredAttribute(attrName, element)) {
+      public void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element1) {
+        if (AndroidManifestUtils.isRequiredAttribute(attrName, element1)) {
           extension.addCustomAnnotation(new MyRequired());
         }
       }
@@ -695,10 +695,26 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       registerExtensionsForTransition(facet, tagName, (TransitionDomElement)element, callback, registeredSubtags, skippedAttributes);
     }
 
-    final Styleable styleable = element.getAnnotation(Styleable.class);
-    if (styleable != null) {
-      final String value = styleable.value();
-      registerAttributes(facet, element, value, SYSTEM_RESOURCE_PACKAGE, callback, skippedAttributes);
+    // If DOM element is annotated with @Styleable annotation, load a styleable definition
+    // from Android framework with the name provided in annotation and register all attributes
+    // from it for code highlighting and completion.
+    final Styleable styleableAnnotation = element.getAnnotation(Styleable.class);
+    if (styleableAnnotation != null) {
+      final SystemResourceManager manager = facet.getSystemResourceManager();
+      final String styleableName = styleableAnnotation.value();
+      if (manager != null) {
+        final AttributeDefinitions definitions = manager.getAttributeDefinitions();
+        if (definitions != null) {
+          final StyleableDefinition styleable = definitions.getStyleableByName(styleableName);
+          if (styleable == null) {
+            // DOM element is annotated with @Styleable annotation, but styleable definition with
+            // provided name is not there in Android framework. This is a bug, so logging it as a warning.
+            LOG.warn(String.format("@Styleable(%s) annotation doesn't point to existing styleable", styleableName));
+          } else {
+            registerStyleableAttributes(element, styleable, ANDROID_URI, callback, null, skippedAttributes);
+          }
+        }
+      }
     }
   }
 
