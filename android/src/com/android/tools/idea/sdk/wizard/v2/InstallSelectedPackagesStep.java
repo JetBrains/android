@@ -332,7 +332,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       UIUtil.invokeLaterIfNeeded(new Runnable() {
         @Override
         public void run() {
-          myProgressOverallLabel.setText(s);
+          myProgressDetailLabel.setText(s);
         }
       });
       if (myIndicator != null) {
