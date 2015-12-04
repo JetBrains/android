@@ -63,14 +63,12 @@ public class RunAvdAction extends AvdUiAction {
       case PLATFORM_TOOLS_UPDATE_ADVISED:
       case SYSTEM_IMAGE_UPDATE_ADVISED:
         // Do not block emulator from running if we need updates (run with degradated performance):
-        startAvd(avdInfo);
         return true;
       case NO_EMULATOR_INSTALLED:
         break;
       default:
         if (!isAvdIntel) {
           // Do not block Arm and Mips emulators from running without an accelerator:
-          startAvd(avdInfo);
           return true;
         }
     }
