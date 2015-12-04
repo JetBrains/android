@@ -48,6 +48,8 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.PerformInBackgroundOption;
+import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -464,13 +466,16 @@ public class AvdManagerConnection {
       return null;
     }
 
-    final ProgressWindow p = new ProgressWindow(false, true, project);
+    // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise show it.
+    final ProgressWindow p = hasQEMU2Installed()
+                             ? new BackgroundableProcessIndicator(project, "Launching Emulator", PerformInBackgroundOption.ALWAYS_BACKGROUND,
+                                                                  "", "", false)
+                             : new ProgressWindow(false, true, project);
     p.setIndeterminate(false);
     p.setDelayInMillis(0);
 
     // It takes >= 8 seconds to start the Emulator. Display a small progress indicator otherwise it seems like
     // the action wasn't invoked and users tend to click multiple times on it, ending up with several instances of the emulator
-    // TODO: the qemu2 emulator has its own progress window, and we probably don't need this?
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
