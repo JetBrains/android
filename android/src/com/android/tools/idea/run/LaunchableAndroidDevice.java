@@ -22,8 +22,11 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdWizardConstants;
 import com.google.common.base.Predicate;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.ide.ui.search.SearchUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -89,7 +92,12 @@ public class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull ConsolePrinter printer) {
-    AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
+    ProcessHandler handler = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
+    if (handler == null || handler.isProcessTerminating() || handler.isProcessTerminated()) {
+      String message = "Unable to start emulator " + myAvdInfo.getName();
+      Logger.getInstance(LaunchableAndroidDevice.class).warn(message);
+      return Futures.immediateFailedFuture(new RuntimeException(message));
+    }
 
     // Wait for an AVD to come up with name matching the one we just launched.
     final String avdName = myAvdInfo.getName();
