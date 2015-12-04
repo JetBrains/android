@@ -78,16 +78,17 @@ import java.util.regex.Matcher;
 public class AvdManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG);
-  public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
-  public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
   private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null);
-  private static final IdDisplay GOOGLE_APIS_TAG = new com.android.sdklib.repository.descriptors.IdDisplay("google_apis", "");
   private static final int MNC_API_LEVEL_23 = 23;
   private static final int LMP_MR1_API_LEVEL_22 = 22;
   private static final int MNC_AOSP_MIN_REVISION = 6;
   private static final int MNC_GAPI_MIN_REVISION = 10;
   private static final int LMP_AOSP_MIN_REVISION = 2;
   private static final int LMP_GAPI_MIN_REVISION = 2;
+
+  public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
+  public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
+  public static final IdDisplay GOOGLE_APIS_TAG = new com.android.sdklib.repository.descriptors.IdDisplay("google_apis", "");
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
 
