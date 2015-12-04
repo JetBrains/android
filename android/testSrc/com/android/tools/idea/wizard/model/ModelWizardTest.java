@@ -389,7 +389,7 @@ public class ModelWizardTest {
     }
 
     @Override
-    protected void onEnter() {
+    protected void onEntering() {
       myEntered = true; // Should never get called!
     }
 
@@ -531,7 +531,7 @@ public class ModelWizardTest {
     }
 
     @Override
-    protected void onEnter() {
+    protected void onEntering() {
       getModel().setName(myName);
     }
   }
@@ -545,7 +545,7 @@ public class ModelWizardTest {
     }
 
     @Override
-    protected void onEnter() {
+    protected void onEntering() {
       getModel().setAge(myAge);
     }
   }
@@ -559,7 +559,7 @@ public class ModelWizardTest {
     }
 
     @Override
-    protected void onEnter() {
+    protected void onEntering() {
       getModel().setTitle(myTitle);
     }
   }

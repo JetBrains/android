@@ -271,7 +271,7 @@ public final class ModelWizard implements Disposable {
       ModelWizardStep step = mySteps.get(myCurrIndex);
       if (shouldShowStep(step)) {
         updateNavigationProperties();
-        step.onEnter();
+        step.onEntering();
         showCurrentStep();
         break;
       }
