@@ -189,6 +189,11 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     InstallTask task = new InstallTask(myInstallRequests, myCustomLogger);
     BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
     myCustomLogger.setIndicator(indicator);
+    myCustomLogger.logInfo("To install:");
+    for (RemotePackage p : myInstallRequests) {
+      myCustomLogger.logInfo(String.format("- %1$s (%2$s)", p.getDisplayName(), p.getPath()));
+    }
+    myCustomLogger.logInfo("");
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
   }
 
@@ -214,12 +219,31 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       try {
         for (RemotePackage remote : myRequestedPackages) {
           PackageInstaller installer = AndroidSdkHandler.findBestInstaller(remote);
-          if (!installer.install(remote, myDownloader, mySettings, myProgress, myRepoManager, mySdkHandler.getFileOp())) {
+          myCustomLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
+          boolean success = false;
+          try {
+            success = installer.install(remote, myDownloader, mySettings, myProgress, myRepoManager, mySdkHandler.getFileOp());
+          }
+          catch (Exception e) {
+            Logger.getInstance(getClass()).warn(e);
+          }
+          if (!success) {
+            myCustomLogger.logInfo(String.format("Failed to install %1$s!", remote.getDisplayName()));
             failures.add(remote);
           }
+          else {
+            myCustomLogger.logInfo(String.format("Installation of %1$s complete.", remote.getDisplayName()));
+          }
+          myCustomLogger.logInfo("");
         }
       }
       finally {
+        if (!failures.isEmpty()) {
+          myCustomLogger.logInfo("Failed packages:");
+          for (RemotePackage p : failures) {
+            myCustomLogger.logInfo(String.format("- %1$s (%2$s)", p.getDisplayName(), p.getPath()));
+          }
+        }
         synchronized (LOGGER_LOCK) {
           myCustomLogger = null;
         }
@@ -378,7 +402,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           if (current == null) {
             current = "";
           }
-          mySdkManagerOutput.setText(current + s);
+          mySdkManagerOutput.setText(current + "\n" + s);
         }
       });
     }
