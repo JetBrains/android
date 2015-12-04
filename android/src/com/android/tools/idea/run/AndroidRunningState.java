@@ -191,6 +191,7 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
     return myPackageName;
   }
 
+  @Nullable
   public String getTestPackageName() {
     try {
       return myApkProvider.getTestPackageName();
@@ -291,8 +292,6 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
     return myConsoleProvider.createAndAttach(myEnv.getProject(), getProcessHandler(), executor);
   }
 
-  // Note: execute isn't called if we are re-attaching to an existing session and there is no need to create
-  // a new process handler and console. In such a scenario, control flow directly goes to #start().
   @Override
   public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
     myProcessHandler = new AndroidMultiProcessHandler(getPackageName());
@@ -337,7 +336,7 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
     return new DefaultExecutionResult(myConsole, myProcessHandler);
   }
 
-  void start() {
+  private void start() {
     final AtomicInteger startedCount = new AtomicInteger();
     for (ListenableFuture<IDevice> targetDevice : myDeviceFutures.get()) {
       Futures.addCallback(targetDevice, new FutureCallback<IDevice>() {
