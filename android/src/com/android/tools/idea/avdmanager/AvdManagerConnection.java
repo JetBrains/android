@@ -386,15 +386,17 @@ public class AvdManagerConnection {
 
   /**
    * Launch the given AVD in the emulator.
+   * @return the {@link ProcessHandler} corresponding to the running emulator if the emulator process was launched, null otherwise
    */
-  public void startAvd(@Nullable final Project project, @NotNull final AvdInfo info) {
+  @Nullable
+  public ProcessHandler startAvd(@Nullable final Project project, @NotNull final AvdInfo info) {
     if (!initIfNecessary()) {
-      return;
+      return null;
     }
     final File emulatorBinary = getEmulatorBinary();
     if (!emulatorBinary.isFile()) {
       IJ_LOG.error("No emulator binary found!");
-      return;
+      return null;
     }
 
     final String avdName = info.getName();
@@ -417,7 +419,7 @@ public class AvdManagerConnection {
                                      "   %2$s/%1$s.avd/*.lock\n" +
                                      "and try again.", avdName, baseFolder);
       Messages.showErrorDialog(project, message, "AVD Manager");
-      return;
+      return null;
     }
 
     Map<String, String> properties = info.getProperties();
@@ -426,55 +428,54 @@ public class AvdManagerConnection {
     final String netSpeed = properties.get(AvdWizardConstants.AVD_INI_NETWORK_SPEED);
     final boolean useRanchu = properties.containsKey(AvdWizardConstants.CPU_CORES_KEY.name) && doesSystemImageSupportRanchu(info);
 
+    GeneralCommandLine commandLine = new GeneralCommandLine();
+    commandLine.setExePath(emulatorBinary.getPath());
+
+    // Don't explicitly set auto since that seems to be the default behavior, but when set
+    // can cause the emulator to fail to launch with this error message:
+    //  "could not get monitor DPI resolution from system. please use -dpi-monitor to specify one"
+    // (this happens on OSX where we don't have a reliable, Retina-correct way to get the dpi)
+    if (scaleFactor != null && !"auto".equals(scaleFactor)) {
+      commandLine.addParameters("-scale", scaleFactor);
+    }
+
+    if (netDelay != null) {
+      commandLine.addParameters("-netdelay", netDelay);
+    }
+
+    if (netSpeed != null) {
+      commandLine.addParameters("-netspeed", netSpeed);
+    }
+
+    if (useRanchu) {
+      commandLine.addParameter("-ranchu");
+    }
+
+    commandLine.addParameters("-avd", avdName);
+
+    EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine, info);
+    final ProcessHandler processHandler;
+    try {
+      processHandler = runner.start();
+    }
+    catch (ExecutionException e) {
+      IJ_LOG.error("Error launching emulator", e);
+      return null;
+    }
+
     final ProgressWindow p = new ProgressWindow(false, true, project);
     p.setIndeterminate(false);
     p.setDelayInMillis(0);
 
+    // It takes >= 8 seconds to start the Emulator. Display a small progress indicator otherwise it seems like
+    // the action wasn't invoked and users tend to click multiple times on it, ending up with several instances of the emulator
+    // TODO: the qemu2 emulator has its own progress window, and we probably don't need this?
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        GeneralCommandLine commandLine = new GeneralCommandLine();
-        commandLine.setExePath(emulatorBinary.getPath());
-
-        // Don't explicitly set auto since that seems to be the default behavior, but when set
-        // can cause the emulator to fail to launch with this error message:
-        //  "could not get monitor DPI resolution from system. please use -dpi-monitor to specify one"
-        // (this happens on OSX where we don't have a reliable, Retina-correct way to get the dpi)
-        if (scaleFactor != null && !"auto".equals(scaleFactor)) {
-          commandLine.addParameters("-scale", scaleFactor);
-        }
-
-        if (netDelay != null) {
-          commandLine.addParameters("-netdelay", netDelay);
-        }
-
-        if (netSpeed != null) {
-          commandLine.addParameters("-netspeed", netSpeed);
-        }
-
-        if (useRanchu) {
-          commandLine.addParameter("-ranchu");
-        }
-
-        commandLine.addParameters("-avd", avdName);
-
-        EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine, info);
-        ProcessHandler processHandler;
-        try {
-          processHandler = runner.start();
-        }
-        catch (ExecutionException e) {
-          IJ_LOG.error("Error launching emulator", e);
-          return;
-        }
-
         ExternalToolRunner.ProcessOutputCollector collector = new ExternalToolRunner.ProcessOutputCollector();
         processHandler.addProcessListener(collector);
 
-        // It takes >= 8 seconds to start the Emulator. Display a small
-        // progress indicator otherwise it seems like the action wasn't invoked and users tend
-        // to click multiple times on it, ending up with several instances of the manager
-        // window.
         try {
           p.start();
           p.setText("Starting AVD...");
@@ -506,6 +507,8 @@ public class AvdManagerConnection {
         }
       }
     });
+
+    return processHandler;
   }
 
   /**
