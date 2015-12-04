@@ -72,6 +72,11 @@ public final class Render {
   }
 
   public static void render(@NotNull Dynamic dynamic, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+    MemoryPointer mp = tryMemoryPointer(dynamic);
+    if (mp != null) {
+      render(mp, component, attributes);
+      return;
+    }
     component.append("{", SimpleTextAttributes.GRAY_ATTRIBUTES);
     for (int index = 0; index < dynamic.getFieldCount(); ++index) {
       if (index > 0) {
@@ -80,6 +85,33 @@ public final class Render {
       render(dynamic.getFieldValue(index), dynamic.getFieldInfo(index).getType(), component, attributes);
     }
     component.append("}", SimpleTextAttributes.GRAY_ATTRIBUTES);
+  }
+
+  /**
+   * Tries to convert a dynamic to a memory pointer if the schema representation is compatible.
+   * There are several aliases for Memory.Pointer which are unique types, but we want to render
+   * them as pointers.
+   * @param dynamic object to attempt to convert to a memory pointer.
+   * @return a memory pointer if the conversion is possible, otherwise null.
+   */
+  private static MemoryPointer tryMemoryPointer(Dynamic dynamic) {
+    Entity entity = dynamic.klass().entity();
+    Field[] fields = entity.getFields();
+    MemoryPointer mp = new MemoryPointer();
+    Field[] mpFields = mp.klass().entity().getFields();
+    if (mpFields.length != fields.length || entity.getMetadata().length != 0) {
+      return null;
+    }
+    for (int i = 0; i < fields.length; ++i) {
+      if (!fields[i].equals(mpFields[i])) {
+        return null;
+      }
+    }
+    long address = ((Long)dynamic.getFieldValue(0)).longValue();
+    PoolID poolId = new PoolID(((Integer)dynamic.getFieldValue(1)).intValue());
+    mp.setAddress(address);
+    mp.setPool(poolId);
+    return mp;
   }
 
   public static void render(@NotNull Field field, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
