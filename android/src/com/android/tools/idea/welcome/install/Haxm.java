@@ -24,6 +24,7 @@ import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.avdmanager.AccelerationErrorCode;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.ElevatedCommandLine;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
@@ -108,10 +109,6 @@ public final class Haxm extends InstallableComponent {
     if (!SystemInfo.isWindows && !SystemInfo.isMac) {
       return CANNOT_INSTALL_ON_THIS_OS;
     }
-    if (SystemInfo.isWindows && !Boolean.getBoolean("install.haxm")) {
-      // TODO HAXM is disabled on Windows as headless installer currently fails to request admin access as needed.
-      return CANNOT_INSTALL_ON_WINDOWS;
-    }
     AvdManagerConnection manager = AvdManagerConnection.getDefaultAvdManagerConnection();
     return manager.checkAcceration();
   }
@@ -159,7 +156,7 @@ public final class Haxm extends InstallableComponent {
   @NotNull
   private static GeneralCommandLine getWindowsHaxmCommandLine(File source) {
     File batFile = new File(source, "silent_install.bat");
-    return new GeneralCommandLine(batFile.getAbsolutePath()).withWorkDirectory(source);
+    return new ElevatedCommandLine(batFile.getAbsolutePath()).withWorkDirectory(source);
   }
 
   private static int getRecommendedMemoryAllocation() {
@@ -197,8 +194,8 @@ public final class Haxm extends InstallableComponent {
           runInstaller(installContext, commandLine);
         }
         catch (WizardException e) {
-          Logger.getInstance(getClass()).error(String.format("Tried to install HAXM on %s OS with %s memory size",
-                                                             Platform.current().name(), String.valueOf(AvdManagerConnection.getMemorySize())));
+          LOG.error(String.format("Tried to install HAXM on %s OS with %s memory size",
+                                  Platform.current().name(), String.valueOf(AvdManagerConnection.getMemorySize())));
           installContext.print("Unable to install Intel HAXM\n", ConsoleViewContentType.ERROR_OUTPUT);
           String message = e.getMessage();
           if (!StringUtil.endsWithLineBreak(message)) {
@@ -212,6 +209,11 @@ public final class Haxm extends InstallableComponent {
       case NONE:
         String message = String.format("Unable to install Intel HAXM\n%1$s\n%2$s\n", error.getProblem(), error.getSolutionMessage());
         installContext.print(message, ConsoleViewContentType.ERROR_OUTPUT);
+        break;
+
+      default:
+        // Different error that is unrelated to the installation of Haxm
+        break;
     }
   }
 

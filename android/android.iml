@@ -101,5 +101,6 @@
     <orderEntry type="module" module-name="repository" />
     <orderEntry type="module" module-name="instant-run-client" />
     <orderEntry type="module" module-name="instant-run-common" />
+    <orderEntry type="library" name="jna" level="project" />
   </component>
 </module>
