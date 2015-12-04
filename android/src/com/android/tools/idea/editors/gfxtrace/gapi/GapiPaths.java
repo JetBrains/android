@@ -16,38 +16,36 @@
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
-import com.intellij.openapi.application.PathManager;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 
 public final class GapiPaths {
-  private static final Map<String, String> ABI_REMAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
-    put("32-bit (arm)", "armeabi-v7a"); // Not a valid abi, but returned anyway by ClientData.getAbi
-    put("64-bit (arm)", "arm64-v8a"); // Not a valid abi, but returned anyway by ClientData.getAbi
-    put("armeabi", "armeabi-v7a");// We currently (incorrectly) remap this abi because we don't have the correct .so
-  }});
+  private static final Map<String, String> ABI_REMAP = ImmutableMap.<String, String>builder()
+    .put("32-bit (arm)", "armeabi-v7a") // Not a valid abi, but returned anyway by ClientData.getAbi
+    .put("64-bit (arm)", "arm64-v8a")   // Not a valid abi, but returned anyway by ClientData.getAbi
+    .put("armeabi", "armeabi-v7a")      // We currently (incorrectly) remap this abi because we don't have the correct .so
+    .build();
 
-  private static final Map<String, String> ARCH_REMAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
-    put("i386", "x86");
-    put("amd64", "x86_64");
-  }});
+  private static final Map<String, String> ARCH_REMAP = ImmutableMap.<String, String>builder()
+    .put("i386", "x86")
+    .put("amd64", "x86_64")
+    .build();
 
-  private static final Map<String, String> ABI_TARGET = Collections.unmodifiableMap(new HashMap<String, String>() {{
-    put("armeabi-v7a", "android-arm");
-    put("arm64-v8a", "android-arm64");
-    put("x86", "android-x86");
-  }});
+  private static final Map<String, String> ABI_TARGET = ImmutableMap.<String, String>builder()
+    .put("armeabi-v7a", "android-arm")
+    .put("arm64-v8a", "android-arm64")
+    .put("x86", "android-x86")
+    .build();
 
   @NotNull private static final String HOST_OS;
   @NotNull private static final String HOST_ARCH;

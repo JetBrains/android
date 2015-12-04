@@ -79,7 +79,7 @@ public class FetchedImage {
 
   public FetchedImage(@NotNull ImageInfo imageInfo, @NotNull byte[] data) {
     myImageInfo = imageInfo;
-    dimensions = new Dimension((int)myImageInfo.getWidth(), (int)myImageInfo.getHeight());
+    dimensions = new Dimension(myImageInfo.getWidth(), myImageInfo.getHeight());
     //noinspection UndesirableClassUsage
     image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_4BYTE_ABGR);
     WritableRaster raster = image.getRaster();

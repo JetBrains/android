@@ -61,12 +61,10 @@ final class FmtRGBA4444 extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtRGBA4444 o = (FmtRGBA4444)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtRGBA4444 o = (FmtRGBA4444)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

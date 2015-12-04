@@ -55,12 +55,10 @@ final public class FmtFloat32 extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtFloat32 o = (FmtFloat32)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtFloat32 o = (FmtFloat32)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

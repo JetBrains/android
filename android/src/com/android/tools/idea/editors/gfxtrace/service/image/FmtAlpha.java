@@ -55,12 +55,10 @@ final public class FmtAlpha extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtAlpha o = (FmtAlpha)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtAlpha o = (FmtAlpha)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }
