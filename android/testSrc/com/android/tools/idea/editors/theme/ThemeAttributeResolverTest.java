@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -33,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
 
 public class ThemeAttributeResolverTest extends AndroidTestCase {
 
@@ -46,32 +50,30 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
       @Override
       protected void run(@NotNull Result<Boolean> result) {
         result.setResult(AndroidResourceUtil.
-          createValueResource(myModule, newStyleName, null,
-                              ResourceType.STYLE, "styles.xml", folders, new Processor<ResourceElement>() {
-              @Override
-              public boolean process(ResourceElement element) {
-                assert element instanceof Style;
-                final Style style = (Style)element;
+          createValueResource(myModule, newStyleName, null, ResourceType.STYLE, "styles.xml", folders, new Processor<ResourceElement>() {
+            @Override
+            public boolean process(ResourceElement element) {
+              assert element instanceof Style;
+              final Style style = (Style)element;
 
-                if (parentStyleName != null) {
-                  style.getParentStyle().setStringValue(parentStyleName);
-                  if (colorPrimaryValue != null) {
-                    StyleItem styleItem = style.addItem();
-                    styleItem.getName().setStringValue("colorPrimary");
-                    styleItem.setStringValue(colorPrimaryValue);
-                  }
-                }
-
-                return true;
+              style.getParentStyle().setStringValue(parentStyleName);
+              if (colorPrimaryValue != null) {
+                StyleItem styleItem = style.addItem();
+                styleItem.getName().setStringValue("colorPrimary");
+                styleItem.setStringValue(colorPrimaryValue);
               }
-            }));
+
+              return true;
+            }
+          }));
       }
     }.execute().getResultObject();
   }
+
   /**
    * Tests {@link ThemeAttributeResolver#resolveAll(ThemeEditorStyle, ThemeResolver)}
    */
-  public void testResolveAll() {
+  public void testResolveAllVersion() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
@@ -84,11 +86,51 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ThemeEditorStyle style = themeResolver.getTheme("ThemeB");
     assertNotNull(style);
+
+    Set<String> answer = Sets.newHashSet("-v16:red", "-v15:red", "-v14:blue");
+
     List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, themeResolver);
+    boolean foundColorPrimary = false;
     for (EditedStyleItem item : items) {
       if (item.getName().equals("colorPrimary")) {
-        assertEquals(3, item.getAllConfiguredItems().size());
+        foundColorPrimary = true;
+        assertEquals(answer.size(), item.getAllConfiguredItems().size());
+        for (ConfiguredElement<ItemResourceValue> value : item.getAllConfiguredItems()) {
+          assertTrue(answer.contains(value.getConfiguration().getUniqueKey() + ":" + value.getElement().getValue()));
+        }
       }
     }
+    assertTrue(foundColorPrimary);
+  }
+
+  /**
+   * Tests {@link ThemeAttributeResolver#resolveAll(ThemeEditorStyle, ThemeResolver)}
+   */
+  public void testResolveAllEnum() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
+
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
+
+    createNewStyle("ThemeA", "android:Theme", "red", Lists.newArrayList("values-port", "values-square", "values-land"));
+    createNewStyle("ThemeB", "ThemeA", null, Lists.newArrayList("values", "values-port"));
+
+    myFacet.refreshResources();
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+    ThemeEditorStyle style = themeResolver.getTheme("ThemeB");
+    assertNotNull(style);
+    Set<String> answer = Sets.newHashSet("-port:red", "-land:red", "-square:red");
+
+    List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, themeResolver);
+    boolean foundColorPrimary = false;
+    for (EditedStyleItem item : items) {
+      if (item.getName().equals("colorPrimary")) {
+        foundColorPrimary = true;
+        assertEquals(answer.size(), item.getAllConfiguredItems().size());
+        for (ConfiguredElement<ItemResourceValue> value : item.getAllConfiguredItems()) {
+          assertTrue(answer.contains(value.getConfiguration().getUniqueKey() + ":" + value.getElement().getValue()));
+        }
+      }
+    }
+    assertTrue(foundColorPrimary);
   }
 }
