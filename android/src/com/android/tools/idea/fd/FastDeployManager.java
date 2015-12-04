@@ -1748,7 +1748,6 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
           }
 
           if (modelVersion.equals("2.0.0-alpha1")) {
-            modelVersion = GRADLE_PLUGIN_LATEST_VERSION;
             showObsoleteWarning(project, modelVersion);
             break;
           }
