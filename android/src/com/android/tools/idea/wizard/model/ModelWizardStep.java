@@ -81,7 +81,8 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
 
   /**
    * Called once, when the wizard first starts up but before any step is shown. This is a good
-   * place to handle UI initialization that needs to interact with the parent wizard.
+   * place to set up bindings and handle any UI initialization that needs to interact with the
+   * parent wizard.
    * <p/>
    * Note: You should not store a reference to the wizard parameter. It's only meant to be used in
    * the context of this method.
@@ -118,13 +119,13 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
   }
 
   /**
-   * Called when the step is first entered, before it is shown. This method is not called when
-   * returning back to a step.
+   * Called on the step just before it is shown. This method is not called when returning back to a
+   * step. This is a good time to copy any relevant data out of the model to initialize the UI.
    * <p/>
    * TODO: Should we pass the wizard parameter to this method? This TODO can be safely removed
    * if the dynamic wizard migration is complete and we never needed it.
    */
-  protected void onEnter() {
+  protected void onEntering() {
   }
 
   /**
