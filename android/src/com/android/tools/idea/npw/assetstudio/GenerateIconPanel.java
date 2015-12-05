@@ -21,10 +21,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.npw.template.RenderTemplateModel;
-import com.android.tools.idea.npw.template.TemplateHandle;
-import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
@@ -35,15 +31,15 @@ import com.android.tools.idea.ui.properties.expressions.string.FormatExpression;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.SliderValueProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.Validator;
 import com.android.tools.idea.ui.wizard.ValidatorPanel;
-import com.android.tools.idea.wizard.model.ModelWizard;
-import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.IconUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,24 +48,27 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
 /**
- * An AssetStudio wizard step that lets the user preview and then generate icons that can be used
- * by the Android notification system.
+ * A panel which presents a UI for selecting some source asset and converting it to a target set of
+ * Android Icons. See {@link AndroidIconType} for the types of icons this can generate.
  *
- * This is a Swing port of the
- * <a href="https://romannurik.github.io/AndroidAssetStudio/icons-notification.html">Notification Icon Generator</a>
+ * Before generating icons, you should first check {@link #hasErrors()} to make sure there won't be
+ * any errors in the generation process.
+ *
+ * This is a Swing port of the various icon generators provided by the
+ * <a href="https://romannurik.github.io/AndroidAssetStudio/index.html">Asset Studio</a>
  * web application.
  */
-public final class NotificationIconStep extends ModelWizardStep<RenderTemplateModel> {
+public final class GenerateIconPanel extends JPanel implements Disposable {
 
+  @NotNull private final AndroidFacet myFacet;
   private final AssetStudioAssetGenerator myAssetGenerator = new AssetStudioAssetGenerator();
 
-  private final StudioWizardStepPanel myStudioPanel;
   private final ValidatorPanel myValidatorPanel;
+
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
 
@@ -100,18 +99,33 @@ public final class NotificationIconStep extends ModelWizardStep<RenderTemplateMo
   private ImageComponent mySourceAssetPreviewImage;
   private JPanel mySourceAssetPreviewBorder;
   private JPanel myOutputPreviewPanel;
-  private JPanel myV11PanelContainer;
-  private JPanel myV9PanelContainer;
-  private JPanel myPreV9PanelContainer;
   private JTextField myOutputNameTextField;
   private JPanel myOutputNamePanel;
   private JBLabel myOutputPreviewLabel;
   private JPanel mySourceAssetPanel;
+  private JPanel myTrimRowPanel;
+  private JPanel myNameRowPanel;
+  private JPanel myPaddingRowPanel;
 
+  @NotNull private AndroidIconType myOutputType;
+
+  @Nullable private AndroidProjectPaths myProjectPaths;
   @Nullable private BufferedImage myEnqueuedImageToProcess;
+  @NotNull private String myOutputNameWithoutSuffix = "";
 
-  public NotificationIconStep(@NotNull RenderTemplateModel model) {
-    super(model, "Generate Notification Icons");
+  /**
+   * Create a panel which can generate Android icons. The supported types passed in will be
+   * presented to the user in a pulldown menu (unless there's only one supported type). If no
+   * supported types are passed in, then all types will be supported by default.
+   */
+  public GenerateIconPanel(@NotNull Disposable disposableParent, @NotNull AndroidFacet facet, @NotNull AndroidIconType... supportedTypes) {
+    super(new BorderLayout());
+
+    if (supportedTypes.length == 0) {
+      supportedTypes = AndroidIconType.values();
+    }
+
+    myFacet = facet;
 
     myOutputPreviewPanels = ImmutableList
       .of(new GeneratedIconsPanel(NotificationIconGenerator.Version.V11.getDisplayName(), "API 11+", GeneratedIconsPanel.Theme.DARK),
@@ -122,8 +136,8 @@ public final class NotificationIconStep extends ModelWizardStep<RenderTemplateMo
       myOutputPreviewPanel.add(iconsPanel);
     }
 
+    Disposer.register(disposableParent, this);
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
-    myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Convert a source asset into an Android notification icon");
 
     myOutputName = new TextProperty(myOutputNameTextField);
 
@@ -140,10 +154,40 @@ public final class NotificationIconStep extends ModelWizardStep<RenderTemplateMo
     // play around with.
     myActiveAsset = new ObjectValueProperty<BaseAsset>(clipartAssetPanel.getAsset());
     myClipartRadioButton.setSelected(true);
+
+    // TODO: Add a pulldown of all supported types and change contents dynamically when changed.
+    myOutputType = supportedTypes[0];
+    setOutputName(myOutputType.toOutputName(""));
+
+    initializeListenersAndBindings();
+    initializeValidators();
+    renderIconPreviews();
+
+    Disposer.register(this, myValidatorPanel);
+    add(myValidatorPanel);
   }
 
-  @Override
-  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
+  private void initializeListenersAndBindings() {
+    ActionListener radioSelectedListener = new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        String radioName = ((JRadioButton)e.getSource()).getText();
+        ((CardLayout)myAssetTypesPanel.getLayout()).show(myAssetTypesPanel, radioName);
+
+        // No simple way to get the panel just shown from CardLayout. Run through manually...
+        for (Component component : myAssetTypesPanel.getComponents()) {
+          if (component.isVisible()) {
+            AssetPanel assetPanel = ((AssetPanel)component);
+            myActiveAsset.set(assetPanel.getAsset());
+            break;
+          }
+        }
+      }
+    };
+    myClipartRadioButton.addActionListener(radioSelectedListener);
+    myImageRadioButton.addActionListener(radioSelectedListener);
+    myTextRadioButton.addActionListener(radioSelectedListener);
+
     ActionListener assetPanelListener = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -179,27 +223,9 @@ public final class NotificationIconStep extends ModelWizardStep<RenderTemplateMo
         renderIconPreviews();
       }
     });
+  }
 
-    ActionListener radioSelectedListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        String radioName = ((JRadioButton)e.getSource()).getText();
-        ((CardLayout)myAssetTypesPanel.getLayout()).show(myAssetTypesPanel, radioName);
-
-        // No simple way to get the panel just shown from CardLayout. Run through manually...
-        for (Component component : myAssetTypesPanel.getComponents()) {
-          if (component.isVisible()) {
-            AssetPanel assetPanel = ((AssetPanel)component);
-            myActiveAsset.set(assetPanel.getAsset());
-            break;
-          }
-        }
-      }
-    };
-    myClipartRadioButton.addActionListener(radioSelectedListener);
-    myImageRadioButton.addActionListener(radioSelectedListener);
-    myTextRadioButton.addActionListener(radioSelectedListener);
-
+  private void initializeValidators() {
     myValidatorPanel.registerValidator(myOutputName, new Validator<String>() {
       @NotNull
       @Override
@@ -216,35 +242,25 @@ public final class NotificationIconStep extends ModelWizardStep<RenderTemplateMo
         }
       }
     });
-
-    renderIconPreviews();
   }
 
-  @NotNull
-  @Override
-  protected JComponent getComponent() {
-    return myStudioPanel;
+  /**
+   * Set the target project paths that this panel should use when generating assets. If set to
+   * {@code null}, a default resource path will be selected based on the current module.
+   */
+  public void setProjectPaths(@Nullable AndroidProjectPaths projectPaths) {
+    myProjectPaths = projectPaths;
+    // Refresh output name as paths have changed - potentially removing previously existing
+    // conflicts
+    setOutputName(myOutputNameWithoutSuffix);
   }
 
-  @Override
-  protected void onEntering() {
-
-    /**
-     * Setup this icon's name (which is evaluated using rules set up in the template)
-     */
-    TemplateHandle templateHandle = getModel().getTemplateHandle();
-    String iconNameExpression = templateHandle.getMetadata().getIconName();
-    String iconName = null;
-    if (iconNameExpression != null && !iconNameExpression.isEmpty()) {
-      StringEvaluator evaluator = new StringEvaluator();
-      iconName = evaluator.evaluate(iconNameExpression, getModel().getTemplateValues());
-    }
-
-    if (iconName == null) {
-      // Shouldn't happen as long as the template is correct but just in case provide a default
-      iconName = String.format(AndroidIconType.NOTIFICATION.getDisplayName(), "name");
-    }
-
+  /**
+   * Set the output icon filename programmatically. If a resource already exists at that location, a
+   * numerical suffix will be appended to make the name unique.
+   */
+  public void setOutputName(@NotNull String iconName) {
+    myOutputNameWithoutSuffix = iconName;
     String suffix = "";
     int i = 2;
     while (iconExists(iconName + suffix)) {
@@ -255,34 +271,37 @@ public final class NotificationIconStep extends ModelWizardStep<RenderTemplateMo
     myOutputName.set(iconName);
   }
 
-  private boolean iconExists(@NotNull String iconName) {
-    File resDir = null;
-    AndroidProjectPaths projectPaths = getModel().getPaths();
-    if (projectPaths != null) {
-      resDir = projectPaths.getResDirectory();
-    }
+  /**
+   * Return an icon generator which will create Android icons using the panel's current settings.
+   */
+  @NotNull
+  public IconGenerator createIconGenerator() {
+    // TODO: Handle all other android icon types, not just notification
+    return new IconGenerator(AndroidIconType.NOTIFICATION, myActiveAsset.get(), myOutputName.get());
+  }
 
-    if (resDir != null) {
-      return Parameter.existsResourceFile(resDir, ResourceFolderType.DRAWABLE, iconName);
+  /**
+   * A boolean property which will be true if validation logic catches any problems with any of the
+   * current icon settings, particularly the output name / path. You should probably not generate
+   * icons if there are any errors.
+   */
+  @NotNull
+  public ObservableBool hasErrors() {
+    return myValidatorPanel.hasErrors();
+  }
+
+  private boolean iconExists(@NotNull String iconName) {
+    if (myProjectPaths != null) {
+      return AssetStudioUtils.resourceExists(myProjectPaths, ResourceFolderType.DRAWABLE, iconName);
     }
     else {
-      return Parameter.existsResourceFile(getModel().getModule(), ResourceType.DRAWABLE, iconName);
+      return AssetStudioUtils.resourceExists(myFacet, ResourceType.DRAWABLE, iconName);
     }
-  }
-
-  @NotNull
-  @Override
-  protected ObservableBool canGoForward() {
-    return myValidatorPanel.hasErrors().not();
-  }
-
-  @Override
-  protected void onProceeding() {
-    getModel().setIconGenerator(new IconGenerator(AndroidIconType.NOTIFICATION, myActiveAsset.get(), myOutputName.get()));
   }
 
   private void renderIconPreviews() {
     BufferedImage assetImage = myActiveAsset.get().toImage();
+    // TODO: Consider changing the aspect ratio of mySourceAssetPreviewImage to match assetImage
     mySourceAssetPreviewImage.setIcon(IconUtil.createImageIcon(assetImage));
 
     enqueueGenerateNotificationIcons(assetImage);
