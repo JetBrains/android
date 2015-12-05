@@ -51,10 +51,6 @@ public class AndroidAnimationUtils {
 
   public static List<String> getPossibleChildren(@NotNull AndroidFacet facet) {
     List<String> children = Lists.newArrayList(TAG_NAMES);
-
-    // Animation file could be an animator statelist, add "<selector>" to a list of root tags completions
-    children.add("selector");
-
     children.addAll(facet.getClassMap(INTERPOLATOR_CLASS_NAME, new ClassMapConstructor() {
       @Override
       @NotNull

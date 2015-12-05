@@ -34,7 +34,6 @@ import com.intellij.util.xml.reflect.DomExtension;
 import com.intellij.util.xml.reflect.DomExtensionsRegistrar;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animation.AnimationElement;
-import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.animator.AnimatorElement;
 import org.jetbrains.android.dom.attrs.*;
 import org.jetbrains.android.dom.color.ColorDomElement;
@@ -416,33 +415,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
   }
 
-  public static void registerExtensionsForAnimator(final AndroidFacet facet,
-                                                   String tagName,
-                                                   AnimatorElement element,
-                                                   MyCallback callback,
-                                                   Set<String> registeredSubtags,
-                                                   Set<XmlName> skipAttrNames) {
-    if (tagName.equals("set") || tagName.equals("item")) {
-      for (String subtagName : AndroidAnimatorUtil.getPossibleChildren()) {
-        registerSubtags(subtagName, AnimatorElement.class, callback, registeredSubtags);
-      }
-    }
-
-    // For <item> tags add only "state_" attributes (which are contained in DrawableStates styleable)
-    if (tagName.equals("item")) {
-      registerAttributes(facet, element, "DrawableStates", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-      return;
-    }
-
-    // For all other tags, add attributes from "Animator" styleable
-    registerAttributes(facet, element, "Animator", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-
-    final String styleableName = AndroidAnimatorUtil.getStyleableNameByTagName(tagName);
-    if (styleableName != null) {
-      registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    }
-  }
-
   public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
@@ -677,9 +649,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
     else if (element instanceof AnimationElement) {
       registerExtensionsForAnimation(facet, tagName, (AnimationElement)element, callback, registeredSubtags, skippedAttributes);
-    }
-    else if (element instanceof AnimatorElement) {
-      registerExtensionsForAnimator(facet, tagName, (AnimatorElement)element, callback, registeredSubtags, skippedAttributes);
     }
     else if (element instanceof XmlResourceElement) {
       registerExtensionsForXmlResources(facet, tag, (XmlResourceElement)element, callback, registeredSubtags, skippedAttributes);
