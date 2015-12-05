@@ -21,7 +21,6 @@ import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
@@ -61,12 +60,10 @@ final class FmtRGB565 extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtRGB565 o = (FmtRGB565)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtRGB565 o = (FmtRGB565)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }
