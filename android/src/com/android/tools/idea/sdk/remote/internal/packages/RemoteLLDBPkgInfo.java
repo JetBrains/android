@@ -38,6 +38,7 @@ public class RemoteLLDBPkgInfo extends RemotePkgInfo {
     mPkgDesc = PkgDesc.Builder.newLLDB(getRevision())
       .setListDisplay("LLDB")
       .setDescriptionShort("LLDB")
+      .setLicense(getLicense())
       .create();
   }
 
