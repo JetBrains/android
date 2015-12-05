@@ -77,6 +77,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   private JPanel myNotificationPanel;
   private JBList myDevicesList;
   private int myDeviceCount;
+  private int myErrorGen;
 
   @NotNull private final AndroidFacet myFacet;
   private final int myRunContextId;
@@ -120,6 +121,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     myDevicesList.setSelectionMode(getListSelectionMode(deviceCount));
     myDevicesList.addKeyListener(new MyListKeyListener(mySpeedSearch));
     myDevicesList.addListSelectionListener(this);
+
+    myNotificationPanel.setLayout(new BoxLayout(myNotificationPanel, 1));
 
     myCreateEmulatorButton.addActionListener(this);
 
@@ -242,6 +245,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   private void updateErrorCheck() {
+    myErrorGen++;
     myNotificationPanel.removeAll();
     if (myDeviceCount == 0) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
@@ -255,7 +259,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
       myNotificationPanel.add(panel);
     }
-    else {
+    if (!myAvdInfos.isEmpty()) {
+      final int currentErrorGen = myErrorGen;
       ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
         @Override
         public void run() {
@@ -264,6 +269,11 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
             UIUtil.invokeLaterIfNeeded(new Runnable() {
               @Override
               public void run() {
+                if (myErrorGen != currentErrorGen) {
+                  // The notification panel has been reset since we started this update.
+                  // Ignore this error, there is another request coming.
+                  return;
+                }
                 myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myFacet.getModule().getProject(), new Runnable() {
                   @Override
                   public void run() {
@@ -333,7 +343,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
     List<IDevice> connectedDevices = Lists.newArrayList(bridge.getDevices());
     myModel.reset(connectedDevices, myAvdInfos);
-    myDeviceCount = connectedDevices.size() + myAvdInfos.size();
+    myDeviceCount = connectedDevices.size();
 
     if (selectedSerials.isEmpty()) {
       selectedSerials = getDefaultSelection();
