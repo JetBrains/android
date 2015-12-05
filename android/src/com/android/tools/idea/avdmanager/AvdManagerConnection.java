@@ -498,6 +498,7 @@ public class AvdManagerConnection {
         }
         finally {
           p.stop();
+          p.processFinish();
         }
 
         processHandler.removeProcessListener(collector);

@@ -16,11 +16,8 @@
 package com.android.tools.idea.sdk.wizard;
 
 import com.android.repository.api.License;
-import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.CommonFactory;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 
 /**
  * This class will only exist until we get full SDK manager integration
@@ -29,8 +26,7 @@ import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 public class AndroidSdkLicenseTemporaryData {
 
   public static License getLicense(boolean preview) {
-    ProgressIndicator progress = new StudioLoggerProgressIndicator(AndroidSdkLicenseTemporaryData.class);
-    CommonFactory f = (CommonFactory)AndroidSdkHandler.getInstance().getCommonModule(progress).createLatestFactory();
+    CommonFactory f = (CommonFactory)RepoManager.getCommonModule().createLatestFactory();
     License l = f.createLicenseType();
     l.setValue(preview ? HARDCODED_ANDROID_PREVIEW_SDK_LICENSE : HARDCODED_ANDROID_SDK_LICENSE);
     l.setId(preview ? "Android SDK Preview License" : "Android SDK License");
