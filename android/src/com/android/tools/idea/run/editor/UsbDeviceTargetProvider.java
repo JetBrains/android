@@ -80,8 +80,7 @@ public class UsbDeviceTargetProvider extends DeployTargetProvider {
                                       @NotNull AndroidFacet facet,
                                       @NotNull DeviceCount deviceCount,
                                       boolean debug,
-                                      int runConfigId,
-                                      @NotNull ConsolePrinter printer) {
+                                      int runConfigId) {
         Collection<IDevice> runningDevices =
           DeviceSelectionUtils.chooseRunningDevice(facet, new TargetDeviceFilter.UsbDeviceFilter(), deviceCount);
         if (runningDevices == null) {

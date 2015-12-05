@@ -53,7 +53,7 @@ public class EmulatorTargetChooser {
   }
 
   @Nullable
-  public DeviceFutures getDevices(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
+  public DeviceFutures getDevices(@NotNull DeviceCount deviceCount) {
     TargetDeviceFilter deviceFilter = new TargetDeviceFilter.EmulatorFilter(myFacet, myAvd);
     Collection<IDevice> runningDevices = DeviceSelectionUtils.chooseRunningDevice(myFacet, deviceFilter, deviceCount);
     if (runningDevices == null) {

@@ -21,7 +21,7 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.run.AndroidMultiProcessHandler;
+import com.android.tools.idea.run.AndroidProcessHandler;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.execution.*;
@@ -35,7 +35,6 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -543,10 +542,10 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     // find if there are any active run sessions to the same client, and terminate them if so
     for (ProcessHandler handler : ExecutionManager.getInstance(myProject).getRunningProcesses()) {
-      if (handler instanceof AndroidMultiProcessHandler) {
-        Client client = ((AndroidMultiProcessHandler)handler).getClient(selectedClient.getDevice());
+      if (handler instanceof AndroidProcessHandler) {
+        Client client = ((AndroidProcessHandler)handler).getClient(selectedClient.getDevice());
         if (client != null && client.getClientData().getPid() == pid) {
-          ((AndroidMultiProcessHandler)handler).setNoKill();
+          ((AndroidProcessHandler)handler).setNoKill();
           handler.detachProcess();
           handler.notifyTextAvailable("Disconnecting run session: a new debug session will be established.\n", ProcessOutputTypes.STDOUT);
           break;

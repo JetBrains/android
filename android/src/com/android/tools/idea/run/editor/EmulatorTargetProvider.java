@@ -111,9 +111,8 @@ public class EmulatorTargetProvider extends DeployTargetProvider<EmulatorTargetP
                                       @NotNull AndroidFacet facet,
                                       @NotNull DeviceCount deviceCount,
                                       boolean debug,
-                                      int runConfigId,
-                                      @NotNull ConsolePrinter printer) {
-        return new EmulatorTargetChooser(facet, Strings.emptyToNull(state.PREFERRED_AVD)).getDevices(printer, deviceCount, debug);
+                                      int runConfigId) {
+        return new EmulatorTargetChooser(facet, Strings.emptyToNull(state.PREFERRED_AVD)).getDevices(deviceCount);
       }
     };
   }
