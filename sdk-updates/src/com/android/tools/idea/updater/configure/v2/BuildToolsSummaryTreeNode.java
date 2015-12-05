@@ -103,7 +103,7 @@ class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
       }
       else {
         assert false;
-        revision = p.getLocalInfo().getVersion().toString();
+        revision = p.getLocal().getVersion().toString();
       }
       return "Update Available: " + revision;
     }
