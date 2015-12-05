@@ -54,5 +54,5 @@ public interface AndroidDevice {
 
   /** Returns the {@link IDevice} corresponding to this device, launching it if necessary. */
   @NotNull
-  ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull ConsolePrinter printer);
+  ListenableFuture<IDevice> launch(@NotNull Project project);
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeviceCount;
 import com.android.tools.idea.run.DeviceFutures;
 import com.intellij.execution.ExecutionException;
@@ -41,6 +40,5 @@ public interface DeployTarget<S extends DeployTargetState> {
                            @NotNull AndroidFacet facet,
                            @NotNull DeviceCount deviceCount,
                            boolean debug,
-                           int runConfigId,
-                           @NotNull ConsolePrinter printer);
+                           int runConfigId);
 }

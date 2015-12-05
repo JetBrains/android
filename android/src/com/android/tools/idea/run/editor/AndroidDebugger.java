@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredListCellRenderer;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Set;
 
 public interface AndroidDebugger<S extends AndroidDebuggerState> {
-
-  public static final ExtensionPointName<AndroidDebugger> EP_NAME = ExtensionPointName.create("com.android.run.androidDebugger");
+  ExtensionPointName<AndroidDebugger> EP_NAME = ExtensionPointName.create("com.android.run.androidDebugger");
 
   @NotNull
   String getId();
@@ -38,7 +41,14 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   @NotNull
   AndroidDebuggerConfigurable<S> createConfigurable(@NotNull Project project);
 
-  public static class Renderer extends ColoredListCellRenderer<AndroidDebugger> {
+  @NotNull
+  DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
+                                            @NotNull Set<String> applicationIds,
+                                            @NotNull AndroidFacet facet,
+                                            @NotNull AndroidDebuggerState state,
+                                            @NotNull String runConfigTypeId);
+
+  class Renderer extends ColoredListCellRenderer<AndroidDebugger> {
     @Override
     protected void customizeCellRenderer(JList list, AndroidDebugger debugger, int index, boolean selected, boolean hasFocus) {
       append(debugger.getDisplayName());

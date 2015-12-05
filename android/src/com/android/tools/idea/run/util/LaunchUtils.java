@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.run.util;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
@@ -124,7 +124,7 @@ public class LaunchUtils {
 
   public static void showNotification(@NotNull final Project project,
                                       @NotNull final Executor executor,
-                                      @Nullable final RunContentDescriptor descriptor,
+                                      @NotNull final String sessionName,
                                       @NotNull final String message,
                                       @NotNull final NotificationType type) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -136,15 +136,10 @@ public class LaunchUtils {
 
         String toolWindowId = executor.getToolWindowId();
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
-        if (descriptor != null) {
-          final Content content = descriptor.getAttachedContent();
-
-          if (content != null && content.isSelected() && toolWindow.isVisible()) {
-            return;
-          }
+        if (toolWindow.isVisible()) {
+          return;
         }
 
-        final String sessionName = descriptor == null ? "Unknown" : descriptor.getDisplayName();
         final String notificationMessage = "Session <a href=''>'" + sessionName + "'</a>: " + message;
 
         NotificationGroup group = getNotificationGroup(toolWindowId);

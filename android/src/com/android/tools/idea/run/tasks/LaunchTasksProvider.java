@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.run.tasks;
 
-import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.List;
 
-public interface PackageInstaller {
-  boolean install(@NotNull IDevice device, @NotNull AtomicBoolean cancelInstallation, @NotNull ConsolePrinter printer);
+public interface LaunchTasksProvider {
+  @NotNull
+  List<LaunchTask> getTasks(@NotNull LaunchStatus launchStatus);
+
+  @Nullable
+  DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus);
+
+  boolean createsNewProcess();
 }

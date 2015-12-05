@@ -24,11 +24,11 @@ public class AndroidActivityLauncherTest extends TestCase {
   }
 
   public void testAmStartCommand() {
-    assertEquals("am start  -n \"com.foo/.Launch\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER",
-                 AndroidActivityLauncher.getStartActivityCommand("com.foo/.Launch", "", ""));
+    assertEquals("am start -n \"com.foo/.Launch\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER",
+                 AndroidActivityLauncher.getStartActivityCommand("com.foo/.Launch", false, ""));
     assertEquals("am start -D -n \"com.foo/.Launch\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER",
-                 AndroidActivityLauncher.getStartActivityCommand("com.foo/.Launch", "-D", ""));
+                 AndroidActivityLauncher.getStartActivityCommand("com.foo/.Launch", true, ""));
     assertEquals("am start -D -n \"com.foo/.Launch\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --es aa 'bb'",
-                 AndroidActivityLauncher.getStartActivityCommand("com.foo/.Launch", "-D", "--es aa 'bb'"));
+                 AndroidActivityLauncher.getStartActivityCommand("com.foo/.Launch", true, "--es aa 'bb'"));
   }
 }
