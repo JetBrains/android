@@ -204,12 +204,12 @@ public final class ListenerManagerTest {
     assertThat(intListener2.myInvalidationCount).isEqualTo(2);
   }
 
-  private static class IntListener extends InvalidationListener {
+  private static class IntListener implements InvalidationListener {
     int myInvalidationCount = 0;
     int myLastValue;
 
     @Override
-    protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+    public void onInvalidated(@NotNull ObservableValue<?> sender) {
       myInvalidationCount++;
       myLastValue = ((ObservableInt)sender).get();
     }

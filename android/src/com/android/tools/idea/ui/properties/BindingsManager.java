@@ -256,13 +256,13 @@ public final class BindingsManager {
     });
   }
 
-  private class OneWayBinding<T> extends InvalidationListener {
+  private class OneWayBinding<T> implements InvalidationListener {
     private final SettableValue<T> myDest;
     private final ObservableValue<T> mySrc;
     private final ObservableValue<Boolean> myEnabled;
 
     @Override
-    protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+    public void onInvalidated(@NotNull ObservableValue<?> sender) {
       if (myEnabled.get()) {
         enqueueUpdater(new DestUpdater<T>(myDest, mySrc));
       }
