@@ -17,32 +17,30 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.assetstudiolib.NotificationIconGenerator;
-import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
-import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
-import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.assetstudio.ui.*;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
+import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconPanel;
+import com.android.tools.idea.npw.assetstudio.ui.PreviewIconsPanel;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.core.*;
-import com.android.tools.idea.ui.properties.expressions.string.FormatExpression;
-import com.android.tools.idea.ui.properties.swing.SelectedProperty;
-import com.android.tools.idea.ui.properties.swing.SliderValueProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.core.StringProperty;
+import com.android.tools.idea.ui.properties.core.StringValueProperty;
+import com.android.tools.idea.ui.properties.expressions.value.AsValueExpression;
+import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.wizard.Validator;
 import com.android.tools.idea.ui.wizard.ValidatorPanel;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.components.JBLabel;
+import com.intellij.util.Consumer;
 import com.intellij.util.IconUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -52,8 +50,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
-import java.util.List;
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -69,54 +69,31 @@ import java.util.Map;
  */
 public final class GenerateIconsPanel extends JPanel implements Disposable {
 
-  @NotNull private final AndroidFacet myFacet;
-  private final AssetStudioAssetGenerator myAssetGenerator = new AssetStudioAssetGenerator();
+  private static final int ASSET_PREVIEW_HEIGHT = 96;
 
+  private final AndroidFacet myFacet;
   private final ValidatorPanel myValidatorPanel;
 
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
 
-  // Depending on which asset radio button is selected, the active asset changes
-  private final ObjectProperty<BaseAsset> myActiveAsset;
-  private final StringProperty myOutputName;
-  private final List<PreviewIconsPanel> myOutputPreviewPanels;
+  private final Multimap<AndroidIconType, PreviewIconsPanel> myOutputPreviewPanels;
+  private final ObservableValue<AndroidIconType> myOutputIconType;
+  private final StringProperty myOutputName = new StringValueProperty();
 
   private JPanel myRootPanel;
-  private JRadioButton myClipartRadioButton;
-  private JRadioButton myTextRadioButton;
-  private JRadioButton myImageRadioButton;
-  private JPanel mySourceAssetOptionsPanel;
-  private JPanel mySourceAssetTypePanel;
-  private JPanel myAssetTypesPanel;
-  private JPanel myConfigureCommonPanel;
-  private JBLabel myTrimLabel;
-  private JRadioButton myTrimmedRadioButton;
-  private JRadioButton myNotTrimmedRadioButton;
-  private JBLabel myPaddingLabel;
-  private JPanel myTrimOptionsPanel;
-  private JSlider myPaddingSlider;
-  private JLabel myPaddingValueLabel;
-  private JBLabel myOutputNameLabel;
-  private JPanel myAssetRadioButtonsPanel;
-  private JPanel myPaddingSliderPanel;
-  private JPanel mySourceAssetPreviewPanel;
-  private ImageComponent mySourceAssetPreviewImage;
-  private JPanel mySourceAssetPreviewBorder;
+  private JPanel myTopRightPanel;
+  private ImageComponent mySourceAssetImage;
   private JPanel myOutputPreviewPanel;
-  private JTextField myOutputNameTextField;
-  private JPanel myOutputNamePanel;
-  private JBLabel myOutputPreviewLabel;
+  private JPanel myTopPanel;
+  private JComboBox myIconTypeCombo;
+  private JPanel myBottomPanel;
+  private JPanel myConfigureIconPanels;
   private JPanel mySourceAssetPanel;
-  private JPanel myTrimRowPanel;
-  private JPanel myNameRowPanel;
-  private JPanel myPaddingRowPanel;
+  private JPanel mySourceAssetMaxWidthPanel;
 
-  @NotNull private AndroidIconType myOutputType;
-
-  @Nullable private AndroidProjectPaths myProjectPaths;
+  @NotNull private AndroidProjectPaths myPaths;
   @Nullable private BufferedImage myEnqueuedImageToProcess;
-  @NotNull private String myOutputNameWithoutSuffix = "";
 
   /**
    * Create a panel which can generate Android icons. The supported types passed in will be
@@ -126,108 +103,100 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
   public GenerateIconsPanel(@NotNull Disposable disposableParent, @NotNull AndroidFacet facet, @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
 
+    myFacet = facet;
+    myPaths = new AndroidProjectPaths(myFacet);
+
     if (supportedTypes.length == 0) {
       supportedTypes = AndroidIconType.values();
     }
 
-    myFacet = facet;
+    DefaultComboBoxModel supportedTypesModel = new DefaultComboBoxModel(supportedTypes);
+    myIconTypeCombo.setModel(supportedTypesModel);
+    myIconTypeCombo.setVisible(supportedTypes.length > 1);
 
-    myOutputPreviewPanels = ImmutableList
-      .of(new PreviewIconsPanel(NotificationIconGenerator.Version.V11.getDisplayName(), "API 11+", PreviewIconsPanel.Theme.DARK),
-          new PreviewIconsPanel(NotificationIconGenerator.Version.V9.getDisplayName(), "API 9+", PreviewIconsPanel.Theme.LIGHT),
-          new PreviewIconsPanel(NotificationIconGenerator.Version.OLDER.getDisplayName(), "Older APIs", PreviewIconsPanel.Theme.GRAY));
+    assert myConfigureIconPanels.getLayout() instanceof CardLayout;
+    for (AndroidIconType iconType : supportedTypes) {
+      myConfigureIconPanels.add(new ConfigureIconPanel(this, iconType), iconType.toString());
+    }
 
-    for (PreviewIconsPanel iconsPanel : myOutputPreviewPanels) {
+    mySourceAssetMaxWidthPanel.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        updateSourceAssetPreview(getActiveIconPanel().getAsset().toImage());
+      }
+    });
+
+    // @formatter:off
+    ImmutableMultimap.Builder<AndroidIconType, PreviewIconsPanel> previewPanelBuilder = ImmutableMultimap.builder();
+    previewPanelBuilder.putAll(AndroidIconType.ACTIONBAR, new PreviewIconsPanel("", PreviewIconsPanel.Theme.TRANSPARENT));
+    previewPanelBuilder.putAll(AndroidIconType.LAUNCHER, new PreviewIconsPanel("", PreviewIconsPanel.Theme.TRANSPARENT));
+    previewPanelBuilder.putAll(AndroidIconType.NOTIFICATION,
+      new PreviewIconsPanel("API 11+", PreviewIconsPanel.Theme.DARK,
+                              new CategoryIconMap.NotificationFilter(NotificationIconGenerator.Version.V11)),
+      new PreviewIconsPanel("API 9+", PreviewIconsPanel.Theme.LIGHT,
+                              new CategoryIconMap.NotificationFilter(NotificationIconGenerator.Version.V9)),
+      new PreviewIconsPanel("Older APIs", PreviewIconsPanel.Theme.GRAY,
+                              new CategoryIconMap.NotificationFilter(NotificationIconGenerator.Version.OLDER)));
+    myOutputPreviewPanels = previewPanelBuilder.build();
+    // @formatter:on
+
+    for (PreviewIconsPanel iconsPanel : myOutputPreviewPanels.values()) {
       myOutputPreviewPanel.add(iconsPanel);
     }
 
-    Disposer.register(disposableParent, this);
-    myValidatorPanel = new ValidatorPanel(this, myRootPanel);
-
-    myOutputName = new TextProperty(myOutputNameTextField);
-
-    final ClipartAssetPanel clipartAssetPanel = new ClipartAssetPanel();
-    final ImageAssetPanel imageAssetPanel = new ImageAssetPanel();
-    final TextAssetPanel textAssetPanel = new TextAssetPanel();
-
-    assert myAssetTypesPanel.getLayout() instanceof CardLayout;
-    myAssetTypesPanel.add(myClipartRadioButton.getText(), clipartAssetPanel);
-    myAssetTypesPanel.add(myImageRadioButton.getText(), imageAssetPanel);
-    myAssetTypesPanel.add(myTextRadioButton.getText(), textAssetPanel);
-
-    // Default the active asset type to "clipart", it's the most visually appealing and easy to
-    // play around with.
-    myActiveAsset = new ObjectValueProperty<BaseAsset>(clipartAssetPanel.getAsset());
-    myClipartRadioButton.setSelected(true);
-
-    // TODO: Add a pulldown of all supported types and change contents dynamically when changed.
-    myOutputType = supportedTypes[0];
-    setOutputName(myOutputType.toOutputName(""));
+    myOutputIconType = new AsValueExpression<AndroidIconType>(new SelectedItemProperty<AndroidIconType>(myIconTypeCombo));
 
     initializeListenersAndBindings();
-    initializeValidators();
-    renderIconPreviews();
 
+    myValidatorPanel = new ValidatorPanel(this, myRootPanel);
+    initializeValidators();
+
+    Disposer.register(disposableParent, this);
     Disposer.register(this, myValidatorPanel);
     add(myValidatorPanel);
   }
 
   private void initializeListenersAndBindings() {
-    ActionListener radioSelectedListener = new ActionListener() {
+    ActionListener onAssetModified = new ActionListener() {
       @Override
-      public void actionPerformed(ActionEvent e) {
-        String radioName = ((JRadioButton)e.getSource()).getText();
-        ((CardLayout)myAssetTypesPanel.getLayout()).show(myAssetTypesPanel, radioName);
-
-        // No simple way to get the panel just shown from CardLayout. Run through manually...
-        for (Component component : myAssetTypesPanel.getComponents()) {
-          if (component.isVisible()) {
-            AssetPanel assetPanel = ((AssetPanel)component);
-            myActiveAsset.set(assetPanel.getAsset());
-            break;
-          }
-        }
-      }
-    };
-    myClipartRadioButton.addActionListener(radioSelectedListener);
-    myImageRadioButton.addActionListener(radioSelectedListener);
-    myTextRadioButton.addActionListener(radioSelectedListener);
-
-    ActionListener assetPanelListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent actionEvent) {
         renderIconPreviews();
       }
     };
-    for (int i = 0; i < myAssetTypesPanel.getComponentCount(); i++) {
-      ((AssetPanel)myAssetTypesPanel.getComponent(i)).addActionListener(assetPanelListener);
+
+    for (Component component : myConfigureIconPanels.getComponents()) {
+      ((ConfigureIconPanel)component).addAssetListener(onAssetModified);
     }
 
-    final BoolProperty trimmed = new SelectedProperty(myTrimmedRadioButton);
-    final IntProperty paddingPercent = new SliderValueProperty(myPaddingSlider);
-    final StringProperty paddingValueString = new TextProperty(myPaddingValueLabel);
-    myBindings.bind(paddingValueString, new FormatExpression("%d %%", paddingPercent));
-
-    final Runnable onAssetModified = new Runnable() {
+    myListeners.listenAndFire(myOutputIconType, new Consumer<AndroidIconType>() {
       @Override
-      public void run() {
-        renderIconPreviews();
-      }
-    };
-    myListeners.listenAndFire(myActiveAsset, new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myListeners.release(onAssetModified);
-        myListeners.listenAll(myActiveAsset.get().trimmed(), myActiveAsset.get().paddingPercent()).with(onAssetModified);
+      public void consume(AndroidIconType iconType) {
+        ((CardLayout)myConfigureIconPanels.getLayout()).show(myConfigureIconPanels, iconType.toString());
 
-        myBindings.releaseTwoWay(trimmed);
-        myBindings.releaseTwoWay(paddingPercent);
-        myBindings.bindTwoWay(trimmed, myActiveAsset.get().trimmed());
-        myBindings.bindTwoWay(paddingPercent, myActiveAsset.get().paddingPercent());
+        ConfigureIconPanel iconPanel = getActiveIconPanel();
+        myBindings.bind(myOutputName, iconPanel.outputName());
+
+        for (PreviewIconsPanel previewPanel : myOutputPreviewPanels.values()) {
+          previewPanel.setVisible(false);
+        }
+        for (PreviewIconsPanel previewPanel : myOutputPreviewPanels.get(iconType)) {
+          previewPanel.setVisible(true);
+        }
 
         renderIconPreviews();
       }
     });
+  }
+
+  @NotNull
+  private ConfigureIconPanel getActiveIconPanel() {
+    for (Component component : myConfigureIconPanels.getComponents()) {
+      if (component.isVisible()) {
+        return (ConfigureIconPanel)component;
+      }
+    }
+
+    throw new IllegalStateException("GenerateIconPanel configured incorrectly. Please report this error.");
   }
 
   private void initializeValidators() {
@@ -239,8 +208,8 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
         if (trimmedName.isEmpty()) {
           return new Result(Severity.ERROR, "Icon name must be set");
         }
-        else if (iconExists(trimmedName)) {
-          return new Result(Severity.WARNING, "An icon already exists with the same name and will be overwritten.");
+        else if (iconExists()) {
+          return new Result(Severity.WARNING, "An icon with the same name already exists and will be overwritten.");
         }
         else {
           return Result.OK;
@@ -250,39 +219,31 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
   }
 
   /**
-   * Set the target project paths that this panel should use when generating assets. If set to
-   * {@code null}, a default resource path will be selected based on the current module.
+   * Set the target project paths that this panel should use when generating assets. If not set,
+   * this panel will attempt to use reasonable defaults for the project.
    */
   public void setProjectPaths(@Nullable AndroidProjectPaths projectPaths) {
-    myProjectPaths = projectPaths;
-    // Refresh output name as paths have changed - potentially removing previously existing
-    // conflicts
-    setOutputName(myOutputNameWithoutSuffix);
+    if (projectPaths == null) {
+      projectPaths = new AndroidProjectPaths(myFacet);
+    }
+
+    myPaths = projectPaths;
   }
 
   /**
-   * Set the output icon filename programmatically. If a resource already exists at that location, a
-   * numerical suffix will be appended to make the name unique.
+   * Set the output name for the icon type currently being edited. This is exposed as some UIs may wish
+   * to set this explicitly instead of relying on defaults.
    */
-  public void setOutputName(@NotNull String iconName) {
-    myOutputNameWithoutSuffix = iconName;
-    String suffix = "";
-    int i = 2;
-    while (iconExists(iconName + suffix)) {
-      suffix = Integer.toString(i);
-      i++;
-    }
-
-    myOutputName.set(iconName);
+  public void setOutputName(@NotNull String name) {
+    getActiveIconPanel().outputName().set(name);
   }
 
   /**
    * Return an icon generator which will create Android icons using the panel's current settings.
    */
   @NotNull
-  public AndroidIconGenerator createIconGenerator() {
-    // TODO: Handle all other android icon types, not just notification
-    return new AndroidIconGenerator(AndroidIconType.NOTIFICATION, myActiveAsset.get(), myOutputName.get());
+  public AndroidIconGenerator getIconGenerator() {
+    return getActiveIconPanel().getIconGenerator();
   }
 
   /**
@@ -295,21 +256,45 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
     return myValidatorPanel.hasErrors();
   }
 
-  private boolean iconExists(@NotNull String iconName) {
-    if (myProjectPaths != null) {
-      return AssetStudioUtils.resourceExists(myProjectPaths, ResourceFolderType.DRAWABLE, iconName);
+  private boolean iconExists() {
+    Map<File, BufferedImage> pathImageMap = getIconGenerator().generateIntoFileMap(myPaths);
+    for (File path : pathImageMap.keySet()) {
+      if (path.exists()) {
+        return true;
+      }
     }
-    else {
-      return AssetStudioUtils.resourceExists(myFacet, ResourceType.DRAWABLE, iconName);
-    }
+
+    return false;
   }
 
   private void renderIconPreviews() {
-    BufferedImage assetImage = myActiveAsset.get().toImage();
-    // TODO: Consider changing the aspect ratio of mySourceAssetPreviewImage to match assetImage
-    mySourceAssetPreviewImage.setIcon(IconUtil.createImageIcon(assetImage));
+    // This method is often called as the result of a UI property changing which may also cause
+    // some other properties to change. Invoke its logic later just to make sure everything gets a
+    // chance to settle first.
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        BufferedImage assetImage = getActiveIconPanel().getAsset().toImage();
+        updateSourceAssetPreview(assetImage);
+        enqueueGenerateNotificationIcons(assetImage);
+      }
+    }, ModalityState.any());
+  }
 
-    enqueueGenerateNotificationIcons(assetImage);
+  private void updateSourceAssetPreview(BufferedImage assetImage) {
+    // Preserve aspect ratio as much as we can (up to a reasonable maximum width)
+    int myMaxAssetPreviewWidth = mySourceAssetMaxWidthPanel.getWidth();
+
+    double aspectRatio = 1.0;
+    if (assetImage.getHeight() > 0) {
+      aspectRatio = (double)assetImage.getWidth() / assetImage.getHeight();
+    }
+    int finalWidth = (int)Math.round(ASSET_PREVIEW_HEIGHT * aspectRatio);
+    finalWidth = Math.min(finalWidth, myMaxAssetPreviewWidth);
+    Dimension d = new Dimension(finalWidth, ASSET_PREVIEW_HEIGHT);
+
+    mySourceAssetPanel.setPreferredSize(d);
+    mySourceAssetImage.setIcon(IconUtil.createImageIcon(assetImage));
   }
 
   /**
@@ -328,20 +313,29 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
       return;
     }
 
-    final Map<String, Map<String, BufferedImage>> assetMap = AssetStudioAssetGenerator.newAssetMap();
     SwingWorker<Void, Void> generateIconsWorker = new SwingWorker<Void, Void>() {
+
+      @Nullable private CategoryIconMap myCategoryIconMap;
+
       @Override
       protected Void doInBackground() throws Exception {
-        myAssetGenerator.generateNotificationIconsIntoMap(assetImage, assetMap, myOutputName.get());
+        if (getIconGenerator().sourceAsset().get().isPresent()) {
+          myCategoryIconMap = getIconGenerator().generateIntoMemory();
+        }
         return null;
       }
 
       @Override
       protected void done() {
-        for (PreviewIconsPanel outputPreviewPanel : myOutputPreviewPanels) {
-          outputPreviewPanel.updateImages(assetMap);
+        if (myCategoryIconMap != null) {
+          for (PreviewIconsPanel generatedIconsPanel : myOutputPreviewPanels.get(myOutputIconType.get())) {
+            generatedIconsPanel.updateImages(myCategoryIconMap);
+          }
+          myCategoryIconMap = null;
         }
 
+        // At this point, we've finished preparing the previews. Let's see if another request to
+        // render more previews was added while we were working, and if so, start on it right away.
         BufferedImage nextImage = null;
         if (myEnqueuedImageToProcess != assetImage) {
           nextImage = myEnqueuedImageToProcess;
@@ -355,7 +349,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
             public void run() {
               enqueueGenerateNotificationIcons(finalNextImage);
             }
-          });
+          }, ModalityState.any());
         }
       }
     };

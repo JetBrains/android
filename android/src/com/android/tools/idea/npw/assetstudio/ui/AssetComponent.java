@@ -21,15 +21,15 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.event.ActionListener;
 
 /**
- * Simple interface for UI panels that provide a reference to some {@link BaseAsset} and can notify
- * listeners when it has changed.
+ * Simple interface for UI elements that provide a reference to some {@link BaseAsset}, allow its
+ * modification, and can notify listeners when it has changed.
  */
-public interface AssetPanel {
+public interface AssetComponent {
   @NotNull
   BaseAsset getAsset();
 
   /**
    * Register a listener which will be fired anytime the underlying asset has changed.
    */
-  void addActionListener(@NotNull ActionListener l);
+  void addAssetListener(@NotNull ActionListener l);
 }

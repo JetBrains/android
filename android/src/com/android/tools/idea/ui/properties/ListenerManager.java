@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.ui.properties;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +121,16 @@ public final class ListenerManager {
     CompositeListener listener = new CompositeListener(values);
     myCompositeListeners.add(listener);
     return listener;
+  }
+
+  /**
+   * Convenience version of {@link #listenAll(ObservableValue[])} that works when you have a
+   * {@link Collection} instead of an array.
+   */
+  @NotNull
+  public CompositeListener listenAll(@NotNull Collection<? extends ObservableValue<?>> values) {
+    //noinspection unchecked
+    return listenAll(Iterables.toArray(values, ObservableValue.class));
   }
 
   /**

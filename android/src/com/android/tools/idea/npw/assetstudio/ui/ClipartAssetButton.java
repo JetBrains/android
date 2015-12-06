@@ -22,12 +22,10 @@ import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.swing.IconProperty;
-import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,10 +38,10 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Panel which wraps a {@link ClipartAsset}, allowing the user to select a clipart target from a
+ * Button which wraps a {@link ClipartAsset}, allowing the user to select a clipart target from a
  * grid of choices.
  */
-public final class ClipartAssetPanel extends JPanel implements AssetPanel, Disposable {
+public final class ClipartAssetButton extends JButton implements AssetComponent, Disposable {
 
   private static final int CLIPART_BUTTON_SIZE = JBUI.scale(40);
   private static final int CLIPART_DIALOG_BORDER = JBUI.scale(10);
@@ -53,23 +51,17 @@ public final class ClipartAssetPanel extends JPanel implements AssetPanel, Dispo
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);
 
-  private JPanel myRootPanel;
-  private JButton myChooseClipartButton;
-  private JBLabel myClipartNameLabel;
-  private JBLabel myClipartLabel;
-  public ClipartAssetPanel() {
-    super(new BorderLayout());
-    add(myRootPanel);
+  public ClipartAssetButton() {
 
-    setIconButtonDimensions(myChooseClipartButton);
-    myChooseClipartButton.addActionListener(new ActionListener() {
+    setIconButtonDimensions();
+    addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         showClipartDialog();
       }
     });
 
-    myBindings.bind(new IconProperty(myChooseClipartButton), new Expression<Optional<Icon>>(myClipartAsset.clipartName()) {
+    myBindings.bind(new IconProperty(this), new Expression<Optional<Icon>>(myClipartAsset.clipartName()) {
       @NotNull
       @Override
       public Optional<Icon> get() {
@@ -81,30 +73,28 @@ public final class ClipartAssetPanel extends JPanel implements AssetPanel, Dispo
         }
       }
     });
-    myBindings.bind(new TextProperty(myClipartNameLabel), myClipartAsset.clipartName());
 
-    InvalidationListener onIconChanged = new InvalidationListener() {
+    myClipartAsset.clipartName().addListener(new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        ActionEvent e = new ActionEvent(ClipartAssetPanel.this, ActionEvent.ACTION_PERFORMED, null);
+        ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
         for (ActionListener listener : myListeners) {
           listener.actionPerformed(e);
         }
       }
-    };
-    myClipartAsset.clipartName().addListener(onIconChanged);
+    });
   }
 
   @NotNull
   private static Logger getLog() {
-    return Logger.getInstance(ClipartAssetPanel.class);
+    return Logger.getInstance(ClipartAssetButton.class);
   }
 
-  private static void setIconButtonDimensions(@NotNull JButton b) {
+  private void setIconButtonDimensions() {
     Dimension d = new Dimension(CLIPART_BUTTON_SIZE, CLIPART_BUTTON_SIZE);
-    b.setMinimumSize(d);
-    b.setMaximumSize(d);
-    b.setPreferredSize(d);
+    setMinimumSize(d);
+    setMaximumSize(d);
+    setPreferredSize(d);
   }
 
   @NotNull
@@ -114,7 +104,7 @@ public final class ClipartAssetPanel extends JPanel implements AssetPanel, Dispo
   }
 
   @Override
-  public void addActionListener(@NotNull ActionListener l) {
+  public void addAssetListener(@NotNull ActionListener l) {
     myListeners.add(l);
   }
 
@@ -123,7 +113,7 @@ public final class ClipartAssetPanel extends JPanel implements AssetPanel, Dispo
    * button selects that clipart entry.
    */
   private void showClipartDialog() {
-    Window window = SwingUtilities.getWindowAncestor(myRootPanel);
+    Window window = SwingUtilities.getWindowAncestor(this);
     final JDialog dialog = new JDialog(window, "Choose Clipart", Dialog.ModalityType.DOCUMENT_MODAL);
     dialog.getRootPane().setLayout(new BorderLayout());
     dialog.getRootPane()
@@ -138,7 +128,7 @@ public final class ClipartAssetPanel extends JPanel implements AssetPanel, Dispo
         JButton btn = new JButton();
 
         btn.setIcon(ClipartAsset.createIcon(clipartName));
-        setIconButtonDimensions(btn);
+        setIconButtonDimensions();
         btn.addActionListener(new ActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {

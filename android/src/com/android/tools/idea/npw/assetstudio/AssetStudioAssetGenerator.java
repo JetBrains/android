@@ -16,14 +16,15 @@
 
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.assetstudiolib.*;
+import com.android.assetstudiolib.GraphicGenerator;
+import com.android.assetstudiolib.GraphicGeneratorContext;
 import com.android.ide.common.util.AssetUtil;
-import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -50,13 +51,6 @@ import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 public final class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
   private static Cache<String, BufferedImage> ourImageCache = CacheBuilder.newBuilder().build();
-  private static Map<AndroidIconType, GraphicGenerator> ourGraphicGenerators = Maps.newHashMap();
-
-  static {
-    ourGraphicGenerators.put(AndroidIconType.ACTIONBAR, new ActionBarIconGenerator());
-    ourGraphicGenerators.put(AndroidIconType.LAUNCHER, new LauncherIconGenerator());
-    ourGraphicGenerators.put(AndroidIconType.NOTIFICATION, new NotificationIconGenerator());
-  }
 
   private static Logger getLog() {
     return Logger.getInstance(AssetStudioAssetGenerator.class);
@@ -84,6 +78,7 @@ public final class AssetStudioAssetGenerator implements GraphicGeneratorContext 
     return image;
   }
 
+  @NotNull
   public static Map<String, Map<String, BufferedImage>> newAssetMap() {
     return Maps.newHashMap();
   }
@@ -106,6 +101,9 @@ public final class AssetStudioAssetGenerator implements GraphicGeneratorContext 
    * (50+100+50)x(50+100+50), or 200x200. The 100x100 portion is then centered, taking up what
    * looks like 50% of the final image. The same 100x100 image, with 100% padding, ends up at
    * 300x300, looking in the final image like it takes up ~33% of the space.
+   *
+   * Padding can also be negative, which eats into the space of the original asset, causing a zoom
+   * in effect.
    */
   @NotNull
   public static BufferedImage pad(@NotNull BufferedImage image, int paddingPercent) {
@@ -119,8 +117,14 @@ public final class AssetStudioAssetGenerator implements GraphicGeneratorContext 
       paddingPercent = 100;
     }
 
-    int side = Math.max(image.getWidth(), image.getHeight());
-    int padding = (side * paddingPercent / 100);
+    int largerSide = Math.max(image.getWidth(), image.getHeight());
+    int smallerSide = Math.min(image.getWidth(), image.getHeight());
+    int padding = (largerSide * paddingPercent / 100);
+
+    // Don't let padding get so negative that it would totally wipe out one of the dimensions. And
+    // since padding is added to all sides, negative padding should be at most half of the smallest
+    // side. (e.g if the smaller side is 100px, min padding is -49px)
+    padding = Math.max(-(smallerSide / 2 - 1), padding);
 
     return AssetUtil.paddedImage(image, padding);
   }
@@ -141,56 +145,34 @@ public final class AssetStudioAssetGenerator implements GraphicGeneratorContext 
     }
   }
 
-  public void generateNotificationIconsIntoMap(@NotNull BufferedImage sourceImage,
-                                               @NotNull Map<String, Map<String, BufferedImage>> assetMap,
-                                               @NotNull String name) {
-    GraphicGenerator notificationIconGenerator = ourGraphicGenerators.get(AndroidIconType.NOTIFICATION);
-
-    // TODO: Pass in minSdk value into options and generate only what's needed?
-    NotificationIconGenerator.NotificationOptions options = new NotificationIconGenerator.NotificationOptions();
-    options.sourceImage = sourceImage;
-    options.version = NotificationIconGenerator.Version.V11;
-    notificationIconGenerator.generate(null, assetMap, this, options, name);
-  }
-
   /**
-   * Outputs final-rendered images to disk, into the target directory (usually the parent of the res/ folder).
+   * Render images to disk. You likely want to use {@link CategoryIconMap#toFileMap(File)} to
+   * generate the input for this method.
+   *
+   * This method must be called from within a WriteAction.
    */
-  public void generateIconsIntoPath(@NotNull File rootDir,
-                                    @NotNull AndroidIconType iconType,
-                                    @NotNull BaseAsset sourceAsset,
-                                    @NotNull String name) {
-    final Map<String, Map<String, BufferedImage>> assetMap = newAssetMap();
-    switch (iconType) {
-      case NOTIFICATION:
-        generateNotificationIconsIntoMap(sourceAsset.toImage(), assetMap, name);
-        break;
-      case LAUNCHER:
-      case ACTIONBAR:
-      default:
-        throw new UnsupportedOperationException();
-    }
+  public void generateIconsIntoPath(@NotNull Map<File, BufferedImage> pathIconMap) {
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
 
-    for (Map<String, BufferedImage> density : assetMap.values()) {
-      for (Map.Entry<String, BufferedImage> image : density.entrySet()) {
-        File file = new File(rootDir, image.getKey());
+    for (Map.Entry<File, BufferedImage> fileImageEntry : pathIconMap.entrySet()) {
+      File file = fileImageEntry.getKey();
+      BufferedImage image = fileImageEntry.getValue();
+      try {
+        VirtualFile directory = VfsUtil.createDirectories(file.getParentFile().getAbsolutePath());
+        VirtualFile imageFile = directory.findChild(file.getName());
+        if (imageFile == null || !imageFile.exists()) {
+          imageFile = directory.createChildData(this, file.getName());
+        }
+        OutputStream outputStream = imageFile.getOutputStream(this);
         try {
-          VirtualFile directory = VfsUtil.createDirectories(file.getParentFile().getAbsolutePath());
-          VirtualFile imageFile = directory.findChild(file.getName());
-          if (imageFile == null || !imageFile.exists()) {
-            imageFile = directory.createChildData(this, file.getName());
-          }
-          OutputStream outputStream = imageFile.getOutputStream(this);
-          try {
-            ImageIO.write(image.getValue(), "PNG", outputStream);
-          }
-          finally {
-            outputStream.close();
-          }
+          ImageIO.write(image, "PNG", outputStream);
         }
-        catch (IOException e) {
-          getLog().error(e);
+        finally {
+          outputStream.close();
         }
+      }
+      catch (IOException e) {
+        getLog().error(e);
       }
     }
   }
