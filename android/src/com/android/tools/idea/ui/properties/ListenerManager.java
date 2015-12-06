@@ -52,7 +52,7 @@ public final class ListenerManager {
   public <T> void listen(@NotNull final ObservableValue<T> src, @NotNull final Consumer<T> listener) {
     InvalidationListener listenerWrapper = new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         listener.consume(src.get());
       }
     };

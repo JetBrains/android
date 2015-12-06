@@ -85,7 +85,7 @@ public final class ChooseActivityStep extends ModelWizardStep<ActivityModel> {
   protected void onWizardStarting(@NotNull final ModelWizard.Facade wizard) {
     myListeners.listen(new SelectedIndexProperty(myTargetActivityComboBox), new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         ActivityTemplate targetTemplate = (ActivityTemplate)myTargetActivityComboBox.getSelectedItem();
         // Set the target template in the model immediately (instead of waiting until
         // onProceeding), since whether this is set or not affects if later steps show up.

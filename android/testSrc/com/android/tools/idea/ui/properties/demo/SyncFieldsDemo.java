@@ -94,7 +94,7 @@ public final class SyncFieldsDemo {
     // Listen to activityText - if it is changed by the user and not its binding, break syncing!
     activityText.addListener(new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         isSynced.set(activityText.get().equals(activityNameExpression.get()));
       }
     });
