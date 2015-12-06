@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.List;
@@ -48,6 +49,11 @@ public final class ListenerManager {
    * relationship is recorded here so we can later remove by consumer as well.
    */
   private final Map<Consumer<?>, InvalidationListener> myConsumerMapping = Maps.newHashMap();
+
+  /**
+   * List of listeners registered by listenAll.
+   */
+  private final List<CompositeListener> myCompositeListeners = Lists.newArrayListWithExpectedSize(0);
 
   /**
    * Registers the target listener with the specified observable.
@@ -90,6 +96,22 @@ public final class ListenerManager {
   }
 
   /**
+   * Listen to a collection of observable values, firing an event whenever one or more of them
+   * change on any given frame.
+   *
+   * This method starts a fluent chain, but to actually hook up a listener, you must also call
+   * {@link CompositeListener#with(Runnable)} as well.
+   *
+   * For example: {@code listeners.listenAll(x, y, w, h).}<b>{@code with(repaint);}</b>
+   */
+  @NotNull
+  public CompositeListener listenAll(@NotNull ObservableValue<?>... values) {
+    CompositeListener listener = new CompositeListener(values);
+    myCompositeListeners.add(listener);
+    return listener;
+  }
+
+  /**
    * Releases a listener previously registered via
    * {@link #listen(ObservableValue, InvalidationListener)}. If the listener was registered with
    * multiple observables, they will all be released.
@@ -120,6 +142,20 @@ public final class ListenerManager {
   }
 
   /**
+   * Releases a listener previously registered via {@link #listenAll(ObservableValue...)}
+   */
+  public void release(@NotNull Runnable listenAllRunnable) {
+    Iterator<CompositeListener> iterator = myCompositeListeners.iterator();
+    while (iterator.hasNext()) {
+      CompositeListener listener = iterator.next();
+      if (listener.ownsRunnable(listenAllRunnable)) {
+        listener.dispose();
+        iterator.remove();
+      }
+    }
+  }
+
+  /**
    * Release all listeners registered with this manager.
    */
   public void releaseAll() {
@@ -127,6 +163,10 @@ public final class ListenerManager {
       listener.dispose();
     }
     myListeners.clear();
+    for (CompositeListener listener : myCompositeListeners) {
+      listener.dispose();
+    }
+    myCompositeListeners.clear();
   }
 
   private static class ListenerPairing {
@@ -142,6 +182,54 @@ public final class ListenerManager {
 
     public void dispose() {
       myObservable.removeListener(myListener);
+    }
+  }
+
+  /**
+   * Intermediate class which gives the {@link #listenAll(ObservableValue[])} method a fluent
+   * interface.
+   */
+  public static class CompositeListener implements InvalidationListener, Runnable {
+
+    @NotNull private final BatchInvoker myInvoker = new BatchInvoker();
+    @NotNull private final ObservableValue<?>[] myValues;
+    @Nullable private Runnable myOnAnyInvalidated;
+
+    public CompositeListener(@NotNull ObservableValue<?>... values) {
+      myValues = values;
+      for (ObservableValue<?> value : myValues) {
+        value.addListener(this);
+      }
+    }
+
+    public void dispose() {
+      for (ObservableValue<?> value : myValues) {
+        value.removeListener(this);
+      }
+    }
+
+    /**
+     * Specify the callback which will be triggered whenever any of the values we are listening to
+     * changes.
+     */
+    public void with(@NotNull Runnable onAnyInvalidated) {
+      myOnAnyInvalidated = onAnyInvalidated;
+    }
+
+    boolean ownsRunnable(@NotNull Runnable onAnyInvalidated) {
+      return onAnyInvalidated.equals(myOnAnyInvalidated);
+    }
+
+    @Override
+    public void onInvalidated(@NotNull ObservableValue<?> sender) {
+      myInvoker.enqueue(this);
+    }
+
+    @Override
+    public void run() {
+      if (myOnAnyInvalidated != null) {
+        myOnAnyInvalidated.run();
+      }
     }
   }
 }
