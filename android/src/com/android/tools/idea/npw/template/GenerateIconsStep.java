@@ -29,6 +29,7 @@ import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Locale;
 
 /**
  * Step for supporting a template.xml's {@code <icon>} tag if one exists (which tells the template
@@ -55,7 +56,8 @@ public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel
       }
     });
 
-    myStudioPanel = new StudioWizardStepPanel(myGenerateIconsPanel, "Convert a source asset into " + iconType.getDisplayName());
+    myStudioPanel = new StudioWizardStepPanel(myGenerateIconsPanel,
+                                              "Convert a source asset into " + iconType.getDisplayName().toLowerCase(Locale.getDefault()));
   }
 
   @NotNull
@@ -85,7 +87,7 @@ public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel
 
   @Override
   protected void onProceeding() {
-    getModel().setIconGenerator(myGenerateIconsPanel.createIconGenerator());
+    getModel().setIconGenerator(myGenerateIconsPanel.getIconGenerator());
   }
 
   @Override

@@ -29,13 +29,14 @@ import java.awt.*;
  * Convenience class for building a {@link ModelWizard} styled for Android Studio.
  */
 public final class StudioWizardDialogBuilder {
-  private static final Dimension MINIMUM_SIZE = JBUI.size(1080, 650);
+  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(1080, 650);
 
   @NotNull ModelWizard myWizard;
   @NotNull String myTitle;
   @Nullable Component myParent;
   @Nullable Project myProject;
   @NotNull DialogWrapper.IdeModalityType myModalityType = DialogWrapper.IdeModalityType.IDE;
+  @NotNull Dimension myMinimumSize = DEFAULT_MIN_SIZE;
 
   public StudioWizardDialogBuilder(@NotNull ModelWizard wizard, @NotNull String title) {
     myWizard = wizard;
@@ -47,7 +48,7 @@ public final class StudioWizardDialogBuilder {
    * constructor, any calls to {@link #setProject(Project)} and
    * {@link #setModalityType(DialogWrapper.IdeModalityType)} will be ignored.
    */
-  public StudioWizardDialogBuilder(@NotNull ModelWizard wizard, @NotNull String title, Component parent) {
+  public StudioWizardDialogBuilder(@NotNull ModelWizard wizard, @NotNull String title, @Nullable Component parent) {
     this(wizard, title);
     myParent = parent;
   }
@@ -66,6 +67,11 @@ public final class StudioWizardDialogBuilder {
     return this;
   }
 
+  public StudioWizardDialogBuilder setMinimumSize(@NotNull Dimension minimumSize) {
+    myMinimumSize = minimumSize;
+    return this;
+  }
+
   public ModelWizardDialog build() {
     StudioWizardLayout customLayout = new StudioWizardLayout();
     ModelWizardDialog dialog;
@@ -76,7 +82,7 @@ public final class StudioWizardDialogBuilder {
       dialog = new ModelWizardDialog(myWizard, myTitle, customLayout, myProject, myModalityType);
     }
 
-    dialog.setSize(MINIMUM_SIZE.width, MINIMUM_SIZE.height);
+    dialog.setSize(myMinimumSize.width, myMinimumSize.height);
     return dialog;
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
+import com.android.tools.idea.ui.ProportionalLayout;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
@@ -25,32 +26,36 @@ import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
 /**
- * Panel which wraps a {@link TextAsset}, allowing the user to configure a text value and settings.
+ * Panel which wraps a {@link TextAsset}, allowing the user to enter text value and choose a font
+ * from a pulldown.
  */
-public final class TextAssetPanel extends JPanel implements AssetPanel, Disposable {
+public final class TextAssetEditor extends JPanel implements AssetComponent, Disposable {
   private final TextAsset myTextAsset = new TextAsset();
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);
 
-  private JPanel myRootPanel;
-  private JBLabel myTextLabel;
-  private JTextField myTextField;
-  private JComboBox myFontCombo;
-  private JBLabel myFontLabel;
+  private final JTextField myTextField;
+  private final JComboBox myFontCombo;
 
-  public TextAssetPanel() {
-    super(new BorderLayout());
-    add(myRootPanel);
+  public TextAssetEditor() {
+    super(ProportionalLayout.fromString("50px,180px"));
+
+    myTextField = new JTextField();
+
+    // TODO: JDK8 - We currently rely on JComboBox because of JDK6 restrictions
+    //noinspection UndesirableClassUsage
+    myFontCombo = new JComboBox();
+
+    add(myTextField, new ProportionalLayout.Constraint(0, 0));
+    add(myFontCombo, new ProportionalLayout.Constraint(0, 1));
 
     myBindings.bindTwoWay(new TextProperty(myTextField), myTextAsset.text());
 
@@ -69,7 +74,7 @@ public final class TextAssetPanel extends JPanel implements AssetPanel, Disposab
     InvalidationListener onTextChanged = new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        ActionEvent e = new ActionEvent(TextAssetPanel.this, ActionEvent.ACTION_PERFORMED, null);
+        ActionEvent e = new ActionEvent(TextAssetEditor.this, ActionEvent.ACTION_PERFORMED, null);
         for (ActionListener listener : myListeners) {
           listener.actionPerformed(e);
         }
@@ -87,7 +92,7 @@ public final class TextAssetPanel extends JPanel implements AssetPanel, Disposab
   }
 
   @Override
-  public void addActionListener(@NotNull ActionListener l) {
+  public void addAssetListener(@NotNull ActionListener l) {
     myListeners.add(l);
   }
 
