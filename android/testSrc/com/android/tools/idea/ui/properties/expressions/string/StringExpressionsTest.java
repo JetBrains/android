@@ -21,7 +21,7 @@ import com.android.tools.idea.ui.properties.core.IntValueProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import org.junit.Test;
 
-import static com.android.tools.idea.ui.properties.BindingsManager.INVOKE_IMMEDIATELY_STRATEGY;
+import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
 import static org.fest.assertions.Assertions.assertThat;
 
 public final class StringExpressionsTest {
