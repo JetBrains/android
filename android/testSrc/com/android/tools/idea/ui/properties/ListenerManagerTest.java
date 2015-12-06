@@ -176,6 +176,27 @@ public final class ListenerManagerTest {
   }
 
   @Test
+  public void releasingObservableWorks() throws Exception {
+    ListenerManager listeners = new ListenerManager();
+
+    IntListener intListener1 = new IntListener();
+    IntListener intListener2 = new IntListener();
+    IntValueProperty intProperty = new IntValueProperty(10);
+    listeners.listen(intProperty, intListener1);
+    listeners.listen(intProperty, intListener2);
+
+    intProperty.set(20);
+    assertThat(intListener1.myInvalidationCount).isEqualTo(1);
+    assertThat(intListener2.myInvalidationCount).isEqualTo(1);
+
+    listeners.release(intProperty);
+
+    intProperty.set(30);
+    assertThat(intListener1.myInvalidationCount).isEqualTo(1);
+    assertThat(intListener2.myInvalidationCount).isEqualTo(1);
+  }
+
+  @Test
   public void releasingCompositeListenerWorks() throws Exception {
     ListenerManager listeners = new ListenerManager();
 
