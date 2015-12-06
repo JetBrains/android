@@ -16,39 +16,26 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.android.tools.idea.npw.AssetStudioWizard;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-
 /**
- * Action to invoke the Asset Studio. This action is visible
- * anywhere within a module that has an Android facet.
+ * Action to invoke the Asset Studio.
+ *
+ * This action is visible anywhere within a module that has an Android facet.
  */
-public class AndroidAssetStudioAction extends AnAction {
-
-
-  public AndroidAssetStudioAction () {
-    super("Image Asset", "Open Asset Studio to create an image asset", AndroidIcons.Android);
-  }
-
-  public AndroidAssetStudioAction (@Nullable String text, @Nullable String description, @Nullable Icon icon) {
-    super(text, description, icon);
-  }
-
-  @Override
-  public void update(AnActionEvent e) {
-    e.getPresentation().setVisible(isAvailable(e.getDataContext()));
+public abstract class AndroidAssetStudioAction extends AnAction {
+  protected AndroidAssetStudioAction(@Nullable String text, @Nullable String description) {
+    super(text, description, AndroidIcons.Android);
   }
 
   protected static boolean isAvailable(DataContext dataContext) {
@@ -64,18 +51,13 @@ public class AndroidAssetStudioAction extends AnAction {
     return true;
   }
 
-  // AndroidVectorAssetStudioAction will override this and provide different wizard for vector assets.
-  protected void showWizardAndCreateAsset(Project project, Module module, VirtualFile targetFile) {
-    AssetStudioWizard dialog = new AssetStudioWizard(project, module, targetFile);
-    if (!dialog.showAndGet()) {
-      return;
-    }
-    dialog.createAssets();
+  @Override
+  public final void update(AnActionEvent e) {
+    e.getPresentation().setVisible(isAvailable(e.getDataContext()));
   }
 
-
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public final void actionPerformed(AnActionEvent e) {
     final DataContext dataContext = e.getDataContext();
 
     final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
@@ -108,16 +90,17 @@ public class AndroidAssetStudioAction extends AnAction {
         return;
       }
       dir = directories[0];
-    } else {
+    }
+    else {
       dir = view.getOrChooseDirectory();
     }
     if (dir == null) {
       return;
     }
 
-    Project project = CommonDataKeys.PROJECT.getData(dataContext);
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-
-    showWizardAndCreateAsset(project, module, targetFile);
+    showWizardAndCreateAsset(facet, targetFile);
   }
+
+  protected abstract void showWizardAndCreateAsset(@NotNull AndroidFacet facet, @Nullable VirtualFile targetFile);
 }
