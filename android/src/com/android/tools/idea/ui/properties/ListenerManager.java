@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * Convenience class for managing property listeners.
  * <p/>
- * Although you can always use {@link Observable#addListener(InvalidationListener)} directly,
+ * Although you can always use {@link ObservableValue#addListener(InvalidationListener)} directly,
  * occasionally this requires creating a local field to store a listener so you can remove it
  * later. This can be fine for one or two listeners, but for more complex cases, use this class
  * to manage listeners for you (and remove them all easily using {@link #releaseAll()}
@@ -36,14 +36,24 @@ import java.util.Map;
  * the dispatch thread to avoid undefined behavior.
  */
 public final class ListenerManager {
-  private final List<ListenerPairing<?>> myListeners = Lists.newArrayList();
+
+  /**
+   * List of all listeners registered by one of the listen calls.
+   */
+  private final List<ListenerPairing> myListeners = Lists.newArrayList();
+
+  /**
+   * The listen methods take either an invalidation listener (untyped) or a consumer (typed).
+   * When a user adds a consumer listener, those are wrapped in an invalidation listener, and the
+   * relationship is recorded here so we can later remove by consumer as well.
+   */
   private final Map<Consumer<?>, InvalidationListener> myConsumerMapping = Maps.newHashMap();
 
   /**
    * Registers the target listener with the specified observable.
    */
-  public <T> void listen(@NotNull ObservableValue<T> src, @NotNull InvalidationListener listener) {
-    myListeners.add(new ListenerPairing<T>(src, listener));
+  public void listen(@NotNull ObservableValue<?> src, @NotNull InvalidationListener listener) {
+    myListeners.add(new ListenerPairing(src, listener));
   }
 
   /**
@@ -65,7 +75,7 @@ public final class ListenerManager {
    * A convenience method which both registers the target listener and then fires it with the
    * observable's latest value.
    */
-  public <T> void listenAndFire(@NotNull ObservableValue<T> src, @NotNull InvalidationListener listener) {
+  public void listenAndFire(@NotNull ObservableValue<?> src, @NotNull InvalidationListener listener) {
     listen(src, listener);
     listener.onInvalidated(src);
   }
@@ -85,9 +95,9 @@ public final class ListenerManager {
    * multiple observables, they will all be released.
    */
   public void release(@NotNull InvalidationListener listener) {
-    Iterator<ListenerPairing<?>> i = myListeners.iterator();
+    Iterator<ListenerPairing> i = myListeners.iterator();
     while (i.hasNext()) {
-      ListenerPairing<?> listenerPairing = i.next();
+      ListenerPairing listenerPairing = i.next();
 
       if (listenerPairing.myListener == listener) {
         listenerPairing.dispose();
@@ -113,17 +123,17 @@ public final class ListenerManager {
    * Release all listeners registered with this manager.
    */
   public void releaseAll() {
-    for (ListenerPairing<?> listener : myListeners) {
+    for (ListenerPairing listener : myListeners) {
       listener.dispose();
     }
     myListeners.clear();
   }
 
-  private static class ListenerPairing<T> {
-    private final ObservableValue<T> myObservable;
+  private static class ListenerPairing {
+    private final ObservableValue<?> myObservable;
     private final InvalidationListener myListener;
 
-    public ListenerPairing(ObservableValue<T> src, InvalidationListener listener) {
+    public ListenerPairing(ObservableValue<?> src, InvalidationListener listener) {
       myObservable = src;
       myListener = listener;
 
