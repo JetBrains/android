@@ -17,6 +17,8 @@ package com.android.tools.idea.ui.properties.expressions.bool;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
+import com.android.tools.idea.ui.properties.core.ObjectProperty;
+import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import org.fest.assertions.Assertions;
 import org.junit.Test;
@@ -28,8 +30,8 @@ public final class BooleanExpressionsTest {
 
   @Test
   public void testInvariants() throws Exception {
-    Assertions.assertThat(BooleanExpressions.alwaysTrue().get()).isTrue();
-    Assertions.assertThat(BooleanExpressions.alwaysFalse().get()).isFalse();
+    assertThat(BooleanExpressions.alwaysTrue().get()).isTrue();
+    assertThat(BooleanExpressions.alwaysFalse().get()).isFalse();
   }
 
   @Test
@@ -110,6 +112,24 @@ public final class BooleanExpressionsTest {
     assertThat(srcValue1.get()).isTrue();
     assertThat(srcValue2.get()).isTrue();
     assertThat(destValue.get()).isTrue();
+  }
+
+  @Test
+  public void testIsEqualToExpression() throws Exception {
+
+    StringValueProperty srcValue = new StringValueProperty("Initial Value");
+    BoolValueProperty destValue = new BoolValueProperty();
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
+
+    bindings.bind(destValue, srcValue.isEqualTo("Modified Value"));
+
+    assertThat(destValue.get()).isFalse();
+
+    srcValue.set("Modified Value");
+    assertThat(destValue.get()).isTrue();
+
+    srcValue.set("Final Value");
+    assertThat(destValue.get()).isFalse();
   }
 
   @Test
