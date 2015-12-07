@@ -96,9 +96,6 @@ public class DevicePickerListModel extends AbstractListModel {
         myEntries.add(DevicePickerEntry.create(device));
       }
     }
-    else {
-      myEntries.add(DevicePickerEntry.NONE);
-    }
 
     int size = myEntries.size();
     if (size > 0) {
