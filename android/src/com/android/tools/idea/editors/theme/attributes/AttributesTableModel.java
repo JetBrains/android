@@ -89,7 +89,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   private void reloadContent() {
-    final List<EditedStyleItem> rawAttributes = ThemeAttributeResolver.resolveAll(mySelectedStyle, myContext.getThemeResolver());
+    final List<EditedStyleItem> rawAttributes = ThemeAttributeResolver.resolveAll(mySelectedStyle, myContext.getConfiguration().getConfigurationManager());
 
     //noinspection unchecked (SIMPLE_MODE_COMPARATOR can compare EditedStyleItem)
     Collections.sort(rawAttributes, ThemeEditorComponent.SIMPLE_MODE_COMPARATOR);

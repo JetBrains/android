@@ -34,7 +34,6 @@ import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -59,9 +58,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 /**
- * Wrapper for style configurations that allows modifying attributes directly in the XML file.
+ * This class represents styles in ThemeEditor
+ * In addition to {@link ThemeEditorStyle}, it knows about current {@link Configuration} used in ThemeEditor
+ * TODO: move Configuration independent methods to ThemeEditorStyle
  */
-public class ConfiguredThemeEditorStyle {
+public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
   private static final Logger LOG = Logger.getInstance(ConfiguredThemeEditorStyle.class);
 
   private final @NotNull StyleResourceValue myStyleResourceValue;
@@ -77,27 +78,11 @@ public class ConfiguredThemeEditorStyle {
   public ConfiguredThemeEditorStyle(final @NotNull Configuration configuration,
                                     final @NotNull StyleResourceValue styleResourceValue,
                                     final @Nullable Module sourceModule) {
+    super(configuration.getConfigurationManager(), ResolutionUtils.getQualifiedStyleName(styleResourceValue));
     myStyleResourceValue = styleResourceValue;
     myConfiguration = configuration;
     myProject = configuration.getModule().getProject();
     mySourceModule = sourceModule;
-  }
-
-  /**
-   * Returns the style name. If this is a framework style, it will include the "android:" prefix.
-   * Can be null, if there is no corresponding StyleResourceValue
-   */
-  @NotNull
-  public String getQualifiedName() {
-    return ResolutionUtils.getQualifiedStyleName(myStyleResourceValue);
-  }
-
-  /**
-   * Returns the style name without namespaces or prefixes.
-   */
-  @NotNull
-  public String getName() {
-    return myStyleResourceValue.getName();
   }
 
   /**
@@ -109,95 +94,12 @@ public class ConfiguredThemeEditorStyle {
     return ResourceUrl.create(myStyleResourceValue).toString();
   }
 
-  public boolean isProjectStyle() {
-    if (myStyleResourceValue.isFramework()) {
-      return false;
-    }
-    ProjectResourceRepository repository = ProjectResourceRepository.getProjectResources(myConfiguration.getModule(), true);
-    assert repository != null : myConfiguration.getModule().getName();
-    return repository.hasResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
-  }
-
   /**
    * Returns StyleResourceValue for current Configuration
    */
   @NotNull
   public StyleResourceValue getStyleResourceValue() {
     return myStyleResourceValue;
-  }
-
-  /**
-   * Returns all the {@link ResourceItem} where this style is defined. This includes all the definitions in the
-   * different resource folders.
-   */
-  @NotNull
-  private Collection<ResourceItem> getStyleResourceItems() {
-    assert !isFramework();
-    Collection<ResourceItem> resultItems;
-    if (isProjectStyle()) {
-      final Module module = getModuleForAcquiringResources();
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      assert facet != null : module.getName() + " module doesn't have AndroidFacet";
-
-      // We need to keep a Set of ResourceItems to override them. The key is the folder configuration + the name
-      final HashMap<String, ResourceItem> resourceItems = Maps.newHashMap();
-      ThemeEditorUtils.acceptResourceResolverVisitor(facet, new ThemeEditorUtils.ResourceFolderVisitor() {
-        @Override
-        public void visitResourceFolder(@NotNull LocalResourceRepository resources, String moduleName, @NotNull String variantName, boolean isSourceSelected) {
-          if (!isSourceSelected) {
-            // Currently we ignore the source sets that are not active
-            // TODO: Process all source sets
-            return;
-          }
-
-          List<ResourceItem> items = resources.getResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
-          if (items == null) {
-            return;
-          }
-
-          for (ResourceItem item : items) {
-            String key = item.getConfiguration().toShortDisplayString() + "/" + item.getName();
-            resourceItems.put(key, item);
-          }
-        }
-      });
-
-      resultItems = ImmutableList.copyOf(resourceItems.values());
-    } else {
-      LocalResourceRepository resourceRepository = AppResourceRepository.getAppResources(getModuleForAcquiringResources(), true);
-      assert resourceRepository != null;
-      List<ResourceItem> items = resourceRepository.getResourceItem(ResourceType.STYLE, getName());
-      if (items != null) {
-        resultItems = items;
-      } else {
-        resultItems = Collections.emptyList();
-      }
-    }
-    return resultItems;
-  }
-
-  /**
-   * @return Collection of FolderConfiguration where this style is defined
-   */
-  @NotNull
-  public Collection<FolderConfiguration> getFolders() {
-    if (isFramework()) {
-      return ImmutableList.of(new FolderConfiguration());
-    }
-    Collection<FolderConfiguration> result = Lists.newArrayList();
-    for (ResourceItem styleItem : getStyleResourceItems()) {
-      result.add(styleItem.getConfiguration());
-    }
-    return result;
-  }
-
-  /**
-   * Get a Module instance that should be used for resolving all possible resources that could constitute values
-   * of this theme's attributes. Returns source module of a theme if it's available and rendering context module
-   * otherwise.
-   */
-  private Module getModuleForAcquiringResources() {
-    return mySourceModule != null ? mySourceModule : myConfiguration.getModule();
   }
 
   /**
@@ -259,21 +161,6 @@ public class ConfiguredThemeEditorStyle {
     return itemResourceValues.build();
   }
 
-  /**
-   * @param configuration FolderConfiguration of the style to lookup
-   * @return all values defined in this style with a FolderConfiguration configuration
-   */
-  @NotNull
-  public Collection<ItemResourceValue> getValues(@NotNull FolderConfiguration configuration) {
-    List<ItemResourceValue> result = Lists.newArrayList();
-    for (ConfiguredElement<ItemResourceValue> value : getConfiguredValues()) {
-      if (configuration.equals(value.getConfiguration())) {
-        result.add(value.getElement());
-      }
-    }
-    return result;
-  }
-
   public boolean hasItem(@Nullable EditedStyleItem item) {
     //TODO: add isOverriden() method to EditedStyleItem
     return item != null && getStyleResourceValue().getItem(item.getName(), item.isFrameworkAttr()) != null;
@@ -315,16 +202,6 @@ public class ConfiguredThemeEditorStyle {
       }
     }
     return parents.build();
-  }
-
-  @Nullable
-  public String getParentName(FolderConfiguration configuration) {
-    for (final ConfiguredElement<String> parent : getParentNames()) {
-      if (configuration.equals(parent.getConfiguration())) {
-        return parent.getElement();
-      }
-    }
-    return null;
   }
 
   /**
@@ -721,9 +598,5 @@ public class ConfiguredThemeEditorStyle {
     }
 
     return androidTargetData.isResourcePublic(ResourceType.STYLE.getName(), getName());
-  }
-
-  public boolean isFramework() {
-    return myStyleResourceValue.isFramework();
   }
 }
