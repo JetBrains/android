@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.ui.properties;
 
+import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.expressions.bool.IsEqualToExpression;
 import com.google.common.collect.Lists;
 import com.intellij.util.containers.UnsafeWeakList;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +63,12 @@ public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
     for (InvalidationListener listener : myWeakListeners) {
       listener.onInvalidated(this);
     }
+  }
+
+  @NotNull
+  @Override
+  public final ObservableBool isEqualTo(@NotNull T value) {
+    return new IsEqualToExpression<T>(this, value);
   }
 
   /**
