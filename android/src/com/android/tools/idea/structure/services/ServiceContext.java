@@ -58,7 +58,7 @@ public final class ServiceContext {
 
   private final InvalidationListener myWatchedListener = new InvalidationListener() {
     @Override
-    protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+    public void onInvalidated(@NotNull ObservableValue<?> sender) {
       myModified.set(true);
     }
   };

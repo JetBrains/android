@@ -113,7 +113,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     final SelectedProperty accepted = new SelectedProperty(myAcceptRadioButton);
     accepted.addListener(new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         myAcceptances.put(myCurrentLicense, accepted.get());
         checkAllLicensesAreAccepted();
         myChangeTree.repaint();
