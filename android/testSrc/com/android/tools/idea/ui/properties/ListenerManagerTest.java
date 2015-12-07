@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.ui.properties;
 
-import com.android.tools.idea.ui.properties.core.IntValueProperty;
-import com.android.tools.idea.ui.properties.core.ObservableInt;
+import com.android.tools.idea.ui.properties.core.*;
+import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+
+import javax.swing.*;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -110,6 +112,34 @@ public final class ListenerManagerTest {
   }
 
   @Test
+  public void listenAllWorks() throws Exception {
+    ListenerManager listeners = new ListenerManager();
+
+    IntProperty x = new IntValueProperty(0);
+    IntProperty y = new IntValueProperty(0);
+    IntProperty w = new IntValueProperty(640);
+    IntProperty h = new IntValueProperty(480);
+    BoolProperty grayscale = new BoolValueProperty(false);
+
+    CountingRunnable mockRepaint = new CountingRunnable();
+
+    listeners.listenAll(x, y, w, h, grayscale).with(mockRepaint);
+
+    assertThat(mockRepaint.myRunCount).isZero();
+
+    w.set(1280);
+    h.set(720);
+
+    assertThat(mockRepaint.myRunCount).isZero();
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);  // Let properties propogate
+    assertThat(mockRepaint.myRunCount).isEqualTo(1);
+
+    grayscale.set(true);
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
+    assertThat(mockRepaint.myRunCount).isEqualTo(2);
+  }
+
+  @Test
   public void releasingListenerWorks() throws Exception {
     ListenerManager listeners = new ListenerManager();
 
@@ -146,6 +176,34 @@ public final class ListenerManagerTest {
   }
 
   @Test
+  public void releasingCompositeListenerWorks() throws Exception {
+    ListenerManager listeners = new ListenerManager();
+
+    IntProperty a = new IntValueProperty();
+    IntProperty b = new IntValueProperty();
+    IntProperty c = new IntValueProperty();
+    IntProperty d = new IntValueProperty();
+
+    CountingRunnable compositeListener = new CountingRunnable();
+
+    listeners.listenAll(a, b, c, d).with(compositeListener);
+
+    a.set(1);
+    b.set(2);
+    c.set(3);
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE); // Let properties propogate
+    assertThat(compositeListener.myRunCount).isEqualTo(1);
+
+    listeners.release(compositeListener);
+    d.set(4);
+    c.set(5);
+    b.set(6);
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
+
+    assertThat(compositeListener.myRunCount).isEqualTo(1);
+  }
+
+  @Test
   public void releaseAllReleasesAllListeners() throws Exception {
 
     ListenerManager listeners = new ListenerManager();
@@ -168,6 +226,34 @@ public final class ListenerManagerTest {
     intProperty2.set(30);
     assertThat(intListener1.myInvalidationCount).isEqualTo(1);
     assertThat(intListener2.myInvalidationCount).isEqualTo(1);
+  }
+
+  @Test
+  public void releaseAllReleasesAllCompositeListeners() throws Exception {
+    ListenerManager listeners = new ListenerManager();
+
+    IntProperty a = new IntValueProperty();
+    IntProperty b = new IntValueProperty();
+    IntProperty c = new IntValueProperty();
+    IntProperty d = new IntValueProperty();
+
+    CountingRunnable compositeListener = new CountingRunnable();
+
+    listeners.listenAll(a, b, c, d).with(compositeListener);
+
+    a.set(1);
+    b.set(2);
+    c.set(3);
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE); // Let properties propogate
+    assertThat(compositeListener.myRunCount).isEqualTo(1);
+
+    listeners.releaseAll();
+    d.set(4);
+    c.set(5);
+    b.set(6);
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
+
+    assertThat(compositeListener.myRunCount).isEqualTo(1);
   }
 
   @Test
@@ -204,12 +290,12 @@ public final class ListenerManagerTest {
     assertThat(intListener2.myInvalidationCount).isEqualTo(2);
   }
 
-  private static class IntListener extends InvalidationListener {
+  private static class IntListener implements InvalidationListener {
     int myInvalidationCount = 0;
     int myLastValue;
 
     @Override
-    protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+    public void onInvalidated(@NotNull ObservableValue<?> sender) {
       myInvalidationCount++;
       myLastValue = ((ObservableInt)sender).get();
     }
@@ -223,6 +309,15 @@ public final class ListenerManagerTest {
     public void consume(Integer value) {
       myInvalidationCount++;
       myLastValue = value;
+    }
+  }
+
+  private static class CountingRunnable implements Runnable {
+    int myRunCount;
+
+    @Override
+    public void run() {
+      myRunCount++;
     }
   }
 }

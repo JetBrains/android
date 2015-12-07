@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.wizard;
 
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,5 +43,17 @@ public final class WizardUtils {
     else {
       return new File(parent.replace('/', File.separatorChar));
     }
+  }
+
+  /**
+   * Wrap a target string with {@code <html></html>} if it's not already so wrapped. This is useful
+   * as various Swing components (particularly labels) act slightly differently with html input.
+   */
+  @NotNull
+  public static String toHtmlString(@NotNull String text) {
+    if (!StringUtil.isEmpty(text) && !text.startsWith("<html>")) {
+      return String.format("<html>%1$s</html>", text.trim());
+    }
+    return text;
   }
 }

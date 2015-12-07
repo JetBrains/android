@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.properties;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
- * Listener that is notified any time an observable value may have changed (either directly or
- * because a value it is bound to has become invalidated).
+ * Android project components depend heavily on FreeMarker templates and classes in the
+ * {@link com.android.tools.idea.templates} namespace - using that framework, Android-aware
+ * configurations are loaded, initialized, modified, and then rendered into the projct.
+ *
+ * This package contains the UI views that interact with the users on one side and Freemarker on
+ * the other.
  */
-public interface InvalidationListener {
-  void onInvalidated(@NotNull ObservableValue<?> sender);
-}
+package com.android.tools.idea.npw.template;

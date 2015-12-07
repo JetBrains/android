@@ -19,6 +19,7 @@ import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.CountListener;
 import org.junit.Test;
 
+import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
 import static org.fest.assertions.Assertions.assertThat;
 
 public final class OptionalPropertyTest {
@@ -116,7 +117,7 @@ public final class OptionalPropertyTest {
     OptionalProperty<String> optString = OptionalValueProperty.of("Hello");
     OptionalProperty<Integer> optInt = OptionalValueProperty.of(10);
 
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     BoolProperty areBothPresent = new BoolValueProperty();
     bindings.bind(areBothPresent, optString.isPresent().and(optInt.isPresent()));
 

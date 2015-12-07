@@ -89,7 +89,7 @@ public final class DeveloperServicePanel extends EditorPanel {
 
     enabledCheckboxSelected.addListener(new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         if (enabledCheckboxSelected.get()) {
           // User just selected a service which was previous uninstalled
           myService.getContext().beginEditing();
