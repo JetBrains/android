@@ -89,6 +89,13 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
     return results;
   }
 
+  @NotNull
+  public ArtifactDependencySpec getSpec() {
+    ArtifactDependencySpec spec = ArtifactDependencySpec.create(compactNotation());
+    assert spec != null;
+    return spec;
+  }
+
   private static class MapNotation extends ArtifactDependencyModel {
     @NotNull private GradleDslExpressionMap myDslElement;
 
