@@ -19,6 +19,8 @@ import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.FormFactorUtils;
+import com.android.tools.idea.npw.assetstudio.AndroidIconType;
+import com.android.tools.idea.npw.assetstudio.NotificationIconStep;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.template.components.*;
@@ -68,10 +70,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -166,6 +166,18 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       finalPath = FileUtil.toSystemIndependentName(finalPath);
     }
     return finalPath;
+  }
+
+  @NotNull
+  @Override
+  protected Collection<? extends ModelWizardStep> createDependentSteps() {
+
+    if (getModel().getTemplateHandle().getMetadata().getIconType() == AndroidIconType.NOTIFICATION) {
+      return Collections.singletonList(new NotificationIconStep(getModel()));
+    }
+    else {
+      return super.createDependentSteps();
+    }
   }
 
   @Override

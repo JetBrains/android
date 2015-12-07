@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -42,7 +43,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A model responsible for instantiating a FreeMarker {@link Template} into the current project.
+ * A model responsible for instantiating a FreeMarker {@link Template} into the current project
+ * representing an Android component.
  */
 public final class RenderTemplateModel extends WizardModel {
 
@@ -51,10 +53,12 @@ public final class RenderTemplateModel extends WizardModel {
   private final boolean myOpenFilesInEditor;
 
   private final OptionalProperty<SourceProvider> mySourceSet = new OptionalValueProperty<SourceProvider>();
+
   private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   @NotNull private final AndroidFacet myAndroidFacet;
 
   @Nullable AndroidProjectPaths myPaths;
+  @Nullable IconGenerator myIconGenerator;
 
   public RenderTemplateModel(@NotNull AndroidFacet androidFacet, @NotNull TemplateHandle templateHandle, @NotNull String commandName) {
     this(androidFacet, templateHandle, commandName, true);
@@ -97,6 +101,11 @@ public final class RenderTemplateModel extends WizardModel {
     return myAndroidFacet.getModule();
   }
 
+  /**
+   * Get the current {@link SourceProvider} used by this model (the source provider affects which
+   * paths the template's output will be rendered into). When this value is present,
+   * {@link #getPaths()} will also be present.
+   */
   @NotNull
   public OptionalProperty<SourceProvider> getSourceSet() {
     return mySourceSet;
@@ -108,9 +117,15 @@ public final class RenderTemplateModel extends WizardModel {
   }
 
   /**
-   * Create an instance of {@link AndroidProjectPaths} that will be used by this model's template
-   * rendering logic. It is an error to call this if {@link #getSourceSet()} (which is an
-   * Optional) is not set to a non-null value.
+   * If this template should also generate icon assets, set an icon generator.
+   */
+  public void setIconGenerator(@NotNull IconGenerator iconGenerator) {
+    myIconGenerator = iconGenerator;
+  }
+
+  /**
+   * Return the paths this model will use when rendering templates. This will be a present value
+   * as long as {@link #getSourceSet()} is also present.
    */
   @Nullable
   public AndroidProjectPaths getPaths() {
@@ -139,11 +154,10 @@ public final class RenderTemplateModel extends WizardModel {
       @Override
       protected void run(@NotNull Result<Boolean> result) throws Throwable {
         boolean success = renderTemplate(false, myPaths, filesToOpen, filesToReformat);
-        // TODO: We will need this to support this(?) when we can expand our scope to support
-        // Notification templates. Or probably this should be in an IconModel at that time.
-        //if (success) {
-        //  myAssetStudioStep.createAssets();
-        //}
+        if (success && myIconGenerator != null) {
+          myIconGenerator.generate(myPaths);
+        }
+
         result.setResult(success);
       }
     }.execute().getResultObject();
