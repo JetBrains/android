@@ -16,16 +16,15 @@
 package com.android.tools.idea.gradle.structure.services;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.BuildFileStatement;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.structure.services.DeveloperServiceBuildSystemOperations;
 import com.android.tools.idea.structure.services.DeveloperServiceMetadata;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -34,7 +33,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
@@ -54,22 +52,13 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
     // multiple services might share a dependency but have additional settings that indicate some
     // are installed and others aren't.
     List<String> moduleDependencyNames = Lists.newArrayList();
-    GradleBuildFile gradleBuildFile = GradleBuildFile.get(module);
-    if (gradleBuildFile != null) {
-      for (BuildFileStatement dependency : gradleBuildFile.getDependencies()) {
-        if (dependency instanceof Dependency) {
-          Object data = ((Dependency)dependency).data;
-          if (data instanceof String) {
-            String dependencyString = (String)data;
-            List<String> dependencyParts = Lists.newArrayList(Splitter.on(':').split(dependencyString));
-            if (dependencyParts.size() == 3) {
-              // From the dependency URL "group:name:version" string - we only care about "name"
-              // We ignore the version, as a service may be installed using an older version
-              // TODO: Handle "group: 'com.android.support', name: 'support-v4', version: '21.0.+'" format also
-              // See also GradleDetector#getNamedDependency
-              moduleDependencyNames.add(dependencyParts.get(1));
-            }
-          }
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    if (buildModel != null) {
+      DependenciesModel dependenciesModel = buildModel.dependencies();
+      if (dependenciesModel != null) {
+        for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
+          String name = dependency.name();
+          moduleDependencyNames.add(name);
         }
       }
     }
@@ -93,18 +82,16 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
 
   @Override
   public boolean isServiceInstalled(@NotNull Module module, @NotNull DeveloperServiceMetadata metadata) {
-    GradleBuildFile gradleFile = GradleBuildFile.get(module);
-    if (gradleFile != null) {
-      List<BuildFileStatement> dependencies = gradleFile.getDependencies();
-      for (BuildFileStatement statement : dependencies) {
-        if (!(statement instanceof Dependency)) {
-          continue;
-        }
-
-        Dependency dependency = (Dependency)statement;
-        for (String dependencyValue : metadata.getDependencies()) {
-          if (dependency.getValueAsString().equals(dependencyValue)) {
-            return true;
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    if (buildModel != null) {
+      DependenciesModel dependenciesModel = buildModel.dependencies();
+      if (dependenciesModel != null) {
+        for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
+          ArtifactDependencySpec spec = dependency.getSpec();
+          for (String dependencyValue : metadata.getDependencies()) {
+            if (spec.equals(ArtifactDependencySpec.create(dependencyValue))) {
+              return true;
+            }
           }
         }
       }
@@ -114,24 +101,20 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
 
   @Override
   public void removeDependencies(@NotNull Module module, @NotNull DeveloperServiceMetadata metadata) {
-    final GradleBuildFile gradleFile = GradleBuildFile.get(module);
-    if (gradleFile != null) {
+    final GradleBuildModel buildModel = GradleBuildModel.get(module);
+    if (buildModel != null) {
       boolean dependenciesChanged = false;
 
-      final List<BuildFileStatement> dependencies = gradleFile.getDependencies();
-      Iterator<BuildFileStatement> iterator = dependencies.iterator();
-      while (iterator.hasNext()) {
-        BuildFileStatement statement = iterator.next();
-        if (!(statement instanceof Dependency)) {
-          continue;
-        }
-
-        Dependency dependency = (Dependency)statement;
-        for (String dependencyValue : metadata.getDependencies()) {
-          if (dependency.getValueAsString().equals(dependencyValue)) {
-            iterator.remove();
-            dependenciesChanged = true;
-            break;
+      DependenciesModel dependenciesModel = buildModel.dependencies();
+      if (dependenciesModel != null) {
+        for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
+          ArtifactDependencySpec spec = dependency.getSpec();
+          for (String dependencyValue : metadata.getDependencies()) {
+            if (spec.equals(ArtifactDependencySpec.create(dependencyValue))) {
+              dependenciesModel.remove(dependency);
+              dependenciesChanged = true;
+              break;
+            }
           }
         }
       }
@@ -141,7 +124,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
         new WriteCommandAction.Simple(project, "Uninstall " + metadata.getName()) {
           @Override
           public void run() {
-            gradleFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+            buildModel.applyChanges();
           }
         }.execute();
       }
