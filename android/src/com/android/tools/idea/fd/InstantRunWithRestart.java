@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.tools.fd.client.UpdateMode;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
