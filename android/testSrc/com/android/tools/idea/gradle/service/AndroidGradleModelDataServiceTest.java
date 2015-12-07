@@ -80,10 +80,10 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
 
   public void testImportData() {
     String jdkPath = Jdks.getJdkHomePath(LanguageLevel.JDK_1_6);
-
     if (jdkPath != null) {
-      VfsRootAccess.allowRootAccess(jdkPath);
+      VfsRootAccess.allowRootAccess(getTestRootDisposable(), jdkPath);
     }
+
     List<DataNode<AndroidGradleModel>> nodes = Lists.newArrayList();
     Key<AndroidGradleModel> key = AndroidProjectKeys.ANDROID_MODEL;
     nodes.add(new DataNode<AndroidGradleModel>(key, myAndroidModel, null));

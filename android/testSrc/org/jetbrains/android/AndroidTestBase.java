@@ -37,7 +37,6 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
@@ -60,12 +59,10 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   protected JavaCodeInsightTestFixture myFixture;
 
   protected AndroidTestBase() {
-    IdeaTestCase.initPlatformPrefix();
-
     // IDEA14 seems to be stricter regarding validating accesses against known roots. By default, it contains the entire idea folder,
     // but it doesn't seem to include our custom structure tools/idea/../adt/idea where the android plugin is placed.
     // The following line explicitly adds that folder as an allowed root.
-    VfsRootAccess.allowRootAccess(FileUtil.toCanonicalPath(getAndroidPluginHome()));
+    VfsRootAccess.allowRootAccess(getTestRootDisposable(), FileUtil.toCanonicalPath(getAndroidPluginHome()));
   }
 
   public static String getAbsoluteTestDataPath() {
