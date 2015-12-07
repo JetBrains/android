@@ -18,9 +18,11 @@ package com.android.tools.idea.editors.theme;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -36,23 +38,24 @@ import java.util.*;
 public class ThemeAttributeResolver {
   private static final Logger LOG = Logger.getInstance(ThemeAttributeResolver.class);
 
-  final private ThemeResolver myThemeResolver;
+  final private ConfigurationManager myManager;
   final private ConfiguredThemeEditorStyle myStyle;
   final private MultiMap<String, ConfiguredElement<ItemResourceValue>> myItemValueMap =
     new MultiMap<String, ConfiguredElement<ItemResourceValue>>();
 
-  private ThemeAttributeResolver(ConfiguredThemeEditorStyle style, ThemeResolver themeResolver) {
+  private ThemeAttributeResolver(ConfiguredThemeEditorStyle style, ConfigurationManager manager) {
     myStyle = style;
-    myThemeResolver = themeResolver;
+    myManager = manager;
   }
 
   /**
    * @return RestrictedConfiguration that matches to compatible and doesn't match to other FolderConfigurations where the style is defined
    */
   @Nullable("if there is no configuration that matches to restrictions")
-  private static RestrictedConfiguration getRestrictedConfiguration(@NotNull ConfiguredThemeEditorStyle style, @NotNull FolderConfiguration compatible) {
+  private static RestrictedConfiguration getRestrictedConfiguration(@NotNull ThemeEditorStyle theme,
+                                                                    @NotNull FolderConfiguration compatible) {
     ArrayList<FolderConfiguration> incompatibles = Lists.newArrayList();
-    for (FolderConfiguration folder : style.getFolders()) {
+    for (FolderConfiguration folder : theme.getFolders()) {
       if (!compatible.equals(folder)) {
         incompatibles.add(folder);
       }
@@ -60,48 +63,46 @@ public class ThemeAttributeResolver {
     return RestrictedConfiguration.restrict(compatible, incompatibles);
   }
 
-  private void resolveFromInheritance(@NotNull ConfiguredThemeEditorStyle style,
+  private void resolveFromInheritance(@NotNull String themeQualifiedName,
                                       @NotNull FolderConfiguration configuration,
                                       @NotNull RestrictedConfiguration restricted,
                                       @NotNull Set<String> seenAttributes) {
-    RestrictedConfiguration styleRestricted = getRestrictedConfiguration(style, configuration);
+    ThemeEditorStyle themeEditorStyle = new ThemeEditorStyle(myManager, themeQualifiedName);
+    RestrictedConfiguration styleRestricted = getRestrictedConfiguration(themeEditorStyle, configuration);
     if (styleRestricted == null) {
       LOG.warn(configuration + " is unreachable");
       return;
     }
-    restricted = restricted.intersect(styleRestricted);
-    if (restricted == null) {
+    styleRestricted = restricted.intersect(styleRestricted);
+    if (styleRestricted == null) {
       return;
     }
 
     Set<String> newSeenAttributes = new HashSet<String>(seenAttributes);
-    for (ItemResourceValue item : style.getValues(configuration)) {
+    for (ItemResourceValue item : themeEditorStyle.getValues(configuration)) {
       String itemName = ResolutionUtils.getQualifiedItemName(item);
       if (!newSeenAttributes.contains(itemName)) {
-        myItemValueMap.putValue(itemName, ConfiguredElement.create(restricted.getAny(), item));
+        myItemValueMap.putValue(itemName, ConfiguredElement.create(styleRestricted.getAny(), item));
         newSeenAttributes.add(itemName);
       }
     }
-    String parentName = style.getParentName(configuration);
+    String parentName = themeEditorStyle.getParentName(configuration);
 
     if (parentName == null) {
       // We have reached the top of the theme hierarchy (i.e "android:Theme")
       return;
     }
-    ConfiguredThemeEditorStyle parent = myThemeResolver.getTheme(parentName);
-    if (parent == null) {
-      // We have hit a style that's not a theme, this should not normally happen, USER ERROR
-      return;
-    }
+    ThemeEditorStyle parent = new ThemeEditorStyle(myManager, parentName);
     for (FolderConfiguration folder : parent.getFolders()) {
-      resolveFromInheritance(parent, folder, restricted, newSeenAttributes);
+      resolveFromInheritance(parentName, folder, styleRestricted, newSeenAttributes);
     }
   }
 
   @NotNull
   private List<EditedStyleItem> resolveAll() {
-    for (FolderConfiguration folder : myStyle.getFolders()) {
-      resolveFromInheritance(myStyle, folder, new RestrictedConfiguration(), new HashSet<String>());
+    ThemeEditorStyle theme = new ThemeEditorStyle(myManager, myStyle.getQualifiedName());
+    for (FolderConfiguration folder : theme.getFolders()) {
+      resolveFromInheritance(myStyle.getQualifiedName(), folder, new RestrictedConfiguration(), new HashSet<String>());
     }
 
     List<EditedStyleItem> result = Lists.newArrayList();
@@ -123,8 +124,7 @@ public class ThemeAttributeResolver {
     return result;
   }
 
-  @NotNull
-  public static List<EditedStyleItem> resolveAll(ConfiguredThemeEditorStyle style, ThemeResolver resolver) {
-    return new ThemeAttributeResolver(style, resolver).resolveAll();
+  public static List<EditedStyleItem> resolveAll(ConfiguredThemeEditorStyle style, ConfigurationManager manager) {
+    return new ThemeAttributeResolver(style, manager).resolveAll();
   }
 }
