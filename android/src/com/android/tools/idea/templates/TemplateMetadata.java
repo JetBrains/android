@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.npw.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.assetstudio.AndroidIconType;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
@@ -97,7 +97,7 @@ public class TemplateMetadata {
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
 
-  private final AssetStudioAssetGenerator.AssetType myIconType;
+  private final AndroidIconType myIconType;
   private final String myIconName;
   private String myFormFactor = null;
   private String myCategory = null;
@@ -122,7 +122,7 @@ public class TemplateMetadata {
       Element element = (Element) icons.item(0);
       if (element.hasAttribute(Template.ATTR_TYPE)) {
         String iconTypeName = element.getAttribute(Template.ATTR_TYPE).toUpperCase(Locale.US);
-        myIconType = AssetStudioAssetGenerator.AssetType.valueOf(iconTypeName);
+        myIconType = AndroidIconType.valueOf(iconTypeName);
       } else {
         myIconType = null;
       }
@@ -202,7 +202,7 @@ public class TemplateMetadata {
   }
 
   @Nullable
-  public AssetStudioAssetGenerator.AssetType getIconType() {
+  public AndroidIconType getIconType() {
     return myIconType;
   }
 

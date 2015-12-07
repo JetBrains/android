@@ -130,34 +130,28 @@ public class NewAndroidComponentAction extends AnAction {
 
     File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
 
-    if (isActivityTemplate()) {
-      // TODO: Eventually we should use model wizards for ALL components, not just activities
-      // For now, we're sticking to activity templates to focus on a smaller scope for a first pass
-      assert targetFile != null;
-      VirtualFile targetDirectory = targetFile;
-      if (!targetDirectory.isDirectory()) {
-        targetDirectory = targetFile.getParent();
-        assert targetDirectory != null;
-      }
-      assert file != null;
-
-      String activityDescription = e.getPresentation().getText(); // e.g. "Blank Activity", "Tabbed Activity"
-      RenderTemplateModel templateModel = new RenderTemplateModel(facet, new TemplateHandle(file), "New " + activityDescription);
-      List<SourceProvider> sourceProviders = AndroidProjectPaths.getSourceProviders(facet, targetDirectory);
-      String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceProviders, targetDirectory);
-
-      ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-      wizardBuilder
-        .addStep(new ConfigureTemplateParametersStep(templateModel, "Configure Activity", initialPackageSuggestion, sourceProviders));
-      ModelWizardDialog dialog =
-        new StudioWizardDialogBuilder(wizardBuilder.build(), "New Android Activity").setProject(module.getProject()).build();
-      dialog.show();
+    assert targetFile != null;
+    VirtualFile targetDirectory = targetFile;
+    if (!targetDirectory.isDirectory()) {
+      targetDirectory = targetFile.getParent();
+      assert targetDirectory != null;
     }
-    else {
-      NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, file);
-      wizard.init();
-      wizard.show();
-    }
+    assert file != null;
+
+    String activityDescription = e.getPresentation().getText(); // e.g. "Blank Activity", "Tabbed Activity"
+    RenderTemplateModel templateModel = new RenderTemplateModel(facet, new TemplateHandle(file), "New " + activityDescription);
+    List<SourceProvider> sourceProviders = AndroidProjectPaths.getSourceProviders(facet, targetDirectory);
+    String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceProviders, targetDirectory);
+
+    String dialogTitle = isActivityTemplate() ? "New Android Activity" : "New Android Component";
+    String stepTitle = isActivityTemplate() ? "Configure Activity" : "Configure Component";
+
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    wizardBuilder
+      .addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, initialPackageSuggestion, sourceProviders));
+    ModelWizardDialog dialog =
+      new StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.getProject()).build();
+    dialog.show();
 
     /*
     // TODO: Implement the getCreatedElements call for the wizard
