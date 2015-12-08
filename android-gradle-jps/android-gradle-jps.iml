@@ -14,7 +14,6 @@
     <orderEntry type="module" module-name="jps-model-serialization" />
     <orderEntry type="module" module-name="android-jps-plugin" />
     <orderEntry type="module" module-name="android-common" />
-    <orderEntry type="module" module-name="android" />
     <orderEntry type="module" module-name="builder-model" />
     <orderEntry type="module-library">
       <library name="Gradle">
