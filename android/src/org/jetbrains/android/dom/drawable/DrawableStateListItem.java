@@ -17,6 +17,6 @@ package org.jetbrains.android.dom.drawable;
 
 import org.jetbrains.android.dom.Styleable;
 
-@Styleable("DrawableStates")
+@Styleable({"StateListDrawableItem", "DrawableStates"})
 public interface DrawableStateListItem extends ListItemBase {
 }

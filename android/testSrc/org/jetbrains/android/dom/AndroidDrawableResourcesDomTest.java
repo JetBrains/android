@@ -22,9 +22,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDrawableResourcesDomTest extends AndroidDomTest {
   public AndroidDrawableResourcesDomTest() {
     super(true, "dom/drawable");

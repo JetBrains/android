@@ -17,8 +17,5 @@ package org.jetbrains.android.dom.color;
 
 import org.jetbrains.android.dom.AndroidDomElement;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public interface ColorDomElement extends AndroidDomElement {
 }
