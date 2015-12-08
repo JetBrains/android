@@ -310,12 +310,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     final String tagName = tag.getName();
     String styleableName = AndroidXmlResourcesUtil.SPECIAL_STYLEABLE_NAMES.get(tagName);
     if (styleableName != null) {
-      String[] attrsToSkip = element instanceof Intent ? new String[]{"action"} : ArrayUtil.EMPTY_STRING_ARRAY;
-
       final Set<XmlName> newSkipAttrNames = new HashSet<XmlName>();
-
-      for (String attrName : attrsToSkip) {
-        newSkipAttrNames.add(new XmlName(attrName, NS_RESOURCES));
+      if (element instanceof Intent) {
+        newSkipAttrNames.add(new XmlName("action", NS_RESOURCES));
       }
 
       registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, newSkipAttrNames);
