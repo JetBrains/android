@@ -20,7 +20,8 @@ import com.intellij.ui.JBColor;
 import java.awt.*;
 
 public final class Colors {
-  public static final Color WARNING = JBColor.YELLOW.darker();
+  @SuppressWarnings("UseJBColor")
+  public static final Color WARNING = new JBColor(Color.YELLOW.darker(), Color.YELLOW);
   public static final Color ERROR = JBColor.RED;
 
   private Colors() {
