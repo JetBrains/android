@@ -34,6 +34,7 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
 import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.DefaultProjectResolverContext;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 
@@ -78,7 +79,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     String projectPath = FileUtil.toSystemDependentName(myIdeaProject.getBuildFile().getParent());
     ExternalSystemTaskNotificationListener notificationListener = new ExternalSystemTaskNotificationListenerAdapter() {
     };
-    myResolverCtx = new ProjectResolverContext(id, projectPath, null, createMock(ProjectConnection.class), notificationListener, true);
+    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, createMock(ProjectConnection.class), notificationListener, true);
     myResolverCtx.setModels(allModels);
 
     myProjectResolver = new AndroidGradleProjectResolver(createMock(ProjectImportErrorHandler.class));
