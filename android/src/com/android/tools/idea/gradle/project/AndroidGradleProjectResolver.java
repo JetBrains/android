@@ -51,6 +51,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -115,7 +116,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
       throw new IllegalStateException(msg);
     }
-    return nextResolver.createModule(gradleModule, projectDataNode);
+    if (isAndroidGradleProject()) {
+      return GradleProjectResolverUtil.createMainModule(resolverCtx, gradleModule, projectDataNode);
+    }
+    else {
+      return nextResolver.createModule(gradleModule, projectDataNode);
+    }
   }
 
   @Override
