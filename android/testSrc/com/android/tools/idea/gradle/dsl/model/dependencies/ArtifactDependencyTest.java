@@ -30,6 +30,83 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static org.fest.assertions.Assertions.assertThat;
 
 public class ArtifactDependencyTest extends GradleFileModelTestCase {
+  public void testParsingWithCompactNotationAndConfigurationClosure() throws IOException {
+    String text = "dependencies {\n" +
+                  "  compile('org.hibernate:hibernate:3.1') {\n" +
+                  "     //in case of versions conflict '3.1' version of hibernate wins:\n" +
+                  "     force = true\n" +
+                  "\n" +
+                  "     //excluding a particular transitive dependency:\n" +
+                  "     exclude module: 'cglib' //by artifact name\n" +
+                  "     exclude group: 'org.jmock' //by group\n" +
+                  "     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group\n" +
+                  "\n" +
+                  "     //disabling all transitive dependencies of this dependency\n" +
+                  "     transitive = false\n" +
+                  "   }" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "hibernate", "org.hibernate", "3.1");
+    expected.assertMatches(dependencies.get(0));
+  }
+
+  public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure() throws IOException {
+    String text = "dependencies {\n" +
+                  "  compile('org.hibernate:hibernate:3.1') {\n" +
+                  "     //in case of versions conflict '3.1' version of hibernate wins:\n" +
+                  "     force = true\n" +
+                  "\n" +
+                  "     //excluding a particular transitive dependency:\n" +
+                  "     exclude module: 'cglib' //by artifact name\n" +
+                  "     exclude group: 'org.jmock' //by group\n" +
+                  "     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group\n" +
+                  "\n" +
+                  "     //disabling all transitive dependencies of this dependency\n" +
+                  "     transitive = false\n" +
+                  "   }" +
+                  "}";
+    writeToBuildFile(text);
+
+    final GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ArtifactDependencyModel hibernate = dependencies.get(0);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "hibernate", "org.hibernate", "3.1");
+    expected.assertMatches(hibernate);
+
+    hibernate.setVersion("3.0");
+
+    assertTrue(buildModel.isModified());
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+        buildModel.reparse();
+      }
+    });
+
+    assertFalse(buildModel.isModified());
+
+    dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    hibernate = dependencies.get(0);
+
+    expected = new ExpectedArtifactDependency(COMPILE, "hibernate", "org.hibernate", "3.0");
+    expected.assertMatches(hibernate);
+  }
+
   public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
