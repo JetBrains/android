@@ -685,6 +685,18 @@ public class AndroidLintTest extends AndroidTestCase {
     }
   }
 
+  public void testParcelLoader() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintParcelClassLoaderInspection(),
+                  "Use getClass().getClassLoader()",
+                  "/src/test/pkg/ParcelClassLoaderTest.java", "java");
+  }
+
+  public void testParcelLoader2() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintParcelClassLoaderInspection(),
+                  "Use getClass().getClassLoader()",
+                  "/src/test/pkg/ParcelClassLoaderTest.java", "java");
+  }
+
   public void testDeprecation() throws Exception {
     // Need to use minSdkVersion >= 3 to get all the deprecation warnings to kick in
     deleteManifest();
