@@ -85,7 +85,7 @@ public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
       return String.format("%1$s%2$s", listDisplay, obsolete ? " (Obsolete)" : "");
     }
 
-    return String.format("Android SDK Build-tools%1$s", obsolete ? " (Obsolete)" : "");
+    return String.format("Android SDK Build-Tools%1$s", obsolete ? " (Obsolete)" : "");
   }
 
   /**
