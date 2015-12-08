@@ -34,6 +34,7 @@ import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonSource;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoSource;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSysImgSource;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -211,15 +212,17 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
 
     @Override
     public int compareTo(RepoPackage o) {
-      int res;
-      if (!(o instanceof RemotePackage)) {
-        return getClass().getName().compareTo(o.getClass().getName());
-      }
-      res = getPath().compareTo(o.getPath());
+      int res = ComparisonChain.start()
+        .compare(getPath(), o.getPath())
+        .compare(getVersion(), o.getVersion())
+        .result();
       if (res != 0) {
         return res;
       }
-      return getVersion().compareTo(o.getVersion());
+      if (!(o instanceof RemotePackage)) {
+        return getClass().getName().compareTo(o.getClass().getName());
+      }
+      return 0;
     }
 
     @Override
