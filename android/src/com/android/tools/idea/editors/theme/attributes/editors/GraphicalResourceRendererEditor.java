@@ -26,7 +26,7 @@ import com.android.tools.idea.editors.theme.attributes.variants.VariantItemListe
 import com.android.tools.idea.editors.theme.attributes.variants.VariantsComboItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
@@ -235,7 +235,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
 
     @Override
     public void smartActionPerformed(ActionEvent e) {
-      ThemeEditorStyle style = myModel.getSelectedStyle();
+      ConfiguredThemeEditorStyle style = myModel.getSelectedStyle();
       ResourceResolver styleResourceResolver = myContext.getResourceResolver();
 
       assert styleResourceResolver != null;

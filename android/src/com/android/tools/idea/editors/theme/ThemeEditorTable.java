@@ -22,7 +22,7 @@ import com.android.tools.idea.editors.theme.attributes.ShowJavadocAction;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.*;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -144,7 +144,7 @@ public class ThemeEditorTable extends CellSpanTable {
 
     setDefaultRenderer(Color.class, new DelegatingCellRenderer(new ColorRendererEditor(myContext, previewPanel, false)));
     setDefaultRenderer(EditedStyleItem.class, new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
-    setDefaultRenderer(ThemeEditorStyle.class,
+    setDefaultRenderer(ConfiguredThemeEditorStyle.class,
                        new DelegatingCellRenderer(new AttributeReferenceRendererEditor(project, completionProvider)));
     setDefaultRenderer(String.class, new DelegatingCellRenderer(getDefaultRenderer(String.class)));
     setDefaultRenderer(Integer.class, new DelegatingCellRenderer(new IntegerRenderer()));
@@ -181,7 +181,7 @@ public class ThemeEditorTable extends CellSpanTable {
     setDefaultEditor(AttributesTableModel.ParentAttribute.class, new DelegatingCellEditor(false, new ParentRendererEditor(myContext, themeParentChangedListener)));
 
     // We allow to edit style pointers as Strings.
-    setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor));
+    setDefaultEditor(ConfiguredThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor));
     setDefaultEditor(DrawableDomElement.class, new DelegatingCellEditor(false, new DrawableRendererEditor(myContext, previewPanel, true)));
   }
 
@@ -207,7 +207,7 @@ public class ThemeEditorTable extends CellSpanTable {
       }
 
       final JBPopupMenu popupMenu = new JBPopupMenu();
-      if (attribute.getCellClass(1) == ThemeEditorStyle.class) {
+      if (attribute.getCellClass(1) == ConfiguredThemeEditorStyle.class) {
         popupMenu.add(new AbstractAction(GO_TO_DECLARATION) {
           @Override
           public void actionPerformed(ActionEvent e) {
@@ -238,7 +238,7 @@ public class ThemeEditorTable extends CellSpanTable {
       myJavadocAction.setCurrentItem(item);
       popupMenu.add(myJavadocAction);
 
-      final ThemeEditorStyle selectedStyle = model.getSelectedStyle();
+      final ConfiguredThemeEditorStyle selectedStyle = model.getSelectedStyle();
       if (!selectedStyle.isReadOnly() && selectedStyle.hasItem(item)) {
         popupMenu.add(new AbstractAction("Reset value") {
           @Override
@@ -252,7 +252,7 @@ public class ThemeEditorTable extends CellSpanTable {
       return popupMenu;
     }
     else if (contents instanceof AttributesTableModel.ParentAttribute) {
-      final ThemeEditorStyle parentStyle = model.getSelectedStyle().getParent();
+      final ConfiguredThemeEditorStyle parentStyle = model.getSelectedStyle().getParent();
       if (parentStyle == null) {
         return null;
       }

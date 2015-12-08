@@ -23,7 +23,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.ThemesListModel;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.rendering.ResourceHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,7 +59,7 @@ public class StyleListPaletteCellRenderer extends StyleListCellRenderer {
     }
 
     ThemeResolver themeResolver = myContext.getThemeResolver();
-    final ThemeEditorStyle theme = themeResolver.getTheme((String)value);
+    final ConfiguredThemeEditorStyle theme = themeResolver.getTheme((String)value);
     if (theme == null) {
       myColorPaletteComponent.reset();
       setIcon(null);

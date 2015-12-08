@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -40,7 +40,7 @@ public class ThemeResolverTest extends AndroidTestCase {
 
     assertNull(themeResolver.getTheme("Theme.Holo.Light")); // It's system theme and we're not specifying namespace so it will fail.
 
-    ThemeEditorStyle theme = themeResolver.getTheme("android:Theme.Holo.Light");
+    ConfiguredThemeEditorStyle theme = themeResolver.getTheme("android:Theme.Holo.Light");
     assertEquals("Theme.Holo.Light", theme.getName());
 
     assertEquals(themeResolver.getThemesCount(), themeResolver.getFrameworkThemes().size()); // Only framework themes.
@@ -63,7 +63,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertNull("The theme is an app theme and shouldn't be returned for the android namespace",
                themeResolver.getTheme("android:Theme.MyTheme"));
 
-    ThemeEditorStyle theme = themeResolver.getTheme("Theme.MyTheme");
+    ConfiguredThemeEditorStyle theme = themeResolver.getTheme("Theme.MyTheme");
     assertEquals("Theme.MyTheme", theme.getName());
     assertEquals("Theme", theme.getParent().getName());
 

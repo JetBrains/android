@@ -17,7 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
@@ -581,7 +581,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
    * @param excludedThemes themes to filter out
    * @return the sorted themes excluding those in excludedThemes
    */
-  private static List<String> getFilteredSortedNames(Collection<ThemeEditorStyle> themesRaw, Set<String> excludedThemes) {
+  private static List<String> getFilteredSortedNames(Collection<ConfiguredThemeEditorStyle> themesRaw, Set<String> excludedThemes) {
     return getFilteredPrefixesSortedNames(themesRaw, excludedThemes, Collections.<String>emptySet());
   }
 
@@ -593,11 +593,11 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
    * @param excludedPrefixes set of prefixes of the themes to filter
    * @return the sorted themes excluding those in excludedThemes or starting with a prefix in excludedPrefixes
    */
-  private static List<String> getFilteredPrefixesSortedNames(Collection<ThemeEditorStyle> themesRaw,
+  private static List<String> getFilteredPrefixesSortedNames(Collection<ConfiguredThemeEditorStyle> themesRaw,
                                                              Set<String> excludedThemes,
                                                              Set<String> excludedPrefixes) {
     List<String> themes = new ArrayList<String>(themesRaw.size());
-    for (ThemeEditorStyle theme : themesRaw) {
+    for (ConfiguredThemeEditorStyle theme : themesRaw) {
       String qualifiedName = theme.getQualifiedName();
       if (!excludedThemes.contains(qualifiedName)) {
         boolean startWithPrefix = false;
@@ -620,9 +620,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   /**
    * Filters a collection of themes to return a new collection with only the public ones.
    */
-  private static Collection<ThemeEditorStyle> getPublicThemes(Collection<ThemeEditorStyle> themes) {
-    HashSet<ThemeEditorStyle> publicThemes = new HashSet<ThemeEditorStyle>();
-    for (ThemeEditorStyle theme : themes) {
+  private static Collection<ConfiguredThemeEditorStyle> getPublicThemes(Collection<ConfiguredThemeEditorStyle> themes) {
+    HashSet<ConfiguredThemeEditorStyle> publicThemes = new HashSet<ConfiguredThemeEditorStyle>();
+    for (ConfiguredThemeEditorStyle theme : themes) {
       if (theme.isPublic()) {
         publicThemes.add(theme);
       }
