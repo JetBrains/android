@@ -18,14 +18,12 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.*;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -48,7 +46,6 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -66,7 +63,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -80,7 +76,7 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
   public static final String DEVICE_COMMAND_PREFIX = "DEVICE SHELL COMMAND: ";
 
   @NotNull private final ApkProvider myApkProvider;
-  @NotNull private final String myPackageName;
+  @Nullable private String myPackageName;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final AndroidApplicationLauncher myApplicationLauncher;
   @NotNull private final ProcessHandlerConsolePrinter myPrinter;
@@ -133,12 +129,6 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
     myApplicationLauncher = applicationLauncher;
     myLaunchOptions = launchOptions;
 
-    try {
-      myPackageName = myApkProvider.getPackageName();
-    } catch (ApkProvisionException e) {
-      throw new ExecutionException("Unable to determine package name", e);
-    }
-
     myRunConfigId = runConfigId;
     myRunConfigTypeId = runConfigTypeId;
     myConsoleProvider = consoleProvider;
@@ -188,6 +178,20 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
 
   @NotNull
   public String getPackageName() {
+    LOG.assertTrue(myPackageName != null, "getPackageName called before AndroidRunningState#start");
+    return myPackageName;
+  }
+
+  @NotNull
+  private String initPackageName() throws ExecutionException {
+    if (myPackageName == null) {
+      try {
+        myPackageName = myApkProvider.getPackageName();
+      }
+      catch (ApkProvisionException e) {
+        throw new ExecutionException("Unable to determine package name", e);
+      }
+    }
     return myPackageName;
   }
 
@@ -294,7 +298,8 @@ public final class AndroidRunningState implements RunProfileState, AndroidExecut
 
   @Override
   public ExecutionResult execute(@NotNull final Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
-    myProcessHandler = new AndroidMultiProcessHandler(getPackageName());
+    String packageName = initPackageName();
+    myProcessHandler = new AndroidMultiProcessHandler(packageName);
     AndroidProcessText.attach(myProcessHandler);
     myConsole = attachConsole(executor);
     myPrinter.setProcessHandler(myProcessHandler);
