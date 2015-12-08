@@ -29,20 +29,12 @@ import org.jetbrains.annotations.NotNull;
  * @param <S> The source type we're wrapping
  * @param <D> The destination type we're converting to
  */
-public abstract class AdapterProperty<S, D> extends ObservableProperty<D> {
+public abstract class AdapterProperty<S, D> extends ObservableProperty<D> implements InvalidationListener {
   @NotNull private final ObservableProperty<S> myWrappedProperty;
-
-  // Intentionally not local to prevent weak listener collection
-  @SuppressWarnings("FieldCanBeLocal") private final InvalidationListener myWrappedInvalidated = new InvalidationListener() {
-    @Override
-    public void onInvalidated(@NotNull ObservableValue<?> sender) {
-      notifyInvalidated();
-    }
-  };
 
   public AdapterProperty(@NotNull ObservableProperty<S> wrappedProperty) {
     myWrappedProperty = wrappedProperty;
-    myWrappedProperty.addWeakListener(myWrappedInvalidated);
+    myWrappedProperty.addWeakListener(this);
   }
 
   @Override
@@ -54,6 +46,11 @@ public abstract class AdapterProperty<S, D> extends ObservableProperty<D> {
   @Override
   public final D get() {
     return convertFromSourceType(myWrappedProperty.get());
+  }
+
+  @Override
+  public final void onInvalidated(@NotNull ObservableValue<?> sender) {
+    notifyInvalidated(); // When our wrapped observable gets invalidated, we should too
   }
 
   @NotNull
