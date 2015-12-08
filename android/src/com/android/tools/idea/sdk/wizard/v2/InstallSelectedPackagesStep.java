@@ -27,6 +27,7 @@ import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.Validator;
+import com.android.tools.idea.ui.wizard.ValidatorPanel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -59,6 +60,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   private final BoolProperty installationFinished = new BoolValueProperty();
 
   private final StudioWizardStepPanel myStudioPanel;
+  private final ValidatorPanel myValidatorPanel;
 
   private JPanel myContentPanel;
   private JBLabel myLabelSdkPath;
@@ -90,7 +92,8 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     myInstallRequests = installRequests;
     myRepoManager = mgr;
     mySdkHandler = sdkHandler;
-    myStudioPanel = new StudioWizardStepPanel(this, myContentPanel, "Installing Requested Components");
+    myValidatorPanel = new ValidatorPanel(this, myContentPanel);
+    myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Installing Requested Components");
   }
 
   /**
@@ -120,7 +123,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     // This will show a warning to the user once installation starts and will disable the next/finish button until installation finishes
-    myStudioPanel.registerValidator(installationFinished, new Validator<Boolean>() {
+    myValidatorPanel.registerValidator(installationFinished, new Validator<Boolean>() {
       @NotNull
       @Override
       public Result validate(@NotNull Boolean value) {
@@ -129,7 +132,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     });
 
 
-    myStudioPanel.registerValidator(installFailed, new Validator<Boolean>() {
+    myValidatorPanel.registerValidator(installFailed, new Validator<Boolean>() {
       @NotNull
       @Override
       public Result validate(@NotNull Boolean value) {
