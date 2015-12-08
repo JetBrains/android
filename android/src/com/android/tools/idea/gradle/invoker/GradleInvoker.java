@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -49,7 +50,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.android.tools.idea.gradle.AndroidGradleModel.getIdeSetupTasks;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
@@ -308,6 +308,7 @@ public class GradleInvoker {
     if (gradleFacet == null) {
       return;
     }
+
     String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
     if (isEmpty(gradlePath)) {
       // Gradle project path is never, ever null. If the path is empty, it shows as ":". We had reports of this happening. It is likely that
@@ -323,43 +324,36 @@ public class GradleInvoker {
     if (androidFacet != null) {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
 
-      // Make sure all the generated sources, unpacked aars and mockable jars are in place. They are usually up to date, since we
-      // generate them at sync time, so Gradle will just skip those tasks. The generated files can be missing if this is a "Rebuild
-      // Project" run or if the user cleaned the project from the command line. The mockable jar is necessary to run unit tests, but the
-      // compilation tasks don't depend on it, so we have to call it explicitly.
       AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
-      BaseArtifact testArtifact = getArtifactForTestCompileType(testCompileType, androidGradleModel);
-      if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-        addAfterSyncTasks(tasks, gradlePath, properties);
-        // properties.AFTER_SYNC_TASK_NAMES include main artifacts IDE setup tasks, so we need to add additional tasks according to
-        // the test
-        if (testArtifact != null) {
-          Set<String> ideSetupTasks = getIdeSetupTasks(testArtifact);
-          for (String taskName : ideSetupTasks) {
-            addTaskIfSpecified(tasks, gradlePath, taskName);
-          }
-        }
-      }
 
       switch (buildMode) {
         case CLEAN: // Intentional fall-through.
         case SOURCE_GEN:
           addAfterSyncTasks(tasks, gradlePath, properties);
+          if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+            addAfterSyncTasksForTestArtifacts(tasks, gradlePath, getArtifactsForTestCompileType(testCompileType, androidGradleModel));
+          }
           break;
         case ASSEMBLE:
           tasks.add(createBuildTask(gradlePath, properties.ASSEMBLE_TASK_NAME));
 
+          // Add assemble tasks for tests.
           if (testCompileType != TestCompileType.NONE) {
-            if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS && testArtifact != null) {
-              addTaskIfSpecified(tasks, gradlePath, testArtifact.getAssembleTaskName());
-            } else {
+            if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+              for (BaseArtifact artifact : getArtifactsForTestCompileType(testCompileType, androidGradleModel)) {
+                addTaskIfSpecified(tasks, gradlePath, artifact.getAssembleTaskName());
+              }
+            }
+            else {
               addTaskIfSpecified(tasks, gradlePath, properties.ASSEMBLE_TEST_TASK_NAME);
             }
           }
           break;
         default:
           addAfterSyncTasks(tasks, gradlePath, properties);
-
+          if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+            addAfterSyncTasksForTestArtifacts(tasks, gradlePath, getArtifactsForTestCompileType(testCompileType, androidGradleModel));
+          }
           // When compiling for unit tests, run only COMPILE_JAVA_TEST_TASK_NAME, which will run javac over main and test code. If the
           // Jack compiler is enabled in Gradle, COMPILE_JAVA_TASK_NAME will end up running e.g. compileDebugJavaWithJack, which produces
           // no *.class files and would be just a waste of time.
@@ -367,8 +361,11 @@ public class GradleInvoker {
             addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TASK_NAME);
           }
 
-          if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS && testArtifact != null) {
-            addTaskIfSpecified(tasks, gradlePath, testArtifact.getCompileTaskName());
+          // Add compile tasks for tests.
+          if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+            for (BaseArtifact artifact : getArtifactsForTestCompileType(testCompileType, androidGradleModel)) {
+              addTaskIfSpecified(tasks, gradlePath, artifact.getCompileTaskName());
+            }
           } else {
             addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TEST_TASK_NAME);
           }
@@ -389,26 +386,46 @@ public class GradleInvoker {
     }
   }
 
-  @Nullable
-  private static BaseArtifact getArtifactForTestCompileType(@NotNull TestCompileType testCompileType,
-                                                            @Nullable AndroidGradleModel androidGradleModel) {
-    if (testCompileType == TestCompileType.NONE || androidGradleModel == null) {
-      return null;
+  @NotNull
+  private static Collection<BaseArtifact> getArtifactsForTestCompileType(@NotNull TestCompileType testCompileType,
+                                                                         @Nullable AndroidGradleModel androidGradleModel) {
+    if (androidGradleModel == null) {
+      return Collections.emptyList();
     }
-    if (testCompileType == TestCompileType.ANDROID_TESTS) {
-      return androidGradleModel.getAndroidTestArtifactInSelectedVariant();
-    } else {
-      return androidGradleModel.getUnitTestArtifactInSelectedVariant();
+    BaseArtifact testArtifact = null;
+    switch (testCompileType) {
+      case NONE:
+        // TestCompileType.NONE means clean / compile all / rebuild all, so we need use all test artifacts.
+        return androidGradleModel.getTestArtifactsInSelectedVariant();
+      case ANDROID_TESTS:
+        testArtifact = androidGradleModel.getAndroidTestArtifactInSelectedVariant();
+        break;
+      case JAVA_TESTS:
+        testArtifact = androidGradleModel.getUnitTestArtifactInSelectedVariant();
     }
+
+    return testArtifact != null ? ImmutableList.of(testArtifact) : Collections.<BaseArtifact>emptyList();
   }
 
-  private static void addAfterSyncTasks(@NotNull List<String> tasks, String gradlePath, JpsAndroidModuleProperties properties) {
+  private static void addAfterSyncTasks(@NotNull List<String> tasks,
+                                        @NotNull String gradlePath,
+                                        @NotNull JpsAndroidModuleProperties properties) {
     // Make sure all the generated sources, unpacked aars and mockable jars are in place. They are usually up to date, since we
     // generate them at sync time, so Gradle will just skip those tasks. The generated files can be missing if this is a "Rebuild
     // Project" run or if the user cleaned the project from the command line. The mockable jar is necessary to run unit tests, but the
     // compilation tasks don't depend on it, so we have to call it explicitly.
     for (String taskName : properties.AFTER_SYNC_TASK_NAMES) {
       addTaskIfSpecified(tasks, gradlePath, taskName);
+    }
+  }
+
+  private static void addAfterSyncTasksForTestArtifacts(@NotNull List<String> tasks,
+                                                        @NotNull String gradlePath,
+                                                        @NotNull Collection<BaseArtifact> testArtifacts) {
+    for (BaseArtifact artifact : testArtifacts) {
+      for (String taskName : getIdeSetupTasks(artifact)) {
+        addTaskIfSpecified(tasks, gradlePath, taskName);
+      }
     }
   }
 
