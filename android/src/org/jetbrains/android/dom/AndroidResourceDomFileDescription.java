@@ -31,31 +31,29 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AndroidResourceDomFileDescription<T extends DomElement> extends DomFileDescription<T> {
-  private final String[] myResourceTypes;
+  protected final String myResourceType;
 
   public AndroidResourceDomFileDescription(final Class<T> rootElementClass,
                                            @NonNls final String rootTagName,
-                                           @Nullable String... resourceTypes) {
+                                           @NotNull String resourceType) {
     super(rootElementClass, rootTagName);
-    myResourceTypes = resourceTypes;
+    myResourceType = resourceType;
   }
 
   @Override
   public boolean isMyFile(@NotNull final XmlFile file, @Nullable Module module) {
-    return doIsMyFile(file, myResourceTypes);
+    return doIsMyFile(file, myResourceType);
   }
 
-  public static boolean doIsMyFile(final XmlFile file, final String[] resourceTypes) {
+  public static boolean doIsMyFile(final XmlFile file, final String resourceType) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override
       public Boolean compute() {
         if (file.getProject().isDisposed()) {
           return false;
         }
-        for (String resourceType : resourceTypes) {
-          if (AndroidResourceUtil.isInResourceSubdirectory(file, resourceType)) {
-            return AndroidFacet.getInstance(file) != null;
-          }
+        if (AndroidResourceUtil.isInResourceSubdirectory(file, resourceType)) {
+          return AndroidFacet.getInstance(file) != null;
         }
         return false;
       }
@@ -68,7 +66,7 @@ public abstract class AndroidResourceDomFileDescription<T extends DomElement> ex
   }
 
   @NotNull
-  public String[] getResourceTypes() {
-    return myResourceTypes;
+  public String getResourceType() {
+    return myResourceType;
   }
 }
