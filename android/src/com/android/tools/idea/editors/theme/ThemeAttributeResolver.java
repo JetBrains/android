@@ -20,7 +20,7 @@ import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -37,11 +37,11 @@ public class ThemeAttributeResolver {
   private static final Logger LOG = Logger.getInstance(ThemeAttributeResolver.class);
 
   final private ThemeResolver myThemeResolver;
-  final private ThemeEditorStyle myStyle;
+  final private ConfiguredThemeEditorStyle myStyle;
   final private MultiMap<String, ConfiguredElement<ItemResourceValue>> myItemValueMap =
     new MultiMap<String, ConfiguredElement<ItemResourceValue>>();
 
-  private ThemeAttributeResolver(ThemeEditorStyle style, ThemeResolver themeResolver) {
+  private ThemeAttributeResolver(ConfiguredThemeEditorStyle style, ThemeResolver themeResolver) {
     myStyle = style;
     myThemeResolver = themeResolver;
   }
@@ -50,7 +50,7 @@ public class ThemeAttributeResolver {
    * @return RestrictedConfiguration that matches to compatible and doesn't match to other FolderConfigurations where the style is defined
    */
   @Nullable("if there is no configuration that matches to restrictions")
-  private static RestrictedConfiguration getRestrictedConfiguration(@NotNull ThemeEditorStyle style, @NotNull FolderConfiguration compatible) {
+  private static RestrictedConfiguration getRestrictedConfiguration(@NotNull ConfiguredThemeEditorStyle style, @NotNull FolderConfiguration compatible) {
     ArrayList<FolderConfiguration> incompatibles = Lists.newArrayList();
     for (FolderConfiguration folder : style.getFolders()) {
       if (!compatible.equals(folder)) {
@@ -60,7 +60,7 @@ public class ThemeAttributeResolver {
     return RestrictedConfiguration.restrict(compatible, incompatibles);
   }
 
-  private void resolveFromInheritance(@NotNull ThemeEditorStyle style,
+  private void resolveFromInheritance(@NotNull ConfiguredThemeEditorStyle style,
                                       @NotNull FolderConfiguration configuration,
                                       @NotNull RestrictedConfiguration restricted,
                                       @NotNull Set<String> seenAttributes) {
@@ -88,7 +88,7 @@ public class ThemeAttributeResolver {
       // We have reached the top of the theme hierarchy (i.e "android:Theme")
       return;
     }
-    ThemeEditorStyle parent = myThemeResolver.getTheme(parentName);
+    ConfiguredThemeEditorStyle parent = myThemeResolver.getTheme(parentName);
     if (parent == null) {
       // We have hit a style that's not a theme, this should not normally happen, USER ERROR
       return;
@@ -124,7 +124,7 @@ public class ThemeAttributeResolver {
   }
 
   @NotNull
-  public static List<EditedStyleItem> resolveAll(ThemeEditorStyle style, ThemeResolver resolver) {
+  public static List<EditedStyleItem> resolveAll(ConfiguredThemeEditorStyle style, ThemeResolver resolver) {
     return new ThemeAttributeResolver(style, resolver).resolveAll();
   }
 }

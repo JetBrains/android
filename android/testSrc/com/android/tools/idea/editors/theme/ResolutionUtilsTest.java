@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -68,7 +68,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
 
     assertNotNull(ResolutionUtils.getStyle(configuration, "android:TextAppearance", null));
 
-    ThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "android:Theme.Holo.Light", null);
+    ConfiguredThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "android:Theme.Holo.Light", null);
     assertEquals("Theme.Holo.Light", style.getName());
     assertEmpty(style.getConfiguredValues()); // Style shouldn't have the values of the parent.
 
