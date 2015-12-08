@@ -118,6 +118,23 @@ public class LombokPsiParser extends JavaParser {
 
   @NonNull
   @Override
+  public Location getRangeLocation(@NonNull JavaContext context, @NonNull Node from, int fromDelta, @NonNull Node to, int toDelta) {
+    Position position1 = from.getPosition();
+    Position position2 = to.getPosition();
+    if (position1 == null) {
+      return getLocation(context, to);
+    }
+    else if (position2 == null) {
+      return getLocation(context, from);
+    }
+
+    int start = Math.max(0, from.getPosition().getStart() + fromDelta);
+    int end = to.getPosition().getEnd() + toDelta;
+    return Location.create(context.file, null, start, end);
+  }
+
+  @NonNull
+  @Override
   public Location.Handle createLocationHandle(@NonNull JavaContext context, @NonNull Node node) {
     return new LocationHandle(context.file, node);
   }

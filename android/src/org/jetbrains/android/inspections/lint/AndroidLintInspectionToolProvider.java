@@ -445,6 +445,23 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintParcelClassLoaderInspection extends AndroidLintInspectionBase {
+    public AndroidLintParcelClassLoaderInspection() {
+      super(AndroidBundle.message("android.lint.inspections.parcel.class.loader"), ReadParcelableDetector.ISSUE);
+    }
+
+    @Override
+    @NotNull
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull final PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      String replace = "null)";
+      if (endElement.getPrevSibling() instanceof PsiJavaToken
+          && ((PsiJavaToken)endElement.getPrevSibling()).getTokenType() == JavaTokenType.LPARENTH) {
+        replace = ")";
+      }
+      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Use getClass().getClassLoader()", replace, "getClass().getClassLoader())")};
+    }
+  }
+
   public static class AndroidLintParcelCreatorInspection extends AndroidLintInspectionBase {
     public AndroidLintParcelCreatorInspection() {
       super(AndroidBundle.message("android.lint.inspections.parcel.creator"), ParcelDetector.ISSUE);
