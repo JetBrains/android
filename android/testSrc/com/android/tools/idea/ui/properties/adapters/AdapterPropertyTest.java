@@ -64,4 +64,38 @@ public class AdapterPropertyTest {
 
     assertThat(intValue.get()).isEqualTo(-99);
   }
+
+  @Test
+  public void bindingToOptionalAdapterWorks() throws Exception {
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
+    OptionalProperty<String> optionalValue = new OptionalValueProperty<String>("Initial");
+    StringProperty stringValue = new StringValueProperty();
+
+    bindings.bindTwoWay(stringValue, new OptionalToPresentAdapterProperty<String>(optionalValue));
+
+    assertThat(stringValue.get()).isEqualTo("Initial");
+
+    stringValue.set("Modified");
+    assertThat(optionalValue.getValue()).isEqualTo("Modified");
+
+    optionalValue.clear();
+    assertThat(stringValue.get()).isEqualTo("Initial");
+  }
+
+  @Test
+  public void bindingToOptionalWithDefaultValueWorks() throws Exception {
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
+    OptionalProperty<String> optionalValue = new OptionalValueProperty<String>();
+    StringProperty stringValue = new StringValueProperty();
+
+    bindings.bindTwoWay(stringValue, new OptionalToPresentAdapterProperty<String>(optionalValue, "Default"));
+
+    assertThat(stringValue.get()).isEqualTo("Default");
+
+    stringValue.set("Modified");
+    assertThat(optionalValue.getValue()).isEqualTo("Modified");
+
+    optionalValue.clear();
+    assertThat(stringValue.get()).isEqualTo("Default");
+  }
 }
