@@ -220,4 +220,21 @@ public class ParameterTest extends AndroidTestCase {
 
     assertPasses(null, "good_drawable");
   }
+
+  public void testUriAuthority() throws Exception {
+    setConstraint(URI_AUTHORITY);
+
+    // Violates
+    assertViolates(null, "has spaces");
+    assertViolates(null, "has/slash");
+    assertViolates(null, "has:too:many:colons");
+    assertViolates(null, "has.alpha:port");
+    assertViolates(null, "5tarts.with.a.number");
+
+    // Does not violate
+    assertPasses(null, "foo");
+    assertPasses(null, "fo_o.bar34.com");
+    assertPasses(null, "foo:1234");
+    assertPasses(null, "foo.bar.com:1234");
+  }
 }
