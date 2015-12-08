@@ -18,7 +18,6 @@ package org.jetbrains.android.resourceManagers;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
@@ -27,12 +26,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
-import com.intellij.util.indexing.FileBasedIndex;
-import org.jetbrains.android.AndroidValueResourcesIndex;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.dom.resources.Attr;
@@ -42,7 +37,6 @@ import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -122,43 +116,6 @@ public class LocalResourceManager extends ResourceManager {
   public static LocalResourceManager getInstance(@NotNull PsiElement element) {
     AndroidFacet facet = AndroidFacet.getInstance(element);
     return facet != null ? facet.getLocalResourceManager() : null;
-  }
-
-  @NotNull
-  public Set<String> getValueResourceTypes() {
-    final Map<VirtualFile, Set<String>> file2Types = new HashMap<VirtualFile, Set<String>>();
-    final FileBasedIndex index = FileBasedIndex.getInstance();
-    final GlobalSearchScope scope = GlobalSearchScope.projectScope(myProject);
-
-    for (ResourceType resourceType : AndroidResourceUtil.ALL_VALUE_RESOURCE_TYPES) {
-      final ResourceEntry typeMarkerEntry = AndroidValueResourcesIndex.createTypeMarkerKey(resourceType.getName());
-
-      index.processValues(AndroidValueResourcesIndex.INDEX_ID, typeMarkerEntry, null, new FileBasedIndex.ValueProcessor<ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo>>() {
-        @Override
-        public boolean process(VirtualFile file, ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo> infos) {
-          for (AndroidValueResourcesIndex.MyResourceInfo info : infos) {
-            Set<String> resourcesInFile = file2Types.get(file);
-
-            if (resourcesInFile == null) {
-              resourcesInFile = new HashSet<String>();
-              file2Types.put(file, resourcesInFile);
-            }
-            resourcesInFile.add(info.getResourceEntry().getType());
-          }
-          return true;
-        }
-      }, scope);
-    }
-    final Set<String> result = new HashSet<String>();
-
-    for (VirtualFile file : getAllValueResourceFiles()) {
-      final Set<String> types = file2Types.get(file);
-
-      if (types != null) {
-        result.addAll(types);
-      }
-    }
-    return result;
   }
 
   @Override
