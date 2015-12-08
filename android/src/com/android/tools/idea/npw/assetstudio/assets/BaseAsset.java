@@ -55,7 +55,7 @@ public abstract class BaseAsset {
 
   /**
    * Returns the image represented by this asset (this will be an empty image if the asset is not
-   * in a valid state for generating the image.
+   * in a valid state for generating the image).
    */
   @NotNull
   public final BufferedImage toImage() {
