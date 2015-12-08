@@ -47,7 +47,7 @@ public class StorageField extends JPanel {
   private static final LineBorder ERROR_BORDER = new LineBorder(JBColor.RED);
   private final Border myBorder;
 
-  private long myBytes = 0l;
+  private long myBytes = 0L;
 
   private Unit myCurrentUnit = DEFAULT_UNIT;
   private boolean myIgnoreUpdates;

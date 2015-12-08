@@ -26,7 +26,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class CellLabel extends JBLabel {
-  private static final long CYCLE_LENGTH = 800l;
+  private static final long CYCLE_LENGTH = 800L;
   private static final int CORNER_RADIUS = 3;
   private static final Icon[] LOADING_ICONS =
     {AllIcons.Process.Big.Step_1, AllIcons.Process.Big.Step_2, AllIcons.Process.Big.Step_3, AllIcons.Process.Big.Step_4,
@@ -76,7 +76,7 @@ public class CellLabel extends JBLabel {
             pushedContext.fillRoundRect(backgroundOffsetX, backgroundOffsetY, previewImageWidth - 1, previewImageHeight - 1, CORNER_RADIUS,
                                         CORNER_RADIUS);
             Icon targetIcon =
-              LOADING_ICONS[(int)((((System.currentTimeMillis() - myData.loadstartTime) % CYCLE_LENGTH) * 12l) / CYCLE_LENGTH)];
+              LOADING_ICONS[(int)((((System.currentTimeMillis() - myData.loadstartTime) % CYCLE_LENGTH) * 12L) / CYCLE_LENGTH)];
             targetIcon.paintIcon(this, g, backgroundOffsetX + (previewImageWidth - targetIcon.getIconWidth()) / 2,
                                  backgroundOffsetY + (previewImageHeight - targetIcon.getIconHeight()) / 2);
           }
