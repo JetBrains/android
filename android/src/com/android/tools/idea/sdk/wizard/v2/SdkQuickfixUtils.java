@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk.wizard.v2;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.*;
+import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdkv2.StudioDownloader;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
@@ -42,10 +43,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class SdkQuickfixUtils {
   private static final ProgressIndicator REPO_LOGGER = new StudioLoggerProgressIndicator(SdkQuickfixUtils.class);
@@ -58,7 +58,7 @@ public final class SdkQuickfixUtils {
    *                       is a package with the given path available.
    */
   @Nullable
-  public static ModelWizardDialog createDialogForPaths(@Nullable Component parent, @NotNull List<String> requestedPaths) {
+  public static ModelWizardDialog createDialogForPaths(@Nullable Component parent, @NotNull Collection<String> requestedPaths) {
     return createDialog(null, parent, requestedPaths, null, AndroidSdkHandler.getInstance());
   }
 
@@ -70,7 +70,7 @@ public final class SdkQuickfixUtils {
    *                          include remote versions.
    */
   @Nullable
-  public static ModelWizardDialog createDialog(@Nullable Component parent, @NotNull List<UpdatablePackage> requestedPackages) {
+  public static ModelWizardDialog createDialog(@Nullable Component parent, @NotNull Collection<UpdatablePackage> requestedPackages) {
     return createDialog(null, parent, null, requestedPackages, AndroidSdkHandler.getInstance());
   }
 
@@ -78,8 +78,8 @@ public final class SdkQuickfixUtils {
   @Nullable
   static ModelWizardDialog createDialog(@Nullable Project project,
                                         @Nullable Component parent,
-                                        @Nullable List<String> requestedPaths,
-                                        @Nullable List<UpdatablePackage> requestedPackages,
+                                        @Nullable Collection<String> requestedPaths,
+                                        @Nullable Collection<UpdatablePackage> requestedPackages,
                                         @NonNull AndroidSdkHandler sdkHandler) {
 
     RepoManager mgr = sdkHandler.getSdkManager(REPO_LOGGER);
@@ -94,18 +94,22 @@ public final class SdkQuickfixUtils {
     }
 
     List<String> unknownPaths = Lists.newArrayList();
-    if (requestedPackages == null) {
-      requestedPackages = Lists.newArrayList();
-      resolve(requestedPaths, mgr, requestedPackages, unknownPaths);
+    List<UpdatablePackage> resolvedPackages = Lists.newArrayList();
+    String error = resolve(requestedPaths, requestedPackages, mgr, resolvedPackages, unknownPaths);
+
+    if (error != null) {
+      Messages.showErrorDialog(error, "Error Resolving Packages");
+      return null;
     }
+
     List<UpdatablePackage> unavailableDownloads = Lists.newArrayList();
-    verifyAvailability(requestedPackages, unavailableDownloads);
+    verifyAvailability(resolvedPackages, unavailableDownloads);
 
     // If we didn't find anything, show an error.
     if (!unknownPaths.isEmpty() || !unavailableDownloads.isEmpty()) {
       String title = "Packages Unavailable";
       HtmlBuilder builder = new HtmlBuilder();
-      builder.openHtmlBody().add(String.format("%1$s packages are not available for download!", requestedPackages.isEmpty() ? "All" : "Some"))
+      builder.openHtmlBody().add(String.format("%1$s packages are not available for download!", resolvedPackages.isEmpty() ? "All" : "Some"))
              .newline().newline().add("The following packages are not available:").beginList();
       for (UpdatablePackage p: unavailableDownloads) {
         builder.listItem().add(p.getRepresentative().getDisplayName());
@@ -116,7 +120,7 @@ public final class SdkQuickfixUtils {
       builder.endList().closeHtmlBody();
       Messages.showErrorDialog(builder.getHtml(), title);
       // If everything was removed, don't continue.
-      if (requestedPackages.isEmpty()) {
+      if (resolvedPackages.isEmpty()) {
         return null;
       }
     }
@@ -124,7 +128,7 @@ public final class SdkQuickfixUtils {
     List<RemotePackage> installRequests = Lists.newArrayList();
     List<RemotePackage> skippedInstallRequests = Lists.newArrayList();
 
-    if (!checkForProblems(project, parent, requestedPackages, installRequests, skippedInstallRequests, sdkHandler)) {
+    if (!checkForProblems(project, parent, resolvedPackages, installRequests, skippedInstallRequests, sdkHandler)) {
       startSdkManagerAndExit(project, mgr.getLocalPath());
       assert false; // At this point we've exited Android Studio!
     }
@@ -150,7 +154,7 @@ public final class SdkQuickfixUtils {
   }
 
   /**
-   * Verifies that the given {@link UpdatablePackage}s contain a remove version that can be installed.
+   * Verifies that the given {@link UpdatablePackage}s contain a remote version that can be installed.
    *
    * @param requestedPackages    The {@link UpdatablePackage}s to check. Any packages that do not include an update will be removed from
    *                             this list.
@@ -255,28 +259,65 @@ public final class SdkQuickfixUtils {
   }
 
   /**
-   * Load the SDK if needed and look up packages corresponding to the given paths.
+   * Load the SDK if needed and look up packages corresponding to the given paths. Also finds and adds dependencies based on the given
+   * paths and packages.
    *
-   * @param requestedPackages The package paths to look up.
+   * @param requestedPaths Requested packages, by path.
+   * @param requestedPackages Requested packages.
    * @param mgr A RepoManager to use to get the available packages.
-   * @param resolved Will be populated with the {@link UpdatablePackage}s corresponding to the given paths.
+   * @param result Will be populated with the resolved packages, including dependencies.
    * @param notFound Will be populated with any paths for which a corresponding package was not found.
+   *
+   * @return {@code null} on success, or an error message if there was a problem.
    */
-  private static void resolve(List<String> requestedPackages, RepoManager mgr, List<UpdatablePackage> resolved, List<String> notFound) {
+  private static String resolve(@Nullable Collection<String> requestedPaths,
+                                @Nullable Collection<UpdatablePackage> requestedPackages,
+                                @NonNull RepoManager mgr,
+                                @NonNull List<UpdatablePackage> result,
+                                @NonNull List<String> notFound) {
     mgr.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
              new StudioProgressRunner(true, false, true, "Loading Remote Packages...", false, null),
              StudioDownloader.getInstance(), StudioSettingsController.getInstance(), true);
     Map<String, UpdatablePackage> packages = mgr.getPackages().getConsolidatedPkgs();
-    for (String path : requestedPackages) {
-      UpdatablePackage p = packages.get(path);
-      // TODO: channels
-      if (p == null || !p.hasRemote(true)) {
-        notFound.add(path);
-      }
-      else {
-        resolved.add(p);
+    if (requestedPackages == null) {
+      requestedPackages = Lists.newArrayList();
+    }
+    List<UpdatablePackage> resolved = Lists.newArrayList(requestedPackages);
+    if (requestedPaths != null) {
+      for (String path : requestedPaths) {
+        UpdatablePackage p = packages.get(path);
+        // TODO: channels
+        if (p == null || !p.hasRemote(true)) {
+          notFound.add(path);
+        }
+        else {
+          resolved.add(p);
+        }
       }
     }
+
+    List<RemotePackage> remotes = Lists.newArrayList();
+    for (UpdatablePackage p : resolved) {
+      // TODO: channels
+      remotes.add(p.getRemote(true));
+    }
+    final AtomicReference<String> warning = new AtomicReference<String>();
+    ProgressIndicator errorCollector = new ProgressIndicatorAdapter() {
+      @Override
+      public void logWarning(@NonNull String s) {
+        warning.set(s);
+      }
+    };
+    List<RemotePackage> withDependencies =
+      InstallerUtil.computeRequiredPackages(remotes, mgr.getPackages(), errorCollector);
+    if (withDependencies == null) {
+      // there was a problem computing dependencies
+      return warning.get();
+    }
+    for (RemotePackage remote : withDependencies) {
+      result.add(packages.get(remote.getPath()));
+    }
+    return null;
   }
 
   /**
