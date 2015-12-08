@@ -15,11 +15,6 @@
  */
 package org.jetbrains.android.dom.transition;
 
-import com.android.resources.ResourceType;
-import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -69,9 +64,5 @@ public class TransitionDomUtil {
 
   public static List<String> getPossibleRoots() {
     return Arrays.asList(ROOTS);
-  }
-
-  public static boolean isTransitionResourceFile(@NotNull XmlFile file) {
-    return AndroidResourceDomFileDescription.doIsMyFile(file, new String[]{ResourceType.TRANSITION.getName()});
   }
 }

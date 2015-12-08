@@ -48,7 +48,7 @@ public class AndroidDrawableDomUtil {
   }
 
   public static boolean isDrawableResourceFile(@NotNull XmlFile file) {
-    return AndroidResourceDomFileDescription.doIsMyFile(file, new String[]{ResourceType.DRAWABLE.getName()});
+    return AndroidResourceDomFileDescription.doIsMyFile(file, ResourceType.DRAWABLE.getName());
   }
 
   public static List<String> getPossibleRoots(AndroidFacet facet) {
