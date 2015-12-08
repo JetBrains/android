@@ -37,12 +37,8 @@ import org.jetbrains.android.dom.animation.AnimationElement;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.animator.AnimatorElement;
 import org.jetbrains.android.dom.attrs.*;
-import org.jetbrains.android.dom.color.ColorDomElement;
-import org.jetbrains.android.dom.color.ColorStateListItem;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
-import org.jetbrains.android.dom.drawable.DrawableDomElement;
-import org.jetbrains.android.dom.drawable.DrawableStateListItem;
 import org.jetbrains.android.dom.layout.*;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -68,9 +64,6 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   private static final Logger LOG = Logger.getInstance(AndroidDomExtender.class);
   private static final String[] LAYOUT_ATTRIBUTES_SUFS = new String[]{"_Layout", "_MarginLayout", "_Cell"};
@@ -684,9 +677,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     else if (element instanceof XmlResourceElement) {
       registerExtensionsForXmlResources(facet, tag, (XmlResourceElement)element, callback, registeredSubtags, skippedAttributes);
     }
-    else if (element instanceof DrawableDomElement || element instanceof ColorDomElement) {
-      registerExtensionsForDrawable(facet, element, callback, skippedAttributes);
-    }
 
     // If DOM element is annotated with @Styleable annotation, load a styleable definition
     // from Android framework with the name provided in annotation and register all attributes
@@ -731,24 +721,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     else {
       LOG.warn("No attribute definition for tools attribute " + attributeName);
     }
-  }
-
-  private static void registerExtensionsForDrawable(AndroidFacet facet,
-                                                    AndroidDomElement element,
-                                                    MyCallback callback,
-                                                    Set<XmlName> skipAttrNames) {
-    if (element instanceof DrawableStateListItem || element instanceof ColorStateListItem) {
-      final AttributeDefinitions attrDefs = getAttrDefs(facet);
-      if (attrDefs != null) {
-        registerAttributes(facet, element, attrDefs.getStateStyleables(), SYSTEM_RESOURCE_PACKAGE, callback, null, skipAttrNames);
-      }
-    }
-  }
-
-  @Nullable
-  private static AttributeDefinitions getAttrDefs(AndroidFacet facet) {
-    final SystemResourceManager manager = facet.getSystemResourceManager();
-    return manager != null ? manager.getAttributeDefinitions() : null;
   }
 
   private static void registerSubtags(@NotNull String name, Type type, MyCallback callback, Set<String> registeredTags) {
