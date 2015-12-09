@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio;
+package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.npw.assetstudio.assets.ClipartAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
@@ -41,7 +40,7 @@ import java.util.List;
  * Panel which wraps a {@link ImageAsset}, allowing the user to browse for an image file to use as
  * an asset.
  */
-final class ImageAssetPanel extends JPanel implements AssetPanel, Disposable {
+public final class ImageAssetPanel extends JPanel implements AssetPanel, Disposable {
   private final ImageAsset myImageAsset = new ImageAsset();
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio;
+package com.android.tools.idea.npw.assetstudio.icon;
 
+import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import org.jetbrains.annotations.NotNull;
@@ -25,12 +26,12 @@ import java.io.File;
  * Helper class which handles the logic of using an {@link AssetStudioAssetGenerator} to generate
  * some target icons.
  */
-public final class IconGenerator {
+public final class AndroidIconGenerator {
   @NotNull private final AndroidIconType myIconType;
   @NotNull private final BaseAsset mySourceAsset;
   @NotNull private final String myName;
 
-  public IconGenerator(@NotNull AndroidIconType iconType, @NotNull BaseAsset sourceAsset, @NotNull String name) {
+  public AndroidIconGenerator(@NotNull AndroidIconType iconType, @NotNull BaseAsset sourceAsset, @NotNull String name) {
     myIconType = iconType;
     mySourceAsset = sourceAsset;
     myName = name;

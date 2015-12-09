@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio;
+package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Panel which wraps a {@link TextAsset}, allowing the user to configure a text value and settings.
  */
-final class TextAssetPanel extends JPanel implements AssetPanel, Disposable {
+public final class TextAssetPanel extends JPanel implements AssetPanel, Disposable {
   private final TextAsset myTextAsset = new TextAsset();
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);

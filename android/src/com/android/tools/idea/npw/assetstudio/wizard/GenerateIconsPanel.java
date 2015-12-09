@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.npw.assetstudio;
+package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.assetstudiolib.NotificationIconGenerator;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
+import com.android.tools.idea.npw.assetstudio.ui.*;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
@@ -62,7 +67,7 @@ import java.util.Map;
  * <a href="https://romannurik.github.io/AndroidAssetStudio/index.html">Asset Studio</a>
  * web application.
  */
-public final class GenerateIconPanel extends JPanel implements Disposable {
+public final class GenerateIconsPanel extends JPanel implements Disposable {
 
   @NotNull private final AndroidFacet myFacet;
   private final AssetStudioAssetGenerator myAssetGenerator = new AssetStudioAssetGenerator();
@@ -75,7 +80,7 @@ public final class GenerateIconPanel extends JPanel implements Disposable {
   // Depending on which asset radio button is selected, the active asset changes
   private final ObjectProperty<BaseAsset> myActiveAsset;
   private final StringProperty myOutputName;
-  private final List<GeneratedIconsPanel> myOutputPreviewPanels;
+  private final List<PreviewIconsPanel> myOutputPreviewPanels;
 
   private JPanel myRootPanel;
   private JRadioButton myClipartRadioButton;
@@ -118,7 +123,7 @@ public final class GenerateIconPanel extends JPanel implements Disposable {
    * presented to the user in a pulldown menu (unless there's only one supported type). If no
    * supported types are passed in, then all types will be supported by default.
    */
-  public GenerateIconPanel(@NotNull Disposable disposableParent, @NotNull AndroidFacet facet, @NotNull AndroidIconType... supportedTypes) {
+  public GenerateIconsPanel(@NotNull Disposable disposableParent, @NotNull AndroidFacet facet, @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
 
     if (supportedTypes.length == 0) {
@@ -128,11 +133,11 @@ public final class GenerateIconPanel extends JPanel implements Disposable {
     myFacet = facet;
 
     myOutputPreviewPanels = ImmutableList
-      .of(new GeneratedIconsPanel(NotificationIconGenerator.Version.V11.getDisplayName(), "API 11+", GeneratedIconsPanel.Theme.DARK),
-          new GeneratedIconsPanel(NotificationIconGenerator.Version.V9.getDisplayName(), "API 9+", GeneratedIconsPanel.Theme.LIGHT),
-          new GeneratedIconsPanel(NotificationIconGenerator.Version.OLDER.getDisplayName(), "Older APIs", GeneratedIconsPanel.Theme.GRAY));
+      .of(new PreviewIconsPanel(NotificationIconGenerator.Version.V11.getDisplayName(), "API 11+", PreviewIconsPanel.Theme.DARK),
+          new PreviewIconsPanel(NotificationIconGenerator.Version.V9.getDisplayName(), "API 9+", PreviewIconsPanel.Theme.LIGHT),
+          new PreviewIconsPanel(NotificationIconGenerator.Version.OLDER.getDisplayName(), "Older APIs", PreviewIconsPanel.Theme.GRAY));
 
-    for (GeneratedIconsPanel iconsPanel : myOutputPreviewPanels) {
+    for (PreviewIconsPanel iconsPanel : myOutputPreviewPanels) {
       myOutputPreviewPanel.add(iconsPanel);
     }
 
@@ -275,9 +280,9 @@ public final class GenerateIconPanel extends JPanel implements Disposable {
    * Return an icon generator which will create Android icons using the panel's current settings.
    */
   @NotNull
-  public IconGenerator createIconGenerator() {
+  public AndroidIconGenerator createIconGenerator() {
     // TODO: Handle all other android icon types, not just notification
-    return new IconGenerator(AndroidIconType.NOTIFICATION, myActiveAsset.get(), myOutputName.get());
+    return new AndroidIconGenerator(AndroidIconType.NOTIFICATION, myActiveAsset.get(), myOutputName.get());
   }
 
   /**
@@ -333,7 +338,7 @@ public final class GenerateIconPanel extends JPanel implements Disposable {
 
       @Override
       protected void done() {
-        for (GeneratedIconsPanel outputPreviewPanel : myOutputPreviewPanels) {
+        for (PreviewIconsPanel outputPreviewPanel : myOutputPreviewPanels) {
           outputPreviewPanel.updateImages(assetMap);
         }
 
