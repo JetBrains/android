@@ -198,7 +198,6 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     assertFalse(frameworkPrivateTheme.isPublic());
   }
 
-
   private void checkSetValue(VirtualFile file, ItemResourceValue item, String... answerFolders) {
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(file);
     ThemeResolver themeResolver = new ThemeResolver(configuration);
@@ -488,5 +487,4 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     assertNotNull(theme);
     assertEquals(3, theme.getConfiguredValues().size());
   }
-
 }
