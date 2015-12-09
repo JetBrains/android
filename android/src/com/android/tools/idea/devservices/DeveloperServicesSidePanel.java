@@ -24,7 +24,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -34,17 +33,16 @@ import javax.swing.*;
 public final class DeveloperServicesSidePanel extends JTabbedPane {
 
   private ServicesBundleTab myHomeTab;
+  private TutorialTab myTutorialTab;
 
   private Project myProject;
   private String myActionId;
   private String myBundleName;
   private DeveloperServiceCreators myCreators;
 
-  public DeveloperServicesSidePanel(
-      @NotNull Project project, @NotNull String actionId, @Nullable String bundleName) {
+  public DeveloperServicesSidePanel(@NotNull Project project, @NotNull String actionId) {
     myProject = project;
     myActionId = actionId;
-    myBundleName = bundleName;
     myHomeTab = new ServicesBundleTab();
 
     Module androidModule = null;
@@ -56,8 +54,9 @@ public final class DeveloperServicesSidePanel extends JTabbedPane {
     }
 
     for (DeveloperServiceCreators creators : DeveloperServiceCreators.EP_NAME.getExtensions()) {
-      if (creators.getDeveloperServiceCreatorsId().equals(myActionId)) {
+      if (creators.getBundleId().equals(myActionId)) {
         myCreators = creators;
+        myBundleName = myCreators.getBundleName();
         break;
       }
     }
@@ -76,6 +75,10 @@ public final class DeveloperServicesSidePanel extends JTabbedPane {
 
     // TODO:  Extract name of tab from bundle.xml
     addTab(myBundleName, myHomeTab);
+
+    // Add dummy tutorial content.
+    myTutorialTab = new TutorialTab(myCreators.getBundleContentRoot());
+    addTab("Tutorials", myTutorialTab);
   }
 
   private static Logger getLog(){
