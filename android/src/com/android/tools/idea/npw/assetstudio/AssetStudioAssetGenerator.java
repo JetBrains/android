@@ -19,6 +19,7 @@ package com.android.tools.idea.npw.assetstudio;
 import com.android.assetstudiolib.*;
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

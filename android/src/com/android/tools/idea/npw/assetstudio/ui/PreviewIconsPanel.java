@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio;
+package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
+import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
 import com.android.tools.idea.ui.ImageComponent;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
@@ -42,7 +43,7 @@ import java.util.Map;
  * {@link AssetStudioAssetGenerator} - particularly, xxhdpi, xhdpi, hdpi, and mdpi sets.
  */
 @SuppressWarnings("UseJBColor")
-public final class GeneratedIconsPanel extends JPanel {
+public final class PreviewIconsPanel extends JPanel {
 
   @NotNull private final String myIconCategory;
   @NotNull private final Theme myTheme;
@@ -53,7 +54,7 @@ public final class GeneratedIconsPanel extends JPanel {
   private JPanel myIconsPanel;
   private JBLabel myTitleLabel;
 
-  public GeneratedIconsPanel(@NotNull String iconCategory, @NotNull String title, @NotNull Theme theme) {
+  public PreviewIconsPanel(@NotNull String iconCategory, @NotNull String title, @NotNull Theme theme) {
     super(new BorderLayout());
     add(myRootPanel);
 

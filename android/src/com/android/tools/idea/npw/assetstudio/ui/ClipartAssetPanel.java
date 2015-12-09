@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio;
+package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ClipartAsset;
@@ -43,7 +43,7 @@ import java.util.List;
  * Panel which wraps a {@link ClipartAsset}, allowing the user to select a clipart target from a
  * grid of choices.
  */
-final class ClipartAssetPanel extends JPanel implements AssetPanel, Disposable {
+public final class ClipartAssetPanel extends JPanel implements AssetPanel, Disposable {
 
   private static final int CLIPART_BUTTON_SIZE = JBUI.scale(40);
   private static final int CLIPART_DIALOG_BORDER = JBUI.scale(10);
