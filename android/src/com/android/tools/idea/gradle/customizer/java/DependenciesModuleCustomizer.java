@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -41,7 +42,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
-import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static java.util.Collections.singletonList;
@@ -74,7 +74,11 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     JavaGradleFacet facet = setAndGetJavaGradleFacet(module, modelsProvider);
     File buildFolderPath = javaProject.getBuildFolderPath();
-    if (!isGradleProjectModule(module)) {
+
+    AndroidGradleFacet gradleFacet = findFacet(module, modelsProvider, AndroidGradleFacet.TYPE_ID);
+    if (gradleFacet != null) {
+      // This is an actual Gradle module, because it has the AndroidGradleFacet. Top-level modules in a multi-module project usually don't
+      // have this facet.
       JavaModel javaModel = new JavaModel(unresolved, buildFolderPath);
       facet.setJavaModel(javaModel);
     }
