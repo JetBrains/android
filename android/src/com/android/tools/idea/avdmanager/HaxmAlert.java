@@ -40,9 +40,8 @@ public class HaxmAlert extends JPanel {
   private JBLabel myWarningMessage;
   private HyperlinkLabel myErrorInstructionsLink;
   private HyperlinkListener myErrorLinkListener;
-  SystemImageDescription myImageDescription;
-
-  private static AccelerationErrorCode ourAccelerationError = null;
+  private SystemImageDescription myImageDescription;
+  private AccelerationErrorCode myAccelerationErrorCode;
 
   private static final IdDisplay GOOGLE_APIS_TAG = new IdDisplay("google_apis", "");
 
@@ -137,11 +136,11 @@ public class HaxmAlert extends JPanel {
   }
 
   @NotNull
-  public static AccelerationErrorCode getAccelerationState(boolean forceRefresh) {
-    if (ourAccelerationError == null || forceRefresh) {
-      ourAccelerationError = computeAccelerationState();
+  public AccelerationErrorCode getAccelerationState(boolean forceRefresh) {
+    if (myAccelerationErrorCode == null || forceRefresh) {
+      myAccelerationErrorCode = computeAccelerationState();
     }
-    return ourAccelerationError;
+    return myAccelerationErrorCode;
   }
 
   private static AccelerationErrorCode computeAccelerationState() {

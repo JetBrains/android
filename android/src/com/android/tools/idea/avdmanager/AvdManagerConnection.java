@@ -23,6 +23,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
@@ -200,8 +201,8 @@ public class AvdManagerConnection {
       if (isAvdIntel &&
           desc.getAndroidVersion() != null &&
           desc.getAndroidVersion().getApiLevel() == LMP_MR1_API_LEVEL_22 &&
-          desc.getRevision().getMajor() < LMP_AOSP_MIN_REVISION &&
-          desc.getTag() != null) {
+          SystemImage.DEFAULT_TAG.equals(desc.getTag()) &&
+          desc.getRevision().getMajor() < LMP_AOSP_MIN_REVISION) {
         requested.add(
           PkgDesc.Builder.newSysImg(desc.getAndroidVersion(), desc.getTag(), abi.toString(), new Revision(LMP_AOSP_MIN_REVISION)).create());
       }
@@ -209,8 +210,8 @@ public class AvdManagerConnection {
       if (isAvdIntel &&
           desc.getAndroidVersion() != null &&
           desc.getAndroidVersion().getApiLevel() == MNC_API_LEVEL_23 &&
-          desc.getRevision().getMajor() < MNC_AOSP_MIN_REVISION &&
-          desc.getTag() != null) {
+          SystemImage.DEFAULT_TAG.equals(desc.getTag()) &&
+          desc.getRevision().getMajor() < MNC_AOSP_MIN_REVISION) {
         requested.add(
           PkgDesc.Builder.newSysImg(desc.getAndroidVersion(), desc.getTag(), abi.toString(), new Revision(MNC_AOSP_MIN_REVISION)).create());
       }
@@ -227,8 +228,7 @@ public class AvdManagerConnection {
           desc.getAndroidVersion().getApiLevel() == LMP_MR1_API_LEVEL_22 &&
           GOOGLE_APIS_TAG.equals(desc.getTag()) &&
           desc.getRevision().getMajor() < LMP_GAPI_MIN_REVISION &&
-          desc.getVendor() != null &&
-          desc.getTag() != null) {
+          desc.getVendor() != null) {
         requested.add(PkgDesc.Builder.newAddonSysImg(
           desc.getAndroidVersion(), desc.getVendor(), desc.getTag(), abi.toString(), new Revision(LMP_GAPI_MIN_REVISION)).create());
       }
@@ -237,8 +237,7 @@ public class AvdManagerConnection {
           desc.getAndroidVersion().getApiLevel() == MNC_API_LEVEL_23 &&
           GOOGLE_APIS_TAG.equals(desc.getTag()) &&
           desc.getRevision().getMajor() < MNC_GAPI_MIN_REVISION &&
-          desc.getVendor() != null &&
-          desc.getTag() != null) {
+          desc.getVendor() != null) {
         requested.add(PkgDesc.Builder.newAddonSysImg(
           desc.getAndroidVersion(), desc.getVendor(), desc.getTag(), desc.getPath(), new Revision(MNC_GAPI_MIN_REVISION)).create());
       }
