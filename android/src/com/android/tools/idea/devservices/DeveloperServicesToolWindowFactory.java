@@ -38,8 +38,7 @@ public final class DeveloperServicesToolWindowFactory implements ToolWindowFacto
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     if (myDeveloperServicesSidePanel == null) {
-      myDeveloperServicesSidePanel = new DeveloperServicesSidePanel(
-          project, myActionId, myToolWindowTitle);
+      myDeveloperServicesSidePanel = new DeveloperServicesSidePanel(project, myActionId);
     }
 
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();

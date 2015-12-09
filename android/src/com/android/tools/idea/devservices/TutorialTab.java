@@ -44,8 +44,8 @@ public class TutorialTab extends JPanel {
     // Dummy content to populate at instantiation time.
     HtmlBuilder builder = new HtmlBuilder();
     builder.addHeading("Welcome to the Tutorial Tab!", "black");
-    builder.addHtml("<br/>");
-    builder.addHtml("<br/>");
+    builder.newline();
+    builder.newline();
     builder.add("You can add ");
     builder.addBold("formatted");
     // So there is a blank space between *formatted* and _content_.
