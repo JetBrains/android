@@ -86,7 +86,7 @@ public class ServiceBundle {
     @SuppressWarnings("unused")
     private String myName;
 
-    @XmlAttribute(name="myResourceRoot")
+    @XmlAttribute(name="resourceRoot")
     @NotNull
     @SuppressWarnings("unused")
     private String myResourceRoot;
