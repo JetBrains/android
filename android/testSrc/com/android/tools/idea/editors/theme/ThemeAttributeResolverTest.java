@@ -89,7 +89,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
 
     Set<String> answer = Sets.newHashSet("-v16:red", "-v15:red", "-v14:blue");
 
-    List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, themeResolver);
+    List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, configuration.getConfigurationManager());
     boolean foundColorPrimary = false;
     for (EditedStyleItem item : items) {
       if (item.getName().equals("colorPrimary")) {
@@ -120,7 +120,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     assertNotNull(style);
     Set<String> answer = Sets.newHashSet("-port:red", "-land:red", "-square:red");
 
-    List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, themeResolver);
+    List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, configuration.getConfigurationManager());
     boolean foundColorPrimary = false;
     for (EditedStyleItem item : items) {
       if (item.getName().equals("colorPrimary")) {
