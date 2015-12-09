@@ -125,5 +125,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="library" name="hamcrest" level="project" />
+    <orderEntry type="module" module-name="gradle-tests" scope="TEST" />
   </component>
 </module>
