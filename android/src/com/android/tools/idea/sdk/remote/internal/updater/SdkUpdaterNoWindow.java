@@ -47,6 +47,8 @@ public class SdkUpdaterNoWindow {
    */
   private final boolean mForce;
 
+  private boolean cancelRequested;
+
   /**
    * Creates an UpdateNoWindow object that will update using the given SDK root
    * and outputs to the given SDK logger.
@@ -92,7 +94,12 @@ public class SdkUpdaterNoWindow {
                         boolean dryMode,
                         String acceptLicense,
                         boolean includeDependencies) {
+    cancelRequested = false;
     mUpdaterData.updateOrInstallAll_NoGUI(pkgFilter, includeAll, dryMode, acceptLicense, includeDependencies);
+  }
+
+  public void cancel() {
+    cancelRequested = true;
   }
 
   // -----
@@ -284,7 +291,7 @@ public class SdkUpdaterNoWindow {
      */
     @Override
     public boolean isCancelRequested() {
-      return false;
+      return cancelRequested;
     }
 
     /**
