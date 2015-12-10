@@ -26,7 +26,7 @@ final class DeveloperServicesUtils {
   public static final JBColor SEPARATOR_COLOR = new JBColor(new Color(0, 0, 0, 51), new Color(255, 255, 255, 51));
 
   /**
-   * Determine if devservices functionality is enabled.
+   * Determine if side panel functionality is enabled.
    */
   public static final boolean isEnabled() {
     return Boolean.getBoolean("com.google.services.side.panel.enabled");
