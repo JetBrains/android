@@ -39,7 +39,6 @@ import com.intellij.util.xml.converters.DelimitedListConverter;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
-import org.jetbrains.android.dom.animation.AnimationDomFileDescription;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -107,8 +106,8 @@ public class AndroidCompletionContributor extends CompletionContributor {
       }
       return false;
     }
-    else if (AnimationDomFileDescription.isAnimationFile(xmlFile)) {
-      addAll(AndroidAnimationUtils.getPossibleChildren(facet), resultSet);
+    else if (AndroidResourceDomFileDescription.doIsMyFile(xmlFile, ResourceFolderType.ANIM)) {
+      addAll(AndroidAnimationUtils.getPossibleRoots(), resultSet);
       return false;
     }
     else if (AndroidResourceDomFileDescription.doIsMyFile(xmlFile, ResourceFolderType.ANIMATOR)) {

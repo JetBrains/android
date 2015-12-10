@@ -305,7 +305,14 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.ViewLayoutDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.FragmentLayoutDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.DataBindingDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.AnimationDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenSetFileDescription" />
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenAlphaFileDescription" />
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenRotateFileDescription" />
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenScaleFileDescription" />
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenTranslateFileDescription" />
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.LayoutAnimationControllerDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.GridLayoutAnimationControllerDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorSetDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.ObjectAnimatorDomFileDescription"/>

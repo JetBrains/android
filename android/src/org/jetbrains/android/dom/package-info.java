@@ -18,7 +18,7 @@
  * This package contains implementation of support for all the different resource file formats
  * that are present in the Android framework. Read further to get some introductory remarks and
  * how to get more information.
- *
+ * <p/>
  * Each file format is defined by {@link com.intellij.util.xml.DomFileDescription} subclass, which provides a way to
  * tell apart XML files of different types. See {@link org.jetbrains.android.dom.transition.TransitionDomFileDescription} for an
  * example. For a case if you want to create a file format with single possible root, consider
@@ -42,7 +42,7 @@
  * descriptions, see {@link org.jetbrains.android.dom.transitionManager.TransitionManagerDomFileDescription} for more information. The other
  * thing framework parsing code doesn't specify is resource folder where XML files should be
  * stored.
- *
+ * <p/>
  * More specifically, method loadXmlResourceParser from
  * <a href="http://developer.android.com/reference/android/content/res/Resources.html">Resources</a>
  * class in the framework uses "type" argument only for generating error messages in case of file hasn't been found.
