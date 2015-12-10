@@ -30,5 +30,8 @@ public interface DeveloperServiceCreators {
   @NotNull
   Collection<? extends DeveloperServiceCreator> getCreators();
 
-  String getDeveloperServiceCreatorsId();
+  // TODO: Replace all of the following with parsed ServiceBundle implementation.
+  String getBundleId();
+  String getBundleName();
+  String getBundleContentRoot();
 }
