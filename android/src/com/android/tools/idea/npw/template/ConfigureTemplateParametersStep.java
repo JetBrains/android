@@ -20,7 +20,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.FormFactorUtils;
 import com.android.tools.idea.npw.assetstudio.AndroidIconType;
-import com.android.tools.idea.npw.assetstudio.NotificationIconStep;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.template.components.*;
@@ -176,7 +175,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
 
     if (getModel().getTemplateHandle().getMetadata().getIconType() == AndroidIconType.NOTIFICATION) {
-      return Collections.singletonList(new NotificationIconStep(getModel()));
+      return Collections.singletonList(new GenerateIconStep(getModel()));
     }
     else {
       return super.createDependentSteps();
