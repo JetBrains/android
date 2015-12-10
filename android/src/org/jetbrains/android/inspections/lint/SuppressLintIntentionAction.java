@@ -21,6 +21,7 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInspection.SuppressionUtilCore;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -33,7 +34,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.DocumentUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +49,7 @@ import static com.android.SdkConstants.*;
 
 /** Intention for adding a {@code @SuppressLint} annotation on the given element for the given id */
 public class SuppressLintIntentionAction implements IntentionAction, Iconable {
-  private static final String NO_INSPECTION_PREFIX = "//noinspection ";
+  private static final String NO_INSPECTION_PREFIX = "//" + SuppressionUtilCore.SUPPRESS_INSPECTIONS_TAG_NAME + " ";
   private final String myId;
   private final PsiElement myElement;
 

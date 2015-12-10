@@ -1,9 +1,20 @@
 <html>
 <body>
-This inspection looks at Android API calls and ensures that the correct type of resource is passed
-to an int-parameter expecting resources of a given type; it checks that APIs which expect an RGB color integer
-are passed actual colors rather than color resources; it checks that APIs which require a certain permission
-have the permission declared in the manifest; it checks that parameters expected to fall within a given range
-actually do; it checks that results of certain method calls are looked at by the caller, and so on.
+This inspection looks at Android API calls that have been annotated with various support
+annotations (such as RequiresPermission or UiThread) and flags any calls
+that are not using the API correctly as specified by the annotations.
+<br><br>
+Examples of errors flagged by this inspection:
+<ul>
+  <li>Passing the wrong type of resource integer (such as R.string) to an API that
+  expects a different type (such as R.dimen).</li>
+  <li>Forgetting to invoke the overridden method (via super) in methods that require it</li>
+  <li>Calling a method that requires a permission without having declared that permission in the manifest</li>
+  <li>Passing a resource color reference to a method which expects an RGB integer value.</li>
+</ul>
+...and many more.
+<br><br>
+For more information, see the documentation at
+<a href="http://developer.android.com/tools/debugging/annotations.html">http://developer.android.com/tools/debugging/annotations.html</a>
 </body>
 </html>
