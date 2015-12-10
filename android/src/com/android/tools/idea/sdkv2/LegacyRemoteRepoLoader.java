@@ -195,7 +195,7 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     public String getPath() {
       String path = myWrapped.getInstallFolder("", myLocalSdk).getPath();
       path = path.substring(1);
-      path = path.replaceAll(File.separator, ";");
+      path = path.replace(File.separatorChar, RepoPackage.PATH_SEPARATOR);
       return path;
     }
 
