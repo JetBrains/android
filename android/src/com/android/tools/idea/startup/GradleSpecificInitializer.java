@@ -16,8 +16,7 @@
 package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
-import com.android.repository.api.RepoManager;
-import com.android.repository.impl.meta.CommonFactory;
+import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.actions.*;
@@ -27,15 +26,10 @@ import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdkv2.LegacyRemoteRepoLoader;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
-import com.google.common.collect.Sets;
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInsight.intention.IntentionManager;
-import com.intellij.codeInsight.intention.impl.config.IntentionManagerImpl;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.actions.TemplateProjectSettingsGroup;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
@@ -55,8 +49,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.util.SystemProperties;
-import com.intellij.util.TimeoutUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.AndroidPlugin;
@@ -71,7 +63,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+import java.util.Properties;
 
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
@@ -118,6 +113,7 @@ public class GradleSpecificInitializer implements Runnable {
     try {
       // Setup JDK and Android SDK if necessary
       setupSdks();
+      checkAndroidSdkHome();
     } catch (Exception e) {
       LOG.error("Unexpected error while setting up SDKs: ", e);
     }
@@ -234,10 +230,10 @@ public class GradleSpecificInitializer implements Runnable {
   }
 
   private static void notifyInvalidSdk() {
-    final String key = "android.invalid.sdk.message";
-    final String message = AndroidBundle.message(key);
+    String key = "android.invalid.sdk.message";
+    String message = AndroidBundle.message(key);
 
-    final NotificationListener listener = new NotificationListener.Adapter() {
+    NotificationListener listener = new NotificationListener.Adapter() {
       @Override
       protected void hyperlinkActivated(@NotNull Notification notification,
                                         @NotNull HyperlinkEvent e) {
@@ -247,7 +243,10 @@ public class GradleSpecificInitializer implements Runnable {
         notification.expire();
       }
     };
+    addStartupWarning(message, listener);
+  }
 
+  private static void addStartupWarning(@NotNull final String message, @Nullable final NotificationListener listener) {
     final Application app = ApplicationManager.getApplication();
 
     app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
@@ -263,6 +262,7 @@ public class GradleSpecificInitializer implements Runnable {
         });
       }
     });
+
   }
 
   private static NotificationGroup getNotificationGroup() {
@@ -349,6 +349,15 @@ public class GradleSpecificInitializer implements Runnable {
     });
   }
 
+  private static void checkAndroidSdkHome() {
+    try {
+      AndroidLocation.checkAndroidSdkHome();
+    }
+    catch (AndroidLocation.AndroidLocationException e) {
+      addStartupWarning(e.getMessage(), null);
+    }
+  }
+
   @Nullable
   private static Sdk findFirstCompatibleAndroidSdk() {
     List<Sdk> sdks = getAllAndroidSdks();
@@ -393,7 +402,8 @@ public class GradleSpecificInitializer implements Runnable {
       return new File(toSystemDependentName(androidHomeValue));
     }
 
-    String sdkPath = getLastSdkPathUsedByAndroidTools();
+    String toolsPreferencePath = AndroidLocation.getFolderWithoutWrites();
+    String sdkPath = getLastSdkPathUsedByAndroidTools(toolsPreferencePath);
     if (!isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
       msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
     } else {
@@ -407,16 +417,14 @@ public class GradleSpecificInitializer implements Runnable {
    * Returns the value for property 'lastSdkPath' as stored in the properties file at $HOME/.android/ddms.cfg, or {@code null} if the file
    * or property doesn't exist.
    *
-   * This is only useful in a scenario where existing users of ADT/Eclipse get Studio, but without the bundle. This method duplicates some
-   * functionality of {@link com.android.prefs.AndroidLocation} since we don't want any file system writes to happen during this process.
+   * This is only useful in a scenario where existing users of ADT/Eclipse get Studio, but without the bundle.
    */
   @Nullable
-  private static String getLastSdkPathUsedByAndroidTools() {
-    String userHome = SystemProperties.getUserHome();
-    if (userHome == null) {
+  private static String getLastSdkPathUsedByAndroidTools(@Nullable String path) {
+    if (path == null) {
       return null;
     }
-    File file = new File(new File(userHome, ".android"), "ddms.cfg");
+    File file = new File(path, "ddms.cfg");
     if (!file.exists()) {
       return null;
     }
