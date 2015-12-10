@@ -573,10 +573,28 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
    * @return the proxy object of the imported Android-Gradle project.
    */
   @NotNull
-  AndroidProject getProxyAndroidProject() {
-    waitForAndroidProjectProxy();
+  public AndroidProject waitForAndGetProxyAndroidProject() {
+    waitForProxyAndroidProject();
     assert myProxyAndroidProject != null;
     return myProxyAndroidProject;
+  }
+
+  /**
+   * A proxy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same proxy object is
+   * also used to visualize the model information in {@link InternalAndroidModelView}.
+   *
+   * <p>This method will return immediately if the proxy operation is already completed, or will be blocked until that is completed.
+   */
+  public void waitForProxyAndroidProject() {
+    if (myProxyAndroidProjectLatch != null) {
+      try {
+        myProxyAndroidProjectLatch.await();
+      }
+      catch (InterruptedException e) {
+        LOG.error(e);
+        Thread.currentThread().interrupt();
+      }
+    }
   }
 
   /**
@@ -881,21 +899,11 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     }
   }
 
-  private void waitForAndroidProjectProxy() {
-    if (myProxyAndroidProjectLatch != null) {
-      try {
-        // If required, wait for the proxy operation to complete.
-        myProxyAndroidProjectLatch.await();
-      }
-      catch (InterruptedException e) {
-        LOG.error(e);
-        Thread.currentThread().interrupt();
-      }
-    }
-  }
-
   private void writeObject(ObjectOutputStream out) throws IOException {
-    waitForAndroidProjectProxy();
+    // Avoid persisting the model when the proxy object is not ready.
+    if(myProxyAndroidProject == null) {
+      return;
+    }
 
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
