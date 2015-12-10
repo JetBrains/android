@@ -49,30 +49,4 @@ public class AndroidAnimationDomTest extends AndroidDomTest {
   public void testChildren() throws Throwable {
     toTestCompletion("tn.xml", "tn_after.xml");
   }
-
-  // An example of statelist animator is highlighted without errors
-  public void testSelectorAnimationHiglighting() throws Throwable {
-    doTestHighlighting("selectorAnimationHighlighting.xml");
-  }
-
-  // <selector> top-level tag in anim resource files is completed
-  public void testSelectorTagCompletion() throws Throwable {
-    toTestCompletion("selector_tag_completion.xml", "selector_tag_completion_after.xml");
-  }
-
-  // Inside <selector> tag, <item> tags are autocompleted
-  public void testItemTagCompletion() throws Throwable {
-    toTestCompletion("item_tag_completion.xml", "item_tag_completion_after.xml");
-  }
-
-  // Inside <item> tag, "state_" attributes are autocompleted
-  public void testItemAttributeCompletion() throws Throwable {
-    toTestCompletion("item_attribute_completion.xml", "item_attribute_completion_after.xml");
-  }
-
-  // <objectAnimator> is completed as a possible subtag of <item> tag
-  public void testItemContentsCompletion() throws Throwable {
-    toTestCompletion("item_contents_completion.xml", "item_contents_completion_after.xml");
-  }
-
 }
