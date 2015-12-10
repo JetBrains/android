@@ -16,11 +16,9 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -40,7 +38,6 @@ import java.util.List;
  */
 public final class AndroidProjectPaths {
   @NotNull private final AndroidFacet myAndroidFacet;
-  @NotNull private final SourceProvider mySourceProvider;
 
   @Nullable private File myModuleRoot;
   @Nullable private File mySrcDirectory;
@@ -51,7 +48,6 @@ public final class AndroidProjectPaths {
 
   public AndroidProjectPaths(@NotNull AndroidFacet androidFacet, @NotNull SourceProvider sourceProvider) {
     myAndroidFacet = androidFacet;
-    mySourceProvider = sourceProvider;
     Module module = getModule();
     VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
     if (roots.length > 0) {
