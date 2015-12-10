@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.drawable.fileDescriptions;
+package org.jetbrains.android.dom.animator;
 
-import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractMultiRootFileDescription;
-import org.jetbrains.android.dom.drawable.LayerList;
-import org.jetbrains.annotations.NonNls;
+import com.intellij.util.xml.SubTag;
+import org.jetbrains.android.dom.Styleable;
 
-public class LayerListDomFileDescription extends AbstractMultiRootFileDescription<LayerList> {
-  @NonNls static final String[] POSSIBLE_ROOT_TAGS = {"layer-list", "transition"};
+@Styleable({"DrawableStates", "StateListAnimatorItem"})
+public interface Item extends AnimatorElement {
+  @SubTag("objectAnimator")
+  ObjectAnimator getObjectAnimator();
 
-  public LayerListDomFileDescription() {
-    super(LayerList.class, ResourceFolderType.DRAWABLE, POSSIBLE_ROOT_TAGS);
-  }
+  @SubTag("animator")
+  Animator getAnimator();
+
+  @SubTag("set")
+  Set getSet();
+
+  @SubTag("propertyValuesHolder")
+  PropertyValuesHolder getPropertyValuesHolder();
 }
