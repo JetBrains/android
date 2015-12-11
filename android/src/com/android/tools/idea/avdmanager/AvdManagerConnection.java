@@ -426,10 +426,9 @@ public class AvdManagerConnection {
     }
 
     Map<String, String> properties = info.getProperties();
-    final String scaleFactor = properties.get(AvdWizardConstants.AVD_INI_SCALE_FACTOR);
-    final String netDelay = properties.get(AvdWizardConstants.AVD_INI_NETWORK_LATENCY);
-    final String netSpeed = properties.get(AvdWizardConstants.AVD_INI_NETWORK_SPEED);
-    final boolean useRanchu = properties.containsKey(AvdWizardConstants.CPU_CORES_KEY.name) && doesSystemImageSupportRanchu(info);
+    String scaleFactor = properties.get(AvdWizardConstants.AVD_INI_SCALE_FACTOR);
+    String netDelay = properties.get(AvdWizardConstants.AVD_INI_NETWORK_LATENCY);
+    String netSpeed = properties.get(AvdWizardConstants.AVD_INI_NETWORK_SPEED);
 
     GeneralCommandLine commandLine = new GeneralCommandLine();
     commandLine.setExePath(emulatorBinary.getPath());
@@ -448,10 +447,6 @@ public class AvdManagerConnection {
 
     if (netSpeed != null) {
       commandLine.addParameters("-netspeed", netSpeed);
-    }
-
-    if (useRanchu) {
-      commandLine.addParameter("-ranchu");
     }
 
     commandLine.addParameters("-avd", avdName);
