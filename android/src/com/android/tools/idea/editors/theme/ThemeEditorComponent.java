@@ -34,6 +34,7 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
+import com.android.tools.idea.ui.SearchField;
 import com.google.common.collect.*;
 import com.intellij.find.FindManager;
 import com.intellij.openapi.Disposable;
@@ -411,7 +412,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     myActionToolbarComponent = actionToolbar.getComponent();
     myToolbar.add(myActionToolbarComponent);
 
-    myTextField = new SearchTextField(true);
+    myTextField = new SearchField(true);
     // Avoid search box stretching more than 1 line.
     myTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, myTextField.getPreferredSize().height));
 
