@@ -70,7 +70,7 @@ public final class DeviceFutures {
 
     try {
       return Futures.get(Futures.allAsList(myDeviceFutures), ExecutionException.class);
-    } catch (ExecutionException e) {
+    } catch (Exception e) {
       // This can happen if the process behind the future threw an exception.
       return null;
     }
