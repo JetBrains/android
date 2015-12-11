@@ -95,6 +95,11 @@ public class UpdateSitesPanel {
       public boolean isEnabled(AnActionEvent e) {
         return myUpdateSitesTable.getSelectedRowCount() == 1 && mySourcesTableModel.isEditable(myUpdateSitesTable.getSelectedRow());
       }
+    }).setAddActionUpdater(new AnActionButtonUpdater() {
+      @Override
+      public boolean isEnabled(AnActionEvent e) {
+        return mySourcesTableModel.isEditable();
+      }
     }).addExtraAction(new AnActionButton("Select All", AllIcons.Actions.Selectall) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
@@ -103,7 +108,7 @@ public class UpdateSitesPanel {
 
       @Override
       public boolean isEnabled() {
-        return myUpdateSitesTable.getRowCount() > 0;
+        return mySourcesTableModel.isEditable() && myUpdateSitesTable.getRowCount() > 0;
       }
     }).addExtraAction(new AnActionButton("Deselect All", AllIcons.Actions.Unselectall) {
       @Override
@@ -113,7 +118,7 @@ public class UpdateSitesPanel {
 
       @Override
       public boolean isEnabled() {
-        return myUpdateSitesTable.getRowCount() > 0;
+        return mySourcesTableModel.isEditable() && myUpdateSitesTable.getRowCount() > 0;
       }
     }).setMoveDownAction(null).setMoveUpAction(null).setRemoveActionUpdater(new AnActionButtonUpdater() {
       @Override

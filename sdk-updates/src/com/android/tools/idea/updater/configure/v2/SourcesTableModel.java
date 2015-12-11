@@ -101,7 +101,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
 
       @Override
       public boolean isCellEditable(Row row) {
-        return Strings.isNullOrEmpty(row.mySource.getFetchError());
+        return isEditable() && Strings.isNullOrEmpty(row.mySource.getFetchError());
       }
 
       @Override
@@ -277,7 +277,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
    * Whether a row is editable (that is, whether the edit/delete buttons should be enabled when this row is selected).
    */
   public boolean isEditable(int row) {
-    return getRowValue(row).mySource.getProvider().isModifiable();
+    return isEditable() && getRowValue(row).mySource.getProvider().isModifiable();
   }
 
   /**
@@ -334,10 +334,14 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     myRefreshCallback = refreshCallback;
   }
 
+  public boolean isEditable() {
+    return myHandler.getUserSourceProvider(myLogger) != null;
+  }
+
   /**
    * A row in our table.
    */
-  protected static class Row implements SdkUpdaterConfigPanel.MultiStateRow, Comparable<Row> {
+  protected class Row implements SdkUpdaterConfigPanel.MultiStateRow, Comparable<Row> {
     RepositorySource mySource;
     boolean myOriginalEnabled;
     String myOriginalName;
@@ -353,7 +357,9 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
      */
     @Override
     public void cycleState() {
-      mySource.setEnabled(!mySource.isEnabled());
+      if (isEditable(indexOf(this))) {
+        mySource.setEnabled(!mySource.isEnabled());
+      }
     }
 
     /**
