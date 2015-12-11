@@ -142,7 +142,10 @@ public final class Parameter {
     SOURCE_SET_FOLDER,
 
     /** The associated value should represent a valid string resource name */
-    STRING;
+    STRING,
+
+    /** */
+    URI_AUTHORITY;
 
     public static Constraint get(@NotNull String name) {
       name = name.toUpperCase(Locale.US);
@@ -160,7 +163,7 @@ public final class Parameter {
 
   public static final EnumSet<Constraint> TYPE_CONSTRAINTS = EnumSet
     .of(Constraint.ACTIVITY, Constraint.APILEVEL, Constraint.CLASS, Constraint.PACKAGE, Constraint.APP_PACKAGE, Constraint.MODULE,
-        Constraint.LAYOUT, Constraint.DRAWABLE, Constraint.ID, Constraint.SOURCE_SET_FOLDER, Constraint.STRING);
+        Constraint.LAYOUT, Constraint.DRAWABLE, Constraint.ID, Constraint.SOURCE_SET_FOLDER, Constraint.STRING, Constraint.URI_AUTHORITY);
 
   /** The template defining the parameter */
   public final TemplateMetadata template;
@@ -334,6 +337,10 @@ public final class Parameter {
 
     }
 
+    if (violations.contains(Constraint.URI_AUTHORITY)) {
+      return name + " must be a valid URI authority";
+    }
+
     return null;
   }
 
@@ -473,6 +480,13 @@ public final class Parameter {
     }
     else if (constraints.contains(Constraint.EXISTS) && !exists) {
       violations.add(Constraint.EXISTS);
+    }
+
+    if (constraints.contains(Constraint.URI_AUTHORITY)) {
+      if (!value.matches("[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?")) {
+        violations.add(Constraint.URI_AUTHORITY);
+
+      }
     }
     return violations;
   }
