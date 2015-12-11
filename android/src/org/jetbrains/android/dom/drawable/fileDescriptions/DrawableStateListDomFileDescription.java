@@ -19,6 +19,9 @@ import com.android.resources.ResourceFolderType;
 import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
 
+/**
+ * Framework code: Drawable#createFromXml
+ */
 public class DrawableStateListDomFileDescription extends AbstractSingleRootFileDescription<DrawableSelector> {
   public static final String TAG_NAME = "selector";
 

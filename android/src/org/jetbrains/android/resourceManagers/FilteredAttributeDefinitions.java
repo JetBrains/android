@@ -55,18 +55,6 @@ public abstract class FilteredAttributeDefinitions implements AttributeDefinitio
     return myWrappee.getAttrGroupByName(name);
   }
 
-  @NotNull
-  @Override
-  public StyleableDefinition[] getStateStyleables() {
-    final StyleableDefinition[] styleables = myWrappee.getStateStyleables();
-    final StyleableDefinition[] result = new StyleableDefinition[styleables.length];
-
-    for (int i = 0; i < styleables.length; i++) {
-      result[i] = new MyStyleableDefinition(styleables[i]);
-    }
-    return result;
-  }
-
   private class MyStyleableDefinition implements StyleableDefinition {
     private final StyleableDefinition myWrappee;
 

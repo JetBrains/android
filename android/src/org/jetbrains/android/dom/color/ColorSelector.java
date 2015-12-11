@@ -20,7 +20,7 @@ import com.intellij.util.xml.DefinesXml;
 import java.util.List;
 
 /**
- * @author Eugene.Kudelevsky
+ * @see ColorDomFileDescription
  */
 @DefinesXml
 public interface ColorSelector extends ColorDomElement {
