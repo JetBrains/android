@@ -63,11 +63,11 @@ public class ThemeAttributeResolver {
     return RestrictedConfiguration.restrict(compatible, incompatibles);
   }
 
-  private void resolveFromInheritance(@NotNull String themeQualifiedName,
+  private void resolveFromInheritance(@NotNull ThemeEditorStyle themeEditorStyle,
                                       @NotNull FolderConfiguration configuration,
                                       @NotNull RestrictedConfiguration restricted,
                                       @NotNull Set<String> seenAttributes) {
-    ThemeEditorStyle themeEditorStyle = new ThemeEditorStyle(myManager, themeQualifiedName);
+
     RestrictedConfiguration styleRestricted = getRestrictedConfiguration(themeEditorStyle, configuration);
     if (styleRestricted == null) {
       LOG.warn(configuration + " is unreachable");
@@ -94,7 +94,7 @@ public class ThemeAttributeResolver {
     }
     ThemeEditorStyle parent = new ThemeEditorStyle(myManager, parentName);
     for (FolderConfiguration folder : parent.getFolders()) {
-      resolveFromInheritance(parentName, folder, styleRestricted, newSeenAttributes);
+      resolveFromInheritance(parent, folder, styleRestricted, newSeenAttributes);
     }
   }
 
@@ -102,7 +102,7 @@ public class ThemeAttributeResolver {
   private List<EditedStyleItem> resolveAll() {
     ThemeEditorStyle theme = new ThemeEditorStyle(myManager, myStyle.getQualifiedName());
     for (FolderConfiguration folder : theme.getFolders()) {
-      resolveFromInheritance(myStyle.getQualifiedName(), folder, new RestrictedConfiguration(), new HashSet<String>());
+      resolveFromInheritance(myStyle, folder, new RestrictedConfiguration(), new HashSet<String>());
     }
 
     List<EditedStyleItem> result = Lists.newArrayList();
