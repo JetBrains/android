@@ -20,7 +20,7 @@ import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeAttributeResolver;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -69,7 +69,7 @@ public class ThemeEditorTestUtils {
   /**
    * Returns the attributes that were defined in the theme itself and not its parents.
    */
-  public static Collection<EditedStyleItem> getStyleLocalValues(@NotNull final ThemeEditorStyle style) {
+  public static Collection<EditedStyleItem> getStyleLocalValues(@NotNull final ConfiguredThemeEditorStyle style) {
     final Set<String> localAttributes = Sets.newHashSet();
     for (ConfiguredElement<ItemResourceValue> value : style.getConfiguredValues()) {
       localAttributes.add(ResolutionUtils.getQualifiedItemName(value.getElement()));

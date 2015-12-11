@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemesListModel;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
@@ -33,7 +33,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * A {@link ListCellRenderer} to render {@link ThemeEditorStyle} elements.
+ * A {@link ListCellRenderer} to render {@link ConfiguredThemeEditorStyle} elements.
  */
 public class StyleListCellRenderer extends ColoredListCellRenderer {
   private final ThemeEditorContext myContext;
@@ -65,13 +65,13 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
       return;
     }
 
-    ThemeEditorStyle style = myContext.getThemeResolver().getTheme(stringValue);
+    ConfiguredThemeEditorStyle style = myContext.getThemeResolver().getTheme(stringValue);
     if (style == null) {
       append(stringValue, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
       return;
     }
 
-    ThemeEditorStyle parent = style.getParent();
+    ConfiguredThemeEditorStyle parent = style.getParent();
     String styleName = style.getName();
     String parentName = parent != null ? parent.getName() : null;
 

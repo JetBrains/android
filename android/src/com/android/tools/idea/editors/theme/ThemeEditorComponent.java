@@ -28,7 +28,7 @@ import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.ParentRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.StyleListPaletteCellRenderer;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
@@ -101,9 +101,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     @Override
     public int compare(Object o1, Object o2) {
       // The parent attribute goes always first
-      if (o1 instanceof ThemeEditorStyle) {
+      if (o1 instanceof ConfiguredThemeEditorStyle) {
         return -1;
-      } else if (o2 instanceof ThemeEditorStyle) {
+      } else if (o2 instanceof ConfiguredThemeEditorStyle) {
         return 1;
       }
 
@@ -257,7 +257,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       /**
        * Restores a modified theme with its original content
        */
-      private void restoreOriginalTheme(@NotNull ThemeEditorStyle modifiedTheme, @NotNull List<ItemResourceValue> originalItems) {
+      private void restoreOriginalTheme(@NotNull ConfiguredThemeEditorStyle modifiedTheme, @NotNull List<ItemResourceValue> originalItems) {
         StyleResourceValue modifiedResourceValue = modifiedTheme.getStyleResourceValue();
         StyleResourceValue restoredResourceValue =
           new StyleResourceValue(ResourceType.STYLE, modifiedResourceValue.getName(), modifiedResourceValue.getParentStyle(),
@@ -272,13 +272,13 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       public void themeChanged(@NotNull final String name) {
         ThemeResolver themeResolver = myThemeEditorContext.getThemeResolver();
         if (myModifiedParent != null) {
-          ThemeEditorStyle modifiedTheme = themeResolver.getTheme(myModifiedParent);
+          ConfiguredThemeEditorStyle modifiedTheme = themeResolver.getTheme(myModifiedParent);
           assert modifiedTheme != null;
           restoreOriginalTheme(modifiedTheme, myOriginalItems);
         }
 
         myModifiedParent = name;
-        ThemeEditorStyle newParent = themeResolver.getTheme(name);
+        ConfiguredThemeEditorStyle newParent = themeResolver.getTheme(name);
         assert newParent != null;
         StyleResourceValue newParentStyleResourceValue = newParent.getStyleResourceValue();
 
@@ -286,7 +286,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         myOriginalItems.clear();
         myOriginalItems.addAll(newParentStyleResourceValue.getValues());
 
-        ThemeEditorStyle myCurrentTheme = themeResolver.getTheme(myThemeName);
+        ConfiguredThemeEditorStyle myCurrentTheme = themeResolver.getTheme(myThemeName);
         assert myCurrentTheme != null;
         // Add myCurrentTheme attributes to newParent, so that newParent becomes equivalent to having changed the parent of myCurrentTheme
         for (ItemResourceValue item : myCurrentTheme.getStyleResourceValue().getValues()) {
@@ -304,7 +304,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       public void reset() {
         ThemeResolver themeResolver = myThemeEditorContext.getThemeResolver();
         if (myModifiedParent != null) {
-          ThemeEditorStyle modifiedTheme = themeResolver.getTheme(myModifiedParent);
+          ConfiguredThemeEditorStyle modifiedTheme = themeResolver.getTheme(myModifiedParent);
           assert modifiedTheme != null;
           restoreOriginalTheme(modifiedTheme, myOriginalItems);
         }
@@ -455,7 +455,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     themeNamePopupMenu.add(new JMenuItem(new AbstractAction("Find Usages") {
       @Override
       public void actionPerformed(ActionEvent e) {
-        ThemeEditorStyle style = getUsedStyle();
+        ConfiguredThemeEditorStyle style = getUsedStyle();
         assert style != null; // we always have something selected
         if (style.isProjectStyle()) {
           PsiElement name = style.getNamePsiElement();
@@ -633,7 +633,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
    * Uses Android Studio refactoring to rename the current theme
    */
   private void renameTheme() {
-    ThemeEditorStyle selectedTheme = getSelectedTheme();
+    ConfiguredThemeEditorStyle selectedTheme = getSelectedTheme();
     assert selectedTheme != null;
     assert selectedTheme.isProjectStyle();
     PsiElement namePsiElement = selectedTheme.getNamePsiElement();
@@ -651,13 +651,13 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   }
 
   public void goToParent() {
-    ThemeEditorStyle selectedStyle = getUsedStyle();
+    ConfiguredThemeEditorStyle selectedStyle = getUsedStyle();
     if (selectedStyle == null) {
       LOG.error("No style selected.");
       return;
     }
 
-    ThemeEditorStyle parent = getUsedStyle().getParent(myThemeEditorContext.getThemeResolver());
+    ConfiguredThemeEditorStyle parent = getUsedStyle().getParent(myThemeEditorContext.getThemeResolver());
     assert parent != null;
 
     // TODO: This seems like it could be confusing for users, we might want to differentiate parent navigation depending if it's
@@ -672,7 +672,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   }
 
   @Nullable
-  ThemeEditorStyle getPreviewTheme() {
+  ConfiguredThemeEditorStyle getPreviewTheme() {
     if (myPreviewThemeName != null) {
       return myThemeEditorContext.getThemeResolver().getTheme(myPreviewThemeName);
     }
@@ -680,7 +680,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   }
 
   @Nullable
-  ThemeEditorStyle getSelectedTheme() {
+  ConfiguredThemeEditorStyle getSelectedTheme() {
     if (myThemeName != null) {
       return myThemeEditorContext.getThemeResolver().getTheme(myThemeName);
     }
@@ -688,7 +688,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   }
 
   @Nullable
-  private ThemeEditorStyle getUsedStyle() {
+  private ConfiguredThemeEditorStyle getUsedStyle() {
     if (mySubStyleName != null) {
       return getCurrentSubStyle();
     }
@@ -697,7 +697,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   }
 
   @Nullable
-  ThemeEditorStyle getCurrentSubStyle() {
+  ConfiguredThemeEditorStyle getCurrentSubStyle() {
     if (mySubStyleName == null) {
       return null;
     }
@@ -725,7 +725,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       return;
     }
 
-    ThemeEditorStyle selectedStyle = getUsedStyle();
+    ConfiguredThemeEditorStyle selectedStyle = getUsedStyle();
     if (selectedStyle == null) {
       LOG.error("No style/theme selected.");
       return;
@@ -739,7 +739,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
     final ItemResourceValue originalValue = rv.getSelectedValue();
     ParentRendererEditor.ThemeParentChangedListener themeListener = new ParentRendererEditor.ThemeParentChangedListener() {
-      private ThemeEditorStyle myModifiedTheme;
+      private ConfiguredThemeEditorStyle myModifiedTheme;
 
       @Override
       public void themeChanged(@NotNull String name) {
@@ -780,7 +780,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       @Override
       public void run() {
         myThemeEditorContext.updateThemeResolver();
-        ThemeEditorStyle newStyle = myThemeEditorContext.getThemeResolver().getTheme(newStyleName);
+        ConfiguredThemeEditorStyle newStyle = myThemeEditorContext.getThemeResolver().getTheme(newStyleName);
         assert newStyle != null;
         newStyle.setValue(rv.getQualifiedName(), strValue);
       }
@@ -794,7 +794,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       return;
     }
 
-    ThemeEditorStyle selectedTheme = getSelectedTheme();
+    ConfiguredThemeEditorStyle selectedTheme = getSelectedTheme();
     if (selectedTheme == null) {
       LOG.error("No theme selected.");
       return;
@@ -828,7 +828,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
           @Override
           public void run() {
             myThemeEditorContext.updateThemeResolver();
-            ThemeEditorStyle newTheme = myThemeEditorContext.getThemeResolver().getTheme(newThemeName);
+            ConfiguredThemeEditorStyle newTheme = myThemeEditorContext.getThemeResolver().getTheme(newThemeName);
             assert newTheme != null;
             newTheme.setValue(sourcePropertyName, newStyleName);
           }
@@ -887,8 +887,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
    * Loads the theme attributes table for the current selected theme or substyle.
    */
   private void loadStyleAttributes() {
-    ThemeEditorStyle selectedTheme = getPreviewTheme();
-    ThemeEditorStyle selectedStyle = null;
+    ConfiguredThemeEditorStyle selectedTheme = getPreviewTheme();
+    ConfiguredThemeEditorStyle selectedStyle = null;
 
     if (selectedTheme == null) {
       selectedTheme = getSelectedTheme();
@@ -1013,7 +1013,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
    * Returns the color that should be used for the background of the preview panel depending on the background color
    * of the theme being displayed, so as to always keep some contrast between the two.
    */
-  public static JBColor getGoodContrastPreviewBackground(@NotNull ThemeEditorStyle theme, @NotNull ResourceResolver resourceResolver) {
+  public static JBColor getGoodContrastPreviewBackground(@NotNull ConfiguredThemeEditorStyle theme, @NotNull ResourceResolver resourceResolver) {
     ItemResourceValue themeColorBackgroundItem = ThemeEditorUtils.resolveItemFromParents(theme, "colorBackground", true);
     String colorBackgroundValue = resourceResolver.resolveResValue(themeColorBackgroundItem).getValue();
     Color colorBackground = ResourceHelper.parseColor(colorBackgroundValue);
@@ -1034,7 +1034,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     if (!previewThemeName.equals(myPreviewThemeName)) {
       myPreviewThemeName = previewThemeName;
       // Only refresh when we select a different theme
-      ThemeEditorStyle previewTheme = getPreviewTheme();
+      ConfiguredThemeEditorStyle previewTheme = getPreviewTheme();
 
       if (previewTheme == null) {
         // previewTheme is not a valid theme in the current configuration
@@ -1130,7 +1130,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         attributeName = value.toString();
       }
 
-      ThemeEditorStyle selectedTheme = getUsedStyle();
+      ConfiguredThemeEditorStyle selectedTheme = getUsedStyle();
       if (selectedTheme == null) {
         LOG.error("No theme selected.");
         return false;

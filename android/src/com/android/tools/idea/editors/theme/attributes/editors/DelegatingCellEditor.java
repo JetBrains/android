@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import spantable.CellSpanModel;
 
 import javax.swing.*;
@@ -55,7 +55,7 @@ public class DelegatingCellEditor implements TableCellEditor {
     if (value instanceof EditedStyleItem) {
       final EditedStyleItem item = (EditedStyleItem) value;
       stringValue = ThemeEditorUtils.extractRealValue(item, model.getCellClass(row, column));
-      ThemeEditorStyle selectedStyle = ((AttributesTableModel)table.getModel()).getSelectedStyle();
+      ConfiguredThemeEditorStyle selectedStyle = ((AttributesTableModel)table.getModel()).getSelectedStyle();
       // Displays in bold attributes that are overriding their inherited value
       boldFont = selectedStyle.hasItem(item);
     }

@@ -33,7 +33,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.configurations.ThemeSelectionPanel;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -180,10 +180,10 @@ public class ThemeEditorUtils {
    * Finds an ItemResourceValue for a given name in a theme inheritance tree
    */
   @Nullable("if there is not an item with that name")
-  public static ItemResourceValue resolveItemFromParents(@NotNull final ThemeEditorStyle theme,
+  public static ItemResourceValue resolveItemFromParents(@NotNull final ConfiguredThemeEditorStyle theme,
                                                          @NotNull String name,
                                                          boolean isFrameworkAttr) {
-    ThemeEditorStyle currentTheme = theme;
+    ConfiguredThemeEditorStyle currentTheme = theme;
 
     for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
       ItemResourceValue item = currentTheme.getItem(name, isFrameworkAttr);
@@ -219,10 +219,10 @@ public class ThemeEditorUtils {
   }
 
   @NotNull
-  private static ImmutableCollection<ThemeEditorStyle> findThemes(@NotNull Collection<ThemeEditorStyle> themes, final @NotNull Set<String> names) {
-    return ImmutableSet.copyOf(Iterables.filter(themes, new Predicate<ThemeEditorStyle>() {
+  private static ImmutableCollection<ConfiguredThemeEditorStyle> findThemes(@NotNull Collection<ConfiguredThemeEditorStyle> themes, final @NotNull Set<String> names) {
+    return ImmutableSet.copyOf(Iterables.filter(themes, new Predicate<ConfiguredThemeEditorStyle>() {
       @Override
-      public boolean apply(@Nullable ThemeEditorStyle theme) {
+      public boolean apply(@Nullable ConfiguredThemeEditorStyle theme) {
         return theme != null && names.contains(theme.getName());
       }
     }));
@@ -245,14 +245,14 @@ public class ThemeEditorUtils {
 
   @NotNull
   public static ImmutableList<String> getDefaultThemeNames(@NotNull ThemeResolver themeResolver) {
-    Collection<ThemeEditorStyle> readOnlyLibThemes = themeResolver.getExternalLibraryThemes();
+    Collection<ConfiguredThemeEditorStyle> readOnlyLibThemes = themeResolver.getExternalLibraryThemes();
 
-    Collection<ThemeEditorStyle> foundThemes = new HashSet<ThemeEditorStyle>();
+    Collection<ConfiguredThemeEditorStyle> foundThemes = new HashSet<ConfiguredThemeEditorStyle>();
     foundThemes.addAll(findThemes(readOnlyLibThemes, DEFAULT_THEMES));
 
     if (foundThemes.isEmpty()) {
-      Collection<ThemeEditorStyle> readOnlyFrameworkThemes = themeResolver.getFrameworkThemes();
-      foundThemes = new HashSet<ThemeEditorStyle>();
+      Collection<ConfiguredThemeEditorStyle> readOnlyFrameworkThemes = themeResolver.getFrameworkThemes();
+      foundThemes = new HashSet<ConfiguredThemeEditorStyle>();
       foundThemes.addAll(findThemes(readOnlyFrameworkThemes, DEFAULT_THEMES_FALLBACK));
 
       if (foundThemes.isEmpty()) {
@@ -261,7 +261,7 @@ public class ThemeEditorUtils {
       }
     }
     Set<String> temporarySet = Sets.newTreeSet(String.CASE_INSENSITIVE_ORDER);
-    for (ThemeEditorStyle theme : foundThemes) {
+    for (ConfiguredThemeEditorStyle theme : foundThemes) {
       temporarySet.add(theme.getQualifiedName());
     }
     return ImmutableList.copyOf(temporarySet);
@@ -351,7 +351,7 @@ public class ThemeEditorUtils {
    * @return the new style name or null if the style wasn't created
    */
   @Nullable
-  public static String showCreateNewStyleDialog(@Nullable ThemeEditorStyle defaultParentStyle,
+  public static String showCreateNewStyleDialog(@Nullable ConfiguredThemeEditorStyle defaultParentStyle,
                                                 @NotNull final ThemeEditorContext themeEditorContext,
                                                 boolean isTheme,
                                                 boolean enableParentChoice,
@@ -405,15 +405,15 @@ public class ThemeEditorUtils {
    * Checks if the selected theme is AppCompat
    */
   public static boolean isSelectedAppCompatTheme(@NotNull ThemeEditorContext context) {
-    ThemeEditorStyle currentTheme = context.getCurrentTheme();
+    ConfiguredThemeEditorStyle currentTheme = context.getCurrentTheme();
     return currentTheme != null && isAppCompatTheme(currentTheme);
   }
 
   /**
    * Checks if a theme is AppCompat
    */
-  public static boolean isAppCompatTheme(@NotNull ThemeEditorStyle themeEditorStyle) {
-    ThemeEditorStyle currentTheme = themeEditorStyle;
+  public static boolean isAppCompatTheme(@NotNull ConfiguredThemeEditorStyle configuredThemeEditorStyle) {
+    ConfiguredThemeEditorStyle currentTheme = configuredThemeEditorStyle;
     for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
       // for loop ensures that we don't run into cyclic theme inheritance.
       //TODO: This check is not enough. User themes could also start with "Theme.AppCompat" and not be AppCompat
@@ -708,7 +708,7 @@ public class ThemeEditorUtils {
    * or Theme.*.*
    */
   @NotNull
-  public static String simplifyThemeName(@NotNull ThemeEditorStyle theme) {
+  public static String simplifyThemeName(@NotNull ConfiguredThemeEditorStyle theme) {
     String result;
     String name = theme.getQualifiedName();
     String[] pieces = name.split("\\.");
@@ -718,7 +718,7 @@ public class ThemeEditorUtils {
     else {
       result = "Theme";
     }
-    ThemeEditorStyle parent = theme;
+    ConfiguredThemeEditorStyle parent = theme;
     while (parent != null) {
       if ("Theme.Light".equals(parent.getName())) {
         return result + " Light";

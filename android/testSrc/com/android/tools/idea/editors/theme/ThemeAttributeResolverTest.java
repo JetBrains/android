@@ -20,7 +20,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Result;
@@ -71,7 +71,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
   }
 
   /**
-   * Tests {@link ThemeAttributeResolver#resolveAll(ThemeEditorStyle, ThemeResolver)}
+   * Tests {@link ThemeAttributeResolver#resolveAll(ConfiguredThemeEditorStyle, ThemeResolver)}
    */
   public void testResolveAllVersion() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
@@ -84,7 +84,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
 
     myFacet.refreshResources();
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ThemeEditorStyle style = themeResolver.getTheme("ThemeB");
+    ConfiguredThemeEditorStyle style = themeResolver.getTheme("ThemeB");
     assertNotNull(style);
 
     Set<String> answer = Sets.newHashSet("-v16:red", "-v15:red", "-v14:blue");
@@ -104,7 +104,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
   }
 
   /**
-   * Tests {@link ThemeAttributeResolver#resolveAll(ThemeEditorStyle, ThemeResolver)}
+   * Tests {@link ThemeAttributeResolver#resolveAll(ConfiguredThemeEditorStyle, ThemeResolver)}
    */
   public void testResolveAllEnum() {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles.xml", "res/values/styles.xml");
@@ -116,7 +116,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
 
     myFacet.refreshResources();
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ThemeEditorStyle style = themeResolver.getTheme("ThemeB");
+    ConfiguredThemeEditorStyle style = themeResolver.getTheme("ThemeB");
     assertNotNull(style);
     Set<String> answer = Sets.newHashSet("-port:red", "-land:red", "-square:red");
 
