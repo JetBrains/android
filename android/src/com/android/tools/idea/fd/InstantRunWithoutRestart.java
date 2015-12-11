@@ -16,6 +16,7 @@
 package com.android.tools.idea.fd;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.fd.client.UpdateMode;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
