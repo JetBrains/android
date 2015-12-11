@@ -42,7 +42,7 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
   @IdeGuiTest
   public void testMultipleModules() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
-    final ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
 
     assertThat(themeEditor.getModulesList(), containsInAnyOrder("app", "library", "library2", "library3", "nothemeslibrary"));
     final JComboBoxFixture modulesComboBox = themeEditor.getModulesComboBox();
@@ -73,7 +73,7 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
   @IdeGuiTest
   public void testModuleWithoutThemes() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
-    final ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
 
     final JComboBoxFixture modulesComboBox = themeEditor.getModulesComboBox();
 

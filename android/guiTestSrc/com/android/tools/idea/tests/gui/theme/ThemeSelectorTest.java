@@ -56,7 +56,7 @@ public class ThemeSelectorTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testRenameTheme() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
 
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     themesComboBox.selectItem("Rename AppTheme");
@@ -124,7 +124,7 @@ public class ThemeSelectorTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testShowAllThemes() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     String selectedTheme = themesComboBox.selectedItem();
@@ -166,7 +166,7 @@ public class ThemeSelectorTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testCreateNewTheme() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     String selectedTheme = themesComboBox.selectedItem();
@@ -245,7 +245,7 @@ public class ThemeSelectorTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testRemoveAppCompat() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(projectFrame);
     List<String> themeList = themeEditor.getThemesList();
     assertThat(themeList).contains("Theme.AppCompat.Light.NoActionBar");
 
@@ -264,7 +264,7 @@ public class ThemeSelectorTest extends GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
 
     // Check AppCompat themes are gone
-    themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(projectFrame);
     themeList = themeEditor.getThemesList();
     assertThat(themeList)
       .excludes("Theme.AppCompat.Light.NoActionBar")
