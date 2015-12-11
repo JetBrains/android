@@ -147,7 +147,7 @@ public final class SdkQuickfixUtils {
       String[] options;
       int defaultOptionIndex;
 
-      if (problems.size() == installRequests.size()) {
+      if (problems.size() == requestedPackages.size()) {
         options =
           new String[]{InstallSdkOption.EXIT_AND_LAUNCH_STANDALONE.getDescription(), InstallSdkOption.ATTEMPT_ALL.getDescription(),};
         defaultOptionIndex = InstallSdkOption.EXIT_AND_LAUNCH_STANDALONE.ordinal();
