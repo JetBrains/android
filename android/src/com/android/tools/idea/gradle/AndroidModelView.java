@@ -166,7 +166,7 @@ public class AndroidModelView {
 
     public DefaultMutableTreeNode getNode() {
       DefaultMutableTreeNode moduleNode = new DefaultMutableTreeNode(myModuleName);
-      AndroidProject androidProject = myAndroidModel.getProxyAndroidProject();
+      AndroidProject androidProject = myAndroidModel.waitForAndGetProxyAndroidProject();
 
       artifactNodes.clear();
       addProxyObject(moduleNode, androidProject, false, ImmutableList.of("SyncIssues", "UnresolvedDependencies", "ApiVersion"));

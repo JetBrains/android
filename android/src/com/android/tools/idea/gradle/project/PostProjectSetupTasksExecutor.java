@@ -59,12 +59,15 @@ import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.execution.junit.JUnitConfigurationType;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -78,12 +81,16 @@ import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
 import java.io.File;
 import java.util.*;
 
@@ -618,9 +625,43 @@ public class PostProjectSetupTasksExecutor {
       GradleSyncState.getInstance(myProject).syncSkipped(lastSyncTimestamp);
     }
 
+    persistAndroidGradleModelData(myUsingCachedProjectData);
+
     // set default value back.
     myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
     myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
+  }
+
+  private void persistAndroidGradleModelData(final boolean usingCachedProjectData) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      return;
+    }
+
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        if (!usingCachedProjectData) {
+          // Wait for the proxy operations to complete in a pooled thread (to avoid the UI freeze) and
+          // then save the project to persist the model data.
+          // See https://code.google.com/p/android/issues/detail?id=196206 for more details.
+          for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+            AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
+            if (androidGradleModel != null) {
+              androidGradleModel.waitForProxyAndroidProject();
+            }
+          }
+        }
+
+        UIUtil.invokeLaterIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            // The model data is not persisted if the project.save() was already executed between the sync completion and now.
+            // TODO: Investigate it further and update it to always persist the model data here.
+            myProject.save();
+          }
+        });
+      }
+    });
   }
 
   public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
