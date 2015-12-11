@@ -229,7 +229,7 @@ public abstract class GuiTestCase {
   protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
     throws IOException {
     File projectPath = setUpProject(projectDirName, false, true, gradleVersion);
-    VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    VirtualFile toSelect = findFileByIoFile(projectPath, false);
     assertNotNull(toSelect);
 
     doImportProject(toSelect);
@@ -243,7 +243,7 @@ public abstract class GuiTestCase {
   @NotNull
   protected File importProject(@NotNull String projectDirName) throws IOException {
     File projectPath = setUpProject(projectDirName, false, true, null);
-    VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    VirtualFile toSelect = findFileByIoFile(projectPath, false);
     assertNotNull(toSelect);
     doImportProject(toSelect);
     return projectPath;
