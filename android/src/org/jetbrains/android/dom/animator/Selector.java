@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.drawable.fileDescriptions;
+package org.jetbrains.android.dom.animator;
 
-import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractMultiRootFileDescription;
-import org.jetbrains.android.dom.drawable.LayerList;
-import org.jetbrains.annotations.NonNls;
+import com.intellij.util.xml.DefinesXml;
+import com.intellij.util.xml.SubTagList;
 
-public class LayerListDomFileDescription extends AbstractMultiRootFileDescription<LayerList> {
-  @NonNls static final String[] POSSIBLE_ROOT_TAGS = {"layer-list", "transition"};
+import java.util.List;
 
-  public LayerListDomFileDescription() {
-    super(LayerList.class, ResourceFolderType.DRAWABLE, POSSIBLE_ROOT_TAGS);
-  }
+@DefinesXml
+public interface Selector extends AnimatorElement {
+  @SubTagList
+  List<Item> getItems();
 }

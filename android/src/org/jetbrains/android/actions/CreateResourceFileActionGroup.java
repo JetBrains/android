@@ -75,7 +75,7 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
       @NotNull
       @Override
       public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
-        return AndroidAnimatorUtil.getPossibleChildren();
+        return AndroidAnimatorUtil.getPossibleRoots();
       }
     });
 

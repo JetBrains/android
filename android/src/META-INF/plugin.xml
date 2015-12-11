@@ -312,7 +312,10 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.FragmentLayoutDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.DataBindingDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.animation.AnimationDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.AnimatorDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorSetDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.ObjectAnimatorDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.transition.TransitionDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.transitionManager.TransitionManagerDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.menu.MenuDomFileDescription"/>
