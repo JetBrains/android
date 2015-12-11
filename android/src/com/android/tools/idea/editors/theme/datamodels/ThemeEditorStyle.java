@@ -227,7 +227,7 @@ public class ThemeEditorStyle {
         myConfiguration.getFrameworkResources().getResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
       // Go over all the files containing the resource.
       for (ResourceFile file : styleItem.getSourceFileList()) {
-        ResourceValue styleResourceValue = styleItem.getResourceValue(ResourceType.STYLE, file.getConfiguration(), true);
+        ResourceValue styleResourceValue = file.getValue(ResourceType.STYLE, styleItem.getName());
         FolderConfiguration folderConfiguration = file.getConfiguration();
 
         if (styleResourceValue instanceof StyleResourceValue) {
