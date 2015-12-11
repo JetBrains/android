@@ -313,7 +313,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     if (processHandler instanceof AndroidMultiProcessHandler) {
       return ImmutableList.copyOf(((AndroidMultiProcessHandler)processHandler).getDevices());
     }
-    else if (processHandler instanceof DefaultDebugProcessHandler) {
+    else {
       Client c = processHandler.getUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT);
       if (c != null && c.isValid()) {
         return Collections.singletonList(c.getDevice());
