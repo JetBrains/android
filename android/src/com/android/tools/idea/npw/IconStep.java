@@ -22,6 +22,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.npw.assetstudio.NotificationIconStep;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.ui.ImageComponent;
@@ -68,6 +69,8 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * {@linkplain IconStep} is a wizard page that lets the user create a variety of density-scaled assets.
+ *
+ * @deprecated Replaced by {@link NotificationIconStep}
  */
 public class IconStep extends DynamicWizardStepWithDescription implements Disposable {
   public static final Key<String> ATTR_ASSET_NAME = createKey(AssetStudioAssetGenerator.ATTR_ASSET_NAME, PATH, String.class);
@@ -395,8 +398,8 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
 
     AssetType iconType = null;
     TemplateEntry templateEntry = myState.get(myTemplateKey);
-    if (templateEntry != null) {
-      iconType = templateEntry.getMetadata().getIconType();
+    if (templateEntry != null && templateEntry.getMetadata().getIconType() != null) {
+      iconType = AssetType.of(templateEntry.getMetadata().getIconType());
     }
     finalizeAssetType(iconType);
 
