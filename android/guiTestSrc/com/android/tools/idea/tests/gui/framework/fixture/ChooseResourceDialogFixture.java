@@ -20,13 +20,11 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.StateListPickerFixture;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.treeStructure.Tree;
 import org.fest.swing.core.GenericTypeMatcher;
-import com.intellij.ui.components.JBTabbedPane;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTabbedPaneFixture;
-import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.android.uipreview.ColorPicker;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +49,7 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   private ChooseResourceDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<ChooseResourceDialog> dialogAndWrapper) {
     super(robot, dialogAndWrapper);
-    myTabbedPane = new JTabbedPaneFixture(robot, robot.finder().findByType(this.target(), JBTabbedPane.class));
+    myTabbedPane = new JTabbedPaneFixture(robot, robot.finder().findByType(this.target(), JTabbedPane.class));
   }
 
   @NotNull
@@ -87,8 +85,8 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
   }
 
   @NotNull
-  public JTreeFixture getResourceTree() {
-    return new JTreeFixture(robot(), robot().finder().findByType(this.target(), Tree.class));
+  public JListFixture getList(@NotNull String appNamespaceLabel) {
+    return new JListFixture(robot(), appNamespaceLabel);
   }
 
   public void clickOK() {
