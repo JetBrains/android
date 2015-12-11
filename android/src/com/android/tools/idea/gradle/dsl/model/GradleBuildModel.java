@@ -25,12 +25,10 @@ import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -45,8 +43,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
-import static com.android.tools.idea.gradle.dsl.model.java.JavaModel.SOURCE_COMPATIBILITY_FIELD;
-import static com.android.tools.idea.gradle.dsl.model.java.JavaModel.TARGET_COMPATIBILITY_FIELD;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_FIELD;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_FIELD;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -236,8 +234,7 @@ public class GradleBuildModel extends GradleFileModel {
           javaDslElement = new JavaDslElement(this);
           super.setParsedElement(JavaDslElement.NAME, javaDslElement);
         }
-        JavaVersionDslElement versionDslElement = new JavaVersionDslElement(javaDslElement, (GradleDslExpression)element, property);
-        javaDslElement.setParsedElement(property, versionDslElement);
+        javaDslElement.setParsedElement(property, element);
         return;
       }
       super.setParsedElement(property, element);

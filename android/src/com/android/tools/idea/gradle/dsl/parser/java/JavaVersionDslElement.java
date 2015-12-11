@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.java;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
@@ -26,38 +23,44 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.util.Collection;
 import java.util.Collections;
 
-import static com.android.tools.idea.gradle.dsl.model.java.JavaModel.SOURCE_COMPATIBILITY_FIELD;
-import static com.android.tools.idea.gradle.dsl.model.java.JavaModel.TARGET_COMPATIBILITY_FIELD;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_FIELD;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_FIELD;
 import static com.android.tools.idea.gradle.dsl.parser.java.LanguageLevelUtil.convertToGradleString;
 import static com.android.tools.idea.gradle.dsl.parser.java.LanguageLevelUtil.parseFromGradleString;
 
 public class JavaVersionDslElement extends GradleDslElement {
   private GradleDslExpression myInternalVersionElement;
+  private boolean myUseAssignment;
   @Nullable private LanguageLevel myUnsavedValue;
 
-  public JavaVersionDslElement(@Nullable JavaDslElement parent, @NotNull GradleDslExpression dslElement, @NotNull String name) {
+  public JavaVersionDslElement(@Nullable GradleDslElement parent, @NotNull GradleDslExpression dslElement, @NotNull String name) {
     super(parent, null, name);
     assert dslElement instanceof GradleDslLiteral || dslElement instanceof GradleDslReference;
-    assert dslElement.getPsiElement() instanceof GrAssignmentExpression;
+    if (dslElement.getPsiElement() instanceof GrAssignmentExpression) {
+      myUseAssignment = true;
+    }
     myInternalVersionElement = dslElement;
   }
 
-  public JavaVersionDslElement(@Nullable JavaDslElement parent, @NotNull String name) {
+  public JavaVersionDslElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull boolean useAssignment) {
     super(parent, null, name);
+    myUseAssignment = useAssignment;
   }
 
   @Override
-  public GrAssignmentExpression getPsiElement() {
+  public GrExpression getPsiElement() {
     if (myInternalVersionElement != null) {
-      return (GrAssignmentExpression)myInternalVersionElement.getPsiElement();
+      GroovyPsiElement psiElement = myInternalVersionElement.getPsiElement();
+      if (psiElement instanceof GrCommandArgumentList) {
+        return (GrExpression)psiElement.getParent();
+      }
+      return (GrExpression)psiElement;
     }
     return null;
   }
@@ -127,22 +130,25 @@ public class JavaVersionDslElement extends GradleDslElement {
 
   @Override
   protected void apply() {
-    GrAssignmentExpression assignmentExpression = getPsiElement();
+    GrExpression psiElement = getPsiElement();
 
-    if (myUnsavedValue == null || assignmentExpression == null) {
+    if (myUnsavedValue == null || psiElement == null) {
       return;
     }
 
     String groovyString = convertToGradleString(myUnsavedValue, getVersionText());
-    GrExpression expression = GroovyPsiElementFactory.getInstance(assignmentExpression.getProject()).createExpressionFromText(groovyString);
+    GrExpression newVersionPsi = GroovyPsiElementFactory.getInstance(psiElement.getProject()).createExpressionFromText(groovyString);
 
-    GrExpression rValue = assignmentExpression.getRValue();
-    if (rValue != null) {
-      rValue.replace(expression);
+    GrExpression oldVersionPsi;
+    if (myUseAssignment) {
+      oldVersionPsi = ((GrAssignmentExpression)psiElement).getRValue();
     }
     else {
-      assignmentExpression.addAfter(expression, assignmentExpression.getOperationToken());
+      oldVersionPsi = ((GrApplicationStatement)psiElement).getExpressionArguments()[0];
     }
+
+    assert oldVersionPsi != null;
+    oldVersionPsi.replace(newVersionPsi);
   }
 
   @Override
@@ -158,9 +164,9 @@ public class JavaVersionDslElement extends GradleDslElement {
       return psiElement;
     }
 
-    JavaDslElement java = (JavaDslElement)myParent;
-    assert java != null;
-    GroovyPsiElement javaPsiElement = java.create();
+    GradlePropertiesDslElement parent = (GradlePropertiesDslElement)myParent;
+    assert parent != null;
+    GroovyPsiElement javaPsiElement = parent.create();
     assert javaPsiElement != null;
     ApplicationManager.getApplication().assertWriteAccessAllowed();
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(javaPsiElement.getProject());
@@ -171,10 +177,10 @@ public class JavaVersionDslElement extends GradleDslElement {
     JavaVersionDslElement anchor = null;
 
     if (SOURCE_COMPATIBILITY_FIELD.equals(myName)) {
-      anchor = java.getProperty(TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+      anchor = parent.getProperty(TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
     }
     else if (TARGET_COMPATIBILITY_FIELD.equals(myName)) {
-      anchor = java.getProperty(SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+      anchor = parent.getProperty(SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
     }
 
     PsiElement anchorPsiElement = null;
@@ -192,22 +198,30 @@ public class JavaVersionDslElement extends GradleDslElement {
       anchorText = "1.6";
     }
 
-    GrAssignmentExpression expression = (GrAssignmentExpression)factory.createExpressionFromText(myName + " = " + anchorText);
-    GrAssignmentExpression added = (GrAssignmentExpression)javaPsiElement.addAfter(expression, anchorPsiElement);
-
-    GrExpression right = added.getRValue();
-    if (right instanceof GrLiteral) {
-      myInternalVersionElement = new GradleDslLiteral(java, added, myName, (GrLiteral)right);
+    GrExpression newExpressionPsi;
+    GroovyPsiElement valuePsi;
+    if (myUseAssignment) {
+      GrExpression expression = factory.createExpressionFromText(myName + " = " + anchorText);
+      newExpressionPsi = (GrExpression)javaPsiElement.addBefore(expression, anchorPsiElement);
+      valuePsi = ((GrAssignmentExpression)newExpressionPsi).getRValue();
+    } else {
+      GrExpression expression = factory.createExpressionFromText(myName + " " + anchorText);
+      newExpressionPsi = (GrExpression)javaPsiElement.addBefore(expression, anchorPsiElement);
+      valuePsi = ((GrApplicationStatement)newExpressionPsi).getExpressionArguments()[0];
     }
-    else if (right instanceof GrReferenceExpression) {
-      myInternalVersionElement = new GradleDslReference(java, added, myName, (GrReferenceExpression)right);
+
+    if (valuePsi instanceof GrLiteral) {
+      myInternalVersionElement = new GradleDslLiteral(parent, newExpressionPsi, myName, (GrLiteral)valuePsi);
+    }
+    else if (valuePsi instanceof GrReferenceExpression) {
+      myInternalVersionElement = new GradleDslReference(parent, newExpressionPsi, myName, (GrReferenceExpression)valuePsi);
     }
     return getPsiElement();
   }
 
   @Override
   protected void delete() {
-    GrAssignmentExpression psiElement = getPsiElement();
+    GrExpression psiElement = getPsiElement();
     if (psiElement != null) {
       psiElement.delete();
     }

@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +35,7 @@ public final class AndroidModel {
   private static final String GENERATE_PURE_SPLITS = "generatePureSplits";
   private static final String PUBLISH_NON_DEFAULT = "publishNonDefault";
   private static final String RESOURCE_PREFIX = "resourcePrefix";
+
   // TODO: Add support for useLibrary
 
   private final AndroidDslElement myDslElement;
@@ -62,6 +65,28 @@ public final class AndroidModel {
   @NotNull
   public AndroidModel removeBuildToolsVersion() {
     myDslElement.removeProperty(BUILD_TOOLS_VERSION);
+    return this;
+  }
+
+  @Nullable
+  public CompileOptionsModel compileOptions() {
+    CompileOptionsDslElement element = myDslElement.getProperty(BaseCompileOptionsDslElement.NAME, CompileOptionsDslElement.class);
+    return element != null ? new CompileOptionsModel(element, false) : null;
+  }
+
+  @NotNull
+  public AndroidModel addCompileOptions() {
+    if (compileOptions() != null) {
+      return this;
+    }
+    CompileOptionsDslElement element = new CompileOptionsDslElement(myDslElement);
+    myDslElement.setNewElement(BaseCompileOptionsDslElement.NAME, element);
+    return this;
+  }
+
+  @NotNull
+  public AndroidModel removeCompileOptions() {
+    myDslElement.removeProperty(BaseCompileOptionsDslElement.NAME);
     return this;
   }
 

@@ -13,36 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.java;
+package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
-/**
- * Holds the data in addition to the project element, which added by Java plugin
- */
-public class JavaDslElement extends BaseCompileOptionsDslElement {
-  public static final String NAME = "java";
-
-  public JavaDslElement(@Nullable GradleDslElement parent) {
-    super(parent, NAME);
-  }
-
-  @Override
-  @Nullable
-  public GroovyPsiElement getPsiElement() {
-    return null; // This class just act as an intermediate class for java properties and doesn't represent any real element on the file.
-  }
-
-  @Override
-  @Nullable
-  public GroovyPsiElement create() {
-    return myParent == null ? null : myParent.create();
-  }
-
-  @Override
-  public void setPsiElement(@Nullable GroovyPsiElement psiElement) {
+public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
+  public CompileOptionsDslElement(@Nullable GradleDslElement parent) {
+    super(parent);
   }
 }
