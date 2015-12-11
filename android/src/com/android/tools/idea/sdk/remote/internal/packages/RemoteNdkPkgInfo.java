@@ -36,6 +36,7 @@ public class RemoteNdkPkgInfo extends RemotePkgInfo {
     mPkgDesc = PkgDesc.Builder.newNdk(getRevision())
       .setListDisplay("Android NDK")
       .setDescriptionShort("Android NDK")
+      .setLicense(getLicense())
       .create();
   }
 
