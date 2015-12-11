@@ -24,13 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 11, 2009
- * Time: 8:37:59 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidXmlResourcesDomTest extends AndroidDomTest {
   public AndroidXmlResourcesDomTest() {
     super(false, "dom/xml");

@@ -15,13 +15,15 @@
  */
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
+import com.android.resources.ResourceFolderType;
+import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.LevelList;
 
 public class LevelListDomFileDescription extends AbstractSingleRootFileDescription<LevelList> {
   public static final String TAG_NAME = "level-list";
 
   public LevelListDomFileDescription() {
-    super(LevelList.class, TAG_NAME);
+    super(LevelList.class, TAG_NAME, ResourceFolderType.DRAWABLE);
   }
 
   @Override

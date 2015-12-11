@@ -15,13 +15,15 @@
  */
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
+import com.android.resources.ResourceFolderType;
+import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.Ripple;
 
 public class RippleDomFileDescription extends AbstractSingleRootFileDescription<Ripple> {
   public static final String TAG_NAME = "ripple";
 
   public RippleDomFileDescription() {
-    super(Ripple.class, TAG_NAME);
+    super(Ripple.class, TAG_NAME, ResourceFolderType.DRAWABLE);
   }
 }
 

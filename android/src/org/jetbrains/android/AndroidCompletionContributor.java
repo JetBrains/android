@@ -64,9 +64,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.*;
 
-/**
- * @author coyote
- */
 public class AndroidCompletionContributor extends CompletionContributor {
 
   private static final String LAYOUT_ATTRIBUTE_PREFIX = "layout_";

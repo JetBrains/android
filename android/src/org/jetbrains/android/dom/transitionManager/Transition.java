@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.drawable.fileDescriptions;
+package org.jetbrains.android.dom.transitionManager;
 
-import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
-import org.jetbrains.android.dom.drawable.ColorDrawable;
+import org.jetbrains.android.dom.AndroidDomElement;
+import org.jetbrains.android.dom.Styleable;
 
-public class ColorDrawableDomFileDescription extends AbstractSingleRootFileDescription<ColorDrawable> {
-  public static final String TAG_NAME = "color";
-
-  public ColorDrawableDomFileDescription() {
-    super(ColorDrawable.class, TAG_NAME, ResourceFolderType.DRAWABLE);
-  }
+// Yes, <transition> element uses TransitionManager styleable, and
+// <transitionManager> doesn't use any styleables at all.
+@Styleable("TransitionManager")
+public interface Transition extends AndroidDomElement {
 }

@@ -15,12 +15,14 @@
  */
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
+import com.android.resources.ResourceFolderType;
+import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
 
 public class DrawableStateListDomFileDescription extends AbstractSingleRootFileDescription<DrawableSelector> {
   public static final String TAG_NAME = "selector";
 
   public DrawableStateListDomFileDescription() {
-    super(DrawableSelector.class, TAG_NAME);
+    super(DrawableSelector.class, TAG_NAME, ResourceFolderType.DRAWABLE);
   }
 }

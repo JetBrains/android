@@ -41,14 +41,14 @@ import org.jetbrains.android.dom.color.ColorDomElement;
 import org.jetbrains.android.dom.color.ColorStateListItem;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
-import org.jetbrains.android.dom.drawable.*;
+import org.jetbrains.android.dom.drawable.DrawableDomElement;
+import org.jetbrains.android.dom.drawable.DrawableStateListItem;
 import org.jetbrains.android.dom.layout.*;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.dom.resources.ResourceValue;
-import org.jetbrains.android.dom.transition.*;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.Intent;
 import org.jetbrains.android.dom.xml.PreferenceElement;
@@ -66,7 +66,6 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static org.jetbrains.android.dom.transition.TransitionDomUtil.*;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
@@ -686,31 +685,35 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       registerExtensionsForXmlResources(facet, tag, (XmlResourceElement)element, callback, registeredSubtags, skippedAttributes);
     }
     else if (element instanceof DrawableDomElement || element instanceof ColorDomElement) {
-      registerExtensionsForDrawable(facet, tagName, element, callback, skippedAttributes);
-    }
-    else if (element instanceof TransitionDomElement) {
-      registerExtensionsForTransition(facet, tagName, (TransitionDomElement)element, callback, registeredSubtags, skippedAttributes);
+      registerExtensionsForDrawable(facet, element, callback, skippedAttributes);
     }
 
     // If DOM element is annotated with @Styleable annotation, load a styleable definition
     // from Android framework with the name provided in annotation and register all attributes
     // from it for code highlighting and completion.
     final Styleable styleableAnnotation = element.getAnnotation(Styleable.class);
-    if (styleableAnnotation != null) {
-      final SystemResourceManager manager = facet.getSystemResourceManager();
-      final String styleableName = styleableAnnotation.value();
-      if (manager != null) {
-        final AttributeDefinitions definitions = manager.getAttributeDefinitions();
-        if (definitions != null) {
-          final StyleableDefinition styleable = definitions.getStyleableByName(styleableName);
-          if (styleable == null) {
-            // DOM element is annotated with @Styleable annotation, but styleable definition with
-            // provided name is not there in Android framework. This is a bug, so logging it as a warning.
-            LOG.warn(String.format("@Styleable(%s) annotation doesn't point to existing styleable", styleableName));
-          } else {
-            registerStyleableAttributes(element, styleable, ANDROID_URI, callback, null, skippedAttributes);
-          }
-        }
+    if (styleableAnnotation == null) {
+      return;
+    }
+
+    final SystemResourceManager manager = facet.getSystemResourceManager();
+    if (manager == null) {
+      return;
+    }
+
+    final AttributeDefinitions definitions = manager.getAttributeDefinitions();
+    if (definitions == null) {
+      return;
+    }
+
+    for (String styleableName : styleableAnnotation.value()) {
+      final StyleableDefinition styleable = definitions.getStyleableByName(styleableName);
+      if (styleable == null) {
+        // DOM element is annotated with @Styleable annotation, but styleable definition with
+        // provided name is not there in Android framework. This is a bug, so logging it as a warning.
+        LOG.warn(String.format("@Styleable(%s) annotation doesn't point to existing styleable", styleableName));
+      } else {
+        registerStyleableAttributes(element, styleable, ANDROID_URI, callback, null, skippedAttributes);
       }
     }
   }
@@ -731,7 +734,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   }
 
   private static void registerExtensionsForDrawable(AndroidFacet facet,
-                                                    String tagName,
                                                     AndroidDomElement element,
                                                     MyCallback callback,
                                                     Set<XmlName> skipAttrNames) {
@@ -741,86 +743,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         registerAttributes(facet, element, attrDefs.getStateStyleables(), SYSTEM_RESOURCE_PACKAGE, callback, null, skipAttrNames);
       }
     }
-  }
-
-  public static void registerExtensionsForTransition(final AndroidFacet facet,
-                                                     String tagName,
-                                                     TransitionDomElement element,
-                                                     MyCallback callback,
-                                                     Set<String> registeredSubTags,
-                                                     Set<XmlName> skipAttrNames) {
-    if (tagName.equals(FADE_TAG)) {
-      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "Fade");
-    }
-    else if (tagName.equals(TRANSITION_SET_TAG)) {
-      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "TransitionSet");
-
-      registerSubtags(TRANSITION_SET_TAG, TransitionSet.class, callback, registeredSubTags);
-
-      // See TransitionInflater#createTransitionFromXml:
-      registerSubtags(FADE_TAG, Fade.class, callback, registeredSubTags);
-      registerSubtags(CHANGE_BOUNDS_TAG, ChangeBounds.class, callback, registeredSubTags);
-      registerSubtags(SLIDE_TAG, Slide.class, callback, registeredSubTags);
-      registerSubtags(EXPLODE_TAG, Explode.class, callback, registeredSubTags);
-      registerSubtags(CHANGE_IMAGE_TRANSFORM_TAG, ChangeImageTransform.class, callback, registeredSubTags);
-      registerSubtags(CHANGE_TRANSFORM_TAG, ChangeTransform.class, callback, registeredSubTags);
-      registerSubtags(CHANGE_CLIP_BOUNDS_TAG, ChangeClipBounds.class, callback, registeredSubTags);
-      registerSubtags(AUTO_TRANSITION_TAG, AutoTransition.class, callback, registeredSubTags);
-      registerSubtags(RECOLOR_TAG, Recolor.class, callback, registeredSubTags);
-      registerSubtags(CHANGE_SCROLL_TAG, ChangeScroll.class, callback, registeredSubTags);
-      registerSubtags(ARC_MOTION_TAG, ArcMotion.class, callback, registeredSubTags);
-      registerSubtags(PATH_MOTION_TAG, PathMotion.class, callback, registeredSubTags);
-      registerSubtags(PATTERN_PATH_MOTION_TAG, PatternPathMotion.class, callback, registeredSubTags);
-      registerSubtags(TRANSITION_TAG, TransitionSetTransition.class, callback, registeredSubTags);
-
-    }
-    else if (tagName.equals(TRANSITION_MANAGER_TAG)) {
-      registerSubtags(TRANSITION_TAG, TransitionTag.class, callback, registeredSubTags);
-    }
-    else if (tagName.equals(TRANSITION_TAG)) {
-      registerAttributes(facet, element, "TransitionManager", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    }
-    else if (tagName.equals(TARGETS_TAG)) {
-      registerSubtags(TARGET_TAG, Target.class, callback, registeredSubTags);
-    }
-    else if (tagName.equals(TARGET_TAG)) {
-      registerAttributes(facet, element, "TransitionTarget", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    }
-    else if (tagName.equals(SLIDE_TAG)) {
-      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "Slide");
-    }
-    else if (tagName.equals(CHANGE_TRANSFORM_TAG)) {
-      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "ChangeTransform");
-    }
-    else if (tagName.equals(ARC_MOTION_TAG)) {
-      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "ArcMotion");
-    }
-    else if (tagName.equals(PATTERN_PATH_MOTION_TAG)) {
-      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, "PatternPathMotion");
-    }
-    else if (tagName.equals(AUTO_TRANSITION_TAG) ||
-             tagName.equals(CHANGE_BOUNDS_TAG) ||
-             tagName.equals(EXPLODE_TAG) ||
-             tagName.equals(CHANGE_IMAGE_TRANSFORM_TAG) ||
-             tagName.equals(CHANGE_CLIP_BOUNDS_TAG) ||
-             tagName.equals(RECOLOR_TAG) ||
-             tagName.equals(CHANGE_SCROLL_TAG) ||
-             tagName.equals(PATH_MOTION_TAG)) {
-      registerTransition(facet, element, callback, registeredSubTags, skipAttrNames, null);
-    }
-  }
-
-  public static void registerTransition(AndroidFacet facet,
-                                        TransitionDomElement element,
-                                        MyCallback callback,
-                                        Set<String> registeredSubTags,
-                                        Set<XmlName> skipAttrNames,
-                                        @Nullable String specific) {
-    registerAttributes(facet, element, "Transition", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    if (specific != null) {
-      registerAttributes(facet, element, specific, SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-    }
-    registerSubtags(TARGETS_TAG, Targets.class, callback, registeredSubTags);
   }
 
   @Nullable

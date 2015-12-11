@@ -15,12 +15,14 @@
  */
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
+import com.android.resources.ResourceFolderType;
+import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.BitmapElement;
 
 public class BitmapDomFileDescription extends AbstractSingleRootFileDescription<BitmapElement> {
   public static final String TAG_NAME = "bitmap";
 
   public BitmapDomFileDescription() {
-    super(BitmapElement.class, TAG_NAME);
+    super(BitmapElement.class, TAG_NAME, ResourceFolderType.DRAWABLE);
   }
 }

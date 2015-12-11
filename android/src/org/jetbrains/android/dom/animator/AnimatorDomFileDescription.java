@@ -7,12 +7,9 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AnimatorDomFileDescription extends AndroidResourceDomFileDescription<AnimatorElement> {
   public AnimatorDomFileDescription() {
-    super(AnimatorElement.class, "set", ResourceFolderType.ANIMATOR.getName());
+    super(AnimatorElement.class, "set", ResourceFolderType.ANIMATOR);
   }
 
   @Override

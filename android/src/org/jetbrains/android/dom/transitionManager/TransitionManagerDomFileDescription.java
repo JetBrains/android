@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.drawable.fileDescriptions;
+package org.jetbrains.android.dom.transitionManager;
 
 import com.android.resources.ResourceFolderType;
 import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
-import org.jetbrains.android.dom.drawable.ColorDrawable;
 
-public class ColorDrawableDomFileDescription extends AbstractSingleRootFileDescription<ColorDrawable> {
-  public static final String TAG_NAME = "color";
-
-  public ColorDrawableDomFileDescription() {
-    super(ColorDrawable.class, TAG_NAME, ResourceFolderType.DRAWABLE);
+/**
+ * File description for transition managers
+ * Parsing code in the framework: TransitionInflater#createTransitionManagerFromXml
+ */
+public class TransitionManagerDomFileDescription extends AbstractSingleRootFileDescription<TransitionManager> {
+  public TransitionManagerDomFileDescription() {
+    super(TransitionManager.class, "transitionManager", ResourceFolderType.TRANSITION);
   }
 }
