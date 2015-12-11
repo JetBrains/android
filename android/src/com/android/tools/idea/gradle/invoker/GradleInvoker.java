@@ -230,7 +230,23 @@ public class GradleInvoker {
                            final boolean waitForCompletion) {
     // Inject instant run attributes?
     if (FastDeployManager.isInstantRunEnabled(myProject)) {
-      commandLineArguments = FastDeployManager.get(myProject).updateGradleCommandLine(commandLineArguments);
+      // 194996: Don't instrument classes when running as test
+      // The Gradle plugin shouldn't instrument classes when about to run as
+      // a test. We need to not pass the instant run options in that case.
+      // TODO: Remove dependency on task name.
+      // Either GradleInvoker needs to be aware of what it is building, or this logic needs to be in the gradle plugin.
+      boolean isTest = false;
+      for (String task : gradleTasks) {
+        if (task.endsWith("UnitTestSources") || task.endsWith("AndroidTestSources")) {
+          // When the Gradle plugin supports 10x in instrumentation
+          // tests, allow instant run to be enabled for android test sources.
+          isTest = true;
+          break;
+        }
+      }
+      if (!isTest) {
+        commandLineArguments = FastDeployManager.get(myProject).updateGradleCommandLine(commandLineArguments);
+      }
     }
 
     LOG.info("About to execute Gradle tasks: " + gradleTasks);
