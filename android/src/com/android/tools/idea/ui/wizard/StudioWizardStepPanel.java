@@ -44,7 +44,9 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
    */
   private static final String BLANK = " ";
   private static final JBColor ERROR_COLOR = JBColor.RED;
-  private static final JBColor WARNING_COLOR = new JBColor(JBColor.YELLOW.darker(), JBColor.YELLOW.brighter());
+
+  // JBColors should be composed of regular Colors
+  @SuppressWarnings("UseJBColor") private static final JBColor WARNING_COLOR = new JBColor(Color.YELLOW.darker(), Color.YELLOW);
 
   private final ListenerManager myListeners = new ListenerManager();
   private final Map<ObservableValue<?>, String> myErrors = Maps.newLinkedHashMap();
