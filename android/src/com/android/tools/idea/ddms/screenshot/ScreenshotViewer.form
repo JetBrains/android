@@ -23,7 +23,7 @@
               </grid>
             </constraints>
             <properties>
-              <text value="Reload"/>
+              <text value="Recapture"/>
             </properties>
           </component>
           <component id="5b10a" class="javax.swing.JButton" binding="myRotateButton">
