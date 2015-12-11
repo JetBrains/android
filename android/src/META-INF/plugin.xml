@@ -120,11 +120,11 @@
     <action id="LegacyNewAndroidComponent" class="com.android.tools.idea.actions.LegacyNewAndroidComponentAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
-    <action id="NewAndroidVectorAssetImage" class="com.android.tools.idea.actions.AndroidVectorAssetStudioAction">
+    <action id="NewAndroidImageAsset" class="com.android.tools.idea.actions.NewImageAssetAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
-    <action id="NewAndroidAssetImage" class="com.android.tools.idea.actions.AndroidAssetStudioAction">
-      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
+    <action id="NewAndroidVectorAsset" class="com.android.tools.idea.actions.NewVectorAssetAction">
+      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewAndroidImageAsset"/>
     </action>
     <action id="Android.CreateResourcesActionGroup" text="Android resource file" class="org.jetbrains.android.actions.CreateResourceFileActionGroup">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
