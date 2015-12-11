@@ -21,6 +21,9 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 
+/**
+ * Framework code: ColorStateList#createFromXml
+ */
 public class ColorDomFileDescription extends AndroidResourceDomFileDescription<ColorSelector> {
   public ColorDomFileDescription() {
     super(ColorSelector.class, "selector", ResourceFolderType.COLOR);

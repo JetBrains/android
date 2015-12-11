@@ -20,9 +20,6 @@ import org.jetbrains.android.dom.Styleable;
 
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @DefinesXml
 @Styleable("StateListDrawable")
 public interface DrawableSelector extends DrawableDomElement {

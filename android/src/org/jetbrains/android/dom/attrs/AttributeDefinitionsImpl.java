@@ -45,9 +45,6 @@ import static com.android.SdkConstants.ATTR_VALUE;
 import static com.android.SdkConstants.ATTR_FORMAT;
 import static com.android.SdkConstants.ATTR_PARENT;
 
-/**
- * @author yole
- */
 public class AttributeDefinitionsImpl implements AttributeDefinitions {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl");
 
@@ -57,7 +54,6 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   private Map<String, AttributeDefinition> myAttrs = new HashMap<String, AttributeDefinition>();
   private Map<String, StyleableDefinitionImpl> myStyleables = new HashMap<String, StyleableDefinitionImpl>();
 
-  private final List<StyleableDefinition> myStateStyleables = new ArrayList<StyleableDefinition>();
   private final Map<String, Map<String, Integer>> myEnumMap = new HashMap<String, Map<String, Integer>>();
 
   public AttributeDefinitionsImpl(@NotNull XmlFile... files) {
@@ -259,10 +255,6 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
     myStyleables.put(name, def);
 
-    if (name.endsWith("State")) {
-      myStateStyleables.add(def);
-    }
-
     for (XmlTag subTag : tag.findSubTags(TAG_ATTR)) {
       parseStyleableAttr(def, subTag);
     }
@@ -326,12 +318,6 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       return null;
     }
     return myAttrs.get(name).getAttrGroup();
-  }
-
-  @NotNull
-  @Override
-  public StyleableDefinition[] getStateStyleables() {
-    return myStateStyleables.toArray(new StyleableDefinition[myStateStyleables.size()]);
   }
 
   @NotNull
