@@ -128,11 +128,13 @@ public final class Render {
     boolean needComma = false;
     for (int i = 0; i < atom.getFieldCount(); ++i) {
       if (i == resultIndex || i == extrasIndex) continue;
+      Field field = atom.getFieldInfo(i);
       if (needComma) {
-        component.append(", ", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+        component.append(", " + field.getDeclared() + ":", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      } else {
+        component.append(field.getDeclared() + ":", SimpleTextAttributes.REGULAR_ATTRIBUTES);
       }
       needComma = true;
-      Field field = atom.getFieldInfo(i);
       Object parameterValue = atom.getFieldValue(i);
       render(parameterValue, field.getType(), component, attributes);
     }
