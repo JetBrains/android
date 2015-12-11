@@ -55,12 +55,10 @@ final class CallGetDevices implements BinaryObject {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      CallGetDevices o = (CallGetDevices)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      CallGetDevices o = (CallGetDevices)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }
