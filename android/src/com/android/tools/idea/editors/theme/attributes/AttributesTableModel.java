@@ -23,7 +23,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.ThemeAttributeResolver;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
@@ -51,7 +51,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   protected final List<EditedStyleItem> myAttributes;
   private List<TableLabel> myLabels;
 
-  protected final ThemeEditorStyle mySelectedStyle;
+  protected final ConfiguredThemeEditorStyle mySelectedStyle;
 
   private final AttributesGrouper.GroupBy myGroupBy;
   private final ThemeEditorContext myContext;
@@ -77,7 +77,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return builder.build();
   }
 
-  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle,
+  public AttributesTableModel(@NotNull ConfiguredThemeEditorStyle selectedStyle,
                               @NotNull AttributesGrouper.GroupBy groupBy,
                               @NotNull ThemeEditorContext context) {
     myContext = context;
@@ -175,7 +175,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   @NotNull
-  public ThemeEditorStyle getSelectedStyle() {
+  public ConfiguredThemeEditorStyle getSelectedStyle() {
     return mySelectedStyle;
   }
 
@@ -210,7 +210,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public void setValueAt(int column, String newName) {
-      ThemeEditorStyle parent = mySelectedStyle.getParent();
+      ConfiguredThemeEditorStyle parent = mySelectedStyle.getParent();
       if (parent == null || !parent.getQualifiedName().equals(newName)) {
         // Changes the value of parent in XML
         mySelectedStyle.setParent(newName);
@@ -326,7 +326,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       if (urlType == ResourceType.STYLE) {
-        return ThemeEditorStyle.class;
+        return ConfiguredThemeEditorStyle.class;
       }
 
       if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Flag)) {

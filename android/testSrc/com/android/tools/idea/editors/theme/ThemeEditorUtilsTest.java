@@ -16,23 +16,17 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.tests.gui.theme.ThemeEditorTestUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,12 +35,10 @@ import org.apache.commons.io.FileUtils;
 import org.fest.assertions.Index;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -86,7 +78,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertNotNull(androidTarget);
     sdkPlatformPath += "platforms/android-" + androidTarget.getVersion().getApiString();
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
+    ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
     assertNotNull(theme);
 
     Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(theme);
@@ -105,7 +97,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
+    ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
     assertNotNull(theme);
 
     Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(theme);

@@ -61,8 +61,8 @@ import java.util.*;
 /**
  * Wrapper for style configurations that allows modifying attributes directly in the XML file.
  */
-public class ThemeEditorStyle {
-  private static final Logger LOG = Logger.getInstance(ThemeEditorStyle.class);
+public class ConfiguredThemeEditorStyle {
+  private static final Logger LOG = Logger.getInstance(ConfiguredThemeEditorStyle.class);
 
   private final @NotNull StyleResourceValue myStyleResourceValue;
   private final @NotNull Configuration myConfiguration;
@@ -74,9 +74,9 @@ public class ThemeEditorStyle {
    */
   private final @Nullable Module mySourceModule;
 
-  public ThemeEditorStyle(final @NotNull Configuration configuration,
-                          final @NotNull StyleResourceValue styleResourceValue,
-                          final @Nullable Module sourceModule) {
+  public ConfiguredThemeEditorStyle(final @NotNull Configuration configuration,
+                                    final @NotNull StyleResourceValue styleResourceValue,
+                                    final @Nullable Module sourceModule) {
     myStyleResourceValue = styleResourceValue;
     myConfiguration = configuration;
     myProject = configuration.getModule().getProject();
@@ -286,7 +286,7 @@ public class ThemeEditorStyle {
   /**
    * See {@link #getParent(ThemeResolver)}
    */
-  public ThemeEditorStyle getParent() {
+  public ConfiguredThemeEditorStyle getParent() {
     return getParent(null);
   }
 
@@ -297,7 +297,7 @@ public class ThemeEditorStyle {
   public Collection<ConfiguredElement<String>> getParentNames() {
     if (isFramework()) {
       // Framework themes do not have multiple parents so we just get the only one.
-      ThemeEditorStyle parent = getParent();
+      ConfiguredThemeEditorStyle parent = getParent();
       if (parent != null) {
         return ImmutableList.of(ConfiguredElement.create(new FolderConfiguration(), parent.getQualifiedName()));
       }
@@ -333,7 +333,7 @@ public class ThemeEditorStyle {
    * @return the style parent
    */
   @Nullable("if this is a root style")
-  public ThemeEditorStyle getParent(@Nullable ThemeResolver themeResolver) {
+  public ConfiguredThemeEditorStyle getParent(@Nullable ThemeResolver themeResolver) {
     ResourceResolver resolver = myConfiguration.getResourceResolver();
     assert resolver != null;
 
@@ -615,11 +615,11 @@ public class ThemeEditorStyle {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj == null || (!(obj instanceof ThemeEditorStyle))) {
+    if (obj == null || (!(obj instanceof ConfiguredThemeEditorStyle))) {
       return false;
     }
 
-    return getQualifiedName().equals(((ThemeEditorStyle)obj).getQualifiedName());
+    return getQualifiedName().equals(((ConfiguredThemeEditorStyle)obj).getQualifiedName());
   }
 
   @Override
