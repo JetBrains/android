@@ -41,6 +41,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.*;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -80,6 +81,16 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   private Predicate<SystemImageDescription> myFilter;
   private static final String ERROR_KEY = "error";
   private static final String LOADING_KEY = "loading";
+
+  private static final Map<Abi, Integer> DEFAULT_ABI_SORT_ORDER = new ContainerUtil.ImmutableMapBuilder<Abi, Integer>()
+    .put(Abi.MIPS64, 0)
+    .put(Abi.MIPS, 1)
+    .put(Abi.ARM64_V8A, 2)
+    .put(Abi.ARMEABI, 3)
+    .put(Abi.ARMEABI_V7A, 4)
+    .put(Abi.X86_64, 5)
+    .put(Abi.X86, 6)
+    .build();
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
@@ -341,31 +352,55 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     myListeners.add(listener);
   }
 
+
   public void selectDefaultImage() {
     AndroidVersion maxVersion = null;
+    int maxAbi = -1;
     SystemImageDescription best = null;
+
     for (SystemImageDescription desc : myModel.getItems()) {
-      AndroidVersion version = desc.getVersion();
-      if (!desc.isRemote() &&
-          (maxVersion == null ||
-           (version != null &&
-            (version.compareTo(maxVersion) > 0 || (version.equals(maxVersion) && desc.getAbiType().equals(Abi.X86.getCpuArch())))))) {
-        best = desc;
-        maxVersion = best.getVersion();
+      if (!desc.isRemote()) {
+        Abi abi = Abi.getEnum(desc.getAbiType());
+        int abiRank = -1;
+        if (abi != null && DEFAULT_ABI_SORT_ORDER.containsKey(abi)) {
+          abiRank = DEFAULT_ABI_SORT_ORDER.get(abi);
+        }
+
+        AndroidVersion version = desc.getVersion();
+
+        if (isBestDefault(abiRank, version, desc.getTag(), maxAbi, maxVersion)) {
+          best = desc;
+          maxAbi = abiRank;
+          maxVersion = version;
+        }
       }
     }
     setSelectedImage(best);
   }
 
+  private static boolean isBestDefault(int abiRank,
+                                       AndroidVersion version,
+                                       IdDisplay tag,
+                                       int maxAbi,
+                                       AndroidVersion maxVersion) {
+    int res = abiRank - maxAbi;
+    if (res != 0) {
+      return res > 0;
+    }
+    res = version.compareTo(maxVersion);
+    if (res != 0) {
+      return res > 0;
+    }
+    if (tag != null && tag.equals(AvdManagerConnection.GOOGLE_APIS_TAG)) {
+      return true;
+    }
+    return false;
+  }
+
+
   public void setSelectedImage(@Nullable SystemImageDescription selectedImage) {
     if (selectedImage != null) {
-      for (SystemImageDescription listItem : myModel.getItems()) {
-        if (selectedImage.getVersion().equals(listItem.getVersion()) &&
-            selectedImage.getAbiType().equals(listItem.getAbiType())) {
-          myTable.setSelection(ImmutableSet.of(listItem));
-          return;
-        }
-      }
+      myTable.setSelection(ImmutableSet.of(selectedImage));
     } else {
       myTable.clearSelection();
     }
