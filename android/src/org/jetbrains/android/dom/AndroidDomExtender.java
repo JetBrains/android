@@ -219,9 +219,10 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       if (styleable != null) {
         registerStyleableAttributes(element, styleable, namespace, callback, processor, skipNames);
       }
-      else {
-        LOG.warn(String.format("Styleable %s not found", name));
-      }
+      // It's a good idea to add a warning when styleable not found, to make sure that code doesn't
+      // try to use attributes that don't exist. However, current AndroidDomExtender code relies on
+      // a lot of "heuristics" that fail quite a lot (like adding a bunch of suffixes to short class names)
+      // TODO: add a warning when rest of the code of AndroidDomExtender is cleaned up
     }
   }
 
