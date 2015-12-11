@@ -1,0 +1,5 @@
+FILE(0,7)
+  PsiDbSignChangeExprImpl(SIGN_CHANGE_EXPR)(0,7)
+    PsiElement(-)('-')(0,1)
+    PsiDbLiteralExprImpl(LITERAL_EXPR)(1,7)
+      PsiElement(FLOAT_LITERAL)('1.001f')(1,7)
