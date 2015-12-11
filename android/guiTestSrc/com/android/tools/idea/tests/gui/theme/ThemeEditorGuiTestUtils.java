@@ -15,20 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.editors.theme.ThemeAttributeResolver;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Sets;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.ui.components.JBList;
 import org.fest.swing.cell.JListCellReader;
@@ -38,14 +29,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * Utility class for static methods used in UI tests for the Theme Editor
  */
-public class ThemeEditorTestUtils {
-  private ThemeEditorTestUtils() {}
+public class ThemeEditorGuiTestUtils {
+  private ThemeEditorGuiTestUtils() {}
 
   @NotNull
   public static ThemeEditorFixture openThemeEditor(@NotNull IdeFrameFixture projectFrame) {
@@ -63,24 +52,6 @@ public class ThemeEditorTestUtils {
     themeEditor.getThemePreviewPanel().getPreviewPanel().waitForRender();
 
     return themeEditor;
-  }
-
-  /**
-   * Returns the attributes that were defined in the theme itself and not its parents.
-   */
-  public static Collection<EditedStyleItem> getStyleLocalValues(@NotNull final ConfiguredThemeEditorStyle style) {
-    final Set<String> localAttributes = Sets.newHashSet();
-    for (ConfiguredElement<ItemResourceValue> value : style.getConfiguredValues()) {
-      localAttributes.add(ResolutionUtils.getQualifiedItemName(value.getElement()));
-    }
-
-    return Collections2.filter(ThemeAttributeResolver.resolveAll(style, style.getConfiguration().getConfigurationManager()), new Predicate<EditedStyleItem>() {
-      @Override
-      public boolean apply(@javax.annotation.Nullable EditedStyleItem input) {
-        assert input != null;
-        return localAttributes.contains(input.getQualifiedName());
-      }
-    });
   }
 
   /**
