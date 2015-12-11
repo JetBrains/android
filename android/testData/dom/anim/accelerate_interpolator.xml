@@ -1,0 +1,5 @@
+<accelerateInterpolator
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:factor="1.0"
+    <warning>android:notAnInterpolatorAttribute</warning>="1"
+    />
