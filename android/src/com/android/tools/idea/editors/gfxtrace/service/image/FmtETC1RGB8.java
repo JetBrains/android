@@ -61,12 +61,10 @@ final class FmtETC1RGB8 extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtETC1RGB8 o = (FmtETC1RGB8)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtETC1RGB8 o = (FmtETC1RGB8)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

@@ -15,28 +15,23 @@
  */
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
-import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.service.Factory;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public final class GapisProcess extends ChildProcess {
-  @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
+  @NotNull private static final Logger LOG = Logger.getInstance(GapisProcess.class);
   private static final Object myInstanceLock = new Object();
   private static GapisProcess myInstance;
   private static final GapisConnection NOT_CONNECTED = new GapisConnection(null, null);

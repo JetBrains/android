@@ -17,12 +17,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
-import com.android.tools.rpclib.schema.*;
 import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.rpclib.binary.*;
-import com.android.tools.idea.editors.gfxtrace.renderers.Render;
-import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.SimpleTextAttributes;
+import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultMutableTreeNode;
