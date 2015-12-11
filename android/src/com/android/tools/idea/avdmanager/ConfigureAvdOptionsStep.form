@@ -341,7 +341,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="a77d" class="com.android.tools.idea.avdmanager.StorageField" binding="myRamStorage">
+              <component id="453cb" class="com.android.tools.idea.avdmanager.legacy.StorageField" binding="myRamStorage">
                 <constraints>
                   <grid row="22" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="200" height="-1"/>
@@ -349,7 +349,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="9541c" class="com.android.tools.idea.avdmanager.StorageField" binding="myVmHeapStorage">
+              <component id="a1563" class="com.android.tools.idea.avdmanager.legacy.StorageField" binding="myVmHeapStorage">
                 <constraints>
                   <grid row="23" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="200" height="-1"/>
@@ -357,7 +357,7 @@
                 </constraints>
                 <properties/>
               </component>
-              <component id="b5a06" class="com.android.tools.idea.avdmanager.StorageField" binding="myInternalStorage">
+              <component id="28327" class="com.android.tools.idea.avdmanager.legacy.StorageField" binding="myInternalStorage">
                 <constraints>
                   <grid row="24" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="200" height="-1"/>
@@ -373,7 +373,7 @@
                   <text value="Studio-managed"/>
                 </properties>
               </component>
-              <component id="dd59d" class="com.android.tools.idea.avdmanager.StorageField" binding="myNewSdCardStorage">
+              <component id="6fbb1" class="com.android.tools.idea.avdmanager.legacy.StorageField" binding="myNewSdCardStorage">
                 <constraints>
                   <grid row="25" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="9" fill="0" indent="0" use-parent-layout="false">
                     <preferred-size width="200" height="-1"/>
@@ -505,7 +505,7 @@
                   <text value="Enable Device Frame"/>
                 </properties>
               </component>
-              <component id="23213" class="com.android.tools.idea.avdmanager.SkinChooser" binding="mySkinComboBox" custom-create="true">
+              <component id="8c4c7" class="com.android.tools.idea.avdmanager.legacy.SkinChooser" binding="mySkinComboBox" custom-create="true">
                 <constraints>
                   <grid row="29" column="2" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
