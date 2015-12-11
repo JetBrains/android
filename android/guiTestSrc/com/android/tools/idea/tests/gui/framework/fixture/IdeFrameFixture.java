@@ -863,7 +863,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       @Override
       public boolean test() {
         for (Frame frame : Frame.getFrames()) {
-          if (frame instanceof WelcomeFrame && frame.isShowing()) {
+          if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
             return true;
           }
         }
