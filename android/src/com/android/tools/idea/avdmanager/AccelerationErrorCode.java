@@ -52,11 +52,9 @@ public enum AccelerationErrorCode {
   NO_EMULATOR_INSTALLED(-2, "No emulator installed", DOWNLOAD_EMULATOR, "Please download the emulator"),
   TOOLS_UPDATE_REQUIRED(-3, "Emulator is outdated", UPDATE_EMULATOR, "Please download the newest tools"),
   NOT_ENOUGH_MEMORY(-4, "Not enough memory to run HAXM", NONE, "Get more available memory for HAXM"),
-  CANNOT_INSTALL_ON_WINDOWS(-5, "Cannot install on Windows.", NONE, "Install HAXM by hand."),
-  CANNOT_INSTALL_ON_THIS_OS(-6, "HAXM can only be installed on Windows or Mac.", NONE, "Please file a bug against Android Studio."),
-  PLATFORM_TOOLS_UPDATE_ADVISED(-7, "Platform tools update is available", UPDATE_PLATFORM_TOOLS, "Please download platform tools"),
-  SYSTEM_IMAGE_UPDATE_ADVISED(-8, "System image update is available", UPDATE_SYSTEM_IMAGES, "Please update system images");
-
+  CANNOT_INSTALL_ON_THIS_OS(-5, "HAXM can only be installed on Windows or Mac.", NONE, "Please file a bug against Android Studio."),
+  PLATFORM_TOOLS_UPDATE_ADVISED(-6, "Platform tools update is available", UPDATE_PLATFORM_TOOLS, "Please download platform tools"),
+  SYSTEM_IMAGE_UPDATE_ADVISED(-7, "System image update is available", UPDATE_SYSTEM_IMAGES, "Please update system images");
 
   private int myErrorCode;
   private String myProblem;
