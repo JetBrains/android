@@ -2081,7 +2081,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           }
         }
 
-        if (allowedValues.types.isEmpty() && expression.getType() == PsiType.INT) {
+        if (allowedValues.types.isEmpty() && PsiType.INT.equals(expression.getType())) {
           // Passing literal integer to a color
           return VALID;
         }
