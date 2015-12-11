@@ -1242,16 +1242,16 @@ public class LombokPsiParser extends JavaParser {
             } else if (returnType != null && returnType.getCanonicalText().equals(CommonClassNames.JAVA_LANG_ANNOTATION_ANNOTATION)) {
               //noinspection SSBasedInspection,SuspiciousToArrayCall
               return list.toArray(new Annotation[list.size()]);
-            } else if (returnType == PsiType.INT) {
+            } else if (PsiType.INT.equals(returnType)) {
               //noinspection SSBasedInspection,SuspiciousToArrayCall
               return list.toArray(new Integer[list.size()]);
-            } else if (returnType == PsiType.LONG) {
+            } else if (PsiType.LONG.equals(returnType)) {
               //noinspection SSBasedInspection,SuspiciousToArrayCall
               return list.toArray(new Long[list.size()]);
-            } else if (returnType == PsiType.DOUBLE) {
+            } else if (PsiType.DOUBLE.equals(returnType)) {
               //noinspection SSBasedInspection,SuspiciousToArrayCall
               return list.toArray(new Double[list.size()]);
-            } else if (returnType == PsiType.FLOAT) {
+            } else if (PsiType.FLOAT.equals(returnType)) {
               //noinspection SSBasedInspection,SuspiciousToArrayCall
               return list.toArray(new Float[list.size()]);
             }

@@ -404,7 +404,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     if (resourceType == ResourceType.DIMEN) {
       // Choose between getDimensionPixelSize and getDimension based on whether we're needing an int or a float
       PsiType targetType = computeTargetType(element);
-      if (targetType != null && targetType == PsiType.INT) {
+      if (targetType != null && PsiType.INT.equals(targetType)) {
         return "getDimensionPixelSize";
       }
       return "getDimension";
