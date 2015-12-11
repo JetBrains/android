@@ -20,7 +20,6 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
-import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -34,19 +33,15 @@ import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ProgramRunner;
-import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
-import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
 
 public class AndroidDebugRunner extends DefaultProgramRunner {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidDebugRunner");
@@ -132,12 +127,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       MyDebugLauncher launcher = new MyDebugLauncher(this, state, environment);
       state.setDebugLauncher(launcher);
 
-      descriptor = embedToExistingSession(environment.getProject(), environment.getExecutor(), state);
-      if (descriptor != null) {
-        launcher.setRunDescriptor(descriptor);
-        return null;
-      }
-
       descriptor = super.doExecute(state, environment);
       if (descriptor == null) {
         return null;
@@ -149,63 +138,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, descriptor, state, environment.getExecutor().getId()));
     descriptor.setActivateToolWindowWhenAdded(false);
     return descriptor;
-  }
-
-  @Nullable
-  protected static RunContentDescriptor embedToExistingSession(@NotNull final Project project,
-                                                               @NotNull final Executor executor,
-                                                               @NotNull final AndroidRunningState state) {
-    final AndroidSessionInfo oldSessionInfo = AndroidSessionManager.findOldSession(project, executor, state.getRunConfigurationId());
-
-    if (oldSessionInfo == null || !oldSessionInfo.isEmbeddable()) {
-      return null;
-    }
-    final AndroidExecutionState oldState = oldSessionInfo.getState();
-    final ConsoleView oldConsole = oldState.getConsoleView();
-
-    if (oldState.getDevices() == null || !oldState.getDevices().equals(state.getDevices())) {
-      return null;
-    }
-
-    oldSessionInfo.getProcessHandler().detachProcess();
-    state.setConsole(oldConsole);
-    final RunContentDescriptor oldDescriptor = oldSessionInfo.getDescriptor();
-    ProcessHandler newProcessHandler;
-    if (oldDescriptor.getProcessHandler() instanceof RemoteDebugProcessHandler) {
-      newProcessHandler = oldDescriptor.getProcessHandler();
-      newProcessHandler.destroyProcess();
-    } else {
-      newProcessHandler = new DefaultDebugProcessHandler();
-    }
-    oldDescriptor.setProcessHandler(newProcessHandler);
-    state.setProcessHandler(newProcessHandler);
-    oldConsole.attachToProcess(newProcessHandler);
-    AndroidProcessText.attach(newProcessHandler);
-    newProcessHandler.notifyTextAvailable("The session was restarted\n", STDOUT);
-
-    state.addListener(new AndroidRunningStateListener() {
-      @Override
-      public void executionFailed() {
-        LaunchUtils.showNotification(project, executor, oldDescriptor, "Error", NotificationType.ERROR);
-      }
-
-      @Override
-      public void executionStarted(@NotNull IDevice device) {
-        // no need to show for debug executor: debug launches open the tool window, and even if not, the debug runner will show
-        // the notification when it attaches to the debugger, we don't want the notification to show up when the activity is launched
-        if (executor instanceof DefaultRunExecutor) {
-          LaunchUtils.showNotification(project, executor, oldDescriptor, "Running", NotificationType.INFORMATION);
-        }
-      }
-    });
-
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        state.start();
-      }
-    });
-    return oldDescriptor;
   }
 
   @Override
