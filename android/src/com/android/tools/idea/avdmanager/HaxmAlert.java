@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
@@ -92,7 +93,7 @@ public class HaxmAlert extends JPanel {
     if (accelerationError != AccelerationErrorCode.ALREADY_INSTALLED) {
       hasLink = true;
       warningTextBuilder.append(accelerationError.getProblem());
-      warningTextBuilder.append("\n");
+      warningTextBuilder.append("<br>");
       myErrorInstructionsLink.setHyperlinkText(accelerationError.getSolution().getDescription());
       if (myErrorLinkListener != null) {
         myErrorInstructionsLink.removeHyperlinkListener(myErrorLinkListener);
@@ -116,10 +117,24 @@ public class HaxmAlert extends JPanel {
     }
 
     if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
+      if (warningTextBuilder.length() > 0) {
+        warningTextBuilder.append("<br>");
+      }
       warningTextBuilder.append("This API Level is Deprecated<br>");
     }
 
+    Abi abi = Abi.getEnum(myImageDescription.getAbiType());
+    if (abi != Abi.X86 && abi != Abi.X86_64) {
+      if (warningTextBuilder.length() > 0) {
+        warningTextBuilder.append("<br>");
+      }
+      warningTextBuilder.append("Consider using an x86 system image on a x86 host for better emulation performance.<br>");
+    }
+
     if (!GOOGLE_APIS_TAG.equals(myImageDescription.getTag())) {
+      if (warningTextBuilder.length() > 0) {
+        warningTextBuilder.append("<br>");
+      }
       warningTextBuilder.append("Consider using a system image with Google APIs to enable testing with Google Play Services.");
     }
 
