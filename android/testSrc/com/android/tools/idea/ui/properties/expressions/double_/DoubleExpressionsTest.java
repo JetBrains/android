@@ -20,6 +20,7 @@ import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.DoubleValueProperty;
 import org.junit.Test;
 
+import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
 import static org.fest.assertions.Assertions.assertThat;
 
 public final class DoubleExpressionsTest {
@@ -28,7 +29,7 @@ public final class DoubleExpressionsTest {
     BoolValueProperty result = new BoolValueProperty();
     DoubleValueProperty lhs = new DoubleValueProperty();
     DoubleValueProperty rhs = new DoubleValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(result, lhs.isEqualTo(rhs));
 
@@ -49,7 +50,7 @@ public final class DoubleExpressionsTest {
     BoolValueProperty result = new BoolValueProperty();
     DoubleValueProperty lhs = new DoubleValueProperty();
     DoubleValueProperty rhs = new DoubleValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(result, lhs.isLessThan(rhs));
 
@@ -67,7 +68,7 @@ public final class DoubleExpressionsTest {
     BoolValueProperty result = new BoolValueProperty();
     DoubleValueProperty lhs = new DoubleValueProperty();
     DoubleValueProperty rhs = new DoubleValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(result, lhs.isGreaterThan(rhs));
 
@@ -85,7 +86,7 @@ public final class DoubleExpressionsTest {
     BoolValueProperty result = new BoolValueProperty();
     DoubleValueProperty lhs = new DoubleValueProperty();
     DoubleValueProperty rhs = new DoubleValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(result, lhs.isLessThanEqualTo(rhs));
 
@@ -106,7 +107,7 @@ public final class DoubleExpressionsTest {
     BoolValueProperty result = new BoolValueProperty();
     DoubleValueProperty lhs = new DoubleValueProperty();
     DoubleValueProperty rhs = new DoubleValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(result, lhs.isGreaterThanEqualTo(rhs));
 
@@ -126,7 +127,7 @@ public final class DoubleExpressionsTest {
   public void testIsEqualWithValueExpression() {
     BoolValueProperty result = new BoolValueProperty();
     DoubleValueProperty lhs = new DoubleValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(result, lhs.isEqualTo(10));
 
@@ -143,7 +144,7 @@ public final class DoubleExpressionsTest {
   public void testLessThanValueExpression() {
     BoolValueProperty result = new BoolValueProperty();
     DoubleValueProperty lhs = new DoubleValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(result, lhs.isLessThan(10.0));
 
@@ -160,7 +161,7 @@ public final class DoubleExpressionsTest {
   public void testGreaterThanValueExpression() {
     BoolValueProperty result = new BoolValueProperty();
     DoubleValueProperty lhs = new DoubleValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(result, lhs.isGreaterThan(10.0));
 
@@ -177,7 +178,7 @@ public final class DoubleExpressionsTest {
   public void testLessThanEqualValueExpression() {
     BoolValueProperty result = new BoolValueProperty();
     DoubleValueProperty lhs = new DoubleValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(result, lhs.isLessThanEqualTo(10.0));
 
@@ -194,7 +195,7 @@ public final class DoubleExpressionsTest {
   public void testGreaterThanEqualValueExpression() {
     BoolValueProperty result = new BoolValueProperty();
     DoubleValueProperty lhs = new DoubleValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(result, lhs.isGreaterThanEqualTo(10.0));
 
@@ -213,7 +214,7 @@ public final class DoubleExpressionsTest {
     DoubleValueProperty a = new DoubleValueProperty(1.0);
     DoubleValueProperty b = new DoubleValueProperty(2.0);
     DoubleValueProperty c = new DoubleValueProperty(3.0);
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(sum, new com.android.tools.idea.ui.properties.expressions.double_.SumExpression(a, b, c));
 

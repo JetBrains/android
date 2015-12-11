@@ -49,7 +49,7 @@ public class StringEvaluator implements TemplateLoader {
 
   /** Evaluates the given expression, with the given set of arguments */
   @Nullable
-  public String evaluate(@NonNull String expression, Map<String, Object> inputs) {
+  public String evaluate(@NonNull String expression, @NonNull Map<String, Object> inputs) {
     try {
       myCurrentExpression = expression;
       Template inputsTemplate = myFreemarker.getTemplate(expression);
@@ -63,7 +63,7 @@ public class StringEvaluator implements TemplateLoader {
     }
   }
 
-  public boolean evaluateBooleanExpression(@NonNull String expression, Map<String, Object> inputs, boolean defaultValue) {
+  public boolean evaluateBooleanExpression(@NonNull String expression, @NonNull Map<String, Object> inputs, boolean defaultValue) {
     try {
       myCurrentExpression = String.format(BOOLEAN_TEMPLATE, expression);
       String result = evaluate(myCurrentExpression, inputs);

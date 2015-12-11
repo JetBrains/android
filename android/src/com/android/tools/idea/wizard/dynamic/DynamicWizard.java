@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -56,7 +57,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
  * provide a {@link JComponent} that serves as the user interface for that step. Each step also provides a title string and optionally
  * provides an {@link Icon} to be displayed on the left hand side of the wizard pane.
  *
- *
+ * @deprecated Replaced by {@link ModelWizard}
  */
 public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListener {
   // 42 is an arbitrary number. This constant is for the number of update cycles before

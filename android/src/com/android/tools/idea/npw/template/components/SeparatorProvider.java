@@ -13,14 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.properties.exceptions;
+package com.android.tools.idea.npw.template.components;
+
+import com.android.tools.idea.templates.Parameter;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 
 /**
- * Exception thrown if bindings have been set up in such a way that they properties continue to
- * modify each other endlessly.
+ * Provides a separator well suited for {@link Parameter.Type#SEPARATOR} parameters.
  */
-public final class BindingCycleException extends RuntimeException {
-  public BindingCycleException() {
-    super("Endless cycle between bound properties detected.");
+public final class SeparatorProvider extends ParameterComponentProvider<JSeparator> {
+
+  public SeparatorProvider(@NotNull Parameter parameter) {
+    super(parameter);
+  }
+
+  @NotNull
+  @Override
+  protected JSeparator createComponent(@NotNull Parameter parameter) {
+    return new JSeparator(SwingConstants.HORIZONTAL);
   }
 }
