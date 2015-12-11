@@ -42,7 +42,7 @@ public class StudioDownloader implements Downloader {
   public InputStream download(@NotNull URL url, SettingsController settings, @NotNull ProgressIndicator indicator)
     throws IOException {
     // We don't use the settings here explicitly, since HttpRequests picks up the network settings from studio directly.
-
+    indicator.logInfo("Downloading " + url);
     indicator.setText("Downloading...");
     indicator.setSecondaryText(url.toString());
     // TODO: caching
