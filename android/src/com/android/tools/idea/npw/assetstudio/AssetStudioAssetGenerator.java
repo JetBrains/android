@@ -148,8 +148,6 @@ public final class AssetStudioAssetGenerator implements GraphicGeneratorContext 
     // TODO: Pass in minSdk value into options and generate only what's needed?
     NotificationIconGenerator.NotificationOptions options = new NotificationIconGenerator.NotificationOptions();
     options.sourceImage = sourceImage;
-    notificationIconGenerator.generate(null, assetMap, this, options, name);
-
     options.version = NotificationIconGenerator.Version.V11;
     notificationIconGenerator.generate(null, assetMap, this, options, name);
   }
