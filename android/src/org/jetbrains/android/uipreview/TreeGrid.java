@@ -17,7 +17,10 @@ package org.jetbrains.android.uipreview;
 
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import com.intellij.openapi.util.Condition;
 import com.intellij.ui.HideableDecorator;
+import com.intellij.ui.ListSpeedSearch;
+import com.intellij.ui.speedSearch.FilteringListModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,8 +78,8 @@ public class TreeGrid extends Box {
       };
       String name = section.toString();
       HideableDecorator hidyPanel = new HideableDecorator(panel, name, false);
-      //noinspection UndesirableClassUsage JBList does not work with HORIZONTAL_WRAP
-      final JList list = new JList(new AbstractListModel() {
+
+      FilteringListModel listModel = new FilteringListModel(new AbstractListModel() {
         @Override
         public int getSize() {
           return model.getChildElements(section).length;
@@ -87,10 +90,16 @@ public class TreeGrid extends Box {
           return model.getChildElements(section)[index];
         }
       });
+      listModel.refilter(); // Needed as otherwise the filtered list does not show any content.
+
+      //noinspection UndesirableClassUsage JBList does not work with HORIZONTAL_WRAP
+      final JList list = new JList(listModel);
       list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       list.setVisibleRowCount(-1);
       list.getSelectionModel().addListSelectionListener(listSelectionListener);
       list.setName(name); // for tests to find the right list
+
+      new ListSpeedSearch(list);
 
       myLists.add(list);
       myHideables.add(hidyPanel);
@@ -174,6 +183,12 @@ public class TreeGrid extends Box {
   public void setLayoutOrientation(int mode) {
     for (JList list : myLists) {
       list.setLayoutOrientation(mode);
+    }
+  }
+
+  public void setFilter(@Nullable Condition condition) {
+    for (JList list : myLists) {
+      ((FilteringListModel)list.getModel()).setFilter(condition);
     }
   }
 }

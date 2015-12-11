@@ -29,6 +29,7 @@ import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.android.tools.idea.ui.SearchField;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -39,7 +40,9 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -69,6 +72,7 @@ import org.jetbrains.annotations.Nullable;
 import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
 import javax.swing.event.*;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
@@ -224,10 +228,26 @@ public class ChooseResourceDialog extends DialogWrapper {
       }
     };
 
-    mySearchBox = new SearchTextField(true);
+    mySearchBox = new SearchField(true);
     mySearchBox.setMaximumSize(new Dimension(JBUI.scale(300), mySearchBox.getMaximumSize().height));
+    mySearchBox.addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        Condition condition = new Condition() {
+          private String text = mySearchBox.getText();
+          @Override
+          public boolean value(Object o) {
+            return StringUtil.containsIgnoreCase(o.toString(), text);
+          }
+        };
+        for (ResourcePanel panel : myPanels) {
+          panel.myList.setFilter(condition);
+        }
+      }
+    });
 
     myViewOption = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, new DefaultActionGroup(listView, gridView), true).getComponent();
+    myViewOption.setBorder(null);
     myViewOption.setMaximumSize(new Dimension(JBUI.scale(100), myViewOption.getMaximumSize().height));
 
     //noinspection UndesirableClassUsage We install our own special UI, intellij stuff will break it
@@ -349,7 +369,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     toolbar.add(mySearchBox);
     toolbar.add(Box.createHorizontalStrut(JBUI.scale(20)));
     toolbar.add(myViewOption);
-    toolbar.setVisible(false); // TODO make search work
+    toolbar.setBorder(new CompoundBorder(JBUI.Borders.customLine(OnePixelDivider.BACKGROUND, 0, 0, 1, 0), JBUI.Borders.empty(8)));
 
     myContentPanel = new JPanel(new BorderLayout());
     myContentPanel.add(myTabbedPane);
@@ -359,6 +379,13 @@ public class ChooseResourceDialog extends DialogWrapper {
     init();
     // we need to trigger this once before the window is made visible to update any extra labels
     doValidate();
+  }
+
+  @NotNull
+  @Override
+  protected DialogStyle getStyle() {
+    // will draw the line between the main panel and the action buttons.
+    return DialogStyle.COMPACT;
   }
 
   public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription,
@@ -669,14 +696,18 @@ public class ChooseResourceDialog extends DialogWrapper {
     Component selectedComponent = myTabbedPane.getSelectedComponent();
 
     if (selectedComponent == myColorPickerPanel) {
-      Color color = myColorPicker.getColor();
       myNewResourceAction.setEnabled(false);
       myViewOption.setVisible(false);
+      mySearchBox.setEnabled(false);
+
+      Color color = myColorPicker.getColor();
       myResultResourceName = ResourceHelper.colorToString(color);
     }
     else if (selectedComponent == myStateListPickerPanel) {
       myNewResourceAction.setEnabled(false);
       myViewOption.setVisible(false);
+      mySearchBox.setEnabled(false);
+
       myResultResourceName = null;
     }
     else {
@@ -686,6 +717,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       myNewResourceAction.setEnabled(true);
       myViewOption.setVisible(panel.supportsGridMode());
+      mySearchBox.setEnabled(true);
 
       if (element == null) {
         myResultResourceName = null;
@@ -734,7 +766,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       AbstractTreeStructure treeContentProvider = new TreeContentProvider(myGroups);
 
-      myComponent = new JBSplitter(false, 0.8f);
+      myComponent = new JBSplitter(false, 0.5f);
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
 
       myList = new TreeGrid(treeContentProvider);
@@ -769,6 +801,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       myHtmlTextArea.setEditable(false);
       myHtmlTextArea.setContentType(UIUtil.HTML_MIME);
       myPreviewPanel.add(ScrollPaneFactory.createScrollPane(myHtmlTextArea), TEXT);
+      myHtmlTextArea.setPreferredSize(JBUI.size(400, 400));
 
       myComboTextArea = new JTextArea(5, 20);
       myComboTextArea.setEditable(false);
