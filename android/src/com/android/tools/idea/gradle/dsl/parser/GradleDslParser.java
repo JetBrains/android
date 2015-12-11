@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
@@ -433,6 +434,9 @@ public final class GradleDslParser {
           else if (SubProjectsDslElement.NAME.equals(nestedElementName)) {
             newElement = new SubProjectsDslElement(resultElement);
           }
+          else if (BuildScriptDslElement.NAME.equals(nestedElementName)) {
+            newElement = new BuildScriptDslElement(resultElement);
+          }
           else {
             String projectKey = ProjectPropertiesDslElement.getStandardProjectKey(nestedElementName);
             if (projectKey != null) {
@@ -442,6 +446,15 @@ public final class GradleDslParser {
             else {
               return null;
             }
+          }
+        }
+        else if (resultElement instanceof BuildScriptDslElement) {
+          if (DependenciesDslElement.NAME.equals(nestedElementName)) {
+            newElement = new DependenciesDslElement(resultElement);
+          }
+          else {
+            // TODO: Add support to parse repositories section.
+            return null;
           }
         }
         else if (resultElement instanceof AndroidDslElement) {
