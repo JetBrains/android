@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.intellij.ide.highlighter.ModuleFileType;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,13 +34,20 @@ import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.fest.assertions.Assertions.assertThat;
 
 public abstract class GradleFileModelTestCase extends PlatformTestCase {
+  protected static final String SUB_MODULE_NAME = "gradleModelTest";
+
+  protected Module mySubModule;
+
   protected File mySettingsFile;
   protected File myBuildFile;
+  protected File mySubModuleBuildFile;
 
   @Override
   protected void setUp() throws Exception {
@@ -48,6 +65,37 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertThat(moduleDirPath).isDirectory();
     myBuildFile = new File(moduleDirPath, FN_BUILD_GRADLE);
     assertTrue(ensureCanCreateFile(myBuildFile));
+
+    File subModuleFilePath = new File(mySubModule.getModuleFilePath());
+    File subModuleDirPath = subModuleFilePath.getParentFile();
+    assertThat(subModuleDirPath).isDirectory();
+    mySubModuleBuildFile = new File(subModuleDirPath, FN_BUILD_GRADLE);
+    assertTrue(ensureCanCreateFile(mySubModuleBuildFile));
+  }
+
+  @Override
+  protected Module createMainModule() throws IOException {
+    Module mainModule = createModule(myProject.getName());
+
+    // Create a sub module
+    final VirtualFile baseDir = myProject.getBaseDir();
+    assertNotNull(baseDir);
+    final File moduleFile = new File(FileUtil.toSystemDependentName(baseDir.getPath()),
+                                     SUB_MODULE_NAME + File.separatorChar + SUB_MODULE_NAME + ModuleFileType.DOT_DEFAULT_EXTENSION);
+    FileUtil.createIfDoesntExist(moduleFile);
+    myFilesToDelete.add(moduleFile);
+    mySubModule = new WriteAction<Module>() {
+      @Override
+      protected void run(@NotNull Result<Module> result) throws Throwable {
+        VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
+        assertNotNull(virtualFile);
+        Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
+        module.getModuleFile();
+        result.setResult(module);
+      }
+    }.execute().getResultObject();
+
+    return mainModule;
   }
 
   @Override
@@ -63,6 +111,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     writeToFile(myBuildFile, text);
   }
 
+  protected void writeToSubModuleBuildFile(@NotNull String text) throws IOException {
+    writeToFile(mySubModuleBuildFile, text);
+  }
+
   @NotNull
   protected GradleSettingsModel getGradleSettingsModel() {
     GradleSettingsModel settingsModel = GradleSettingsModel.get(myProject);
@@ -73,6 +125,14 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   @NotNull
   protected GradleBuildModel getGradleBuildModel() {
     GradleBuildModel buildModel = GradleBuildModel.get(myModule);
+    assertNotNull(buildModel);
+    return buildModel;
+  }
+
+
+  @NotNull
+  protected GradleBuildModel getSubModuleGradleBuildModel() {
+    GradleBuildModel buildModel = GradleBuildModel.get(mySubModule);
     assertNotNull(buildModel);
     return buildModel;
   }
