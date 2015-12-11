@@ -28,10 +28,7 @@ import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -383,11 +380,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
                                        IdDisplay tag,
                                        int maxAbi,
                                        AndroidVersion maxVersion) {
-    int res = abiRank - maxAbi;
-    if (res != 0) {
-      return res > 0;
-    }
-    res = version.compareTo(maxVersion);
+    int res = ComparisonChain.start().compare(abiRank, maxAbi).compare(version, maxVersion).result();
     if (res != 0) {
       return res > 0;
     }
