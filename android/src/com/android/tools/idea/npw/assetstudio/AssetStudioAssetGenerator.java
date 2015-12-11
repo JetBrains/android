@@ -87,12 +87,25 @@ public final class AssetStudioAssetGenerator implements GraphicGeneratorContext 
     return Maps.newHashMap();
   }
 
+  /**
+   * Remove any surrounding padding from the image.
+   */
   @NotNull
   public static BufferedImage trim(@NotNull BufferedImage image) {
     BufferedImage cropped = ImageUtils.cropBlank(image, null, TYPE_INT_ARGB);
     return cropped != null ? cropped : image;
   }
 
+  /**
+   * Pad the image with extra space. The padding percent works by taking the largest side of the
+   * current image, multiplying that with the percent value, and adding that portion to each side
+   * of the image.
+   *
+   * So for example, an image that's 100x100, with 50% padding percent, ends up resized to
+   * (50+100+50)x(50+100+50), or 200x200. The 100x100 portion is then centered, taking up what
+   * looks like 50% of the final image. The same 100x100 image, with 100% padding, ends up at
+   * 300x300, looking in the final image like it takes up ~33% of the space.
+   */
   @NotNull
   public static BufferedImage pad(@NotNull BufferedImage image, int paddingPercent) {
     if (image.getWidth() <= 1 || image.getHeight() <= 1) {
@@ -106,7 +119,7 @@ public final class AssetStudioAssetGenerator implements GraphicGeneratorContext 
     }
 
     int side = Math.max(image.getWidth(), image.getHeight());
-    int padding = (side * paddingPercent / 100) / 2;
+    int padding = (side * paddingPercent / 100);
 
     return AssetUtil.paddedImage(image, padding);
   }
