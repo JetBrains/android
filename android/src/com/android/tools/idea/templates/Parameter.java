@@ -20,6 +20,8 @@ import com.android.builder.model.SourceProvider;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
+import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceFolderRegistry;
 import com.android.tools.idea.rendering.ResourceFolderRepository;
@@ -503,6 +505,10 @@ public final class Parameter {
     return AndroidUtils.isValidJavaPackageName(value) && value.indexOf('.') != -1;
   }
 
+  /**
+   * @deprecated Replaced by {@link AssetStudioUtils#resourceExists(AndroidFacet, ResourceType, String)}
+   * TODO: After Wizard migration, delete this
+   */
   public static boolean existsResourceFile(@Nullable Module module, @NotNull ResourceType resourceType, @Nullable String name) {
     if (name == null || name.isEmpty() || module == null) {
       return false;
@@ -515,6 +521,10 @@ public final class Parameter {
     return false;
   }
 
+  /**
+   * @deprecated Replaced by {@link AssetStudioUtils#resourceExists(AndroidProjectPaths, ResourceFolderType, String)}
+   * TODO: After Wizard migration, delete this
+   */
   public static boolean existsResourceFile(@Nullable SourceProvider sourceProvider, @Nullable Module module,
                                            @NotNull ResourceFolderType resourceFolderType, @NotNull ResourceType resourceType,
                                            @Nullable String name) {
@@ -539,6 +549,10 @@ public final class Parameter {
     return false;
   }
 
+  /**
+   * @deprecated Replaced by {@link AssetStudioUtils#resourceExists(AndroidProjectPaths, ResourceFolderType, String)}
+   * TODO: After Wizard migration, delete this
+   */
   public static boolean existsResourceFile(File resDir, ResourceFolderType resourceType, String name) {
     File[] resTypes = resDir.listFiles();
     if (resTypes != null) {
