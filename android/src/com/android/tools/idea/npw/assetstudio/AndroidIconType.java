@@ -36,22 +36,33 @@ public enum AndroidIconType {
    */
   NOTIFICATION("Notification Icons", "ic_stat_%s");
 
-  private final String myDisplayName;
+  @NotNull private final String myDisplayName;
 
   /**
    * Default asset name format, for use in generating a name for the final asset.
    */
-  private final String myDefaultNameFormat;
+  @NotNull private final String myDefaultNameFormat;
 
   AndroidIconType(@NotNull String displayName, @NotNull String defaultNameFormat) {
     myDisplayName = displayName;
     myDefaultNameFormat = defaultNameFormat;
   }
 
+  @NotNull
   public String getDisplayName() {
     return myDisplayName;
   }
 
+  /**
+   * Convert a value like 'name' to the icon appropriate version, e.g. 'icon_stat_name' for
+   * notification icons.
+   */
+  @NotNull
+  public String toOutputName(@NotNull String baseName) {
+    return String.format(myDefaultNameFormat, baseName);
+  }
+
+  @NotNull
   @Override
   public String toString() {
     return getDisplayName();
