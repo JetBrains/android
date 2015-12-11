@@ -34,8 +34,7 @@ import java.util.*;
 public final class ModuleResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
 
-  private ModuleResourceRepository(@NotNull AndroidFacet facet,
-                                   @NotNull List<? extends LocalResourceRepository> delegates) {
+  private ModuleResourceRepository(@NotNull AndroidFacet facet, @NotNull List<? extends LocalResourceRepository> delegates) {
     super(facet.getModule().getName(), delegates);
     myFacet = facet;
   }
@@ -44,7 +43,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
    * Returns the Android resources specific to this module, not including resources in any
    * dependent modules or any AAR libraries
    *
-   * @param module the module to look up resources for
+   * @param module            the module to look up resources for
    * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
    * @return the resource repository
    */
@@ -62,7 +61,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
    * Returns the Android resources specific to this module, not including resources in any
    * dependent modules or any AAR libraries
    *
-   * @param facet the module facet to look up resources for
+   * @param facet             the module facet to look up resources for
    * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
    * @return the resource repository
    */
@@ -110,8 +109,10 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
 
     folderManager.addListener(new ResourceFolderManager.ResourceFolderListener() {
       @Override
-      public void resourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<VirtualFile> folders,
-                                         @NotNull Collection<VirtualFile> added, @NotNull Collection<VirtualFile> removed) {
+      public void resourceFoldersChanged(@NotNull AndroidFacet facet,
+                                         @NotNull List<VirtualFile> folders,
+                                         @NotNull Collection<VirtualFile> added,
+                                         @NotNull Collection<VirtualFile> removed) {
         repository.updateRoots();
       }
     });
@@ -135,7 +136,8 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
         ResourceFolderRepository folderRepository = (ResourceFolderRepository)repository;
         VirtualFile resourceDir = folderRepository.getResourceDir();
         map.put(resourceDir, folderRepository);
-      } else {
+      }
+      else {
         assert repository instanceof DynamicResourceValueRepository;
         if (other == null) {
           other = Lists.newArrayList();
@@ -180,17 +182,26 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
    * For testing: creates a project with a given set of resource roots; this allows tests to check
    * this repository without creating a gradle project setup etc
    */
-  @VisibleForTesting
   @NotNull
-  public static ModuleResourceRepository createForTest(@NotNull final AndroidFacet facet, @NotNull List<VirtualFile> resourceDirectories) {
+  @VisibleForTesting
+  public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet, @NotNull Collection<VirtualFile> resourceDirectories) {
+    return createForTest(facet, resourceDirectories, Collections.<LocalResourceRepository>emptyList());
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet,
+                                                       @NotNull Collection<VirtualFile> resourceDirectories,
+                                                       @NotNull Collection<LocalResourceRepository> otherDelegates) {
     assert ApplicationManager.getApplication().isUnitTestMode();
-    List<ResourceFolderRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size());
+    List<LocalResourceRepository> delegates = new ArrayList<LocalResourceRepository>(resourceDirectories.size() + otherDelegates.size());
+
     for (VirtualFile resourceDirectory : resourceDirectories) {
-      ResourceFolderRepository repository = ResourceFolderRegistry.get(facet, resourceDirectory);
-      resources.add(repository);
+      delegates.add(ResourceFolderRegistry.get(facet, resourceDirectory));
     }
 
-    return new ModuleResourceRepository(facet, resources);
+    delegates.addAll(otherDelegates);
+    return new ModuleResourceRepository(facet, delegates);
   }
 
   private static class EmptyRepository extends MultiResourceRepository {
