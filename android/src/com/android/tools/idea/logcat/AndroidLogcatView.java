@@ -415,7 +415,7 @@ public abstract class AndroidLogcatView implements Disposable {
   }
 
   final class AndroidLogConsole extends LogConsoleBase implements AndroidConsoleWriter {
-      private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5, true);
+      private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
       private final AndroidLogcatPreferences myPreferences;
 
     public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel, LogFormatter logFormatter) {
