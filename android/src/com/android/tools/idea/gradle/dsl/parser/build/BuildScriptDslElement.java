@@ -19,10 +19,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.Nullable;
 
-public class SubProjectsDslElement extends GradlePropertiesDslElement {
-  public static final String NAME = "subprojects";
+public class BuildScriptDslElement extends GradlePropertiesDslElement {
+  public static final String NAME = "buildscript";
 
-  public SubProjectsDslElement(@Nullable GradleDslElement parent) {
+  public BuildScriptDslElement(@Nullable GradleDslElement parent) {
     super(parent, null, NAME);
   }
 
