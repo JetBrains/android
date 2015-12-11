@@ -324,8 +324,8 @@ public class ImagePanel extends JPanel {
       // Use OpenGL coordinates: origin at bottom left. While XY will be as shown (possibly flipped), UV stays constant to the origin
       // of the image used as a texture.
       int pixelX = (int)(pos.x / scale), pixelY = (int)(pos.y / scale);
-      float u = (float)pos.x / (w - 1), v = (float)pos.y / (h - 1); // This is actually flipped v.
-      return new Pixel(pixelX, image.getHeight() - pixelY, u, flipped ? v : 1 - v , image.getRGB(pixelX, pixelY));
+      float u = (pos.x + 0.5f) / w, v = (pos.y + 0.5f) / h; // This is actually flipped v.
+      return new Pixel(pixelX, image.getHeight() - pixelY - 1, u, flipped ? v : 1 - v , image.getRGB(pixelX, pixelY));
     }
 
     @Override
