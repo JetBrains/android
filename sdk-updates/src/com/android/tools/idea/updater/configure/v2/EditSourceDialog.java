@@ -17,6 +17,7 @@ package com.android.tools.idea.updater.configure.v2;
 
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.RepositorySourceProvider;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
@@ -98,10 +99,7 @@ public class EditSourceDialog extends DialogWrapper {
   @Nullable
   private String getErrorMessage(String urlString) {
     try {
-      final URL url = new URL(urlString);
-      if (!StringUtil.isNotEmpty(url.getHost())) {
-        return "URL must not be empty";
-      }
+      new URL(urlString);
     }
     catch (MalformedURLException e) {
       return "URL is invalid";
@@ -111,7 +109,7 @@ public class EditSourceDialog extends DialogWrapper {
       // URLs are generally case-insensitive (except for file:// where it all depends
       // on the current OS so we'll ignore this case.)
       // If we're editing a source, skip this.
-      for (RepositorySource s : myProvider.getSources(null, null, null, false)) {
+      for (RepositorySource s : myProvider.getSources(null, null, new StudioLoggerProgressIndicator(getClass()), false)) {
         if (urlString.equalsIgnoreCase(s.getUrl())) {
           return "An update site with this URL already exists";
         }

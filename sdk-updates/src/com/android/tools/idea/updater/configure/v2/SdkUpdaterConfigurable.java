@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.updater.configure.v2;
 
-import com.android.repository.api.*;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.UpdatablePackage;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
+import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.wizard.v2.SdkQuickfixUtils;
@@ -28,7 +33,7 @@ import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.updater.SdkComponentSource;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -44,7 +49,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.AncestorEvent;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Configurable for the Android SDK Manager.
@@ -123,16 +131,17 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     HtmlBuilder message = new HtmlBuilder();
     message.openHtmlBody();
     final List<LocalPackage> toDelete = Lists.newArrayList();
-    final List<UpdatablePackage> requestedPackages = Lists.newArrayList();
+    final Map<RemotePackage, UpdatablePackage> requestedPackages = Maps.newHashMap();
     for (NodeStateHolder holder : myPanel.getStates()) {
       if (holder.getState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
         if (holder.getPkg().hasLocal()) {
-          toDelete.add(holder.getPkg().getLocalInfo());
+          toDelete.add(holder.getPkg().getLocal());
         }
       }
       else if (holder.getState() == NodeStateHolder.SelectedState.INSTALLED &&
                (holder.getPkg().isUpdate(myIncludePreview) || !holder.getPkg().hasLocal())) {
-        requestedPackages.add(holder.getPkg());
+        UpdatablePackage pkg = holder.getPkg();
+        requestedPackages.put(pkg.getRemote(myIncludePreview), pkg);
       }
     }
     boolean found = false;
@@ -150,13 +159,38 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       found = true;
       message.add("The following components will be installed: \n");
       message.beginList();
-      for (UpdatablePackage p : requestedPackages) {
-        // TODO: channels
-        RepoPackage item = p.getRemote(myIncludePreview);
-        assert item != null;
+      Multimap<RemotePackage, RemotePackage> dependencies = HashMultimap.create();
+      com.android.repository.api.ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+      RepositoryPackages packages = mySdkHandler.getSdkManager(progress).getPackages();
+      for (RemotePackage item : requestedPackages.keySet()) {
+        List<RemotePackage> packageDependencies = InstallerUtil.computeRequiredPackages(ImmutableList.of(item), packages, progress);
+        if (packageDependencies == null) {
+          Messages.showErrorDialog((Project)null, "Unable to resolve dependencies for " + item.getDisplayName(), "Dependency Error");
+          throw new ConfigurationException("Unable to resolve dependencies.");
+        }
+        for (RemotePackage dependency : packageDependencies) {
+          dependencies.put(dependency, item);
+        }
         message.listItem().add(String.format("%1$s %2$s %3$s", item.getDisplayName(),
                                              item.getTypeDetails() instanceof DetailsTypes.ApiDetailsType ? "revision" : "version",
                                              item.getVersion()));
+      }
+      for (RemotePackage dependency : dependencies.keySet()) {
+        if (requestedPackages.containsKey(dependency)) {
+          continue;
+        }
+        Set<RemotePackage> requests = Sets.newHashSet(dependencies.get(dependency));
+        requests.remove(dependency);
+        if (!requests.isEmpty()) {
+          message.listItem().add(dependency.getDisplayName())
+            .add(" (Required by ");
+          Iterator<RemotePackage> requestIter = requests.iterator();
+          message.add(requestIter.next().getDisplayName());
+          while (requestIter.hasNext()) {
+            message.add(", ").add(requestIter.next().getDisplayName());
+          }
+          message.add(")");
+        }
       }
       message.endList();
     }
@@ -175,7 +209,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
           }
         }, "Uninstalling", false, null, myPanel.getComponent());
         if (!requestedPackages.isEmpty()) {
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(myPanel.getComponent(), requestedPackages);
+          ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(myPanel.getComponent(), requestedPackages.values());
           if (dialog != null) {
             dialog.show();
           }

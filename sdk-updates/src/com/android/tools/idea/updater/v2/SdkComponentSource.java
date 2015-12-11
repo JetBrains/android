@@ -129,7 +129,7 @@ public class SdkComponentSource implements ExternalComponentSource {
       }
       else {
         if (p.hasLocal()) {
-          result.add(new UpdatablePackage(p.getLocalInfo()));
+          result.add(new UpdatablePackage(p.getLocal()));
         }
       }
     }
