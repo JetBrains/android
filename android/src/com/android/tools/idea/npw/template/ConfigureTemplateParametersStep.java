@@ -40,6 +40,7 @@ import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.properties.swing.VisibleProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.Validator;
+import com.android.tools.idea.ui.wizard.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -109,6 +110,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    * between parameters (where changing one, like the package name, makes another valid/invalid).
    */
   private final StringProperty myInvalidParameterMessage = new StringValueProperty();
+  private final ValidatorPanel myValidatorPanel;
 
   private JPanel myRootPanel;
   private JLabel myTemplateThumbLabel;
@@ -133,7 +135,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       getModel().getSourceSet().setValue(mySourceSets.get(0));
     }
 
-    myStudioPanel = new StudioWizardStepPanel(this, myRootPanel);
+    myValidatorPanel = new ValidatorPanel(this, myRootPanel);
+    myStudioPanel = new StudioWizardStepPanel(myValidatorPanel);
 
     myParameterDescriptionLabel.setScope(myParametersPanel);
     myParametersScrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
@@ -274,7 +277,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       });
     }
 
-    myStudioPanel.registerValidator(myInvalidParameterMessage, new Validator<String>() {
+    myValidatorPanel.registerValidator(myInvalidParameterMessage, new Validator<String>() {
       @NotNull
       @Override
       public Result validate(@NotNull String message) {
@@ -523,7 +526,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   @NotNull
   @Override
   protected ObservableBool canGoForward() {
-    return getModel().getSourceSet().isPresent().and(myStudioPanel.hasErrors().not());
+    return getModel().getSourceSet().isPresent().and(myValidatorPanel.hasErrors().not());
   }
 
   private void createUIComponents() {

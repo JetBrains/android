@@ -37,6 +37,7 @@ import com.android.tools.idea.ui.properties.swing.SliderValueProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.Validator;
+import com.android.tools.idea.ui.wizard.ValidatorPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.ImmutableList;
@@ -68,6 +69,7 @@ public final class NotificationIconStep extends ModelWizardStep<RenderTemplateMo
   private final AssetStudioAssetGenerator myAssetGenerator = new AssetStudioAssetGenerator();
 
   private final StudioWizardStepPanel myStudioPanel;
+  private final ValidatorPanel myValidatorPanel;
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
 
@@ -120,7 +122,8 @@ public final class NotificationIconStep extends ModelWizardStep<RenderTemplateMo
       myOutputPreviewPanel.add(iconsPanel);
     }
 
-    myStudioPanel = new StudioWizardStepPanel(this, myRootPanel, "Convert a source asset into an Android notification icon");
+    myValidatorPanel = new ValidatorPanel(this, myRootPanel);
+    myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Convert a source asset into an Android notification icon");
 
     myOutputName = new TextProperty(myOutputNameTextField);
 
@@ -197,7 +200,7 @@ public final class NotificationIconStep extends ModelWizardStep<RenderTemplateMo
     myImageRadioButton.addActionListener(radioSelectedListener);
     myTextRadioButton.addActionListener(radioSelectedListener);
 
-    myStudioPanel.registerValidator(myOutputName, new Validator<String>() {
+    myValidatorPanel.registerValidator(myOutputName, new Validator<String>() {
       @NotNull
       @Override
       public Result validate(@NotNull String outputName) {
@@ -265,6 +268,12 @@ public final class NotificationIconStep extends ModelWizardStep<RenderTemplateMo
     else {
       return Parameter.existsResourceFile(getModel().getModule(), ResourceType.DRAWABLE, iconName);
     }
+  }
+
+  @NotNull
+  @Override
+  protected ObservableBool canGoForward() {
+    return myValidatorPanel.hasErrors().not();
   }
 
   @Override
