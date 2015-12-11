@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.ui.properties;
 
+import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.expressions.bool.IsEqualToExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -45,4 +47,7 @@ public interface ObservableValue<T> {
    * {@link #removeListener(InvalidationListener)} to remove weakly added listeners.
    */
   void addWeakListener(@NotNull InvalidationListener listener);
+
+  @NotNull
+  ObservableBool isEqualTo(@NotNull T value);
 }
