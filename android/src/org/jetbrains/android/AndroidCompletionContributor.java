@@ -16,6 +16,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -36,10 +37,10 @@ import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.converters.DelimitedListConverter;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
+import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animation.AnimationDomFileDescription;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
-import org.jetbrains.android.dom.animator.AnimatorDomFileDescription;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.color.ColorDomFileDescription;
@@ -110,8 +111,8 @@ public class AndroidCompletionContributor extends CompletionContributor {
       addAll(AndroidAnimationUtils.getPossibleChildren(facet), resultSet);
       return false;
     }
-    else if (AnimatorDomFileDescription.isAnimatorFile(xmlFile)) {
-      addAll(AndroidAnimatorUtil.getPossibleChildren(), resultSet);
+    else if (AndroidResourceDomFileDescription.doIsMyFile(xmlFile, ResourceFolderType.ANIMATOR)) {
+      addAll(AndroidAnimatorUtil.getPossibleRoots(), resultSet);
       return false;
     }
     else if (XmlResourceDomFileDescription.isXmlResourceFile(xmlFile)) {

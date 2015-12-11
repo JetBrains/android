@@ -1,0 +1,10 @@
+<animator xmlns:android="http://schemas.android.com/apk/res/android"
+          android:duration="1000"
+          android:repeatCount="1"
+          android:repeatMode="reverse">
+    <propertyValuesHolder>
+        <keyframe android:fraction="0" android:value="1"/>
+        <keyframe android:fraction=".2" android:value=".4"/>
+        <keyframe android:fraction="1" android:value="0"/>
+    </propertyValuesHolder>
+</animator>
