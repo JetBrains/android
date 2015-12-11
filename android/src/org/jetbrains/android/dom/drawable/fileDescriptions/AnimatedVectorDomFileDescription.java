@@ -15,13 +15,15 @@
  */
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
+import com.android.resources.ResourceFolderType;
+import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.AnimatedVector;
 
 public class AnimatedVectorDomFileDescription extends AbstractSingleRootFileDescription<AnimatedVector> {
   public static final String TAG_NAME = "animated-vector";
 
   public AnimatedVectorDomFileDescription() {
-    super(AnimatedVector.class, TAG_NAME);
+    super(AnimatedVector.class, TAG_NAME, ResourceFolderType.DRAWABLE);
   }
 }
 

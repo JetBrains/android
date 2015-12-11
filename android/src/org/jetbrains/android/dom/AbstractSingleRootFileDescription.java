@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.drawable.fileDescriptions;
+package org.jetbrains.android.dom;
 
-import com.android.resources.ResourceType;
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomElement;
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractSingleRootFileDescription<T extends DomElement> extends AndroidResourceDomFileDescription<T> {
   private final String myTagName;
 
-  public AbstractSingleRootFileDescription(@NotNull Class<T> aClass, @NotNull String tagName) {
-    super(aClass, tagName, ResourceType.DRAWABLE.getName());
+  public AbstractSingleRootFileDescription(@NotNull Class<T> aClass,
+                                           @NotNull String tagName,
+                                           @NotNull ResourceFolderType resourceFolderType) {
+    super(aClass, tagName, resourceFolderType);
     myTagName = tagName;
   }
 

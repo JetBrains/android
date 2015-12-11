@@ -16,7 +16,59 @@
 package org.jetbrains.android.dom.transition;
 
 import com.intellij.util.xml.DefinesXml;
+import com.intellij.util.xml.SubTagList;
+import org.jetbrains.android.dom.Styleable;
 
+import java.util.List;
+
+/**
+ * Relevant code in the framework: TransitionInflater#createTransitionsFromXml
+ */
 @DefinesXml
+@Styleable({"TransitionSet", "Transition"})
 public interface TransitionSet extends Transition {
+  @SubTagList("transitionSet")
+  List<TransitionSet> getTransitionSets();
+
+  @SubTagList("fade")
+  List<Fade> getFades();
+
+  @SubTagList("changeBounds")
+  List<ChangeBounds> getChangeBounds();
+
+  @SubTagList("slide")
+  List<Slide> getSlides();
+
+  @SubTagList("explode")
+  List<Explode> getExplodes();
+
+  @SubTagList("changeImageTransform")
+  List<ChangeImageTransform> getChangeImageTransforms();
+
+  @SubTagList("changeTransform")
+  List<ChangeTransform> getChangeTransforms();
+
+  @SubTagList("changeClipBounds")
+  List<ChangeClipBounds> getChangeClipBounds();
+
+  @SubTagList("autoTransition")
+  List<AutoTransition> getAutoTransitions();
+
+  @SubTagList("recolor")
+  List<Recolor> getRecolors();
+
+  @SubTagList("changeScroll")
+  List<ChangeScroll> getChangeScrolls();
+
+  @SubTagList("arcMotion")
+  List<ArcMotion> getArcMotions();
+
+  @SubTagList("pathMotion")
+  List<PathMotion> getPathMotions();
+
+  @SubTagList("patternPathMotion")
+  List<PatternPathMotion> getPatternPathMotions();
+
+  @SubTagList("transition")
+  List<TransitionSetTransition> getTransitions();
 }

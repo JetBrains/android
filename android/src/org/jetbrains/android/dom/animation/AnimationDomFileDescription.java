@@ -16,7 +16,7 @@
 
 package org.jetbrains.android.dom.animation;
 
-import com.android.resources.ResourceType;
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AnimationDomFileDescription extends AndroidResourceDomFileDescription<AnimationElement> {
   public AnimationDomFileDescription() {
-    super(AnimationElement.class, "set", ResourceType.ANIM.getName());
+    super(AnimationElement.class, "set", ResourceFolderType.ANIM);
   }
 
   @Override

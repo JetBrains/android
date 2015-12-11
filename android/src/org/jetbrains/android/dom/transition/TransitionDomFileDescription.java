@@ -26,7 +26,7 @@ import static org.jetbrains.android.dom.transition.TransitionDomUtil.TRANSITION_
 
 public class TransitionDomFileDescription extends AndroidResourceDomFileDescription<TransitionSet> {
   public TransitionDomFileDescription() {
-    super(TransitionSet.class, TRANSITION_SET_TAG, ResourceFolderType.TRANSITION.getName());
+    super(TransitionSet.class, TRANSITION_SET_TAG, ResourceFolderType.TRANSITION);
   }
 
   @Override

@@ -17,25 +17,26 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileDescription;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AndroidResourceDomFileDescription<T extends DomElement> extends DomFileDescription<T> {
-  protected final String myResourceType;
+  protected final ResourceFolderType myResourceType;
 
   public AndroidResourceDomFileDescription(final Class<T> rootElementClass,
                                            @NonNls final String rootTagName,
-                                           @NotNull String resourceType) {
+                                           @NotNull ResourceFolderType resourceType) {
     super(rootElementClass, rootTagName);
     myResourceType = resourceType;
   }
@@ -45,14 +46,14 @@ public abstract class AndroidResourceDomFileDescription<T extends DomElement> ex
     return doIsMyFile(file, myResourceType);
   }
 
-  public static boolean doIsMyFile(final XmlFile file, final String resourceType) {
+  public static boolean doIsMyFile(final XmlFile file, final ResourceFolderType resourceType) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override
       public Boolean compute() {
         if (file.getProject().isDisposed()) {
           return false;
         }
-        if (AndroidResourceUtil.isInResourceSubdirectory(file, resourceType)) {
+        if (AndroidResourceUtil.isInResourceSubdirectory(file, resourceType.getName())) {
           return AndroidFacet.getInstance(file) != null;
         }
         return false;
@@ -66,7 +67,7 @@ public abstract class AndroidResourceDomFileDescription<T extends DomElement> ex
   }
 
   @NotNull
-  public String getResourceType() {
+  public ResourceFolderType getResourceType() {
     return myResourceType;
   }
 }
