@@ -142,6 +142,23 @@ public final class ListenerManager {
   }
 
   /**
+   * Releases all listeners previously registered to a target observable via
+   * {@link #listen(ObservableValue, InvalidationListener)} or
+   * {@link #listen(ObservableValue, Consumer)}.
+   */
+  public void release(@NotNull ObservableValue<?> observable) {
+    Iterator<ListenerPairing> i = myListeners.iterator();
+    while (i.hasNext()) {
+      ListenerPairing listenerPairing = i.next();
+
+      if (listenerPairing.myObservable == observable) {
+        listenerPairing.dispose();
+        i.remove();
+      }
+    }
+  }
+
+  /**
    * Releases a listener previously registered via {@link #listenAll(ObservableValue...)}
    */
   public void release(@NotNull Runnable listenAllRunnable) {
