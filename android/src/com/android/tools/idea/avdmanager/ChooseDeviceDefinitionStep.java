@@ -35,7 +35,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.IS_IN_EDIT_MO
 public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription implements DeviceUiAction.DeviceProvider {
   private JPanel myPanel;
   private DeviceDefinitionList myDeviceDefinitionList;
-  private DeviceDefinitionPreview myDeviceDefinitionPreview;
+  private com.android.tools.idea.avdmanager.legacy.DeviceDefinitionPreview myDeviceDefinitionPreview;
   private JButton myEditDeviceButton;
   private JPanel myEditButtonContainer;
 

@@ -132,16 +132,13 @@ public class AvdWizardConstants {
   public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(200, Unit.MiB);
 
   // Fonts
-  static final Font STANDARD_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 12));
-  static final Font FIGURE_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 10));
-  static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
+  public static final Font STANDARD_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 12));
+  public static final Font FIGURE_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 10));
+  public static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
 
   // Tags
   public static final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");
   public static final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
-
-  public static final List<IdDisplay> ALL_TAGS =
-    Collections.unmodifiableList(Lists.newArrayList(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG));
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
