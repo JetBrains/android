@@ -42,7 +42,9 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
   /**
    * Used to set empty text on a label. If completely empty, the height calculations are off.
    */
-  private static String BLANK = " ";
+  private static final String BLANK = " ";
+  private static final JBColor ERROR_COLOR = JBColor.RED;
+  private static final JBColor WARNING_COLOR = new JBColor(JBColor.YELLOW.darker(), JBColor.YELLOW.brighter());
 
   private final ListenerManager myListeners = new ListenerManager();
   private final Map<ObservableValue<?>, String> myErrors = Maps.newLinkedHashMap();
@@ -122,7 +124,7 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
     for (String error : myErrors.values()) {
       if (!error.isEmpty()) {
         myValidationLabel.setText(error);
-        myValidationLabel.setForeground(JBColor.RED);
+        myValidationLabel.setForeground(ERROR_COLOR);
         hasErrors = true;
         break;
       }
@@ -132,7 +134,7 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
       for (String warning : myWarnings.values()) {
         if (!warning.isEmpty()) {
           myValidationLabel.setText(warning);
-          myValidationLabel.setForeground(JBColor.YELLOW.darker());
+          myValidationLabel.setForeground(WARNING_COLOR);
           break;
         }
       }
