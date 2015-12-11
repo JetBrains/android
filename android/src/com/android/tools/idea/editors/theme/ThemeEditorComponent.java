@@ -442,6 +442,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     setFirstComponent(previewPanel);
     setSecondComponent(myPanel.getRightPanel());
     setShowDividerControls(false);
+    setProportion(0.67f);
 
     myResourceChangeListener = new ResourceChangeListener() {
       @Override
