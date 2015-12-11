@@ -16,9 +16,9 @@
 package com.android.tools.idea.editors.gfxtrace.forms;
 
 import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
 import com.android.tools.idea.editors.gfxtrace.widgets.TextField;
 import com.android.tools.idea.logcat.RegexFilterComponent;
-import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
@@ -35,8 +35,6 @@ import javax.swing.event.*;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -214,7 +212,7 @@ public class ActivitySelector extends JDialog {
   }
 
   private void createUIComponents() {
-    mySearchBox = new RegexFilterComponent(ActivitySelector.class.getName(), 10, false);
+    mySearchBox = new RegexFilterComponent(ActivitySelector.class.getName(), 10);
   }
 
   /**

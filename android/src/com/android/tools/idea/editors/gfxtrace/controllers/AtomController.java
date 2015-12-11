@@ -127,7 +127,7 @@ public class AtomController extends TreeController {
     }
   }
 
-  @NotNull private RegexFilterComponent mySearchField = new RegexFilterComponent(AtomController.class.getName(), 10, false);
+  @NotNull private RegexFilterComponent mySearchField = new RegexFilterComponent(AtomController.class.getName(), 10);
 
   private AtomController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.LOADING_CAPTURE);
