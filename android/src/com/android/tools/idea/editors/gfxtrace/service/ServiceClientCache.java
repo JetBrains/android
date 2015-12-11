@@ -29,13 +29,23 @@ public class ServiceClientCache extends ServiceClientWrapper {
 
   private ListenableFuture<Message> mySchema;
   private final Object mySchemaLock = new Object();
-  private final Cache<Path, Object> myPathCache;
+  private final RpcCache<Path, Object> myPathCache;
+  private final RpcCache<Path, Path> myFollowCache;
 
-  public ServiceClientCache(ServiceClient client) {
+  public ServiceClientCache(final ServiceClient client) {
     super(client);
-    myPathCache = CacheBuilder.newBuilder()
-      .softValues()
-      .build();
+    myPathCache = new RpcCache<Path, Object>() {
+      @Override
+      protected ListenableFuture<Object> fetch(Path key) {
+        return client.get(key);
+      }
+    };
+    myFollowCache = new RpcCache<Path, Path>() {
+      @Override
+      protected ListenableFuture<Path> fetch(Path key) {
+        return client.follow(key);
+      }
+    };
   }
 
   @Override
@@ -49,18 +59,37 @@ public class ServiceClientCache extends ServiceClientWrapper {
   }
 
   @Override
-  public ListenableFuture<Object> get(final Path p) {
+  public ListenableFuture<Path> follow(Path p) {
+    LOG.debug("Following " + p);
+    return myFollowCache.get(p);
+  }
+
+  @Override
+  public ListenableFuture<Object> get(Path p) {
     LOG.debug("Getting " + p);
-    Object result = myPathCache.getIfPresent(p);
-    if (result != null) {
-      return Futures.immediateFuture(result);
+    return myPathCache.get(p);
+  }
+
+  private abstract static class RpcCache<K, V> {
+    private final Cache<K, V> myCache = CacheBuilder.newBuilder().softValues().build();
+
+    public RpcCache() {
     }
-    return Futures.transform(myClient.get(p), new Function<Object, Object>() {
-      @Override
-      public Object apply(Object result) {
-        myPathCache.put(p, result);
-        return result;
+
+    public ListenableFuture<V> get(final K key) {
+      V result = myCache.getIfPresent(key);
+      if (result != null) {
+        return Futures.immediateFuture(result);
       }
-    });
+      return Futures.transform(fetch(key), new Function<V, V>() {
+        @Override
+        public V apply(V result) {
+          myCache.put(key, result);
+          return result;
+        }
+      });
+    }
+
+    protected abstract ListenableFuture<V> fetch(K key);
   }
 }
