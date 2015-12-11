@@ -42,7 +42,7 @@ public class StateListPickerTest extends GuiTestCase {
   @IdeGuiTest
   public void testStateList() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("StateListApplication");
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(7).column(0);
