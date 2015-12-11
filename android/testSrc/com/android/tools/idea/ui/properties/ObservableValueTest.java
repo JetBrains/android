@@ -77,13 +77,13 @@ public final class ObservableValueTest {
     MockObservableValue mockValue = new MockObservableValue();
     mockValue.addListener(new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         strongCount.value++;
       }
     });
     mockValue.addWeakListener(new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         weakCount.value++;
       }
     });

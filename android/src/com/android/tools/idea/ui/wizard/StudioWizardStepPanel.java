@@ -88,7 +88,7 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
                                     @NotNull final Validator<T> validator) {
     myListeners.listenAndFire(value, new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull ObservableValue<?> sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         Validator.Result result = validator.validate(value.get());
         switch (result.getSeverity()) {
           case ERROR:
