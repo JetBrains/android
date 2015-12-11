@@ -33,16 +33,13 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -51,12 +48,11 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.tree.TreeUtil;
+import icons.AndroidIcons;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
@@ -73,16 +69,10 @@ import org.jetbrains.annotations.Nullable;
 import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.*;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
 import javax.swing.text.View;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -99,7 +89,7 @@ import java.util.List;
  *   <li> Offer to create more resource types</li>
  * </ul>
  */
-public class ChooseResourceDialog extends DialogWrapper implements TreeSelectionListener {
+public class ChooseResourceDialog extends DialogWrapper {
   private static final String TYPE_KEY = "ResourceType";
 
   private static final String TEXT = "Text";
@@ -107,13 +97,17 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   private static final String NONE = "None";
 
   private static final Icon RESOURCE_ITEM_ICON = AllIcons.Css.Property;
-  public static final String APP_NAMESPACE_LABEL = "(app)";
+  public static final String APP_NAMESPACE_LABEL = "Project";
 
   @NotNull private final Module myModule;
   @Nullable private final XmlTag myTag;
 
-  private final JTabbedPane myContentPanel;
+  private final JComponent myContentPanel;
+  private final JTabbedPane myTabbedPane;
   private final ResourcePanel[] myPanels;
+  private final SearchTextField mySearchBox;
+  private final JComponent myViewOption;
+  private boolean isGridMode;
 
   private ResourceDialogTabComponent myColorPickerPanel;
   private ColorPicker myColorPicker;
@@ -206,12 +200,42 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myPanels[i] = new ResourcePanel(facet, types[i], true);
     }
 
+    final ToggleAction listView = new ToggleAction(null, "list", AndroidIcons.Views.ListView) {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return !isGridMode;
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        setGridMode(!state);
+      }
+    };
+
+    final ToggleAction gridView = new ToggleAction(null, "grid", AndroidIcons.Views.GridView) {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return isGridMode;
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        setGridMode(state);
+      }
+    };
+
+    mySearchBox = new SearchTextField(true);
+    mySearchBox.setMaximumSize(new Dimension(JBUI.scale(300), mySearchBox.getMaximumSize().height));
+
+    myViewOption = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, new DefaultActionGroup(listView, gridView), true).getComponent();
+    myViewOption.setMaximumSize(new Dimension(JBUI.scale(100), myViewOption.getMaximumSize().height));
+
     //noinspection UndesirableClassUsage We install our own special UI, intellij stuff will break it
-    myContentPanel = new JTabbedPane(SwingConstants.LEFT);
-    myContentPanel.setUI(new SimpleTabUI());
+    myTabbedPane = new JTabbedPane(SwingConstants.LEFT);
+    myTabbedPane.setUI(new SimpleTabUI());
     for (ResourcePanel panel : myPanels) {
-      myContentPanel.addTab(panel.getType().getDisplayName(), panel.myComponent);
-      panel.myTreeBuilder.expandAll(null);
+      myTabbedPane.addTab(panel.getType().getDisplayName(), panel.myComponent);
+      panel.expandAll();
     }
 
     if (value != null && value.startsWith("@")) {
@@ -242,7 +266,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
           throw new IllegalStateException("can not find panel for type: " + type);
         }
 
-        myContentPanel.setSelectedComponent(panel.myComponent);
+        myTabbedPane.setSelectedComponent(panel.myComponent);
         panel.select(namespace, name);
       }
     }
@@ -298,8 +322,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myColorPickerPanel = new ResourceDialogTabComponent(new JPanel(new BorderLayout()), ResourceType.COLOR, ResourceFolderType.VALUES);
       myColorPickerPanel.setBorder(null);
       myColorPickerPanel.addCenter(myColorPicker);
-      myContentPanel.addTab("new Color", myColorPickerPanel);
-      myContentPanel.setSelectedIndex(myContentPanel.getTabCount() - 1);
+      myTabbedPane.addTab("new Color", myColorPickerPanel);
+      myTabbedPane.setSelectedIndex(myTabbedPane.getTabCount() - 1);
 
       if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
         myColorPickerPanel.addResourceDialogSouthPanel(resourceNameSuggestion, false);
@@ -310,18 +334,28 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
 
     if (myStateListPicker != null) {
-      myContentPanel.addTab("new StateList", myStateListPickerPanel);
-      myContentPanel.setSelectedIndex(myContentPanel.getTabCount() - 1);
+      myTabbedPane.addTab("new StateList", myStateListPickerPanel);
+      myTabbedPane.setSelectedIndex(myTabbedPane.getTabCount() - 1);
     }
 
-    myContentPanel.addChangeListener(new ChangeListener() {
+    myTabbedPane.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(ChangeEvent e) {
-        valueChanged(null);
+        valueChanged();
       }
     });
 
-    valueChanged(null);
+    JComponent toolbar = Box.createHorizontalBox();
+    toolbar.add(mySearchBox);
+    toolbar.add(Box.createHorizontalStrut(JBUI.scale(20)));
+    toolbar.add(myViewOption);
+    toolbar.setVisible(false); // TODO make search work
+
+    myContentPanel = new JPanel(new BorderLayout());
+    myContentPanel.add(myTabbedPane);
+    myContentPanel.add(toolbar, BorderLayout.NORTH);
+
+    valueChanged();
     init();
     // we need to trigger this once before the window is made visible to update any extra labels
     doValidate();
@@ -374,7 +408,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   @Nullable("when it is not a ResourcePanel that is currently selected (e.g creating a new color)")
   private ResourcePanel getSelectedPanel() {
-    Component selectedComponent = myContentPanel.getSelectedComponent();
+    Component selectedComponent = myTabbedPane.getSelectedComponent();
     for (ResourcePanel panel : myPanels) {
       if (panel.myComponent == selectedComponent) {
         return panel;
@@ -387,14 +421,14 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
-    Component selectedComponent = myContentPanel.getSelectedComponent();
+    Component selectedComponent = myTabbedPane.getSelectedComponent();
 
     final boolean okActionEnabled;
     ValidationInfo error = null;
 
     ResourcePanel panel = getSelectedPanel();
     if (panel != null) {
-      ResourceItem element = getSelectedElement(panel.myTreeBuilder, ResourceItem.class);
+      ResourceItem element = panel.getSelectedElement();
       okActionEnabled = element != null;
     }
     else {
@@ -542,7 +576,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myPanels[0].myTree;
+    // TODO.should select the first list?
+    return myPanels[0].myList;
   }
 
   @Override
@@ -569,16 +604,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
    * Expands the location settings panel
    */
   public void openLocationSettings() {
-    ResourceDialogTabComponent tabComponent = (ResourceDialogTabComponent)myContentPanel.getSelectedComponent();
+    ResourceDialogTabComponent tabComponent = (ResourceDialogTabComponent)myTabbedPane.getSelectedComponent();
     tabComponent.openLocationSettings();
-  }
-
-  @Override
-  protected void dispose() {
-    super.dispose();
-    for (ResourcePanel panel : myPanels) {
-      Disposer.dispose(panel.myTreeBuilder);
-    }
   }
 
   public String getResourceName() {
@@ -587,8 +614,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   @Override
   protected void doOKAction() {
-    valueChanged(null);
-    if (myContentPanel.getSelectedComponent() == myColorPickerPanel && myResourceNameVisibility != ResourceNameVisibility.HIDE) {
+    valueChanged();
+    if (myTabbedPane.getSelectedComponent() == myColorPickerPanel && myResourceNameVisibility != ResourceNameVisibility.HIDE) {
       String colorName = myColorPickerPanel.getResourceNameField().getText();
       Module module = myColorPickerPanel.getLocationSettings().getModule();
       String fileName = myColorPickerPanel.getLocationSettings().getFileName();
@@ -605,7 +632,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
       myResultResourceName = SdkConstants.COLOR_RESOURCE_PREFIX + colorName;
     }
-    else if (myContentPanel.getSelectedComponent() == myStateListPickerPanel && myResourceNameVisibility != ResourceNameVisibility.HIDE) {
+    else if (myTabbedPane.getSelectedComponent() == myStateListPickerPanel && myResourceNameVisibility != ResourceNameVisibility.HIDE) {
       String stateListName = myStateListPickerPanel.getResourceNameField().getText();
       List<String> dirNames = myStateListPickerPanel.getLocationSettings().getDirNames();
       ResourceFolderType resourceFolderType = ResourceFolderType.getFolderType(dirNames.get(0));
@@ -629,31 +656,36 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     super.doOKAction();
   }
 
-  @Nullable
-  private static <T> T getSelectedElement(AbstractTreeBuilder treeBuilder, Class<T> elementClass) {
-    Set<T> elements = treeBuilder.getSelectedElements(elementClass);
-    return elements.isEmpty() ? null : elements.iterator().next();
+  void setGridMode(boolean gridMode) {
+    isGridMode = gridMode;
+    for (ResourcePanel panel : myPanels) {
+      if (panel.supportsGridMode()) {
+        panel.setGridMode(isGridMode);
+      }
+    }
   }
 
-  @Override
-  public void valueChanged(@Nullable TreeSelectionEvent e) {
-    Component selectedComponent = myContentPanel.getSelectedComponent();
+  private void valueChanged() {
+    Component selectedComponent = myTabbedPane.getSelectedComponent();
 
     if (selectedComponent == myColorPickerPanel) {
       Color color = myColorPicker.getColor();
       myNewResourceAction.setEnabled(false);
+      myViewOption.setVisible(false);
       myResultResourceName = ResourceHelper.colorToString(color);
     }
     else if (selectedComponent == myStateListPickerPanel) {
       myNewResourceAction.setEnabled(false);
+      myViewOption.setVisible(false);
       myResultResourceName = null;
     }
     else {
       ResourcePanel panel = getSelectedPanel();
       assert panel != null; // we are only ever here if we have a panel
-      ResourceItem element = getSelectedElement(panel.myTreeBuilder, ResourceItem.class);
+      ResourceItem element = panel.getSelectedElement();
 
-      myNewResourceAction.setEnabled(!panel.myTreeBuilder.getSelectedElements().isEmpty());
+      myNewResourceAction.setEnabled(true);
+      myViewOption.setVisible(panel.supportsGridMode());
 
       if (element == null) {
         myResultResourceName = null;
@@ -661,7 +693,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       else {
         // TODO actually get prefix name from namespace
         String prefix = element.getGroup().getNamespace() == null ? "@" : SdkConstants.ANDROID_PREFIX;
-        myResultResourceName = prefix + element.getName();
+        myResultResourceName = prefix + element.getPath();
       }
 
       panel.showPreview(element);
@@ -680,41 +712,19 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
      */
     private final String[] NAMESPACES = {null, SdkConstants.ANDROID_NS_NAME};
 
-    public final JBSplitter myComponent;
-
-    public final Tree myTree;
-    public final AbstractTreeBuilder myTreeBuilder;
-
-    private final JPanel myPreviewPanel;
-    private final JTextPane myHtmlTextArea;
+    public final @NotNull JBSplitter myComponent;
+    private final @NotNull TreeGrid myList;
+    private final @NotNull JPanel myPreviewPanel;
+    private final @NotNull JTextPane myHtmlTextArea;
     private final JTextArea myComboTextArea;
     private final JComboBox myComboBox;
-    private final JLabel myNoPreviewComponent;
+    private final @NotNull JLabel myNoPreviewComponent;
 
-    private final ResourceGroup[] myGroups;
-    private final ResourceType myType;
+    private final @NotNull ResourceGroup[] myGroups;
+    private final @NotNull ResourceType myType;
 
     public ResourcePanel(@NotNull AndroidFacet facet, @NotNull ResourceType type, boolean includeFileResources) {
       myType = type;
-
-      myTree = new Tree();
-      myTree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode()));
-      myTree.setScrollsOnExpand(true);
-      myTree.setRootVisible(false);
-      myTree.setShowsRootHandles(true);
-      new DoubleClickListener() {
-        @Override
-        protected boolean onDoubleClick(MouseEvent e) {
-          if (!myTreeBuilder.getSelectedElements(ResourceItem.class).isEmpty()) {
-            close(OK_EXIT_CODE);
-            return true;
-          }
-          return false;
-        }
-      }.installOn(myTree);
-
-      ToolTipManager.sharedInstance().registerComponent(myTree);
-      TreeUtil.installActions(myTree);
 
       myGroups = new ResourceGroup[NAMESPACES.length];
       for (int c = 0; c < NAMESPACES.length; c++) {
@@ -722,21 +732,35 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
         myGroups[c] = new ResourceGroup(NAMESPACES[c], type, manager, includeFileResources);
       }
 
-      myTreeBuilder =
-        new AbstractTreeBuilder(myTree, (DefaultTreeModel)myTree.getModel(), new TreeContentProvider(myGroups), null);
-      myTreeBuilder.initRootNode();
-
-      TreeSelectionModel selectionModel = myTree.getSelectionModel();
-      selectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-      selectionModel.addTreeSelectionListener(ChooseResourceDialog.this);
-
-      myTree.setCellRenderer(new NodeRenderer());
-      new TreeSpeedSearch(myTree, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true);
+      AbstractTreeStructure treeContentProvider = new TreeContentProvider(myGroups);
 
       myComponent = new JBSplitter(false, 0.8f);
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
 
-      myComponent.setFirstComponent(ScrollPaneFactory.createScrollPane(myTree));
+      myList = new TreeGrid(treeContentProvider);
+
+      myList.addListSelectionListener(new ListSelectionListener() {
+        @Override
+        public void valueChanged(ListSelectionEvent e) {
+          ChooseResourceDialog.this.valueChanged();
+        }
+      });
+      new DoubleClickListener() {
+        @Override
+        protected boolean onDoubleClick(MouseEvent e) {
+          if (myList.getSelectedElement() != null) {
+            close(OK_EXIT_CODE);
+            return true;
+          }
+          return false;
+        }
+      }.installOn(myList);
+
+      JComponent firstComponent = ScrollPaneFactory.createScrollPane(myList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                                                            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      firstComponent.setPreferredSize(JBUI.size(200,600));
+
+      myComponent.setFirstComponent(firstComponent);
 
       myPreviewPanel = new JPanel(new CardLayout());
       myComponent.setSecondComponent(myPreviewPanel);
@@ -777,6 +801,9 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       myNoPreviewComponent.setHorizontalAlignment(SwingConstants.CENTER);
       myNoPreviewComponent.setVerticalAlignment(SwingConstants.CENTER);
       myPreviewPanel.add(myNoPreviewComponent, NONE);
+
+      // setup default list look and feel
+      setGridMode(isGridMode);
     }
 
     @NotNull
@@ -792,9 +819,75 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
         return;
       }
 
-      String doc = AndroidJavaDocRenderer.render(myModule, element.getGroup().getType(), element.toString(), SdkConstants.ANDROID_NS_NAME.equals(element.getGroup().getNamespace()));
+      String doc = AndroidJavaDocRenderer.render(myModule, element.getGroup().getType(), element.getName(), SdkConstants.ANDROID_NS_NAME.equals(element.getGroup().getNamespace()));
       myHtmlTextArea.setText(doc);
       layout.show(myPreviewPanel, TEXT);
+    }
+
+    void setGridMode(boolean gridView) {
+      if (gridView) {
+        assert supportsGridMode();
+        final ListCellRenderer gridRenderer = new DefaultListCellRenderer() {
+          {
+            setHorizontalTextPosition(SwingConstants.CENTER);
+            setVerticalTextPosition(SwingConstants.BOTTOM);
+            setHorizontalAlignment(SwingConstants.CENTER);
+          }
+          @Override
+          public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            Component component = super.getListCellRendererComponent(list, value, index, isSelected, false);
+            // TODO show deprecated resources with a strikeout
+            ResourceItem rItem = (ResourceItem) value;
+            setIcon(rItem.getIcon(JBUI.scale(80)));
+            return component;
+          }
+        };
+        myList.setFixedCellWidth(JBUI.scale(90));
+        myList.setFixedCellHeight(JBUI.scale(100));
+        myList.setCellRenderer(gridRenderer);
+        myList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+      }
+      else {
+        final ListCellRenderer listRenderer = new DefaultListCellRenderer() {
+          @Override
+          public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            Component component = super.getListCellRendererComponent(list, value, index, isSelected, false);
+            // TODO show deprecated resources with a strikeout
+            ResourceItem rItem = (ResourceItem) value;
+            setIcon(rItem.getIcon(JBUI.scale(28)));
+            return component;
+          }
+        };
+        myList.setFixedCellWidth(-1);
+        myList.setFixedCellHeight(JBUI.scale(32));
+        myList.setCellRenderer(listRenderer);
+        myList.setLayoutOrientation(JList.VERTICAL);
+      }
+    }
+
+    boolean supportsGridMode() {
+      return myType == ResourceType.COLOR || myType == ResourceType.DRAWABLE || myType == ResourceType.MIPMAP;
+    }
+
+    private void select(@Nullable String namespace, @NotNull String name) {
+      for (ResourceGroup group : myGroups) {
+        if (Objects.equal(namespace, group.getNamespace())) {
+          for (ResourceItem item : group.getItems()) {
+            if (name.equals(item.getName())) {
+              myList.setSelectedElement(item);
+              return;
+            }
+          }
+        }
+      }
+    }
+
+    public void expandAll() {
+      myList.expandAll();
+    }
+
+    public ResourceItem getSelectedElement() {
+      return (ResourceItem) myList.getSelectedElement();
     }
 
     private void showComboPreview(@NotNull List<ResourceElement> resources) {
@@ -851,20 +944,6 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       CardLayout layout = (CardLayout)myPreviewPanel.getLayout();
       layout.show(myPreviewPanel, COMBO);
     }
-
-    private void select(@Nullable String namespace, @NotNull String name) {
-      for (ResourceGroup group : myGroups) {
-        if (Objects.equal(namespace, group.getNamespace())) {
-          for (ResourceItem item : group.getItems()) {
-            if (name.equals(item.toString())) {
-              myTreeBuilder.select(item);
-              return;
-            }
-          }
-          return;
-        }
-      }
-    }
   }
 
   private static String getResourceElementValue(ResourceElement element) {
@@ -917,7 +996,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       Collections.sort(myItems, new Comparator<ResourceItem>() {
         @Override
         public int compare(ResourceItem resource1, ResourceItem resource2) {
-          return resource1.toString().compareTo(resource2.toString());
+          return resource1.getName().compareTo(resource2.getName());
         }
       });
     }
@@ -964,6 +1043,10 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
 
     public String getName() {
+      return myName;
+    }
+
+    public String getPath() {
       return myGroup.getType().getName() + "/" + myName;
     }
 
@@ -971,12 +1054,19 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       return myFile;
     }
 
-    public Icon getIcon() {
-      if (myIcon == null) {
+    @Override
+    public String toString() {
+      // we need to return JUST the name so quicksearch in JList works
+      return getName();
+    }
+
+    public Icon getIcon(int size) {
+      if (myIcon == null || size != myIcon.getIconWidth()) {
+        // TODO, for resources with no icon, when we use RESOURCE_ITEM_ICON, we are re-doing the lookup each time.
         Icon icon = RESOURCE_ITEM_ICON;
         if (myFile != null) {
           if (ImageFileTypeManager.getInstance().isImage(myFile)) {
-            icon = new SizedIcon(16, 16, new ImageIcon(myFile.getPath()));
+            icon = new SizedIcon(size, new ImageIcon(myFile.getPath()));
           }
           else {
             icon = myFile.getFileType().getIcon();
@@ -993,7 +1083,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
             if (value.startsWith("#")) {
               Color color = ResourceHelper.parseColor(value);
               if (color != null) { // maybe null for invalid color
-                icon = new ColorIcon(JBUI.scale(16), color);
+                icon = new ColorIcon(size, color);
               }
             }
           }
@@ -1002,11 +1092,6 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
         myIcon = icon;
       }
       return myIcon;
-    }
-
-    @Override
-    public String toString() {
-      return myName;
     }
   }
 
@@ -1052,7 +1137,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
         descriptor.setIcon(AllIcons.Nodes.TreeClosed);
       }
       else if (element instanceof ResourceItem) {
-        descriptor.setIcon(((ResourceItem)element).getIcon());
+        descriptor.setIcon(((ResourceItem)element).getIcon(AllIcons.Nodes.TreeClosed.getIconWidth()));
       }
       return descriptor;
     }
@@ -1093,33 +1178,35 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   }
 
   public static class SizedIcon implements Icon {
-    private final int myWidth;
-    private final int myHeight;
+    private final int mySize;
     private final Image myImage;
 
-    public SizedIcon(int maxWidth, int maxHeight, Image image) {
-      myWidth = JBUI.scale(Math.min(maxWidth, image.getWidth(null)));
-      myHeight = JBUI.scale(Math.min(maxHeight, image.getHeight(null)));
+    public SizedIcon(int size, Image image) {
+      mySize = size;
       myImage = image;
     }
 
-    public SizedIcon(int maxWidth, int maxHeight, ImageIcon icon) {
-      this(maxWidth, maxHeight, icon.getImage());
+    public SizedIcon(int size, ImageIcon icon) {
+      this(size, icon.getImage());
     }
 
     @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-      g.drawImage(myImage, x, y, myWidth, myHeight, null);
+    public void paintIcon(Component c, Graphics g, int i, int j) {
+      double scale = Math.min(getIconHeight()/(double)myImage.getHeight(c),getIconWidth()/(double)myImage.getWidth(c));
+      int x = (int) (getIconWidth() - (myImage.getWidth(c) * scale)) / 2;
+      int y = (int) (getIconHeight() - (myImage.getHeight(c) * scale)) / 2;
+      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      g.drawImage(myImage, i + x, j + y, (int) (myImage.getWidth(c) * scale), (int) (myImage.getHeight(c) * scale), null);
     }
 
     @Override
     public int getIconWidth() {
-      return myWidth;
+      return mySize;
     }
 
     @Override
     public int getIconHeight() {
-      return myHeight;
+      return mySize;
     }
   }
 

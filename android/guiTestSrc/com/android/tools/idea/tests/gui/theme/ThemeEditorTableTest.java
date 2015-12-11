@@ -321,7 +321,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
         return (component.isShowing() && !component.equals(dialog.target()));
       }
     });
-    secondDialog.getResourceTree().clickPath(ChooseResourceDialog.APP_NAMESPACE_LABEL + "/abc_disabled_alpha_material_dark");
+    secondDialog.getList(ChooseResourceDialog.APP_NAMESPACE_LABEL).clickItem("abc_disabled_alpha_material_dark");
     secondDialog.focus();
     secondDialog.clickOK();
     pause(new Condition("Waiting for component update") {
