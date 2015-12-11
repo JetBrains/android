@@ -58,7 +58,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
   double myMinOutlineHeightIn;
   double myMinOutlineWidthIn;
   private static final int PADDING = JBUI.scale(20);
-  private final ConfigureDeviceModel myDeviceModel;
+  private final AvdDeviceData myDeviceData;
 
   private static final JBColor OUR_GRAY = new JBColor(Gray._192, Gray._96);
 
@@ -69,20 +69,38 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     }
   };
 
-  public DeviceDefinitionPreview(@NotNull ConfigureDeviceModel model) {
-    myDeviceModel = model;
+  public DeviceDefinitionPreview(@NotNull AvdDeviceData deviceData) {
+    myDeviceData = deviceData;
     addListeners();
   }
 
+  /**
+   * @return an icon representing the given device's form factor. Defaults to Mobile if the form factor
+   * can not be detected.
+   */
+  @NotNull
+  public static Icon getIcon(@Nullable AvdDeviceData deviceData) {
+    Icon icon = AndroidIcons.FormFactors.Tv_32;
+    if (deviceData != null) {
+      if (deviceData.isTv().get()) {
+        icon = AndroidIcons.FormFactors.Tv_32;
+      }
+      else if (deviceData.isWear().get()) {
+        icon = AndroidIcons.FormFactors.Wear_32;
+      }
+    }
+    return icon;
+  }
+
   private void addListeners() {
-      myDeviceModel.supportsLandscape().addWeakListener(myRepaintListener);
-      myDeviceModel.supportsPortrait().addWeakListener(myRepaintListener);
-      myDeviceModel.name().addWeakListener(myRepaintListener);
-      myDeviceModel.screenResolutionWidth().addWeakListener(myRepaintListener);
-      myDeviceModel.screenResolutionHeight().addWeakListener(myRepaintListener);
-      myDeviceModel.deviceType().addWeakListener(myRepaintListener);
-      myDeviceModel.diagonalScreenSize().addWeakListener(myRepaintListener);
-      myDeviceModel.isScreenRound().addWeakListener(myRepaintListener);
+    myDeviceData.supportsLandscape().addWeakListener(myRepaintListener);
+    myDeviceData.supportsPortrait().addWeakListener(myRepaintListener);
+    myDeviceData.name().addWeakListener(myRepaintListener);
+    myDeviceData.screenResolutionWidth().addWeakListener(myRepaintListener);
+    myDeviceData.screenResolutionHeight().addWeakListener(myRepaintListener);
+    myDeviceData.deviceType().addWeakListener(myRepaintListener);
+    myDeviceData.diagonalScreenSize().addWeakListener(myRepaintListener);
+    myDeviceData.isScreenRound().addWeakListener(myRepaintListener);
   }
 
   @Override
@@ -96,16 +114,16 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     g2d.setColor(JBColor.foreground());
     g2d.setFont(STANDARD_FONT);
 
-    boolean isCircular = myDeviceModel.isWear().get() && myDeviceModel.isScreenRound().get();
+    boolean isCircular = myDeviceData.isWear().get() && myDeviceData.isScreenRound().get();
 
     // Paint our icon
-    Icon icon = getIcon(myDeviceModel);
+    Icon icon = getIcon(myDeviceData);
     icon.paintIcon(this, g, PADDING / 2, PADDING / 2);
 
     // Paint the device name
     g2d.setFont(TITLE_FONT);
     FontMetrics metrics = g.getFontMetrics(TITLE_FONT);
-    g2d.drawString(myDeviceModel.name().get(), JBUI.scale(50), PADDING + metrics.getHeight() / 2);
+    g2d.drawString(myDeviceData.name().get(), JBUI.scale(50), PADDING + metrics.getHeight() / 2);
     g2d.drawLine(0, JBUI.scale(50), getWidth(), JBUI.scale(50));
 
     // Paint the device outline with dimensions labelled
@@ -160,11 +178,11 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
       // Paint the diagonal dimension
       g2d.setColor(OUR_GRAY);
-      String diagString = FORMAT.format(myDeviceModel.diagonalScreenSize().get());
+      String diagString = FORMAT.format(myDeviceData.diagonalScreenSize().get());
       int diagTextX = round(PADDING + (screenSize.width - metrics.stringWidth(diagString)) / 2);
       int diagTextY = round(JBUI.scale(100) + (screenSize.height + stringHeight) / 2);
 
-      double chin = (double)myDeviceModel.screenChinSize().get();
+      double chin = (double)myDeviceData.screenChinSize().get();
       chin *= screenSize.getWidth() / getScreenDimension(getDefaultDeviceOrientation()).getWidth();
       Line2D diagLine = new Line2D.Double(PADDING, JBUI.scale(100) + screenSize.height + chin, PADDING + screenSize.width, JBUI.scale(100));
       if (isCircular) {
@@ -225,30 +243,29 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
         infoSegmentY = round(JBUI.scale(100) + screenSize.height + PADDING);
       }
       infoSegmentY += stringHeight;
-      ScreenSize size = ConfigureDeviceModel.getScreenSize(myDeviceModel.diagonalScreenSize().get());
+      ScreenSize size = AvdScreenData.getScreenSize(myDeviceData.diagonalScreenSize().get());
 
       g2d.drawString("Size:      " + size.getResourceValue(), infoSegmentX, infoSegmentY);
       infoSegmentY += stringHeight;
 
       ScreenRatio ratio =
-        ConfigureDeviceModel.getScreenRatio(myDeviceModel.screenResolutionWidth().get(), myDeviceModel.screenResolutionHeight().get());
+        AvdScreenData.getScreenRatio(myDeviceData.screenResolutionWidth().get(), myDeviceData.screenResolutionHeight().get());
       g2d.drawString("Ratio:    " + ratio.getResourceValue(), infoSegmentX, infoSegmentY);
       infoSegmentY += stringHeight;
 
-      Density pixelDensity = (myDeviceModel.isTv().get()) ? Density.TV : ConfigureDeviceModel.getScreenDensity(myDeviceModel.screenDpi().get());
+      Density pixelDensity = (myDeviceData.isTv().get()) ? Density.TV : AvdScreenData.getScreenDensity(myDeviceData.screenDpi().get());
 
       g2d.drawString("Density: " + pixelDensity.getResourceValue(), infoSegmentX, infoSegmentY);
     }
   }
 
-  private ScreenOrientation getDefaultDeviceOrientation() {
-    return (myDeviceModel.supportsPortrait().get())
-           ? ScreenOrientation.PORTRAIT
-           : (myDeviceModel.supportsLandscape().get()) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.SQUARE;
-  }
-
   private static int round(double d) {
     return (int)Math.round(d);
+  }
+
+  private ScreenOrientation getDefaultDeviceOrientation() {
+    return (myDeviceData.supportsPortrait().get())
+           ? ScreenOrientation.PORTRAIT : (myDeviceData.supportsLandscape().get()) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.SQUARE;
   }
 
   /**
@@ -260,7 +277,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     if (pixelSize == null) {
       return null;
     }
-    double diagonalIn = myDeviceModel.diagonalScreenSize().get();
+    double diagonalIn = myDeviceData.diagonalScreenSize().get();
     double sideRatio = pixelSize.getWidth() / pixelSize.getHeight();
     double heightIn = diagonalIn / Math.sqrt(1 + sideRatio);
     double widthIn = sideRatio * heightIn;
@@ -287,7 +304,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       double c = (desiredMinIn * myMaxOutlineWidth - maxDimIn * minDimIn) / (maxDimIn - minDimIn);
 
       // scale the diagonal and then recompute the edges, since the edges need to be scaled evenly
-      diagonalIn = myDeviceModel.diagonalScreenSize().get() * f + c;
+      diagonalIn = myDeviceData.diagonalScreenSize().get() * f + c;
       heightIn = diagonalIn / Math.sqrt(1 + sideRatio);
       widthIn = sideRatio * heightIn;
     }
@@ -298,8 +315,8 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
   @SuppressWarnings("SuspiciousNameCombination") // We sometimes deliberately swap x/width y/height relationships depending on orientation
   private Dimension getScreenDimension(@NonNull ScreenOrientation orientation) {
     // compute width and height to take orientation into account.
-    int x = myDeviceModel.screenResolutionWidth().get();
-    int y = myDeviceModel.screenResolutionHeight().get();
+    int x = myDeviceData.screenResolutionWidth().get();
+    int y = myDeviceData.screenResolutionHeight().get();
     int screenWidth, screenHeight;
 
     if (x > y) {
@@ -324,24 +341,6 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     }
 
     return new Dimension(screenWidth, screenHeight);
-  }
-
-  /**
-   * @return an icon representing the given device's form factor. Defaults to Mobile if the form factor
-   * can not be detected.
-   */
-  @NotNull
-  public static Icon getIcon(@Nullable ConfigureDeviceModel model) {
-    Icon icon = AndroidIcons.FormFactors.Tv_32;
-    if (model != null) {
-      if (model.isTv().get()) {
-        icon = AndroidIcons.FormFactors.Tv_32;
-      }
-      else if (model.isWear().get()) {
-        icon = AndroidIcons.FormFactors.Wear_32;
-      }
-    }
-    return icon;
   }
 
   @Override

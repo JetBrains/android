@@ -25,13 +25,12 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.intellij.util.ui.JBFont;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.sdklib.devices.Storage.Unit;
@@ -139,6 +138,8 @@ public class AvdWizardConstants {
   // Tags
   public static final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");
   public static final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
+
+  public static final List<IdDisplay> ALL_TAGS = ImmutableList.of(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG);
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
