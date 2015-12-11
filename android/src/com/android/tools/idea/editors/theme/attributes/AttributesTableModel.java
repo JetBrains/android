@@ -36,10 +36,8 @@ import spantable.CellSpanModel;
 
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Table model for Theme Editor
@@ -313,11 +311,13 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       AttributeDefinition attrDefinition =
         ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), item.getSelectedValue());
 
-      if (urlType == ResourceType.COLOR || ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color)) {
+      String attributeName = item.getName().toLowerCase(Locale.US);
+
+      if (urlType == ResourceType.COLOR ||
+          ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color) ||
+          attributeName.contains("color")) {
         return Color.class;
       }
-
-      String attributeName = item.getName().toLowerCase();
 
       if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference) &&
           attributeName.contains("background") &&
