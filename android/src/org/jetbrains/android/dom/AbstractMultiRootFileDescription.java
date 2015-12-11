@@ -37,6 +37,11 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AbstractMultiRootFileDescription<T extends DomElement> extends AndroidResourceDomFileDescription<T> {
   private final ImmutableSet<String> myTagNames;
 
+  public AbstractMultiRootFileDescription(@NotNull Class<T> aClass, @NotNull ResourceFolderType resourceFolderType, @NotNull ImmutableSet<String> tagNames) {
+    super(aClass, tagNames.iterator().next(), resourceFolderType);
+    myTagNames = tagNames;
+  }
+
   public AbstractMultiRootFileDescription(@NotNull Class<T> aClass, @NotNull ResourceFolderType resourceFolderType, @NotNull String... tagNames) {
     super(aClass, tagNames[0], resourceFolderType);
     myTagNames = ImmutableSet.copyOf(tagNames);

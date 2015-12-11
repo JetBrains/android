@@ -20,7 +20,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
@@ -32,9 +31,8 @@ import com.intellij.util.xml.*;
 import com.intellij.util.xml.reflect.DomExtender;
 import com.intellij.util.xml.reflect.DomExtension;
 import com.intellij.util.xml.reflect.DomExtensionsRegistrar;
-import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
-import org.jetbrains.android.dom.animation.AnimationElement;
-import org.jetbrains.android.dom.animator.AnimatorElement;
+import org.jetbrains.android.dom.animation.InterpolatorElement;
+import org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription;
 import org.jetbrains.android.dom.attrs.*;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
@@ -198,26 +196,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     registerAttributes(facet, element, styleableNames, SYSTEM_RESOURCE_PACKAGE, callback, processor, skipNames);
   }
 
-  private static StyleableDefinition[] getStyleables(@NotNull AttributeDefinitions definitions, @NotNull String[] names) {
-    List<StyleableDefinition> styleables = new ArrayList<StyleableDefinition>();
-    for (String name : names) {
-      StyleableDefinition styleable = definitions.getStyleableByName(name);
-      if (styleable != null) {
-        styleables.add(styleable);
-      }
-    }
-    return styleables.toArray(new StyleableDefinition[styleables.size()]);
-  }
-
-  protected static void registerAttributes(AndroidFacet facet,
-                                           DomElement element,
-                                           @NotNull String styleableName,
-                                           @Nullable String resPackage,
-                                           MyCallback callback,
-                                           Set<XmlName> skipNames) {
-    registerAttributes(facet, element, new String[]{styleableName}, resPackage, callback, null, skipNames);
-  }
-
   protected static void registerAttributes(AndroidFacet facet,
                                            DomElement element,
                                            @NotNull String[] styleableNames,
@@ -226,23 +204,24 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                            MyAttributeProcessor processor,
                                            Set<XmlName> skipNames) {
     ResourceManager manager = facet.getResourceManager(resPackage);
-    if (manager == null) return;
-    AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
-    if (attrDefs == null) return;
-    StyleableDefinition[] styleables = getStyleables(attrDefs, styleableNames);
-    registerAttributes(facet, element, styleables, resPackage, callback, processor, skipNames);
-  }
+    if (manager == null) {
+      return;
+    }
 
-  private static void registerAttributes(AndroidFacet facet,
-                                         DomElement element,
-                                         StyleableDefinition[] styleables,
-                                         String resPackage,
-                                         MyCallback callback,
-                                         MyAttributeProcessor processor,
-                                         Set<XmlName> skipNames) {
+    AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
+    if (attrDefs == null) {
+      return;
+    }
+
     String namespace = getNamespaceKeyByResourcePackage(facet, resPackage);
-    for (StyleableDefinition styleable : styleables) {
-      registerStyleableAttributes(element, styleable, namespace, callback, processor, skipNames);
+    for (String name : styleableNames) {
+      StyleableDefinition styleable = attrDefs.getStyleableByName(name);
+      if (styleable != null) {
+        registerStyleableAttributes(element, styleable, namespace, callback, processor, skipNames);
+      }
+      else {
+        LOG.warn(String.format("Styleable %s not found", name));
+      }
     }
   }
 
@@ -306,7 +285,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         newSkipAttrNames.add(new XmlName("action", NS_RESOURCES));
       }
 
-      registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, newSkipAttrNames);
+      registerAttributes(facet, element, new String[]{styleableName}, SYSTEM_RESOURCE_PACKAGE, callback, null, newSkipAttrNames);
     }
 
     if (tagName.equals("searchable")) {
@@ -367,45 +346,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   @NotNull
   public static Map<String, PsiClass> getPreferencesClassMap(@NotNull AndroidFacet facet) {
     return facet.getClassMap(AndroidXmlResourcesUtil.PREFERENCE_CLASS_NAME, SimpleClassMapConstructor.getInstance());
-  }
-
-  public static void registerExtensionsForAnimation(final AndroidFacet facet,
-                                                    String tagName,
-                                                    AnimationElement element,
-                                                    MyCallback callback,
-                                                    Set<String> registeredSubtags,
-                                                    Set<XmlName> skipAttrNames) {
-    if (tagName.equals(TAG_SELECTOR)) {
-      registerSubtags(TAG_ITEM, AnimatorElement.class, callback, registeredSubtags);
-    }
-    else if (tagName.equals("set")) {
-      for (String subtagName : AndroidAnimationUtils.getPossibleChildren(facet)) {
-        registerSubtags(subtagName, AnimationElement.class, callback, registeredSubtags);
-      }
-    }
-    final String styleableName = AndroidAnimationUtils.getStyleableNameByTagName(tagName);
-    final JavaPsiFacade facade = JavaPsiFacade.getInstance(facet.getModule().getProject());
-    final PsiClass c = ApplicationManager.getApplication().runReadAction(new Computable<PsiClass>() {
-      @Override
-      @Nullable
-      public PsiClass compute() {
-        return facade.findClass(AndroidAnimationUtils.ANIMATION_PACKAGE + '.' + styleableName,
-                                facet.getModule().getModuleWithDependenciesAndLibrariesScope(true));
-      }
-    });
-    if (c != null) {
-      registerAttributesForClassAndSuperclasses(facet, element, c, callback, null, skipAttrNames);
-    }
-    else {
-      registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-      String layoutAnim = "LayoutAnimation";
-      if (styleableName.endsWith(layoutAnim) && !styleableName.equals(layoutAnim)) {
-        registerAttributes(facet, element, layoutAnim, SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-      }
-      if (styleableName.endsWith("Animation")) {
-        registerAttributes(facet, element, "Animation", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
-      }
-    }
   }
 
   public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
@@ -481,7 +421,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       registerAttributes(facet, element, new String[]{"Fragment"}, callback, ourLayoutAttrsProcessor, skipAttrNames);
     }
     else if (element instanceof Tag) {
-      registerAttributes(facet, element, "ViewTag", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+      registerAttributes(facet, element, new String[]{"ViewTag"}, SYSTEM_RESOURCE_PACKAGE, callback, null, skipAttrNames);
       return;
     }
     else {
@@ -640,9 +580,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         }
       }
     }
-    else if (element instanceof AnimationElement) {
-      registerExtensionsForAnimation(facet, tagName, (AnimationElement)element, callback, registeredSubtags, skippedAttributes);
-    }
     else if (element instanceof XmlResourceElement) {
       registerExtensionsForXmlResources(facet, tag, (XmlResourceElement)element, callback, registeredSubtags, skippedAttributes);
     }
@@ -671,8 +608,25 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         // DOM element is annotated with @Styleable annotation, but styleable definition with
         // provided name is not there in Android framework. This is a bug, so logging it as a warning.
         LOG.warn(String.format("@Styleable(%s) annotation doesn't point to existing styleable", styleableName));
-      } else {
+      }
+      else {
         registerStyleableAttributes(element, styleable, ANDROID_URI, callback, null, skippedAttributes);
+      }
+    }
+
+    // This snippet doesn't look much different from lines above for handling @Styleable annotations above,
+    // but is used to provide customized warning message
+    // TODO: figure it out how to make it DRY without introducing new method with lots of arguments
+    if (element instanceof InterpolatorElement) {
+      final String styleableName = InterpolatorDomFileDescription.getInterpolatorStyleableByTagName(tag.getName());
+      if (styleableName != null) {
+        final StyleableDefinition styleable = definitions.getStyleableByName(styleableName);
+        if (styleable == null) {
+          LOG.warn(String.format("%s doesn't point to existing styleable for interpolator", styleableName));
+        }
+        else {
+          registerStyleableAttributes(element, styleable, ANDROID_URI, callback, null, skippedAttributes);
+        }
       }
     }
   }
