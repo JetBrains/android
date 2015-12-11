@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
@@ -38,6 +39,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.projectImport.ProjectImportProvider;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -83,6 +85,13 @@ public class AndroidImportProjectAction extends AnAction {
 
   public AndroidImportProjectAction(@NotNull String text) {
     super(text);
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    if (NewWelcomeScreen.isNewWelcomeScreen(e)) {
+      e.getPresentation().setIcon(AllIcons.Welcome.ImportProject);
+    }
   }
 
   @Override
