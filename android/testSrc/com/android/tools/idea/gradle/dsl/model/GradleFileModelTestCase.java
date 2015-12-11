@@ -58,7 +58,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     File projectBasePath = new File(basePath);
     assertThat(projectBasePath).isDirectory();
     mySettingsFile = new File(projectBasePath, FN_SETTINGS_GRADLE);
-    assertThat(ensureCanCreateFile(mySettingsFile));
+    assertTrue(ensureCanCreateFile(mySettingsFile));
 
     File moduleFilePath = new File(myModule.getModuleFilePath());
     File moduleDirPath = moduleFilePath.getParentFile();
