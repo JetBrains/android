@@ -193,7 +193,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         PsiExpression r = expression.getRExpression();
         if (r == null) return;
         PsiExpression l = expression.getLExpression();
+        if (l instanceof PsiArrayAccessExpression) {
+          // This is an array access so we use the type of the array expression and not the access itself.
+          l = ((PsiArrayAccessExpression)l).getArrayExpression();
+        }
         if (!(l instanceof PsiReferenceExpression)) return;
+
         PsiElement resolved = ((PsiReferenceExpression)l).resolve();
         if (!(resolved instanceof PsiModifierListOwner)) return;
         PsiModifierListOwner owner = (PsiModifierListOwner)resolved;
@@ -292,20 +297,29 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   private static void checkCall(@NotNull PsiCall methodCall, @NotNull ProblemsHolder holder) {
     PsiMethod method = methodCall.resolveMethod();
     if (method == null) return;
-    PsiParameter[] parameters = method.getParameterList().getParameters();
-    PsiExpressionList argumentList = methodCall.getArgumentList();
-    if (argumentList == null) return;
-    PsiExpression[] arguments = argumentList.getExpressions();
-    for (int i = 0; i < parameters.length; i++) {
-      PsiParameter parameter = parameters[i];
-      Constraints values = getAllowedValues(parameter, parameter.getType(), null);
-      if (values == null) continue;
-      if (i >= arguments.length) break;
-      PsiExpression argument = arguments[i];
-      argument = PsiUtil.deparenthesizeExpression(argument);
-      if (argument == null) continue;
 
-      checkConstraints(parameter.getDeclarationScope(), argument, values, holder);
+    PsiParameter[] parameters = method.getParameterList().getParameters();
+    if (parameters.length > 0) {
+      PsiExpressionList argumentList = methodCall.getArgumentList();
+      if (argumentList == null) return;
+      PsiExpression[] arguments = argumentList.getExpressions();
+      int parametersIdx = 0;
+      for (int i = 0; i < arguments.length; i++) {
+        PsiParameter parameter = parameters[parametersIdx];
+        // If it's not an ellipsis type, we keep walking through the parameters list. If it's an ellipsis, that the last parameter we have
+        // to look into
+        if (!(parameter.getType() instanceof PsiEllipsisType)) {
+          parametersIdx++;
+        }
+        Constraints values = getAllowedValues(parameter, parameter.getType(), null);
+        if (values == null) continue;
+        if (i >= arguments.length) break;
+        PsiExpression argument = arguments[i];
+        argument = PsiUtil.deparenthesizeExpression(argument);
+        if (argument == null) continue;
+
+        checkConstraints(parameter.getDeclarationScope(), argument, values, holder);
+      }
     }
 
     checkMethodAnnotations(methodCall, holder, method);
@@ -1594,6 +1608,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                                            @NotNull PsiManager manager) {
     PsiAnnotationMemberValue[] allowedValues;
     final boolean canBeOred;
+
+    // Extract the actual type of the declaration. For examples, for int[], extract the int
+    if (type instanceof PsiEllipsisType) {
+      type = ((PsiEllipsisType)type).getComponentType();
+    } else if (type instanceof PsiArrayType) {
+      type = ((PsiArrayType)type).getComponentType();
+    }
     boolean isInt = TypeConversionUtil.getTypeRank(type) <= TypeConversionUtil.LONG_RANK;
     boolean isString = !isInt && type.equals(PsiType.getJavaLangString(manager, GlobalSearchScope.allScope(manager.getProject())));
     if (isInt || isString) {
@@ -1833,6 +1854,22 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
   }
 
+  /**
+   * Verifies that all elements in an array initializer expression are within the allowed values
+   */
+  private static boolean checkArrayInitializerExpression(@NotNull PsiArrayInitializerExpression e,
+                                                         @NotNull AllowedValues allowedValues,
+                                                         @NotNull PsiElement scope,
+                                                         @NotNull PsiManager manager,
+                                                         @Nullable Set<PsiExpression> visited) {
+    for (PsiExpression arrayValueExpression : e.getInitializers()) {
+      if (!isGoodExpression(arrayValueExpression, allowedValues, scope, manager, visited)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private static boolean isGoodExpression(@NotNull PsiExpression e,
                                           @NotNull AllowedValues allowedValues,
                                           @NotNull PsiElement scope,
@@ -1848,6 +1885,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       if (!thenAllowed) return false;
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
       return elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited);
+    }
+    else if (expression instanceof PsiNewExpression) {
+      PsiArrayInitializerExpression arrayInitializerExpression = ((PsiNewExpression)expression).getArrayInitializer();
+      if (arrayInitializerExpression != null) {
+        return checkArrayInitializerExpression(arrayInitializerExpression, allowedValues, scope, manager, visited);
+      }
+    }
+    else if (expression instanceof PsiArrayInitializerExpression) {
+      return checkArrayInitializerExpression((PsiArrayInitializerExpression)expression, allowedValues, scope, manager, visited);
     }
 
     if (isOneOf(expression, allowedValues, manager)) return true;
@@ -2209,6 +2255,18 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
               }
             }
             return fieldValid;
+          }
+        }
+      }
+    }
+    else if (expression instanceof PsiNewExpression || expression instanceof PsiArrayInitializerExpression) {
+      PsiArrayInitializerExpression arrayInitializerExpression = expression instanceof PsiNewExpression
+                                                                 ? ((PsiNewExpression)expression).getArrayInitializer()
+                                                                 : (PsiArrayInitializerExpression)expression;
+      if (arrayInitializerExpression != null) {
+        for (PsiExpression initializer : arrayInitializerExpression.getInitializers()) {
+          if (!isAllowed(scope, initializer, allowedValues, manager, visited)) {
+            return INVALID;
           }
         }
       }
