@@ -27,6 +27,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.text.StringTokenizer;
@@ -71,6 +72,8 @@ public class IdeTestApplication implements Disposable {
 
     // Force Swing FileChooser on Mac (instead of native one) to be able to use FEST to drive it.
     System.setProperty("native.mac.file.chooser.enabled", "false");
+    // Force Swing dialogs on Mac (instead of native sheets) to be able to use FEST to interact with them.
+    Registry.get("ide.mac.message.dialogs.as.sheets").setValue(false);
 
     if (!isLoaded()) {
       ourInstance = new IdeTestApplication();
