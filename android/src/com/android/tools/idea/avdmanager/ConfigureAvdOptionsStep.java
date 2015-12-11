@@ -93,10 +93,10 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JComboBox mySpeedCombo;
   private JComboBox myLatencyCombo;
   private JButton myShowAdvancedSettingsButton;
-  private StorageField myRamStorage;
-  private StorageField myVmHeapStorage;
-  private StorageField myInternalStorage;
-  private StorageField myNewSdCardStorage;
+  private com.android.tools.idea.avdmanager.legacy.StorageField myRamStorage;
+  private com.android.tools.idea.avdmanager.legacy.StorageField myVmHeapStorage;
+  private com.android.tools.idea.avdmanager.legacy.StorageField myInternalStorage;
+  private com.android.tools.idea.avdmanager.legacy.StorageField myNewSdCardStorage;
   private JBLabel myMemoryAndStorageLabel;
   private JBLabel myRamLabel;
   private JBLabel myVmHeapLabel;
@@ -107,7 +107,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JBLabel mySkinDefinitionLabel;
   private JBLabel myAvdId;
   private JLabel myAvdIdLabel;
-  private SkinChooser mySkinComboBox;
+  private com.android.tools.idea.avdmanager.legacy.SkinChooser mySkinComboBox;
   private JPanel myAvdDisplayNamePanel;
   private JBLabel myAvdNameLabel;
   private JCheckBox myEnableComputerKeyboard;
@@ -495,8 +495,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         c.setForeground(JBColor.foreground());
         ((JLabel)c).setIcon(null);
       }
-      else if (c instanceof StorageField) {
-        ((StorageField)c).setError(false);
+      else if (c instanceof com.android.tools.idea.avdmanager.legacy.StorageField) {
+        ((com.android.tools.idea.avdmanager.legacy.StorageField)c).setError(false);
       }
       else if (c instanceof JCheckBox) {
         c.setForeground(JBColor.foreground());
@@ -531,7 +531,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
           ((JLabel)c).setIcon(AllIcons.General.BalloonError);
         }
         else if (c instanceof StorageField) {
-          ((StorageField)c).setError(true);
+          ((com.android.tools.idea.avdmanager.legacy.StorageField)c).setError(true);
         }
         else if (c instanceof JCheckBox) {
           c.setForeground(JBColor.RED);
@@ -812,7 +812,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     myScalingComboBox = new ComboBox(new EnumComboBoxModel<AvdScaleFactor>(AvdScaleFactor.class));
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(CREATE_SKIN_HELP_LINK);
-    mySkinComboBox = new SkinChooser(getProject());
+    mySkinComboBox = new com.android.tools.idea.avdmanager.legacy.SkinChooser(getProject());
   }
 
   @NotNull
@@ -859,7 +859,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     public void setValue(@Nullable Device newValue, @NotNull JBLabel component) {
       if (newValue != null) {
         component.setText(newValue.getDisplayName());
-        Icon icon = DeviceDefinitionPreview.getIcon(newValue);
+        Icon icon = com.android.tools.idea.avdmanager.legacy.DeviceDefinitionPreview.getIcon(newValue);
 
         component.setIcon(icon);
       }
