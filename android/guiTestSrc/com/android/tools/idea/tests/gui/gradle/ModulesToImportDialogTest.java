@@ -31,6 +31,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -46,16 +47,19 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture.findByText;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
-import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.UUID.randomUUID;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.data.TableCell.row;
 import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -131,9 +135,11 @@ public class ModulesToImportDialogTest extends GuiTestCase {
         return dialog.isShowing() && "Save Module Selection".equals(dialog.getTitle());
       }
     });
-    fileChooser.select(targetFile);
-    delete(tempFile); // delete the file before saving, to avoid the "Confirm save" dialog.
-    fileChooser.clickOk();
+    fileChooser.select(targetFile).clickOk();
+
+    // "Confirm save" dialog will pop up because the file already exists, we click on Yes to continue.
+    DialogFixture confirmDialog = findDialog(withTitle("Confirm Save as")).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
+    confirmDialog.button(withText("Yes")).click();
 
     // Load selection from disk
     findByText("Select All", myRobot, dialog).click();
