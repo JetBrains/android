@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.wizard;
 
+import com.android.tools.idea.ui.Colors;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.ObservableValue;
@@ -25,7 +26,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,10 +43,6 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
    * Used to set empty text on a label. If completely empty, the height calculations are off.
    */
   private static final String BLANK = " ";
-  private static final JBColor ERROR_COLOR = JBColor.RED;
-
-  // JBColors should be composed of regular Colors
-  @SuppressWarnings("UseJBColor") private static final JBColor WARNING_COLOR = new JBColor(Color.YELLOW.darker(), Color.YELLOW);
 
   private final ListenerManager myListeners = new ListenerManager();
   private final Map<ObservableValue<?>, String> myErrors = Maps.newLinkedHashMap();
@@ -126,7 +122,7 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
     for (String error : myErrors.values()) {
       if (!error.isEmpty()) {
         myValidationLabel.setText(error);
-        myValidationLabel.setForeground(ERROR_COLOR);
+        myValidationLabel.setForeground(Colors.ERROR);
         hasErrors = true;
         break;
       }
@@ -136,7 +132,7 @@ public final class StudioWizardStepPanel extends JPanel implements Disposable {
       for (String warning : myWarnings.values()) {
         if (!warning.isEmpty()) {
           myValidationLabel.setText(warning);
-          myValidationLabel.setForeground(WARNING_COLOR);
+          myValidationLabel.setForeground(Colors.WARNING);
           break;
         }
       }
