@@ -51,7 +51,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testParentValueCell() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     // Cell (0,0) should be the parent editor
@@ -141,7 +141,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testResourcePickerNameError() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
 
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
@@ -180,7 +180,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSettingColorAttribute() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
@@ -218,7 +218,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testColorPickerAlpha() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
@@ -254,7 +254,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testStateListPicker() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell parentCell = row(0).column(0);
@@ -364,7 +364,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testResourceCompletion() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
     final ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     final TableCell cell = row(3).column(0);
@@ -393,7 +393,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     String prefix = "@android:color/back";
     textComponent.replaceText(prefix);
 
-    JListFixture completionPopup = ThemeEditorTestUtils.getCompletionPopup(myRobot);
+    JListFixture completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(myRobot);
     String[] suggestions = completionPopup.contents();
     assertTrue(suggestions.length > 0);
     for (String suggestion : suggestions) {
@@ -402,7 +402,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
     prefix = "@color/back";
     textComponent.replaceText(prefix);
-    completionPopup = ThemeEditorTestUtils.getCompletionPopup(myRobot);
+    completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(myRobot);
     suggestions = completionPopup.contents();
     assertTrue(suggestions.length > 0);
     for (String suggestion : suggestions) {
