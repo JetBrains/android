@@ -53,7 +53,7 @@ public final class ConfigureActivityStep extends ModelWizardStep<ActivityModel> 
   }
 
   @Override
-  protected void onEnter() {
+  protected void onEntering() {
     assert getModel().getTargetTemplate() != null; // Verified by shouldSkip
 
     myRootPanel.removeAll();

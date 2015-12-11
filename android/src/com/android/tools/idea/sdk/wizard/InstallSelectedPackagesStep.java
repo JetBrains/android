@@ -141,7 +141,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   }
 
   @Override
-  protected void onEnter() {
+  protected void onEntering() {
     mySdkManagerOutput.setText("");
     myLabelSdkPath.setText(mySdkData.getLocation().getPath());
 
