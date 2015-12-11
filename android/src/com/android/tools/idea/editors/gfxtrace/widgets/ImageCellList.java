@@ -28,7 +28,7 @@ import java.awt.*;
  */
 public abstract class ImageCellList<T extends ImageCellList.Data> extends CellList<T> {
   public static class Data extends CellWidget.Data {
-    @NotNull public final String label;
+    @NotNull private final String label;
     @Nullable public ImageIcon icon;
 
     public Data(String label) {
@@ -42,6 +42,10 @@ public abstract class ImageCellList<T extends ImageCellList.Data> extends CellLi
 
     public boolean hasFailed() {
       return super.isLoaded() && icon == null;
+    }
+
+    public String getLabel() {
+      return label;
     }
   }
 
