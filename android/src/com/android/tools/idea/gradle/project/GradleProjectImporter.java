@@ -37,6 +37,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -466,23 +467,6 @@ public class GradleProjectImporter {
   private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
     settings.setUseAutoImport(false);
 
-    // Set the JDK to use when syncing project.
-    if (isAndroidStudio()) {
-      Sdk jdk = IdeSdks.getJdk();
-      if (jdk != null) {
-        settings.setGradleJvm(jdk.getName());
-      }
-    } else {
-      // validate Gradle SDK
-      if (!checkForJdk(project, settings.getGradleJvm())) {
-        // Set first acceptable JDK to use when syncing project (or create one if it is not set up yet)
-        Sdk jdk = IdeSdks.getJdk();
-        if (jdk != null) {
-          settings.setGradleJvm(jdk.getName());
-        }
-      }
-    }
-
     String basePath = project.getBasePath();
     if (basePath != null) {
       settings.setExternalProjectPath(toCanonicalPath(basePath));
@@ -642,7 +626,8 @@ public class GradleProjectImporter {
                        @NotNull ExternalProjectRefreshCallback callback,
                        @NotNull final ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
-        refreshProject(project, GRADLE_SYSTEM_ID, getBaseDirPath(project).getPath(), callback, false /* resolve dependencies */,
+        final String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(getBaseDirPath(project).getPath());
+        refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */,
                        progressExecutionMode, true /* always report import errors */);
       }
       catch (RuntimeException e) {

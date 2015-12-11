@@ -413,13 +413,6 @@ public final class GradleUtil {
       return null;
     }
 
-    // Set the JDK again, just in case it changed name after creating a project.
-    // See https://code.google.com/p/android/issues/detail?id=156747
-    Sdk jdk = IdeSdks.getJdk();
-    if (jdk != null) {
-      projectSettings.setGradleJvm(jdk.getName());
-    }
-
     try {
       GradleExecutionSettings settings = getExecutionSettings(project, projectSettings.getExternalProjectPath(), GRADLE_SYSTEM_ID);
       if (settings != null) {
