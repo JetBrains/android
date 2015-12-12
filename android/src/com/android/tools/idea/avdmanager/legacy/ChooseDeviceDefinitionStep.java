@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.avdmanager.legacy;
 
 import com.android.sdklib.devices.Device;
+import com.android.tools.idea.avdmanager.*;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.swing.util.FormScalingUtil;
 import com.intellij.openapi.Disposable;
@@ -35,7 +36,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.IS_IN_EDIT_MO
 public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription implements DeviceUiAction.DeviceProvider {
   private JPanel myPanel;
   private DeviceDefinitionList myDeviceDefinitionList;
-  private com.android.tools.idea.avdmanager.legacy.DeviceDefinitionPreview myDeviceDefinitionPreview;
+  private DeviceDefinitionPreview myDeviceDefinitionPreview;
   private JButton myEditDeviceButton;
   private JPanel myEditButtonContainer;
 
