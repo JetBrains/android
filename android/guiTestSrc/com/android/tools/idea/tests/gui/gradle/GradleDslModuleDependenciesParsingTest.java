@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -40,7 +40,7 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
     GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
 
-    List<ModuleDependencyModel> dependencies = buildModel.getTarget().dependencies(true).modules();
+    List<ModuleDependencyModel> dependencies = buildModel.getTarget().dependencies().modules();
     assertThat(dependencies).hasSize(4);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
@@ -75,13 +75,13 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
     GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
 
-    List<ModuleDependencyModel> dependencies = buildModel.getTarget().dependencies(true).modules();
+    List<ModuleDependencyModel> dependencies = buildModel.getTarget().dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
     dependency.setName("renamed");
 
     buildModel.applyChanges();
 
-    dependencies = buildModel.getTarget().dependencies(true).modules();
+    dependencies = buildModel.getTarget().dependencies().modules();
     assertThat(dependencies).hasSize(4);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();

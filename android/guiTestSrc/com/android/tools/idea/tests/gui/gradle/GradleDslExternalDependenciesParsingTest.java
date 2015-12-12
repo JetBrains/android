@@ -42,7 +42,7 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
 
     GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
 
-    DependenciesModel dependenciesModel = buildModel.getTarget().dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
@@ -58,7 +58,7 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
     myProjectFrame = importSimpleApplication();
     final GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
 
-    DependenciesModel dependenciesModel = buildModel.getTarget().dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
     assertNotNull(dependenciesModel);
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);

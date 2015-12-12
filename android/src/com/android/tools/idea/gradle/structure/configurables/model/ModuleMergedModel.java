@@ -136,7 +136,7 @@ public class ModuleMergedModel {
   }
 
   private void addDependency(@NotNull ArtifactDependencyModel parsedDependency, @NotNull LogicalArtifactDependencies logicalDependencies) {
-    GradleCoordinate parsedCoordinate = parseCoordinateString(parsedDependency.compactNotation());
+    GradleCoordinate parsedCoordinate = parseCoordinateString(parsedDependency.getSpec().compactNotation());
     if (parsedCoordinate != null) {
       String configurationName = parsedDependency.configurationName();
       Collection<LogicalArtifactDependency> dependenciesInConfiguration = logicalDependencies.getByConfigurationName(configurationName);

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
 import com.intellij.pom.java.LanguageLevel;
@@ -38,19 +37,11 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleText);
     writeToSubModuleBuildFile(subModuleText);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
-    assertNotNull(buildModel);
-    JavaModel java = buildModel.java();
-    assertNotNull(java);
-
+    JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
 
-    GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
-    assertNotNull(subModuleBuildModel);
-    JavaModel subModuleJavaModel = subModuleBuildModel.java();
-    assertNotNull(subModuleJavaModel);
-
+    JavaModel subModuleJavaModel = getSubModuleGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.sourceCompatibility());
     assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.targetCompatibility());
   }
@@ -71,19 +62,11 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleText);
     writeToSubModuleBuildFile(subModuleText);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
-    assertNotNull(buildModel);
-    JavaModel java = buildModel.java();
-    assertNotNull(java);
-
+    JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility()); // 1_4 is overridden with 1_5
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility()); // 1_5 is overridden with 1_6
 
-    GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
-    assertNotNull(subModuleBuildModel);
-    JavaModel subModuleJavaModel = subModuleBuildModel.java();
-    assertNotNull(subModuleJavaModel);
-
+    JavaModel subModuleJavaModel = getSubModuleGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.sourceCompatibility()); // Subproject got 1_5 from allprojects section
     assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.targetCompatibility()); // Subproject got 1_5 from allprojects section
   }
@@ -104,19 +87,11 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleText);
     writeToSubModuleBuildFile(subModuleText);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
-    assertNotNull(buildModel);
-    JavaModel java = buildModel.java();
-    assertNotNull(java);
-
+    JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility()); // 1_4 is overridden with 1_5
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility()); // 1_5 is overridden with 1_6
 
-    GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
-    assertNotNull(subModuleBuildModel);
-    JavaModel subModuleJavaModel = subModuleBuildModel.java();
-    assertNotNull(subModuleJavaModel);
-
+    JavaModel subModuleJavaModel = getSubModuleGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_4, subModuleJavaModel.sourceCompatibility()); // Subproject got 1_4 from allprojects section
     assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.targetCompatibility()); // Subproject got 1_5 from allprojects section
   }
@@ -138,21 +113,12 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleText);
     writeToSubModuleBuildFile(subModuleText);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
-    assertNotNull(buildModel);
-    JavaModel java = buildModel.java();
-    assertNotNull(java);
-
+    JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility()); // 1_4 is overridden with 1_5
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility()); // 1_5 is overridden with 1_6
 
-    GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
-    assertNotNull(subModuleBuildModel);
-    JavaModel subModuleJavaModel = subModuleBuildModel.java();
-    assertNotNull(subModuleJavaModel);
-
+    JavaModel subModuleJavaModel = getSubModuleGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.sourceCompatibility()); // 1_4 is overridden with 1_6
     assertEquals(LanguageLevel.JDK_1_7, subModuleJavaModel.targetCompatibility()); // 1_5 is overridden with 1_7
   }
-
 }

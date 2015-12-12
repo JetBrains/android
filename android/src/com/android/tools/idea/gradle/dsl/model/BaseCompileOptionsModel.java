@@ -27,13 +27,11 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptio
 /**
  * Base compile options model that only have sourceCompatibility / targetCompatibility fields.
  */
-public abstract class BaseCompileOptionsModel {
-
-  protected final BaseCompileOptionsDslElement myDslElement;
+public abstract class BaseCompileOptionsModel extends GradleDslBlockModel {
   private final boolean myUseAssignment;
 
   public BaseCompileOptionsModel(@NotNull BaseCompileOptionsDslElement dslElement, boolean useAssignment) {
-    myDslElement = dslElement;
+    super(dslElement);
     myUseAssignment = useAssignment;
   }
 
