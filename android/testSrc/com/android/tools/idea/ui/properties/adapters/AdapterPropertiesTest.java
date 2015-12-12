@@ -22,7 +22,7 @@ import org.junit.Test;
 import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
 import static org.fest.assertions.Assertions.assertThat;
 
-public class AdapterPropertyTest {
+public class AdapterPropertiesTest {
   @Test
   public void bindingStringToDoubleAdapterWorks() throws Exception {
     BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
@@ -66,12 +66,12 @@ public class AdapterPropertyTest {
   }
 
   @Test
-  public void bindingToOptionalAdapterWorks() throws Exception {
+  public void bindingOptionalToValueAdapterWorks() throws Exception {
     BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     OptionalProperty<String> optionalValue = new OptionalValueProperty<String>("Initial");
     StringProperty stringValue = new StringValueProperty();
 
-    bindings.bindTwoWay(stringValue, new OptionalToPresentAdapterProperty<String>(optionalValue));
+    bindings.bindTwoWay(stringValue, new OptionalToValuePropertyAdapter<String>(optionalValue));
 
     assertThat(stringValue.get()).isEqualTo("Initial");
 
@@ -83,12 +83,12 @@ public class AdapterPropertyTest {
   }
 
   @Test
-  public void bindingToOptionalWithDefaultValueWorks() throws Exception {
+  public void bindingOptionalToValueAdapterWithDefaultValueWorks() throws Exception {
     BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     OptionalProperty<String> optionalValue = new OptionalValueProperty<String>();
     StringProperty stringValue = new StringValueProperty();
 
-    bindings.bindTwoWay(stringValue, new OptionalToPresentAdapterProperty<String>(optionalValue, "Default"));
+    bindings.bindTwoWay(stringValue, new OptionalToValuePropertyAdapter<String>(optionalValue, "Default"));
 
     assertThat(stringValue.get()).isEqualTo("Default");
 
