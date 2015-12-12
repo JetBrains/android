@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.hprof.views;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
-import com.android.tools.idea.actions.PsiFileAndLineNavigation;
+import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.idea.editors.hprof.views.nodedata.HeapClassObjNode;
 import com.android.tools.idea.editors.hprof.views.nodedata.HeapNode;
 import com.android.tools.idea.editors.hprof.views.nodedata.HeapPackageNode;
@@ -37,14 +37,11 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.containers.HashSet;
-import gnu.trove.TObjectProcedure;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -170,24 +167,21 @@ public final class ClassesTreeView implements DataProvider, Disposable {
       }
     });
 
-    myTree.addTreeSelectionListener(new TreeSelectionListener() {
-      @Override
-      public void valueChanged(TreeSelectionEvent e) {
-        TreePath path = e.getPath();
-        if (!e.isAddedPath()) {
-          return;
-        }
+    myTree.addTreeSelectionListener(e -> {
+      TreePath path = e.getPath();
+      if (!e.isAddedPath()) {
+        return;
+      }
 
-        if (path == null || path.getPathCount() < 2) {
-          selectionModel.setClassObj(null);
-          return;
-        }
+      if (path == null || path.getPathCount() < 2) {
+        selectionModel.setClassObj(null);
+        return;
+      }
 
-        assert path.getLastPathComponent() instanceof HeapNode;
-        HeapNode heapNode = (HeapNode)path.getLastPathComponent();
-        if (heapNode instanceof HeapClassObjNode) {
-          selectionModel.setClassObj(((HeapClassObjNode)heapNode).getClassObj());
-        }
+      assert path.getLastPathComponent() instanceof HeapNode;
+      HeapNode heapNode = (HeapNode)path.getLastPathComponent();
+      if (heapNode instanceof HeapClassObjNode) {
+        selectionModel.setClassObj(((HeapClassObjNode)heapNode).getClassObj());
       }
     });
 
@@ -196,16 +190,13 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         .setName("Class Name")
         .setPreferredWidth(800)
         .setHeaderAlignment(SwingConstants.LEFT)
-        .setComparator(new Comparator<HeapNode>() {
-          @Override
-          public int compare(HeapNode a, HeapNode b) {
-            int valueA = a instanceof HeapPackageNode ? 0 : 1;
-            int valueB = b instanceof HeapPackageNode ? 0 : 1;
-            if (valueA != valueB) {
-              return valueA - valueB;
-            }
-            return compareNames(a, b);
+        .setComparator((HeapNode a, HeapNode b) -> {
+          int valueA = a instanceof HeapPackageNode ? 0 : 1;
+          int valueB = b instanceof HeapPackageNode ? 0 : 1;
+          if (valueA != valueB) {
+            return valueA - valueB;
           }
+          return compareNames(a, b);
         })
         .setRenderer(new ColoredTreeCellRenderer() {
           @Override
@@ -248,12 +239,9 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         .setName("Total Count")
         .setPreferredWidth(100)
         .setHeaderAlignment(SwingConstants.RIGHT)
-        .setComparator(new Comparator<HeapNode>() {
-          @Override
-          public int compare(HeapNode a, HeapNode b) {
-            int result = a.getTotalCount() - b.getTotalCount();
-            return result == 0 ? compareNames(a, b) : result;
-          }
+        .setComparator((HeapNode a, HeapNode b) -> {
+          int result = a.getTotalCount() - b.getTotalCount();
+          return result == 0 ? compareNames(a, b) : result;
         })
         .setRenderer(new ColoredTreeCellRenderer() {
           @Override
@@ -275,12 +263,9 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         .setName("Heap Count")
         .setPreferredWidth(100)
         .setHeaderAlignment(SwingConstants.RIGHT)
-        .setComparator(new Comparator<HeapNode>() {
-          @Override
-          public int compare(HeapNode a, HeapNode b) {
-            int result = a.getHeapInstancesCount(mySelectedHeapId) - b.getHeapInstancesCount(mySelectedHeapId);
-            return result == 0 ? compareNames(a, b) : result;
-          }
+        .setComparator((HeapNode a, HeapNode b) -> {
+          int result = a.getHeapInstancesCount(mySelectedHeapId) - b.getHeapInstancesCount(mySelectedHeapId);
+          return result == 0 ? compareNames(a, b) : result;
         })
         .setRenderer(new ColoredTreeCellRenderer() {
           @Override
@@ -302,17 +287,14 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         .setName("Sizeof")
         .setPreferredWidth(80)
         .setHeaderAlignment(SwingConstants.RIGHT)
-        .setComparator(new Comparator<HeapNode>() {
-          @Override
-          public int compare(HeapNode a, HeapNode b) {
-            int sizeA = a.getInstanceSize();
-            int sizeB = b.getInstanceSize();
-            if (sizeA < 0 && sizeB < 0) {
-              return compareNames(a, b);
-            }
-            int result = sizeA - sizeB;
-            return result == 0 ? compareNames(a, b) : result;
+        .setComparator((HeapNode a, HeapNode b) -> {
+          int sizeA = a.getInstanceSize();
+          int sizeB = b.getInstanceSize();
+          if (sizeA < 0 && sizeB < 0) {
+            return compareNames(a, b);
           }
+          int result = sizeA - sizeB;
+          return result == 0 ? compareNames(a, b) : result;
         })
         .setRenderer(new ColoredTreeCellRenderer() {
           @Override
@@ -334,12 +316,9 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         .setName("Shallow Size")
         .setPreferredWidth(100)
         .setHeaderAlignment(SwingConstants.RIGHT)
-        .setComparator(new Comparator<HeapNode>() {
-          @Override
-          public int compare(HeapNode a, HeapNode b) {
-            int result = a.getShallowSize(mySelectedHeapId) - b.getShallowSize(mySelectedHeapId);
-            return result == 0 ? compareNames(a, b) : result;
-          }
+        .setComparator((HeapNode a, HeapNode b) -> {
+          int result = a.getShallowSize(mySelectedHeapId) - b.getShallowSize(mySelectedHeapId);
+          return result == 0 ? compareNames(a, b) : result;
         }).setRenderer(new ColoredTreeCellRenderer() {
           @Override
           public void customizeCellRenderer(@NotNull JTree tree,
@@ -361,12 +340,9 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         .setPreferredWidth(120)
         .setHeaderAlignment(SwingConstants.RIGHT)
         .setInitialOrder(SortOrder.DESCENDING)
-        .setComparator(new Comparator<HeapNode>() {
-          @Override
-          public int compare(HeapNode a, HeapNode b) {
-            long result = a.getRetainedSize() - b.getRetainedSize();
-            return result == 0 ? compareNames(a, b) : (result > 0 ? 1 : -1);
-          }
+        .setComparator((HeapNode a, HeapNode b) -> {
+          long result = a.getRetainedSize() - b.getRetainedSize();
+          return result == 0 ? compareNames(a, b) : (result > 0 ? 1 : -1);
         })
         .setRenderer(new ColoredTreeCellRenderer() {
           @Override
@@ -478,12 +454,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
       // This is kind of clunky, but the viewport doesn't know how big the tree is until it repaints.
       // We need to do this because the contents of this tree has been more or less completely replaced.
       // Unfortunately, calling repaint() only queues it, so we actually need an extra frame to select the node.
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          myTree.scrollPathToVisible(pathToSelect);
-        }
-      });
+      ApplicationManager.getApplication().invokeLater(() -> myTree.scrollPathToVisible(pathToSelect));
     }
     else {
       selectionModel.setClassObj(null);
@@ -547,7 +518,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
   }
 
   @Nullable
-  private PsiFileAndLineNavigation[] getTargetFiles() {
+  private PsiClassNavigation[] getTargetFiles() {
     TreePath path = myTree.getSelectionPath();
     if (path.getPathCount() < 2) {
       return null;
@@ -564,7 +535,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         className = className.substring(0, arrayIndex);
       }
 
-      return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, 1);
+      return PsiClassNavigation.getNavigationForClass(myProject, className);
     }
 
     return null;
@@ -577,7 +548,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
   }
 
   private static class ListIndex implements SelectionModel.SelectionListener {
-    ArrayList<HeapClassObjNode> myClasses = new ArrayList<HeapClassObjNode>();
+    ArrayList<HeapClassObjNode> myClasses = new ArrayList<>();
     private int myHeapId = -1;
 
     @Override
@@ -587,16 +558,13 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         myClasses.clear();
 
         // Find the union of the classObjs this heap has instances of, plus the classObjs themselves that are allocated on this heap.
-        final HashSet<ClassObj> entriesSet = new HashSet<ClassObj>(heap.getClasses().size() + heap.getInstancesCount());
+        final HashSet<ClassObj> entriesSet = new HashSet<>(heap.getClasses().size() + heap.getInstancesCount());
         for (ClassObj classObj : heap.getClasses()) {
           entriesSet.add(classObj);
         }
-        heap.forEachInstance(new TObjectProcedure<Instance>() {
-          @Override
-          public boolean execute(Instance instance) {
-            entriesSet.add(instance.getClassObj());
-            return true;
-          }
+        heap.forEachInstance(instance -> {
+          entriesSet.add(instance.getClassObj());
+          return true;
         });
 
         for (ClassObj classObj : entriesSet) {
