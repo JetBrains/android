@@ -49,10 +49,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
+    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 2, productFlavors.size());
 
@@ -94,10 +91,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
+    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 2, productFlavors.size());
 
@@ -153,10 +147,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
+    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 2, productFlavors.size());
 
@@ -208,10 +199,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
+    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 2, productFlavors.size());
 

@@ -48,7 +48,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
@@ -75,7 +75,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
@@ -116,7 +116,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(3);
@@ -140,7 +140,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
@@ -158,7 +158,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     ArtifactDependencySpec newDependency = new ArtifactDependencySpec("appcompat-v7", "com.android.support", "22.1.1");
     dependenciesModel.addArtifact(COMPILE, newDependency);
@@ -194,7 +194,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
 
@@ -225,7 +225,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
 
@@ -258,7 +258,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
@@ -278,7 +278,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
@@ -301,7 +301,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
@@ -321,7 +321,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
 
@@ -359,7 +359,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(3);
@@ -399,7 +399,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(3);
@@ -440,7 +440,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(3);
@@ -481,7 +481,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    DependenciesModel dependenciesModel = buildModel.dependencies(true);
+    DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(3);

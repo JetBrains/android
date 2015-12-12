@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -44,9 +44,9 @@ public class GradleBuildModelFixture {
   }
 
   public void requireDependency(@NotNull String configurationName, @NotNull ArtifactDependencySpec expected) {
-    DependenciesModel dependenciesModel = myTarget.dependencies(true);
+    DependenciesModel dependenciesModel = myTarget.dependencies();
     for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
-      ArtifactDependencySpec actual = ArtifactDependencySpec.create(dependency.compactNotation());
+      ArtifactDependencySpec actual = dependency.getSpec();
       if (configurationName.equals(dependency.configurationName()) && expected.equals(actual)) {
         return;
       }
@@ -55,7 +55,7 @@ public class GradleBuildModelFixture {
   }
 
   public void requireDependency(@NotNull ExpectedModuleDependency expected) {
-    DependenciesModel dependenciesModel = myTarget.dependencies(true);
+    DependenciesModel dependenciesModel = myTarget.dependencies();
     for (final ModuleDependencyModel dependency : dependenciesModel.modules()) {
       String path = execute(new GuiQuery<String>() {
         @Nullable

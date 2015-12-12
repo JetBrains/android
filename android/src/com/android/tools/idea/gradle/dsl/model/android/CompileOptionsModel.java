@@ -33,13 +33,13 @@ public class CompileOptionsModel extends BaseCompileOptionsModel {
   }
 
   @NotNull
-  public BaseCompileOptionsModel setEncoding(@NotNull String encoding) {
+  public CompileOptionsModel setEncoding(@NotNull String encoding) {
     myDslElement.setNewLiteral(ENCODING, encoding);
     return this;
   }
 
   @NotNull
-  public BaseCompileOptionsModel removeEncoding() {
+  public CompileOptionsModel removeEncoding() {
     myDslElement.removeProperty(ENCODING);
     return this;
   }
