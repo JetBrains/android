@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
-import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
@@ -67,7 +66,6 @@ import static com.intellij.openapi.project.ProjectCoreUtil.DIRECTORY_BASED_PROJE
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.delete;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -409,17 +407,6 @@ public abstract class GuiTestCase {
       }
       delete(dotIdeaFolderPath);
     }
-  }
-
-  @NotNull
-  protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull VirtualFile projectDir,
-                                                          @NotNull FileChooserDialogFixture fileChooserDialog) {
-    fileChooserDialog.select(projectDir).clickOk();
-
-    File projectPath = virtualToIoFile(projectDir);
-    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
-    projectFrame.waitForGradleProjectSyncToFinish();
-    return projectFrame;
   }
 
   @NotNull
