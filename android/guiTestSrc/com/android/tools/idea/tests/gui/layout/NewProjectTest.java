@@ -254,7 +254,7 @@ public class NewProjectTest extends GuiTestCase {
      * Creates a project fixture for this description
      */
     void create() {
-      findWelcomeFrame().clickNewProjectButton();
+      findWelcomeFrame().createNewProject();
 
       NewProjectWizardFixture newProjectWizard = findNewProjectWizard();
 
