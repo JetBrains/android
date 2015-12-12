@@ -22,7 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AccelerationErrorCode;
 import com.android.tools.idea.avdmanager.AccelerationErrorNotificationPanel;
-import com.android.tools.idea.avdmanager.AvdEditWizard;
+import com.android.tools.idea.avdmanager.legacy.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.*;
