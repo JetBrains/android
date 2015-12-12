@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
-import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
 import org.jetbrains.annotations.NotNull;
