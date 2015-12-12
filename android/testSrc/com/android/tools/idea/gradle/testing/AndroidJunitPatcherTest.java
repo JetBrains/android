@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -30,6 +31,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Function;
+import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -40,6 +42,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.intellij.openapi.util.io.FileUtil.normalize;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
@@ -60,6 +63,8 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     setUpIdeaAndroidProject();
+
+    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = false;
 
     myPatcher = new AndroidJunitPatcher();
     myJavaParameters = new JavaParameters();
@@ -83,7 +88,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   }
 
   private List<String> getExampleClasspath() {
-    myRoot = FileUtil.normalize(myAndroidProject.getRootDir().getPath());
+    myRoot = normalize(myAndroidProject.getRootDir().getPath());
     List<String> exampleClassPath =
       Lists.newArrayList(myRoot + "/build/intermediates/classes/debug", myRoot + "/build/intermediates/classes/test/debug",
                          myRoot + "/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/classes.jar",
@@ -131,7 +136,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     List<String> result = ContainerUtil.map(myJavaParameters.getClassPath().getPathList(), new Function<String, String>() {
       @Override
       public String fun(String s) {
-        return FileUtil.normalize(s);
+        return normalize(s);
       }
     });
     Set<String> resultSet = ImmutableSet.copyOf(result);
@@ -165,15 +170,15 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   public void testMultipleMockableJars_oldModel() throws Exception {
     String jar22 = myRoot + "lib1/build/intermediates/mockable-android-22.jar";
     String jar15 = myRoot + "lib2/build/intermediates/mockable-android-15.jar";
-    myJavaParameters.getClassPath().addFirst(jar22);
-    myJavaParameters.getClassPath().addFirst(jar15);
+    PathsList classPath = myJavaParameters.getClassPath();
+    classPath.addFirst(jar22);
+    classPath.addFirst(jar15);
 
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
 
-    List<String> pathList = myJavaParameters.getClassPath().getPathList();
+    List<String> pathList = classPath.getPathList();
     assertEquals(myMockableAndroidJar, Iterables.getLast(pathList));
-    assertDoesntContain(pathList, jar15);
-    assertDoesntContain(pathList, jar22);
+    assertThat(pathList).excludes(jar15, jar22);
   }
 
   @SuppressWarnings("ConstantConditions") // No risk of NPEs.
@@ -184,6 +189,6 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     artifact.setMockablePlatformJar(new File(myMockableAndroidJar));
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
 
-    assertEquals(FileUtil.normalize(myMockableAndroidJar), FileUtil.normalize(Iterables.getLast(myJavaParameters.getClassPath().getPathList())));
+    assertEquals(normalize(myMockableAndroidJar), normalize(Iterables.getLast(myJavaParameters.getClassPath().getPathList())));
   }
 }
