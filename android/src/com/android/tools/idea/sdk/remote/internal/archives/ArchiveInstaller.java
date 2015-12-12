@@ -44,6 +44,7 @@ import org.apache.http.message.BasicHeader;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -364,34 +365,37 @@ public class ArchiveInstaller {
     InputStream is = null;
     int inc_remain = NUM_MONITOR_INC;
     try {
-      Pair<InputStream, HttpURLConnection> result = cache.openDirectUrl(urlString, resumeHeaders, monitor);
+      Pair<InputStream, URLConnection> result = cache.openDirectUrl(urlString, resumeHeaders, monitor);
 
       is = result.getFirst();
-      HttpURLConnection connection = result.getSecond();
-      int status = connection.getResponseCode();
-      if (status == HttpStatus.SC_NOT_FOUND) {
-        throw new Exception("URL not found.");
-      }
       if (is == null) {
         throw new Exception("No content.");
       }
+      URLConnection connection = result.getSecond();
+      int status = HttpStatus.SC_OK;
+      if (connection instanceof HttpURLConnection) {
+        status = ((HttpURLConnection)connection).getResponseCode();
+        if (status == HttpStatus.SC_NOT_FOUND) {
+          throw new Exception("URL not found.");
+        }
 
 
-      Properties props = new Properties();
-      props.setProperty(PROP_STATUS_CODE, Integer.toString(status));
-      String etag = connection.getHeaderField(HttpHeaders.ETAG);
-      if (etag != null) {
-        props.setProperty(HttpHeaders.ETAG, etag);
-      }
-      String lastModified = connection.getHeaderField(HttpHeaders.LAST_MODIFIED);
-      if (lastModified != null) {
-        props.setProperty(HttpHeaders.LAST_MODIFIED, lastModified);
-      }
+        Properties props = new Properties();
+        props.setProperty(PROP_STATUS_CODE, Integer.toString(status));
+        String etag = connection.getHeaderField(HttpHeaders.ETAG);
+        if (etag != null) {
+          props.setProperty(HttpHeaders.ETAG, etag);
+        }
+        String lastModified = connection.getHeaderField(HttpHeaders.LAST_MODIFIED);
+        if (lastModified != null) {
+          props.setProperty(HttpHeaders.LAST_MODIFIED, lastModified);
+        }
 
-      try {
-        mFileOp.saveProperties(propsFile, props, "## Android SDK Download.");  //$NON-NLS-1$
-      }
-      catch (IOException ignore) {
+        try {
+          mFileOp.saveProperties(propsFile, props, "## Android SDK Download.");  //$NON-NLS-1$
+        }
+        catch (IOException ignore) {
+        }
       }
 
       // On success, status can be:
