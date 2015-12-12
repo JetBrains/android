@@ -798,7 +798,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     // Import project
     WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
-    welcomeFrame.clickImportProjectButton();
+    welcomeFrame.importProject();
     FileChooserDialogFixture importProjectDialog = findImportProjectDialog(myRobot);
 
     VirtualFile toSelect = findFileByIoFile(projectDirPath, true);
