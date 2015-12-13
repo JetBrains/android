@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -45,7 +44,6 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -69,7 +67,6 @@ import org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry;
 import org.jetbrains.android.inspections.lint.IntellijLintRequest;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,7 +80,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -185,7 +182,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
             // Since we don't really open the project, but we manually register listeners in the gradle importer
             // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
             // that here, otherwise the testsuite will leak
-            if (Projects.requiresAndroidModel(project)) {
+            if (requiresAndroidModel(project)) {
               AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(project);
               projectComponent.projectClosed();
             }
@@ -279,8 +276,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     importProject(project, project.getName(), projectRoot, listener);
 
-    assertTrue(Projects.requiresAndroidModel(project));
-    assertFalse(Projects.isIdeaAndroidProject(project));
+    assertTrue(requiresAndroidModel(project));
+    assertFalse(isIdeaAndroidProject(project));
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {

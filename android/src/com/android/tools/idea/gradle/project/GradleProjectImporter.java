@@ -76,7 +76,6 @@ import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidS
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
-import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.checkForJdk;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
@@ -466,6 +465,14 @@ public class GradleProjectImporter {
 
   private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
     settings.setUseAutoImport(false);
+
+    // Workaround to make integration (non-UI) tests pass.
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      Sdk jdk = IdeSdks.getJdk();
+      if (jdk != null) {
+        settings.setGradleJvm(jdk.getName());
+      }
+    }
 
     String basePath = project.getBasePath();
     if (basePath != null) {
