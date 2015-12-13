@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.invoker;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.Sets;
 import com.intellij.facet.FacetManager;
@@ -82,6 +83,8 @@ public class GradleInvokerTest extends IdeaTestCase {
     myAndroidFacet.getProperties().COMPILE_JAVA_TEST_TASK_NAME = COMPILE_TEST_JAVA;
     myAndroidFacet.getProperties().ASSEMBLE_TASK_NAME = ASSEMBLE;
     myAndroidFacet.getProperties().ASSEMBLE_TEST_TASK_NAME = ASSEMBLE_ANDROID_TEST;
+
+    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = false;
   }
 
   @Override
