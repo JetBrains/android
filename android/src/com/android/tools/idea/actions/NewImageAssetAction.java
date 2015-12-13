@@ -18,12 +18,9 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateImageIconsModel;
 import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep;
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -33,25 +30,22 @@ import java.awt.*;
  */
 public class NewImageAssetAction extends AndroidAssetStudioAction {
 
-  private static final Dimension WIZARD_SIZE = new Dimension(800, 750);
-
   public NewImageAssetAction() {
     super("Image Asset", "Open Asset Studio to create an image asset");
   }
 
-  // TODO: Remove unused "targetFile" param when NewVectorAsset wizard is migrated.
-  // (The old wizard currently uses this for buggy "does this asset already exist?" logic which is
-  // done in a more robust manner with the new wizard.)
+  @NotNull
   @Override
-  protected void showWizardAndCreateAsset(@NotNull AndroidFacet facet, @Nullable VirtualFile targetFile) {
+  protected ModelWizard createWizard(@NotNull AndroidFacet facet) {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     wizardBuilder.addStep(new NewImageAssetStep(new GenerateImageIconsModel(facet)));
 
-    // TODO: Move some of this logic up to AndroidAssetStudioAction when NewVectorAsset wizard is
-    // migrated.
-    StudioWizardDialogBuilder dialogBuilder = new StudioWizardDialogBuilder(wizardBuilder.build(), "Generate Icons");
-    dialogBuilder.setProject(facet.getModule().getProject()).setMinimumSize(WIZARD_SIZE);
+    return wizardBuilder.build();
+  }
 
-    dialogBuilder.build().show();
+  @NotNull
+  @Override
+  protected Dimension getWizardSize() {
+    return new Dimension(800, 750);
   }
 }

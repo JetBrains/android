@@ -26,9 +26,9 @@ import org.jetbrains.annotations.NotNull;
  * binding an optional property to some concrete input.
  */
 public final class AsOptionalExpression<T> extends Expression<Optional<T>> {
-  private final ObservableValue<T> myValue;
+  private final ObservableValue<? extends T> myValue;
 
-  public AsOptionalExpression(ObservableValue<T> value) {
+  public AsOptionalExpression(ObservableValue<? extends T> value) {
     super(value);
     myValue = value;
   }
