@@ -882,20 +882,19 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       resourceFile.addItems(Collections.singletonList(item));
                       myGeneration++;
                       invalidateItemCaches(type);
+                      return;
                     }
                   }
-
-                  return;
                 }
               }
 
               // See if you just added a new item inside a <style> or <array> or <declare-styleable> etc
               XmlTag parentTag = tag.getParentTag();
               if (parentTag != null && ResourceType.getEnum(parentTag.getName()) != null) {
-                // Yes just invalidate the corresponding style value
-                ResourceItem style = findValueResourceItem(parentTag, psiFile);
-                if (style instanceof PsiResourceItem) {
-                  if (((PsiResourceItem)style).recomputeValue()) {
+                // Yes just invalidate the corresponding cached value
+                ResourceItem parentItem = findValueResourceItem(parentTag, psiFile);
+                if (parentItem instanceof PsiResourceItem) {
+                  if (((PsiResourceItem)parentItem).recomputeValue()) {
                     myGeneration++;
                   }
                   return;
@@ -1027,14 +1026,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
               if (parent instanceof XmlTag) {
                 XmlTag parentTag = (XmlTag)parent;
                 if (ResourceType.getEnum(parentTag.getName()) != null) {
-                  // Yes just invalidate the corresponding style value
-                  ResourceItem style = findValueResourceItem(parentTag, psiFile);
-                  if (style instanceof PsiResourceItem) {
-                    if (((PsiResourceItem)style).recomputeValue()) {
+                  // Yes just invalidate the corresponding cached value
+                  ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
+                  if (resourceItem instanceof PsiResourceItem) {
+                    if (((PsiResourceItem)resourceItem).recomputeValue()) {
                       myGeneration++;
                     }
 
-                    if (style.getType() == ResourceType.ATTR) {
+                    if (resourceItem.getType() == ResourceType.ATTR) {
                       parentTag = parentTag.getParentTag();
                       if (parentTag != null && parentTag.getName().equals(ResourceType.DECLARE_STYLEABLE.getName())) {
                         ResourceItem declareStyleable = findValueResourceItem(parentTag, psiFile);
@@ -1324,10 +1323,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
               if (parent instanceof XmlTag) {
                 XmlTag parentTag = (XmlTag)parent;
                 if (ResourceType.getEnum(parentTag.getName()) != null) {
-                  // Yes just invalidate the corresponding style value
-                  ResourceItem style = findValueResourceItem(parentTag, psiFile);
-                  if (style instanceof PsiResourceItem) {
-                    if (((PsiResourceItem)style).recomputeValue()) {
+                  // Yes just invalidate the corresponding cached value
+                  ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
+                  if (resourceItem instanceof PsiResourceItem) {
+                    if (((PsiResourceItem)resourceItem).recomputeValue()) {
                       myGeneration++;
                     }
                     return;
@@ -1413,9 +1412,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                     if (parentTag != null && ResourceType.getEnum(parentTag.getName()) != null) {
                       // <style>, or <plurals>, or <array>, or <string-array>, ...
                       // Edited the attribute value of an item that is wrapped in a <style> tag: invalidate parent cached value
-                      ResourceItem style = findValueResourceItem(parentTag, psiFile);
-                      if (style instanceof PsiResourceItem) {
-                        if (((PsiResourceItem)style).recomputeValue()) {
+                      ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
+                      if (resourceItem instanceof PsiResourceItem) {
+                        if (((PsiResourceItem)resourceItem).recomputeValue()) {
                           myGeneration++;
                         }
                         return;
