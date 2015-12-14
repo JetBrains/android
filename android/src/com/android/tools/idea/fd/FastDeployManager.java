@@ -34,6 +34,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.idea.run.*;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
@@ -691,7 +692,9 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   private static boolean isRebuildRequired(@NotNull IDevice device, @NotNull Module module) {
     AndroidVersion deviceVersion = DevicePropertyUtil.getDeviceVersion(device);
     if (!isInstantRunCapableDeviceVersion(deviceVersion)) {
-      LOG.info("Device with API level " + deviceVersion + " not capable of instant run.");
+      String message = "Device with API level " + deviceVersion + " not capable of instant run.";
+      LOG.info(message);
+      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
       return true;
     }
 
@@ -722,6 +725,9 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       HashCode installedHash = cache.getInstalledManifestResourcesHash(device, pkgName);
       if (installedHash != null && !installedHash.equals(currentHash)) {
         // Yes, some resources have changed.
+        String message = "Some resource referenced from the manifest has changed.";
+        LOG.info(message);
+        UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
         return true;
       }
 
@@ -1127,6 +1133,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
       status = StringUtil.capitalizeWords(status.toLowerCase(Locale.US).replace('_', ' '), true);
       postBalloon(MessageType.WARNING, "Couldn't apply changes on the fly: " + status, facet.getModule().getProject());
+      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, status, null);
     }
   }
 
