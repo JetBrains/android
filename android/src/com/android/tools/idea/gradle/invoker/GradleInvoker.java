@@ -127,7 +127,8 @@ public class GradleInvoker {
 
   /**
    * Execute Gradle tasks that compile the relevant Java sources.
-   * @param modules Modules that need to be compiled
+   *
+   * @param modules         Modules that need to be compiled
    * @param testCompileType Kind of tests that the caller is interested in. Use {@link TestCompileType#NONE} if compiling just the
    *                        main sources, {@link TestCompileType#JAVA_TESTS} if class files for running unit tests are needed.
    */
@@ -213,14 +214,14 @@ public class GradleInvoker {
   /**
    * Asks to execute target gradle tasks.
    *
-   * @param gradleTasks           names of the tasks to execute
-   * @param jvmArguments          arguments for the JVM running the gradle tasks.
-   * @param commandLineArguments  command line arguments to use for the target tasks execution
-   * @param taskId                id of the request to execute given gradle tasks (if any), e.g. there is a possible case
-   *                              that this call implies from IDE run configuration, so, it assigns a unique id to the request
-   *                              to execute target tasks
-   * @param taskListener          a listener interested in target tasks processing
-   * @param waitForCompletion     a flag which hints whether current method should return control flow before target tasks are executed
+   * @param gradleTasks          names of the tasks to execute
+   * @param jvmArguments         arguments for the JVM running the gradle tasks.
+   * @param commandLineArguments command line arguments to use for the target tasks execution
+   * @param taskId               id of the request to execute given gradle tasks (if any), e.g. there is a possible case
+   *                             that this call implies from IDE run configuration, so, it assigns a unique id to the request
+   *                             to execute target tasks
+   * @param taskListener         a listener interested in target tasks processing
+   * @param waitForCompletion    a flag which hints whether current method should return control flow before target tasks are executed
    */
   public void executeTasks(@NotNull final List<String> gradleTasks,
                            @NotNull final List<String> jvmArguments,
@@ -255,6 +256,7 @@ public class GradleInvoker {
     }
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       for (BeforeGradleInvocationTask listener : myBeforeTasks) {
+        //noinspection TestOnlyProblems
         listener.execute(gradleTasks);
       }
       return;
@@ -330,9 +332,7 @@ public class GradleInvoker {
         case CLEAN: // Intentional fall-through.
         case SOURCE_GEN:
           addAfterSyncTasks(tasks, gradlePath, properties);
-          if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-            addAfterSyncTasksForTestArtifacts(tasks, gradlePath, getArtifactsForTestCompileType(testCompileType, androidGradleModel));
-          }
+          addAfterSyncTasksForTestArtifacts(tasks, gradlePath, testCompileType, androidGradleModel);
           break;
         case ASSEMBLE:
           tasks.add(createBuildTask(gradlePath, properties.ASSEMBLE_TASK_NAME));
@@ -351,9 +351,8 @@ public class GradleInvoker {
           break;
         default:
           addAfterSyncTasks(tasks, gradlePath, properties);
-          if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-            addAfterSyncTasksForTestArtifacts(tasks, gradlePath, getArtifactsForTestCompileType(testCompileType, androidGradleModel));
-          }
+          addAfterSyncTasksForTestArtifacts(tasks, gradlePath, testCompileType, androidGradleModel);
+
           // When compiling for unit tests, run only COMPILE_JAVA_TEST_TASK_NAME, which will run javac over main and test code. If the
           // Jack compiler is enabled in Gradle, COMPILE_JAVA_TASK_NAME will end up running e.g. compileDebugJavaWithJack, which produces
           // no *.class files and would be just a waste of time.
@@ -366,7 +365,8 @@ public class GradleInvoker {
             for (BaseArtifact artifact : getArtifactsForTestCompileType(testCompileType, androidGradleModel)) {
               addTaskIfSpecified(tasks, gradlePath, artifact.getCompileTaskName());
             }
-          } else {
+          }
+          else {
             addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TEST_TASK_NAME);
           }
           break;
@@ -381,6 +381,20 @@ public class GradleInvoker {
         }
         if (testCompileType == TestCompileType.JAVA_TESTS) {
           tasks.add(createBuildTask(gradlePath, JavaGradleFacet.TEST_CLASSES_TASK_NAME));
+        }
+      }
+    }
+  }
+
+  private static void addAfterSyncTasksForTestArtifacts(@NotNull List<String> tasks,
+                                                        @NotNull String gradlePath,
+                                                        @NotNull TestCompileType testCompileType,
+                                                        @Nullable AndroidGradleModel androidGradleModel) {
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      Collection<BaseArtifact> testArtifacts = getArtifactsForTestCompileType(testCompileType, androidGradleModel);
+      for (BaseArtifact artifact : testArtifacts) {
+        for (String taskName : getIdeSetupTasks(artifact)) {
+          addTaskIfSpecified(tasks, gradlePath, taskName);
         }
       }
     }
@@ -403,7 +417,6 @@ public class GradleInvoker {
       case JAVA_TESTS:
         testArtifact = androidGradleModel.getUnitTestArtifactInSelectedVariant();
     }
-
     return testArtifact != null ? ImmutableList.of(testArtifact) : Collections.<BaseArtifact>emptyList();
   }
 
@@ -419,19 +432,7 @@ public class GradleInvoker {
     }
   }
 
-  private static void addAfterSyncTasksForTestArtifacts(@NotNull List<String> tasks,
-                                                        @NotNull String gradlePath,
-                                                        @NotNull Collection<BaseArtifact> testArtifacts) {
-    for (BaseArtifact artifact : testArtifacts) {
-      for (String taskName : getIdeSetupTasks(artifact)) {
-        addTaskIfSpecified(tasks, gradlePath, taskName);
-      }
-    }
-  }
-
-  private static void addTaskIfSpecified(@NotNull List<String> tasks,
-                                         @NotNull String gradlePath,
-                                         @Nullable String gradleTaskName) {
+  private static void addTaskIfSpecified(@NotNull List<String> tasks, @NotNull String gradlePath, @Nullable String gradleTaskName) {
     if (isNotEmpty(gradleTaskName)) {
       String buildTask = createBuildTask(gradlePath, gradleTaskName);
       if (!tasks.contains(buildTask)) {
