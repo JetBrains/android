@@ -16,12 +16,15 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.*;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.ClassField;
+import com.android.builder.model.Variant;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
@@ -35,8 +38,8 @@ import java.util.Map;
 /**
  * Resource repository which merges in dynamically registered resource items from the model
  */
-public class DynamicResourceValueRepository extends LocalResourceRepository implements GradleSyncListener,
-                                                                                       BuildVariantView.BuildVariantSelectionChangeListener {
+public class DynamicResourceValueRepository extends LocalResourceRepository
+  implements GradleSyncListener, BuildVariantView.BuildVariantSelectionChangeListener {
   private final AndroidFacet myFacet;
   private final Map<ResourceType, ListMultimap<String, ResourceItem>> mItems = Maps.newEnumMap(ResourceType.class);
 
@@ -51,6 +54,15 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
   @NotNull
   public static DynamicResourceValueRepository create(@NotNull AndroidFacet facet) {
     return new DynamicResourceValueRepository(facet);
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public static DynamicResourceValueRepository createForTest(@NotNull AndroidFacet facet, @NotNull Map<String, ClassField> values) {
+    DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet);
+    repository.addValues(values);
+
+    return repository;
   }
 
   @Override
@@ -97,7 +109,8 @@ public class DynamicResourceValueRepository extends LocalResourceRepository impl
       if (map == null) {
         map = ArrayListMultimap.create();
         mItems.put(type, map);
-      } else if (map.containsKey(name)) {
+      }
+      else if (map.containsKey(name)) {
         // Masked by higher priority source provider
         continue;
       }
