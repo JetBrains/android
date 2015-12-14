@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.*;
 import com.android.repository.Revision;
+import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.Sets;
@@ -77,8 +78,10 @@ class ProjectStructureUsageTracker {
     if (target != null) {
       AndroidProject androidProject = target.getAndroidProject();
       Revision gradleVersion = getGradleVersion(myProject);
-      UsageTracker.getInstance().trackGradleArtifactVersions(target.getApplicationId(), androidProject.getModelVersion(),
-                                                             gradleVersion != null ? gradleVersion.toString() : "<Not Found>");
+      UsageTracker.getInstance().trackGradleArtifactVersions(target.getApplicationId(),
+                                                             androidProject.getModelVersion(),
+                                                             gradleVersion != null ? gradleVersion.toString() : "<Not Found>",
+                                                             FastDeployManager.isInstantRunEnabled(myProject));
     }
   }
 
