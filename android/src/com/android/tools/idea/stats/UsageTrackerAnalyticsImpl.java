@@ -69,7 +69,8 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   @Override
   public void trackGradleArtifactVersions(@NotNull String applicationId,
                                           @NotNull String androidPluginVersion,
-                                          @NotNull String gradleVersion) {
+                                          @NotNull String gradleVersion,
+                                          boolean instantRunEnabled) {
     if (!trackingEnabled()) {
       return;
     }
@@ -77,7 +78,8 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
                           ImmutableMap.of(
                             "appId", anonymize(applicationId),
                             "pluginVer", androidPluginVersion,
-                            "gradleVer", gradleVersion));
+                            "gradleVer", gradleVersion,
+                            "instantRunEnabled", Boolean.toString(instantRunEnabled)));
   }
 
   @NotNull
