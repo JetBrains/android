@@ -223,16 +223,15 @@ public class AndroidTargetData {
   }
 
   @Nullable
-  public synchronized FrameworkResources getFrameworkResources() throws IOException {
-    if (myFrameworkResources == null) {
-      myFrameworkResources = FrameworkResourceLoader.load(myTarget);
+  public synchronized FrameworkResources getFrameworkResources(boolean withLocale) throws IOException {
+    // if the framework resources that we got was created by someone else who didnt need locale data
+    if (withLocale && myFrameworkResources instanceof FrameworkResourceLoader.IdeFrameworkResources && ((FrameworkResourceLoader.IdeFrameworkResources)myFrameworkResources).getSkippedLocales()) {
+      myFrameworkResources = null;
     }
-
+    if (myFrameworkResources == null) {
+      myFrameworkResources = FrameworkResourceLoader.load(myTarget, withLocale);
+    }
     return myFrameworkResources;
-  }
-
-  public synchronized void resetFrameworkResources() {
-    myFrameworkResources = null;
   }
 
   /**
