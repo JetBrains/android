@@ -52,6 +52,9 @@ public abstract class UsageTracker {
   public static final String ACTION_DEPLOYMENT_APK = "apkDeployed";
   public static final String ACTION_DEPLOYMENT_EMULATOR = "emulatorLaunch";
 
+  public static final String CATEGORY_INSTANTRUN = "instantrun";
+  public static final String ACTION_INSTANTRUN_FULLBUILD = "buildCause";
+
   public static final String CATEGORY_DEVELOPER_SERVICES = "devServices";
   public static final String ACTION_DEVELOPER_SERVICES_INSTALLED = "installed";
   public static final String ACTION_DEVELOPER_SERVICES_REMOVED = "removed";
