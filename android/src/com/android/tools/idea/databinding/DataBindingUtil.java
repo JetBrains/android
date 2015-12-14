@@ -40,6 +40,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightField;
 import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.impl.light.LightMethod;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.scope.ElementClassHint;
 import com.intellij.psi.scope.NameHint;
 import com.intellij.psi.scope.PsiScopeProcessor;
@@ -50,6 +51,7 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -96,7 +98,19 @@ public class DataBindingUtil {
   }
 
   private static PsiType parsePsiType(String text, AndroidFacet facet, PsiElement context) {
-    return PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject()).createTypeFromText(text, context);
+    PsiElementFactory instance = PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject());
+    try {
+      PsiType type = instance.createTypeFromText(text, context);
+      if ((type instanceof PsiClassReferenceType) && ((PsiClassReferenceType)type).getClassName() == null) {
+        // Ensure that if the type is a reference, it's a reference to a valid type.
+        return null;
+      }
+      return type;
+    }
+    catch (IncorrectOperationException e) {
+      // Class named "text" not found.
+      return null;
+    }
   }
 
   public static PsiType resolveViewPsiType(DataBindingInfo.ViewWithId viewWithId, AndroidFacet facet) {
@@ -106,6 +120,7 @@ public class DataBindingUtil {
     }
     return null;
   }
+
   /**
    * Receives an {@linkplain XmlTag} and returns the View class that is represented by the tag.
    * May return null if it cannot find anything reasonable (e.g. it is a merge but does not have data binding)
