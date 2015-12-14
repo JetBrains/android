@@ -19,11 +19,10 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
@@ -81,9 +80,9 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     final GradleBuildModel buildModel = GradleBuildModel.get(from);
 
     if (buildModel != null && gradlePath != null) {
-      DependenciesModel dependenciesModel = buildModel.dependencies(true);
+      DependenciesModel dependencies = buildModel.dependencies();
       String configurationName = getConfigurationName(from, scope);
-      dependenciesModel.addModule(configurationName, gradlePath, null);
+      dependencies.addModule(configurationName, gradlePath, null);
 
       new WriteCommandAction(myProject, "Add Gradle Module Dependency") {
         @Override
@@ -136,7 +135,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         return null;
       }
       String configurationName = getConfigurationName(module, scope);
-      DependenciesModel dependencies = buildModel.dependencies(true);
+      DependenciesModel dependencies = buildModel.dependencies();
       dependencies.addArtifact(configurationName, dependencySpec);
       buildModelsToUpdate.add(buildModel);
     }
@@ -167,21 +166,9 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     }
 
     if (getAndroidModel(module) != null) {
-      AndroidModel androidModel = buildModel.android();
-      if (androidModel == null) {
-        buildModel.addAndroidModel();
-        androidModel = buildModel.android();
-        assert androidModel != null;
-      }
-      CompileOptionsModel compileOptionsModel = androidModel.compileOptions();
-      if (compileOptionsModel == null) {
-        androidModel.addCompileOptions();
-        compileOptionsModel = androidModel.compileOptions();
-        assert compileOptionsModel != null;
-      }
-
-      compileOptionsModel.setSourceCompatibility(level);
-      compileOptionsModel.setTargetCompatibility(level);
+      CompileOptionsModel compileOptions = buildModel.android().compileOptions();
+      compileOptions.setSourceCompatibility(level);
+      compileOptions.setTargetCompatibility(level);
     }
     else {
       JavaGradleFacet javaGradleFacet = JavaGradleFacet.getInstance(module);
@@ -189,11 +176,6 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         return null;
       }
       JavaModel javaModel = buildModel.java();
-      if (javaModel == null) {
-        buildModel.addJavaModel();
-        javaModel = buildModel.java();
-        assert javaModel != null;
-      }
       javaModel.setSourceCompatibility(level);
       javaModel.setTargetCompatibility(level);
     }

@@ -58,11 +58,6 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
   public abstract String extension();
 
   @NotNull
-  public String compactNotation() {
-    return new ArtifactDependencySpec(name(), group(), version(), classifier(), extension()).compactNotation();
-  }
-
-  @NotNull
   protected static List<ArtifactDependencyModel> create(@NotNull GradleDslElement element) {
     List<ArtifactDependencyModel> results = Lists.newArrayList();
     assert element instanceof GradleDslExpression || element instanceof GradleDslExpressionMap;
@@ -91,9 +86,7 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
 
   @NotNull
   public ArtifactDependencySpec getSpec() {
-    ArtifactDependencySpec spec = ArtifactDependencySpec.create(compactNotation());
-    assert spec != null;
-    return spec;
+    return new ArtifactDependencySpec(name(), group(), version(), classifier(), extension());
   }
 
   private static class MapNotation extends ArtifactDependencyModel {

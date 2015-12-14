@@ -96,7 +96,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
     GradleBuildModelFixture library3BuildModel = myProjectFrame.parseBuildFileForModule("library3", false);
     ArtifactDependencySpec gson = new ArtifactDependencySpec("gson", "com.google.code.gson", "2.4");
-    library3BuildModel.getTarget().dependencies(true).addArtifact(COMPILE, gson);
+    library3BuildModel.getTarget().dependencies().addArtifact(COMPILE, gson);
     library3BuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -123,7 +123,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
     GradleBuildModelFixture appBuildModel = myProjectFrame.parseBuildFileForModule("app", false);
     ArtifactDependencySpec gson = new ArtifactDependencySpec("gson", "com.google.code.gson", "2.4");
-    appBuildModel.getTarget().dependencies(true).addArtifact(COMPILE, gson);
+    appBuildModel.getTarget().dependencies().addArtifact(COMPILE, gson);
     appBuildModel.applyChanges();
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 

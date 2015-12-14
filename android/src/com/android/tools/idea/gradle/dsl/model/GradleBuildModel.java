@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
@@ -97,98 +96,44 @@ public class GradleBuildModel extends GradleFileModel {
     super(buildDslFile);
   }
 
-  @Nullable
+  @NotNull
   public AndroidModel android() {
     AndroidDslElement androidDslElement = myGradleDslFile.getProperty(AndroidDslElement.NAME, AndroidDslElement.class);
-    return androidDslElement != null ? new AndroidModel(androidDslElement) : null;
+    if (androidDslElement == null) {
+      androidDslElement = new AndroidDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(AndroidDslElement.NAME, androidDslElement);
+    }
+    return new AndroidModel(androidDslElement);
   }
 
   @NotNull
-  public GradleBuildModel addAndroidModel() {
-    if (android() != null) {
-      return this;
-    }
-    AndroidDslElement androidDslElement = new AndroidDslElement(myGradleDslFile);
-    myGradleDslFile.setNewElement(AndroidDslElement.NAME, androidDslElement);
-    return this;
-  }
-
-  @NotNull
-  public GradleBuildModel removeAndroidModel() {
-    myGradleDslFile.removeProperty(AndroidDslElement.NAME);
-    return this;
-  }
-
-  @Contract("true -> !null")
-  @Nullable
-  public DependenciesModel dependencies(boolean createIfNeeded) {
-    DependenciesModel dependenciesModel = dependencies();
-    if (createIfNeeded && dependenciesModel == null) {
-      addDependenciesModel();
-      dependenciesModel = dependencies();
-      assert dependenciesModel != null;
-    }
-    return dependenciesModel;
-  }
-
-  @Nullable
   public DependenciesModel dependencies() {
     DependenciesDslElement dependenciesDslElement = myGradleDslFile.getProperty(DependenciesDslElement.NAME, DependenciesDslElement.class);
-    return dependenciesDslElement != null ? new DependenciesModel(dependenciesDslElement) : null;
+    if (dependenciesDslElement == null) {
+      dependenciesDslElement = new DependenciesDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(DependenciesDslElement.NAME, dependenciesDslElement);
+    }
+    return new DependenciesModel(dependenciesDslElement);
   }
 
   @NotNull
-  public GradleBuildModel addDependenciesModel() {
-    if (dependencies() != null) {
-      return this;
-    }
-    DependenciesDslElement dependenciesDslElement = new DependenciesDslElement(myGradleDslFile);
-    myGradleDslFile.setNewElement(DependenciesDslElement.NAME, dependenciesDslElement);
-    return this;
-  }
-
-  @Nullable
   public ExtModel ext() {
     ExtDslElement extDslElement = myGradleDslFile.getProperty(ExtDslElement.NAME, ExtDslElement.class);
-    return extDslElement != null ? new ExtModel(extDslElement) : null;
-  }
-
-  @NotNull
-  public GradleBuildModel addExtModel() {
-    if (ext() != null) {
-      return this;
+    if (extDslElement == null) {
+      extDslElement = new ExtDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(ExtDslElement.NAME, extDslElement);
     }
-    ExtDslElement extDslElement = new ExtDslElement(myGradleDslFile);
-    myGradleDslFile.setNewElement(ExtDslElement.NAME, extDslElement);
-    return this;
+    return new ExtModel(extDslElement);
   }
 
   @NotNull
-  public GradleBuildModel removeExtModel() {
-    myGradleDslFile.removeProperty(ExtDslElement.NAME);
-    return this;
-  }
-
-  @Nullable
   public JavaModel java() {
     JavaDslElement javaDslElement = myGradleDslFile.getProperty(JavaDslElement.NAME, JavaDslElement.class);
-    return javaDslElement != null ? new JavaModel(javaDslElement) : null;
-  }
-
-  @NotNull
-  public GradleBuildModel addJavaModel() {
-    if (java() != null) {
-      return this;
+    if (javaDslElement == null) {
+      javaDslElement = new JavaDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(JavaDslElement.NAME, javaDslElement);
     }
-    JavaDslElement javaDslElement = new JavaDslElement(myGradleDslFile);
-    myGradleDslFile.setNewElement(JavaDslElement.NAME, javaDslElement);
-    return this;
-  }
-
-  @NotNull
-  public GradleBuildModel removeJavaModel() {
-    myGradleDslFile.removeProperty(JavaDslElement.NAME);
-    return this;
+    return new JavaModel(javaDslElement);
   }
 
   private static class GradleBuildDslFile extends GradleDslFile {

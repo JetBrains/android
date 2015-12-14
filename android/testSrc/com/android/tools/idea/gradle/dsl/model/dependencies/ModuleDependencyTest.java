@@ -34,7 +34,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
@@ -51,7 +51,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
 
     ModuleDependencyModel actual = dependencies.get(0);
@@ -75,7 +75,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(3);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
@@ -106,7 +106,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
     dependency.setName("newName");
 
@@ -121,7 +121,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertFalse(buildModel.isModified());
 
-    dependencies = buildModel.dependencies(true).modules();
+    dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
@@ -139,7 +139,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
     dependency.setName("newName");
 
@@ -154,7 +154,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertFalse(buildModel.isModified());
 
-    dependencies = buildModel.dependencies(true).modules();
+    dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
@@ -173,7 +173,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
     dependency.setName("newName");
 
@@ -188,7 +188,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertFalse(buildModel.isModified());
 
-    dependencies = buildModel.dependencies(true).modules();
+    dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
@@ -206,7 +206,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
     dependency.setName("helloWorld");
 
@@ -221,7 +221,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertFalse(buildModel.isModified());
 
-    dependencies = buildModel.dependencies(true).modules();
+    dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
 
     ModuleDependencyModel actual = dependencies.get(0);
@@ -242,7 +242,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     final GradleBuildModel buildModel = getGradleBuildModel();
 
-    List<ModuleDependencyModel> dependencies = buildModel.dependencies(true).modules();
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
     dependency.setName("newName");
 
@@ -261,7 +261,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertFalse(buildModel.isModified());
 
-    dependencies = buildModel.dependencies(true).modules();
+    dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();

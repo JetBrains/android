@@ -32,7 +32,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib:subLib"), settingsModel.modulePaths());
   }
 
@@ -41,7 +40,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
 
     settingsModel.addModulePath("lib1");
@@ -56,7 +54,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     final GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
 
     settingsModel.addModulePath("lib1");
@@ -79,7 +76,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     final GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals("include", ImmutableList.of(":"), settingsModel.modulePaths());
 
     settingsModel.addModulePath("app");
@@ -103,7 +99,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
 
     settingsModel.removeModulePath(":app");
@@ -119,7 +114,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     final GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
 
     settingsModel.removeModulePath(":app");
@@ -143,7 +137,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     final GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib1"), settingsModel.modulePaths());
 
     settingsModel.removeModulePath(":app");
@@ -169,7 +162,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib:subLib"), settingsModel.modulePaths());
 
     settingsModel.replaceModulePath("lib", "lib1");
@@ -185,7 +177,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     final GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib:subLib"), settingsModel.modulePaths());
 
     settingsModel.replaceModulePath("lib", "lib1");
@@ -213,7 +204,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary"), settingsModel.modulePaths());
 
     File rootDir = getBaseDirPath(myProject);
@@ -235,7 +225,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary"), settingsModel.modulePaths());
 
     File rootDir = getBaseDirPath(myProject);
@@ -256,7 +245,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals(ImmutableList.of(":", ":app", ":lib", ":olib"), settingsModel.modulePaths());
 
     File rootDir = getBaseDirPath(myProject);
@@ -274,7 +262,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
     writeToSettingsFile(text);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    assertNotNull(settingsModel);
     assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary"), settingsModel.modulePaths());
 
     assertEquals(":", settingsModel.parentModule("app"));

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.base.Objects;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 
-public final class ProductFlavorModel {
+public final class ProductFlavorModel extends GradleDslBlockModel {
   private static final String APPLICATION_ID = "applicationId";
   private static final String CONSUMER_PROGUARD_FILES = "consumerProguardFiles";
   private static final String DIMENSION = "dimension";
@@ -46,10 +47,8 @@ public final class ProductFlavorModel {
   private static final String VERSION_CODE = "versionCode";
   private static final String VERSION_NAME = "versionName";
 
-  private final ProductFlavorDslElement myDslElement;
-
   public ProductFlavorModel(@NotNull ProductFlavorDslElement dslElement) {
-    myDslElement = dslElement;
+    super(dslElement);
   }
 
   @NotNull
