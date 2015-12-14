@@ -16,7 +16,9 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
+import com.android.builder.model.ClassField;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.tools.idea.rendering.DynamicResourceValueRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ModuleResourceRepository;
@@ -29,11 +31,9 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class StringResourceDataTest extends AndroidTestCase {
   private VirtualFile resourceDirectory;
@@ -42,10 +42,31 @@ public class StringResourceDataTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory));
-    data = StringResourceParser.parse(myFacet, repository);
+    setUpData();
+  }
+
+  private void setUpData() {
+    Collection<VirtualFile> resourceDirectories = Collections.singletonList(resourceDirectory);
+
+    Map<String, ClassField> values = Collections.singletonMap("dynamic_key1", mockClassField("dynamic_key1", "L\\'Étranger"));
+    LocalResourceRepository otherDelegate = DynamicResourceValueRepository.createForTest(myFacet, values);
+    Collection<LocalResourceRepository> otherDelegates = Collections.singletonList(otherDelegate);
+
+    data = StringResourceParser.parse(myFacet, ModuleResourceRepository.createForTest(myFacet, resourceDirectories, otherDelegates));
+  }
+
+  @NotNull
+  private static ClassField mockClassField(@NotNull String name, @NotNull String value) {
+    ClassField field = Mockito.mock(ClassField.class);
+
+    Mockito.when(field.getType()).thenReturn("string");
+    Mockito.when(field.getName()).thenReturn(name);
+    Mockito.when(field.getValue()).thenReturn(value);
+
+    return field;
   }
 
   public void testSummarizeLocales() {
@@ -74,7 +95,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     }));
     assertSameElements(locales, ImmutableSet.of("en", "en-GB", "en-IN", "fr", "hi"));
 
-    assertEquals(ImmutableSet.of("key1", "key2", "key3", "key5", "key6", "key7"), data.getDefaultValues().keySet());
+    assertEquals(ImmutableSet.of("dynamic_key1", "key1", "key2", "key3", "key5", "key6", "key7"), data.getDefaultValues().keySet());
 
     Set<String> untranslatableKeys = data.getUntranslatableKeys();
     assertSameElements(untranslatableKeys, Lists.newArrayList("key5", "key6"));
@@ -84,13 +105,17 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals("Key 2 hi", StringResourceData.resourceToString(translations.get("key2", Locale.create("hi"))));
   }
 
-  public void testUnescaping() {
+  public void testResourceToStringPsi() {
     Table<String, Locale, ResourceItem> translations = data.getTranslations();
     Locale locale = Locale.create("fr");
 
     assertEquals("L'Étranger", StringResourceData.resourceToString(translations.get("key8", locale)));
     assertEquals("<![CDATA[L'Étranger]]>", StringResourceData.resourceToString(translations.get("key9", locale)));
     assertEquals("<xliff:g>L'Étranger</xliff:g>", StringResourceData.resourceToString(translations.get("key10", locale)));
+  }
+
+  public void testResourceToStringDynamic() {
+    assertEquals("L\\'Étranger", StringResourceData.resourceToString(data.getDefaultValues().get("dynamic_key1")));
   }
 
   public void testValidation() {
