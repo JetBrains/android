@@ -150,6 +150,36 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals("targetSdkVersion", "21", defaultConfig.targetSdkVersion());
   }
 
+  public void testResolveMultiModuleExtProperty() throws IOException {
+    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
+
+    String mainModuleText = "ext.SDK_VERSION = 21";
+
+    String subModuleText = "android {\n" +
+                  "  compileSdkVersion SDK_VERSION\n" +
+                  "}";
+
+    writeToSettingsFile(settingsText);
+    writeToBuildFile(mainModuleText);
+    writeToSubModuleBuildFile(subModuleText);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel extModel = buildModel.ext();
+
+    Integer sdkVersion = extModel.getProperty("SDK_VERSION", Integer.class);
+    assertNotNull(sdkVersion);
+    assertEquals(21, sdkVersion.intValue());
+
+    GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
+    ExtModel subModuleExtModel = subModuleBuildModel.ext();
+
+    sdkVersion = subModuleExtModel.getProperty("SDK_VERSION", Integer.class);
+    assertNull(sdkVersion); // SDK_VERSION is not defined in the sub module.
+
+    AndroidModel androidModel = subModuleBuildModel.android();
+    assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion()); // SDK_VERSION resolved from the main module.
+  }
+
   public void testResolveVariablesInStringLiteral() throws IOException {
     String text = "ext.ANDROID = \"android\"\n" +
                   "ext.SDK_VERSION = 23\n" +

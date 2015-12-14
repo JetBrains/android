@@ -153,6 +153,19 @@ public class GradleSettingsModel extends GradleFileModel {
   }
 
   @Nullable
+  public GradleBuildModel moduleModel(@NotNull String modulePath) {
+    File buildFilePath = buildFile(modulePath);
+    if (buildFilePath == null) {
+      return null;
+    }
+    VirtualFile buildFile = findFileByIoFile(buildFilePath, true);
+    if (buildFile == null) {
+      return null;
+    }
+    return GradleBuildModel.parseBuildFile(buildFile, myGradleDslFile.getProject(), modulePath.substring(modulePath.lastIndexOf(":") + 1));
+  }
+
+  @Nullable
   public String parentModule(@NotNull String modulePath) {
     modulePath = standardiseModulePath(modulePath);
 
@@ -180,15 +193,7 @@ public class GradleSettingsModel extends GradleFileModel {
     if (parentModule == null) {
       return null;
     }
-    File parentBuildFile = buildFile(parentModule);
-    if (parentBuildFile == null) {
-      return null;
-    }
-    VirtualFile buildFile = findFileByIoFile(parentBuildFile, true);
-    if (buildFile == null) {
-      return null;
-    }
-    return GradleBuildModel.parseBuildFile(buildFile, myGradleDslFile.getProject(), modulePath.substring(modulePath.lastIndexOf(":") + 1));
+    return moduleModel(parentModule);
   }
 
   @Nullable
