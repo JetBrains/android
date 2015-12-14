@@ -158,5 +158,6 @@ public abstract class UsageTracker {
 
   public abstract void trackGradleArtifactVersions(@NotNull String applicationId,
                                                    @NotNull String androidPluginVersion,
-                                                   @NotNull String gradleVersion);
+                                                   @NotNull String gradleVersion,
+                                                   boolean instantRunEnabled);
 }
