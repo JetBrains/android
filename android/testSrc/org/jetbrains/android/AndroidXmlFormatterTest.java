@@ -95,6 +95,29 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + "layout8_after.xml");
   }
 
+  // Regression test for http://b.android.com/196833
+  // "Android" style for XML formatting doesn't insert a newline character before the first attribute
+  // (even when that setting is enabled) is a namespace declaration. However, it does it only when
+  // namespace declaration is already first attribute in the list. Given that Android XML formatting
+  // by default rearranges attributes, it would lead to weird results: if namespace declaration is
+  // not on the first line, on first "Reformat Code" run it would but namespace first and keep the
+  // line break if it was already there, and on the second run it would remove line break.
+  public void testLayoutNonFirstNamespace() throws Exception {
+    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
+    final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + "layout_non_first_namespace.xml", "res/layout/layout.xml");
+    myFixture.configureFromExistingVirtualFile(f);
+
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      @Override
+      public void run() {
+        RearrangeCodeProcessor processor = new RearrangeCodeProcessor(new ReformatCodeProcessor(getProject(), false));
+        processor.run();
+      }
+    });
+
+    myFixture.checkResultByFile(BASE_PATH + "layout_non_first_namespace_after.xml");
+  }
+
   public void testManifest1() throws Exception {
     deleteManifest();
     new AndroidXmlPredefinedCodeStyle().apply(mySettings);
