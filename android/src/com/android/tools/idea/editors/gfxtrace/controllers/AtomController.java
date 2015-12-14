@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
+import com.android.tools.idea.editors.gfxtrace.JBLoadingPanelWrapper;
 import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
@@ -32,6 +32,9 @@ import com.android.tools.idea.editors.gfxtrace.widgets.LoadingIndicator;
 import com.android.tools.idea.editors.gfxtrace.widgets.Repaintables;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.rpclib.futures.SingleInFlight;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Objects;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -72,6 +75,7 @@ public class AtomController extends TreeController {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
   private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
+  private final SingleInFlight myAtomRequestController = new SingleInFlight(new JBLoadingPanelWrapper(myLoadingPanel));
 
   public static class Node {
     public final long index;
@@ -598,18 +602,19 @@ public class AtomController extends TreeController {
 
     if (updateAtoms && myAtomsPath.getPath() != null) {
       myTree.getEmptyText().setText("");
-      myLoadingPanel.startLoading();
-      final ListenableFuture<AtomList> atomF = myEditor.getClient().get(myAtomsPath.getPath());
-      final ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(myAtomsPath.getPath().getCapture().hierarchy());
-      Futures.addCallback(Futures.allAsList(atomF, hierarchyF), new LoadingCallback<java.util.List<BinaryObject>>(LOG, myLoadingPanel) {
+      ListenableFuture<AtomList> atomF = myEditor.getClient().get(myAtomsPath.getPath());
+      ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(myAtomsPath.getPath().getCapture().hierarchy());
+      Rpc.listen(Futures.allAsList(atomF, hierarchyF), EdtExecutor.INSTANCE, LOG, myAtomRequestController,
+                 new Rpc.Callback<java.util.List<BinaryObject>>() {
         @Override
-        public void onSuccess(@Nullable final java.util.List<BinaryObject> all) {
-          myLoadingPanel.stopLoading();
+        public void onFinish(Rpc.Result<java.util.List<BinaryObject>> result) throws RpcException, ExecutionException {
+          // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
+          java.util.List<BinaryObject> all = result.get();
           DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
           ((AtomGroup)all.get(1)).addChildren(root, (AtomList)all.get(0));
           setRoot(root);
         }
-      }, EdtExecutor.INSTANCE);
+      });
     }
   }
 }
