@@ -72,8 +72,6 @@ public class IdeTestApplication implements Disposable {
 
     // Force Swing FileChooser on Mac (instead of native one) to be able to use FEST to drive it.
     System.setProperty("native.mac.file.chooser.enabled", "false");
-    // Force Swing dialogs on Mac (instead of native sheets) to be able to use FEST to interact with them.
-    Registry.get("ide.mac.message.dialogs.as.sheets").setValue(false);
 
     if (!isLoaded()) {
       ourInstance = new IdeTestApplication();
