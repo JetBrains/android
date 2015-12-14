@@ -17,7 +17,6 @@ package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.FrameworkResources;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
@@ -36,11 +35,9 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.sdk.FrameworkResourceLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,8 +76,8 @@ public class ResourceResolverCache {
   /** The generation timestamp of our most recently cached app resources, used to invalidate on edits */
   private long myCachedGeneration;
 
-  /** Map from API level to framework resources */
-  private SparseArray<FrameworkResources> myFrameworkResources = new SparseArray<FrameworkResources>();
+/** Map from API level to framework resources */
+  private SparseArray<AndroidTargetData> myFrameworkResources = new SparseArray<AndroidTargetData>();
 
   public ResourceResolverCache(ConfigurationManager manager) {
     myManager = manager;
@@ -196,51 +193,26 @@ public class ResourceResolverCache {
   @Nullable
   public ResourceRepository getFrameworkResources(@NotNull FolderConfiguration configuration, @NotNull IAndroidTarget target) {
     int apiLevel = target.getVersion().getFeatureLevel();
-    FrameworkResources resources = myFrameworkResources.get(apiLevel);
 
     LocaleQualifier locale = configuration.getLocaleQualifier();
     boolean needLocales = locale != null && !locale.hasFakeValue() || myManager.getLocale() != Locale.ANY;
 
-    boolean reset = false;
-    if (resources instanceof FrameworkResourceLoader.IdeFrameworkResources) {
-      if (needLocales && ((FrameworkResourceLoader.IdeFrameworkResources)resources).getSkippedLocales()) {
-        reset = true;
+    AndroidTargetData targetData = myFrameworkResources.get(apiLevel);
+    if (targetData == null) {
+      AndroidPlatform platform = AndroidPlatform.getInstance(myManager.getModule());
+      if (platform == null) {
+        return null;
       }
+      targetData = platform.getSdkData().getTargetData(target); // uses soft ref
+      myFrameworkResources.put(apiLevel, targetData);
     }
 
-    if (resources == null || reset) {
-      FrameworkResourceLoader.requestLocales(needLocales);
-      resources = getFrameworkResources(target, myManager.getModule(), reset);
-      myFrameworkResources.put(apiLevel, resources);
-    }
-
-    return resources;
-  }
-
-  /**
-   * Returns a {@link LocalResourceRepository} for the framework resources of a given target.
-   *
-   * @param target the target for which to return the framework resources.
-   * @return the framework resources or {@code null} if not found.
-   */
-  @Nullable
-  private static FrameworkResources getFrameworkResources(@NotNull IAndroidTarget target, @NotNull Module module, boolean forceReload) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(module);
-    if (platform == null) {
-      return null;
-    }
-
-    AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
     try {
-      if (forceReload) {
-        targetData.resetFrameworkResources();
-      }
-      return targetData.getFrameworkResources();
+      return targetData.getFrameworkResources(needLocales);
     }
     catch (IOException e) {
       LOG.error(e);
     }
-
     return null;
   }
 
