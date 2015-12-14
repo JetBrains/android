@@ -104,7 +104,7 @@ public class HaxmAlert extends JPanel {
           refresh();
         }
       };
-      final Runnable action = AccelerationErrorSolution.getActionForFix(accelerationError, null, refresh);
+      final Runnable action = AccelerationErrorSolution.getActionForFix(accelerationError, null, refresh, null);
       myErrorLinkListener =
         new HyperlinkAdapter() {
           @Override
