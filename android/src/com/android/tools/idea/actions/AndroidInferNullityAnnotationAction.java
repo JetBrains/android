@@ -192,7 +192,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       DependenciesModel dependenciesModel = buildModel.dependencies();
       if (dependenciesModel != null) {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(COMPILE)) {
-          String notation = dependency.compactNotation();
+          String notation = dependency.getSpec().compactNotation();
           if (notation.equals(annotationsLibraryCoordinate) || notation.equals(appCompatLibraryCoordinate)) {
             dependencyFound = true;
             break;
@@ -370,7 +370,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
         public void consume(ModifiableRootModel model) {
           GradleBuildModel buildModel = GradleBuildModel.get(module);
           if (buildModel != null) {
-            buildModel.dependencies(true).addArtifact(COMPILE, libraryCoordinate);
+            buildModel.dependencies().addArtifact(COMPILE, libraryCoordinate);
           }
         }
       });

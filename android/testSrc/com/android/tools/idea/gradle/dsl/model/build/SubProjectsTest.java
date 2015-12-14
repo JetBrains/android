@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
 import com.intellij.pom.java.LanguageLevel;
@@ -38,17 +37,13 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleText);
     writeToSubModuleBuildFile(subModuleText);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
-    assertNotNull(buildModel);
-    assertNull(buildModel.java());
+    JavaModel java = getGradleBuildModel().java();
+    assertNull(java.sourceCompatibility());
+    assertNull(java.targetCompatibility());
 
-    GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
-    assertNotNull(subModuleBuildModel);
-    JavaModel subModuleJavaModel = subModuleBuildModel.java();
-    assertNotNull(subModuleJavaModel);
-
-    assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.targetCompatibility());
+    JavaModel subModuleJava = getSubModuleGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, subModuleJava.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility());
   }
 
   public void testSubProjectsSectionWithLocalProperties() throws Exception {
@@ -67,21 +62,13 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleText);
     writeToSubModuleBuildFile(subModuleText);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
-    assertNotNull(buildModel);
-    JavaModel java = buildModel.java();
-    assertNotNull(java);
-
+    JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_4, java.sourceCompatibility()); // subprojects section applies only for sub projects.
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility()); // subprojects section applies only for sub projects.
 
-    GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
-    assertNotNull(subModuleBuildModel);
-    JavaModel subModuleJavaModel = subModuleBuildModel.java();
-    assertNotNull(subModuleJavaModel);
-
-    assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.sourceCompatibility()); // Subproject got 1_5 from SubProjects section
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.targetCompatibility()); // Subproject got 1_6 from SubProjects section
+    JavaModel subModuleJava = getSubModuleGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, subModuleJava.sourceCompatibility()); // Subproject got 1_5 from SubProjects section
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility()); // Subproject got 1_6 from SubProjects section
   }
 
   public void testOverrideSubProjectsSection() throws Exception {
@@ -101,20 +88,12 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleText);
     writeToSubModuleBuildFile(subModuleText);
 
-    GradleBuildModel buildModel = getGradleBuildModel();
-    assertNotNull(buildModel);
-    JavaModel java = buildModel.java();
-    assertNotNull(java);
-
+    JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
 
-    GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
-    assertNotNull(subModuleBuildModel);
-    JavaModel subModuleJavaModel = subModuleBuildModel.java();
-    assertNotNull(subModuleJavaModel);
-
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.sourceCompatibility()); // 1_4 is overridden with 1_6
-    assertEquals(LanguageLevel.JDK_1_7, subModuleJavaModel.targetCompatibility()); // 1_5 is overridden with 1_7
+    JavaModel subModuleJava = getSubModuleGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.sourceCompatibility()); // 1_4 is overridden with 1_6
+    assertEquals(LanguageLevel.JDK_1_7, subModuleJava.targetCompatibility()); // 1_5 is overridden with 1_7
   }
 }

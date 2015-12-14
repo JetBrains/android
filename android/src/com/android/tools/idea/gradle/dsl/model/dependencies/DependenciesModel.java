@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.Lists;
@@ -23,15 +24,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel.CONFIGURATION;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel.PATH;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel.PROJECT;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel.*;
 
-public class DependenciesModel {
-  @NotNull private DependenciesDslElement myDslElement;
+public class DependenciesModel extends GradleDslBlockModel {
 
   public DependenciesModel(@NotNull DependenciesDslElement dslElement) {
-    myDslElement = dslElement;
+    super(dslElement);
   }
 
   /**
