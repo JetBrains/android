@@ -15,38 +15,87 @@
  */
 package com.android.tools.idea.gradle.invoker;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class GradleInvokerWithArtifactTest extends AndroidGradleTestCase {
+import static org.fest.assertions.Assertions.assertThat;
+
+// Tests cases here are largely similar to the ones in GradleInvokerTest (comment '+' is used to marked the additional tasks here).
+// The different is mostly due to the difference of afterSyncTasks.
+public class GradleInvokerWithArtifactTest extends AbstractGradleInvokerTest {
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = true;
+  protected boolean loadAllTestArtifacts() {
+    return true;
   }
 
-  public void testInvokeUnitTest() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("AndroidJunitPatcherWithTestArtifactTest.test temporarily disabled");
-      return;
-    }
+  public void testCleanProject() {
+    myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull List<String> tasks) {
+        assertThat(tasks).containsOnly(CLEAN,
+                                       qualifiedTaskName(SOURCE_GEN),
+                                       qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
+                                       qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
+                                       qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES)); // +
+        // Make sure clean is first.
+        assertEquals(CLEAN, tasks.get(0));
+        assertEquals(BuildMode.CLEAN, getBuildMode());
+      }
+    });
+    myInvoker.cleanProject();
+  }
 
-    loadProject("projects/sync/multiproject", false);
-    Module module1 = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("module1");
+  public void testGenerateSources() throws Exception {
+    myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull List<String> tasks) {
+        assertThat(tasks).containsOnly(qualifiedTaskName(SOURCE_GEN),
+                                                         qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
+                                                         qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
+                                                         qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES)); // +
+        assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
+      }
+    });
+    myInvoker.generateSources();
+  }
 
-    List<String> compileTests =
-      GradleInvoker.findTasksToExecute(new Module[]{module1}, BuildMode.COMPILE_JAVA, GradleInvoker.TestCompileType.JAVA_TESTS);
-    assertContainsElements(compileTests, ":module1:compileDebugUnitTestSources");
-    assertDoesntContain(compileTests, ":module1:compileDebugAndroidTestSources");
+  public void testCompileJava() throws Exception {
+    myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull List<String> tasks) {
+        assertThat(tasks).containsOnly(qualifiedTaskName(SOURCE_GEN),
+                                       qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
+                                       qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
+                                       qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES), // +
+                                       qualifiedTaskName(COMPILE_JAVA),
+                                       qualifiedTaskName(COMPILE_ANDROID_TEST_JAVA),
+                                       qualifiedTaskName(COMPILE_UNIT_TEST_JAVA)); // +
+        assertEquals(BuildMode.COMPILE_JAVA, getBuildMode());
+      }
+    });
+    myInvoker.compileJava(new Module[] { myModule }, GradleInvoker.TestCompileType.NONE);
+  }
 
-    List<String> compileAndroidTests =
-      GradleInvoker.findTasksToExecute(new Module[]{module1}, BuildMode.COMPILE_JAVA, GradleInvoker.TestCompileType.ANDROID_TESTS);
-    assertContainsElements(compileAndroidTests, ":module1:compileDebugAndroidTestSources");
-    assertDoesntContain(compileAndroidTests, ":module1:compileDebugUnitTestSources");
+  public void testRebuild() throws Exception {
+    myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull List<String> tasks) {
+        assertThat(tasks).containsOnly(CLEAN,
+                                       qualifiedTaskName(SOURCE_GEN),
+                                       qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
+                                       qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
+                                       qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES), // +
+                                       qualifiedTaskName(COMPILE_JAVA),
+                                       qualifiedTaskName(COMPILE_ANDROID_TEST_JAVA),
+                                       qualifiedTaskName(COMPILE_UNIT_TEST_JAVA)); // +
+        // Make sure clean is first.
+        assertEquals(CLEAN, tasks.get(0));
+        assertEquals(BuildMode.REBUILD, getBuildMode());
+      }
+    });
+    myInvoker.rebuild();
   }
 }

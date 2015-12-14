@@ -991,8 +991,13 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     state.SELECTED_TEST_ARTIFACT = getSelectedTestArtifactName();
 
     AndroidArtifact mainArtifact = variant.getMainArtifact();
-    BaseArtifact testArtifact = findSelectedTestArtifactInSelectedVariant();
-    updateGradleTaskNames(state, mainArtifact, testArtifact);
+
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      // When multi test artifacts are enabled, test tasks are computed dynamically.
+      updateGradleTaskNames(state, mainArtifact, null);
+    } else {
+      updateGradleTaskNames(state, mainArtifact, findSelectedTestArtifactInSelectedVariant());
+    }
   }
 
   @VisibleForTesting
