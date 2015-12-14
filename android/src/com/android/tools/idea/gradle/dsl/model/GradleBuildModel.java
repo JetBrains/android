@@ -16,12 +16,14 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -107,6 +109,15 @@ public class GradleBuildModel extends GradleFileModel {
   }
 
   @NotNull
+  public BuildScriptModel buildscript() {
+    BuildScriptDslElement buildScriptDslElement = myGradleDslFile.getProperty(BuildScriptDslElement.NAME, BuildScriptDslElement.class);
+    if (buildScriptDslElement == null) {
+      buildScriptDslElement = new BuildScriptDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(BuildScriptDslElement.NAME, buildScriptDslElement);
+    }
+    return new BuildScriptModel(buildScriptDslElement);
+  }
+
   public DependenciesModel dependencies() {
     DependenciesDslElement dependenciesDslElement = myGradleDslFile.getProperty(DependenciesDslElement.NAME, DependenciesDslElement.class);
     if (dependenciesDslElement == null) {
