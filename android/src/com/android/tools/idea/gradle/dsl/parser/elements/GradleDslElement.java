@@ -101,6 +101,10 @@ public abstract class GradleDslElement {
     Project project = parentPsiElement.getProject();
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
+    if (isNewEmptyBlockElement()) {
+      return null; // Avoid creation of an empty block statement.
+    }
+
     String statementText = isBlockElement() ? myName + " {\n}\n" : myName + " \"abc\", \"xyz\"";
     GrStatement statement = factory.createStatementFromText(statementText);
     if (statement instanceof GrApplicationStatement) {
@@ -121,6 +125,29 @@ public abstract class GradleDslElement {
     PsiElement lineTerminator = factory.createLineTerminator(1);
     parentPsiElement.addAfter(lineTerminator, addedElement);
     return getPsiElement();
+  }
+
+  private boolean isNewEmptyBlockElement() {
+    if (getPsiElement() != null) {
+      return false;
+    }
+
+    if (!isBlockElement()) {
+      return false;
+    }
+
+    Collection<GradleDslElement> children = getChildren();
+    if (children.isEmpty()) {
+      return true;
+    }
+
+    for (GradleDslElement child : children) {
+      if (!child.isNewEmptyBlockElement()) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**

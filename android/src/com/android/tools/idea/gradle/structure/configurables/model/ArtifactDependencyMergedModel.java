@@ -55,7 +55,7 @@ public class ArtifactDependencyMergedModel extends DependencyMergedModel {
     super(parent, parsedModel.configurationName());
     myLogicalModels = Lists.newArrayList(logicalModels);
     myParsedModel = parsedModel;
-    GradleCoordinate parsed = GradleCoordinate.parseCoordinateString(myParsedModel.compactNotation());
+    GradleCoordinate parsed = GradleCoordinate.parseCoordinateString(myParsedModel.getSpec().compactNotation());
     assert parsed != null;
     myCoordinate = parsed;
   }
@@ -93,6 +93,6 @@ public class ArtifactDependencyMergedModel extends DependencyMergedModel {
 
   @Override
   public String toString() {
-    return myParsedModel.compactNotation();
+    return myParsedModel.getSpec().compactNotation();
   }
 }

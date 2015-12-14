@@ -223,7 +223,9 @@ public class JavaVersionDslElement extends GradleDslElement {
   protected void delete() {
     GrExpression psiElement = getPsiElement();
     if (psiElement != null) {
+      PsiElement parent = psiElement.getParent();
       psiElement.delete();
+      deleteIfEmpty(parent);
     }
   }
 }
