@@ -17,19 +17,20 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.widgets.*;
-import com.google.common.util.concurrent.Futures;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.ExecutionException;
 
 public abstract class ImageCellController<T extends ImageCellList.Data> extends Controller
     implements CellList.SelectionListener<T>, CellRenderer.CellLoader<T> {
@@ -78,22 +79,16 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
     return this;
   }
 
-
   protected void loadCellImage(final T cell, final ServiceClient client, final Path imagePath, final Runnable onLoad) {
-    cell.startLoading();
-    Futures.addCallback(FetchedImage.load(client, imagePath), new LoadingCallback<FetchedImage>(LOG, cell) {
+    Rpc.listen(FetchedImage.load(client, imagePath), EdtExecutor.INSTANCE, LOG, cell.controller,
+               new Rpc.Callback<FetchedImage>() {
       @Override
-      public void onSuccess(final FetchedImage fetchedImage) {
-        EdtExecutor.INSTANCE.execute(new Runnable() {
-          @Override
-          public void run() {
-            // Back in the UI thread here
-            cell.icon = new ImageIcon(fetchedImage.image);
-            cell.stopLoading();
-            onLoad.run();
-            myList.repaint();
-          }
-        });
+      public void onFinish(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
+        // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
+        FetchedImage fetchedImage = result.get();
+        cell.icon = new ImageIcon(fetchedImage.image);
+        onLoad.run();
+        myList.repaint();
       }
     });
   }
