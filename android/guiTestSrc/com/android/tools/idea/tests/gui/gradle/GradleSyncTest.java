@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.sdklib.IAndroidTarget;
 import com.android.repository.Revision;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.BuildFileStatement;
-import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -46,7 +45,6 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -102,10 +100,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
-import static com.android.tools.idea.gradle.parser.BuildFileKey.DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
-import static com.android.tools.idea.gradle.parser.Dependency.Scope.COMPILE;
-import static com.android.tools.idea.gradle.parser.Dependency.Type.EXTERNAL;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
@@ -210,23 +206,21 @@ public class GradleSyncTest extends GuiTestCase {
   public void testNonExistingInterModuleDependencies() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
-    Module appModule = myProjectFrame.getModule("app");
-    final GradleBuildFile buildFile = GradleBuildFile.get(appModule);
-    assertNotNull(buildFile);
+    final Module appModule = myProjectFrame.getModule("app");
 
     // Set a dependency on a module that does not exist.
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        new WriteCommandAction<Void>(myProjectFrame.getProject(), "Adding dependencies", buildFile.getPsiFile()) {
+        runWriteCommandAction(myProjectFrame.getProject(), new Runnable() {
           @Override
-          protected void run(@NotNull Result<Void> result) throws Throwable {
-            final Dependency nonExisting = new Dependency(COMPILE, Dependency.Type.MODULE, ":fakeLibrary");
-            List<BuildFileStatement> dependencies = Lists.newArrayList();
-            dependencies.add(nonExisting);
-            buildFile.setValue(DEPENDENCIES, dependencies);
+          public void run() {
+            GradleBuildModel buildModel = GradleBuildModel.get(appModule);
+            assertNotNull(buildModel);
+            buildModel.dependencies().addModule(COMPILE, ":fakeLibrary");
+            buildModel.applyChanges();
           }
-        }.execute();
+        });
       }
     });
 
@@ -1052,6 +1046,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   // See https://code.google.com/p/android/issues/detail?id=169743
   // JVM settings for Gradle should be cleared before any invocation to Gradle.
+  @Ignore
   @Test @IdeGuiTest
   public void testClearJvmArgsOnSyncAndBuild() throws IOException {
     myProjectFrame = importSimpleApplication();
@@ -1087,7 +1082,7 @@ public class GradleSyncTest extends GuiTestCase {
   // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
   // See https://code.google.com/p/android/issues/detail?id=65325
   @Test @IdeGuiTest
-  @Ignore
+  @Ignore("This test only passes when executed individually")
   public void testWithIdeProxySettings() throws IOException {
     System.getProperties().setProperty("show.do.not.copy.http.proxy.settings.to.gradle", "true");
 
@@ -1467,18 +1462,6 @@ public class GradleSyncTest extends GuiTestCase {
     final Project project = myProjectFrame.getProject();
 
     final Module appModule = myProjectFrame.getModule("app");
-    final GradleBuildFile buildFile = GradleBuildFile.get(appModule);
-    assertNotNull(buildFile);
-
-    final List<BuildFileStatement> dependencies = Lists.newArrayList();
-    new ReadAction() {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        dependencies.addAll(buildFile.getDependencies());
-      }
-    }.execute();
-    Dependency aarDependency = new Dependency(COMPILE, EXTERNAL, "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar");
-    dependencies.add(aarDependency);
 
     execute(new GuiTask() {
       @Override
@@ -1486,7 +1469,12 @@ public class GradleSyncTest extends GuiTestCase {
         runWriteCommandAction(project, new Runnable() {
           @Override
           public void run() {
-            buildFile.setValue(DEPENDENCIES, dependencies);
+            GradleBuildModel buildModel = GradleBuildModel.get(appModule);
+            assertNotNull(buildModel);
+
+            String newDependency = "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar";
+            buildModel.dependencies().addArtifact(COMPILE, newDependency);
+            buildModel.applyChanges();
           }
         });
       }
