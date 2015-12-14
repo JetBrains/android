@@ -33,13 +33,7 @@ public class CompileOptionTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-
-    CompileOptionsModel compileOptions = android.compileOptions();
-    assertNotNull(compileOptions);
-
+    CompileOptionsModel compileOptions = getGradleBuildModel().android().compileOptions();
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility());
     assertEquals("UTF8", compileOptions.encoding());
@@ -56,12 +50,7 @@ public class CompileOptionTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    CompileOptionsModel compileOptions = android.compileOptions();
-    assertNotNull(compileOptions);
-
+    CompileOptionsModel compileOptions = getGradleBuildModel().android().compileOptions();
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility());
     assertEquals("UTF8", compileOptions.encoding());
@@ -71,12 +60,7 @@ public class CompileOptionTest extends GradleFileModelTestCase {
     String text = "android.compileOptions.sourceCompatibility 1.6\n" + "android.compileOptions.targetCompatibility 1.6\n";
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    CompileOptionsModel compileOptions = android.compileOptions();
-    assertNotNull(compileOptions);
-
+    CompileOptionsModel compileOptions = getGradleBuildModel().android().compileOptions();
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility());
   }
@@ -93,47 +77,9 @@ public class CompileOptionTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-
-    CompileOptionsModel compileOptions = android.compileOptions();
-    assertNotNull(compileOptions);
-
+    CompileOptionsModel compileOptions = getGradleBuildModel().android().compileOptions();
     assertEquals(LanguageLevel.JDK_1_7, compileOptions.sourceCompatibility());
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility());
-  }
-
-  public void testCompileOptionsRemoveBlock() throws Exception {
-    String text = "android {\n" +
-                  "  compileSdkVersion 23\n" +
-                  "  compileOptions {\n" +
-                  "    sourceCompatibility 1.6\n" +
-                  "    targetCompatibility 1.6\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
-
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    CompileOptionsModel compileOptions = android.compileOptions();
-    assertNotNull(compileOptions);
-    android.removeCompileOptions();
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
-    android = buildModel.android();
-
-    assertNotNull(android);
-    assertNull(android.compileOptions());
   }
 
   public void testCompileOptionsRemoveApplicationStatement() throws Exception {
@@ -148,12 +94,8 @@ public class CompileOptionTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
 
-    CompileOptionsModel compileOptions = android.compileOptions();
-    assertNotNull(compileOptions);
-
+    CompileOptionsModel compileOptions = buildModel.android().compileOptions();
     compileOptions.removeSourceCompatibility();
     compileOptions.removeTargetCompatibility();
 
@@ -164,14 +106,10 @@ public class CompileOptionTest extends GradleFileModelTestCase {
       }
     });
     buildModel.reparse();
-    android = buildModel.android();
-
-    assertNotNull(android);
-    compileOptions = android.compileOptions();
-    assertNotNull(compileOptions);
-
+    compileOptions = buildModel.android().compileOptions();
     assertNull(compileOptions.sourceCompatibility());
     assertNull(compileOptions.targetCompatibility());
+    assertFalse(compileOptions.hasValidPsiElement());
   }
 
   public void testCompileOptionsModify() throws Exception {
@@ -185,12 +123,7 @@ public class CompileOptionTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    CompileOptionsModel compileOptions = android.compileOptions();
-    assertNotNull(compileOptions);
-
+    CompileOptionsModel compileOptions = buildModel.android().compileOptions();
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
     compileOptions.setSourceCompatibility(LanguageLevel.JDK_1_7);
 
@@ -201,11 +134,7 @@ public class CompileOptionTest extends GradleFileModelTestCase {
       }
     });
     buildModel.reparse();
-    android = buildModel.android();
-
-    assertNotNull(android);
-    compileOptions = android.compileOptions();
-    assertNotNull(compileOptions);
+    compileOptions = buildModel.android().compileOptions();
     assertEquals(LanguageLevel.JDK_1_7, compileOptions.sourceCompatibility());
   }
 
@@ -217,16 +146,7 @@ public class CompileOptionTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    CompileOptionsModel compileOptions = android.compileOptions();
-    assertNull(compileOptions);
-
-    android.addCompileOptions();
-    compileOptions = android.compileOptions();
-    assertNotNull(compileOptions);
-
+    CompileOptionsModel compileOptions = buildModel.android().compileOptions();
     assertNull(compileOptions.sourceCompatibility());
     assertNull(compileOptions.targetCompatibility());
 
@@ -240,11 +160,7 @@ public class CompileOptionTest extends GradleFileModelTestCase {
       }
     });
     buildModel.reparse();
-    android = buildModel.android();
-
-    assertNotNull(android);
-    compileOptions = android.compileOptions();
-    assertNotNull(compileOptions);
+    compileOptions = buildModel.android().compileOptions();
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
     assertEquals(LanguageLevel.JDK_1_7, compileOptions.targetCompatibility());
   }

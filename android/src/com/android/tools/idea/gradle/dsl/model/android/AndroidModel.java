@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-public final class AndroidModel {
+public final class AndroidModel extends GradleDslBlockModel {
   private static final String BUILD_TOOLS_VERSION = "buildToolsVersion";
   private static final String COMPILE_SDK_VERSION = "compileSdkVersion";
   private static final String DEFAULT_CONFIG = "defaultConfig";
@@ -38,10 +39,8 @@ public final class AndroidModel {
 
   // TODO: Add support for useLibrary
 
-  private final AndroidDslElement myDslElement;
-
   public AndroidModel(@NotNull AndroidDslElement dslElement) {
-    myDslElement = dslElement;
+    super(dslElement);
   }
 
   @Nullable
@@ -68,26 +67,14 @@ public final class AndroidModel {
     return this;
   }
 
-  @Nullable
+  @NotNull
   public CompileOptionsModel compileOptions() {
     CompileOptionsDslElement element = myDslElement.getProperty(BaseCompileOptionsDslElement.NAME, CompileOptionsDslElement.class);
-    return element != null ? new CompileOptionsModel(element, false) : null;
-  }
-
-  @NotNull
-  public AndroidModel addCompileOptions() {
-    if (compileOptions() != null) {
-      return this;
+    if (element == null) {
+      element = new CompileOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(BaseCompileOptionsDslElement.NAME, element);
     }
-    CompileOptionsDslElement element = new CompileOptionsDslElement(myDslElement);
-    myDslElement.setNewElement(BaseCompileOptionsDslElement.NAME, element);
-    return this;
-  }
-
-  @NotNull
-  public AndroidModel removeCompileOptions() {
-    myDslElement.removeProperty(BaseCompileOptionsDslElement.NAME);
-    return this;
+    return new CompileOptionsModel(element, false);
   }
 
   @Nullable
@@ -114,26 +101,14 @@ public final class AndroidModel {
     return this;
   }
 
-  @Nullable
+  @NotNull
   public ProductFlavorModel defaultConfig() {
-    ProductFlavorDslElement parsedDefaultConfig = myDslElement.getProperty(DEFAULT_CONFIG, ProductFlavorDslElement.class);
-    return parsedDefaultConfig != null ? new ProductFlavorModel(parsedDefaultConfig) : null;
-  }
-
-  @NotNull
-  public AndroidModel addDefaultConfig() {
-    if (defaultConfig() != null) {
-      return this;
+    ProductFlavorDslElement defaultConfigElement = myDslElement.getProperty(DEFAULT_CONFIG, ProductFlavorDslElement.class);
+    if (defaultConfigElement == null) {
+      defaultConfigElement = new ProductFlavorDslElement(myDslElement, DEFAULT_CONFIG);
+      myDslElement.setNewElement(DEFAULT_CONFIG, defaultConfigElement);
     }
-    ProductFlavorDslElement defaultConfig = new ProductFlavorDslElement(myDslElement, DEFAULT_CONFIG);
-    myDslElement.setNewElement(DEFAULT_CONFIG, defaultConfig);
-    return this;
-  }
-
-  @NotNull
-  public AndroidModel removeDefaultConfig() {
-    myDslElement.removeProperty(DEFAULT_CONFIG);
-    return this;
+    return new ProductFlavorModel(defaultConfigElement);
   }
 
   @Nullable
