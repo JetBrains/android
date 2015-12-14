@@ -18,7 +18,6 @@ package com.android.tools.idea.avdmanager;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Lists;
@@ -99,37 +98,47 @@ public class AccelerationErrorSolution {
    * Returns a {@link Runnable} with code for applying the solution for a given problem {@link AccelerationErrorCode}.
    * In some cases all we can do is present some text to the user in which case the returned {@link Runnable} will simply
    * display a dialog box with text that the user can use as a guide for solving the problem on their own.</br>
-   * In other cases we can install the component that is required.
+   * In other cases we can install the component that is required.</br>
+   * It is guaranteed that one and only one of the callbacks {@code refresh} and {@code cancel} is called if they are both supplied.
    * @param error the problem we are creating an action for
    * @param project the project (may be null but this circumvents certain updates)
    * @param refresh a {@link Runnable} to execute after a change has been applied
+   * @param cancel a {@link Runnable} to execute if no change was applied
    * @return a {link Runnable} to "fix" or display a "fix" for/to the user
    */
-  public static Runnable getActionForFix(@NotNull AccelerationErrorCode error, @Nullable Project project, @Nullable Runnable refresh) {
-    return new AccelerationErrorSolution(error, project, refresh).getAction();
+  public static Runnable getActionForFix(@NotNull AccelerationErrorCode error, @Nullable Project project, @Nullable Runnable refresh, @Nullable Runnable cancel) {
+    return new AccelerationErrorSolution(error, project, refresh, cancel).getAction();
   }
 
   private final AccelerationErrorCode myError;
   private final Project myProject;
   private final Runnable myRefresh;
+  private final Runnable myCancel;
+  private boolean myChangesMade;
 
-  private AccelerationErrorSolution(@NotNull AccelerationErrorCode error, @Nullable Project project, @Nullable Runnable refresh) {
+  private AccelerationErrorSolution(@NotNull AccelerationErrorCode error, @Nullable Project project, @Nullable Runnable refresh, @Nullable Runnable cancel) {
     assert error != AccelerationErrorCode.ALREADY_INSTALLED;
     myError = error;
     myProject = project;
     myRefresh = refresh;
+    myCancel = cancel;
   }
 
-  private  Runnable getAction() {
+  private Runnable getAction() {
     switch (myError.getSolution()) {
       case DOWNLOAD_EMULATOR:
       case UPDATE_EMULATOR:
         return new Runnable() {
           @Override
           public void run() {
-            List<IPkgDesc> requested = Lists.newArrayList();
-            requested.add(PkgDesc.Builder.newTool(TOOLS_REVISION_WITH_FIRST_QEMU2, PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2).create());
-            showQuickFix(requested);
+            try {
+              List<IPkgDesc> requested = Lists.newArrayList();
+              requested.add(PkgDesc.Builder.newTool(TOOLS_REVISION_WITH_FIRST_QEMU2, PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2).create());
+              showQuickFix(requested);
+            }
+            finally {
+              reportBack();
+            }
           }
         };
 
@@ -137,9 +146,14 @@ public class AccelerationErrorSolution {
         return new Runnable() {
           @Override
           public void run() {
-            List<IPkgDesc> requested = Lists.newArrayList();
-            requested.add(PkgDesc.Builder.newPlatformTool(PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2).create());
-            showQuickFix(requested);
+            try {
+              List<IPkgDesc> requested = Lists.newArrayList();
+              requested.add(PkgDesc.Builder.newPlatformTool(PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2).create());
+              showQuickFix(requested);
+            }
+            finally {
+              reportBack();
+            }
           }
         };
 
@@ -147,9 +161,14 @@ public class AccelerationErrorSolution {
         return new Runnable() {
           @Override
           public void run() {
-            AvdManagerConnection avdManager = AvdManagerConnection.getDefaultAvdManagerConnection();
-            List<IPkgDesc> requested = avdManager.getSystemImageUpdates();
-            showQuickFix(requested);
+            try {
+              AvdManagerConnection avdManager = AvdManagerConnection.getDefaultAvdManagerConnection();
+              List<IPkgDesc> requested = avdManager.getSystemImageUpdates();
+              showQuickFix(requested);
+            }
+            finally {
+              reportBack();
+            }
           }
         };
 
@@ -157,38 +176,38 @@ public class AccelerationErrorSolution {
         return new Runnable() {
           @Override
           public void run() {
-            GeneralCommandLine install = createKvmInstallCommand();
-            if (install == null) {
-              BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
-              refresh();
-            }
-            else {
-              String text = String.format(
-                "Linux systems vary a great deal; the installation steps we will attempt may not work in your particular scenario.\n\n" +
-                "The steps are:\n\n" +
-                "  %1$s\n\n" +
-                "If you prefer, you can skip this step and perform the KVM installation steps on your own.\n\n" +
-                "There might be more details at: %2$s\n",
-                install.getCommandLineString(),
-                KVM_INSTRUCTIONS);
-              int response = Messages.showDialog(
-                text, myError.getSolution().getDescription(), new String[]{"Skip", "Proceed"}, 1, Messages.getQuestionIcon());
-              if (response == 1) {
-                try {
-                  execute(install);
-                  refresh();
-                }
-                catch (ExecutionException ex) {
-                  LOG.error(ex);
-                  BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
-                  Messages.showWarningDialog(myProject, "Please install KVM on your own", "Installation Failed");
-                  refresh();
-                }
+            try {
+              GeneralCommandLine install = createKvmInstallCommand();
+              if (install == null) {
+                BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
               }
               else {
-                BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
-                refresh();
+                String text = String.format(
+                  "Linux systems vary a great deal; the installation steps we will attempt may not work in your particular scenario.\n\n" +
+                  "The steps are:\n\n"                                                                                                    +
+                  "  %1$s\n\n"                                                                                                            +
+                  "If you prefer, you can skip this step and perform the KVM installation steps on your own.\n\n"                         +
+                  "There might be more details at: %2$s\n", install.getCommandLineString(), KVM_INSTRUCTIONS);
+                int response = Messages
+                  .showDialog(text, myError.getSolution().getDescription(), new String[]{"Skip", "Proceed"}, 1, Messages.getQuestionIcon());
+                if (response == 1) {
+                  try {
+                    execute(install);
+                    myChangesMade = true;
+                  }
+                  catch (ExecutionException ex) {
+                    LOG.error(ex);
+                    BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
+                    Messages.showWarningDialog(myProject, "Please install KVM on your own", "Installation Failed");
+                  }
+                }
+                else {
+                  BrowserUtil.browse(KVM_INSTRUCTIONS, myProject);
+                }
               }
+            }
+            finally {
+              reportBack();
             }
           }
         };
@@ -198,10 +217,13 @@ public class AccelerationErrorSolution {
         return new Runnable() {
           @Override
           public void run() {
-            HaxmWizard wizard = new HaxmWizard();
-            wizard.init();
-            if (wizard.showAndGet()) {
-              refresh();
+            try {
+              HaxmWizard wizard = new HaxmWizard();
+              wizard.init();
+              myChangesMade = wizard.showAndGet();
+            }
+            finally {
+              reportBack();
             }
           }
         };
@@ -210,8 +232,12 @@ public class AccelerationErrorSolution {
         return new Runnable() {
           @Override
           public void run() {
-            Messages.showWarningDialog(myProject, myError.getSolutionMessage(), myError.getSolution().getDescription());
-            refresh();
+            try {
+              Messages.showWarningDialog(myProject, myError.getSolutionMessage(), myError.getSolution().getDescription());
+            }
+            finally {
+              reportBack();
+            }
           }
         };
     }
@@ -275,17 +301,15 @@ public class AccelerationErrorSolution {
     if (sdkQuickfixWizard != null) {
       sdkQuickfixWizard.show();
       if (sdkQuickfixWizard.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-        if (myProject != null) {
-          GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
-        }
-        refresh();
+        myChangesMade = true;
       }
     }
   }
 
-  private void refresh() {
-    if (myRefresh != null) {
-      ApplicationManager.getApplication().invokeLater(myRefresh);
+  private void reportBack() {
+    Runnable reporter = myChangesMade ? myRefresh : myCancel;
+    if (reporter != null) {
+      ApplicationManager.getApplication().invokeLater(reporter);
     }
   }
 }

@@ -22,7 +22,6 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.AvdWizardConstants;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
@@ -30,8 +29,6 @@ import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.TimeUnit;
 
 public class LaunchableAndroidDevice implements AndroidDevice {
   private final AvdInfo myAvdInfo;
@@ -91,8 +88,7 @@ public class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull ConsolePrinter printer) {
-    ProcessHandler handler = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
-    return EmulatorConnectionListener.getDeviceForEmulator(myAvdInfo.getName(), handler, 5, TimeUnit.MINUTES);
+    return AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
   }
 
   public AvdInfo getAvdInfo() {
