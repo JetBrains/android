@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture.DialogAndWrapper;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -31,7 +32,6 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -47,19 +47,16 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture.findByText;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.UUID.randomUUID;
+import static javax.swing.SwingUtilities.windowForComponent;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
-import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.data.TableCell.row;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -138,8 +135,8 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     fileChooser.select(targetFile).clickOk();
 
     // "Confirm save" dialog will pop up because the file already exists, we click on Yes to continue.
-    DialogFixture confirmDialog = findDialog(withTitle("Confirm Save as")).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
-    confirmDialog.button(withText("Yes")).click();
+    MessagesFixture messages = MessagesFixture.findByTitle(myRobot, windowForComponent(dialog), "Confirm Save as");
+    messages.click("Yes");
 
     // Load selection from disk
     findByText("Select All", myRobot, dialog).click();
