@@ -101,7 +101,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<IdDisplay>(ConfigureDeviceModel.ALL_TAGS));
+    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<IdDisplay>(AvdWizardConstants.ALL_TAGS));
 
     myDeviceTypeComboBox.setRenderer(new ListCellRendererWrapper<IdDisplay>() {
       @Override
@@ -133,42 +133,42 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   }
 
   private void bindUi() {
-    myBindings.bindTwoWay(new TextProperty(myDeviceName), getModel().name());
+    myBindings.bindTwoWay(new TextProperty(myDeviceName), getModel().getDeviceData().name());
 
-    myBindings.bindTwoWay(new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize)), getModel().diagonalScreenSize());
-    myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionWidth)), getModel().screenResolutionWidth());
-    myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionHeight)), getModel().screenResolutionHeight());
+    myBindings.bindTwoWay(new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize)), getModel().getDeviceData().diagonalScreenSize());
+    myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionWidth)), getModel().getDeviceData().screenResolutionWidth());
+    myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionHeight)), getModel().getDeviceData().screenResolutionHeight());
 
-    myBindings.bindTwoWay(myRamField.storage(), getModel().ramStorage());
+    myBindings.bindTwoWay(myRamField.storage(), getModel().getDeviceData().ramStorage());
 
-    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareButtons), getModel().hasHardwareButtons());
-    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareKeyboard), getModel().hasHardwareKeyboard());
-    myBindings.bindTwoWay(new SelectedItemProperty<Navigation>(myNavigationControlsCombo), getModel().navigation());
+    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareButtons), getModel().getDeviceData().hasHardwareButtons());
+    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareKeyboard), getModel().getDeviceData().hasHardwareKeyboard());
+    myBindings.bindTwoWay(new SelectedItemProperty<Navigation>(myNavigationControlsCombo), getModel().getDeviceData().navigation());
 
-    myBindings.bindTwoWay(new SelectedProperty(myIsScreenRound), getModel().isScreenRound());
-    myBindings.bindTwoWay(new SelectedProperty(mySupportsLandscape), getModel().supportsLandscape());
-    myBindings.bindTwoWay(new SelectedProperty(mySupportsPortrait), getModel().supportsPortrait());
-    myBindings.bindTwoWay(new SelectedProperty(myHasBackFacingCamera), getModel().hasBackCamera());
-    myBindings.bindTwoWay(new SelectedProperty(myHasFrontFacingCamera), getModel().hasFrontCamera());
+    myBindings.bindTwoWay(new SelectedProperty(myIsScreenRound), getModel().getDeviceData().isScreenRound());
+    myBindings.bindTwoWay(new SelectedProperty(mySupportsLandscape), getModel().getDeviceData().supportsLandscape());
+    myBindings.bindTwoWay(new SelectedProperty(mySupportsPortrait), getModel().getDeviceData().supportsPortrait());
+    myBindings.bindTwoWay(new SelectedProperty(myHasBackFacingCamera), getModel().getDeviceData().hasBackCamera());
+    myBindings.bindTwoWay(new SelectedProperty(myHasFrontFacingCamera), getModel().getDeviceData().hasFrontCamera());
 
-    myBindings.bindTwoWay(new SelectedProperty(myHasAccelerometer), getModel().hasAccelerometer());
-    myBindings.bindTwoWay(new SelectedProperty(myHasGyroscope), getModel().hasGyroscope());
-    myBindings.bindTwoWay(new SelectedProperty(myHasGps), getModel().hasGps());
-    myBindings.bindTwoWay(new SelectedProperty(myHasProximitySensor), getModel().hasProximitySensor());
-    myBindings.bindTwoWay(new SelectedItemProperty<File>(myCustomSkinPath.getComboBox()), getModel().customSkinFile());
+    myBindings.bindTwoWay(new SelectedProperty(myHasAccelerometer), getModel().getDeviceData().hasAccelerometer());
+    myBindings.bindTwoWay(new SelectedProperty(myHasGyroscope), getModel().getDeviceData().hasGyroscope());
+    myBindings.bindTwoWay(new SelectedProperty(myHasGps), getModel().getDeviceData().hasGps());
+    myBindings.bindTwoWay(new SelectedProperty(myHasProximitySensor), getModel().getDeviceData().hasProximitySensor());
+    myBindings.bindTwoWay(new SelectedItemProperty<File>(myCustomSkinPath.getComboBox()), getModel().getDeviceData().customSkinFile());
 
     SelectedItemProperty<IdDisplay> selectedDeviceType = new SelectedItemProperty<IdDisplay>(myDeviceTypeComboBox);
-    myBindings.bindTwoWay(getModel().deviceType(), selectedDeviceType);
+    myBindings.bindTwoWay(getModel().getDeviceData().deviceType(), selectedDeviceType);
     myListeners.listenAndFire(selectedDeviceType, new Consumer<Optional<IdDisplay>>() {
       @Override
       public void consume(Optional<IdDisplay> idDisplayOptional) {
         IdDisplay selectedType = idDisplayOptional.get();
         if (selectedType != null) {
-          getModel().isScreenRound().set(false);
+          getModel().getDeviceData().isScreenRound().set(false);
           myIsScreenRound.setEnabled(false);
           if (selectedType.equals(AvdWizardConstants.TV_TAG)) {
-            getModel().isTv().set(true);
-            getModel().isWear().set(false);
+            getModel().getDeviceData().isTv().set(true);
+            getModel().getDeviceData().isWear().set(false);
           }
           /**
            * TODO When the user selects round, the following could be done to make the UI cleaner
@@ -181,8 +181,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
            * }
            */
           else if (selectedType.equals(AvdWizardConstants.WEAR_TAG)) {
-            getModel().isTv().set(false);
-            getModel().isWear().set(true);
+            getModel().getDeviceData().isTv().set(false);
+            getModel().getDeviceData().isWear().set(true);
             // We only want users to select the round screen checkbox if they device type is Wear
             myIsScreenRound.setEnabled(true);
           }
@@ -207,7 +207,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardConstants.CREATE_SKIN_HELP_LINK);
     myCustomSkinPath = new SkinChooser(myProject);
-    myDeviceDefinitionPreview = new DeviceDefinitionPreview(getModel());
+    myDeviceDefinitionPreview = new DeviceDefinitionPreview(getModel().getDeviceData());
   }
 
   @NotNull
@@ -245,7 +245,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   }
 
   public void attachValidators() {
-    myValidatorPanel.registerValidator(getModel().name(), new Validator<String>() {
+    myValidatorPanel.registerValidator(getModel().getDeviceData().name(), new Validator<String>() {
       @NotNull
       @Override
       public Result validate(@NotNull String value) {
@@ -253,16 +253,16 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().diagonalScreenSize(), new PositiveDoubleValidator(
+    myValidatorPanel.registerValidator(getModel().getDeviceData().diagonalScreenSize(), new PositiveDoubleValidator(
       "Please enter a non-zero positive floating point value for the screen size."));
 
-    myValidatorPanel.registerValidator(getModel().screenResolutionWidth(), new PositiveIntValidator(
+    myValidatorPanel.registerValidator(getModel().getDeviceData().screenResolutionWidth(), new PositiveIntValidator(
       "Please enter non-zero positive integer values for the screen resolution width."));
 
-    myValidatorPanel.registerValidator(getModel().screenResolutionHeight(), new PositiveIntValidator(
+    myValidatorPanel.registerValidator(getModel().getDeviceData().screenResolutionHeight(), new PositiveIntValidator(
       "Please enter non-zero positive integer values for the screen resolution height."));
 
-    myValidatorPanel.registerValidator(getModel().ramStorage(), new Validator<Storage>() {
+    myValidatorPanel.registerValidator(getModel().getDeviceData().ramStorage(), new Validator<Storage>() {
       @NotNull
       @Override
       public Result validate(@NotNull Storage value) {
@@ -270,7 +270,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().screenDpi(), new Validator<Double>() {
+    myValidatorPanel.registerValidator(getModel().getDeviceData().screenDpi(), new Validator<Double>() {
       @NotNull
       @Override
       public Result validate(@NotNull Double value) {
@@ -284,16 +284,16 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       @NotNull
       @Override
       public Result validate(@NotNull Boolean value) {
-        return (getModel().supportsLandscape().or(getModel().supportsPortrait()).not().get()
+        return (getModel().getDeviceData().supportsLandscape().or(getModel().getDeviceData().supportsPortrait()).not().get()
                 ? new Result(Severity.ERROR, "A device must support at least one orientation (Portrait or Landscape).")
                 : Result.OK);
       }
     };
 
-    myValidatorPanel.registerValidator(getModel().supportsLandscape(), orientationValidator);
-    myValidatorPanel.registerValidator(getModel().supportsPortrait(), orientationValidator);
+    myValidatorPanel.registerValidator(getModel().getDeviceData().supportsLandscape(), orientationValidator);
+    myValidatorPanel.registerValidator(getModel().getDeviceData().supportsPortrait(), orientationValidator);
 
-    myValidatorPanel.registerValidator(getModel().customSkinFile(), new Validator<Optional<File>>() {
+    myValidatorPanel.registerValidator(getModel().getDeviceData().customSkinFile(), new Validator<Optional<File>>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<File> value) {
