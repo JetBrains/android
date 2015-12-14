@@ -199,7 +199,7 @@
         id="SendFeedback"
         class="com.android.tools.idea.actions.SendFeedbackAction"
         overrides="true"
-        text="Submit _Feedback"
+        text="Submit _Feedback..."
         description="Submit feedback to the Android Studio team"/>
   </actions>
 
