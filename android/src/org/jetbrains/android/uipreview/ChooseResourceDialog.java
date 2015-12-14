@@ -1258,6 +1258,11 @@ public class ChooseResourceDialog extends DialogWrapper {
       myLocationSettings = new CreateXmlResourcePanel(myModule, resourceType, null, folderType);
     }
 
+    @Override
+    public Insets getInsets() {
+      return UIUtil.PANEL_SMALL_INSETS;
+    }
+
     public void addResourceDialogSouthPanel(@Nullable String resourceName, final boolean allowXmlFile) {
       if (resourceName != null) {
         mySouthPanel.getResourceNameField().setText(resourceName);
