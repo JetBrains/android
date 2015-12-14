@@ -25,13 +25,6 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jul 30, 2009
- * Time: 10:50:13 PM
- * To change this template use File | Settings | File Templates.
- */
 @DefinesXml
 public interface LayoutViewElement extends LayoutElement {
   @Convert(ResourceReferenceConverter.class)

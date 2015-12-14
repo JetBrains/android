@@ -23,9 +23,6 @@ import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.converters.FragmentClassConverter;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @DefinesXml
 public interface Fragment extends LayoutElement {
   @Attribute("name")
