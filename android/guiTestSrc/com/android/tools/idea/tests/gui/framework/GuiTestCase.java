@@ -73,6 +73,7 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(GuiTestRunner.class)
 public abstract class GuiTestCase {
@@ -139,6 +140,15 @@ public abstract class GuiTestCase {
     }
     if (myRobot != null) {
       myRobot.cleanUpWithoutDisposingWindows();
+      // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
+      for (Window window : Window.getWindows()) {
+        if (window.isShowing() && window instanceof Dialog) {
+          if (((Dialog) window).getModalityType() == Dialog.ModalityType.APPLICATION_MODAL) {
+            fail("Modal dialog still active: " + window);
+            myRobot.close(window);
+          }
+        }
+      }
     }
     ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
   }
