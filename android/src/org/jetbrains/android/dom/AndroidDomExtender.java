@@ -346,7 +346,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
 
   @NotNull
   public static Map<String, PsiClass> getPreferencesClassMap(@NotNull AndroidFacet facet) {
-    return facet.getClassMap(AndroidXmlResourcesUtil.PREFERENCE_CLASS_NAME, SimpleClassMapConstructor.getInstance());
+    return facet.getClassMap(CLASS_PREFERENCE, SimpleClassMapConstructor.getInstance());
   }
 
   public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {

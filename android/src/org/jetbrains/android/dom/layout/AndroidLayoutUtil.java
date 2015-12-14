@@ -10,9 +10,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidLayoutUtil {
   private AndroidLayoutUtil() {
   }
