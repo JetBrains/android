@@ -53,6 +53,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.util.*;
 
@@ -250,6 +251,27 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    */
   public boolean isUsed() {
     return myUsed;
+  }
+
+  @Nullable
+  @Override
+  public XmlPullParser getXmlFileParser(String fileName) {
+    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
+    if (virtualFile != null) {
+      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), virtualFile);
+      if (psiFile != null) {
+        try {
+          XmlPullParser parser = getParserFactory().createParser(fileName);
+          parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+          parser.setInput(new StringReader(psiFile.getText()));
+          return parser;
+        }
+        catch (XmlPullParserException e) {
+          LOG.warn("Could not create parser for " + fileName);
+        }
+      }
+    }
+    return null;
   }
 
   public void setLayoutParser(@Nullable String layoutName, @Nullable ILayoutPullParser layoutParser) {
