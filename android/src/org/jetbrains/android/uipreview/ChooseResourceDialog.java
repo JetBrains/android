@@ -73,6 +73,7 @@ import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.*;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
@@ -307,7 +308,6 @@ public class ChooseResourceDialog extends DialogWrapper {
 
         myStateListPicker = new StateListPicker(stateList, module, configuration);
         myStateListPickerPanel = new ResourceDialogTabComponent(new JPanel(new BorderLayout()), resType, resFolderType);
-        myStateListPickerPanel.setBorder(null);
         myStateListPickerPanel.addCenter(myStateListPicker);
         myStateListPickerPanel.setChangeFileNameVisible(false);
 
@@ -340,7 +340,6 @@ public class ChooseResourceDialog extends DialogWrapper {
       myColorPicker.pickARGB();
 
       myColorPickerPanel = new ResourceDialogTabComponent(new JPanel(new BorderLayout()), ResourceType.COLOR, ResourceFolderType.VALUES);
-      myColorPickerPanel.setBorder(null);
       myColorPickerPanel.addCenter(myColorPicker);
       myTabbedPane.addTab("new Color", myColorPickerPanel);
       myTabbedPane.setSelectedIndex(myTabbedPane.getTabCount() - 1);
@@ -1256,11 +1255,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       myCenterPanel = centerPanel;
       myResourceType = resourceType;
       myLocationSettings = new CreateXmlResourcePanel(myModule, resourceType, null, folderType);
-    }
-
-    @Override
-    public Insets getInsets() {
-      return UIUtil.PANEL_SMALL_INSETS;
+      setBorder(new EmptyBorder(UIUtil.PANEL_SMALL_INSETS));
     }
 
     public void addResourceDialogSouthPanel(@Nullable String resourceName, final boolean allowXmlFile) {
