@@ -21,7 +21,9 @@ import com.android.resources.*;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.tools.idea.avdmanager.*;
+import com.android.tools.idea.avdmanager.AvdEditWizard;
+import com.android.tools.idea.avdmanager.AvdWizardConstants;
+import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -29,7 +31,6 @@ import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.*;
@@ -89,9 +90,6 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
   private final Camera myBackCamera = new Camera(CameraLocation.BACK, true, true);
 
   private Device.Builder myBuilder = new Device.Builder();
-
-  private static final List<IdDisplay> ALL_TAGS =
-    Collections.unmodifiableList(Lists.newArrayList(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG));
 
   public ConfigureDeviceOptionsStep(@Nullable Device templateDevice, boolean forceCreation, @Nullable Disposable parentDisposable) {
     super(parentDisposable);
