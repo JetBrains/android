@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom;
 
+import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -64,41 +65,33 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   private static final Logger LOG = Logger.getInstance(AndroidDomExtender.class);
   private static final String[] LAYOUT_ATTRIBUTES_SUFS = new String[]{"_Layout", "_MarginLayout", "_Cell"};
-  private static final MyAttributeProcessor ourLayoutAttrsProcessor = new MyAttributeProcessor() {
-    @Override
-    public void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element) {
-      // Mark layout_width and layout_height required - if the context calls for it
-      String localName = attrName.getLocalName();
-      if (!(ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName))) {
-        return;
-      }
-      if ((element instanceof LayoutViewElement || element instanceof Fragment) && NS_RESOURCES.equals(attrName.getNamespaceKey())) {
-        XmlElement xmlElement = element.getXmlElement();
-        XmlTag tag = xmlElement instanceof XmlTag ? (XmlTag)xmlElement : null;
-        String tagName = tag != null ? tag.getName() : null;
-        if (!VIEW_MERGE.equals(tagName) &&
-            !TABLE_ROW.equals(tagName) &&
-            !VIEW_INCLUDE.equals(tagName) &&
-            !REQUEST_FOCUS.equals(tagName) &&
-            !TAG_LAYOUT.equals(tagName) &&
-            !TAG_DATA.equals(tagName) &&
-            !TAG_VARIABLE.equals(tagName) &&
-            !TAG_IMPORT.equals(tagName) &&
-            !TAG.equals(tagName) &&
-            (tag == null || tag.getAttribute(ATTR_STYLE) == null)) {
-          XmlTag parentTag = tag != null ? tag.getParentTag() : null;
-          String parentTagName = parentTag != null ? parentTag.getName() : null;
-          if (!TABLE_ROW.equals(parentTagName) &&
-              !TABLE_LAYOUT.equals(parentTagName) &&
-              !VIEW_MERGE.equals(parentTagName) &&
-              !GRID_LAYOUT.equals(parentTagName) &&
-              !FQCN_GRID_LAYOUT_V7.equals(parentTagName)) {
-            extension.addCustomAnnotation(new MyRequired());
-          }
+
+  private static final ImmutableSet<String> SIZE_NOT_REQUIRED_TAG_NAMES =
+    ImmutableSet.of(VIEW_MERGE, TABLE_ROW, VIEW_INCLUDE, REQUEST_FOCUS, TAG_LAYOUT, TAG_DATA, TAG_IMPORT, TAG);
+
+  private static final ImmutableSet<String> SIZE_NOT_REQUIRED_PARENT_TAG_NAMES =
+    ImmutableSet.of(TABLE_ROW, TABLE_LAYOUT, VIEW_MERGE, GRID_LAYOUT, FQCN_GRID_LAYOUT_V7);
+
+  public static boolean isLayoutAttributeRequired(@NotNull XmlName attributeName, @NotNull DomElement element) {
+    // Mark layout_width and layout_height required - if the context calls for it
+    String localName = attributeName.getLocalName();
+    if (!(ATTR_LAYOUT_WIDTH.equals(localName) || ATTR_LAYOUT_HEIGHT.equals(localName))) {
+      return false;
+    }
+    if ((element instanceof LayoutViewElement || element instanceof Fragment) && NS_RESOURCES.equals(attributeName.getNamespaceKey())) {
+      XmlElement xmlElement = element.getXmlElement();
+      XmlTag tag = xmlElement instanceof XmlTag ? (XmlTag)xmlElement : null;
+      String tagName = tag != null ? tag.getName() : null;
+      if (!SIZE_NOT_REQUIRED_TAG_NAMES.contains(tagName) && (tag == null || tag.getAttribute(ATTR_STYLE) == null)) {
+        XmlTag parentTag = tag != null ? tag.getParentTag() : null;
+        String parentTagName = parentTag != null ? parentTag.getName() : null;
+        if (!SIZE_NOT_REQUIRED_PARENT_TAG_NAMES.contains(parentTagName)) {
+          return true;
         }
       }
     }
-  };
+    return false;
+  }
 
   @Override
   public boolean supportsStubs() {
@@ -129,14 +122,13 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                   @NotNull StyleableDefinition styleable,
                                                   @Nullable String namespace,
                                                   MyCallback callback,
-                                                  MyAttributeProcessor processor,
                                                   Set<XmlName> skippedAttributes) {
     for (AttributeDefinition attrDef : styleable.getAttributes()) {
       String attrName = attrDef.getName();
       final XmlName xmlName = new XmlName(attrName, namespace);
       if (!skippedAttributes.contains(xmlName)) {
         skippedAttributes.add(xmlName);
-        registerAttribute(attrDef, styleable.getName(), namespace, callback, processor, element);
+        registerAttribute(attrDef, styleable.getName(), namespace, callback, element);
       }
     }
   }
@@ -152,7 +144,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                         @Nullable String parentStyleableName,
                                         String namespaceKey,
                                         MyCallback callback,
-                                        @Nullable MyAttributeProcessor processor,
                                         @NotNull DomElement element) {
     String name = attrDef.getName();
     if (!NS_RESOURCES.equals(namespaceKey) && name.startsWith(PREFIX_ANDROID)) {
@@ -181,8 +172,13 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     if (converter != null) {
       extension.setConverter(converter, mustBeSoft(converter, attrDef.getFormats()));
     }
-    if (processor != null) {
-      processor.process(xmlName, extension, element);
+
+    // Check whether attribute is required. If it is, add an annotation to let
+    // IntelliJ know about it so it would be, e.g. inserted automatically on
+    // tag completion. If attribute is not required, no additional action is needed.
+    if (element instanceof LayoutElement && isLayoutAttributeRequired(xmlName, element) ||
+        element instanceof ManifestElement && AndroidManifestUtils.isRequiredAttribute(xmlName, element)) {
+      extension.addCustomAnnotation(new MyRequired());
     }
   }
 
@@ -190,10 +186,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                            DomElement element,
                                            @NotNull String[] styleableNames,
                                            MyCallback callback,
-                                           MyAttributeProcessor processor,
                                            Set<XmlName> skipNames) {
-    registerAttributes(facet, element, styleableNames, null, callback, processor, skipNames);
-    registerAttributes(facet, element, styleableNames, SYSTEM_RESOURCE_PACKAGE, callback, processor, skipNames);
+    registerAttributes(facet, element, styleableNames, null, callback, skipNames);
+    registerAttributes(facet, element, styleableNames, SYSTEM_RESOURCE_PACKAGE, callback, skipNames);
   }
 
   protected static void registerAttributes(AndroidFacet facet,
@@ -201,7 +196,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                            @NotNull String[] styleableNames,
                                            @Nullable String resPackage,
                                            MyCallback callback,
-                                           MyAttributeProcessor processor,
                                            Set<XmlName> skipNames) {
     ResourceManager manager = facet.getResourceManager(resPackage);
     if (manager == null) {
@@ -217,7 +211,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     for (String name : styleableNames) {
       StyleableDefinition styleable = attrDefs.getStyleableByName(name);
       if (styleable != null) {
-        registerStyleableAttributes(element, styleable, namespace, callback, processor, skipNames);
+        registerStyleableAttributes(element, styleable, namespace, callback, skipNames);
       }
       // It's a good idea to add a warning when styleable not found, to make sure that code doesn't
       // try to use attributes that don't exist. However, current AndroidDomExtender code relies on
@@ -245,12 +239,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                                   DomElement element,
                                                                   PsiClass c,
                                                                   MyCallback callback,
-                                                                  MyAttributeProcessor processor,
                                                                   Set<XmlName> skipNames) {
     while (c != null) {
       String styleableName = c.getName();
       if (styleableName != null) {
-        registerAttributes(facet, element, new String[]{styleableName}, callback, processor, skipNames);
+        registerAttributes(facet, element, new String[]{styleableName}, callback, skipNames);
       }
       c = getSuperclass(c);
     }
@@ -286,7 +279,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         newSkipAttrNames.add(new XmlName("action", NS_RESOURCES));
       }
 
-      registerAttributes(facet, element, new String[]{styleableName}, SYSTEM_RESOURCE_PACKAGE, callback, null, newSkipAttrNames);
+      registerAttributes(facet, element, new String[]{styleableName}, SYSTEM_RESOURCE_PACKAGE, callback, newSkipAttrNames);
     }
 
     if (tagName.equals("searchable")) {
@@ -329,14 +322,14 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     PsiClass c = prefClassMap.get(prefClassName);
 
     // register attributes by preference class
-    registerAttributesForClassAndSuperclasses(facet, element, c, callback, null, skipAttrNames);
+    registerAttributesForClassAndSuperclasses(facet, element, c, callback, skipAttrNames);
 
     //register attributes by widget
     String suffix = "Preference";
     if (prefClassName.endsWith(suffix)) {
       String widgetClassName = prefClassName.substring(0, prefClassName.length() - suffix.length());
       PsiClass widgetClass = SimpleClassMapConstructor.findClassByTagName(facet, widgetClassName, AndroidUtils.VIEW_CLASS_NAME);
-      registerAttributesForClassAndSuperclasses(facet, element, widgetClass, callback, null, skipAttrNames);
+      registerAttributesForClassAndSuperclasses(facet, element, widgetClass, callback, skipAttrNames);
     }
 
     if (c != null && isPreference(prefClassMap, c)) {
@@ -368,7 +361,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                DomElement element,
                                                XmlTag tag,
                                                MyCallback callback,
-                                               MyAttributeProcessor processor,
                                                Set<XmlName> skipAttrNames) {
     XmlTag parentTag = tag.getParentTag();
     Map<String, PsiClass> map = getViewClassMap(facet);
@@ -378,7 +370,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       if (!VIEW_MERGE.equals(parentTagName)) {
         PsiClass c = map.get(parentTagName);
         while (c != null) {
-          registerLayoutAttributes(facet, element, c, callback, processor, skipAttrNames);
+          registerLayoutAttributes(facet, element, c, callback, skipAttrNames);
           c = getSuperclass(c);
         }
         return;
@@ -386,7 +378,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
     for (String className : map.keySet()) {
       PsiClass c = map.get(className);
-      registerLayoutAttributes(facet, element, c, callback, processor, skipAttrNames);
+      registerLayoutAttributes(facet, element, c, callback, skipAttrNames);
     }
   }
 
@@ -394,12 +386,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                DomElement element,
                                                PsiClass c,
                                                MyCallback callback,
-                                               MyAttributeProcessor processor,
                                                Set<XmlName> skipAttrNames) {
     String styleableName = c.getName();
     if (styleableName != null) {
       for (String suf : LAYOUT_ATTRIBUTES_SUFS) {
-        registerAttributes(facet, element, new String[]{styleableName + suf}, callback, processor, skipAttrNames);
+        registerAttributes(facet, element, new String[]{styleableName + suf}, callback, skipAttrNames);
       }
     }
   }
@@ -414,29 +405,29 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     if (element instanceof Include) {
       for (String className : map.keySet()) {
         PsiClass c = map.get(className);
-        registerLayoutAttributes(facet, element, c, callback, ourLayoutAttrsProcessor, skipAttrNames);
+        registerLayoutAttributes(facet, element, c, callback, skipAttrNames);
       }
       return;
     }
     else if (element instanceof Fragment) {
-      registerAttributes(facet, element, new String[]{"Fragment"}, callback, ourLayoutAttrsProcessor, skipAttrNames);
+      registerAttributes(facet, element, new String[]{"Fragment"}, callback, skipAttrNames);
     }
     else if (element instanceof Tag) {
-      registerAttributes(facet, element, new String[]{"ViewTag"}, SYSTEM_RESOURCE_PACKAGE, callback, null, skipAttrNames);
+      registerAttributes(facet, element, new String[]{"ViewTag"}, SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
       return;
     }
     else {
       String tagName = tag.getName();
       if (!tagName.equals("view")) {
         PsiClass c = map.get(tagName);
-        registerAttributesForClassAndSuperclasses(facet, element, c, callback, ourLayoutAttrsProcessor, skipAttrNames);
+        registerAttributesForClassAndSuperclasses(facet, element, c, callback, skipAttrNames);
       }
       else {
         String[] styleableNames = getClassNames(map.values());
-        registerAttributes(facet, element, styleableNames, callback, ourLayoutAttrsProcessor, skipAttrNames);
+        registerAttributes(facet, element, styleableNames, callback, skipAttrNames);
       }
     }
-    registerLayoutAttributes(facet, element, tag, callback, ourLayoutAttrsProcessor, skipAttrNames);
+    registerLayoutAttributes(facet, element, tag, callback, skipAttrNames);
     registerClassNameSubtags(tag, map, LayoutViewElement.class, registeredSubtags, callback);
   }
 
@@ -506,14 +497,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     StyleableDefinition styleable = attrDefs.getStyleableByName(styleableName);
     if (styleable == null) return;
 
-    registerStyleableAttributes(element, styleable, NS_RESOURCES, callback, new MyAttributeProcessor() {
-      @Override
-      public void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element1) {
-        if (AndroidManifestUtils.isRequiredAttribute(attrName, element1)) {
-          extension.addCustomAnnotation(new MyRequired());
-        }
-      }
-    }, newSkippedNames);
+    registerStyleableAttributes(element, styleable, NS_RESOURCES, callback, newSkippedNames);
 
     Set<String> skippedTagNames;
     if (!processStaticallyDefinedElements) {
@@ -611,7 +595,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         LOG.warn(String.format("@Styleable(%s) annotation doesn't point to existing styleable", styleableName));
       }
       else {
-        registerStyleableAttributes(element, styleable, ANDROID_URI, callback, null, skippedAttributes);
+        registerStyleableAttributes(element, styleable, ANDROID_URI, callback, skippedAttributes);
       }
     }
 
@@ -626,7 +610,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
           LOG.warn(String.format("%s doesn't point to existing styleable for interpolator", styleableName));
         }
         else {
-          registerStyleableAttributes(element, styleable, ANDROID_URI, callback, null, skippedAttributes);
+          registerStyleableAttributes(element, styleable, ANDROID_URI, callback, skippedAttributes);
         }
       }
     }
@@ -682,7 +666,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
           if (attrDef != null) {
             String namespace = attr.getNamespace();
             result.add(new XmlName(attr.getLocalName(), attr.getNamespace()));
-            registerAttribute(attrDef, null, namespace.length() > 0 ? namespace : null, callback, null, element);
+            registerAttribute(attrDef, null, namespace.length() > 0 ? namespace : null, callback, element);
           }
         }
       }
@@ -714,10 +698,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         registrar.registerCollectionChildrenExtension(xmlName, type);
       }
     }, facet, true, false);
-  }
-
-  private interface MyAttributeProcessor {
-    void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element);
   }
 
   @SuppressWarnings("ClassExplicitlyAnnotation")
