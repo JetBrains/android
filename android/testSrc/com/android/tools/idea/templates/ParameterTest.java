@@ -229,12 +229,15 @@ public class ParameterTest extends AndroidTestCase {
     assertViolates(null, "has/slash");
     assertViolates(null, "has:too:many:colons");
     assertViolates(null, "has.alpha:port");
-    assertViolates(null, "5tarts.with.a.number");
+    assertViolates(null, "8starts.with.a.number");
+    assertViolates(null, ";starts.with.semicolon");
+    assertViolates(null, "ends.with.semicolon;");
 
     // Does not violate
     assertPasses(null, "foo");
     assertPasses(null, "fo_o.bar34.com");
     assertPasses(null, "foo:1234");
     assertPasses(null, "foo.bar.com:1234");
+    assertPasses(null, "foo:1234;bar.baz:1234");
   }
 }
