@@ -56,7 +56,8 @@ import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.avdmanager.AccelerationErrorCode.*;
+import static com.android.tools.idea.avdmanager.AccelerationErrorCode.ALREADY_INSTALLED;
+import static com.android.tools.idea.avdmanager.AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS;
 
 /**
  * Intel® HAXM installable component
@@ -81,12 +82,22 @@ public final class Haxm extends InstallableComponent {
     if (ourInitialCheck == null) {
       ourInitialCheck = checkHaxmInstallation();
     }
-    switch (ourInitialCheck.getSolution()) {
-      case INSTALL_HAXM:
-      case REINSTALL_HAXM:
-        return true;
-      default:
+    switch (ourInitialCheck) {
+      case NO_EMULATOR_INSTALLED:
+      case UNKNOWN_ERROR:
+        // We don't know if we can install Haxm. Assume we can if this is Windows or Mac:
+        return SystemInfo.isMac || SystemInfo.isWindows;
+      case NOT_ENOUGH_MEMORY:
+      case ALREADY_INSTALLED:
         return false;
+      default:
+        switch (ourInitialCheck.getSolution()) {
+          case INSTALL_HAXM:
+          case REINSTALL_HAXM:
+            return true;
+          default:
+            return false;
+        }
     }
   }
 
