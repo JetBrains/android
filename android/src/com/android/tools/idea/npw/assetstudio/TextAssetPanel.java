@@ -20,7 +20,7 @@ import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.expressions.object.FromOptionalExpression;
+import com.android.tools.idea.ui.properties.expressions.value.AsValueExpression;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.google.common.collect.Lists;
@@ -64,13 +64,7 @@ final class TextAssetPanel extends JPanel implements AssetPanel, Disposable {
     myFontCombo.setSelectedItem(initialFont);
 
     SelectedItemProperty<String> selectedFont = new SelectedItemProperty<String>(myFontCombo);
-    myBindings.bind(myTextAsset.fontFamily(), new FromOptionalExpression<String, String>(initialFont, selectedFont) {
-      @NotNull
-      @Override
-      protected String transform(@NotNull String value) {
-        return value;
-      }
-    });
+    myBindings.bind(myTextAsset.fontFamily(), new AsValueExpression<String>(selectedFont));
 
     InvalidationListener onTextChanged = new InvalidationListener() {
       @Override
