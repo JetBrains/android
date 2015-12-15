@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.properties.expressions.object;
+package com.android.tools.idea.ui.properties.expressions.value;
 
 import com.android.tools.idea.ui.properties.core.ObservableOptional;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A useful base-class expression for converting optional values to concrete
- * values.
+ * A useful base-class expression for converting optional values to concrete values.
  *
  * @param <S> The optional source type we're converting from
  * @param <D> The concrete dest type we're converting to
  */
-public abstract class FromOptionalExpression<S, D> extends Expression<D> {
+public abstract class TransformOptionalExpression<S, D> extends Expression<D> {
 
   @NotNull private final D myDefaultValue;
   private final ObservableOptional<S> myValue;
 
-  public FromOptionalExpression(@NotNull D defaultValue, @NotNull ObservableOptional<S> optional) {
+  public TransformOptionalExpression(@NotNull D defaultValue, @NotNull ObservableOptional<S> optional) {
     super(optional);
     myDefaultValue = defaultValue;
     myValue = optional;

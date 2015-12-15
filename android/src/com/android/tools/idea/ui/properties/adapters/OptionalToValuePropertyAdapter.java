@@ -24,10 +24,10 @@ import org.jetbrains.annotations.NotNull;
  * is a very useful adapter for Swing properties, many of which are optional because Swing
  * components could technically return null, but in practice never do for some forms.
  */
-public final class OptionalToPresentAdapterProperty<T> extends AdapterProperty<Optional<T>, T> {
+public final class OptionalToValuePropertyAdapter<T> extends AdapterProperty<Optional<T>, T> {
   @NotNull T myDefaultValue;
 
-  public OptionalToPresentAdapterProperty(@NotNull ObservableProperty<Optional<T>> wrappedProperty, @NotNull T defaultValue) {
+  public OptionalToValuePropertyAdapter(@NotNull ObservableProperty<Optional<T>> wrappedProperty, @NotNull T defaultValue) {
     super(wrappedProperty);
     myDefaultValue = defaultValue;
   }
@@ -36,7 +36,7 @@ public final class OptionalToPresentAdapterProperty<T> extends AdapterProperty<O
    * Constructor which extracts a default value from the optional property's current value. If the
    * optional property is not set, this will throw an exception.
    */
-  public OptionalToPresentAdapterProperty(@NotNull ObservableProperty<Optional<T>> wrappedProperty) {
+  public OptionalToValuePropertyAdapter(@NotNull ObservableProperty<Optional<T>> wrappedProperty) {
     this(wrappedProperty, wrappedProperty.get().get());
   }
 
