@@ -177,9 +177,17 @@ public abstract class DeviceSampler implements Runnable {
         if (timeToWait <= 0) {
           timeToWait = mySampleFrequencyMs;
         }
+
         Client client = myClient; // needed because myClient is volatile
         if ((client == null) || !client.isValid()) {
-          stop();
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              stop();
+            }
+          });
+          myRunning = false;
+          break;
         }
       }
       catch (InterruptedException e) {
