@@ -19,9 +19,6 @@ import static com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Or
 import static com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Order.KEEP;
 import static com.intellij.xml.arrangement.XmlRearranger.attrArrangementRule;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
   public AndroidXmlPredefinedCodeStyle() {
     super("Android", XMLLanguage.INSTANCE);
@@ -47,8 +44,8 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
 
     // arrangement
     final List<StdArrangementMatchRule> rules = new ArrayList<StdArrangementMatchRule>();
-    rules.add(attrArrangementRule("xmlns:android", "", KEEP));
-    rules.add(attrArrangementRule("xmlns:.*", "", BY_NAME));
+    rules.add(attrArrangementRule("xmlns:android", "^$", KEEP));
+    rules.add(attrArrangementRule("xmlns:.*", "^$", BY_NAME));
     rules.add(attrArrangementRule(".*:id", SdkConstants.NS_RESOURCES, KEEP));
     rules.add(attrArrangementRule(".*:name", SdkConstants.NS_RESOURCES, KEEP));
     rules.add(attrArrangementRule("name", "^$", KEEP));
