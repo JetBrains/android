@@ -789,6 +789,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       JComponent firstComponent = ScrollPaneFactory.createScrollPane(myList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
                                                             ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      firstComponent.setBorder(null);
       firstComponent.setPreferredSize(JBUI.size(200,600));
 
       myComponent.setFirstComponent(firstComponent);
@@ -799,7 +800,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       myHtmlTextArea = new JTextPane();
       myHtmlTextArea.setEditable(false);
       myHtmlTextArea.setContentType(UIUtil.HTML_MIME);
-      myPreviewPanel.add(ScrollPaneFactory.createScrollPane(myHtmlTextArea), TEXT);
+      myPreviewPanel.add(ScrollPaneFactory.createScrollPane(myHtmlTextArea, true), TEXT);
       myHtmlTextArea.setPreferredSize(JBUI.size(400, 400));
 
       myComboTextArea = new JTextArea(5, 20);
@@ -1329,13 +1330,48 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     @Override
-    protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
-      // dont want border here either
+    protected void paintTabBackground(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
+      // dont want a background
     }
 
     @Override
-    protected void paintTabBackground(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
-      // dont want a background
+    protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
+      int width = tabPane.getWidth();
+      int height = tabPane.getHeight();
+      Insets insets = tabPane.getInsets();
+
+      int x = insets.left;
+      int y = insets.top;
+      int w = width - insets.right - insets.left;
+      int h = height - insets.top - insets.bottom;
+
+      Graphics2D g2 = (Graphics2D) g;
+      Stroke oldStroke = g2.getStroke();
+      int thickness = JBUI.scale(1);
+      if (thickness != 1) {
+        g2.setStroke(new BasicStroke(thickness));
+      }
+      g.setColor(OnePixelDivider.BACKGROUND);
+
+      switch(tabPlacement) {
+        case LEFT:
+          x += calculateTabAreaWidth(tabPlacement, runCount, maxTabWidth);
+          g.drawLine(x, y, x, y + h - 1);
+          break;
+        case RIGHT:
+          w -= calculateTabAreaWidth(tabPlacement, runCount, maxTabWidth);
+          g.drawLine(x + w - 1, y, x + w - 1, y + h - 1);
+          break;
+        case BOTTOM:
+          h -= calculateTabAreaHeight(tabPlacement, runCount, maxTabHeight);
+          g.drawLine(x, y + h - 1, x + w - 1, y + h - 1);
+          break;
+        case TOP:
+        default:
+          y += calculateTabAreaHeight(tabPlacement, runCount, maxTabHeight);
+          g.drawLine(x, y, x + w - 1, y);
+      }
+      g2.setStroke(oldStroke);
     }
 
     @Override
