@@ -55,6 +55,16 @@ public final class ListenerManager {
    */
   private final List<CompositeListener> myCompositeListeners = Lists.newArrayListWithExpectedSize(0);
 
+  private final BatchInvoker myInvoker;
+
+  public ListenerManager() {
+    myInvoker = new BatchInvoker();
+  }
+
+  public ListenerManager(@NotNull BatchInvoker.Strategy invokeStrategy) {
+    myInvoker = new BatchInvoker(invokeStrategy);
+  }
+
   /**
    * Registers the target listener with the specified observable.
    */
@@ -206,9 +216,8 @@ public final class ListenerManager {
    * Intermediate class which gives the {@link #listenAll(ObservableValue[])} method a fluent
    * interface.
    */
-  public static class CompositeListener implements InvalidationListener, Runnable {
+  public final class CompositeListener implements InvalidationListener, Runnable {
 
-    @NotNull private final BatchInvoker myInvoker = new BatchInvoker();
     @NotNull private final ObservableValue<?>[] myValues;
     @Nullable private Runnable myOnAnyInvalidated;
 
