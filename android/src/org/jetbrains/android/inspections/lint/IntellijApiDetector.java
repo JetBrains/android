@@ -25,7 +25,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.MethodSignatureUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.ast.AstVisitor;
@@ -33,6 +32,7 @@ import lombok.ast.CompilationUnit;
 import lombok.ast.ForwardingAstVisitor;
 import lombok.ast.Node;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -352,6 +352,9 @@ public class IntellijApiDetector extends ApiDetector {
             return; // Couldn't resolve type
           }
           String name = field.getName();
+          if (name == null) {
+            return;
+          }
 
           int api = mApiDatabase.getFieldVersion(owner, name);
           if (api == -1) {
@@ -457,7 +460,7 @@ public class IntellijApiDetector extends ApiDetector {
 
             // Special case reflective operation exception which can be implicitly used
             // with multi-catches: see issue 153406
-            if (api == 19 && fqcn.equals("ReflectiveOperationException")) {
+            if (api == 19 && "ReflectiveOperationException".equals(fqcn)) {
               message = String.format("Multi-catch with these reflection exceptions requires API level 19 (current min is %2$d) " +
                                       "because they get compiled to the common but new super type `ReflectiveOperationException`. " +
                                       "As a workaround either create individual catch statements, or catch `Exception`.",
@@ -530,6 +533,125 @@ public class IntellijApiDetector extends ApiDetector {
     }
 
     @Override
+    public void visitTypeCastExpression(PsiTypeCastExpression expression) {
+      super.visitTypeCastExpression(expression);
+
+      if (!myCheckAccess) {
+        return;
+      }
+
+      PsiTypeElement castTypeElement = expression.getCastType();
+      PsiExpression operand = expression.getOperand();
+      if (operand == null || castTypeElement == null) {
+        return;
+      }
+      PsiType operandType = operand.getType();
+      PsiType castType = castTypeElement.getType();
+      if (castType.equals(operandType)) {
+        return;
+      }
+      if (!(operandType instanceof PsiClassType)) {
+        return;
+      }
+      if (!(castType instanceof PsiClassType)) {
+        return;
+      }
+      PsiClassType classType = (PsiClassType)operandType;
+      PsiClassType interfaceType = (PsiClassType)castType;
+      checkCast(expression, classType, interfaceType);
+    }
+
+    private void checkCast(@NotNull PsiElement node, @NotNull PsiClassType classType, @NotNull PsiClassType interfaceType) {
+      if (classType.equals(interfaceType)) {
+        return;
+      }
+      String classTypeInternal = IntellijLintUtils.getInternalName(classType);
+      String interfaceTypeInternal = IntellijLintUtils.getInternalName(interfaceType);
+      if (classTypeInternal == null || interfaceTypeInternal == null) {
+        return; // Couldn't resolve type
+      }
+
+      int api = mApiDatabase.getValidCastVersion(classTypeInternal, interfaceTypeInternal);
+      if (api == -1) {
+        return;
+      }
+
+      int minSdk = getMinSdk(myContext);
+      if (api <= minSdk) {
+        return;
+      }
+
+      if (isSuppressed(api, node, minSdk)) {
+        return;
+      }
+
+      Location location = IntellijLintUtils.getLocation(myContext.file, node);
+      String message = String.format("Cast from %1$s to %2$s requires API level %3$d (current min is %4$d)",
+                                     classType.getClassName(), interfaceType.getClassName(), api, minSdk);
+      myContext.report(UNSUPPORTED, location, message);
+    }
+
+    @Override
+    public void visitLocalVariable(PsiLocalVariable variable) {
+      super.visitLocalVariable(variable);
+
+      if (!myCheckAccess) {
+        return;
+      }
+
+      PsiExpression initializer = variable.getInitializer();
+      if (initializer == null) {
+        return;
+      }
+
+      PsiType initializerType = initializer.getType();
+      if (initializerType == null || !(initializerType instanceof PsiClassType)) {
+        return;
+      }
+
+      PsiType interfaceType = variable.getType();
+      if (initializerType.equals(interfaceType)) {
+        return;
+      }
+
+      if (!(interfaceType instanceof PsiClassType)) {
+        return;
+      }
+
+      checkCast(initializer, (PsiClassType)initializerType, (PsiClassType)interfaceType);
+    }
+
+    @Override
+    public void visitAssignmentExpression(PsiAssignmentExpression expression) {
+      super.visitAssignmentExpression(expression);
+
+      if (!myCheckAccess) {
+        return;
+      }
+
+      PsiExpression rExpression = expression.getRExpression();
+      if (rExpression == null) {
+        return;
+      }
+
+      PsiType rhsType = rExpression.getType();
+      if (rhsType == null || !(rhsType instanceof PsiClassType)) {
+        return;
+      }
+
+      PsiType interfaceType = expression.getLExpression().getType();
+      if (rhsType.equals(interfaceType)) {
+        return;
+      }
+
+      if (!(interfaceType instanceof PsiClassType)) {
+        return;
+      }
+
+      checkCast(rExpression, (PsiClassType)rhsType, (PsiClassType)interfaceType);
+    }
+
+    @Override
     public void visitCallExpression(PsiCallExpression expression) {
       super.visitCallExpression(expression);
 
@@ -537,14 +659,38 @@ public class IntellijApiDetector extends ApiDetector {
         return;
       }
 
-      // TODO: How does this differ from visitMethodCallExpression?
-      // Inferred super perhaps? No, I think it refers to constructor invocations!
       PsiMethod method = expression.resolveMethod();
       if (method != null) {
         PsiClass containingClass = method.getContainingClass();
         if (containingClass == null) {
           return;
         }
+
+        PsiParameterList parameterList = method.getParameterList();
+        if (parameterList.getParametersCount() > 0) {
+          PsiParameter[] parameters = parameterList.getParameters();
+          PsiExpressionList argumentList = expression.getArgumentList();
+          if (argumentList != null) {
+            PsiExpression[] arguments = argumentList.getExpressions();
+            for (int i = 0; i < parameters.length; i++) {
+              PsiType parameterType = parameters[i].getType();
+              if (parameterType instanceof PsiClassType) {
+                if (i >= arguments.length) {
+                  // We can end up with more arguments than parameters when
+                  // there is a varargs call.
+                  break;
+                }
+                PsiExpression argument = arguments[i];
+                PsiType argumentType = argument.getType();
+                if (argumentType == null || parameterType.equals(argumentType) || !(argumentType instanceof PsiClassType)) {
+                  continue;
+                }
+                checkCast(argument, (PsiClassType)argumentType, (PsiClassType)parameterType);
+              }
+            }
+          }
+        }
+
         String fqcn = containingClass.getQualifiedName();
         String owner = IntellijLintUtils.getInternalName(containingClass);
         if (owner == null) {
