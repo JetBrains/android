@@ -751,7 +751,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                   + "* res/ => app/src/main/res/\n"
                                   + "* src/ => app/src/main/java/\n"
                                   + MSG_FOOTER,
-                                 true /* checkBuild */);
+                                 false /* checkBuild */);
 
     // Imported project
     assertEquals(""
