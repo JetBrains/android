@@ -80,7 +80,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
    */
   @NotNull
   public static Icon getIcon(@Nullable AvdDeviceData deviceData) {
-    Icon icon = AndroidIcons.FormFactors.Tv_32;
+    Icon icon = AndroidIcons.FormFactors.Mobile_32;
     if (deviceData != null) {
       if (deviceData.isTv().get()) {
         icon = AndroidIcons.FormFactors.Tv_32;
