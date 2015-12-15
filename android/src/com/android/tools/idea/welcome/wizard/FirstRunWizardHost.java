@@ -36,6 +36,7 @@ import com.intellij.openapi.ui.OptionAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
+import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.ui.JBUI;
@@ -66,6 +67,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
   private FirstRunWizard myWizard;
   private JFrame myFrame;
+  private Dimension myFrameSize;
+  private String myFrameTitle;
   private String myTitle;
   private Dimension myPreferredWindowSize = JBUI.size(800, 600);
   private Map<Action, JButton> myActionToButtonMap = Maps.newHashMap();
@@ -106,6 +109,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   @Override
   public void setupFrame(JFrame frame) {
     myFrame = frame;
+    myFrameSize = frame.getSize();
+    myFrameTitle = frame.getTitle();
     if (myTitle != null) {
       frame.setTitle(myTitle);
     }
@@ -149,9 +154,16 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
     myIsActive = false;
     if (action == CloseAction.FINISH || action == CloseAction.CANCEL) {
       setDefaultButton(null);
-      NewWelcomeScreen welcomeScreen = new NewWelcomeScreen();
+      // Delegating to the default WelcomeScreen. We support both "Flat" and "New", until
+      // the "ide.new.welcome.screen.force" system property is not needed anymore.
+      WelcomeScreen welcomeScreen =
+        (myFrame instanceof FlatWelcomeFrame) ? ((FlatWelcomeFrame)myFrame).createWelcomeScreen() : new NewWelcomeScreen();
       Disposer.register(getDisposable(), welcomeScreen);
       myFrame.setContentPane(welcomeScreen.getWelcomePanel());
+      if (myFrameSize != null)
+        myFrame.setSize(myFrameSize);
+      if (myFrameTitle != null)
+        myFrame.setTitle(myFrameTitle);
       welcomeScreen.setupFrame(myFrame);
     }
     else if (action == CloseAction.EXIT) {
