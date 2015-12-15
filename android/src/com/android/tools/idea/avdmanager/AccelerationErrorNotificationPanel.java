@@ -34,7 +34,7 @@ public class AccelerationErrorNotificationPanel extends EditorNotificationPanel 
 
   public AccelerationErrorNotificationPanel(@NotNull AccelerationErrorCode error, @NotNull Project project, @Nullable Runnable refresh) {
     setText(error.getProblem());
-    Runnable action = AccelerationErrorSolution.getActionForFix(error, project, refresh);
+    Runnable action = AccelerationErrorSolution.getActionForFix(error, project, refresh, null);
     HyperlinkLabel link = createActionLabel(error.getSolution().getDescription(), action);
     link.setToolTipText(error.getSolution() != NONE ? error.getSolutionMessage() : null);
   }
