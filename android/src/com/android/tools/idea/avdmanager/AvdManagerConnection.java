@@ -16,13 +16,12 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
+import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
@@ -36,17 +35,22 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.tools.idea.run.EmulatorConnectionListener;
 import com.android.tools.idea.run.ExternalToolRunner;
 import com.android.tools.idea.sdk.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -54,6 +58,7 @@ import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -72,6 +77,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 /**
@@ -388,17 +394,23 @@ public class AvdManagerConnection {
 
   /**
    * Launch the given AVD in the emulator.
-   * @return the {@link ProcessHandler} corresponding to the running emulator if the emulator process was launched, null otherwise
+   * @return a future with the device that was launched
    */
-  @Nullable
-  public ProcessHandler startAvd(@Nullable final Project project, @NotNull final AvdInfo info) {
+  @NotNull
+  public ListenableFuture<IDevice> startAvd(@Nullable final Project project, @NotNull final AvdInfo info) {
     if (!initIfNecessary()) {
-      return null;
+      return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
+    AccelerationErrorCode error = checkAcceration();
+    ListenableFuture<IDevice> errorResult = handleAccelerationError(project, info, error);
+    if (errorResult != null) {
+      return errorResult;
+    }
+
     final File emulatorBinary = getEmulatorBinary();
     if (!emulatorBinary.isFile()) {
       IJ_LOG.error("No emulator binary found!");
-      return null;
+      return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
     }
 
     final String avdName = info.getName();
@@ -421,7 +433,7 @@ public class AvdManagerConnection {
                                      "   %2$s/%1$s.avd/*.lock\n" +
                                      "and try again.", avdName, baseFolder);
       Messages.showErrorDialog(project, message, "AVD Manager");
-      return null;
+      return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
     Map<String, String> properties = info.getProperties();
@@ -457,7 +469,7 @@ public class AvdManagerConnection {
     }
     catch (ExecutionException e) {
       IJ_LOG.error("Error launching emulator", e);
-      return null;
+      return Futures.immediateFailedFuture(new RuntimeException(String.format("Error launching emulator %1$s ", avdName), e));
     }
 
     // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise show it.
@@ -509,7 +521,63 @@ public class AvdManagerConnection {
       }
     });
 
-    return processHandler;
+    return EmulatorConnectionListener.getDeviceForEmulator(info.getName(), processHandler, 5, TimeUnit.MINUTES);
+  }
+
+  /**
+   * Handle the {@link AccelerationErrorCode} found when attempting to start an AVD.
+   * @param project
+   * @param error
+   * @return a future with a device that was launched delayed, or null if startAvd should proceed to start the AVD.
+   */
+  @Nullable
+  private ListenableFuture<IDevice> handleAccelerationError(@Nullable final Project project, @NotNull final AvdInfo info, @NotNull AccelerationErrorCode error) {
+    switch (error) {
+      case ALREADY_INSTALLED:
+        return null;
+      case TOOLS_UPDATE_REQUIRED:
+      case PLATFORM_TOOLS_UPDATE_ADVISED:
+      case SYSTEM_IMAGE_UPDATE_ADVISED:
+        // Do not block emulator from running if we need updates (run with degradated performance):
+        return null;
+      case NO_EMULATOR_INSTALLED:
+        // report this error below
+        break;
+      default:
+        Abi abi = Abi.getEnum(info.getAbiType());
+        boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
+        if (!isAvdIntel) {
+          // Do not block Arm and Mips emulators from running without an accelerator:
+          return null;
+        }
+        // report all other errors
+        break;
+    }
+    String accelerator = SystemInfo.isLinux ? "KVM" : "Intel HAXM";
+    int result = Messages.showOkCancelDialog(
+      project,
+      String.format("%1$s is required to run this AVD.\n%2$s\n\n%3$s\n", accelerator, error.getProblem(), error.getSolutionMessage()),
+      error.getSolution().getDescription(),
+      AllIcons.General.WarningDialog);
+    if (result != Messages.OK || error.getSolution() == AccelerationErrorSolution.SolutionCode.NONE) {
+      return Futures.immediateFailedFuture(new RuntimeException("Could not start AVD"));
+    }
+    final SettableFuture<ListenableFuture<IDevice>> future = SettableFuture.create();
+    Runnable retry = new Runnable() {
+      @Override
+      public void run() {
+        future.set(startAvd(project, info));
+      }
+    };
+    Runnable cancel = new Runnable() {
+      @Override
+      public void run() {
+        future.setException(new RuntimeException("Retry after fixing problem by hand"));
+      }
+    };
+    Runnable action = AccelerationErrorSolution.getActionForFix(error, project, retry, cancel);
+    ApplicationManager.getApplication().invokeLater(action);
+    return Futures.dereference(future);
   }
 
   /**
@@ -642,14 +710,6 @@ public class AvdManagerConnection {
 
   public static boolean doesSystemImageSupportRanchu(SystemImageDescription description) {
     return doesSystemImageSupportRanchu(description.getVersion(), description.getTag(), description.getRevision());
-  }
-
-  private static boolean doesSystemImageSupportRanchu(@NotNull AvdInfo info) {
-    IAndroidTarget target = info.getTarget();
-    assert target != null;
-    ISystemImage systemImage = target.getSystemImage(info.getTag(), info.getAbiType());
-    assert systemImage != null;
-    return doesSystemImageSupportRanchu(target.getVersion(), info.getTag(), systemImage.getRevision());
   }
 
   @Contract("null, _ -> false")

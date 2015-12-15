@@ -21,10 +21,9 @@ import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.google.common.base.Predicate;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -40,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class EmulatorTargetChooser {
   private static final Logger LOG = Logger.getInstance(EmulatorTargetChooser.class);
@@ -73,8 +71,20 @@ public class EmulatorTargetChooser {
       return null;
     }
 
-    ProcessHandler processHandler = myFacet.launchEmulator(avd);
-    return DeviceFutures.forFuture(EmulatorConnectionListener.getDeviceForEmulator(avd, processHandler, 5, TimeUnit.MINUTES));
+    AvdManager manager = myFacet.getAvdManagerSilently();
+    if (manager == null) {
+      LOG.warn("Could not obtain AVD Manager.");
+      return null;
+    }
+
+    AvdInfo avdInfo = manager.getAvd(avd, true);
+    if (avdInfo == null) {
+      LOG.warn("Unable to obtain info for AVD: " + avd);
+      return null;
+    }
+
+    return DeviceFutures.forFuture(
+      AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(myFacet.getModule().getProject(), avdInfo));
   }
 
   @Nullable
