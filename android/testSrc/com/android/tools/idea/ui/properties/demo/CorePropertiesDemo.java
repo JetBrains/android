@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.properties.demo;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.Expression;
-import com.android.tools.idea.ui.properties.expressions.object.FromOptionalExpression;
+import com.android.tools.idea.ui.properties.expressions.value.TransformOptionalExpression;
 import com.android.tools.idea.ui.properties.expressions.string.FormatExpression;
 import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
@@ -87,7 +87,7 @@ public final class CorePropertiesDemo {
       }
     });
     SelectedItemProperty<Gender> selectedGender = new SelectedItemProperty<Gender>(myGenderCombo);
-    myBindings.bind(person.myGender, new FromOptionalExpression<Gender, Gender>(Gender.OTHER, selectedGender) {
+    myBindings.bind(person.myGender, new TransformOptionalExpression<Gender, Gender>(Gender.OTHER, selectedGender) {
       @NotNull
       @Override
       protected Gender transform(@NotNull Gender gender) {
@@ -107,7 +107,7 @@ public final class CorePropertiesDemo {
       }
     });
     myBindings.bind(new TextProperty(myCanVoteLabel), new YesNoExpression(person.myIsCitizen.and(person.myAge.isGreaterThanEqualTo(16))));
-    myBindings.bind(new TextProperty(myHasEmployerLabel), new FromOptionalExpression<String, String>("No", person.myEmployer) {
+    myBindings.bind(new TextProperty(myHasEmployerLabel), new TransformOptionalExpression<String, String>("No", person.myEmployer) {
       @NotNull
       @Override
       protected String transform(@NotNull String value) {

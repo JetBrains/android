@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.properties.expressions.object;
+package com.android.tools.idea.ui.properties.expressions.value;
 
 import com.android.tools.idea.ui.properties.core.OptionalProperty;
 import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
@@ -22,14 +22,14 @@ import org.junit.Test;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public final class ObjectExpressionsTest {
+public final class ValueExpressionsTest {
 
   @Test
   public void testFromOptionalExpression() {
 
     OptionalProperty<Integer> intProperty = OptionalValueProperty.of(42);
 
-    FromOptionalExpression<Integer, String> toStringExpr = new FromOptionalExpression<Integer, String>("(null int)", intProperty) {
+    TransformOptionalExpression<Integer, String> toStringExpr = new TransformOptionalExpression<Integer, String>("(null int)", intProperty) {
       @Override
       @NotNull
       protected String transform(@NotNull Integer intValue) {
@@ -41,5 +41,17 @@ public final class ObjectExpressionsTest {
 
     intProperty.clear();
     assertThat(toStringExpr.get()).isEqualTo("(null int)");
+  }
+
+  @Test
+  public void testAsValueExpression() {
+    OptionalProperty<Integer> optionalIntProperty = OptionalValueProperty.of(42);
+
+    AsValueExpression<Integer> intExpr = new AsValueExpression<Integer>(optionalIntProperty);
+
+    assertThat(intExpr.get()).isEqualTo(42);
+
+    optionalIntProperty.setValue(-42);
+    assertThat(intExpr.get()).isEqualTo(-42);
   }
 }
