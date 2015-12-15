@@ -23,7 +23,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.gradle.GradleSyncState;
@@ -40,7 +39,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -418,23 +416,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public IAndroidTarget getTargetFromHashString(@NotNull String hash) {
     AndroidSdkData sdkData = getSdkData();
     return sdkData != null ? sdkData.getLocalSdk().getTargetFromHashString(hash) : null;
-  }
-
-  @Nullable
-  public ProcessHandler launchEmulator(@Nullable String avdName) {
-    AvdManager manager = getAvdManagerSilently();
-    if (manager == null) {
-      LOG.warn("Could not obtain AVD Manager.");
-      return null;
-    }
-
-    AvdInfo avdInfo = manager.getAvd(avdName, true);
-    if (avdInfo == null) {
-      LOG.warn("Unable to obtain info for AVD: " + avdName);
-      return null;
-    }
-
-    return AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(getModule().getProject(), avdInfo);
   }
 
   public static void createDynamicTemplateMenu() {
