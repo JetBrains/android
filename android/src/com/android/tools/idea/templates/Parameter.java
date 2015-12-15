@@ -60,6 +60,7 @@ import static com.android.tools.idea.templates.Template.*;
  * data entry.
  */
 public final class Parameter {
+  private static final String URI_AUTHORITY_REGEX = "[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?";
   private static Logger getLog() { return Logger.getInstance(Parameter.class); }
 
   public enum Type {
@@ -485,7 +486,7 @@ public final class Parameter {
     }
 
     if (constraints.contains(Constraint.URI_AUTHORITY)) {
-      if (!value.matches("[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?")) {
+      if (!value.matches(URI_AUTHORITY_REGEX + "(;" + URI_AUTHORITY_REGEX + ")*" )) {
         violations.add(Constraint.URI_AUTHORITY);
 
       }
