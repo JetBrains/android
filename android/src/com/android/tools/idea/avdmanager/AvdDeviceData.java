@@ -251,6 +251,10 @@ public final class AvdDeviceData implements Disposable{
     myDiagonalScreenSize.set(screen.getDiagonalLength());
     myScreenResolutionWidth.set(screen.getXDimension());
     myScreenResolutionHeight.set(screen.getYDimension());
+    /**
+     * This is maxed out at {@link AvdWizardConstants.MAX_RAM_MB}, for more information read
+     * {@link AvdWizardConstants#getDefaultRam(Hardware)}
+     */
     myRamStorage.set(AvdWizardConstants.getDefaultRam(defaultHardware));
     myHasHardwareButtons.set(defaultHardware.getButtonType() == ButtonType.HARD);
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);
@@ -279,8 +283,8 @@ public final class AvdDeviceData implements Disposable{
     myCustomSkinFile.setValue((skinFile == null) ? AvdWizardConstants.NO_SKIN : skinFile);
 
     myIsTv.set(HardwareConfigHelper.isTv(device));
-    myIsTv.set(HardwareConfigHelper.isWear(device));
-    myIsTv.set(device.isScreenRound());
+    myIsWear.set(HardwareConfigHelper.isWear(device));
+    myIsScreenRound.set(device.isScreenRound());
     myScreenChinSize.set(device.getChinSize());
   }
 
