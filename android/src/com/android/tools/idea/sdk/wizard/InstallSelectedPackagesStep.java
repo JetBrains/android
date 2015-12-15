@@ -25,6 +25,8 @@ import com.android.tools.idea.sdk.SdkLoggerIntegration;
 import com.android.tools.idea.sdk.SdkPackages;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
+import com.android.tools.idea.ui.properties.InvalidationListener;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
@@ -79,7 +81,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   /**
    * Will be {@code null} until set by a background thread.
    */
-  private Boolean myBackgroundSuccess = null;
+  private Boolean myBackgroundSuccess;
   private List<IPkgDesc> myInstallRequests;
   private AndroidSdkData mySdkData;
 
@@ -149,6 +151,11 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     myLabelSdkPath.setText(mySdkData.getLocation().getPath());
 
     startSdkInstall();
+  }
+
+  @Override
+  public void dispose() {
+    installationFinished.set(true);
   }
 
   @Override
@@ -228,12 +235,31 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       // it blindly re-install stuff even if already present IIRC.
 
       SdkManager sdkManager = SdkManager.createManager(mySdkData.getLocalSdk());
-      SdkUpdaterNoWindow upd = new SdkUpdaterNoWindow(mySdkData.getLocation().getPath(), sdkManager, myLogger, false, null, null);
+      final SdkUpdaterNoWindow upd = new SdkUpdaterNoWindow(mySdkData.getLocation().getPath(), sdkManager, myLogger, false, null, null);
 
+      installationFinished.addListener(new InvalidationListener() {
+        @Override
+        public void onInvalidated(@NotNull ObservableValue<?> sender) {
+          upd.cancel();
+        }
+      });
+
+      // will block until the update is done
       upd.updateAll(myRequestedPackages, true, false, null, true);
 
+      // myBackgroundSuccess is updated on a different thread and may not be ready when we reach this point.
+      int retryCount = 0;
       while (myBackgroundSuccess == null) {
         TimeoutUtil.sleep(100);
+
+        retryCount++;
+        if (retryCount == 100) {
+          assert false;
+
+          // Don't wait forever, assume failure
+          myBackgroundSuccess = Boolean.FALSE;
+          break;
+        }
       }
 
       UIUtil.invokeLaterIfNeeded(new Runnable() {
@@ -288,10 +314,10 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       if (string.contains("Nothing was installed") ||
           string.contains("Failed") ||
           string.contains("The package filter removed all packages")) {
-        myBackgroundSuccess = false;
+        myBackgroundSuccess = Boolean.FALSE;
       }
       else if (string.contains("Done") && !string.contains("othing")) {
-        myBackgroundSuccess = true;
+        myBackgroundSuccess = Boolean.TRUE;
       }
     }
   }
