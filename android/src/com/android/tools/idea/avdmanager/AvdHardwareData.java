@@ -49,6 +49,7 @@ public final class AvdHardwareData {
     hardware.setHasMic(true);
     hardware.addInternalStorage(new Storage(4, Storage.Unit.GiB));
     hardware.setCpu("Generic CPU");
+    hardware.setGpu("Generic GPU");
 
     hardware.addAllSupportedAbis(EnumSet.allOf(Abi.class));
 

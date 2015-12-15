@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.resources.Density;
-import com.android.resources.ScreenRatio;
-import com.android.resources.ScreenSize;
-import com.android.resources.TouchScreen;
+import com.android.resources.*;
 import com.android.sdklib.devices.Multitouch;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.ScreenType;
@@ -126,6 +123,8 @@ public final class AvdScreenData {
     screen.setMultitouch(Multitouch.JAZZ_HANDS);
     screen.setMechanism(TouchScreen.FINGER);
     screen.setScreenType(ScreenType.CAPACITIVE);
+
+    screen.setScreenRound((myDeviceData.isScreenRound().get()) ? ScreenRound.ROUND : ScreenRound.NOTROUND);
 
     screen.setDiagonalLength(myDeviceData.diagonalScreenSize().get());
     screen.setSize(getScreenSize(myDeviceData.diagonalScreenSize().get()));

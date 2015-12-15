@@ -158,18 +158,11 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myBindings.bindTwoWay(new SelectedItemProperty<File>(myCustomSkinPath.getComboBox()), getModel().getDeviceData().customSkinFile());
 
     SelectedItemProperty<IdDisplay> selectedDeviceType = new SelectedItemProperty<IdDisplay>(myDeviceTypeComboBox);
-    myBindings.bindTwoWay(getModel().getDeviceData().deviceType(), selectedDeviceType);
-    myListeners.listenAndFire(selectedDeviceType, new Consumer<Optional<IdDisplay>>() {
+    myBindings.bindTwoWay(selectedDeviceType, getModel().getDeviceData().deviceType());
+    myListeners.listen(selectedDeviceType, new Consumer<Optional<IdDisplay>>() {
       @Override
       public void consume(Optional<IdDisplay> idDisplayOptional) {
         IdDisplay selectedType = idDisplayOptional.get();
-        if (selectedType != null) {
-          getModel().getDeviceData().isScreenRound().set(false);
-          myIsScreenRound.setEnabled(false);
-          if (selectedType.equals(AvdWizardConstants.TV_TAG)) {
-            getModel().getDeviceData().isTv().set(true);
-            getModel().getDeviceData().isWear().set(false);
-          }
           /**
            * TODO When the user selects round, the following could be done to make the UI cleaner
            * if(selectedType == WEAR){
@@ -180,13 +173,10 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
            *    remove listener
            * }
            */
-          else if (selectedType.equals(AvdWizardConstants.WEAR_TAG)) {
-            getModel().getDeviceData().isTv().set(false);
-            getModel().getDeviceData().isWear().set(true);
-            // We only want users to select the round screen checkbox if they device type is Wear
-            myIsScreenRound.setEnabled(true);
-          }
-        }
+          getModel().getDeviceData().isWear().set(selectedType.equals(AvdWizardConstants.WEAR_TAG));
+          getModel().getDeviceData().isTv().set(selectedType.equals(AvdWizardConstants.TV_TAG));
+          myIsScreenRound.setEnabled(selectedType.equals(AvdWizardConstants.WEAR_TAG));
+          myIsScreenRound.setSelected(getModel().getDeviceData().isScreenRound().get());
       }
     });
   }
