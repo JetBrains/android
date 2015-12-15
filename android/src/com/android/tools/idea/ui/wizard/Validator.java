@@ -35,6 +35,7 @@ public interface Validator<T> {
    */
   enum Severity {
     OK,
+    INFO,
     WARNING,
     ERROR
   }
