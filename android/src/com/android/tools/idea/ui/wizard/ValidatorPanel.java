@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.wizard;
 
-import com.android.tools.idea.ui.Colors;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.ObservableValue;
@@ -23,7 +22,10 @@ import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.google.common.collect.Maps;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Table;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
@@ -31,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Map;
+import java.util.Iterator;
 
 /**
  * A panel that wraps some inner content and allows registering {@link Validator}s, which, if any
@@ -45,9 +47,16 @@ public final class ValidatorPanel extends JPanel implements Disposable {
    */
   private static final String BLANK = " ";
 
+  // @formatter:off
+  private static ImmutableMap<Validator.Severity, Icon> ICONS = ImmutableMap.of(
+    Validator.Severity.INFO, AllIcons.General.BalloonInformation,
+    Validator.Severity.WARNING, AllIcons.General.BalloonWarning,
+    Validator.Severity.ERROR, AllIcons.General.BalloonError
+  );
+  // @formatter:on
+
   private final ListenerManager myListeners = new ListenerManager();
-  private final Map<ObservableValue<?>, String> myErrors = Maps.newLinkedHashMap();
-  private final Map<ObservableValue<?>, String> myWarnings = Maps.newLinkedHashMap();
+  private final Table<Validator.Severity, ObservableValue<?>, String> myMessages = HashBasedTable.create();
   private final BoolProperty myHasErrors = new BoolValueProperty();
 
   private JPanel myRootPanel;
@@ -69,9 +78,9 @@ public final class ValidatorPanel extends JPanel implements Disposable {
    * Register a {@link Validator} linked to a target property. Whenever the target property
    * changes, the validator will be tested with its value.
    *
-   * Registration order of validators matters - the first error reported takes precedence over
-   * later errors if more than one error occurs at the same time; the same is true for warnings.
-   * Any error will trump any warning regardless of registration order.
+   * Registration order of validators doesn't matter - if multiple errors happen at the same time
+   * (or warnings, etc.), the one which shows up is random. However, a message of higher severity
+   * will always trump a message of lower severity.
    *
    * See also {@link #hasErrors()}, which will be true if any validator has returned an
    * {@link Validator.Severity#ERROR} result.
@@ -82,19 +91,9 @@ public final class ValidatorPanel extends JPanel implements Disposable {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
         Validator.Result result = validator.validate(value.get());
-        switch (result.getSeverity()) {
-          case ERROR:
-            myWarnings.put(value, "");
-            myErrors.put(value, result.getMessage());
-            break;
-          case WARNING:
-            myErrors.put(value, "");
-            myWarnings.put(value, result.getMessage());
-            break;
-          default:
-            myErrors.put(value, "");
-            myWarnings.put(value, "");
-            break;
+        myMessages.column(value).clear();
+        if (result.getSeverity() != Validator.Severity.OK) {
+          myMessages.put(result.getSeverity(), value, result.getMessage());
         }
 
         updateValidationLabel();
@@ -114,28 +113,21 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   }
 
   private void updateValidationLabel() {
-    boolean hasErrors = false;
+    myHasErrors.set(false);
+    myValidationLabel.setIcon(null);
     myValidationLabel.setText(BLANK);
-    for (String error : myErrors.values()) {
-      if (!error.isEmpty()) {
-        myValidationLabel.setText(error);
-        myValidationLabel.setForeground(Colors.ERROR);
-        hasErrors = true;
-        break;
-      }
-    }
 
-    if (!hasErrors) {
-      for (String warning : myWarnings.values()) {
-        if (!warning.isEmpty()) {
-          myValidationLabel.setText(warning);
-          myValidationLabel.setForeground(Colors.WARNING);
-          break;
+    for (Validator.Severity severity : Validator.Severity.values()) {
+      Iterator<String> messages = myMessages.row(severity).values().iterator();
+      if (messages.hasNext()) {
+        myValidationLabel.setText(messages.next());
+        myValidationLabel.setIcon(ICONS.get(severity));
+
+        if (severity == Validator.Severity.ERROR) {
+          myHasErrors.set(true);
         }
       }
     }
-
-    myHasErrors.set(hasErrors);
   }
 
   @Override

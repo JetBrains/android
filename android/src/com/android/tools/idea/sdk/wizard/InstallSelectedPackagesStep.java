@@ -125,7 +125,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       @NotNull
       @Override
       public Result validate(@NotNull Boolean value) {
-        return (value) ? Result.OK : new Result(Severity.WARNING, "Please wait until the installation finishes to continue");
+        return (value) ? Result.OK : new Result(Severity.INFO, "Please wait until the installation finishes to continue");
       }
     });
 
