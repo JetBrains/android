@@ -295,7 +295,7 @@ public class AndroidJavaDocRenderer {
       AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
       if (targetData != null) {
         try {
-          return targetData.getFrameworkResources();
+          return targetData.getFrameworkResources(true);
         }
         catch (IOException e) {
           // Ignore docs
