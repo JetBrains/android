@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.dependencies;
 
 import com.android.tools.idea.dependencies.DependencyManager;
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.BuildFileStatement;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.templates.RepositoryUrlManager;
@@ -39,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 
 public class GradleDependencyManager extends DependencyManager {
@@ -52,28 +52,28 @@ public class GradleDependencyManager extends DependencyManager {
   @NotNull
   @Override
   public List<String> findMissingDependencies(@NotNull Module module, @NotNull Iterable<String> androidDependencies) {
-    GradleBuildFile gradleBuildFile = GradleBuildFile.get(module);
-    assert gradleBuildFile != null;
-    return findMissingLibrariesFromGradleBuildFile(gradleBuildFile, androidDependencies);
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    assert buildModel != null;
+    return findMissingLibrariesFromGradleBuildFile(buildModel, androidDependencies);
   }
 
   @Override
   public boolean ensureLibraryIsIncluded(@NotNull Module module,
                                          @NotNull Iterable<String> androidDependencies,
                                          @Nullable Runnable callback) {
-    GradleBuildFile gradleBuildFile = GradleBuildFile.get(module);
-    assert gradleBuildFile != null;
-    List<String> missing = findMissingLibrariesFromGradleBuildFile(gradleBuildFile, androidDependencies);
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    assert buildModel != null;
+    List<String> missing = findMissingLibrariesFromGradleBuildFile(buildModel, androidDependencies);
     if (missing.isEmpty()) {
       return true;
     }
     if (userWantToAddDependencies(module, missing)) {
-      addDependenciesInTransaction(gradleBuildFile, module, missing, callback);
+      addDependenciesInTransaction(buildModel, module, missing, callback);
     }
     return false;
   }
 
-  private static List<String> findMissingLibrariesFromGradleBuildFile(@NotNull GradleBuildFile gradleBuildFile,
+  private static List<String> findMissingLibrariesFromGradleBuildFile(@NotNull GradleBuildModel buildModel,
                                                                       @NotNull Iterable<String> pathIds) {
     List<String> missingLibraries = Lists.newArrayList();
     RepositoryUrlManager manager = RepositoryUrlManager.get();
@@ -81,15 +81,11 @@ public class GradleDependencyManager extends DependencyManager {
       String libraryCoordinate = manager.getLibraryCoordinate(pathId);
 
       boolean dependencyFound = false;
-      for (BuildFileStatement entry : gradleBuildFile.getDependencies()) {
-        if (entry instanceof Dependency) {
-          Dependency dependency = (Dependency)entry;
-          if (dependency.scope == Dependency.Scope.COMPILE &&
-              dependency.type == Dependency.Type.EXTERNAL &&
-              dependency.getValueAsString().equals(libraryCoordinate)) {
-            dependencyFound = true;
-            break;
-          }
+      for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts(COMPILE)) {
+        String compactNotation = dependency.getSpec().compactNotation();
+        if (compactNotation.equals(libraryCoordinate)) {
+          dependencyFound = true;
+          break;
         }
       }
       if (!dependencyFound) {
@@ -107,7 +103,7 @@ public class GradleDependencyManager extends DependencyManager {
     return Messages.showOkCancelDialog(project, message, "Add Project Dependency", Messages.getErrorIcon()) == Messages.OK;
   }
 
-  private static void addDependenciesInTransaction(@NotNull final GradleBuildFile gradleBuildFile,
+  private static void addDependenciesInTransaction(@NotNull final GradleBuildModel buildModel,
                                                    @NotNull final Module module,
                                                    @NotNull List<String> missing,
                                                    @Nullable final Runnable callback) {
@@ -123,23 +119,23 @@ public class GradleDependencyManager extends DependencyManager {
     new WriteCommandAction(project, ADD_DEPENDENCY) {
       @Override
       protected void run(@NotNull final Result result) throws Throwable {
-        addDependencies(gradleBuildFile, module, missingLibraryCoordinates);
+        addDependencies(buildModel, module, missingLibraryCoordinates);
         GradleProjectImporter.getInstance().requestProjectSync(project, false /* do not generate sources */, createSyncListener(callback));
       }
     }.execute();
   }
 
-  private static void addDependencies(@NotNull final GradleBuildFile gradleBuildFile,
+  private static void addDependencies(@NotNull final GradleBuildModel buildModel,
                                       @NotNull Module module,
                                       @NotNull final List<String> libraryCoordinates) {
     ModuleRootModificationUtil.updateModel(module, new Consumer<ModifiableRootModel>() {
       @Override
       public void consume(ModifiableRootModel model) {
-        List<BuildFileStatement> dependencies = gradleBuildFile.getDependencies();
+        DependenciesModel dependenciesModel = buildModel.dependencies();
         for (String libraryCoordinate : libraryCoordinates) {
-          dependencies.add(new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, libraryCoordinate));
+          dependenciesModel.addArtifact(COMPILE, libraryCoordinate);
         }
-        gradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+        buildModel.applyChanges();
       }
     });
   }
@@ -149,18 +145,10 @@ public class GradleDependencyManager extends DependencyManager {
     if (callback == null) {
       return null;
     }
-    return new GradleSyncListener() {
-      @Override
-      public void syncStarted(@NotNull Project project) {
-      }
-
+    return new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
         callback.run();
-      }
-
-      @Override
-      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
       }
 
       @Override
