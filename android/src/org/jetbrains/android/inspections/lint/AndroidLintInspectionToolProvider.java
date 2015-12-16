@@ -301,6 +301,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintAppLinksAutoVerifyErrorInspection extends AndroidLintInspectionBase {
+    public AndroidLintAppLinksAutoVerifyErrorInspection() {
+      super(AndroidBundle.message("android.lint.inspections.auto.verify.error"), AppLinksAutoVerifyDetector.ISSUE_ERROR);
+    }
+  }
+
+  public static class AndroidLintAppLinksAutoVerifyWarningInspection extends AndroidLintInspectionBase {
+    public AndroidLintAppLinksAutoVerifyWarningInspection() {
+      super(AndroidBundle.message("android.lint.inspections.auto.verify.warning"), AppLinksAutoVerifyDetector.ISSUE_WARNING);
+    }
+  }
+
   public static class AndroidLintAssertInspection extends AndroidLintInspectionBase {
     public AndroidLintAssertInspection() {
       super(AndroidBundle.message("android.lint.inspections.assert"), AssertDetector.ISSUE);
