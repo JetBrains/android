@@ -21,7 +21,9 @@ import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.avdmanager.legacy.AvdEditWizard;
+import com.android.tools.idea.avdmanager.AvdOptionsModel;
+import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.diagnostic.Logger;
@@ -129,10 +131,11 @@ public class EmulatorTargetChooser {
                                          new String[]{"Cancel", "Create AVD"}, 1, null);
         AvdInfo createdAvd = null;
         if (result == 1) {
-          AvdEditWizard dialog = new AvdEditWizard(null, project, null, null, true);
-          dialog.init();
-          dialog.show();
-          createdAvd = dialog.getCreatedAvd();
+          AvdOptionsModel avdOptionsModel = new AvdOptionsModel(null);
+          ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel);
+          if (dialog.showAndGet()) {
+            createdAvd = avdOptionsModel.getCreatedAvd();
+          }
         }
         return createdAvd == null ? null : createdAvd.getName();
       }

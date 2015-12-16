@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.annotations.NonNull;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
@@ -39,7 +38,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.text.DecimalFormat;
 import java.util.List;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
 
 /**
  * A preview component for displaying information about
@@ -49,15 +48,21 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
  */
 public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionList.DeviceCategorySelectionListener {
 
+  /**
+   * Constant string used to signal the panel not to preview a null device
+   */
+  public static final String DO_NOT_DISPLAY = "DO_NOT_DISPLAY";
   private static final int FIGURE_PADDING = JBUI.scale(3);
   private static final DecimalFormat FORMAT = new DecimalFormat(".##\"");
   public static final int DIMENSION_LINE_WIDTH = JBUI.scale(1); // px
   public static final int OUTLINE_LINE_WIDTH = JBUI.scale(5);   // px
+  private static final String NO_DEVICE_SELECTED = "No Device Selected";
   double myMaxOutlineHeight;
   double myMaxOutlineWidth;
   double myMinOutlineHeightIn;
   double myMinOutlineWidthIn;
   private static final int PADDING = JBUI.scale(20);
+
   private final AvdDeviceData myDeviceData;
 
   private static final JBColor OUR_GRAY = new JBColor(Gray._192, Gray._96);
@@ -68,6 +73,10 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       repaint();
     }
   };
+
+  public AvdDeviceData getDeviceData() {
+    return myDeviceData;
+  }
 
   public DeviceDefinitionPreview(@NotNull AvdDeviceData deviceData) {
     myDeviceData = deviceData;
@@ -114,6 +123,14 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     g2d.setColor(JBColor.foreground());
     g2d.setFont(STANDARD_FONT);
 
+    if (myDeviceData.name().get().equals(DO_NOT_DISPLAY)) {
+      FontMetrics metrics = g2d.getFontMetrics();
+      g2d.drawString(NO_DEVICE_SELECTED,
+                     (getWidth() - metrics.stringWidth(NO_DEVICE_SELECTED)) / 2,
+                     (getHeight() - metrics.getHeight()) / 2);
+      return;
+    }
+
     boolean isCircular = myDeviceData.isWear().get() && myDeviceData.isScreenRound().get();
 
     // Paint our icon
@@ -128,7 +145,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
     // Paint the device outline with dimensions labelled
     Dimension screenSize = getScaledDimension();
-    Dimension pixelScreenSize = getScreenDimension(getDefaultDeviceOrientation());
+    Dimension pixelScreenSize = myDeviceData.getDeviceScreenDimension();
     if (screenSize != null) {
       if (screenSize.getHeight() <= 0) {
         screenSize.height = 1;
@@ -183,7 +200,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       int diagTextY = round(JBUI.scale(100) + (screenSize.height + stringHeight) / 2);
 
       double chin = (double)myDeviceData.screenChinSize().get();
-      chin *= screenSize.getWidth() / getScreenDimension(getDefaultDeviceOrientation()).getWidth();
+      chin *= screenSize.getWidth() / myDeviceData.getDeviceScreenDimension().getWidth();
       Line2D diagLine = new Line2D.Double(PADDING, JBUI.scale(100) + screenSize.height + chin, PADDING + screenSize.width, JBUI.scale(100));
       if (isCircular) {
         // Move the endpoints of the line to within the circle. Each endpoint must move towards the center axis of the circle by
@@ -234,7 +251,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       stringHeight = metrics.getHeight();
       int infoSegmentX;
       int infoSegmentY;
-      if (getDefaultDeviceOrientation().equals(ScreenOrientation.PORTRAIT)) {
+      if (myDeviceData.getDefaultDeviceOrientation().equals(ScreenOrientation.PORTRAIT)) {
         infoSegmentX = round(PADDING + screenSize.width + metrics.stringWidth(heightString) + PADDING);
         infoSegmentY = JBUI.scale(100);
       }
@@ -263,17 +280,12 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     return (int)Math.round(d);
   }
 
-  private ScreenOrientation getDefaultDeviceOrientation() {
-    return (myDeviceData.supportsPortrait().get())
-           ? ScreenOrientation.PORTRAIT : (myDeviceData.supportsLandscape().get()) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.SQUARE;
-  }
-
   /**
    * @return A scaled dimension of the given device's screen that will fit within this component's bounds.
    */
   @Nullable
   private Dimension getScaledDimension() {
-    Dimension pixelSize = getScreenDimension(getDefaultDeviceOrientation());
+    Dimension pixelSize = myDeviceData.getDeviceScreenDimension();
     if (pixelSize == null) {
       return null;
     }
@@ -310,37 +322,6 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     }
 
     return new Dimension((int)(widthIn / scalingFactorPxToIn), (int)(heightIn / scalingFactorPxToIn));
-  }
-
-  @SuppressWarnings("SuspiciousNameCombination") // We sometimes deliberately swap x/width y/height relationships depending on orientation
-  private Dimension getScreenDimension(@NonNull ScreenOrientation orientation) {
-    // compute width and height to take orientation into account.
-    int x = myDeviceData.screenResolutionWidth().get();
-    int y = myDeviceData.screenResolutionHeight().get();
-    int screenWidth, screenHeight;
-
-    if (x > y) {
-      if (orientation == ScreenOrientation.LANDSCAPE) {
-        screenWidth = x;
-        screenHeight = y;
-      }
-      else {
-        screenWidth = y;
-        screenHeight = x;
-      }
-    }
-    else {
-      if (orientation == ScreenOrientation.LANDSCAPE) {
-        screenWidth = y;
-        screenHeight = x;
-      }
-      else {
-        screenWidth = x;
-        screenHeight = y;
-      }
-    }
-
-    return new Dimension(screenWidth, screenHeight);
   }
 
   @Override

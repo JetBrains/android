@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager.legacy;
+package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
-import com.android.tools.idea.avdmanager.SystemImageDescription;
-import com.android.tools.idea.avdmanager.SystemImageList;
-import com.android.tools.idea.avdmanager.SystemImageListModel;
-import com.android.tools.idea.avdmanager.SystemImagePreview;
-import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.core.OptionalProperty;
+import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
+import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
-import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -43,39 +45,46 @@ import javax.swing.event.ChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import static com.android.tools.idea.avdmanager.AvdManagerConnection.GOOGLE_APIS_TAG;
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
-
 /**
  * Wizard step for selecting a {@link SystemImage} from the installed images in the SDK.
+ *
+ * The whole purpose of this step is to select a single image from a list of possible images, and
+ * instead of relying on a model, it takes an a constructor argument to store the selected result.
  */
-public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
+public class ChooseSystemImageStep extends ModelWizardStep.WithoutModel
   implements SystemImageList.SystemImageSelectionListener, SystemImageListModel.StatusIndicator {
-  private SystemImageList myRecommendedImageList;
   private JPanel myPanel;
-  private SystemImagePreview mySystemImagePreview;
-  private JBTabbedPane myTabPane;
+  private SystemImageList myRecommendedImageList;
   private SystemImageList myX86ImageList;
   private SystemImageList myOtherImageList;
+  private SystemImagePreview mySystemImagePreview;
+  private JBTabbedPane myTabPane;
   private JBLabel myStatusLabel;
   private JButton myRefreshButton;
   private AsyncProcessIcon myAsyncIcon;
-  private Device myCurrentDevice;
-  private SystemImageListModel myModel;
+  private SystemImageListModel myListModel;
+  private StudioWizardStepPanel myStudioWizardStepPanel;
+  private ValidatorPanel myValidatorPanel;
 
-  private enum SystemImageClassification {RECOMMENDED, X86, OTHER}
+  private OptionalProperty<SystemImageDescription> mySystemImage = new OptionalValueProperty<SystemImageDescription>();
+  private OptionalProperty<Device> myDevice = new OptionalValueProperty<Device>();
 
-  public ChooseSystemImageStep(@Nullable Project project, @Nullable Disposable parentDisposable) {
-    super(parentDisposable);
-    myModel = new SystemImageListModel(project, this);
+  public ChooseSystemImageStep(@Nullable Project project,
+                               @NotNull OptionalProperty<Device> device,
+                               @NotNull OptionalProperty<SystemImageDescription> systemImage) {
+    super("System Image");
+    myStudioWizardStepPanel = new StudioWizardStepPanel(myPanel, "Select a system image");
+    myValidatorPanel = new ValidatorPanel(this, myStudioWizardStepPanel);
+    mySystemImage = systemImage;
+    myDevice = device;
+
+    myListModel = new SystemImageListModel(project, this);
     setupImageLists();
-    setBodyComponent(myPanel);
-    FormScalingUtil.scaleComponentTree(this.getClass(), createStepBody());
     myRefreshButton.setIcon(AllIcons.Actions.Refresh);
     myRefreshButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        myModel.refreshImages(true);
+        myListModel.refreshImages(true);
       }
     });
     myTabPane.addChangeListener(new ChangeListener() {
@@ -95,33 +104,15 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
     }
     int apiLevel = image.getVersion().getApiLevel();
     if (apiLevel == 21) {
-      // The emulator is not working very well on older system images.
+      // The emulator does not yet work very well on older system images.
       // Remove this when they are fully supported.
       return SystemImageClassification.X86;
     }
-    if (TAGS_WITH_GOOGLE_API.contains(image.getTag())) {
+    IdDisplay tag = image.getTag();
+    if (AvdManagerConnection.GOOGLE_APIS_TAG.equals(tag) || AvdWizardUtils.WEAR_TAG.equals(tag) || AvdWizardUtils.TV_TAG.equals(tag)) {
       return SystemImageClassification.RECOMMENDED;
     }
     return SystemImageClassification.X86;
-  }
-
-  private void setupImageLists() {
-    setupImageList(myRecommendedImageList);
-    setupImageList(myX86ImageList);
-    setupImageList(myOtherImageList);
-    setImageListFilters();
-  }
-
-  private void setupImageList(@NotNull SystemImageList list) {
-    list.setModel(myModel);
-    list.addSelectionListener(this);
-    list.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
-  }
-
-  private void setImageListFilters() {
-    myRecommendedImageList.setRowFilter(new ClassificationRowFilter(SystemImageClassification.RECOMMENDED));
-    myX86ImageList.setRowFilter(new ClassificationRowFilter(SystemImageClassification.X86));
-    myOtherImageList.setRowFilter(new ClassificationRowFilter(SystemImageClassification.OTHER));
   }
 
   public static boolean systemImageMatchesDevice(@Nullable SystemImageDescription image, @Nullable Device device) {
@@ -137,65 +128,77 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
       // of device. Rather than just checking "imageTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
       // here (which will filter out system images with a non-default tag, such as the Google API
       // system images (see issue #78947), we instead deliberately skip the other form factor images
-
-      return imageTag.equals(SystemImage.DEFAULT_TAG) || !imageTag.equals(TV_TAG) && !imageTag.equals(WEAR_TAG);
+      return imageTag.equals(SystemImage.DEFAULT_TAG) ||
+             !imageTag.equals(AvdWizardUtils.TV_TAG) && !imageTag.equals(AvdWizardUtils.WEAR_TAG);
     }
-
     return deviceTagId.equals(imageTag.getId());
   }
 
-  @Override
-  public boolean validate() {
-    return myState.get(SYSTEM_IMAGE_KEY) != null;
+  private void setupImageLists() {
+    setupImageList(myRecommendedImageList);
+    setupImageList(myX86ImageList);
+    setupImageList(myOtherImageList);
+    setImageListFilters();
+  }
+
+  private void setupImageList(@NotNull SystemImageList list) {
+    list.setModel(myListModel);
+    list.addSelectionListener(this);
+    list.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
+  }
+
+  private void setImageListFilters() {
+    myRecommendedImageList.setRowFilter(new ClassificationRowFilter(SystemImageClassification.RECOMMENDED));
+    myX86ImageList.setRowFilter(new ClassificationRowFilter(SystemImageClassification.X86));
+    myOtherImageList.setRowFilter(new ClassificationRowFilter(SystemImageClassification.OTHER));
   }
 
   @Override
-  public boolean isStepVisible() {
-    return !myState.getNotNull(IS_IN_EDIT_MODE_KEY, false) || !myState.containsKey(SYSTEM_IMAGE_KEY);
-  }
+  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
+    FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
 
-  @Override
-  public void onEnterStep() {
-    super.onEnterStep();
-    Device newDevice = myState.get(DEVICE_DEFINITION_KEY);
-    String newTag = newDevice == null ? null : newDevice.getTagId();
-    String oldTag = myCurrentDevice == null ? null : myCurrentDevice.getTagId();
-    // If we've changed device types, the previously selected device is invalid
-    if (!Objects.equal(newTag, oldTag)) {
-      myState.remove(SYSTEM_IMAGE_KEY);
-    }
-    myCurrentDevice = newDevice;
-    SystemImageDescription selectedImage = myState.get(SYSTEM_IMAGE_KEY);
-    // synchronously get the local images in case one should already be selected
-    myModel.refreshLocalImagesSynchronously();
-    myModel.refreshImages(false);
-    setSelectedImage(selectedImage);
-  }
-
-  @Override
-  public JComponent getPreferredFocusedComponent() {
-    return null;
+    myRecommendedImageList.addSelectionListener(this);
+    myRecommendedImageList.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
+    myValidatorPanel.registerValidator(mySystemImage, new Validator<Optional<SystemImageDescription>>() {
+      @NotNull
+      @Override
+      public Result validate(@NotNull Optional<SystemImageDescription> value) {
+        return (value.isPresent())
+               ? Result.OK
+               : new Validator.Result(Severity.ERROR, "A system image must be selected to continue.");
+      }
+    });
   }
 
   @NotNull
   @Override
-  public String getStepName() {
-    return CHOOSE_SYSTEM_IMAGE_STEP;
+  protected ObservableBool canGoForward() {
+    return mySystemImage.isPresent();
+  }
+
+  @Override
+  protected void onEntering() {
+    assert myDevice.get().isPresent();
+    // synchronously get the local images in case one should already be selected
+    myListModel.refreshLocalImagesSynchronously();
+    myListModel.refreshImages(false);
+    setSelectedImage(mySystemImage);
   }
 
   @Override
   public void onSystemImageSelected(@Nullable SystemImageDescription systemImage) {
     mySystemImagePreview.setImage(systemImage);
-
     if (systemImage != null && !systemImage.isRemote()) {
-      myState.put(SYSTEM_IMAGE_KEY, systemImage);
-    } else {
-      myState.remove(SYSTEM_IMAGE_KEY);
+      mySystemImage.setValue(systemImage);
+    }
+    else {
+      mySystemImage.clear();
     }
   }
 
-  private void setSelectedImage(@Nullable SystemImageDescription image) {
-    if (image != null) {
+  private void setSelectedImage(OptionalProperty<SystemImageDescription> imageProperty) {
+    if (imageProperty.get().isPresent()) {
+      SystemImageDescription image = imageProperty.getValue();
       SystemImageClassification classification = getClassification(image);
       switch (classification) {
         case RECOMMENDED:
@@ -214,18 +217,6 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
     }
   }
 
-  @NotNull
-  @Override
-  protected String getStepTitle() {
-    return "System Image";
-  }
-
-  @Nullable
-  @Override
-  protected String getStepDescription() {
-    return "Select a system image";
-  }
-
   @Override
   public void onRefreshStart(@NotNull String message) {
     myStatusLabel.setText(message);
@@ -238,9 +229,9 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
     myStatusLabel.setText(message);
     myRefreshButton.setEnabled(true);
     myAsyncIcon.setVisible(false);
-    myRecommendedImageList.restoreSelection(partlyDownloaded, null);
-    myX86ImageList.restoreSelection(partlyDownloaded, null);
-    myOtherImageList.restoreSelection(partlyDownloaded, null);
+    myRecommendedImageList.restoreSelection(partlyDownloaded, mySystemImage);
+    myX86ImageList.restoreSelection(partlyDownloaded, mySystemImage);
+    myOtherImageList.restoreSelection(partlyDownloaded, mySystemImage);
     previewCurrentTab();
   }
 
@@ -266,7 +257,19 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
     myRecommendedImageList = new SystemImageList();
     myX86ImageList = new SystemImageList();
     myOtherImageList = new SystemImageList();
-    mySystemImagePreview = new SystemImagePreview(getDisposable());
+    mySystemImagePreview = new SystemImagePreview(this);
+  }
+
+  @NotNull
+  @Override
+  protected JComponent getComponent() {
+    return myValidatorPanel;
+  }
+
+  private enum SystemImageClassification {
+    RECOMMENDED,
+    X86,
+    OTHER
   }
 
   private class ClassificationRowFilter extends RowFilter<ListTableModel<SystemImageDescription>, Integer> {
@@ -278,9 +281,9 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
 
     @Override
     public boolean include(Entry<? extends ListTableModel<SystemImageDescription>, ? extends Integer> entry) {
-      SystemImageDescription image = myModel.getRowValue(entry.getIdentifier());
+      SystemImageDescription image = myListModel.getRowValue(entry.getIdentifier());
       return getClassification(image) == myClassification &&
-             systemImageMatchesDevice(image, myCurrentDevice) &&
+             systemImageMatchesDevice(image, myDevice.getValueOrNull()) &&
              versionSupported(image);
     }
 

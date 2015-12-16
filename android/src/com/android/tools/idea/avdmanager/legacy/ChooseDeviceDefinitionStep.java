@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.DEVICE_DEFINITION_KEY;
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.IS_IN_EDIT_MODE_KEY;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.DEVICE_DEFINITION_KEY;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.IS_IN_EDIT_MODE_KEY;
 
 /**
  * Wizard step for selecting a device definition from the devices declared in the SDK and
@@ -106,7 +106,7 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription
   @NotNull
   @Override
   public String getStepName() {
-    return AvdWizardConstants.CHOOSE_DEVICE_DEFINITION_STEP;
+    return AvdWizardUtils.CHOOSE_DEVICE_DEFINITION_STEP;
   }
 
   @Nullable

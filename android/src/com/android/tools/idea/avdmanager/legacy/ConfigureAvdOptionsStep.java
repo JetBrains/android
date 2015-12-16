@@ -22,6 +22,7 @@ import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.repositoryv2.IdDisplay;
@@ -73,7 +74,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.sdklib.devices.Storage.Unit;
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
@@ -189,7 +190,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   public <T> MyActionListener<T> createListener(DynamicWizardStep step, String description, Key<T> resultKey) {
     return new MyActionListener<T>(step, description, resultKey);
   }
-
 
   public ConfigureAvdOptionsStep(@Nullable final Disposable parentDisposable) {
     super(parentDisposable);
@@ -894,7 +894,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       @Override
       public void setValue(@Nullable SystemImageDescription newValue, @NotNull JBLabel component) {
         if (newValue != null) {
-          String codeName = SystemImagePreview.getCodeName(newValue);
+          String codeName = SdkVersionInfo.getCodeName(newValue.getVersion().getApiLevel());
           component.setText(codeName);
           try {
             Icon icon = IconLoader.findIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);

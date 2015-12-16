@@ -21,6 +21,7 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.ui.properties.core.OptionalProperty;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableSet;
@@ -49,8 +50,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.avdmanager.AvdManagerConnection.GOOGLE_APIS_TAG;
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.TV_TAG;
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.WEAR_TAG;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.TV_TAG;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.WEAR_TAG;
 
 /**
  * Displays a list of system images currently installed and allows selection of one
@@ -207,10 +208,12 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    * @param partlyDownloaded if true we are restoring after the local images has been reloaded but not the remote.
    *                         When this is the case do NOT fallback to the best image if the last selection could not be found,
    *                         instead wait for the remote images and keep looking for the current last selected system image.
+   * @param systemImage if this is our first time opening the image list, we might not have the last selected image at hand,
+   *                    so we use this OptionalProperty to retrieve it if needed.
    */
-  public void restoreSelection(boolean partlyDownloaded) {
+  public void restoreSelection(boolean partlyDownloaded, OptionalProperty<SystemImageDescription> systemImage) {
     SystemImageDescription best = null;
-    SystemImageDescription toFind = myLastSelectedImage;
+    SystemImageDescription toFind = myLastSelectedImage != null ? myLastSelectedImage : systemImage.getValueOrNull();
     for (int index = 0; index < myTable.getRowCount(); index++) {
       SystemImageDescription desc = myModel.getRowValue(myTable.convertRowIndexToModel(index));
       if (desc.equals(toFind)) {
