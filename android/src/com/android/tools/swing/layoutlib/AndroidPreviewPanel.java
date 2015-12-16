@@ -73,7 +73,8 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
         GraphicsLayoutRenderer graphicsLayoutRenderer = GraphicsLayoutRenderer
           .create(myConfiguration, parser, getBackground(), false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
         graphicsLayoutRenderer.setScale(myScale);
-        graphicsLayoutRenderer.setSize(getWidth(), getHeight());
+        // We reset the height so that it can be recomputed to the needed value.
+        graphicsLayoutRenderer.setSize(getWidth(), 1);
 
         synchronized (myGraphicsLayoutRendererLock) {
           myGraphicsLayoutRenderer = graphicsLayoutRenderer;
