@@ -414,7 +414,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       ListMultimap<String, ResourceItem> map = getMap(ResourceType.ID, true);
       for (Map.Entry<String, XmlTag> entry : pendingResourceIds.entrySet()) {
         String id = entry.getKey();
-        map.put(id, new PsiResourceItem(id, ResourceType.ID, entry.getValue(), file));
+        PsiResourceItem remainderItem = new PsiResourceItem(id, ResourceType.ID, entry.getValue(), file);
+        items.add(remainderItem);
+        map.put(id, remainderItem);
       }
     }
   }
