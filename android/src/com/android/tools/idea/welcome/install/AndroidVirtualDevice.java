@@ -29,7 +29,7 @@ import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
-import com.android.tools.idea.avdmanager.legacy.AvdEditWizard;
+import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
@@ -55,7 +55,7 @@ import java.util.Set;
 
 import static com.android.sdklib.internal.avd.AvdManager.*;
 import static com.android.sdklib.internal.avd.HardwareProperties.*;
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
 
 /**
  * Logic for setting up Android virtual device
@@ -119,12 +119,12 @@ public class AndroidVirtualDevice extends InstallableComponent {
     Device d = getDevice(sdkHandler.getLocation());
     SystemImageDescription systemImageDescription = getSystemImageDescription(sdkHandler);
 
-    String cardSize = AvdEditWizard.toIniString(DEFAULT_INTERNAL_STORAGE, false);
-    File hardwareSkinPath = AvdEditWizard.resolveSkinPath(d.getDefaultHardware().getSkinFile(), systemImageDescription, myFileOp);
+    String cardSize = AvdOptionsModel.toIniString(DEFAULT_INTERNAL_STORAGE, false);
+    File hardwareSkinPath = resolveSkinPath(d.getDefaultHardware().getSkinFile(), systemImageDescription, myFileOp);
     String displayName =
       String.format("%1$s %2$s %3$s", d.getDisplayName(), systemImageDescription.getVersion(), systemImageDescription.getAbiType());
     displayName = connection.uniquifyDisplayName(displayName);
-    String internalName = AvdEditWizard.cleanAvdName(connection, displayName, true);
+    String internalName = cleanAvdName(connection, displayName, true);
     Abi abi = Abi.getEnum(systemImageDescription.getAbiType());
     boolean useRanchu = AvdManagerConnection.doesSystemImageSupportRanchu(systemImageDescription);
     boolean supportsSmp = abi != null && abi.supportsMultipleCpuCores() && getMaxCpuCores() > 1;
@@ -166,7 +166,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
   }
 
   private static void setStorageSizeKey(Map<String, String> result, String key, Storage size, boolean convertToMb) {
-    result.put(key, AvdEditWizard.toIniString(size, convertToMb));
+    result.put(key, AvdOptionsModel.toIniString(size, convertToMb));
   }
 
   @NotNull
