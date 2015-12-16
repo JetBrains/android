@@ -263,6 +263,35 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.getModificationCount() > generation);
   }
 
+  public void testDeleteRemainderResourceIDs() throws Exception {
+    final VirtualFile file = myFixture.copyFileToProject(LAYOUT_ID_SCAN, "res/layout-xlarge-land/layout.xml");
+    final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file);
+    assertNotNull(psiFile1);
+
+    ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+
+    long generation = resources.getModificationCount();
+    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    assertEquals(1, layouts.size());
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    // nonExistent may be handled slightly different from other IDs, since it is introduced by a
+    // non-ID-attribute="@+id/nonExistent", but the file does not define a tag with id="@id/nonExistent".
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "nonExistent"));
+
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        psiFile1.delete();
+      }
+    });
+    assertTrue(resources.getModificationCount() > generation);
+    layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    assertEmpty(layouts);
+    assertFalse(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertFalse(resources.hasResourceItem(ResourceType.ID, "nonExistent"));
+  }
+
   public void testRenameLayoutFile() throws Exception {
     final VirtualFile file2 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
 
