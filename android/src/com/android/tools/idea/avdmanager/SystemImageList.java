@@ -59,6 +59,7 @@ import java.awt.font.TextLayout;
 import java.util.*;
 import java.util.List;
 
+import static com.android.tools.idea.avdmanager.AvdManagerConnection.GOOGLE_APIS_TAG;
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.TV_TAG;
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.WEAR_TAG;
 
@@ -68,6 +69,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.WEAR_TAG;
 public class SystemImageList extends JPanel implements ListSelectionListener {
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
   private final JBCheckBox myShowRemoteCheckbox = new JBCheckBox("Show downloadable system images", false);
+  private final JBCheckBox myShowRecommendedOnlyCheckbox = new JBCheckBox("Recommended images only", true);
   private final JButton myInstallLatestVersionButton = new JButton("Install Latest Version...");
   private final Project myProject;
   private final JPanel myRemoteStatusPanel = new JPanel(new CardLayout());
@@ -142,14 +144,18 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     refreshMessageAndButton.add(myRemoteStatusPanel);
     refreshMessageAndButton.add(myRefreshButton);
     southPanel.add(refreshMessageAndButton, BorderLayout.EAST);
-    southPanel.add(myShowRemoteCheckbox, BorderLayout.WEST);
-    myShowRemoteCheckbox.addActionListener(new ActionListener() {
+    JPanel buttonPanel = new JPanel(new BorderLayout());
+    buttonPanel.add(myShowRemoteCheckbox, BorderLayout.NORTH);
+    buttonPanel.add(myShowRecommendedOnlyCheckbox, BorderLayout.SOUTH);
+    southPanel.add(buttonPanel, BorderLayout.WEST);
+    ActionListener dataChanged = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         myModel.fireTableDataChanged();
       }
-    });
-
+    };
+    myShowRemoteCheckbox.addActionListener(dataChanged);
+    myShowRecommendedOnlyCheckbox.addActionListener(dataChanged);
     myRefreshButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -170,7 +176,11 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     sorter.setRowFilter(new RowFilter<ListTableModel<SystemImageDescription>, Integer>() {
       @Override
       public boolean include(Entry<? extends ListTableModel<SystemImageDescription>, ? extends Integer> entry) {
-        return !myModel.getRowValue(entry.getIdentifier()).isRemote() || myShowRemoteCheckbox.isSelected();
+        SystemImageDescription image = myModel.getRowValue(entry.getIdentifier());
+        Abi abi = Abi.getEnum(image.getAbiType());
+        boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
+        return (!image.isRemote() || myShowRemoteCheckbox.isSelected()) &&
+               ((isAvdIntel && GOOGLE_APIS_TAG.equals(image.getTag())) || !myShowRecommendedOnlyCheckbox.isSelected());
       }
     });
     myTable.setRowSorter(sorter);
@@ -384,7 +394,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     if (res != 0) {
       return res > 0;
     }
-    if (tag != null && tag.equals(AvdManagerConnection.GOOGLE_APIS_TAG)) {
+    if (tag != null && tag.equals(GOOGLE_APIS_TAG)) {
       return true;
     }
     return false;
