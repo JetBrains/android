@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.debug;
 
+import com.android.ddmlib.BitmapDecoder;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.ui.tree.render.CustomPopupFullValueEvaluator;
@@ -37,7 +38,7 @@ abstract class BitmapPopupEvaluator extends CustomPopupFullValueEvaluator<Buffer
   @Nullable
   public BufferedImage getImage(EvaluationContextImpl evaluationContext, Value value) {
     try {
-      return BitmapEvaluator.getBitmap(evaluationContext, value);
+      return BitmapDecoder.getBitmap(new BitmapEvaluatorProvider(value, evaluationContext));
     }
     catch (EvaluateException e) {
       myError = "Error while evaluating expression: " + e.getMessage();

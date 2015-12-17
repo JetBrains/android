@@ -17,6 +17,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.schema.*;
+import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.intellij.ui.SimpleColoredComponent;
@@ -37,7 +39,8 @@ public final class AtomGroup implements BinaryObject {
       // add any atoms that come before the group
       atoms.addAtoms(parent, next, subGroup.getRange().getStart());
       // and add the group itself
-      DefaultMutableTreeNode subNode = new DefaultMutableTreeNode(subGroup, true);
+      DefaultMutableTreeNode subNode = new DefaultMutableTreeNode(
+        new AtomController.Group(subGroup, atoms.get(subGroup.getRange().getLast()), subGroup.getRange().getLast()), true);
       subGroup.addChildren(subNode, atoms);
       parent.add(subNode);
       next = subGroup.getRange().getEnd();
@@ -85,11 +88,16 @@ public final class AtomGroup implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {29, -128, -52, -6, -27, -70, 14, -120, 63, 17, 59, -43, 7, 22, 86, 19, -11, 67, 66, -21, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("atom","Group","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Name", new Primitive("string", Method.String)),
+      new Field("Range", new Struct(Range.Klass.INSTANCE.entity())),
+      new Field("SubGroups", new Slice("GroupList", new Struct(AtomGroup.Klass.INSTANCE.entity()))),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -98,7 +106,7 @@ public final class AtomGroup implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new AtomGroup(); }

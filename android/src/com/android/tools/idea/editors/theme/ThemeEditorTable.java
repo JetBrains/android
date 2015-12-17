@@ -38,6 +38,7 @@ import spantable.CellSpanModel;
 import spantable.CellSpanTable;
 
 import javax.swing.*;
+import javax.swing.plaf.ColorUIResource;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
@@ -51,6 +52,11 @@ public class ThemeEditorTable extends CellSpanTable {
   private ShowJavadocAction myJavadocAction;
   private ThemeEditorComponent.GoToListener myGoToListener;
   private ThemeEditorContext myContext;
+
+  /**
+   * label text consistent with rest of IDE (e.g. right click)
+   */
+  private static final String GO_TO_DECLARATION = "Go To Declaration";
 
   public ThemeEditorTable() {
     putClientProperty("terminateEditOnFocusLost", true);
@@ -67,10 +73,12 @@ public class ThemeEditorTable extends CellSpanTable {
     myGoToListener = goToListener;
   }
 
-  public void customizeTable(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel) {
+  public void customizeTable(@NotNull ThemeEditorContext context,
+                             @NotNull AndroidThemePreviewPanel previewPanel,
+                             @NotNull ParentRendererEditor.ThemeParentChangedListener themeParentChangedListener) {
     myContext = context;
     myJavadocAction = new ShowJavadocAction(this, myContext);
-    setRenderersAndEditors(previewPanel);
+    setRenderersAndEditors(previewPanel, themeParentChangedListener);
   }
 
   @Override
@@ -128,7 +136,8 @@ public class ThemeEditorTable extends CellSpanTable {
     updateRowHeights();
   }
 
-  private void setRenderersAndEditors(@NotNull AndroidThemePreviewPanel previewPanel) {
+  private void setRenderersAndEditors(@NotNull AndroidThemePreviewPanel previewPanel,
+                                      @NotNull ParentRendererEditor.ThemeParentChangedListener themeParentChangedListener) {
     Project project = myContext.getProject();
     ResourcesCompletionProvider completionProvider = new ResourcesCompletionProvider(myContext);
     final AttributeReferenceRendererEditor styleEditor = new AttributeReferenceRendererEditor(project, completionProvider);
@@ -142,7 +151,7 @@ public class ThemeEditorTable extends CellSpanTable {
     setDefaultRenderer(Boolean.class, new DelegatingCellRenderer(new BooleanRendererEditor(myContext)));
     setDefaultRenderer(Enum.class, new DelegatingCellRenderer(new EnumRendererEditor()));
     setDefaultRenderer(Flag.class, new DelegatingCellRenderer(new FlagRendererEditor()));
-    setDefaultRenderer(AttributesTableModel.ParentAttribute.class, new DelegatingCellRenderer(new ParentRendererEditor(myContext)));
+    setDefaultRenderer(AttributesTableModel.ParentAttribute.class, new DelegatingCellRenderer(new ParentRendererEditor(myContext, themeParentChangedListener)));
     setDefaultRenderer(DrawableDomElement.class, new DelegatingCellRenderer(new DrawableRendererEditor(myContext, previewPanel, false)));
     setDefaultRenderer(TableLabel.class, new DefaultTableCellRenderer() {
       @Override
@@ -169,7 +178,7 @@ public class ThemeEditorTable extends CellSpanTable {
     setDefaultEditor(Boolean.class, new DelegatingCellEditor(false, new BooleanRendererEditor(myContext)));
     setDefaultEditor(Enum.class, new DelegatingCellEditor(false, new EnumRendererEditor()));
     setDefaultEditor(Flag.class, new DelegatingCellEditor(false, new FlagRendererEditor()));
-    setDefaultEditor(AttributesTableModel.ParentAttribute.class, new DelegatingCellEditor(false, new ParentRendererEditor(myContext)));
+    setDefaultEditor(AttributesTableModel.ParentAttribute.class, new DelegatingCellEditor(false, new ParentRendererEditor(myContext, themeParentChangedListener)));
 
     // We allow to edit style pointers as Strings.
     setDefaultEditor(ThemeEditorStyle.class, new DelegatingCellEditor(false, styleEditor));
@@ -190,16 +199,16 @@ public class ThemeEditorTable extends CellSpanTable {
     AttributesTableModel.RowContents contents = model.getRowContents(this.convertRowIndexToModel(row));
 
     if (contents instanceof AttributesTableModel.AttributeContents) {
-      final AttributesTableModel.AttributeContents attribute = (AttributesTableModel.AttributeContents) contents;
+      final AttributesTableModel.AttributeContents attribute = (AttributesTableModel.AttributeContents)contents;
 
-      final EditedStyleItem item = attribute.getValueAt(1);
+      final EditedStyleItem item = attribute.getValue();
       if (item == null) {
         return null;
       }
 
       final JBPopupMenu popupMenu = new JBPopupMenu();
       if (attribute.getCellClass(1) == ThemeEditorStyle.class) {
-        popupMenu.add(new AbstractAction("Go to definition") {
+        popupMenu.add(new AbstractAction(GO_TO_DECLARATION) {
           @Override
           public void actionPerformed(ActionEvent e) {
             myGoToListener.goTo(item);
@@ -216,7 +225,7 @@ public class ThemeEditorTable extends CellSpanTable {
         final VirtualFileManager manager = VirtualFileManager.getInstance();
         final VirtualFile virtualFile = file.exists() ? manager.findFileByUrl("file://" + file.getAbsolutePath()) : null;
         if (virtualFile != null) {
-          popupMenu.add(new AbstractAction("Go to definition") {
+          popupMenu.add(new AbstractAction(GO_TO_DECLARATION) {
             @Override
             public void actionPerformed(ActionEvent e) {
               final OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile);
@@ -249,7 +258,7 @@ public class ThemeEditorTable extends CellSpanTable {
       }
 
       final JBPopupMenu menu = new JBPopupMenu();
-      menu.add(new AbstractAction("Edit parent") {
+      menu.add(new AbstractAction(GO_TO_DECLARATION) {
         @Override
         public void actionPerformed(ActionEvent e) {
           myGoToListener.goToParent();
@@ -260,5 +269,16 @@ public class ThemeEditorTable extends CellSpanTable {
     }
 
     return null;
+  }
+
+  /**
+   * Prevents the automatic setting of a background color by the L&F
+   */
+  @Override
+  public void setBackground(Color color) {
+    if (color instanceof ColorUIResource) {
+      color = null;
+    }
+    super.setBackground(color);
   }
 }

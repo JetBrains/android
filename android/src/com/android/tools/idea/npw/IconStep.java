@@ -25,6 +25,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
 import com.android.tools.idea.ui.ImageComponent;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.RadioButtonGroupBinding;
 import com.google.common.base.Objects;
@@ -32,6 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
@@ -58,7 +60,6 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.android.assetstudiolib.ActionBarIconGenerator.Theme;
 import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
@@ -90,12 +91,16 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   public static final Key<Integer> ATTR_FONT_SIZE = createKey(AssetStudioAssetGenerator.ATTR_FONT_SIZE, PATH, Integer.class);
   public static final Key<File> ATTR_OUTPUT_FOLDER = createKey(ChooseOutputResDirStep.ATTR_OUTPUT_FOLDER, STEP, File.class);
   public static final Key<String> ATTR_ERROR_LOG = createKey(AssetStudioAssetGenerator.ATTR_ERROR_LOG, PATH, String.class);
-  public static final Key<String> ATTR_VECTOR_DRAWBLE_WIDTH = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_WIDTH, STEP, String.class);
-  public static final Key<String> ATTR_VECTOR_DRAWBLE_HEIGHT = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_HEIGHT, STEP, String.class);
+  public static final Key<String> ATTR_VECTOR_DRAWBLE_WIDTH =
+    createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_WIDTH, STEP, String.class);
+  public static final Key<String> ATTR_VECTOR_DRAWBLE_HEIGHT =
+    createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_HEIGHT, STEP, String.class);
   public static final Key<Integer> ATTR_ORIGINAL_WIDTH = createKey(AssetStudioAssetGenerator.ATTR_ORIGINAL_WIDTH, STEP, Integer.class);
   public static final Key<Integer> ATTR_ORIGINAL_HEIGHT = createKey(AssetStudioAssetGenerator.ATTR_ORIGINAL_HEIGHT, STEP, Integer.class);
-  public static final Key<Integer> ATTR_VECTOR_DRAWBLE_OPACTITY = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_OPACTITY, STEP, Integer.class);
-  public static final Key<Boolean> ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED = createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED, STEP, Boolean.class);
+  public static final Key<Integer> ATTR_VECTOR_DRAWBLE_OPACTITY =
+    createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_OPACTITY, STEP, Integer.class);
+  public static final Key<Boolean> ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED =
+    createKey(AssetStudioAssetGenerator.ATTR_VECTOR_DRAWBLE_AUTO_MIRRORED, STEP, Boolean.class);
   public static final Key<Boolean> ATTR_VALID_PREVIEW = createKey(AssetStudioAssetGenerator.ATTR_VALID_PREVIEW, STEP, Boolean.class);
 
   private static final Logger LOG = Logger.getInstance(IconStep.class);
@@ -177,14 +182,14 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     if (StringUtil.isEmpty(clipartName)) {
       return null;
     }
-    BufferedImage icon = null;
+
     try {
-      icon = GraphicGenerator.getClipartIcon(clipartName);
+      return new ImageIcon(GraphicGenerator.getClipartIcon(clipartName), clipartName);
     }
     catch (IOException e) {
       Logger.getInstance(IconStep.class).error(e);
+      return null;
     }
-    return new ImageIcon(icon, clipartName);
   }
 
   private static void show(JComponent... components) {
@@ -223,7 +228,8 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
 
   @Nullable
   private static BufferedImage getImage(@NotNull Map<String, Map<String, BufferedImage>> map,
-                                        @NotNull String category, @NotNull Density density) {
+                                        @NotNull String category,
+                                        @NotNull Density density) {
     String densityString = density.getResourceValue();
     final Map<String, BufferedImage> images = map.get(category);
     if (images == null) {
@@ -249,16 +255,25 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   }
 
   @Override
+  public void onEnterStep() {
+    super.onEnterStep();
+    String resourceName = computeResourceName();
+    myResourceNameField.setEnabled(resourceName == null);
+    if (resourceName != null) {
+      myState.put(ATTR_ASSET_NAME, resourceName);
+    }
+  }
+
+  @Override
   public void init() {
     super.init();
 
     myAssetGenerator = new AssetStudioAssetGenerator(new ScopedStateStoreAdapter(myState));
 
     myState.put(ATTR_ASSET_TYPE, AssetType.LAUNCHER);
-    //noinspection deprecation
-    String relativeTemplatePath = FileUtil
-      .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME,
-            "root", "res", "mipmap-xhdpi", "ic_launcher.png");
+
+    String relativeTemplatePath =
+      FileUtil.join(Template.CATEGORY_PROJECTS, WizardConstants.MODULE_TEMPLATE_NAME, "root", "res", "mipmap-xhdpi", "ic_launcher.png");
     myState.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), relativeTemplatePath).getAbsolutePath());
 
     register(ATTR_OUTPUT_FOLDER, mySourceSetComboBox);
@@ -406,10 +421,14 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
           show(myForegroundColor, myForegroundColorLabel);
           myFontFamily.setSelectedItem(myState.get(ATTR_FONT));
           break;
+        default:
+          // TODO Do we need to handle SVG and VECTORDRAWABLE?
+          break;
       }
     }
 
     // Asset Type Combo Box
+    // TODO: This doesn't look like it's used anywhere. Confirm...? (only used from Notification template?)
     AssetType assetType = myState.get(ATTR_ASSET_TYPE);
     if (assetType != null) {
       String name = myState.get(ATTR_ASSET_NAME);
@@ -419,8 +438,6 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
       }
     }
 
-    // Theme chooser
-    String assetTheme = myState.get(ATTR_ASSET_THEME);
     requestPreviewUpdate();
   }
 
@@ -457,18 +474,19 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
             return;
           }
           myAssetGenerator.generateImages(myImageMap, true, true);
-          SwingUtilities.invokeLater(new Runnable() {
+
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
               updatePreviewImages();
             }
           });
         }
-        catch (final ImageGeneratorException e) {
-          SwingUtilities.invokeLater(new Runnable() {
+        catch (final ImageGeneratorException exception) {
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              setErrorHtml(e.getMessage());
+              setErrorHtml(exception.getMessage());
             }
           });
         }
@@ -517,7 +535,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   }
 
   /**
-   * Displays a modal dialog with one button for each entry in the {@link com.android.assetstudiolib.GraphicGenerator}
+   * Displays a modal dialog with one button for each entry in the {@link GraphicGenerator}
    * clipart library. Clicking on a button sets that entry into the {@link #ATTR_CLIPART_NAME} key.
    */
   private void displayClipartDialog() {
@@ -526,8 +544,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     FlowLayout layout = new FlowLayout();
     dialog.getRootPane().setLayout(layout);
     int count = 0;
-    for (Iterator<String> iter = GraphicGenerator.getResourcesNames(RasterAssetSetStep.IMAGES_CLIPART_BIG,
-                                                                    SdkConstants.DOT_PNG);
+    for (Iterator<String> iter = GraphicGenerator.getResourcesNames(RasterAssetSetStep.IMAGES_CLIPART_BIG, SdkConstants.DOT_PNG);
          iter.hasNext(); ) {
       final String name = iter.next();
       try {
@@ -563,6 +580,26 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
 
   @NotNull
   private String computeResourceName(AssetType assetType) {
+    String resourceName = computeResourceName();
+    if (resourceName == null) {
+      resourceName = String.format(assetType.getDefaultNameFormat(), "name");
+    }
+
+    // It's unusual to have > 1 launcher icon, don't fix the name for launcher icons.
+    if (drawableExists(resourceName) && assetType != AssetType.LAUNCHER) {
+      // While uniqueness isn't satisfied, increment number and add to end
+      int i = 2;
+      while (drawableExists(resourceName + i)) {
+        i++;
+      }
+      resourceName += i;
+    }
+
+    return resourceName;
+  }
+
+  @Nullable
+  private String computeResourceName() {
     String resourceName = null;
     TemplateEntry templateEntry = myState.get(myTemplateKey);
     String nameExpression;
@@ -578,27 +615,12 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
         resourceName = myStringEvaluator.evaluate(nameExpression, parameters);
       }
     }
-
-    if (resourceName == null) {
-      resourceName = String.format(assetType.getDefaultNameFormat(), "name");
-    }
-
-    // It's unusual to have > 1 launcher icon, don't fix the name for launcher icons.
-    if (drawableExists(resourceName) && assetType != AssetType.LAUNCHER) {
-      // While uniqueness isn't satisfied, increment number and add to end
-      int i = 2;
-      while (drawableExists(resourceName + Integer.toString(i))) {
-        i++;
-      }
-      resourceName += Integer.toString(i);
-    }
-
     return resourceName;
   }
 
   /**
-  * Must be run inside a write action. Creates the asset files on disk.
-  */
+   * Must be run inside a write action. Creates the asset files on disk.
+   */
   public void createAssets() {
     if (isStepVisible()) {
       File destination = myState.get(ATTR_OUTPUT_FOLDER);
@@ -642,7 +664,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   }
 
   @Override
-  public void dispose()  {
+  public void dispose() {
     myUpdateQueue.cancelAllUpdates();
   }
 

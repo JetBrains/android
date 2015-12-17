@@ -58,4 +58,10 @@ public class AndroidUtilsTest extends LightIdeaTestCase {
     assertNull(validateAndroidPackageName("foo.b1.ar_"));
     assertNull(validateAndroidPackageName("Foo.Bar"));
   }
+
+  public void testGetUnqualifiedName() {
+    assertEquals("View", AndroidUtils.getUnqualifiedName("android.view.View"));
+    assertEquals(null, AndroidUtils.getUnqualifiedName("android.view."));
+    assertEquals(null, AndroidUtils.getUnqualifiedName("StringWithoutDots"));
+  }
 }

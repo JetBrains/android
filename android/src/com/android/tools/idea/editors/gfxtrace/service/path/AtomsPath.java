@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +27,11 @@ public final class AtomsPath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
     return myCapture.stringPath(builder).append(".Atoms");
+  }
+
+  @Override
+  public Path getParent() {
+    return myCapture;
   }
 
   public AtomPath index(long i) {
@@ -51,11 +57,14 @@ public final class AtomsPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {23, 107, 124, 8, -62, 54, 44, -29, 27, 23, -43, 58, 10, -104, 91, 118, -59, 29, 1, -89, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","Atoms","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Capture", new Pointer(new Struct(CapturePath.Klass.INSTANCE.entity()))),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -64,7 +73,7 @@ public final class AtomsPath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new AtomsPath(); }

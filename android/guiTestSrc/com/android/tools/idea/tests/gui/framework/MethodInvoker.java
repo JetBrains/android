@@ -114,6 +114,7 @@ public class MethodInvoker extends Statement {
       myTestMethod.invokeExplosively(myTest);
     }
     catch (Throwable e) {
+      e.printStackTrace();
       takeScreenshot(executionIndex);
       throw e;
     }

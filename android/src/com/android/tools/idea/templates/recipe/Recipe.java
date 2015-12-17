@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.templates.recipe;
 
+import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.parse.StringFileAdapter;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.*;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
@@ -39,8 +38,8 @@ import static com.android.SdkConstants.DOT_FTL;
  * A recipe is a list of instructions which, when executed, modify a project.
  */
 @XmlRootElement(name = "recipe")
-public final class Recipe {
-
+public class Recipe implements RecipeInstruction {
+  // @formatter:off
   @XmlElements({
     @XmlElement(name = "copy", type = CopyInstruction.class),
     @XmlElement(name = "instantiate", type = InstantiateInstruction.class),
@@ -48,48 +47,46 @@ public final class Recipe {
     @XmlElement(name = "mkdir", type = MkDirInstruction.class),
     @XmlElement(name = "dependency", type = DependencyInstruction.class),
     @XmlElement(name = "open", type = OpenInstruction.class),
-    @XmlElement(name = "execute", type = ExecuteInstruction.class)
+    @XmlElement(name = "recipe", type = Recipe.class)
   })
   private List<RecipeInstruction> instructions = Lists.newArrayList();
+  // @formatter:on
 
-  @NotNull
-  public List<String> getDependencies() {
-    return myDependencies;
-  }
-
-  @NotNull
-  public List<File> getSourceFiles() {
-    return mySourceFiles;
-  }
-
-  @NotNull
-  public List<File> getTargetFiles() {
-    return myTargetFiles;
-  }
-
-  @NotNull
-  public List<File> getFilesToOpen() {
-    return myFilesToOpen;
-  }
-
-  @NotNull private final List<String> myDependencies = Lists.newArrayList();
-  @NotNull private final List<File> mySourceFiles = Lists.newArrayList();
-  @NotNull private final List<File> myTargetFiles = Lists.newArrayList();
-  @NotNull private final List<File> myFilesToOpen = Lists.newArrayList();
+  /**
+   * A "folder" attribute can be specified on a recipe tag to handle loading of relative files
+   * from a recipe that is included inside another recipe file.
+   * If not specified the value will be null.
+   */
+  @XmlAttribute(name="folder")
+  @Nullable
+  @SuppressWarnings("unused")
+  private String myFolder;
 
   /**
    * Handles parsing a recipe.xml file. A recipe file specifies a bunch of file-related actions
    * to take after a template is processed, such as copying files over, merging them, or opening them
-   * in the main editor. Once parsed, you should remember to {@link #execute(RecipeContext)} it.
+   * in the main editor. Once parsed, you should remember to {@link #execute(RecipeExecutor)} it.
    */
   public static Recipe parse(@NotNull Reader xmlReader) throws JAXBException {
-    JAXBContext jc = JAXBContext.newInstance(Recipe.class);
-    Unmarshaller u = jc.createUnmarshaller();
-    return (Recipe)u.unmarshal(xmlReader);
+    Recipe recipe = unmarshal(xmlReader);
+    recipe.instructions.add(new UpdateAndSyncGradleInstruction());
+
+    return recipe;
+  }
+
+  private static Recipe unmarshal(@NotNull Reader xmlReader) throws JAXBException {
+    Unmarshaller unmarshaller = JAXBContext.newInstance(Recipe.class).createUnmarshaller();
+    unmarshaller.setEventHandler(new ValidationEventHandler() {
+      @Override
+      public boolean handleEvent(ValidationEvent event) {
+        throw new RuntimeException(event.getLinkedException());
+      }
+    });
+    return (Recipe)unmarshaller.unmarshal(xmlReader);
   }
 
   @NotNull
-  private static File cloneWithourFreemarkerSuffix(@NotNull File file) {
+  private static File cloneWithoutFreemarkerSuffix(@NotNull File file) {
     File clone = new File(file.getPath());
     return TemplateUtils.stripSuffix(clone, DOT_FTL);
   }
@@ -97,38 +94,30 @@ public final class Recipe {
   /**
    * Execute this recipe's instructions.
    */
-  public void execute(@NotNull RecipeContext recipeContext) {
+  @Override
+  public void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
+    if (myFolder == null) {
+      executeInstructions(executor);
+    }
+    else {
+      executor.pushFolder(myFolder);
+      try {
+        executeInstructions(executor);
+      }
+      finally {
+        executor.popFolder();
+      }
+    }
+  }
+
+  private void executeInstructions(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
     for (RecipeInstruction instruction : instructions) {
-      instruction.execute(recipeContext);
+      instruction.execute(executor);
     }
   }
 
-  @SuppressWarnings("unused") // Called by JAXB via reflection
-  private void afterUnmarshal(Unmarshaller u, Object parent) {
-    instructions.add(new FinalInstruction());
-
-    for (RecipeInstruction instruction : instructions) {
-      instruction.addDependenciesInto(myDependencies);
-      instruction.addSourceFilesInto(mySourceFiles);
-      instruction.addTargetFilesInto(myTargetFiles);
-      instruction.addFilesToOpenInto(myFilesToOpen);
-    }
-  }
-
-  /**
-   * A single instruction in a recipe. Each implementation corresponds to a tag in recipe.xml
-   */
-  private static abstract class RecipeInstruction {
-    public abstract void execute(RecipeContext context);
-
-    public void addDependenciesInto(@NotNull List<String> dependencies) {}
-    public void addSourceFilesInto(@NotNull List<File> files) {}
-    public void addTargetFilesInto(@NotNull List<File> files) {}
-    public void addFilesToOpenInto(@NotNull List<File> files) {}
-  }
-
-  private static final class CopyInstruction extends RecipeInstruction {
-
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class CopyInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
     @NotNull
@@ -140,31 +129,20 @@ public final class Recipe {
     private File to;
 
     @Override
-    public void execute(RecipeContext context) {
+    public void execute(@NotNull RecipeExecutor executor) {
       assert to != null; // Will be non-null after afterUnmarshal is called
-      context.copy(from, to);
+      executor.copy(from, to);
     }
 
-    @Override
-    public void addSourceFilesInto(@NotNull List<File> files) {
-      files.add(from);
-    }
-
-    @Override
-    public void addTargetFilesInto(@NotNull List<File> files) {
-      files.add(to);
-    }
-
-    @SuppressWarnings("unused") // Called by JAXB via reflection
     private void afterUnmarshal(Unmarshaller u, Object parent) {
       if (to == null || to.getPath().isEmpty()) {
-        to = cloneWithourFreemarkerSuffix(from);
+        to = cloneWithoutFreemarkerSuffix(from);
       }
     }
   }
 
-  private static final class InstantiateInstruction extends RecipeInstruction {
-
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class InstantiateInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
     @NotNull
@@ -176,32 +154,20 @@ public final class Recipe {
     private File to;
 
     @Override
-    public void execute(RecipeContext context) {
+    public void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
       assert to != null; // Will be non-null after afterUnmarshal is called
-      context.instantiate(from, to);
+      executor.instantiate(from, to);
     }
 
-    @Override
-    public void addSourceFilesInto(@NotNull List<File> files) {
-      files.add(from);
-    }
-
-    @Override
-    public void addTargetFilesInto(@NotNull List<File> files) {
-      files.add(to);
-    }
-
-    @SuppressWarnings("unused") // Called by JAXB via reflection
     private void afterUnmarshal(Unmarshaller u, Object parent) {
       if (to == null || to.getPath().isEmpty()) {
-        to = cloneWithourFreemarkerSuffix(from);
+        to = cloneWithoutFreemarkerSuffix(from);
       }
     }
-
   }
 
-  private static final class MergeInstruction extends RecipeInstruction {
-
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class MergeInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
     @NotNull
@@ -213,103 +179,63 @@ public final class Recipe {
     private File to;
 
     @Override
-    public void execute(RecipeContext context) {
+    public void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
       assert to != null; // Will be non-null after afterUnmarshal is called
-      context.merge(from, to);
+      executor.merge(from, to);
     }
 
-    @Override
-    public void addSourceFilesInto(@NotNull List<File> files) {
-      files.add(from);
-    }
-
-    @Override
-    public void addTargetFilesInto(@NotNull List<File> files) {
-      files.add(to);
-    }
-
-    @SuppressWarnings("unused") // Called by JAXB via reflection
     private void afterUnmarshal(Unmarshaller u, Object parent) {
       if (to == null || to.getPath().isEmpty()) {
-        to = cloneWithourFreemarkerSuffix(from);
+        to = cloneWithoutFreemarkerSuffix(from);
       }
     }
-
   }
 
-  private static final class MkDirInstruction extends RecipeInstruction {
-
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class MkDirInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
     @NotNull
     private File at;
 
     @Override
-    public void execute(RecipeContext context) {
-      context.mkDir(at);
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.mkDir(at);
     }
-
   }
 
-  private static final class OpenInstruction extends RecipeInstruction {
-
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class OpenInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
     @NotNull
     private File file;
 
     @Override
-    public void execute(RecipeContext context) {
-      context.open(file);
-    }
-
-    @Override
-    public void addFilesToOpenInto(@NotNull List<File> files) {
-      files.add(file);
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.addFilesToOpen(file);
     }
   }
 
-  private static final class DependencyInstruction extends RecipeInstruction {
-
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class DependencyInstruction implements RecipeInstruction {
     @XmlAttribute(required = true)
     @NotNull
     private String mavenUrl;
 
     @Override
-    public void execute(RecipeContext context) {
-      context.addDependency(mavenUrl);
-    }
-
-    @Override
-    public void addDependenciesInto(@NotNull List<String> dependencies) {
-      dependencies.add(mavenUrl);
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.addDependency(mavenUrl);
     }
   }
 
   /**
-   * Execute another recipe file from within the current recipe file
+   * This should only be executed by the root recipe and only at the end.
    */
-  private static final class ExecuteInstruction extends RecipeInstruction {
-
-    @XmlJavaTypeAdapter(StringFileAdapter.class)
-    @XmlAttribute(required = true)
-    @NotNull
-    private File file;
-
+  private static final class UpdateAndSyncGradleInstruction implements RecipeInstruction {
     @Override
-    public void execute(RecipeContext context) {
-      context.execute(file);
-    }
-  }
-
-  /**
-   * Post-process instruction that's always added to the end of a recipe's instruction list.
-   */
-  private static final class FinalInstruction extends RecipeInstruction {
-
-    @Override
-    public void execute(RecipeContext context) {
-      context.updateAndSyncGradle();
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.updateAndSyncGradle();
     }
   }
 }

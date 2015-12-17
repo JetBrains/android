@@ -21,8 +21,8 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.google.common.base.Joiner;
@@ -34,11 +34,6 @@ import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompileStatusNotification;
@@ -71,16 +66,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+
 /**
  * @author Eugene.Kudelevsky
  */
 public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackageWizardStep> {
   private static final Logger LOG = Logger.getInstance(ExportSignedPackageWizard.class);
 
-  private static final String NOTIFICATION_TITLE = "Generate signed APK";
-  private static final String NOTIFICATION_GROUPID = "Android";
-
-  private final Project myProject;
+  @NotNull private final Project myProject;
 
   private AndroidFacet myFacet;
   private PrivateKey myPrivateKey;
@@ -95,13 +89,12 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private List<String> myFlavors;
   private GradleSigningInfo myGradleSigningInfo;
 
-  public ExportSignedPackageWizard(Project project, List<AndroidFacet> facets, boolean signed) {
+  public ExportSignedPackageWizard(@NotNull Project project, @NotNull List<AndroidFacet> facets, boolean signed) {
     super(AndroidBundle.message("android.export.package.wizard.title"), project);
     myProject = project;
     mySigned = signed;
     assert facets.size() > 0;
-    if (facets.size() > 1 ||
-        SystemInfo.isMac /* wizards with only step are shown incorrectly on mac */) {
+    if (facets.size() > 1 || SystemInfo.isMac /* wizards with only step are shown incorrectly on mac */) {
       addStep(new ChooseModuleStep(this, facets));
     }
     else {
@@ -127,7 +120,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   @Override
   protected void doOKAction() {
-    if (!commitCurrentStep()) return;
+    if (!commitCurrentStep()) {
+      return;
+    }
     super.doOKAction();
 
     assert myFacet != null;
@@ -146,7 +141,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           return;
         }
 
-        final String title = AndroidBundle.message("android.extract.package.task.title");
+        String title = AndroidBundle.message("android.extract.package.task.title");
         ProgressManager.getInstance().run(new Task.Backgroundable(myProject, title, true, null) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
@@ -158,7 +153,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   }
 
   private void buildAndSignGradleProject() {
-    ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Generating signed APKs", false, null) {
+    ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Generating Signed APKs", false, null) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(myFacet.getModule());
@@ -179,45 +174,16 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
         List<String> projectProperties = Lists.newArrayList();
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
-        projectProperties
-          .add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
+        projectProperties.add(
+          createProperty(AndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
 
-        final GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
+        assert myProject != null;
 
-        final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
-          @Override
-          public void execute(@NotNull GradleInvocationResult result) {
-            if (result.isBuildSuccessful()) {
-              if (ShowFilePathAction.isSupported()) {
-                ApplicationManager.getApplication().invokeLater(new Runnable() {
-                  @Override
-                  public void run() {
-                    if (Messages.showOkCancelDialog(myProject, "Signed APKs generated successfully.", NOTIFICATION_TITLE,
-                                                    RevealFileAction.getActionName(), IdeBundle.message("action.close"),
-                                                    Messages.getInformationIcon()) == Messages.OK) {
-                      ShowFilePathAction.openDirectory(new File(myApkPath));
-                    }
-                  }
-                });
-              }
-              else {
-                Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE, "Signed APKs are in: " + myApkPath,
-                                                          NotificationType.INFORMATION));
-              }
-            }
-            else {
-              Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE,
-                                                        "Errors while building apk, see messages tool window for list of errors.",
-                                                        NotificationType.ERROR));
-            }
-            gradleInvoker.removeAfterGradleInvocationTask(this);
-          }
-        };
-
-        gradleInvoker.addAfterGradleInvocationTask(afterTask);
+        GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
+        gradleInvoker.addAfterGradleInvocationTask(new GoToApkLocationTask("Generate Signed APK", myFacet.getModule(), myApkPath));
         gradleInvoker.executeTasks(assembleTasks, projectProperties);
 
         LOG.info("Export APK command: " +
@@ -310,25 +276,19 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   @Override
   protected void updateStep() {
-    final int step = getCurrentStep();
+    int step = getCurrentStep();
     final ExportSignedPackageWizardStep currentStep = mySteps.get(step);
     getFinishButton().setEnabled(currentStep.canFinish());
 
     super.updateStep();
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
         getRootPane().setDefaultButton(getNextButton());
-
-        final JComponent component = currentStep.getPreferredFocusedComponent();
+        JComponent component = currentStep.getPreferredFocusedComponent();
         if (component != null) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              component.requestFocus();
-            }
-          });
+          component.requestFocus();
         }
       }
     });
@@ -343,6 +303,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     return null;
   }
 
+  @NotNull
   public Project getProject() {
     return myProject;
   }
@@ -379,7 +340,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     myApkPath = apkPath;
   }
 
-  public void setGradleOptions(String buildType, List<String> flavors) {
+  public void setGradleOptions(String buildType, @NotNull List<String> flavors) {
     myBuildType = buildType;
     myFlavors = flavors;
   }
@@ -387,8 +348,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private void createAndAlignApk(final String apkPath) {
     AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
     assert platform != null;
-    final String sdkPath = platform.getSdkData().getPath();
+    String sdkPath = platform.getSdkData().getLocation().getPath();
     String zipAlignPath = AndroidCommonUtils.getZipAlign(sdkPath, platform.getTarget());
+
     File zipalign = new File(zipAlignPath);
     if (!zipalign.isFile()) {
       BuildToolInfo buildTool = platform.getTarget().getBuildToolInfo();
@@ -406,24 +368,26 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     catch (Exception e) {
       showErrorInDispatchThread(e.getMessage());
     }
-    if (destFile == null) return;
+    if (destFile == null) {
+      return;
+    }
 
     if (runZipAlign) {
       File realDestFile = new File(apkPath);
-      final String message = AndroidCommonUtils.executeZipAlign(zipAlignPath, destFile, realDestFile);
+      String message = AndroidCommonUtils.executeZipAlign(zipAlignPath, destFile, realDestFile);
       if (message != null) {
         showErrorInDispatchThread(message);
         return;
       }
     }
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
         String title = AndroidBundle.message("android.export.package.wizard.title");
-        final Project project = getProject();
-        final File apkFile = new File(apkPath);
+        Project project = getProject();
+        File apkFile = new File(apkPath);
 
-        final VirtualFile vApkFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apkFile);
+        VirtualFile vApkFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apkFile);
         if (vApkFile != null) {
           vApkFile.refresh(true, false);
         }
@@ -444,13 +408,14 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           Messages.showInfoMessage(project, AndroidBundle.message("android.export.package.success.message", apkFile), title);
         }
       }
-    }, ModalityState.NON_MODAL);
+    });
   }
 
   @SuppressWarnings({"IOResourceOpenedButNotSafelyClosed"})
-  private void createApk(File destFile) throws IOException, GeneralSecurityException {
-    final String srcApkPath = AndroidCompileUtil.getUnsignedApkPath(getFacet());
-    final File srcApk = new File(FileUtil.toSystemDependentName(srcApkPath));
+  private void createApk(@NotNull File destFile) throws IOException, GeneralSecurityException {
+    String srcApkPath = AndroidCompileUtil.getUnsignedApkPath(getFacet());
+    assert srcApkPath != null;
+    File srcApk = new File(FileUtil.toSystemDependentName(srcApkPath));
 
     if (isSigned()) {
       AndroidCommonUtils.signApk(srcApk, destFile, getPrivateKey(), getCertificate());
@@ -460,13 +425,13 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     }
   }
 
-  private void showErrorInDispatchThread(final String message) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+  private void showErrorInDispatchThread(@NotNull final String message) {
+    invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
         Messages.showErrorDialog(getProject(), "Error: " + message, CommonBundle.getErrorTitle());
       }
-    }, ModalityState.NON_MODAL);
+    });
   }
 
   public void setGradleSigningInfo(GradleSigningInfo gradleSigningInfo) {

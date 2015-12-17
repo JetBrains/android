@@ -27,7 +27,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.lang.databinding.DbUtil;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -36,8 +36,11 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -47,13 +50,10 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
@@ -61,18 +61,19 @@ import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_IND
 public class ResourceHelper {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ResourceHelper");
   public static final String STATE_NAME_PREFIX = "state_";
+  public static final String ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1$s/%2$s does not resolve to a floating point number";
 
   /**
    * Returns true if the given style represents a project theme
    *
-   * @param style a theme style string
+   * @param styleResourceUrl a theme style resource url
    * @return true if the style string represents a project theme, as opposed
    *         to a framework theme
    */
-  public static boolean isProjectStyle(@NotNull String style) {
-    assert style.startsWith(STYLE_RESOURCE_PREFIX) || style.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) : style;
+  public static boolean isProjectStyle(@NotNull String styleResourceUrl) {
+    assert styleResourceUrl.startsWith(PREFIX_RESOURCE_REF) : styleResourceUrl;
 
-    return style.startsWith(STYLE_RESOURCE_PREFIX);
+    return !styleResourceUrl.startsWith(ANDROID_STYLE_RESOURCE_PREFIX);
   }
 
   /**
@@ -330,15 +331,82 @@ public class ResourceHelper {
   }
 
   /**
+   * Package prefixes used in {@link #isViewPackageNeeded(String, int)}
+   */
+  private static final String[] NO_PREFIX_PACKAGES =
+    new String[]{ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG, ANDROID_WEBKIT_PKG};
+
+  /**
    * Returns true if views with the given fully qualified class name need to include
-   * their package in the layout XML tag
+   * their package in the layout XML tag. Package prefixes that allow class name to be
+   * unqualified are specified in {@link #NO_PREFIX_PACKAGES} and should reflect a list
+   * of prefixes from framework's LayoutInflater and PhoneLayoutInflater.
    *
-   * @param fqcn the fully qualified class name, such as android.widget.Button
+   * @param qualifiedName the fully qualified class name, such as android.widget.Button
+   * @param apiLevel The API level for the calling context. This is the max of the
+   *                 project's minSdkVersion and the layout file's version qualifier, if any.
+   *                 You can pass -1 if this is not known, which will force fully qualified
+   *                 names on some packages which recently no longer require it.
    * @return true if the full package path should be included in the layout XML element
    *         tag
    */
-  public static boolean viewNeedsPackage(String fqcn) {
-    return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX) || fqcn.startsWith(ANDROID_VIEW_PKG) || fqcn.startsWith(ANDROID_WEBKIT_PKG));
+  public static boolean isViewPackageNeeded(@NotNull String qualifiedName, int apiLevel) {
+    for (String noPrefixPackage : NO_PREFIX_PACKAGES) {
+      // We need to check not only if prefix is a "whitelisted" package, but if the class
+      // is stored in that package directly, as opposed to be stored in a subpackage.
+      // For example, view with FQCN android.view.MyView can be abbreviated to "MyView",
+      // but android.view.custom.MyView can not.
+      if (isDirectlyInPackage(qualifiedName, noPrefixPackage)) {
+        return false;
+      }
+    }
+
+    if (apiLevel >= 20) {
+      // Special case: starting from API level 20, classes from "android.app" also inflated
+      // without fully qualified names
+      return !isDirectlyInPackage(qualifiedName, ANDROID_APP_PKG);
+    }
+    return true;
+  }
+
+  /**
+   * XML tags associated with classes usually can come either with fully-qualified names, which can be shortened
+   * in case of common packages, which is handled by various inflaters in Android framework. This method checks
+   * whether a class with given qualified name can be shortened to a simple name, or is required to have
+   * a package qualifier.
+   * <p/>
+   * Accesses JavaPsiFacade, and thus should be run inside read action.
+   *
+   * @see #isViewPackageNeeded(String, int)
+   */
+  public static boolean isClassPackageNeeded(@NotNull String qualifiedName, @NotNull PsiClass baseClass, int apiLevel) {
+    final PsiClass viewClass =
+      JavaPsiFacade.getInstance(baseClass.getProject()).findClass(CLASS_VIEW, GlobalSearchScope.allScope(baseClass.getProject()));
+
+    if (viewClass != null && baseClass.isInheritor(viewClass, true)) {
+      return isViewPackageNeeded(qualifiedName, apiLevel);
+    } else if (CLASS_PREFERENCE.equals(baseClass.getQualifiedName())) {
+      // Handled by PreferenceInflater in Android framework
+      return !isDirectlyInPackage(qualifiedName, "android.preference.");
+    } else {
+      // TODO: removing that makes some of unit tests fail, but leaving it as it is can introduce buggy XML validation
+      // Issue with further information: http://b.android.com/186559
+      return !qualifiedName.startsWith(ANDROID_PKG_PREFIX);
+    }
+  }
+
+  /**
+   * Returns whether a class with given qualified name resides directly in a package with
+   * given prefix (as opposed to reside in a subpackage).
+   * <p/>
+   * For example,
+   * <ul>
+   *   <li>isDirectlyInPackage("android.view.View", "android.view.") -> true</li>
+   *   <li>isDirectlyInPackage("android.view.internal.View", "android.view.") -> false</li>
+   * </ul>
+   */
+  public static boolean isDirectlyInPackage(@NotNull String qualifiedName, @NotNull String packagePrefix) {
+    return qualifiedName.startsWith(packagePrefix) && qualifiedName.indexOf('.', packagePrefix.length() + 1) == -1;
   }
 
   /**
@@ -420,10 +488,9 @@ public class ResourceHelper {
             result.add(makeColorWithAlpha(resources, color, state.getAlpha()));
           }
           catch (NumberFormatException e) {
-            // If the alpha value is not valid, Android uses 1.0
+            // If the alpha value is not valid, Android uses 1.0 so nothing more needs to be done, we simply take color as it is
             result.add(color);
-            LOG.warn(String.format("The alpha attribute in %s/%s does not resolve to a floating point number", stateList.getDirName(),
-                                   stateList.getFileName()));
+            LOG.warn(String.format(ALPHA_FLOATING_ERROR_FORMAT, stateList.getDirName(), stateList.getFileName()));
           }
         }
       }
@@ -451,7 +518,7 @@ public class ResourceHelper {
   }
 
   @NotNull
-  private static Color makeColorWithAlpha(@NotNull RenderResources resources, @NotNull Color color, @Nullable String alphaValue)
+  public static Color makeColorWithAlpha(@NotNull RenderResources resources, @NotNull Color color, @Nullable String alphaValue)
     throws NumberFormatException {
     float alpha = 1.0f;
     if (alphaValue != null) {
@@ -459,13 +526,7 @@ public class ResourceHelper {
     }
 
     int combinedAlpha = (int)(color.getAlpha() * alpha);
-    if (combinedAlpha < 0) {
-      combinedAlpha = 0;
-    }
-    if (combinedAlpha > 255) {
-      combinedAlpha = 255;
-    }
-    return ColorUtil.toAlpha(color, combinedAlpha);
+    return ColorUtil.toAlpha(color, clamp(combinedAlpha, 0, 255));
   }
 
   /**
@@ -714,6 +775,10 @@ public class ResourceHelper {
     return name;
   }
 
+  public static int clamp(int i, int min, int max) {
+    return Math.max(min, Math.min(i, max));
+  }
+
   /**
    * Stores the information contained in a resource state list.
    */
@@ -751,12 +816,85 @@ public class ResourceHelper {
     public void addState(@NotNull StateListState state) {
       myStates.add(state);
     }
+
+    /**
+     * @return a list of all the states in this state list that have explicitly or implicitly state_enabled = false
+     */
+    @NotNull
+    public ImmutableList<StateListState> getDisabledStates() {
+      ImmutableList.Builder<StateListState> disabledStatesBuilder = ImmutableList.builder();
+      ImmutableSet<ImmutableMap<String, Boolean>> remainingObjectStates =
+        ImmutableSet.of(ImmutableMap.of(StateListState.STATE_ENABLED, true), ImmutableMap.of(StateListState.STATE_ENABLED, false));
+      // An object state is a particular assignment of boolean values to all possible state list flags.
+      // For example, in a world where there exists only three flags (a, b and c), there are 2^3 = 8 possible object state.
+      // {a : true, b : false, c : true} is one such state.
+      // {a : true} is not an object state, since it does not have values for b or c.
+      // But we can use {a : true} as a representation for the set of all object states that have true assigned to a.
+      // Since we do not know a priori how many different flags there are, that is how we are going to represent a set of object states.
+      // We are using a set of maps, where each map represents a set of object states, and the overall set is their union.
+      // For example, the set S = { {a : true} , {b : true, c : false} } is the union of two sets of object states.
+      // The first one, described by {a : true} contains 4 object states, and the second one, described by {b : true, c : false} contains 2.
+      // Overall this set S represents: {a : true, b : true, c : true}, {a : true, b : true, c : false}, {a : true, b : false, c : true}
+      // {a : true, b : false, c : false} and {a : false, b : true, c : false}.
+      // It is only 5 object states since {a : true, b : true, c : false} is described by both maps.
+
+      // remainingObjects is going to represent all the object states that have not been matched in the state list until now.
+      // So before we start we want to initialise it to represents all possible object states. One easy way to do so is to pick a flag
+      // and make two representations {flag : true} and {flag : false} and take their union. We pick "state_enabled" as that flag but any
+      // flag could have been used.
+
+      // We now go through the state list state by state.
+      for (StateListState state : myStates) {
+        // For each state list state, we ask the question : does there exist an object state that could reach this state list state,
+        // and match it, and have "state_enabled = true"? If that object state exists, it has to be represented in remainingObjectStates.
+        if (!state.matchesWithEnabledObjectState(remainingObjectStates)) {
+          // if there is no such object state, then all the object states that would match this state list state would have
+          // "state_enabled = false", so this state list state is considered disabled.
+          disabledStatesBuilder.add(state);
+        }
+
+        // Before looking at the next state list state, we recompute remainingObjectStates so that it does not represent any more
+        // the object states that match this state list state.
+        remainingObjectStates = removeState(state, remainingObjectStates);
+      }
+      return disabledStatesBuilder.build();
+    }
+
+    /**
+     * Returns a representation of all the object states that were in allowed states but do not match the state list state
+     */
+    @NotNull
+    private static ImmutableSet<ImmutableMap<String, Boolean>> removeState(@NotNull StateListState state,
+                                                                           @NotNull ImmutableSet<ImmutableMap<String, Boolean>> allowedStates) {
+      ImmutableSet.Builder<ImmutableMap<String, Boolean>> remainingStates = ImmutableSet.builder();
+      Map<String, Boolean> stateAttributes = state.getAttributes();
+      for (String attribute : stateAttributes.keySet()) {
+        for (ImmutableMap<String, Boolean> allowedState : allowedStates) {
+          if (!allowedState.containsKey(attribute)) {
+            // This allowed state does not have a constraint for attribute. So it represents object states that can take either value
+            // for it. We restrict this representation by adding to it explicitly the opposite constraint to the one in the state list state
+            // so that we remove from this representation all the object states that match the state list state while keeping all the ones
+            // that do not.
+            ImmutableMap.Builder<String, Boolean> newAllowedState = ImmutableMap.builder();
+            newAllowedState.putAll(allowedState).put(attribute, !stateAttributes.get(attribute));
+            remainingStates.add(newAllowedState.build());
+          }
+          else if (allowedState.get(attribute) != stateAttributes.get(attribute)) {
+            // None of the object states represented by allowedState match the state list state. So we keep them all by keeping
+            // the same representation.
+            remainingStates.add(allowedState);
+          }
+        }
+      }
+      return remainingStates.build();
+    }
   }
 
   /**
    * Stores information about a particular state of a resource state list.
    */
   public static class StateListState {
+    public static final String STATE_ENABLED = "state_enabled";
     private String myValue;
     private String myAlpha;
     private final Map<String, Boolean> myAttributes;
@@ -788,6 +926,63 @@ public class ResourceHelper {
     @NotNull
     public Map<String, Boolean> getAttributes() {
       return myAttributes;
+    }
+
+    /**
+     * @return a list of all the attribute names. Names are capitalized is capitalize is true
+     */
+    @NotNull
+    public ImmutableList<String> getAttributesNames(boolean capitalize) {
+      Map<String, Boolean> attributes = getAttributes();
+
+      if (attributes.isEmpty()) {
+        return ImmutableList.of(capitalize ? "Default" : "default");
+      }
+
+      ImmutableList.Builder<String> attributeDescriptions = ImmutableList.builder();
+      for (Map.Entry<String, Boolean> attribute : attributes.entrySet()) {
+        String description = attribute.getKey().substring(STATE_NAME_PREFIX.length());
+        if (!attribute.getValue()) {
+          description = "not " + description;
+        }
+        attributeDescriptions.add(capitalize ? StringUtil.capitalize(description) : description);
+      }
+
+      return attributeDescriptions.build();
+    }
+
+    /**
+     * Checks if there exists an object state that matches this state list state, has state_enabled = true,
+     * and is represented in allowedObjectStates.
+     * @param allowedObjectStates
+     */
+    private boolean matchesWithEnabledObjectState(@NotNull ImmutableSet<ImmutableMap<String, Boolean>> allowedObjectStates) {
+      if (myAttributes.containsKey(STATE_ENABLED) && !myAttributes.get(STATE_ENABLED)) {
+        // This state list state has state_enabled = false, so no object state with state_enabled = true could match it
+        return false;
+      }
+      for (Map<String, Boolean> allowedAttributes : allowedObjectStates) {
+        if (allowedAttributes.containsKey(STATE_ENABLED) && !allowedAttributes.get(STATE_ENABLED)) {
+          // This allowed object state representation has explicitly state_enabled = false, so it does not represent any object state
+          // with state_enabled = true
+          continue;
+        }
+        boolean match = true;
+        for (String attribute : myAttributes.keySet()) {
+          if (allowedAttributes.containsKey(attribute) && myAttributes.get(attribute) != allowedAttributes.get(attribute)) {
+            // This state list state does not match any of the object states represented by allowedAttributes, since they explicitly
+            // disagree on one particular flag.
+            match = false;
+            break;
+          }
+        }
+        if (match) {
+          // There is one object state represented in allowedAttributes, that has state_enabled = true, and that matches this
+          // state list state.
+          return true;
+        }
+      }
+      return false;
     }
   }
 }

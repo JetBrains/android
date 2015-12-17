@@ -17,7 +17,6 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
-import com.intellij.openapi.util.text.StringUtil;
 import org.easymock.EasyMock;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -28,9 +27,6 @@ import java.io.StringWriter;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class AndroidLogcatReceiverTest {
-  private static final String SPACE_BEFORE_AT = StringUtil.repeatSymbol(' ', 2);
-  private static final String SPACE_BEFORE_CAUSED_BY = " ";
-
   private AndroidConsoleWriter myWriter;
   private AndroidLogcatReceiver myReceiver;
 
@@ -67,8 +63,7 @@ public class AndroidLogcatReceiverTest {
         myInnerWriter.append(text).append('\n');
       }
     };
-    StackTraceExpander expander = new StackTraceExpander(SPACE_BEFORE_AT, SPACE_BEFORE_CAUSED_BY);
-    myReceiver = new AndroidLogcatReceiver(createMockDevice(), myWriter, expander);
+    myReceiver = new AndroidLogcatReceiver(createMockDevice(), myWriter);
   }
 
   @Test
@@ -84,10 +79,29 @@ public class AndroidLogcatReceiverTest {
 
   @Test
   public void processNewLineUsesQuestionMarkForUnknownClientIds() {
-    myReceiver.processNewLine("[ 01-23 45:67:89.000 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
     myReceiver.processNewLine("Dummy Message");
 
-    String expected = "01-23 45:67:89.000 99-99/? V/UnknownClient: Dummy Message\n";
+    String expected = "01-23 12:34:56.789 99-99/? V/UnknownClient: Dummy Message\n";
+    assertThat(myWriter.toString()).isEqualTo(expected);
+  }
+
+  @Test
+  public void processNewLineHandlesMultilineLogs() {
+    myReceiver.processNewLine("[ 01-23 12:34:56.789 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("Line 1");
+    myReceiver.processNewLine("Line 2");
+    myReceiver.processNewLine("Line 3");
+    myReceiver.processNewLine("");
+    myReceiver.processNewLine("[ 01-23 13:00:00.000 99:99 V/UnknownClient     ]");
+    myReceiver.processNewLine("Line 1");
+
+    String expected = "01-23 12:34:56.789 99-99/? V/UnknownClient: Line 1\n" +
+                      "+ Line 2\n" +
+                      "+ Line 3\n" +
+                      "01-23 13:00:00.000 99-99/? V/UnknownClient: Line 1\n";
+
+
     assertThat(myWriter.toString()).isEqualTo(expected);
   }
 
@@ -103,10 +117,10 @@ public class AndroidLogcatReceiverTest {
 
 
     String expected = "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: FATAL EXCEPTION: Timer-0\n" +
-                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: Process: com.android.chattylogger, PID: 11698\n" +
-                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: java.lang.RuntimeException: Bad response\n" +
-                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime:   at com.android.chattylogger.MainActivity$1.run(MainActivity.java:64)\n" +
-                      "08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime:   at java.util.Timer$TimerImpl.run(Timer.java:284)\n";
+                      "+ Process: com.android.chattylogger, PID: 11698\n" +
+                      "+ java.lang.RuntimeException: Bad response\n" +
+                      "+     at com.android.chattylogger.MainActivity$1.run(MainActivity.java:64)\n" +
+                      "+     at java.util.Timer$TimerImpl.run(Timer.java:284)\n";
 
     assertThat(myWriter.toString()).isEqualTo(expected);
   }
@@ -126,9 +140,9 @@ public class AndroidLogcatReceiverTest {
       "warning message",
       "[ 08-11 19:11:07.132   495:0x1ef F/wtftag   ]",
       "wtf message",
-      "[ 08-11 21:15:35.7524  540:0x21c D/debug tag    ]",
+      "[ 08-11 21:15:35.754   540:0x21c D/debug tag    ]",
       "debug message",
-      "[ 08-11 21:15:35.7524  540:0x21c I/tag:with:colons ]",
+      "[ 08-11 21:15:35.754   540:0x21c I/tag:with:colons ]",
       "message:with:colons",
     };
 
@@ -143,8 +157,8 @@ public class AndroidLogcatReceiverTest {
                       "08-11 19:11:07.132 495-495/? W/wtag: warning message\n" +
                       "08-11 19:11:07.132 495-495/? A/wtftag: wtf message\n" +
                       // NOTE: "debug tag" uses a special-case "no break" space character
-                      "08-11 21:15:35.7524 540-540/? D/debug tag: debug message\n" +
-                      "08-11 21:15:35.7524 540-540/? I/tag:with:colons: message:with:colons\n";
+                      "08-11 21:15:35.754 540-540/? D/debug tag: debug message\n" +
+                      "08-11 21:15:35.754 540-540/? I/tag:with:colons: message:with:colons\n";
 
     assertThat(myWriter.toString()).isEqualTo(expected);
   }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.editors.hprof.HprofEditor;
-import com.android.tools.idea.editors.hprof.HprofViewPanel;
+import com.android.tools.idea.editors.hprof.HprofView;
 import com.android.tools.idea.editors.hprof.views.ClassesTreeView;
 import com.android.tools.idea.editors.hprof.views.InstanceReferenceTreeView;
 import com.android.tools.idea.editors.hprof.views.InstancesTreeView;
@@ -103,7 +103,7 @@ public class HprofEditorFixture extends EditorFixture {
 
     waitForHprofEditor();
 
-    myToolbarFixture = ActionToolbarFixture.findByName(HprofViewPanel.TOOLBAR_NAME, robot, myHprofEditor.getComponent(), true);
+    myToolbarFixture = ActionToolbarFixture.findByName(HprofView.TOOLBAR_NAME, robot, myHprofEditor.getComponent(), true);
   }
 
   public boolean assertCurrentHeapName(@NotNull String heapName) {

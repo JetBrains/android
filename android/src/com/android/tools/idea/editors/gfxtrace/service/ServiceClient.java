@@ -21,12 +21,10 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.android.tools.rpclib.any.Box;
-import com.android.tools.rpclib.binary.BinaryID;
+import com.android.tools.rpclib.schema.Message;
 import com.google.common.base.Function;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-
-import static com.google.common.util.concurrent.Futures.transform;
 
 public abstract class ServiceClient {
   //<<<Start:Java.ClientBody:1>>>
@@ -36,48 +34,55 @@ public abstract class ServiceClient {
   public abstract ListenableFuture<DevicePath[]> getDevices();
   public abstract ListenableFuture<ImageInfoPath> getFramebufferColor(DevicePath device, AtomPath after, RenderSettings settings);
   public abstract ListenableFuture<ImageInfoPath> getFramebufferDepth(DevicePath device, AtomPath after);
-  public abstract ListenableFuture<Schema> getSchema();
+  public abstract ListenableFuture<Message> getSchema();
   public abstract ListenableFuture<TimingInfoPath> getTimingInfo(DevicePath device, CapturePath capture, TimingFlags flags);
   public abstract ListenableFuture<CapturePath> importCapture(String name, byte[] Data);
+  public abstract ListenableFuture<CapturePath> loadCapture(String path);
   public abstract ListenableFuture<Path> set(Path p, Object v);
   //<<<End:Java.ClientBody:1>>>
 
   public ListenableFuture<Device> get(DevicePath p) {
-    return transform(get((Path)p), new FutureCast<Device>());
+    return getAndCast(p);
   }
 
   public ListenableFuture<Capture> get(CapturePath p) {
-    return transform(get((Path)p), new FutureCast<Capture>());
+    return getAndCast(p);
   }
 
   public ListenableFuture<AtomList> get(AtomsPath p) {
-    return transform(get((Path)p), new FutureCast<AtomList>());
+    return getAndCast(p);
   }
 
   public ListenableFuture<AtomGroup> get(HierarchyPath p) {
-    return transform(get((Path)p), new FutureCast<AtomGroup>());
+    return getAndCast(p);
   }
 
   public ListenableFuture<ImageInfo> get(ImageInfoPath p) {
-    return transform(get((Path)p), new FutureCast<ImageInfo>());
+    return getAndCast(p);
   }
 
   public ListenableFuture<ImageInfo> get(ThumbnailPath p) {
-    return transform(get((Path)p), new FutureCast<ImageInfo>());
+    return getAndCast(p);
   }
 
   public ListenableFuture<byte[]> get(BlobPath p) {
-    return transform(get((Path)p), new FutureCast<byte[]>());
+    return getAndCast(p);
   }
 
   public ListenableFuture<Resources> get(ResourcesPath p) {
-    return transform(get((Path)p), new FutureCast<Resources>());
+    return getAndCast(p);
   }
 
-  static class FutureCast<T> implements Function<Object, T> {
-    @Override
-    public T apply(Object v) {
-      return (T)v;
-    }
+  public ListenableFuture<MemoryInfo> get(MemoryRangePath p) {
+    return getAndCast(p);
+  }
+
+  private <T> ListenableFuture<T> getAndCast(Path p) {
+    return Futures.transform(get(p), new Function<Object, T>() {
+      @Override
+      public T apply(Object result) {
+        return (T)result;
+      }
+    });
   }
 }

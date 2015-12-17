@@ -1,0 +1,4 @@
+<activity
+    android:name=".sampleActivity"
+    android:label="@string/title_activity_sample" >
+</activity>

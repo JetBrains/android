@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
+import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
@@ -37,8 +36,8 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
@@ -49,8 +48,8 @@ public class RenameTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void sourceRoot() throws Exception {
-    final IdeFrameFixture projectFrame = importSimpleApplication();
-    final Project project = projectFrame.getProject();
+    myProjectFrame = importSimpleApplication();
+    final Project project = myProjectFrame.getProject();
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
       final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();

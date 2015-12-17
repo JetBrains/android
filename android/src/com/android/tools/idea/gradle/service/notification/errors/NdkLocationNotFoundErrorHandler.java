@@ -97,7 +97,7 @@ public class NdkLocationNotFoundErrorHandler extends AbstractSyncErrorHandler {
       localProperties.save();
     }
     catch (IOException e) {
-      String msg = String.format("Unable to save local.properties file of Project '%1$s: %2$s", localProperties.getFilePath().getPath(),
+      String msg = String.format("Unable to save local.properties file of Project '%1$s: %2$s", localProperties.getPropertiesFilePath().getPath(),
                                  e.getMessage());
       Messages.showErrorDialog(msg, ERROR_TITLE);
       return false;

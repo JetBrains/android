@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.logcat;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.Tag;
-import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Persistent storage of logcat filters.
@@ -54,20 +54,20 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
     return ServiceManager.getService(project, AndroidConfiguredLogFilters.class);
   }
 
+  /**
+   * Returns a copy of the list of filters. If you need to modify a filter, use
+   * {@link #setFilterEntries(List)} to do so.
+   */
   @Tag("filters")
   @AbstractCollection(surroundWithTag = false)
   public List<FilterEntry> getFilterEntries() {
-    return new ArrayList<FilterEntry>(myFilterEntries);
-  }
-  
-  @Nullable
-  public FilterEntry findFilterEntryByName(@NotNull String name) {
-    for (FilterEntry entry : myFilterEntries) {
-      if (name.equals(entry.getName())) {
-        return entry;
+    return Lists.newArrayList(Lists.transform(myFilterEntries, new Function<FilterEntry, FilterEntry>() {
+      @NotNull
+      @Override
+      public FilterEntry apply(FilterEntry srcEntry) {
+        return new FilterEntry(srcEntry);
       }
-    }
-    return null;
+    }));
   }
 
   @NotNull
@@ -88,20 +88,37 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
    */
   @Tag("filter")
   static final class FilterEntry {
-    private String myName;
-    private String myLogMessagePattern;
+    @Nullable private String myName;
+    @Nullable private String myLogMessagePattern;
     private boolean myLogMessageIsRegex = true;
-    private String myLogLevel;
-    private String myLogTagPattern;
+    @Nullable private String myLogLevel;
+    @Nullable private String myLogTagPattern;
     private boolean myLogTagIsRegex = true;
-    private String myPid;
-    private String myPackageNamePattern;
+    @Nullable private String myPid;
+    @Nullable private String myPackageNamePattern;
     private boolean myPackageNameIsRegex = true;
 
+    public FilterEntry() {
+    }
+
+    public FilterEntry(@NotNull FilterEntry otherEntry) {
+      myName = otherEntry.myName;
+      myLogMessagePattern = otherEntry.myLogMessagePattern;
+      myLogMessageIsRegex = otherEntry.myLogMessageIsRegex;
+      myLogLevel = otherEntry.myLogLevel;
+      myLogTagPattern = otherEntry.myLogTagPattern;
+      myLogTagIsRegex = otherEntry.myLogTagIsRegex;
+      myPid = otherEntry.myPid;
+      myPackageNamePattern = otherEntry.myPackageNamePattern;
+      myPackageNameIsRegex = otherEntry.myPackageNameIsRegex;
+    }
+
+    @Nullable
     public String getName() {
       return myName;
     }
 
+    @Nullable
     public String getLogMessagePattern() {
       return myLogMessagePattern;
     }
@@ -110,10 +127,12 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
       return myLogMessageIsRegex;
     }
 
+    @Nullable
     public String getLogLevel() {
       return myLogLevel;
     }
 
+    @Nullable
     public String getLogTagPattern() {
       return myLogTagPattern;
     }
@@ -122,15 +141,16 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
       return myLogTagIsRegex;
     }
 
+    @Nullable
     public String getPid() {
       return myPid;
     }
 
-    public void setName(String name) {
+    public void setName(@Nullable String name) {
       myName = name;
     }
 
-    public void setLogMessagePattern(String logMessagePattern) {
+    public void setLogMessagePattern(@Nullable String logMessagePattern) {
       myLogMessagePattern = logMessagePattern;
     }
 
@@ -138,11 +158,11 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
       myLogMessageIsRegex = logMessageIsRegex;
     }
 
-    public void setLogLevel(String logLevel) {
+    public void setLogLevel(@Nullable String logLevel) {
       myLogLevel = logLevel;
     }
 
-    public void setLogTagPattern(String logTagPattern) {
+    public void setLogTagPattern(@Nullable String logTagPattern) {
       myLogTagPattern = logTagPattern;
     }
 
@@ -150,10 +170,11 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
       myLogTagIsRegex = logTagIsRegex;
     }
 
-    public void setPid(String pid) {
+    public void setPid(@Nullable String pid) {
       myPid = pid;
     }
 
+    @Nullable
     public String getPackageNamePattern() {
       return myPackageNamePattern;
     }
@@ -162,7 +183,7 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
       return myPackageNameIsRegex;
     }
 
-    public void setPackageNamePattern(String packageNamePattern) {
+    public void setPackageNamePattern(@Nullable String packageNamePattern) {
       myPackageNamePattern = packageNamePattern;
     }
 

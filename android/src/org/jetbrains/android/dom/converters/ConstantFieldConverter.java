@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.sdklib.IAndroidTarget;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
@@ -32,6 +33,7 @@ import org.jetbrains.android.dom.LookupPrefix;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,24 +59,30 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
   @NotNull
   @Override
   public PsiReference[] createReferences(GenericDomValue<String> value, PsiElement element, ConvertContext context) {
-    final List<PsiReference> result = new ArrayList<PsiReference>();
     final DomElement domElement = context.getInvocationElement();
     final LookupClass lookupClass = domElement.getAnnotation(LookupClass.class);
     final LookupPrefix lookupPrefix = domElement.getAnnotation(LookupPrefix.class);
 
-    if (lookupClass != null && lookupPrefix != null) {
-      final Module module = context.getModule();
-      final GlobalSearchScope scope = module != null ?
-                                      GlobalSearchScope.allScope(module.getProject()) :
-                                      domElement.getResolveScope();
-      final PsiClass psiClass = JavaPsiFacade.getInstance(context.getPsiManager().
-        getProject()).findClass(lookupClass.value(), scope);
+    if (lookupClass == null || lookupPrefix == null) {
+      return PsiReference.EMPTY_ARRAY;
+    }
+
+    final Module module = context.getModule();
+    final GlobalSearchScope scope = module != null ? GlobalSearchScope.allScope(module.getProject()) : domElement.getResolveScope();
+    final JavaPsiFacade javaFacade = JavaPsiFacade.getInstance(context.getPsiManager().
+      getProject());
+
+    final String[] classNames = lookupClass.value();
+    final List<PsiReference> result = Lists.newArrayListWithCapacity(classNames.length);
+    final Set<String> filteringSet = getFilteringSet(context);
+    for (String className : classNames) {
+      final PsiClass psiClass = javaFacade.findClass(className, scope);
 
       if (psiClass != null) {
-        final Set<String> filteringSet = getFilteringSet(context);
         result.add(new MyReference(element, psiClass, lookupPrefix.value(), filteringSet));
       }
     }
+
     return result.toArray(new PsiReference[result.size()]);
   }
 
@@ -182,19 +190,18 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
             return true;
           }
           if (added.add(s)) {
-            // LookupElementBuilder should be case sensitive for manifest permission, because otherwise they are inserted in all uppercase
-            final boolean isManifestPermission = "android.Manifest.permission".equals(myClass.getQualifiedName());
-            LookupElementBuilder builder = LookupElementBuilder.create(pair.getFirst(), s).withCaseSensitivity(isManifestPermission);
+            LookupElementBuilder builder = LookupElementBuilder.create(pair.getFirst(), s).withCaseSensitivity(true);
 
-            // http://b.android.com/184877
-            if (isManifestPermission) {
-              // If an element is added for AndroidManifest.xml permission, we want to add name of a permission as a lookup string
-              // so autocompletion for "INT" would give "android.permission.INTERNET" as an option.
-              final int lastDot = s.lastIndexOf('.');
-              if (lastDot != -1 && lastDot + 1 < s.length()) {
-                final String suffix = s.substring(lastDot + 1);
-                builder = builder.withLookupString(suffix);
-              }
+            // ConstantFieldConverter provides autocompletion for permission, action and category names which consist
+            // of period-separated parts. We want to provide case-insensitive completion by the last part of the name
+            // (after the last dot), for example, to provide "android.permission.INTERNET" as completion for "INT".
+            // Usage of LookupElementBuilder#withLookupString adds an additional string that would be used for
+            // looking up completion by entered text.
+            //
+            // Bugs: http://b.android.com/184877, http://b.android.com/154004
+            final String unqualifiedName = AndroidUtils.getUnqualifiedName(s);
+            if (unqualifiedName != null) {
+              builder = builder.withLookupString(unqualifiedName);
             }
             result.add(builder);
           }

@@ -25,6 +25,8 @@ import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class RenderscriptLexerTest extends TestCase {
   private void validateLexer(String input, IElementType... tokens) {
@@ -110,6 +112,60 @@ public class RenderscriptLexerTest extends TestCase {
     for (lexer.start(input); lexer.getTokenType() != null; lexer.advance(), i++) {
       assertTrue(lexer.getTokenType() != RenderscriptTokenType.UNKNOWN);
       assertTrue(i < 10000); // check we are not stuck in an infinite loop
+    }
+  }
+  public void testVectorTypes() {
+    List<String> vectorTypes = Arrays.asList("char2", "double2", "float3", "half4",
+                                             "int2", "long3", "short4", "uchar2",
+                                             "ulong3", "uint4", "ushort2");
+    for (String type: vectorTypes) {
+      validateLexer(type + " i",
+                    RenderscriptTokenType.KEYWORD,
+                    TokenType.WHITE_SPACE,
+                    RenderscriptTokenType.IDENTIFIER);
+    }
+  }
+
+  public void testRsDataTypes() {
+    List<String> rsDataTypes = Arrays.asList("rs_matrix2x2", "rs_quaternion",
+                                             "rs_element", "rs_allocation",
+                                             "rs_sampler", "rs_script",
+                                             "rs_type", "rs_kernel_context");
+    for (String type: rsDataTypes) {
+      validateLexer(type + " i",
+                    RenderscriptTokenType.KEYWORD,
+                    TokenType.WHITE_SPACE,
+                    RenderscriptTokenType.IDENTIFIER);
+    }
+  }
+
+  public void testRsAPIs() {
+    List<String> rsAPIs = Arrays.asList("abs", "half_sqrt", "log10",
+                                             "native_sqrt", "native_tanh",
+                                             "sqrt", "convert_uchar2",
+                                             "rsIsObject", "rsGetDimX");
+    for (String api: rsAPIs) {
+      validateLexer(api + "(i)",
+                    RenderscriptTokenType.KEYWORD,
+                    RenderscriptTokenType.BRACE,
+                    RenderscriptTokenType.IDENTIFIER,
+                    RenderscriptTokenType.BRACE);
+    }
+
+    rsAPIs = Arrays.asList("rsGetElementAt", "rsSetElementAt",
+                                             "rsAllocationVStoreX_uint3");
+    for (String api: rsAPIs) {
+      validateLexer(api + "(a, val, x)",
+                    RenderscriptTokenType.KEYWORD,
+                    RenderscriptTokenType.BRACE,
+                    RenderscriptTokenType.IDENTIFIER,
+                    RenderscriptTokenType.SEPARATOR,
+                    TokenType.WHITE_SPACE,
+                    RenderscriptTokenType.IDENTIFIER,
+                    RenderscriptTokenType.SEPARATOR,
+                    TokenType.WHITE_SPACE,
+                    RenderscriptTokenType.IDENTIFIER,
+                    RenderscriptTokenType.BRACE);
     }
   }
 }

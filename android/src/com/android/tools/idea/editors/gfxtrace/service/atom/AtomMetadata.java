@@ -17,14 +17,12 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
-import com.android.tools.rpclib.schema.Field;
-import com.android.tools.rpclib.schema.SchemaClass;
-import com.android.tools.rpclib.schema.Struct;
+import com.android.tools.idea.editors.gfxtrace.service.ApiID;
+import com.android.tools.rpclib.schema.*;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
@@ -33,7 +31,7 @@ import com.android.tools.rpclib.binary.Namespace;
 import java.io.IOException;
 
 public final class AtomMetadata implements BinaryObject {
-  public static AtomMetadata find(SchemaClass c) {
+  public static AtomMetadata find(Entity c) {
     for (BinaryObject o : c.getMetadata()) {
       if (o instanceof AtomMetadata) {
         AtomMetadata meta = (AtomMetadata)o;
@@ -46,10 +44,10 @@ public final class AtomMetadata implements BinaryObject {
 
   boolean myIsPrepared = false;
   int myResultIndex = -1;
-  int myObservationsIndex = -1;
+  int myExtrasIndex = -1;
   @NotNull private static final Logger LOG = Logger.getInstance(AtomMetadata.class);
 
-  private void prepare(SchemaClass c) {
+  private void prepare(Entity c) {
     if (myIsPrepared) return;
     myIsPrepared = true;
     for (int index = 0; index < c.getFields().length; index++) {
@@ -57,17 +55,19 @@ public final class AtomMetadata implements BinaryObject {
       if (field.getDeclared().equals("Result")) {
         myResultIndex = index;
       }
-      if (field.getType() instanceof Struct) {
-        BinaryID id = ((Struct)field.getType()).getID();
-        if (id.equals(Observations.ID)) {
-          myObservationsIndex = index;
+      if (field.getType() instanceof Slice) {
+        Type vt = ((Slice)field.getType()).getValueType();
+        if (vt instanceof Interface) {
+          if ("atom.Extra".equals(((Interface)vt).name)) {
+            myExtrasIndex = index;
+          }
         }
       }
     }
   }
 
   //<<<Start:Java.ClassBody:1>>>
-  private BinaryID myAPI;
+  private ApiID myAPI;
   private String myDisplayName;
   private boolean myEndOfFrame;
   private boolean myDrawCall;
@@ -77,11 +77,11 @@ public final class AtomMetadata implements BinaryObject {
   public AtomMetadata() {}
 
 
-  public BinaryID getAPI() {
+  public ApiID getAPI() {
     return myAPI;
   }
 
-  public AtomMetadata setAPI(BinaryID v) {
+  public AtomMetadata setAPI(ApiID v) {
     myAPI = v;
     return this;
   }
@@ -125,11 +125,18 @@ public final class AtomMetadata implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {19, -11, -108, -61, 18, 72, -29, -11, 72, -17, 32, 58, 46, -66, 72, 29, 74, -98, 45, 3, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("atom","Metadata","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("API", new Array("gfxapi.ID", new Primitive("byte", Method.Uint8), 20)),
+      new Field("DisplayName", new Primitive("string", Method.String)),
+      new Field("EndOfFrame", new Primitive("bool", Method.Bool)),
+      new Field("DrawCall", new Primitive("bool", Method.Bool)),
+      new Field("DocumentationUrl", new Primitive("string", Method.String)),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -138,7 +145,7 @@ public final class AtomMetadata implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new AtomMetadata(); }
@@ -146,7 +153,8 @@ public final class AtomMetadata implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       AtomMetadata o = (AtomMetadata)obj;
-      e.id(o.myAPI);
+      o.myAPI.write(e);
+
       e.string(o.myDisplayName);
       e.bool(o.myEndOfFrame);
       e.bool(o.myDrawCall);
@@ -156,7 +164,8 @@ public final class AtomMetadata implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       AtomMetadata o = (AtomMetadata)obj;
-      o.myAPI = d.id();
+      o.myAPI = new ApiID(d);
+
       o.myDisplayName = d.string();
       o.myEndOfFrame = d.bool();
       o.myDrawCall = d.bool();

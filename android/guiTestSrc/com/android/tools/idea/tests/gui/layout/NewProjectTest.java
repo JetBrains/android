@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
@@ -50,13 +49,13 @@ import static org.junit.Assert.assertTrue;
 public class NewProjectTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testCreateNewMobileProject() {
-    IdeFrameFixture projectFrame = newProject("Test Application").create();
-    FileFixture layoutFile = projectFrame.findExistingFileByRelativePath("app/src/main/res/layout/activity_main.xml");
+    newProject("Test Application").create();
+    FileFixture layoutFile = myProjectFrame.findExistingFileByRelativePath("app/src/main/res/layout/activity_main.xml");
     layoutFile.requireOpenAndSelected();
 
     // Verify state of project
-    projectFrame.requireModuleCount(2);
-    AndroidGradleModel appAndroidModel = projectFrame.getAndroidProjectForModule("app");
+    myProjectFrame.requireModuleCount(2);
+    AndroidGradleModel appAndroidModel = myProjectFrame.getAndroidProjectForModule("app");
     assertThat(appAndroidModel.getVariantNames()).as("variants").containsOnly("debug", "release");
     assertThat(appAndroidModel.getSelectedVariant().getName()).as("selected variant").isEqualTo("debug");
 
@@ -67,7 +66,7 @@ public class NewProjectTest extends GuiTestCase {
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
-    EditorFixture editor = projectFrame.getEditor();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/src/main/AndroidManifest.xml");
     int offset = editor.findOffset("\".^MainActivity\"");
     assertTrue(offset != -1);
@@ -75,9 +74,9 @@ public class NewProjectTest extends GuiTestCase {
     // Creating a project with minSdkVersion 19 should leave the Java language level as Java 6
     // For L and higher we use Java 7 language level; that is tested separately in testLanguageLevelForApi21
     assertThat(appAndroidModel.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_6);
-    LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(projectFrame.getProject());
+    LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(myProjectFrame.getProject());
     assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_6);
-    for (Module module : ModuleManager.getInstance(projectFrame.getProject()).getModules()) {
+    for (Module module : ModuleManager.getInstance(myProjectFrame.getProject()).getModules()) {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
       assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName()).isNull();
     }
@@ -89,19 +88,19 @@ public class NewProjectTest extends GuiTestCase {
     // This checks that our (default) project templates are warnings-clean.
     // The test then proceeds to make a couple of edits and checks that these do not generate additional
     // warnings either.
-    IdeFrameFixture projectFrame = newProject("Test Application").create();
+    newProject("Test Application").create();
 
     // Insert resValue statements which should not add warnings (since they are generated files; see
     // https://code.google.com/p/android/issues/detail?id=76715
-    EditorFixture editor = projectFrame.getEditor();
+    EditorFixture editor = myProjectFrame.getEditor();
     String buildGradlePath = "app/build.gradle";
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("defaultConfig {", null, true));
     editor.enterText("\nresValue \"string\", \"foo\", \"Typpo Here\"");
-    projectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
-    projectFrame.waitForGradleProjectSyncToFinish();
+    myProjectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
+    myProjectFrame.waitForGradleProjectSyncToFinish();
 
-    InspectionsFixture inspections = projectFrame.inspectCode();
+    InspectionsFixture inspections = myProjectFrame.inspectCode();
 
     assertEquals("Test Application\n" +
                  // This warning is from the "foo" string we created in the Gradle resValue declaration above
@@ -122,17 +121,17 @@ public class NewProjectTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testRenderResourceInitialization() throws IOException {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76966
-    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("9").create();
+    newProject("Test Application").withBriefNames().withMinSdk("9").create();
 
-    EditorFixture editor = projectFrame.getEditor();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.requireName("activity_a.xml");
     LayoutEditorFixture layoutEditor = editor.getLayoutEditor(false);
     assertNotNull("Layout editor was not showing", layoutEditor);
     layoutEditor.waitForNextRenderToFinish();
-    projectFrame.invokeProjectMake();
+    myProjectFrame.invokeProjectMake();
     layoutEditor.waitForNextRenderToFinish();
     layoutEditor.requireRenderSuccessful();
-    projectFrame.waitForBackgroundTasksToFinish();
+    myProjectFrame.waitForBackgroundTasksToFinish();
   }
 
   @Test @IdeGuiTest
@@ -141,9 +140,9 @@ public class NewProjectTest extends GuiTestCase {
     // both in the generated Gradle model as well as in the synced project and modules
 
     // "20+" here should change to 21 as soon as L goes out of preview state
-    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("21").create();
+    newProject("Test Application").withBriefNames().withMinSdk("21").create();
 
-    AndroidGradleModel appAndroidModel = projectFrame.getAndroidProjectForModule("app");
+    AndroidGradleModel appAndroidModel = myProjectFrame.getAndroidProjectForModule("app");
     AndroidProject model = appAndroidModel.getAndroidProject();
     ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
     assertNotNull("minSdkVersion", minSdkVersion);
@@ -153,9 +152,9 @@ public class NewProjectTest extends GuiTestCase {
     //   (2) the associated JDK is JDK 7 or higher
     assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo("L");
     assertThat(appAndroidModel.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(projectFrame.getProject());
+    LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(myProjectFrame.getProject());
     assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    for (Module module : ModuleManager.getInstance(projectFrame.getProject()).getModules()) {
+    for (Module module : ModuleManager.getInstance(myProjectFrame.getProject()).getModules()) {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
       assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName()).isNull();
     }
@@ -166,8 +165,8 @@ public class NewProjectTest extends GuiTestCase {
     // Creates a new project with minSdk 15, which should use appcompat.
     // Check that if there are render-error messages on first render,
     // they don't include "Missing Styles" (should now talk about project building instead)
-    IdeFrameFixture projectFrame = newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create();
-    EditorFixture editor = projectFrame.getEditor();
+    newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.DESIGN);
     LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);
     assertNotNull(layoutEditor);
@@ -257,8 +256,7 @@ public class NewProjectTest extends GuiTestCase {
     /**
      * Creates a project fixture for this description
      */
-    @NotNull
-    IdeFrameFixture create() {
+    void create() {
       findWelcomeFrame().clickNewProjectButton();
 
       NewProjectWizardFixture newProjectWizard = findNewProjectWizard();
@@ -277,12 +275,10 @@ public class NewProjectTest extends GuiTestCase {
       newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
       newProjectWizard.clickFinish();
 
-      IdeFrameFixture projectFrame = findIdeFrame(myName, projectPath);
+      myProjectFrame = findIdeFrame(myName, projectPath);
       if (myWaitForSync) {
-        projectFrame.waitForGradleProjectSyncToFinish();
+        myProjectFrame.waitForGradleProjectSyncToFinish();
       }
-
-      return projectFrame;
     }
   }
 }

@@ -82,9 +82,18 @@ public class AndroidCompletionContributor extends CompletionContributor {
 
       for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
         final PsiClass aClass = classMap.get(rootTag);
-        LookupElementBuilder builder = aClass != null
-                                       ? LookupElementBuilder.create(aClass, rootTag)
-                                       : LookupElementBuilder.create(rootTag);
+        LookupElementBuilder builder;
+        if (aClass != null) {
+          builder = LookupElementBuilder.create(aClass, rootTag);
+          final String qualifiedName = aClass.getQualifiedName();
+          final String name = qualifiedName == null ? null : AndroidUtils.getUnqualifiedName(qualifiedName);
+          if (name != null) {
+            builder = builder.withLookupString(name);
+          }
+        }
+        else {
+          builder = LookupElementBuilder.create(rootTag);
+        }
         final Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(rootTag);
 
         if (icon != null) {
@@ -115,7 +124,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return false;
     }
     else if (ColorDomFileDescription.isColorResourceFile(xmlFile)) {
-      addAll(Arrays.asList(DrawableStateListDomFileDescription.SELECTOR_TAG_NAME), resultSet);
+      resultSet.addElement(LookupElementBuilder.create(DrawableStateListDomFileDescription.SELECTOR_TAG_NAME));
       return false;
     }
     return true;

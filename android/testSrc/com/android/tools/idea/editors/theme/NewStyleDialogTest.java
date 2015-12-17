@@ -30,12 +30,12 @@ public class NewStyleDialogTest extends AndroidTestCase {
     assertEquals("Widget.MyNewTheme.EditStyle",
                  NewStyleDialog.getNewStyleNameSuggestion("Widget.AppCompat.EditStyle", "Theme.MyNewTheme"));
     assertEquals("Widget.MyNewTheme.EditStyle",
-                 NewStyleDialog.getNewStyleNameSuggestion("@style/Widget.AppCompat.EditStyle", "MyNewTheme"));
+                 NewStyleDialog.getNewStyleNameSuggestion("Widget.AppCompat.EditStyle", "MyNewTheme"));
     assertEquals("Widget.MyNewTheme.EditStyle",
-                 NewStyleDialog.getNewStyleNameSuggestion("@style/Widget.AppCompat.EditStyle", "Theme.MyNewTheme"));
+                 NewStyleDialog.getNewStyleNameSuggestion("Widget.AppCompat.EditStyle", "Theme.MyNewTheme"));
 
     assertEquals("Widget.AppCompat2.EditStyle.MyNewTheme",
-                 NewStyleDialog.getNewStyleNameSuggestion("@style/Widget.AppCompat2.EditStyle", "Theme.MyNewTheme"));
+                 NewStyleDialog.getNewStyleNameSuggestion("Widget.AppCompat2.EditStyle", "Theme.MyNewTheme"));
   }
 
   public void testGetStyleParentName() {
@@ -44,7 +44,7 @@ public class NewStyleDialogTest extends AndroidTestCase {
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
     ThemeEditorContext context = new ThemeEditorContext(configuration);
-    String styleName = "@android:style/TextAppearance.Medium";
+    String styleName = "android:TextAppearance.Medium";
 
     NewStyleDialog dialog = new NewStyleDialog(false, context, styleName, "textAppearance", null);
     assertEquals(styleName, dialog.getStyleParentName());

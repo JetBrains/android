@@ -53,7 +53,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   private AndroidProjectViewPane myPane;
 
   public void testProjectView() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
+    if (IS_PRESUBMIT_RUNNER || !CAN_SYNC_PROJECTS) {
       System.err.println("AndroidProjectViewTest.testProjectView temporarily disabled");
       return;
     }
@@ -156,7 +156,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
   // Test that selecting a res group node causes the correct PSI Elements to be selected
   public void testSelection() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
+    if (IS_PRESUBMIT_RUNNER || !CAN_SYNC_PROJECTS) {
       System.err.println("AndroidProjectViewTest.testSelection temporarily disabled");
       return;
     }
@@ -202,7 +202,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testCommonRoots() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
+    if (IS_PRESUBMIT_RUNNER || !CAN_SYNC_PROJECTS) {
       System.err.println("AndroidProjectViewTest.testCommonRoots temporarily disabled");
       return;
     }
@@ -243,7 +243,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testFailedImport() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
+    if (IS_PRESUBMIT_RUNNER || !CAN_SYNC_PROJECTS) {
       System.err.println("AndroidProjectViewTest.testFailedImport temporarily disabled");
       return;
     }

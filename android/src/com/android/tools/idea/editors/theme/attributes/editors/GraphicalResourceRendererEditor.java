@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.*;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantItemListener;
@@ -34,10 +33,11 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
@@ -46,12 +46,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.TreeSet;
 
@@ -61,7 +60,7 @@ import java.util.TreeSet;
  * {@link #updateComponent(ThemeEditorContext, ResourceComponent, EditedStyleItem)} to allow subclasses to set their own labels
  * and styles on the {@link ResourceComponent}.
  */
-public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
+public abstract class GraphicalResourceRendererEditor extends TypedCellRendererEditor<EditedStyleItem, String> {
   public static final ResourceType[] COLORS_ONLY = {ResourceType.COLOR};
   public static final ResourceType[] DRAWABLES_ONLY = {ResourceType.DRAWABLE, ResourceType.MIPMAP};
   public static final ResourceType[] COLORS_AND_DRAWABLES = {ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP};
@@ -89,7 +88,6 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
   protected final AndroidThemePreviewPanel myPreviewPanel;
   protected AttributesTableModel myModel;
   protected EditedStyleItem myItem;
-  protected String myEditorValue;
 
   public GraphicalResourceRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
     myContext = context;
@@ -115,7 +113,13 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
           stopCellEditing();
         }
       });
-      myComponent.addActionListener(new EditorClickListener());
+      myComponent.addSwatchListener(new EditorClickListener());
+      myComponent.addTextListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          stopCellEditing();
+        }
+      });
     }
 
     myPreviewPanel = previewPanel;
@@ -166,14 +170,14 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
                                           @NotNull EditedStyleItem item);
 
   @Override
-  public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected, boolean hasFocus, int row, int column) {
-    assert obj instanceof EditedStyleItem : "Object passed to GraphicalResourceRendererEditor.getTableCellRendererComponent must be instance of EditedStyleItem";
-
-    myItem = (EditedStyleItem)obj;
+  public Component getRendererComponent(JTable table, EditedStyleItem obj, boolean isSelected, boolean hasFocus, int row, int column) {
+    myItem = obj;
 
     myComponent.setSize(table.getCellRect(row, column, false).getSize());
-    updateComponentInternal(myComponent, (EditedStyleItem)obj);
-    updateComponent(myContext, myComponent, (EditedStyleItem)obj);
+    Font font = table.getFont();
+    myComponent.setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
+    updateComponentInternal(myComponent, obj);
+    updateComponent(myContext, myComponent, obj);
 
     return myComponent;
   }
@@ -184,16 +188,17 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     myItem = value;
 
     myComponent.setSize(table.getCellRect(row, column, false).getSize());
+    Font font = table.getFont();
+    myComponent.setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
     updateComponentInternal(myComponent, value);
     updateComponent(myContext, myComponent, value);
-    myEditorValue = null; // invalidate stored editor value
 
     return myComponent;
   }
 
   @Override
   public String getEditorValue() {
-    return myEditorValue;
+    return myComponent.getValueText();
   }
 
   /**
@@ -216,25 +221,35 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
     @Override
     public void smartActionPerformed(ActionEvent e) {
       ThemeEditorStyle style = myModel.getSelectedStyle();
-      ResourceResolver styleResourceResolver = myContext.getConfiguration().getResourceResolver();
+      ResourceResolver styleResourceResolver = myContext.getResourceResolver();
 
       assert styleResourceResolver != null;
 
       ItemResourceValue primaryColorResourceValue =
         ThemeEditorUtils.resolveItemFromParents(style, MaterialColors.PRIMARY_MATERIAL_ATTR, !ThemeEditorUtils.isAppCompatTheme(style));
-      Color primaryColor = ResourceHelper.resolveColor(styleResourceResolver, primaryColorResourceValue, myContext.getProject());
+
+      final Project project = myContext.getProject();
+      Color primaryColor = ResourceHelper.resolveColor(styleResourceResolver, primaryColorResourceValue, project);
 
       ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, getAllowedResourceTypes());
+
+      String attributeName = myItem.getName();
       if (primaryColor != null) {
-        dialog.generateColorSuggestions(primaryColor, myItem.getName());
+        dialog.generateColorSuggestions(primaryColor, attributeName);
       }
+
+      ImmutableMap<String, Color> contrastColorsWithDescription = ColorUtils.getContrastColorsWithDescription(myContext, attributeName);
+      if (!contrastColorsWithDescription.isEmpty()) {
+        dialog.setContrastParameters(contrastColorsWithDescription, ColorUtils.isBackgroundAttribute(attributeName), true);
+      }
+
       final String oldValue = myItem.getSelectedValue().getValue();
 
       dialog.setResourcePickerListener(new ChooseResourceDialog.ResourcePickerListener() {
         @Override
         public void resourceChanged(final @Nullable String resource) {
           if (resource != null) {
-            ResourceResolver resourceResolver = myContext.getConfiguration().getResourceResolver();
+            ResourceResolver resourceResolver = myContext.getResourceResolver();
             assert resourceResolver != null;
 
             ResourceValue resValue = resourceResolver.findResValue(resource, false);
@@ -243,7 +258,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
               // resValue ending in ".xml" signifies a color state list, in which case we do not want to resolve it further
               // resolveColor applied to a state list would pick only one color, while the preview will deal with it correctly
               resolvedResource =
-                ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, resValue, myContext.getProject()));
+                ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, resValue, project));
             }
             myItem.getSelectedValue().setValue(resolvedResource);
           }
@@ -264,11 +279,11 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
       // Restore the old value in the properties model
       myItem.getSelectedValue().setValue(oldValue);
 
-      myEditorValue = null;
+      String editorValue = null;
       if (dialog.isOK()) {
         String value = dialog.getResourceName();
         if (value != null) {
-          myEditorValue = dialog.getResourceName();
+          editorValue = dialog.getResourceName();
         }
       }
       else {
@@ -276,10 +291,11 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellEditor<Ed
         myPreviewPanel.invalidateGraphicsRenderer();
       }
 
-      if (myEditorValue == null) {
+      if (editorValue == null) {
         GraphicalResourceRendererEditor.this.cancelCellEditing();
       }
       else {
+        myComponent.setValueText(editorValue);
         GraphicalResourceRendererEditor.this.stopCellEditing();
       }
     }

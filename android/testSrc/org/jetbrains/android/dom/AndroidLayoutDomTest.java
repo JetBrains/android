@@ -293,6 +293,14 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     toTestCompletion("can5.xml", "can5_after.xml");
   }
 
+  public void testToolsAttributesCompletion() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity.java", "src/p1/p2/Activity1.java");
+    // Create layout that we will use to test the layout completion
+    myFixture.copyFileToProject(testFolder + "/tools_context_completion_after.xml", "res/layout/other_layout.xml");
+    toTestFirstCompletion("tools_context_completion.xml", "tools_context_completion_after.xml");
+    toTestCompletion("tools_showIn_completion.xml", "tools_showIn_completion_after.xml");
+  }
+
   public void testCustomAttributeValueCompletion() throws Throwable {
     doTestCompletionVariants("cav.xml", "@color/color0", "@color/color1", "@color/color2");
   }
@@ -306,6 +314,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     VirtualFile file = copyFileToProject("tn1.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
+    myFixture.type('\n');
     myFixture.checkResultByFile(testFolder + '/' + "tn1_after.xml");
   }
 
@@ -386,15 +395,16 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     VirtualFile file = copyFileToProject("tn2.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
-    myFixture.assertPreferredCompletionItems(0, "EditText", "ExpandableListView", "ExtractEditText");
+    myFixture.assertPreferredCompletionItems(0, "EditText", "ExpandableListView", "android.inputmethodservice.ExtractEditText");
   }
 
   public void testTagNameCompletion3() throws Throwable {
-    doTestCompletionVariants("tn3.xml", "ActionMenuView", "AdapterViewFlipper", "AppWidgetHostView", "AutoCompleteTextView",
-                             "CalendarView", "CheckedTextView", "ExpandableListView", "GLSurfaceView", "GestureOverlayView", "GridView",
-                             "HorizontalScrollView", "ImageView", "KeyboardView", "ListView", "MultiAutoCompleteTextView", "ScrollView",
-                             "SearchView", "StackView", "SurfaceView", "TextView", "TextureView", "TvView", "VideoView", "View",
-                             "ViewAnimator", "ViewFlipper", "ViewStub", "ViewSwitcher", "WebView");
+    doTestCompletionVariants("tn3.xml", "ActionMenuView", "AdapterViewFlipper", "AutoCompleteTextView", "CalendarView", "CheckedTextView",
+                             "ExpandableListView", "GridView", "HorizontalScrollView", "ImageView", "ListView", "MultiAutoCompleteTextView",
+                             "ScrollView", "SearchView", "StackView", "SurfaceView", "TextView", "TextureView", "VideoView", "View",
+                             "ViewAnimator", "ViewFlipper", "ViewStub", "ViewSwitcher", "WebView", "android.appwidget.AppWidgetHostView",
+                             "android.gesture.GestureOverlayView", "android.inputmethodservice.KeyboardView", "android.media.tv.TvView",
+                             "android.opengl.GLSurfaceView");
   }
 
   /*public void testTagNameCompletion4() throws Throwable {
@@ -402,7 +412,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }*/
 
   public void testTagNameCompletion5() throws Throwable {
-    toTestCompletion("tn5.xml", "tn5_after.xml");
+    toTestFirstCompletion("tn5.xml", "tn5_after.xml");
   }
 
   public void testTagNameCompletion6() throws Throwable {
@@ -442,6 +452,19 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testTagNameCompletion11() throws Throwable {
     toTestCompletion("tn11.xml", "tn11_after.xml");
+  }
+
+  // Completion by simple class name in layouts should work, inserting fully-qualified names
+  // http://b.android.com/179380
+  public void testTagNameCompletionBySimpleName() throws Throwable {
+    toTestCompletion("tn13.xml", "tn13_after.xml");
+  }
+
+  // Regression test for http://b.android.com/193339
+  // Completion by simple class name in layouts should succeed when tag name is typed lowercase,
+  // the bug made it fail because two identical completion elements have been shown.
+  public void testTagNameCompletionBySimpleNameLowercase() throws Throwable {
+    toTestCompletion("tag_name_lowercase.xml", "tag_name_lowercase_after.xml");
   }
 
   public void testTagNameIcons1() throws Throwable {
@@ -509,6 +532,14 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.checkHighlighting(true, false, false);
   }
 
+  // Regression test for http://b.android.com/175619
+  public void testStyleShortNameCompletion() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("StyleNameCompletion_layout.xml", "res/layout/layout.xml"));
+    copyFileToProject("StyleNameCompletion_style.xml", "res/values/styles.xml");
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResultByFile(testFolder + "/StyleNameCompletion_layout_after.xml");
+  }
+
   public void testIdReferenceCompletion() throws Throwable {
     toTestCompletion("idref1.xml", "idref1_after.xml");
   }
@@ -574,7 +605,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testFragmentCompletion2() throws Throwable {
-    toTestCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml");
+    toTestFirstCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml");
   }
 
   public void testFragmentCompletion3() throws Throwable {
@@ -587,7 +618,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testFragmentCompletion5() throws Throwable {
-    toTestCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml");
+    toTestFirstCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml");
   }
 
   public void testFragmentCompletion6() throws Throwable {
@@ -976,7 +1007,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testNamespaceCompletion() throws Throwable {
-    doTestNamespaceCompletion(true, true);
+    doTestNamespaceCompletion(true, true, true, false);
   }
 
   public void testDimenUnitsCompletion1() throws Exception {

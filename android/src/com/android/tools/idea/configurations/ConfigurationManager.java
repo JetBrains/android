@@ -93,6 +93,7 @@ public class ConfigurationManager implements Disposable {
       }
     };
     Disposer.register(this, myUserDeviceManager);
+    Disposer.register(myModule, this);
   }
 
   /**
@@ -353,7 +354,6 @@ public class ConfigurationManager implements Disposable {
 
   @Override
   public void dispose() {
-    Disposer.dispose(myUserDeviceManager);
   }
 
   @Nullable

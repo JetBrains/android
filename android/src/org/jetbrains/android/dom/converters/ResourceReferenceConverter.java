@@ -17,6 +17,10 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.google.common.collect.ImmutableSet;
+import com.intellij.codeInsight.completion.PrioritizedLookupElement;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -30,6 +34,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
@@ -52,6 +57,8 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
  */
 public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue>
   implements CustomReferenceConverter<ResourceValue>, AttributeValueDocumentationProvider {
+  private static final ImmutableSet<String> TOP_PRIORITY_VALUES =
+    ImmutableSet.of(SdkConstants.VALUE_MATCH_PARENT, SdkConstants.VALUE_WRAP_CONTENT);
   private final List<String> myResourceTypes;
   private ResolvingConverter<String> myAdditionalConverter;
   private boolean myAdditionalConverterSoft = false;
@@ -60,6 +67,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   private boolean myQuiet = false;
   private boolean myAllowAttributeReferences = true;
   private boolean myAllowLiterals = true;
+  private @Nullable AttributeDefinition myAttributeDefinition = null;
 
   public ResourceReferenceConverter() {
     this(new ArrayList<String>());
@@ -69,12 +77,24 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     myResourceTypes = new ArrayList<String>(resourceTypes);
   }
 
+  // TODO: it should be possible to get rid of AttributeDefinition dependency and use ResourceManager
+  // to acquire AttributeDefinition when needed.
+  public ResourceReferenceConverter(@NotNull Collection<String> resourceTypes, @Nullable AttributeDefinition attributeDefinition) {
+    myResourceTypes = new ArrayList<String>(resourceTypes);
+    myAttributeDefinition = attributeDefinition;
+  }
+
   public void setAllowLiterals(boolean allowLiterals) {
     myAllowLiterals = allowLiterals;
   }
 
+  /**
+   * @param resourceType the resource type to be used in the resolution (e.g. "style")
+   * @param withPrefix if true, this will force all the resolved references to contain the reference prefix @
+   * @param withExplicitResourceType if true, this will force the resourceType to be part of the resolved name (e.g. "@style/")
+   */
   public ResourceReferenceConverter(@NotNull String resourceType, boolean withPrefix, boolean withExplicitResourceType) {
-    myResourceTypes = Arrays.asList(resourceType);
+    myResourceTypes = Collections.singletonList(resourceType);
     myWithPrefix = withPrefix;
     myWithExplicitResourceType = withExplicitResourceType;
   }
@@ -93,9 +113,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @NotNull
-  private String getPackagePrefix(@Nullable String resourcePackage) {
-    String prefix = myWithPrefix ? "@" : "";
-    if (resourcePackage == null) return prefix;
+  private static String getPackagePrefix(@Nullable String resourcePackage, boolean withPrefix) {
+    String prefix = withPrefix ? "@" : "";
+    if (resourcePackage == null) {
+      return prefix;
+    }
     return prefix + resourcePackage + ':';
   }
 
@@ -131,16 +153,18 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     String value = getValue(element);
     assert value != null;
 
-    if (!myQuiet || StringUtil.startsWithChar(value, '@')) {
+    boolean startsWithRefChar = StringUtil.startsWithChar(value, '@');
+    if (!myQuiet || startsWithRefChar) {
       String resourcePackage = null;
-      String systemPrefix = getPackagePrefix(SYSTEM_RESOURCE_PACKAGE);
+      // Retrieve the system prefix depending on the prefix settings ("@android:" or "android:")
+      String systemPrefix = getPackagePrefix(SYSTEM_RESOURCE_PACKAGE, myWithPrefix || startsWithRefChar);
       if (value.startsWith(systemPrefix)) {
         resourcePackage = SYSTEM_RESOURCE_PACKAGE;
       }
       else {
         result.add(ResourceValue.literal(systemPrefix));
       }
-      final char prefix = myWithPrefix ? '@' : 0;
+      final char prefix = myWithPrefix || startsWithRefChar ? '@' : 0;
 
       if (value.startsWith(SdkConstants.NEW_ID_PREFIX)) {
         addVariantsForIdDeclaration(result, facet, prefix, value);
@@ -148,7 +172,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
       if (recommendedTypes.size() == 1) {
         String type = recommendedTypes.iterator().next();
-        boolean explicitResourceType = value.startsWith(getTypePrefix(resourcePackage, type)) || myWithExplicitResourceType;
+        // We will add the resource type (e.g. @style/) if the current value starts like a reference using @
+        boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
         addResourceReferenceValues(facet, prefix, type, resourcePackage, result, explicitResourceType);
       }
       else {
@@ -230,9 +255,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @NotNull
-  private String getTypePrefix(String resourcePackage, String type) {
+  private static String getTypePrefix(String resourcePackage, String type) {
     String typePart = type + '/';
-    return getPackagePrefix(resourcePackage) + typePart;
+    return getPackagePrefix(resourcePackage, true) + typePart;
   }
 
   private Set<String> getResourceTypes(ConvertContext context) {
@@ -264,7 +289,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                                  boolean explicitResourceType) {
     final ResourceManager manager = facet.getResourceManager(resPackage);
     if (manager != null) {
-      for (String name : manager.getResourceNames(type)) {
+      for (String name : manager.getResourceNames(type, true)) {
         result.add(referenceTo(prefix, type, resPackage, name, explicitResourceType));
       }
     }
@@ -296,6 +321,74 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
 
     return super.getErrorMessage(s, context);
+  }
+
+  /**
+   * Data class that contains all required information to show on-completion documentation.
+   */
+  public static class DocumentationHolder {
+    /**
+     * Value being completed
+     */
+    private final @NotNull String myValue;
+
+    /**
+     * Documentation associated with that value
+     */
+    private final @NotNull String myDocumentation;
+
+    public DocumentationHolder(@NotNull String value, @NotNull String documentation) {
+      myValue = value;
+      myDocumentation = documentation;
+    }
+
+    public @NotNull String getValue() {
+      return myValue;
+    }
+
+    public @NotNull String getDocumentation() {
+      return myDocumentation;
+    }
+  }
+
+  @Nullable
+  @Override
+  public LookupElement createLookupElement(ResourceValue resourceValue) {
+    final String value = resourceValue.toString();
+
+    boolean deprecated = false;
+    String doc = null;
+    if (myAttributeDefinition != null) {
+      doc = myAttributeDefinition.getValueDoc(value);
+      deprecated = myAttributeDefinition.isValueDeprecated(value);
+    }
+
+    LookupElementBuilder builder;
+    if (doc == null) {
+      builder = LookupElementBuilder.create(value);
+    } else {
+      builder = LookupElementBuilder.create(new DocumentationHolder(value, doc.trim()), value);
+    }
+
+    builder = builder.withCaseSensitivity(true).withStrikeoutness(deprecated);
+    final String resourceName = resourceValue.getResourceName();
+    if (resourceName != null) {
+      builder = builder.withLookupString(resourceName);
+    }
+
+    final int priority;
+    if (deprecated) {
+      // Show deprecated values in the end of the autocompletion list
+      priority = 0;
+    } else if (TOP_PRIORITY_VALUES.contains(value)) {
+      // http://b.android.com/189164
+      // match_parent and wrap_content are shown higher in the list of autocompletions, if they're available
+      priority = 2;
+    } else {
+      priority = 1;
+    }
+
+    return PrioritizedLookupElement.withPriority(builder, priority);
   }
 
   @Override

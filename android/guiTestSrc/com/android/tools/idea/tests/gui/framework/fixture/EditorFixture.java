@@ -65,6 +65,8 @@ import java.text.AttributedString;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -442,12 +444,37 @@ public class EditorFixture {
   }
 
   /**
+   * Moves the caret to the start of the given line number (0-based).
+   *
+   * @param lineNumber the line number.
+   */
+  @NotNull
+  public EditorFixture moveToLine(final int lineNumber) {
+    assertThat(lineNumber).isGreaterThanOrEqualTo(0);
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        // TODO: Do this via mouse clicks!
+        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+        Editor editor = manager.getSelectedTextEditor();
+        if (editor != null) {
+          Document document = editor.getDocument();
+          int offset = document.getLineStartOffset(lineNumber);
+          editor.getCaretModel().moveToOffset(offset);
+          editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
+        }
+      }
+    });
+    return this;
+  }
+
+  /**
    * Moves the caret to the given caret offset (0-based).
    *
-   * @param offset the character offset
+   * @param offset the character offset.
    */
   public EditorFixture moveTo(final int offset) {
-    assertTrue(offset >= 0);
+    assertThat(offset).isGreaterThanOrEqualTo(0);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
@@ -891,8 +918,8 @@ public class EditorFixture {
   @NotNull
   public EditorFixture invokeIntentionAction(@NotNull String labelPrefix) {
     invokeAction(EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS);
-    JBList popup = GuiTests.waitForPopup(robot);
-    GuiTests.clickPopupMenuItem(labelPrefix, popup, robot);
+    JBList popup = waitForPopup(robot);
+    clickPopupMenuItem(labelPrefix, popup, robot);
     return this;
   }
 

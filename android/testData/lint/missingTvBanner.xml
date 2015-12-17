@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.pkg">
+  <<warning descr="Expecting `android:banner` with the `<application>` tag or each Leanback launcher activity.">appl<caret>ication</warning> android:allowBackup="false">
+    <activity android:name="test.pkg.TvActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

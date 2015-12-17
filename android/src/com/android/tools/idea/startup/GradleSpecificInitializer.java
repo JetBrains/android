@@ -37,6 +37,7 @@ import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -50,6 +51,7 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.TimeoutUtil;
 import com.intellij.util.messages.MessageBusConnection;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -64,7 +66,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemons;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
@@ -102,6 +103,7 @@ public class GradleSpecificInitializer implements Runnable {
     setUpNewProjectActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
+    checkInstallPath();
 
     try {
       // Setup JDK and Android SDK if necessary
@@ -124,6 +126,31 @@ public class GradleSpecificInitializer implements Runnable {
 
     checkAndSetAndroidSdkSources();
     hideUnwantedIntentions();
+  }
+
+  /**
+   * Gradle has an issue when the studio path contains ! (http://b.android.com/184588)
+   */
+  private static void checkInstallPath() {
+    if (PathManager.getHomePath().contains("!")) {
+      final Application app = ApplicationManager.getApplication();
+
+      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+        @Override
+        public void appStarting(Project project) {
+          app.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              String message = String.format("%1$s must not be installed in a path containing '!' or Gradle sync will fail!",
+                                             ApplicationNamesInfo.getInstance().getProductName());
+              Notification notification = getNotificationGroup().createNotification(message, NotificationType.ERROR);
+              notification.setImportant(true);
+              Notifications.Bus.notify(notification);
+            }
+          });
+        }
+      });
+    }
   }
 
   private static void setUpNewProjectActions() {
@@ -220,13 +247,7 @@ public class GradleSpecificInitializer implements Runnable {
         app.invokeLater(new Runnable() {
           @Override
           public void run() {
-            // Use the system health settings by default
-            NotificationGroup group = NotificationGroup.findRegisteredGroup("System Health");
-            if (group == null) {
-              // This shouldn't happen
-              group = new NotificationGroup("Sdk Validation", NotificationDisplayType.STICKY_BALLOON, true);
-            }
-            Notification notification = group.createNotification("SDK Validation", message, NotificationType.WARNING, listener);
+            Notification notification = getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
             notification.setImportant(true);
             Notifications.Bus.notify(notification);
           }
@@ -235,12 +256,22 @@ public class GradleSpecificInitializer implements Runnable {
     });
   }
 
+  private static NotificationGroup getNotificationGroup() {
+    // Use the system health settings by default
+    NotificationGroup group = NotificationGroup.findRegisteredGroup("System Health");
+    if (group == null) {
+      // This shouldn't happen
+      group = new NotificationGroup("Gradle Initializer", NotificationDisplayType.STICKY_BALLOON, true);
+    }
+    return group;
+  }
+
   private static void setupSdks() {
     File androidHome = IdeSdks.getAndroidSdkPath();
 
     if (androidHome != null) {
       WizardUtils.ValidationResult sdkValidationResult =
-        WizardUtils.validateLocation(androidHome.getAbsolutePath(), "Android SDK location", false);
+        WizardUtils.validateLocation(androidHome.getAbsolutePath(), "Android SDK location", false, false);
       if (sdkValidationResult.isError()) {
         notifyInvalidSdk();
       }
@@ -390,10 +421,10 @@ public class GradleSpecificInitializer implements Runnable {
       @Override
       public void appClosing() {
         try {
-          stopAllGradleDaemons(false);
+          DefaultGradleConnector.close();
         }
-        catch (IOException e) {
-          LOG.info("Failed to stop Gradle daemons", e);
+        catch (RuntimeException e) {
+          LOG.info("Failed to stop Gradle daemons during IDE shutdown", e);
         }
       }
     });

@@ -18,6 +18,6 @@ package com.android.tools.idea.tests.gui.framework;
 public enum TestGroup {
   PROJECT_SUPPORT,
   LAYOUT,
-  UNIT_TESTING,
+  TEST_SUPPORT,
   THEME,
 }

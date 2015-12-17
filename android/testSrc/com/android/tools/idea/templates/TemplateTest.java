@@ -23,6 +23,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.npw.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.NewProjectWizardState;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.Severity;
@@ -237,6 +238,14 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "BlankActivity", true);
   }
 
+  public void testNewEmptyActivity() throws Exception {
+    checkCreateTemplate("activities", "EmptyActivity", false);
+  }
+
+  public void testNewProjectWithEmptyActivity() throws Exception {
+    checkCreateTemplate("activities", "EmptyActivity", true);
+  }
+
   public void testNewTabbedActivity() throws Exception {
     checkCreateTemplate("activities", "TabbedActivity", false);
   }
@@ -251,14 +260,6 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   public void testNewProjectWithNavigationDrawerActivity() throws Exception {
     checkCreateTemplate("activities", "NavigationDrawerActivity", true);
-  }
-
-  public void testNewBlankActivityWithFragment() throws Exception {
-    checkCreateTemplate("activities", "BlankActivityWithFragment", false);
-  }
-
-  public void testNewProjectWithBlankActivityWithFragment() throws Exception {
-    checkCreateTemplate("activities", "BlankActivityWithFragment", true);
   }
 
   public void testNewMasterDetailFlow() throws Exception {
@@ -283,6 +284,14 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   public void testNewProjectWithLoginActivity() throws Exception {
     checkCreateTemplate("activities", "LoginActivity", true);
+  }
+
+  public void testNewScrollActivity() throws Exception {
+    checkCreateTemplate("activities", "ScrollActivity", false);
+  }
+
+  public void testNewProjectWithScrollActivity() throws Exception {
+    checkCreateTemplate("activities", "ScrollActivity", true);
   }
 
   public void testNewSettingsActivity() throws Exception {
@@ -443,9 +452,10 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   public void testTemplateFormatting() throws Exception {
-    Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")));
-    template.render(new File(myFixture.getTempDirPath()), new File("dummy"),
-                    Maps.<String, Object>newHashMap(), myFixture.getProject());
+    Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")).getCanonicalFile());
+    RenderingContext context = RenderingContext.Builder.newContext(template, myFixture.getProject())
+      .withOutputRoot(new File(myFixture.getTempDirPath())).withModuleRoot(new File("dummy")).build();
+    template.render(context);
     FileDocumentManager.getInstance().saveAllDocuments();
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
     VirtualFile desired = fileSystem.findFileByIoFile(new File(getTestDataPath(),
@@ -865,16 +875,10 @@ public class TemplateTest extends AndroidGradleTestCase {
             assert template != null;
             File moduleRoot = new File(projectRoot, modifiedProjectName);
             templateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
-            try {
-              templateValues.populateDirectoryParameters();
-            }
-            catch (IOException e) {
-              throw new RuntimeException(e);
-            }
-            template.render(moduleRoot, moduleRoot, templateValues.getParameters());
-            if (Template.ourMostRecentException != null) {
-              fail(Template.ourMostRecentException.getMessage());
-            }
+            templateValues.populateDirectoryParameters();
+            RenderingContext context = RenderingContext.Builder.newContext(template, project).withOutputRoot(moduleRoot)
+              .withModuleRoot(moduleRoot).withParams(templateValues.getParameters()).build();
+            template.render(context);
             // Add in icons if necessary
             if (templateValues.getTemplateMetadata() != null  && templateValues.getTemplateMetadata().getIconName() != null) {
               File drawableFolder = new File(FileUtil.join(templateValues.getString(ATTR_RES_OUT)),

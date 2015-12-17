@@ -30,13 +30,12 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.WindowManagerImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
-import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
@@ -51,7 +50,6 @@ import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
@@ -83,6 +81,8 @@ public abstract class GuiTestCase {
   @SuppressWarnings("UnusedDeclaration") // This field is set via reflection.
   private String myTestName;
 
+  protected IdeFrameFixture myProjectFrame;
+
   /**
    * @return the name of the test method being executed.
    */
@@ -106,6 +106,9 @@ public abstract class GuiTestCase {
     myRobot.settings().delayBetweenEvents(30);
 
     setIdeSettings();
+    setUpSdks();
+
+    refreshFiles();
   }
 
   private static void setIdeSettings() {
@@ -124,16 +127,11 @@ public abstract class GuiTestCase {
 
   @After
   public void tearDown() {
+    if (myProjectFrame != null) {
+      myProjectFrame.waitForBackgroundTasksToFinish();
+    }
     if (myRobot != null) {
       myRobot.cleanUpWithoutDisposingWindows();
-    }
-  }
-
-  @AfterClass
-  public static void tearDownPerClass() {
-    boolean inSuite = SystemProperties.getBooleanProperty(GUI_TESTS_RUNNING_IN_SUITE_PROPERTY, false);
-    if (!inSuite) {
-      IdeTestApplication.disposeInstance();
     }
   }
 
@@ -208,6 +206,11 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
+  protected IdeFrameFixture importMultiModule() throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish("MultiModule");
+  }
+
+  @NotNull
   protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
     File projectPath = setUpProject(projectDirName, false, true, null);
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
@@ -247,41 +250,6 @@ public abstract class GuiTestCase {
         GradleProjectImporter.getInstance().importProject(projectDir);
       }
     });
-  }
-
-  @NotNull
-  private IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
-    File projectPath = setUpProject(projectDirName, true, true, null);
-    return openProject(projectPath);
-  }
-
-  @NotNull
-  private IdeFrameFixture openProject(@NotNull final File projectPath) {
-    VirtualFile toSelect = findFileByIoFile(projectPath, true);
-    assertNotNull(toSelect);
-
-    GuiTestSuiteState state = getGuiTestSuiteState();
-    if (!state.isOpenProjectWizardAlreadyTested()) {
-      state.setOpenProjectWizardAlreadyTested(true);
-
-      findWelcomeFrame().clickOpenProjectButton();
-
-      FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
-      return openProjectAndWaitUntilOpened(toSelect, openProjectDialog);
-    }
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-        projectManager.loadAndOpenProject(projectPath.getPath());
-      }
-    });
-
-    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
-    projectFrame.waitForGradleProjectSyncToFinish();
-
-    return projectFrame;
   }
 
   /**
@@ -365,8 +333,12 @@ public abstract class GuiTestCase {
     File masterProjectPath = getMasterProjectDirPath(projectDirName);
 
     File projectPath = getTestProjectDirPath(projectDirName);
-    delete(projectPath);
+    if (projectPath.isDirectory()) {
+      delete(projectPath);
+      System.out.println(String.format("Deleted project path '%1$s'", projectPath.getPath()));
+    }
     copyDir(masterProjectPath, projectPath);
+    System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, projectPath.getPath()));
     return projectPath;
   }
 
@@ -447,5 +419,19 @@ public abstract class GuiTestCase {
   @NotNull
   protected IdeFrameFixture findIdeFrame(@NotNull File projectPath) {
     return IdeFrameFixture.find(myRobot, projectPath, null);
+  }
+
+  protected void refreshFiles() {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            LocalFileSystem.getInstance().refresh(false /* synchronous */);
+          }
+        });
+      }
+    });
   }
 }

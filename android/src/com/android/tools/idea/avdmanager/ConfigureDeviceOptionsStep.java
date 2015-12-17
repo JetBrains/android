@@ -24,6 +24,7 @@ import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -89,9 +90,11 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
 
   public ConfigureDeviceOptionsStep(@Nullable Device templateDevice, boolean forceCreation, @Nullable Disposable parentDisposable) {
     super(parentDisposable);
+    setBodyComponent(myRootPanel);
+    FormScalingUtil.scaleComponentTree(this.getClass(), createStepBody());
+
     myTemplateDevice = templateDevice;
     myForceCreation = forceCreation;
-    setBodyComponent(myRootPanel);
 
     mySoftware = new Software();
     mySoftware.setLiveWallpaperSupport(true);

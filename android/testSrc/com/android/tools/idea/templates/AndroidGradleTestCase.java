@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.npw.*;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
@@ -43,7 +44,9 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -58,6 +61,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
@@ -65,6 +69,7 @@ import org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry;
 import org.jetbrains.android.inspections.lint.IntellijLintRequest;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,6 +95,11 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
  * Base class for unit tests that operate on Gradle projects
  */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
+  private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
+
+  /** Indicates whether the test is being run by the presubmit runner. */
+  public static final boolean IS_PRESUBMIT_RUNNER = Boolean.parseBoolean(System.getenv("STUDIO_PRESUBMIT_RUNNER"));
+
   /**
    * The name of the gradle wrapper executable associated with the current OS.
    */
@@ -137,6 +147,30 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
 
     ensureSdkManagerAvailable();
+
+    // We seem to have two different locations where the SDK needs to be specified.
+    // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
+    // Gradle import will fail if the global one isn't set.
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData != null) {
+      final File location = sdkData.getLocation();
+      LOG.info("sdk @ " + location);
+      File ideSdkPath = IdeSdks.getAndroidSdkPath();
+      if (ideSdkPath == null) {
+        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+              @Override
+              public void run() {
+                IdeSdks.setAndroidSdkPath(location, getProject());
+                LOG.info("Set IDE Sdk Path to " + location);
+              }
+            });
+          }
+        });
+      }
+    }
   }
 
   @Override
@@ -398,9 +432,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       public void run() {
         AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
         NewProjectWizard.createProject(projectWizardState, myFixture.getProject(), assetGenerator);
-        if (Template.ourMostRecentException != null) {
-          fail(Template.ourMostRecentException.getMessage());
-        }
         FileDocumentManager.getInstance().saveAllDocuments();
       }
     });
@@ -414,13 +445,17 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  public void assertBuildsCleanly(Project project, boolean allowWarnings) throws Exception {
+  public void assertBuildsCleanly(Project project, boolean allowWarnings, String... extraArgs) throws Exception {
     File base = virtualToIoFile(project.getBaseDir());
     File gradlew = new File(base, GRADLE_WRAPPER_EXECUTABLE_NAME);
     assertTrue(gradlew.exists());
     File pwd = base.getAbsoluteFile();
     // TODO: Add in --no-daemon, anything to suppress total time?
-    GeneralCommandLine cmdLine = new GeneralCommandLine(new String[]{gradlew.getPath(), "assembleDebug"}).withWorkDirectory(pwd);
+    String[] args = new String[2 + extraArgs.length];
+    args[0] = gradlew.getPath();
+    args[1] = "assembleDebug";
+    System.arraycopy(extraArgs, 0, args, 2, extraArgs.length);
+    GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
     int timeoutInMilliseconds = 5 * 60 * 1000;

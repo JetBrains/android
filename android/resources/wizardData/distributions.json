@@ -1,31 +1,9 @@
 [
 {
-  "name": "Froyo",
-  "version": "2.2",
-  "apiLevel": 8,
-  "distributionPercentage": 0.003,
-  "url": "https://developer.android.com/about/versions/android-2.2.html",
-  "descriptionBlocks": [
-                           {
-                               "title": "Connectivity",
-                               "body": "Voice dialing over Bluetooth<br>Share contacts over Bluetooth<br>Cloud to device messaging"
-                           },
-                           {
-                               "title": "Multimedia",
-                               "body": "Media framework<br>Local file playback<br>HTTP progressive streaming<br>APIs for OpenGL ES 2.0"
-
-                           },
-                           {
-                               "title": "Camera",
-                               "body": "Portrait orientation<br>Zoom controls"
-                           }
-                       ]
-},
-{
   "name": "Gingerbread",
   "version": "2.3",
   "apiLevel": 10,
-  "distributionPercentage": 0.057,
+  "distributionPercentage": 0.029,
   "url": "https://developer.android.com/about/versions/android-2.3.3.html",
   "descriptionBlocks" :[
                            {
@@ -47,7 +25,7 @@
   "name": "Ice Cream Sandwich",
   "version": "4.0",
   "apiLevel": 15,
-  "distributionPercentage": 0.053,
+  "distributionPercentage": 0.035,
   "url": "https://developer.android.com/about/versions/android-4.0.html",
   "descriptionBlocks" : [
                           {
@@ -96,7 +74,7 @@
   "name": "Jelly Bean",
   "version": "4.1",
   "apiLevel": 16,
-  "distributionPercentage": 0.156,
+  "distributionPercentage": 0.116,
   "url": "https://developer.android.com/about/versions/android-4.1.html",
   "descriptionBlocks" : [
                           {
@@ -145,7 +123,7 @@
   "name": "Jelly Bean",
   "version": "4.2",
   "apiLevel": 17,
-  "distributionPercentage": 0.181,
+  "distributionPercentage": 0.146,
   "url": "https://developer.android.com/about/versions/android-4.2.html",
   "descriptionBlocks" : [
                           {
@@ -178,7 +156,7 @@
   "name": "Jelly Bean",
   "version": "4.3",
   "apiLevel": 18,
-  "distributionPercentage": 0.055,
+  "distributionPercentage": 0.043,
   "url": "https://developer.android.com/about/versions/android-4.3.html",
   "descriptionBlocks" : [
                           {
@@ -235,7 +213,7 @@
   "name": "KitKat",
   "version": "4.4",
   "apiLevel": 19,
-  "distributionPercentage": 0.398,
+  "distributionPercentage": 0.382,
   "url": "https://developer.android.com/about/versions/android-4.4.html",
   "descriptionBlocks" : [
                             {
@@ -276,7 +254,7 @@
   "name": "Lollipop",
   "version": "5.0",
   "apiLevel": 21,
-  "distributionPercentage": 0.097,
+  "distributionPercentage": 0.222,
   "url": "https://developer.android.com/about/versions/android-5.0.html",
   "descriptionBlocks" : [
 

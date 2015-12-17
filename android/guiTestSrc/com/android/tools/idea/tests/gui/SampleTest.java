@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -28,8 +27,8 @@ import static junit.framework.Assert.assertEquals;
 public class SampleTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testEditor() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame = importSimpleApplication();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
 
     assertEquals("strings.xml", editor.getCurrentFileName());

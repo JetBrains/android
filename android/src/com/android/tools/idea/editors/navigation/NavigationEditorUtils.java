@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -80,7 +81,7 @@ public class NavigationEditorUtils {
   }
 
   public static Point project(Point p, Rectangle r) {
-    return new Point(clamp(p.x, x1(r), x2(r)), clamp(p.y, y1(r), y2(r)));
+    return new Point(ResourceHelper.clamp(p.x, x1(r), x2(r)), ResourceHelper.clamp(p.y, y1(r), y2(r)));
   }
 
   public static Point centre(@NotNull Rectangle r) {
@@ -332,10 +333,6 @@ public class NavigationEditorUtils {
     return dst.y + dst.height;
   }
 
-  private static int clamp(int i, int min, int max) {
-    return Math.max(min, Math.min(i, max));
-  }
-
   private static boolean overlaps(int min1, int max1, int min2, int max2) {
       return !(max1 < min2 || max2 < min1);
   }
@@ -359,8 +356,8 @@ public class NavigationEditorUtils {
     Point midSrc = centre(src);
     Point a = horizontal ? new Point(middle, midSrc.y) : new Point(midSrc.x, middle);
 
-    Point b = horizontal ? new Point(middle, clamp(midSrc.y, y1(dst), y2(dst)))
-                         : new Point(clamp(midSrc.x, x1(dst), x2(dst)), middle);
+    Point b = horizontal ? new Point(middle, ResourceHelper.clamp(midSrc.y, y1(dst), y2(dst)))
+                         : new Point(ResourceHelper.clamp(midSrc.x, x1(dst), x2(dst)), middle);
 
     return new Line(a, b, horizontal);
   }

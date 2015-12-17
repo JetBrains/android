@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
@@ -53,11 +54,15 @@ public final class Observation implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-12, -67, -65, -32, -126, 120, -92, -67, 85, -84, -21, 30, 11, -34, -27, 39, 26, -40, -124, 15, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("atom","Observation","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Range", new Struct(MemoryRange.Klass.INSTANCE.entity())),
+      new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -66,7 +71,7 @@ public final class Observation implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new Observation(); }
@@ -75,7 +80,8 @@ public final class Observation implements BinaryObject {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Observation o = (Observation)obj;
       e.value(o.myRange);
-      e.id(o.myID);
+      o.myID.write(e);
+
     }
 
     @Override
@@ -83,7 +89,8 @@ public final class Observation implements BinaryObject {
       Observation o = (Observation)obj;
       o.myRange = new MemoryRange();
       d.value(o.myRange);
-      o.myID = d.id();
+      o.myID = new BinaryID(d);
+
     }
     //<<<End:Java.KlassBody:2>>>
   }

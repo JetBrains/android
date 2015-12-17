@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom.drawable;
 
 import com.intellij.util.xml.DefinesXml;
-import com.intellij.util.xml.Required;
 
 import java.util.List;
 

@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
+import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -25,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -54,16 +58,14 @@ public class ThemeEditorTestUtils {
     return themeEditor;
   }
 
-  public static void enableThemeEditor() {
-    // TODO: remove once the theme editor flag has been removed
-    System.setProperty("enable.theme.editor", "true");
-  }
-
   /**
    * Returns the attributes that were defined in the theme itself and not its parents.
    */
   public static Collection<EditedStyleItem> getStyleLocalValues(@NotNull final ThemeEditorStyle style) {
-    final Set<String> localAttributes = style.getConfiguredValues().keySet();
+    final Set<String> localAttributes = Sets.newHashSet();
+    for (ConfiguredElement<ItemResourceValue> value : style.getConfiguredValues()) {
+      localAttributes.add(ResolutionUtils.getQualifiedItemName(value.getElement()));
+    }
 
     final ThemeResolver resolver = new ThemeResolver(style.getConfiguration());
     return Collections2.filter(ThemeEditorUtils.resolveAllAttributes(style, resolver), new Predicate<EditedStyleItem>() {

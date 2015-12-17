@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.*;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.utils.ILogger;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -33,7 +34,6 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.android.SdkConstants.FN_RESOURCE_TEXT;
-import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 
 /**
  * A {@link AbstractResourceRepository} for plain java.io Files; this is needed for repositories
@@ -92,7 +92,7 @@ public class FileResourceRepository extends LocalResourceRepository {
     catch (Exception e) {
       LOG.error("Failed to initialize resources", e);
     }
-    if (file.getPath().contains(EXPLODED_AAR)) {
+    if (file.getPath().contains(AndroidGradleModel.EXPLODED_AAR)) {
       File rDotTxt = new File(file.getParentFile(), FN_RESOURCE_TEXT);
       if (rDotTxt.exists()) {
         repository.myResourceTextFile = rDotTxt;

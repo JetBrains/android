@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -114,9 +113,7 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
     myEditOptions.clear();
     myEditOptions.add(CREATE_NEW_THEME);
     if (selectedItem != null && myAvailableProjectThemes.contains(selectedItem)) {
-      String simpleName = StringUtil.substringAfter(selectedItem, "/");
-      assert simpleName != null;
-      myEditOptions.add(RENAME + simpleName);
+      myEditOptions.add(RENAME + selectedItem);
     }
   }
 

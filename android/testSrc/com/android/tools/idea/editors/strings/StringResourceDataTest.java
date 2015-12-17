@@ -30,7 +30,10 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class StringResourceDataTest extends AndroidTestCase {
   private VirtualFile resourceDirectory;
@@ -81,6 +84,15 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals("Key 2 hi", StringResourceData.resourceToString(translations.get("key2", Locale.create("hi"))));
   }
 
+  public void testUnescaping() {
+    Table<String, Locale, ResourceItem> translations = data.getTranslations();
+    Locale locale = Locale.create("fr");
+
+    assertEquals("L'Étranger", StringResourceData.resourceToString(translations.get("key8", locale)));
+    assertEquals("<![CDATA[L'Étranger]]>", StringResourceData.resourceToString(translations.get("key9", locale)));
+    assertEquals("<xliff:g>L'Étranger</xliff:g>", StringResourceData.resourceToString(translations.get("key10", locale)));
+  }
+
   public void testValidation() {
     assertEquals("Key 'key1' has translations missing for locales French (fr) and Hindi (hi)", data.validateKey("key1"));
     assertNull(data.validateKey("key2"));
@@ -113,6 +125,13 @@ public class StringResourceDataTest extends AndroidTestCase {
 
   public void testIsTranslationMissing() {
     assertTrue(data.isTranslationMissing("key7", Locale.create("fr")));
+  }
+
+  public void testRegionQualifier() {
+    Locale en_rGB = Locale.create("en-rGB");
+    assertTrue(data.isTranslationMissing("key4", en_rGB));
+    assertFalse(data.isTranslationMissing("key3", en_rGB));
+    assertFalse(data.isTranslationMissing("key8", en_rGB));
   }
 
   public void testEditingDoNotTranslate() {
@@ -167,6 +186,28 @@ public class StringResourceDataTest extends AndroidTestCase {
     XmlTag tag = getNthXmlTag(file, "string", 0);
     assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(expected, tag.getValue().getText());
+  }
+
+  public void testEditingXliff() {
+    String key = "key3";
+    Locale locale = Locale.create("en-rIN");
+    String currentData = StringResourceData.resourceToString(data.getTranslations().get(key, locale));
+
+    assertEquals("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end", currentData);
+    assertTrue(data.setTranslation(key, locale, currentData.replace("%s", "%1$s")));
+
+    String expected = "start<xliff:g>middle1</xliff:g>%1$s\n" +
+                      "      <xliff:g>middle3</xliff:g>\n" +
+                      "      end";
+
+    assertEquals(expected, StringResourceData.resourceToString(data.getTranslations().get(key, locale)));
+
+    VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
+    assert file != null;
+
+    XmlTag tag = getNthXmlTag(file, "string", 2);
+    assertEquals("key3", tag.getAttributeValue(SdkConstants.ATTR_NAME));
+    assertEquals(expected, tag.getValue().getText().trim());
   }
 
   public void testAddingTranslation() {

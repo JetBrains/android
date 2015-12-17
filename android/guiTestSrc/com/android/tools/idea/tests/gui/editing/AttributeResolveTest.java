@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.editing;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.junit.Test;
 
 import java.io.File;
@@ -34,20 +33,21 @@ public class AttributeResolveTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testResolveNewlyAddedTag() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    EditorFixture editor = myProjectFrame.getEditor();
 
-    File appBuildFile = new File(projectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
+    // TODO add dependency using new parser API
+    File appBuildFile = new File(myProjectFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
     assertThat(appBuildFile).isFile();
     appendToFile(appBuildFile, "\ndependencies { compile 'com.android.support:cardview-v7:22.1.1' }\n");
-    projectFrame.requestProjectSync();
+    myProjectFrame.requestProjectSync();
 
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("^<TextView"));
     editor.enterText("<android.support.v7.widget.CardView android:onClick=\"onCreate\" /\n");
     editor.moveTo(editor.findOffset("on^Create"));
 
-    projectFrame.waitForBackgroundTasksToFinish();
+    myProjectFrame.waitForBackgroundTasksToFinish();
 
     editor.invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
 

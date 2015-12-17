@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,7 +35,7 @@ import java.awt.event.ActionListener;
  * Uses a dropdown to offer the choice between true or false or having a reference
  * Deals with references through a separate dialog window
  */
-public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
+public class BooleanRendererEditor extends TypedCellRendererEditor<EditedStyleItem, String> {
   private static final String USE_REFERENCE = "Use reference ...";
   private static final ResourceType[] BOOLEAN_TYPE = new ResourceType[] { ResourceType.BOOL };
   private static final String[] COMBOBOX_OPTIONS = {"true", "false", USE_REFERENCE};
@@ -59,19 +58,13 @@ public class BooleanRendererEditor extends TypedCellEditor<EditedStyleItem, Stri
   }
 
   @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    if (!(value instanceof EditedStyleItem)) {
-      return null;
-    }
-
-    EditedStyleItem item = (EditedStyleItem) value;
-
+  public Component getRendererComponent(JTable table, EditedStyleItem value, boolean isSelected, boolean hasFocus, int row, int column) {
     final Component component;
     if (column == 0) {
-      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(item), isSelected, hasFocus, row, column);
+      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(value), isSelected, hasFocus, row, column);
     } else {
       myComboBox.removeAllItems();
-      myComboBox.addItem(item.getValue());
+      myComboBox.addItem(value.getValue());
       component = myComboBox;
     }
     return component;

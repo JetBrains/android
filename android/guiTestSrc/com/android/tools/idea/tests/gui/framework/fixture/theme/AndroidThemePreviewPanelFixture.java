@@ -21,7 +21,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.Robot;
+import org.fest.swing.exception.ComponentLookupException;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 
 /**
  * Fixture wrapping the {@link AndroidThemePreviewPanel}
@@ -33,11 +36,37 @@ public class AndroidThemePreviewPanelFixture extends ComponentFixture<AndroidThe
 
   @NotNull
   public AndroidPreviewPanelFixture getPreviewPanel() {
-    return new AndroidPreviewPanelFixture(robot(), robot().finder().findByType(AndroidPreviewPanel.class));
+    return new AndroidPreviewPanelFixture(robot(), robot().finder().findByType(target(), AndroidPreviewPanel.class));
+  }
+
+  /**
+   * Checks if the preview panel in the theme editor actually shows a theme preview.
+   * Throws an {@link AssertionError} if it does not.
+   */
+  public void requirePreviewPanel() {
+    try {
+      robot().finder().findByType(target(), AndroidPreviewPanel.class);
+    }
+    catch (ComponentLookupException e) {
+      throw new AssertionError("The theme editor preview is not showing");
+    }
   }
 
   @NotNull
   public SearchTextFieldFixture getSearchTextField() {
-    return new SearchTextFieldFixture(robot(), robot().finder().findByType(SearchTextField.class));
+    return new SearchTextFieldFixture(robot(), robot().finder().findByType(target(), SearchTextField.class));
+  }
+
+  /**
+   * Checks if the preview panel in the theme editor displays an error message.
+   * Throws an {@link AssertionError} if it does not.
+   */
+  public void requireErrorPanel() {
+    try {
+      robot().finder().findByType(target(), JTextPane.class);
+    }
+    catch (ComponentLookupException e) {
+      throw new AssertionError("The theme editor preview is not displaying an error message");
+    }
   }
 }

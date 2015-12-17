@@ -17,9 +17,7 @@ package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.StringResourceData;
-import com.android.tools.idea.editors.strings.StringResourceViewPanel;
 import com.android.tools.idea.rendering.Locale;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,10 +25,6 @@ import javax.swing.table.AbstractTableModel;
 
 public class StringResourceTableModel extends AbstractTableModel {
   @Nullable private StringResourceData myData;
-
-  public StringResourceTableModel(@Nullable StringResourceData data) {
-    myData = data;
-  }
 
   public void setData(@NotNull StringResourceData data) {
     myData = data;
@@ -93,8 +87,8 @@ public class StringResourceTableModel extends AbstractTableModel {
       case KEY:
         return keyOfRow(row);
       case DEFAULT_VALUE:
-        return myData.getDefaultValues().containsKey(keyOfRow(row))
-               ? StringResourceData.resourceToString(myData.getDefaultValues().get(keyOfRow(row))) : "";
+        return myData.getDefaultValues().containsKey(keyOfRow(row)) ? StringResourceData
+          .resourceToString(myData.getDefaultValues().get(keyOfRow(row))) : "";
       case UNTRANSLATABLE:
         return myData.getUntranslatableKeys().contains(keyOfRow(row));
       default:
@@ -116,7 +110,8 @@ public class StringResourceTableModel extends AbstractTableModel {
   public Class getColumnClass(int column) {
     if (column >= ConstantColumn.COUNT) {
       return ConstantColumn.DEFAULT_VALUE.sampleData.getClass();
-    } else {
+    }
+    else {
       return ConstantColumn.values()[column].sampleData.getClass();
     }
   }
