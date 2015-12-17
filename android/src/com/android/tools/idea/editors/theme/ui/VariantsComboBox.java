@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.editors.theme.ui;
 
+import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.PopupMenuListenerAdapter;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -54,7 +57,7 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
 
   private final List<PopupClosingListener> myPopupClosingListeners = new ArrayList<PopupClosingListener>();
   private ComboBoxModel myModel = new DefaultComboBoxModel();
-  private ListDataListener myListDataListener = new ListDataListener() {
+  private final ListDataListener myListDataListener = new ListDataListener() {
     @Override
     public void intervalAdded(ListDataEvent e) {
       fireModelUpdated();
@@ -70,7 +73,7 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
       fireModelUpdated();
     }
   };
-  private List<Action> myActions = Lists.newArrayList();
+  private final List<Action> myActions = Lists.newArrayList();
 
   /**
    * Listens to this combobox popup closing
@@ -86,7 +89,9 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
   public VariantsComboBox() {
 
     setBorder(BorderFactory.createEmptyBorder());
-    setIcon(PlatformIcons.COMBOBOX_ARROW_ICON);
+    setIcon(AndroidIcons.GreyArrowDown);
+    Font font = getFont();
+    setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
     setHorizontalTextPosition(SwingConstants.LEFT);
     setHorizontalAlignment(SwingConstants.RIGHT);
     addActionListener(new ActionListener() {
@@ -169,6 +174,8 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
     for (int i = 0; i < nElements; i++) {
       final Object element = myModel.getElementAt(i);
       JMenuItem item = new JBMenuItem(element.toString());
+      Font font = item.getFont();
+      item.setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
       item.setBorder(VARIANT_ITEM_BORDER);
       if (i == 0) {
         // Pre-select the first element
@@ -201,6 +208,8 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
       }
       for (Action action : myActions) {
         JMenuItem newMenuItem = new JBMenuItem(action);
+        Font font = newMenuItem.getFont();
+        newMenuItem.setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
         newMenuItem.setBackground(VARIANT_MENU_BACKGROUND_COLOR);
         newMenuItem.setBorder(VARIANT_ITEM_BORDER);
         menu.add(newMenuItem);
@@ -235,7 +244,7 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
 
   protected void fireModelUpdated() {
     setText(myModel.getSelectedItem().toString());
-    setIcon(isPopupEnabled() ? PlatformIcons.COMBOBOX_ARROW_ICON : null);
+    setIcon(isPopupEnabled() ? AndroidIcons.GreyArrowDown : null);
   }
 
   protected void fireItemSelectionChanged(@NotNull ItemEvent e) {

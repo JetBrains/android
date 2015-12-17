@@ -95,7 +95,7 @@ public final class TemplateParameterStep2Test extends LightIdeaTestCase {
                                                                            @NotNull Disposable parentDisposable) {
     final TemplateParameterStep2 step =
       new TemplateParameterStep2(FormFactorUtils.FormFactor.MOBILE, ImmutableMap.<String, Object>of(), null,
-                                 AddAndroidActivityPath.KEY_PACKAGE_NAME, new SourceProvider[0]);
+                                 AddAndroidActivityPath.KEY_PACKAGE_NAME, new SourceProvider[0], "Test Title");
     DynamicWizard dynamicWizard = new DynamicWizard(null, null, "Test Wizard") {
       @Override
       public void init() {

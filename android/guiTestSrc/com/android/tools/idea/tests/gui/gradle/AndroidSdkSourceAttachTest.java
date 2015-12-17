@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -91,8 +90,8 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     }
     updateSdkSourceRoot(mySdk);
 
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    final EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame = importSimpleApplication();
+    final EditorFixture editor = myProjectFrame.getEditor();
 
     final VirtualFile classFile = findActivityClassFile();
     editor.open(classFile, EditorFixture.Tab.EDITOR);
@@ -100,7 +99,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     acceptLegalNoticeIfNeeded();
 
     // Download the source.
-    findNotificationPanel(projectFrame).performAction("Download");
+    findNotificationPanel().performAction("Download");
 
     DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
     final JButtonFixture finish = downloadDialog.button(withText("Finish"));
@@ -146,8 +145,8 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     sdkModificator.removeRoots(OrderRootType.SOURCES);
     sdkModificator.commitChanges();
 
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    final EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame = importSimpleApplication();
+    final EditorFixture editor = myProjectFrame.getEditor();
 
     final VirtualFile classFile = findActivityClassFile();
     editor.open(classFile, EditorFixture.Tab.EDITOR);
@@ -155,7 +154,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     acceptLegalNoticeIfNeeded();
 
     // Refresh the source.
-    findNotificationPanel(projectFrame).performAction("Refresh (if already downloaded)");
+    findNotificationPanel().performAction("Refresh (if already downloaded)");
 
     pause(new Condition("Source file is opened") {
       @Override
@@ -185,8 +184,8 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
   }
 
   @NotNull
-  private EditorNotificationPanelFixture findNotificationPanel(@NotNull IdeFrameFixture projectFrame) {
-    return projectFrame.requireEditorNotification(
+  private EditorNotificationPanelFixture findNotificationPanel() {
+    return myProjectFrame.requireEditorNotification(
       "Sources for '" + mySdk.getName() + "' not found.");
   }
 

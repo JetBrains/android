@@ -16,21 +16,25 @@
 package com.android.tools.idea.monitor.gpu;
 
 import com.android.ddmlib.Client;
-import com.android.tools.chartlib.EventData;
 import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.actions.GfxTraceCaptureAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,15 +59,17 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
   @NotNull private final JPanel myPanel;
   private int myApiLevel = MHandler.MIN_API_LEVEL;
 
+  public static final int EVENT_LAUNCH = 1;
+  public static final int EVENT_TRACING = 2;
+
   public GpuMonitorView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     super(project, deviceContext, new GpuSampler(POST_M_SAMPLE_FREQUENCY_MS), POST_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX,
           POST_M_TIMELINE_ABSOLUTE_MAX, TIMELINE_INITIAL_MARKER_SEPARATION);
     mySampler.myProfileStateListener = this;
     myPanel = new JPanel(new BorderLayout());
 
-    addOverlayText(NEEDS_NEWER_API_LABEL, 0);
-    addOverlayText(PAUSED_LABEL, 1);
-    addOverlayText(NEEDS_PROFILING_ENABLED_LABEL, 2);
+    addOverlayText(NEEDS_NEWER_API_LABEL, PAUSED_LABEL_PRIORITY - 1);
+    addOverlayText(NEEDS_PROFILING_ENABLED_LABEL, PAUSED_LABEL_PRIORITY + 1);
 
     myApiLevel = mySampler.getApiLevel();
     configureTimelineComponent(mySampler.getTimelineData());
@@ -71,8 +77,6 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
 
     myPanel.setBackground(BACKGROUND_COLOR);
     setViewComponent(myPanel);
-
-    setPaused(true); // Start GPU monitor as paused because GPU monitor uses app memory on the device.
   }
 
   @Override
@@ -80,6 +84,11 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new RecordingAction(this));
+    if (GfxTraceEditor.isEnabled()) {
+      group.add(new Separator());
+      group.add(new GfxTraceCaptureAction.Listen(this));
+      group.add(new GfxTraceCaptureAction.Launch(this));
+    }
     return group;
   }
 
@@ -99,6 +108,17 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
     }
   }
 
+  @Override
+  protected boolean getPreferredPausedState() {
+    return true;
+  }
+
+  @NotNull
+  @Override
+  public String getMonitorName() {
+    return "GpuMonitor";
+  }
+
   @NotNull
   @Override
   public String getDescription() {
@@ -106,12 +126,10 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
   }
 
   private void configureTimelineComponent(@NotNull TimelineData data) {
-    EventData events = new EventData();
-
     if (myApiLevel >= MHandler.MIN_API_LEVEL) {
       myPanel.remove(myTimelineComponent);
       myTimelineComponent =
-        new TimelineComponent(data, events, POST_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, POST_M_TIMELINE_ABSOLUTE_MAX,
+        new TimelineComponent(data, myEvents, POST_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, POST_M_TIMELINE_ABSOLUTE_MAX,
                               TIMELINE_INITIAL_MARKER_SEPARATION);
 
       myTimelineComponent.configureUnits("ms");
@@ -132,7 +150,7 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
     else if (myApiLevel >= JHandler.MIN_API_LEVEL) {
       myPanel.remove(myTimelineComponent);
       myTimelineComponent =
-        new TimelineComponent(data, events, PRE_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, PRE_M_TIMELINE_ABSOLUTE_MAX,
+        new TimelineComponent(data, myEvents, PRE_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, PRE_M_TIMELINE_ABSOLUTE_MAX,
                               TIMELINE_INITIAL_MARKER_SEPARATION);
 
       if (myApiLevel >= LHandler.MIN_API_LEVEL) {
@@ -157,6 +175,12 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
     else {
       setOverlayEnabled(NEEDS_NEWER_API_LABEL, true);
     }
+    myTimelineComponent
+      .configureEvent(EVENT_LAUNCH, 0, AndroidIcons.Ddms.Threads, new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF), false);
+    myTimelineComponent.configureEvent(EVENT_TRACING, 0, AndroidIcons.Ddms.StartMethodProfiling, new JBColor(0x92ADC6, 0x718493),
+                                       new JBColor(0x2B4E8C, 0xC7E5FF), true);
+    myTimelineComponent.addReference(16.6f, JBColor.GREEN);
+    myTimelineComponent.addReference(33.3f, JBColor.RED);
   }
 
   @Override

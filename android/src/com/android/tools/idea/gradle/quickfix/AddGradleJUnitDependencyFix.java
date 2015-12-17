@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
+import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -50,15 +51,13 @@ public class AddGradleJUnitDependencyFix extends AbstractGradleDependencyFix {
 
   @Override
   public void invoke(@NotNull final Project project, @Nullable Editor editor, @Nullable PsiFile file) {
-    boolean testScope = isTestScope(myModule, myReference);
-    final String configurationName = getConfigurationName(myModule, testScope);
-    runWriteCommandActionAndSync(project, new Runnable() {
-      @Override
-      public void run() {
-        String dependency = myIsJunit4 ? "junit:junit:4.12" : "junit:junit:3.8.1";
-        addDependency(myModule, configurationName, dependency);
-      }
-    }, new Computable<PsiClass[]>() {
+    ExternalDependencySpec newDependency = new ExternalDependencySpec("junit", "junit", "3.8.1");
+    if (myIsJunit4) {
+      newDependency.version = "4.12";
+    }
+    String configurationName = getConfigurationName(myModule, isTestScope(myModule, myReference));
+
+    addDependencyAndSync(configurationName, newDependency, new Computable<PsiClass[]>() {
       @Override
       public PsiClass[] compute() {
         PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(myClassName, moduleWithLibrariesScope(myModule));

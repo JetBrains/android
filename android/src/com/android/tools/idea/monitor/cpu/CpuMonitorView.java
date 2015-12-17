@@ -20,6 +20,7 @@ import com.android.tools.idea.ddms.actions.ToggleMethodProfilingAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.idea.monitor.actions.RecordingAction;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
@@ -52,8 +53,6 @@ public class CpuMonitorView extends BaseMonitorView<CpuSampler> implements Timel
     myTimelineComponent.configureStream(1, "User", new JBColor(0xeb9f9f, 0x9d4c4c));
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
-    addOverlayText(PAUSED_LABEL, 0);
-
     setViewComponent(myTimelineComponent);
   }
 
@@ -67,6 +66,12 @@ public class CpuMonitorView extends BaseMonitorView<CpuSampler> implements Timel
     //group.add(new MyThreadDumpAction()); // thread dump -> systrace
 
     return group;
+  }
+
+  @NotNull
+  @Override
+  public String getMonitorName() {
+    return "CpuMonitor";
   }
 
   @NotNull

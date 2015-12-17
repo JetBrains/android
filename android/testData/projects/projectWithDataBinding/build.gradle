@@ -1,0 +1,23 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    ext.rootFolder = new File(dataBindingRoot)
+    apply from: "${ext.rootFolder}/propLoader.gradle"
+    ext.addRepos(repositories)
+    // temporary until prebuilts are merged
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        //classpath "com.android.databinding:dataBinder:${config.version}"
+        classpath "com.android.databinding:dataBinder:1.0-rc3"
+        classpath 'com.android.tools.build:gradle:1.4.0-beta3'
+    }
+}
+
+// temporary until prebuilts are merged
+allprojects {
+    repositories {
+        jcenter()
+    }
+}

@@ -16,25 +16,23 @@
 
 package com.android.tools.idea.wizard.template;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.npw.FormFactorUtils;
+import com.android.tools.idea.npw.NewModuleWizardState;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.npw.FormFactorUtils;
-import com.android.tools.idea.npw.NewModuleWizardState;
-import com.android.tools.idea.npw.NewTemplateObjectWizard;
 import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -44,7 +42,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * Value object which holds the current state of the wizard pages for
- * {@link NewTemplateObjectWizard}-derived wizards.
+ * NewTemplateObjectWizard-derived wizards.
  *
  * Deprecated. Use {@link ScopedStateStore} and {@link ScopedDataBinder} instead.
  */
@@ -77,24 +75,38 @@ public class TemplateWizardState implements Function<String, Object> {
    * You ought to be able to change a value either by the user changing something in the UI, or programatically updaing something and
    * propagating changes to the UI, without undue hackery. Right now to do the latter we have to set this global disable-changes bit.
    */
-  /** Suffix added by default to activity names */
+  /**
+   * Suffix added by default to activity names
+   */
   public static final String ACTIVITY_NAME_SUFFIX = "Activity";
-  /** Prefix added to default layout names */
+  /**
+   * Prefix added to default layout names
+   */
   public static final String LAYOUT_NAME_PREFIX = "activity_";
 
-  /** Template handler responsible for instantiating templates and reading resources */
+  private static final Logger logger = Logger.getInstance(TemplateWizardState.class);
+
+  /**
+   * Template handler responsible for instantiating templates and reading resources
+   */
   // TODO: Temporary change. Set to private in a followup CL!
   public Template myTemplate;
 
-  /** Targeted source set */
+  /**
+   * Targeted source set
+   */
   protected SourceProvider mySourceProvider;
 
-  /** Configured parameters, by id */
+  /**
+   * Configured parameters, by id
+   */
   // TODO: Temporary change. Set to private in a followup CL!
   public final Map<String, Object> myParameters = new HashMap<String, Object>();
 
-  /** Ids for parameters which should be hidden (because the client wizard already
-   * has information for these parameters) */
+  /**
+   * Ids for parameters which should be hidden (because the client wizard already
+   * has information for these parameters)
+   */
   // TODO: Temporary change. Set to private in a followup CL!
   public final Set<String> myHidden = new HashSet<String>();
 
@@ -104,7 +116,9 @@ public class TemplateWizardState implements Function<String, Object> {
   // TODO: Temporary change. Set to private in a followup CL!
   public final Set<String> myFinal = new HashSet<String>();
 
-  /** Ids for parameters which have been modified directly by the user. */
+  /**
+   * Ids for parameters which have been modified directly by the user.
+   */
   // TODO: Temporary change. Set to private in a followup CL!
   public final Set<String> myModified = new HashSet<String>();
 
@@ -125,8 +139,7 @@ public class TemplateWizardState implements Function<String, Object> {
    * a number of files go. The templates use these globals to allow them to service both old-style Ant builds with the old directory
    * structure and new-style Gradle builds with the new structure.
    */
-  @VisibleForTesting
-  public void populateDirectoryParameters() throws IOException {
+  public void populateDirectoryParameters() {
     File projectRoot = new File(getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
     File moduleRoot = new File(projectRoot, getString(FormFactorUtils.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
@@ -146,7 +159,7 @@ public class TemplateWizardState implements Function<String, Object> {
 
     String javaPackageDir = getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar);
     // Set Src directory if we don't have one
-    if (!myParameters.containsKey(ATTR_SRC_OUT)  || myParameters.get(ATTR_SRC_OUT) == null) {
+    if (!myParameters.containsKey(ATTR_SRC_OUT) || myParameters.get(ATTR_SRC_OUT) == null) {
       File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
       File javaSourcePackageRoot;
       if (myParameters.containsKey(ATTR_PACKAGE_ROOT)) {
@@ -154,7 +167,8 @@ public class TemplateWizardState implements Function<String, Object> {
         String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
         String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
         put(ATTR_PACKAGE_NAME, javaPackage);
-      } else {
+      }
+      else {
         javaSourcePackageRoot = new File(javaSourceRoot, javaPackageDir);
       }
       put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(javaSourcePackageRoot.getPath()));
@@ -198,7 +212,8 @@ public class TemplateWizardState implements Function<String, Object> {
             pkg = pkg.substring(applicationId.length());
           }
         }
-      } else {
+      }
+      else {
         pkg = "";
       }
       put(ATTR_RELATIVE_PACKAGE, pkg);
@@ -287,9 +302,18 @@ public class TemplateWizardState implements Function<String, Object> {
   }
 
   public void setParameterDefaults() {
-    for (Parameter param : myTemplate.getMetadata().getParameters()) {
+    TemplateMetadata metadata = myTemplate.getMetadata();
+
+    if (metadata == null) {
+      logger.warn("Null metadata");
+      return;
+    }
+
+    for (Parameter param : metadata.getParameters()) {
       if (!myFinal.contains(param.id) && !myParameters.containsKey(param.id) && param.initial != null) {
-        switch(param.type) {
+        assert param.id != null;
+
+        switch (param.type) {
           case BOOLEAN:
             put(param.id, Boolean.valueOf(param.initial));
             break;
@@ -297,6 +321,8 @@ public class TemplateWizardState implements Function<String, Object> {
           case SEPARATOR:
           case STRING:
             put(param.id, param.initial);
+            break;
+          default:
             break;
         }
       }

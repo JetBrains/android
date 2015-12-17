@@ -18,8 +18,8 @@ package com.android.tools.idea.editors.theme;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
+import com.android.tools.idea.configurations.ThemeSelectionPanel;
 import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRenderer;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Strings;
@@ -44,6 +44,7 @@ public class NewStyleDialog extends DialogWrapper {
   private JComboBox myParentStyleComboBox;
   /** Message displayed when the style name is empty */
   private final String myEmptyStyleValidationText;
+  private @Nullable ThemeSelectionPanel.ThemeChangedListener myThemeChangedListener;
 
   /**
    * Creates a new style dialog. This dialog it's used both to create new themes and new styles.
@@ -93,8 +94,11 @@ public class NewStyleDialog extends DialogWrapper {
           myParentStyleComboBox.hidePopup();
           final ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
 
-          dialog.show();
+          if (myThemeChangedListener != null) {
+            dialog.setThemeChangedListener(myThemeChangedListener);
+          }
 
+          dialog.show();
           selectedValue = dialog.isOK() ? dialog.getTheme() : null;
         }
         if (selectedValue == null) {
@@ -106,6 +110,9 @@ public class NewStyleDialog extends DialogWrapper {
         }
         myParentStyleComboBox.setSelectedItem(selectedValue);
         myStyleNameTextField.setText(getNewStyleNameSuggestion(selectedValue, currentThemeName));
+        if (myThemeChangedListener != null) {
+          myThemeChangedListener.themeChanged(selectedValue);
+        }
       }
     });
 
@@ -141,6 +148,14 @@ public class NewStyleDialog extends DialogWrapper {
     return super.doValidate();
   }
 
+  @Override
+  public void show() {
+    if (myThemeChangedListener != null) {
+      myThemeChangedListener.themeChanged((String)myParentStyleComboBox.getSelectedItem());
+    }
+    super.show();
+  }
+
   public String getStyleName() {
     return myStyleNameTextField.getText();
   }
@@ -158,16 +173,16 @@ public class NewStyleDialog extends DialogWrapper {
    * <p/>For a parent style name like <pre>Widget.Material.Button</pre> and a theme name <pre>MyTheme</pre>, it would generate the name
    * <pre>Widget.MyTheme.Button</pre>
    *
-   * @param parentStyleUri  The parent style URI.
+   * @param parentQualifiedName  The parent style name, possibly with "android:" prefix.
    * @param currentThemeName The current theme name.
    */
   @NotNull
-  static String getNewStyleNameSuggestion(@Nullable String parentStyleUri, @Nullable String currentThemeName) {
-    if (Strings.isNullOrEmpty(parentStyleUri) || Strings.isNullOrEmpty(currentThemeName)) {
+  static String getNewStyleNameSuggestion(@Nullable String parentQualifiedName, @Nullable String currentThemeName) {
+    if (Strings.isNullOrEmpty(parentQualifiedName) || Strings.isNullOrEmpty(currentThemeName)) {
       return "";
     }
 
-    String parentStyleName = parentStyleUri.substring(parentStyleUri.indexOf('/') + 1);
+    String parentStyleName = ResolutionUtils.getNameFromQualifiedName(parentQualifiedName);
     if (parentStyleName.equals(currentThemeName)) {
       return "";
     }
@@ -180,5 +195,13 @@ public class NewStyleDialog extends DialogWrapper {
     }
 
     return parentStyleName + '.' + currentThemeName;
+  }
+
+  public void setThemeChangedListener(@NotNull ThemeSelectionPanel.ThemeChangedListener themeChangedListener) {
+    myThemeChangedListener = themeChangedListener;
+  }
+
+  public void enableParentChoice(boolean enable) {
+    myParentStyleComboBox.setEnabled(enable);
   }
 }

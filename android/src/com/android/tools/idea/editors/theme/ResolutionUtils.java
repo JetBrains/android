@@ -24,9 +24,11 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.lint.checks.ApiLookup;
+import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -36,6 +38,13 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TAG_STYLE;
+
 /**
  * Utility methods for style resolution.
  */
@@ -43,15 +52,62 @@ public class ResolutionUtils {
 
   private static final Logger LOG = Logger.getInstance(ResolutionUtils.class);
 
+  private static final Pattern RESOURCE_URL_MATCHER = Pattern.compile("@(.*:)?(.+/)(.+)");
+
   // Utility methods class isn't meant to be constructed, all methods are static.
   private ResolutionUtils() { }
+
+  /**
+   * @return ResourceUrl representation of a style from qualifiedName
+   * e.g. for "android:Theme" returns "@android:style/Theme" or for "AppTheme" returns "@style/AppTheme"
+   */
+  @NotNull
+  public static String getStyleResourceUrl(@NotNull String qualifiedName) {
+    int colonIndex = qualifiedName.indexOf(':');
+    if (colonIndex != -1) {
+      // The theme name contains a namespace, change the format to be "@namespace:style/ThemeName"
+      String namespace = qualifiedName.substring(0, colonIndex + 1); // Name space plus + colon
+      String themeNameWithoutNamespace = StringUtil.trimStart(qualifiedName, namespace);
+      return PREFIX_RESOURCE_REF + namespace + TAG_STYLE + "/" + themeNameWithoutNamespace;
+    }
+
+    return STYLE_RESOURCE_PREFIX + qualifiedName;
+  }
+
+  /**
+   * @return qualified name of a style from ResourceUrl representation
+   * e.g. for "@android:style/Theme" returns "android:Theme" or for "@style/AppTheme" returns "AppTheme"
+   */
+  @NotNull
+  public static String getQualifiedNameFromResourceUrl(@NotNull String styleResourceUrl) {
+    Matcher matcher = RESOURCE_URL_MATCHER.matcher(styleResourceUrl);
+    boolean matches = matcher.find();
+    assert matches;
+
+    String namespace = Strings.nullToEmpty(matcher.group(1)); // the namespace containing the colon (if existing)
+    String resourceName = matcher.group(3); // the resource name
+
+    return namespace + resourceName;
+  }
+
+  /**
+   * @return name without qualifier
+   * e.g. for "android:Theme" returns "Theme" or for "AppTheme" returns "AppTheme"
+   */
+  @NotNull
+  public static String getNameFromQualifiedName(@NotNull String qualifiedName) {
+    if (qualifiedName.startsWith(SdkConstants.PREFIX_ANDROID)) {
+      return qualifiedName.substring(SdkConstants.PREFIX_ANDROID.length());
+    }
+    return qualifiedName;
+  }
 
   /**
    * Returns the style name, including the appropriate namespace.
    */
   @NotNull
   public static String getQualifiedStyleName(@NotNull StyleResourceValue style) {
-    return (style.isFramework() ? SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX : SdkConstants.STYLE_RESOURCE_PREFIX) + style.getName();
+    return (style.isFramework() ? SdkConstants.PREFIX_ANDROID : "") + style.getName();
   }
 
   /**
@@ -76,17 +132,16 @@ public class ResolutionUtils {
 
   @Nullable
   private static StyleResourceValue getStyleResourceValue(@NotNull ResourceResolver resolver, @NotNull String qualifiedStyleName) {
+    assert !qualifiedStyleName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX);
+    assert !qualifiedStyleName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX);
     String styleName;
     boolean isFrameworkStyle;
 
-    if (qualifiedStyleName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX)) {
-      styleName = qualifiedStyleName.substring(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX.length());
+    if (qualifiedStyleName.startsWith(SdkConstants.PREFIX_ANDROID)) {
+      styleName = qualifiedStyleName.substring(SdkConstants.PREFIX_ANDROID.length());
       isFrameworkStyle = true;
     } else {
       styleName = qualifiedStyleName;
-      if (styleName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
-        styleName = styleName.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length());
-      }
       isFrameworkStyle = false;
     }
 
@@ -145,17 +200,6 @@ public class ResolutionUtils {
     if (name == null) {
       return -1;
     }
-    boolean isAttribute;
-    if (name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
-      isAttribute = true;
-    }
-    else if (name.startsWith(SdkConstants.ANDROID_PREFIX)) {
-      isAttribute = false;
-    }
-    else {
-      // Not a framework attribute or resource
-      return -1;
-    }
 
     ApiLookup apiLookup = IntellijLintClient.getApiLookup(project);
     if (apiLookup == null) {
@@ -164,15 +208,35 @@ public class ResolutionUtils {
       return -1;
     }
 
-    if (isAttribute) {
+    ResourceUrl resUrl = ResourceUrl.parse(name);
+    if (resUrl == null) {
+      // It is an attribute
+      if (!name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
+        // not an android attribute
+        return -1;
+      }
       return apiLookup.getFieldVersion("android/R$attr", name.substring(SdkConstants.ANDROID_NS_NAME_PREFIX_LEN));
+    } else {
+      if (!resUrl.framework) {
+        // not an android value
+        return -1;
+      }
+      return apiLookup.getFieldVersion("android/R$" + resUrl.type, AndroidResourceUtil.getFieldNameByResourceName(resUrl.name));
     }
+  }
 
-    String[] namePieces = name.substring(SdkConstants.ANDROID_PREFIX.length()).split("/");
-    if (namePieces.length == 2) {
-      // If dealing with a value, it should be of the form "type/value"
-      return apiLookup.getFieldVersion("android/R$" + namePieces[0], AndroidResourceUtil.getFieldNameByResourceName(namePieces[1]));
+  @Nullable("if this style doesn't have parent")
+  public static String getParentQualifiedName(@NotNull StyleResourceValue style) {
+    String parentName = ResourceResolver.getParentName(style);
+    if (parentName == null) {
+      return null;
     }
-    return -1;
+    if (parentName.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+      parentName = getQualifiedNameFromResourceUrl(parentName);
+    }
+    if (style.isFramework() && !parentName.startsWith(SdkConstants.PREFIX_ANDROID)) {
+      parentName = SdkConstants.PREFIX_ANDROID + parentName;
+    }
+    return parentName;
   }
 }

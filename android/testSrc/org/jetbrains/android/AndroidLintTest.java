@@ -143,6 +143,11 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/res/layout/layout.xml", "xml");
   }
 
+  public void testParcelCreator() throws Exception {
+    doTestNoFix(new AndroidLintInspectionToolProvider.AndroidLintParcelCreatorInspection(),
+                "/src/test/pkg/ParcelableDemo.java", "java");
+  }
+
   public void testInefficientWeight() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintInefficientWeightInspection(),
                   AndroidBundle.message("android.lint.fix.replace.with.zero.dp"),
@@ -322,6 +327,30 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Set application icon", "AndroidManifest.xml", "xml");
   }
 
+  public void testMissingLeanbackSupport() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMissingLeanbackSupportInspection(),
+                  "Add uses-feature tag", "AndroidManifest.xml", "xml");
+  }
+
+  public void testPermissionImpliesHardware() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintPermissionImpliesUnsupportedHardwareInspection(),
+                  "Add uses-feature tag", "AndroidManifest.xml", "xml");
+  }
+
+  public void testMissingTvBanner() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMissingTvBannerInspection(),
+                  "Set banner attribute", "AndroidManifest.xml", "xml");
+  }
+
+  public void testInvalidUsesTagAttribute() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintInvalidUsesTagAttributeInspection(),
+                  "Replace with \"media\"",
+                  "res/xml/automotive_app_desc.xml", "xml");
+  }
+
   /* Disabled: The mipmap check now only warns about mipmap usage in Gradle projects that use
    * density filtering. Re-enable this if we broaden the mipmap check, or if we update the AndroidLintTest
    * to also check Gradle projects.
@@ -451,6 +480,12 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testStringTypos() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintTyposInspection(),
+                  "Replace with \"the\"", "/res/values-no/strings.xml", "xml");
+  }
+
+  // Regression test for http://b.android.com/186465
+  public void testStringTyposCDATA() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintTyposInspection(),
                   "Replace with \"the\"", "/res/values-no/strings.xml", "xml");
   }

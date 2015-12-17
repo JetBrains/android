@@ -31,7 +31,6 @@ import java.util.Map;
 public class CreateModuleTemplate extends AbstractModuleTemplate {
   private final Map<ScopedStateStore.Key<?>, Object> myCustomValues = Maps.newHashMap();
   @Nullable private final TemplateMetadata templateMetadata;
-  private final String myName;
 
   public CreateModuleTemplate(@Nullable TemplateMetadata metadata,
                               @Nullable FormFactorUtils.FormFactor formFactor,
@@ -39,12 +38,11 @@ public class CreateModuleTemplate extends AbstractModuleTemplate {
                               @NotNull Icon icon) {
     super(name, metadata != null ? metadata.getDescription() : null, formFactor, icon);
     templateMetadata = metadata;
-    myName = name;
   }
 
   @Override
   public String toString() {
-    return myName;
+    return getName();
   }
 
   @Nullable

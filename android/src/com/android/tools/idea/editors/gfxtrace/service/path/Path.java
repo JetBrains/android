@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 public abstract class Path implements BinaryObject {
   private String myString;
 
+  public abstract Path getParent();
+
   @Override
   public String toString() {
     if (myString == null) {
@@ -53,5 +55,17 @@ public abstract class Path implements BinaryObject {
   @NotNull
   public BinaryObject unwrap() {
     return this;
+  }
+
+  /**
+   * as returns a path to the object this path refers to, but converted to type.
+   * @param type The target type.
+   * @return The path to the converted object.
+   */
+  public AsPath as(Object type) {
+    AsPath p = new AsPath();
+    p.setObject(this);
+    p.setType(type);
+    return p;
   }
 }

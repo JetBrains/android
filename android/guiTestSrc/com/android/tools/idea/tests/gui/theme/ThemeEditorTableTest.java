@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
+import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.assertions.Index;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -47,15 +47,10 @@ import static org.junit.Assert.*;
  */
 @BelongsToTestGroups({THEME})
 public class ThemeEditorTableTest extends GuiTestCase {
-  @BeforeClass
-  public static void runBeforeClass() {
-    ThemeEditorTestUtils.enableThemeEditor();
-  }
-
   @Test @IdeGuiTest
   public void testParentValueCell() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     // Cell (0,0) should be the parent editor
@@ -73,9 +68,9 @@ public class ThemeEditorTableTest extends GuiTestCase {
     assertNotNull(parentsList);
     assertThat(parentsList)
       .hasSize(6)
-      .contains("@android:style/Theme.Holo.Light.DarkActionBar", Index.atIndex(0))
-      .contains("@style/Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
-      .contains("@style/Theme.AppCompat.NoActionBar", Index.atIndex(3))
+      .contains("android:Theme.Holo.Light.DarkActionBar", Index.atIndex(0))
+      .contains("Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
+      .contains("Theme.AppCompat.NoActionBar", Index.atIndex(3))
       .contains("Show all themes", Index.atIndex(5));
 
     assertThat(parentsList.get(1)).startsWith("javax.swing.JSeparator");
@@ -85,24 +80,26 @@ public class ThemeEditorTableTest extends GuiTestCase {
     parentCellFixture.requireEditable();
 
     // Checks that selecting a separator does nothing
-    parentCellFixture.click();
     Component parentEditor = parentCellFixture.editor();
+    parentCellFixture.startEditing();
     assertTrue(parentEditor instanceof JComponent);
     JComboBoxFixture parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
     parentComboBox.selectItem(4);
-    assertEquals("@android:style/Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
+    parentCellFixture.stopEditing();
+    assertEquals("android:Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     // Selects a new parent
-    final String newParent = "@style/Theme.AppCompat.NoActionBar";
-    parentCellFixture.click();
+    final String newParent = "Theme.AppCompat.NoActionBar";
 
+    parentCellFixture.startEditing();
     parentComboBox.selectItem(newParent);
+    parentCellFixture.stopEditing();
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    projectFrame.invokeMenuPathRegex("Edit", "Undo.*");
-    assertEquals("@android:style/Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
+    myProjectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+    assertEquals("android:Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    projectFrame.invokeMenuPathRegex("Edit", "Redo.*");
+    myProjectFrame.invokeMenuPathRegex("Edit", "Redo.*");
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     pause(new Condition("Wait for potential tooltips to disappear") {
@@ -113,10 +110,10 @@ public class ThemeEditorTableTest extends GuiTestCase {
     });
     testParentPopup(themeEditorTable.cell(parentCell), newParent, themeEditor);
 
-    projectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.moveTo(editor.findOffset(null, "AppTheme", true));
-    assertEquals("<style name=\"^AppTheme\" parent=\"@style/Theme.AppCompat.NoActionBar\">",
+    assertEquals("<style name=\"^AppTheme\" parent=\"Theme.AppCompat.NoActionBar\">",
                         editor.getCurrentLineContents(true, true, 0));
   }
 
@@ -125,7 +122,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     JPopupMenuFixture popupMenu = cell.showPopupMenu();
     String[] menuLabels = popupMenu.menuLabels();
     assertEquals(1, menuLabels.length);
-    JMenuItemFixture edit = popupMenu.menuItemWithPath("Edit parent");
+    JMenuItemFixture edit = popupMenu.menuItemWithPath("Go To Declaration");
     edit.requireVisible();
     edit.click();
 
@@ -142,16 +139,18 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testResourcePickerNameError() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
-    JTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     // Cell (1,0) should be some color
     JTableCellFixture colorCell = themeEditorTable.cell(row(1).column(0));
 
     // click on a color
-    colorCell.click();
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)colorCell.editor());
+    colorCell.startEditing();
+    resourceComponent.getSwatchButton().click();
 
     final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
     JTextComponentFixture name = dialog.getNameTextField();
@@ -172,38 +171,40 @@ public class ThemeEditorTableTest extends GuiTestCase {
         return dialog.getError().equals(expectedError);
       }
     }, GuiTests.SHORT_TIMEOUT);
+
+    dialog.clickCancel();
+    colorCell.cancelEditing();
   }
 
   @Test @IdeGuiTest
   public void testSettingColorAttribute() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
 
-    Font cellFont = themeEditorTable.valueFontAt(cell);
-    assertNotNull(cellFont);
-    assertEquals(Font.PLAIN, cellFont.getStyle());
+    FontFixture cellFont = themeEditorTable.fontAt(cell);
+    cellFont.requireNotBold();
     assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
     assertEquals("@android:color/holo_light_primary", themeEditorTable.valueAt(cell));
 
     JTableCellFixture colorCell = themeEditorTable.cell(cell);
-    colorCell.requireEditable();
-    colorCell.click();
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)colorCell.editor());
+    colorCell.startEditing();
+    resourceComponent.getSwatchButton().click();
 
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
     Color color = new Color(200, 0, 0, 200);
     dialog.getColorPicker().setColorWithIntegers(color);
     dialog.clickOK();
+    colorCell.stopEditing();
 
-    cellFont = themeEditorTable.valueFontAt(cell);
-    assertNotNull(cellFont);
-    assertEquals(Font.BOLD, cellFont.getStyle());
+    cellFont = themeEditorTable.fontAt(cell);
+    cellFont.requireBold();
     assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@color/holo_light_primary", themeEditorTable.valueAt(cell));
 
-    EditorFixture editor = projectFrame.getEditor();
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("app/src/main/res/values/colors.xml");
     editor.moveTo(editor.findOffset(null, "holo", true));
     assertEquals("<color name=\"^holo_light_primary\">" + ResourceHelper.colorToString(color) + "</color>",
@@ -215,15 +216,16 @@ public class ThemeEditorTableTest extends GuiTestCase {
    */
   @Test @IdeGuiTest
   public void testColorPickerAlpha() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
 
     JTableCellFixture colorCell = themeEditorTable.cell(cell);
-    colorCell.requireEditable();
-    colorCell.click();
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)colorCell.editor());
+    colorCell.startEditing();
+    resourceComponent.getSwatchButton().click();
 
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
     ColorPickerFixture colorPicker = dialog.getColorPicker();
@@ -240,6 +242,118 @@ public class ThemeEditorTableTest extends GuiTestCase {
     colorPicker.setFormat("HSB");
     alphaLabel.requireNotVisible();
     alphaSlide.requireNotVisible();
+
     dialog.clickOK();
+    colorCell.stopEditing();
+  }
+
+  /**
+   * Test creating a new state list and setting it as a style attribute value with the state list picker.
+   */
+  @Test @IdeGuiTest
+  public void testStateListPicker() throws IOException {
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+
+    TableCell parentCell = row(0).column(0);
+    JTableCellFixture parentCellFixture = themeEditorTable.cell(parentCell);
+
+    // Selects AppCompat as parent
+    Component parentEditor = parentCellFixture.editor();
+    parentCellFixture.startEditing();
+    assertTrue(parentEditor instanceof JComponent);
+    JComboBoxFixture parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
+    parentComboBox.selectItem("Theme.AppCompat.NoActionBar");
+    parentCellFixture.stopEditing();
+
+    TableCell cell = row(8).column(0);
+
+    FontFixture cellFont = themeEditorTable.fontAt(cell);
+    cellFont.requireNotBold();
+    assertEquals("android:textColorPrimary", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@android:color/primary_text_material_dark", themeEditorTable.valueAt(cell));
+
+    JTableCellFixture stateListCell = themeEditorTable.cell(cell);
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)stateListCell.editor());
+    stateListCell.startEditing();
+    resourceComponent.getSwatchButton().click();
+
+    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+    StateListPickerFixture stateListPicker = dialog.getStateListPicker();
+    List<StateListComponentFixture> states = stateListPicker.getStateComponents();
+    assertThat(states).hasSize(2);
+
+    final StateListComponentFixture state0 = states.get(0);
+    assertEquals("Not enabled", state0.getStateName());
+    assertEquals("@android:color/primary_text_default_material_dark", state0.getValue());
+    assertTrue(state0.isAlphaVisible());
+    assertEquals("@android:dimen/disabled_alpha_material_dark", state0.getAlphaValue());
+
+    final StateListComponentFixture state1 = states.get(1);
+    assertEquals("Default", state1.getStateName());
+    assertEquals("@android:color/primary_text_default_material_dark", state1.getValue());
+    assertFalse(state1.isAlphaVisible());
+
+    dialog.focus();
+    state0.getValueComponent().getSwatchButton().click();
+    ChooseResourceDialogFixture secondDialog = ChooseResourceDialogFixture.find(myRobot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(@NotNull JDialog component) {
+        return (component.isShowing() && !component.equals(dialog.target()));
+      }
+    });
+    secondDialog.getColorPicker().setColorWithIntegers(new Color(200, 0, 0, 200));
+    secondDialog.clickOK();
+    pause(new Condition("Waiting for component update") {
+      @Override
+      public boolean test() {
+        return "@color/primary_text_default_material_dark".equals(state0.getValue());
+      }
+    });
+
+    dialog.focus();
+    state0.getAlphaComponent().getSwatchButton().click();
+    secondDialog = ChooseResourceDialogFixture.find(myRobot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(@NotNull JDialog component) {
+        return (component.isShowing() && !component.equals(dialog.target()));
+      }
+    });
+    secondDialog.getResourceTree().clickPath("Dimension/abc_disabled_alpha_material_dark");
+    secondDialog.focus();
+    secondDialog.clickOK();
+    pause(new Condition("Waiting for component update") {
+      @Override
+      public boolean test() {
+        return "@dimen/abc_disabled_alpha_material_dark".equals(state0.getAlphaValue());
+      }
+    });
+
+    dialog.focus();
+    state1.getValueComponent().getSwatchButton().click();
+    secondDialog = ChooseResourceDialogFixture.find(myRobot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(@NotNull JDialog component) {
+        return (component.isShowing() && !component.equals(dialog.target()));
+      }
+    });
+    secondDialog.getColorPicker().setColorWithIntegers(new Color(0, 200, 0, 255));
+    secondDialog.clickOK();
+    pause(new Condition("Waiting for component update") {
+      @Override
+      public boolean test() {
+        return "@color/primary_text_default_material_dark".equals(state1.getValue());
+      }
+    });
+
+    dialog.focus();
+    dialog.clickOK();
+    stateListCell.stopEditing();
+
+    cellFont = themeEditorTable.fontAt(cell);
+    cellFont.requireBold();
+    assertEquals("android:textColorPrimary", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@color/primary_text_material_dark", themeEditorTable.valueAt(cell));
   }
 }

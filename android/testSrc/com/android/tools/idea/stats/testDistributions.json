@@ -1,0 +1,155 @@
+[
+  {
+    "name": "Gingerbread",
+    "version": "2.3",
+    "apiLevel": 10,
+    "distributionPercentage": 0.1,
+    "url": "https://developer.android.com/about/versions/android-2.3.3.html",
+    "descriptionBlocks" :[
+      {
+        "title": "Connectivity",
+        "body": "Improved NFC support<br>Non-secure Bluetooth connections"
+      },
+      {
+        "title": "Multimedia",
+        "body": "Retrieve frame and metadata from input media files<br>Improved speech recognition API<br>Improved graphics support"
+
+      },
+      {
+        "title": "Peripherals",
+        "body": "Open Accessory Library from USB"
+      }
+    ]
+  },
+  {
+    "name": "Ice Cream Sandwich",
+    "version": "4.0",
+    "apiLevel": 15,
+    "distributionPercentage": 0.2,
+    "url": "https://developer.android.com/about/versions/android-4.0.html",
+    "descriptionBlocks" : [
+      {
+        "title": "Contacts Provider",
+        "body": "Social APIs<br>User profile<br>Invite intent<br>Large photos"
+      },
+      {
+        "title": "Calendar Provider",
+        "body": "Calendar APIs<br>Event intents"
+      },
+      {
+        "title": "Voicemail Provider",
+        "body": "Add voicemails to the device"
+      },
+      {
+        "title": "Multimedia",
+        "body": "Media effects for images and videos<br>Remote control client<br>Improved media player"
+      },
+      {
+        "title": "Camera",
+        "body": "Face detection<br>Focus and metering areas<br>Continuous auto focus<br>Camera broadcast intents"
+      },
+      {
+        "title": "Connectivity",
+        "body": "Android Beam for NDEF push with NFC<br>Wi-Fi P2P connections<br>Bluetooth health profile<br>Network usage and controls"
+      },
+      {
+        "title": "Accessibility",
+        "body": "Explore-by-touch mode<br>Accessibility for views<br>Accessibility services<br>Improved text-to-speech engine support"
+      },
+      {
+        "title": "User Interface",
+        "body": "Spell checker services<br>Improved action bar<br>Grid layout<br>Texture view<br>Switch widget<br>Improved popup menus<br>System themes<br>Controls for system UI visibility<br>Hover event support<br>Hardware acceleration for all windows"
+      },
+      {
+        "title": "Enterprise",
+        "body": "VPN services<br>Device policies<br>Certificate management"
+      },
+      {
+        "title": "Device Sensors",
+        "body": "Improved sensors<br>Temperature sensor<br>Humidity sensor"
+      }
+    ]
+  },
+  {
+    "name": "Jelly Bean",
+    "version": "4.1",
+    "apiLevel": 16,
+    "distributionPercentage": 0.3,
+    "url": "https://developer.android.com/about/versions/android-4.1.html",
+    "descriptionBlocks" : [
+      {
+        "title": "App Components",
+        "body": "Isolated services<br>Memory management<br>Content providers<br>Live wallpapers<br>App stack navigation"
+      },
+      {
+        "title": "Multimedia",
+        "body": "Media codecs<br>Record audio on cue<br>Timed text tracks<br>Gapless playback"
+      },
+      {
+        "title": "Camera",
+        "body": "Auto focus movement<br>Camera sounds"
+      },
+      {
+        "title": "Connectivity",
+        "body": "Android Beam over Bluetooth<br>Network service discovery<br>Wi-Fi P2P service discovery<br>Detect metered networks"
+      },
+      {
+        "title": "Accessibility",
+        "body": "Accessibility service APIs<br>Customizable app navigation<br>More accessible widgets"
+      },
+      {
+        "title": "Copy and Paste",
+        "body": "Copy and paste with intents"
+      },
+      {
+        "title": "Multimedia",
+        "body": "Enhanced RenderScript functionality"
+      },
+      {
+        "title": "Animations",
+        "body": "Activity launch animations<br>Time animator"
+      },
+      {
+        "title": "User Interface",
+        "body": "Improved notifications<br>Controls for system UI<br>Remote views<br>More font families"
+      },
+      {
+        "title": "Input Framework",
+        "body": "Multiple input devices<br>Vibrate for input controllers"
+      }
+    ]
+  },
+  {
+    "name": "Jelly Bean",
+    "version": "4.2",
+    "apiLevel": 17,
+    "distributionPercentage": 0.4,
+    "url": "https://developer.android.com/about/versions/android-4.2.html",
+    "descriptionBlocks" : [
+      {
+        "title": "Screensaver",
+        "body": "Daydream interactive screensaver"
+      },
+      {
+        "title": "Secondary Displays",
+        "body": "Display content on additional screens"
+      },
+      {
+        "title": "Lockscreen Widgets",
+        "body": "Add widgets to the lock screen"
+      },
+      {
+        "title": "Multiple Users",
+        "body": "Save data in a multi-user environment<br>Identify users in a multi-user environment<br>Global settings"
+      },
+      {
+        "title": "User Interface",
+        "body": "Layout orientation for right-to-left (RTL) UIs<br>Nested fragments"
+      },
+      {
+        "title": "Multimedia",
+        "body": "RenderScript script intrinsics<br>RenderScript script groups<br>RenderScript Filterscript"
+      }
+    ]
+  }
+]

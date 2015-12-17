@@ -1,0 +1,11 @@
+<resources>
+  <style name="Theme.Theme1">
+    <item name="android:colorBackground">#FEFEFE</item>
+  </style>
+  <style name="Theme.Theme2">
+    <item name="android:colorBackground">#FBFBFB</item>
+  </style>
+  <style name="Theme.Theme3">
+    <item name="android:colorBackground">#876543</item>
+  </style>
+</resources>

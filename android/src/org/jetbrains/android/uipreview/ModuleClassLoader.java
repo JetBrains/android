@@ -50,7 +50,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
-import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
 
 /**
  * Render class loader responsible for loading classes in custom views
@@ -325,8 +325,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
             result.add(SdkUtils.fileToUrl(file));
 
             File aarDir = file.getParentFile();
-            if (aarDir != null && (aarDir.getPath().endsWith(DOT_AAR) ||
-              aarDir.getPath().contains(EXPLODED_AAR))) {
+            if (aarDir != null && (aarDir.getPath().endsWith(DOT_AAR) || aarDir.getPath().contains(EXPLODED_AAR))) {
               if (aarDir.getPath().contains(EXPLODED_AAR) && FD_JARS.equals(aarDir.getName())) {
                 // Gradle plugin version 1.2.x and later has classes in aar-dir/jars/
                 aarDir = aarDir.getParentFile();

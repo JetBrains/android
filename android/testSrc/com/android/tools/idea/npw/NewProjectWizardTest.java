@@ -16,23 +16,22 @@
 package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.npw.AssetStudioAssetGenerator;
-import com.android.tools.idea.npw.FormFactorUtils;
-import com.android.tools.idea.npw.NewProjectWizard;
-import com.android.tools.idea.npw.NewProjectWizardState;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
+import org.mockito.ArgumentCaptor;
 
 import java.io.File;
+import java.util.Map;
 
+import static com.android.tools.idea.npw.NewProjectWizardState.ATTR_CREATE_ACTIVITY;
+import static com.android.tools.idea.npw.NewProjectWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.npw.NewProjectWizardState.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -169,12 +168,12 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     File moduleDir = runCommonCreateProjectTest();
     File gradleFile = new File(moduleDir, SdkConstants.FN_BUILD_GRADLE);
 
-    String gradleContents = TemplateUtils.readTextFile(gradleFile);
+    String gradleContents = TemplateUtils.readTextFromDisk(gradleFile);
     assertNotNull(gradleContents);
     assertTrue(gradleContents.contains("apply plugin: 'com.android.library'"));
 
     File manifestFile = new File(moduleDir, FileUtil.join("src", "main", SdkConstants.ANDROID_MANIFEST_XML));
-    String manifestContents = TemplateUtils.readTextFile(manifestFile);
+    String manifestContents = TemplateUtils.readTextFromDisk(manifestFile);
     assertNotNull(manifestContents);
     assertFalse(manifestContents.contains("android:theme"));
 
@@ -192,12 +191,12 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     File moduleDir = runCommonCreateProjectTest();
     File gradleFile = new File(moduleDir, "build.gradle");
 
-    String gradleContents = TemplateUtils.readTextFile(gradleFile);
+    String gradleContents = TemplateUtils.readTextFromDisk(gradleFile);
     assertNotNull(gradleContents);
     assertTrue(gradleContents.contains("apply plugin: 'com.android.application'"));
 
     File manifestFile = new File(moduleDir, FileUtil.join("src", "main", SdkConstants.ANDROID_MANIFEST_XML));
-    String manifestContents = TemplateUtils.readTextFile(manifestFile);
+    String manifestContents = TemplateUtils.readTextFromDisk(manifestFile);
     assertNotNull(manifestContents);
     assertTrue(manifestContents.contains("android:theme"));
 
@@ -221,7 +220,10 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     myWizard.myAssetGenerator = launcherIconStateMock;
 
     TemplateWizardState activityStateMock = spy(myWizardState.getActivityTemplateState());
+    File templateRootMock = mock(File.class);
     Template activityTemplateMock = mock(Template.class);
+    when(templateRootMock.getName()).thenReturn("MockTemplate");
+    when(activityTemplateMock.getRootPath()).thenReturn(templateRootMock);
     when(activityStateMock.getTemplate()).thenReturn(activityTemplateMock);
     when(spyState.getActivityTemplateState()).thenReturn(activityStateMock);
 
@@ -229,8 +231,14 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     File moduleRoot = runCommonCreateProjectTest();
 
     verify(launcherIconStateMock).outputImagesIntoDefaultVariant(eq(moduleRoot));
-    verify(activityTemplateMock).render(eq(moduleRoot), eq(moduleRoot), eq(myWizardState.myActivityTemplateState.myParameters),
-                                        eq(myFixture.getProject()));
+    ArgumentCaptor<RenderingContext> context = ArgumentCaptor.forClass(RenderingContext.class);
+    verify(activityTemplateMock).render(context.capture());
+    assertEquals(myFixture.getProject(), context.getValue().getProject());
+    assertEquals(moduleRoot, context.getValue().getOutputRoot());
+    assertEquals(moduleRoot, context.getValue().getModuleRoot());
+    assertEquals(moduleRoot, context.getValue().getOutputRoot());
+    assertEquals(moduleRoot, context.getValue().getOutputRoot());
+    assertIsSubMap(context.getValue().getParamMap(), myWizardState.myActivityTemplateState.myParameters);
   }
 
   public void testCreateProjectNoActivityNoIcons() throws Exception {
@@ -317,5 +325,11 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     File baseDir = new File(getProject().getBasePath(), "test" + problemText + "orama");
     myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
     runCommonCreateProjectTest();
+  }
+
+  private void assertIsSubMap(Map<?,?> map, Map<?,?> subMap) {
+    for (Object key : subMap.keySet()) {
+      assertEquals("Value is different for the key: " + key, subMap.get(key), map.get(key));
+    }
   }
 }

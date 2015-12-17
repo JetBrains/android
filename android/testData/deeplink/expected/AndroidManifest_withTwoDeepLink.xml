@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="p1.p2">
+  <application android:icon="@drawable/icon">
+    <activity
+        android:name=".MainActivity"
+        android:label="@string/app_name" >
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data
+            android:host="p2.p1"
+            android:pathPrefix="/main"
+            android:scheme="http"/>
+      </intent-filter>
+      <!-- ATTENTION: This intent was auto-generated. Follow instructions at
+        https://g.co/AppIndexing/AndroidStudio to publish your Android app deep links. -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <!-- ATTENTION: This data URL was auto-generated. We recommend that you use the HTTP scheme.
+          TODO: Change the host or pathPrefix as necessary. -->
+        <data
+            android:host="p2.p1"
+            android:pathPrefix="/main"
+            android:scheme="http"/>
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

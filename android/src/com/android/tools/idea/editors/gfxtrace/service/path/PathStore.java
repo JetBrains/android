@@ -28,6 +28,13 @@ public class PathStore<T extends Path> {
     return true;
   }
 
+  /**
+   * Same as {@link #update(Path)}, but ignores passed null values.
+   */
+  public boolean updateIfNotNull(T path) {
+    return path != null && update(path);
+  }
+
   @Nullable
   public T getPath() {
     return myPath;

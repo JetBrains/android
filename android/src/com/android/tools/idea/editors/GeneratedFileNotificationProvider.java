@@ -30,8 +30,8 @@ import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
-import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_BUNDLES;
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_BUNDLES;
 
 public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");

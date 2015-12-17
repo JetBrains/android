@@ -361,7 +361,7 @@ public class ThemePreviewBuilder {
   // All the sizes are defined in pixels so they are not rescaled depending on the selected device dpi.
   private static final int GROUP_TITLE_FONT_SIZE = 11;
 
-  private List<ComponentDefinition> myComponents = new ArrayList<ComponentDefinition>();
+  private final List<ComponentDefinition> myComponents = new ArrayList<ComponentDefinition>();
   private String myGroupHeaderColor = "@android:color/darker_gray";
   private String myBackgroundColor = "@android:color/darker_gray";
   private PrintStream myDebugPrintStream;

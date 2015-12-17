@@ -1,0 +1,21 @@
+<resources>
+  <style name="newTheme" parent="Theme">
+
+  </style>
+
+  <style name="myTheme.s" parent="">
+
+  </style>
+
+  <style name="newTheme.style1">
+
+  </style>
+
+  <style name="myTheme.s.a">
+
+  </style>
+
+  <style name="newTheme.style1.a">
+
+  </style>
+</resources>

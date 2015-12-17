@@ -41,7 +41,7 @@ public class CapturesToolWindowFixture extends ToolWindowFixture {
   @NotNull private JTreeFixture myTreeFixture;
 
   protected CapturesToolWindowFixture(@NotNull Project project, @NotNull Robot robot) {
-    super(CapturesToolWindowFactory.TOOL_WINDOW_ID, project, robot);
+    super("Captures", project, robot); // "Captures" is the facet tool window ID specified in plugin.xml
     show();
 
     myTreeFixture = new JTreeFixture(robot, getTree());

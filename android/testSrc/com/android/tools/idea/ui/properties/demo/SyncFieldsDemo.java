@@ -30,8 +30,6 @@ import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
-
 /**
  * Keep project and activity name in sync
  * <p/>
@@ -50,7 +48,7 @@ public final class SyncFieldsDemo {
   private JCheckBox myCreateActivityCheckBox;
   private JPanel myRootPanel;
 
-  private BindingsManager myBindings = new BindingsManager(BindingsManager.SWING_INVOKE_LATER_STRATEGY);
+  private BindingsManager myBindings = new BindingsManager();
 
   public static void main(String[] args) {
     //noinspection SSBasedInspection
@@ -61,8 +59,9 @@ public final class SyncFieldsDemo {
         final SyncFieldsDemo demo = new SyncFieldsDemo();
         frame.setContentPane(demo.myRootPanel);
         demo.init();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.pack();
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         frame.addWindowListener(new WindowAdapter() {
           @Override

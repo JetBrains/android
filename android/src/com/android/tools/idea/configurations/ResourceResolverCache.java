@@ -101,6 +101,10 @@ public class ResourceResolverCache {
       myAppResourceMap.clear();
     }
 
+    // Store the modification count as soon as possible. This ensures that if there is any modification of resources while the
+    // resolver is being created, it will be cleared subsequently.
+    myCachedGeneration = resources.getModificationCount();
+
     // When looking up the configured project and framework resources, the theme doesn't matter, so we look up only
     // by the configuration qualifiers; for example, here's a sample key:
     // -ldltr-sw384dp-w384dp-h640dp-normal-notlong-port-notnight-xhdpi-finger-keyssoft-nokeys-navhidden-nonav-1280x768-v17
@@ -162,7 +166,7 @@ public class ResourceResolverCache {
       }
 
       // Resource Resolver
-      assert themeStyle.startsWith(STYLE_RESOURCE_PREFIX) || themeStyle.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) : themeStyle;
+      assert themeStyle.startsWith(PREFIX_RESOURCE_REF) : themeStyle;
       boolean isProjectTheme = ResourceHelper.isProjectStyle(themeStyle);
       String themeName = ResourceHelper.styleToTheme(themeStyle);
       resolver = ResourceResolver.create(configuredAppRes, frameworkResources, themeName, isProjectTheme);
@@ -170,16 +174,15 @@ public class ResourceResolverCache {
       if (target instanceof CompatibilityRenderTarget) {
         int apiLevel = target.getVersion().getFeatureLevel();
         if (apiLevel >= 21) {
-          resolver.setDeviceDefaults("Theme.Material.Light", "Theme.Material");
+          resolver.setDeviceDefaults("Material");
         } else if (apiLevel >= 14) {
-          resolver.setDeviceDefaults("Theme.Holo.Light", "Theme.Holo");
+          resolver.setDeviceDefaults("Holo");
         } else {
-          resolver.setDeviceDefaults("Theme.Light", "Theme");
+          resolver.setDeviceDefaults(ResourceResolver.LEGACY_THEME);
         }
       }
 
       myResolverMap.put(resolverKey, resolver);
-      myCachedGeneration = resources.getModificationCount();
     }
 
     return resolver;

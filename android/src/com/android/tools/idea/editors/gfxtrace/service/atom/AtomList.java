@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,11 +55,14 @@ public final class AtomList implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {2, 107, -20, -35, 87, 105, 37, -85, -4, 108, 33, -114, -90, -31, 81, -59, 4, -13, -117, 47, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("atom","List","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Atoms", new Slice("", new Variant("Atom"))),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -67,7 +71,7 @@ public final class AtomList implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new AtomList(); }
@@ -77,7 +81,7 @@ public final class AtomList implements BinaryObject {
       AtomList o = (AtomList)obj;
       e.uint32(o.myAtoms.length);
       for (int i = 0; i < o.myAtoms.length; i++) {
-        e.object(o.myAtoms[i].unwrap());
+        e.variant(o.myAtoms[i].unwrap());
       }
     }
 
@@ -86,7 +90,7 @@ public final class AtomList implements BinaryObject {
       AtomList o = (AtomList)obj;
       o.myAtoms = new Atom[d.uint32()];
       for (int i = 0; i <o.myAtoms.length; i++) {
-        o.myAtoms[i] = Atom.wrap(d.object());
+        o.myAtoms[i] = Atom.wrap(d.variant());
       }
     }
     //<<<End:Java.KlassBody:2>>>

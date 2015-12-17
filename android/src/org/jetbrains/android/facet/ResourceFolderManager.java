@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_BUNDLES;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildVariantSelectionChangeListener;
 
 /**
@@ -52,9 +54,6 @@ import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildV
  * the folder set as it was before the IDE exited.
  */
 public class ResourceFolderManager implements ModificationTracker {
-  public static final String EXPLODED_BUNDLES = "exploded-bundles";
-  public static final String EXPLODED_AAR = "exploded-aar";
-
   private final AndroidFacet myFacet;
   private List<VirtualFile> myResDirCache;
   private long myGeneration;

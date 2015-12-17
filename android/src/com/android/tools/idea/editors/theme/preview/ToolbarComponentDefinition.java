@@ -26,7 +26,7 @@ import static com.android.SdkConstants.*;
  * Toolbar component definition used for both the framework and appcompat toolbars.
  */
 class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition {
-  private boolean myIsAppCompat;
+  private final boolean myIsAppCompat;
 
   ToolbarComponentDefinition(boolean isAppCompat) {
     super("Toolbar", ThemePreviewBuilder.ComponentGroup.TOOLBAR, isAppCompat ? "android.support.v7.widget.Toolbar" : "Toolbar");

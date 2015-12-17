@@ -17,14 +17,10 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
+import com.android.tools.idea.editors.gfxtrace.service.image.Format;
+import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
-
-import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
-import com.android.tools.rpclib.binary.BinaryObject;
-import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.binary.Encoder;
-import com.android.tools.rpclib.binary.Namespace;
 
 import java.awt.*;
 import java.io.IOException;
@@ -35,22 +31,29 @@ public final class ResourcePath extends Path {
     return myAfter.stringPath(builder).append(".Resource<").append(myID).append(">");
   }
 
-  public ThumbnailPath thumbnail(Dimension dimension) {
-    return new ThumbnailPath().setObject(this).setDesiredWidth(dimension.width).setDesiredHeight(dimension.height);
+  @Override
+  public Path getParent() {
+    return myAfter;
   }
+
+  public ThumbnailPath thumbnail(Dimension dimension, Format fmt) {
+    return new ThumbnailPath().setObject(this).setDesiredMaxWidth(dimension.width).setDesiredMaxHeight(dimension.height)
+      .setDesiredFormat(fmt);
+  }
+
   //<<<Start:Java.ClassBody:1>>>
-  private BinaryID myID;
+  private ResourceID myID;
   private AtomPath myAfter;
 
   // Constructs a default-initialized {@link ResourcePath}.
   public ResourcePath() {}
 
 
-  public BinaryID getID() {
+  public ResourceID getID() {
     return myID;
   }
 
-  public ResourcePath setID(BinaryID v) {
+  public ResourcePath setID(ResourceID v) {
     myID = v;
     return this;
   }
@@ -67,11 +70,15 @@ public final class ResourcePath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-80, -63, 118, 17, -83, -63, 12, 39, 16, -23, 68, -119, -21, 3, 24, -6, -100, -35, 47, -42, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","Resource","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("ID", new Array("ResourceID", new Primitive("byte", Method.Uint8), 20)),
+      new Field("After", new Pointer(new Struct(AtomPath.Klass.INSTANCE.entity()))),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -80,7 +87,7 @@ public final class ResourcePath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new ResourcePath(); }
@@ -88,14 +95,16 @@ public final class ResourcePath extends Path {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ResourcePath o = (ResourcePath)obj;
-      e.id(o.myID);
+      o.myID.write(e);
+
       e.object(o.myAfter);
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ResourcePath o = (ResourcePath)obj;
-      o.myID = d.id();
+      o.myID = new ResourceID(d);
+
       o.myAfter = (AtomPath)d.object();
     }
     //<<<End:Java.KlassBody:2>>>

@@ -24,7 +24,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import javax.swing.*;
 import java.awt.*;
 
-public class StringsCellRenderer extends ColoredTableCellRenderer{
+public class StringsCellRenderer extends ColoredTableCellRenderer {
   private static final SimpleTextAttributes CELL_ERROR_ATTRIBUTES = new SimpleTextAttributes(SimpleTextAttributes.STYLE_WAVED, JBColor.red);
 
   @Override
@@ -38,8 +38,12 @@ public class StringsCellRenderer extends ColoredTableCellRenderer{
       s = clip(s);
     }
 
+    row = table.convertRowIndexToModel(row);
+    column = table.convertColumnIndexToModel(column);
+
+    String problem = ((StringResourceTableModel)table.getModel()).getCellProblem(row, column);
     SimpleTextAttributes attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-    String problem = ((StringResourceTableModel) table.getModel()).getCellProblem(row, column);
+
     if (problem != null) {
       if (ConstantColumn.KEY.ordinal() == column) {
         attributes = SimpleTextAttributes.ERROR_ATTRIBUTES;

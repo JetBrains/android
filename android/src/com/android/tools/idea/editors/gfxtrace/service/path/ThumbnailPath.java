@@ -17,27 +17,30 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
+import com.android.tools.rpclib.any.Box;
+import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
-
-import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
-import com.android.tools.rpclib.binary.BinaryObject;
-import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.binary.Encoder;
-import com.android.tools.rpclib.binary.Namespace;
 
 import java.io.IOException;
 
 public final class ThumbnailPath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
-    return myObject.stringPath(builder).append(".Thumbnail<").append(myDesiredWidth).append("x").append(myDesiredHeight).append("x");
+    return myObject.stringPath(builder).append(".Thumbnail<").append(myDesiredFormat).append(',').append(myDesiredMaxWidth).append('x')
+      .append(myDesiredMaxHeight).append('>');
+  }
+
+  @Override
+  public Path getParent() {
+    return myObject;
   }
 
   //<<<Start:Java.ClassBody:1>>>
   private Path myObject;
-  private int myDesiredWidth;
-  private int myDesiredHeight;
+  private int myDesiredMaxWidth;
+  private int myDesiredMaxHeight;
+  private Object myDesiredFormat;
 
   // Constructs a default-initialized {@link ThumbnailPath}.
   public ThumbnailPath() {}
@@ -52,32 +55,47 @@ public final class ThumbnailPath extends Path {
     return this;
   }
 
-  public int getDesiredWidth() {
-    return myDesiredWidth;
+  public int getDesiredMaxWidth() {
+    return myDesiredMaxWidth;
   }
 
-  public ThumbnailPath setDesiredWidth(int v) {
-    myDesiredWidth = v;
+  public ThumbnailPath setDesiredMaxWidth(int v) {
+    myDesiredMaxWidth = v;
     return this;
   }
 
-  public int getDesiredHeight() {
-    return myDesiredHeight;
+  public int getDesiredMaxHeight() {
+    return myDesiredMaxHeight;
   }
 
-  public ThumbnailPath setDesiredHeight(int v) {
-    myDesiredHeight = v;
+  public ThumbnailPath setDesiredMaxHeight(int v) {
+    myDesiredMaxHeight = v;
+    return this;
+  }
+
+  public Object getDesiredFormat() {
+    return myDesiredFormat;
+  }
+
+  public ThumbnailPath setDesiredFormat(Object v) {
+    myDesiredFormat = v;
     return this;
   }
 
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-43, 89, -25, 113, -85, -51, 2, 106, -36, 89, -9, 122, 118, 114, -68, 24, 98, -124, -97, 47, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","Thumbnail","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Object", new Interface("Path")),
+      new Field("DesiredMaxWidth", new Primitive("uint32", Method.Uint32)),
+      new Field("DesiredMaxHeight", new Primitive("uint32", Method.Uint32)),
+      new Field("DesiredFormat", new AnyType()),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -86,7 +104,7 @@ public final class ThumbnailPath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new ThumbnailPath(); }
@@ -95,16 +113,18 @@ public final class ThumbnailPath extends Path {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ThumbnailPath o = (ThumbnailPath)obj;
       e.object(o.myObject.unwrap());
-      e.uint32(o.myDesiredWidth);
-      e.uint32(o.myDesiredHeight);
+      e.uint32(o.myDesiredMaxWidth);
+      e.uint32(o.myDesiredMaxHeight);
+      e.variant(Box.wrap(o.myDesiredFormat));
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ThumbnailPath o = (ThumbnailPath)obj;
       o.myObject = Path.wrap(d.object());
-      o.myDesiredWidth = d.uint32();
-      o.myDesiredHeight = d.uint32();
+      o.myDesiredMaxWidth = d.uint32();
+      o.myDesiredMaxHeight = d.uint32();
+      o.myDesiredFormat = ((Box)d.variant()).unwrap();
     }
     //<<<End:Java.KlassBody:2>>>
   }

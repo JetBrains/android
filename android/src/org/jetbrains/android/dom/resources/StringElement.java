@@ -16,16 +16,15 @@
 
 package org.jetbrains.android.dom.resources;
 
+import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.GenericAttributeValue;
+import org.jetbrains.android.dom.converters.AndroidBooleanValueConverter;
 import org.jetbrains.android.dom.converters.QuietResourceReferenceConverter;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 25, 2009
- * Time: 6:35:12 PM
- * To change this template use File | Settings | File Templates.
- */
 @Convert(QuietResourceReferenceConverter.class)
 public interface StringElement extends ResourceElement, StyledText {
+  @Convert(AndroidBooleanValueConverter.class)
+  @Attribute("translatable")
+  GenericAttributeValue<Boolean> isTranslatable();
 }

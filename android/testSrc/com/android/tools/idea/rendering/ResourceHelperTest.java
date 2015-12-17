@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -24,6 +25,7 @@ import java.awt.*;
 
 import static com.android.tools.idea.rendering.ResourceHelper.getResourceName;
 import static com.android.tools.idea.rendering.ResourceHelper.getResourceUrl;
+import static org.fest.assertions.Assertions.assertThat;
 
 public class ResourceHelperTest extends AndroidTestCase {
   public void testIsFileBasedResourceType() throws Exception {
@@ -60,6 +62,7 @@ public class ResourceHelperTest extends AndroidTestCase {
 
   public void testIsProjectStyle() throws Exception {
     assertFalse(ResourceHelper.isProjectStyle("@android:style/Theme"));
+    assertTrue(ResourceHelper.isProjectStyle("@namespace:style/Theme"));
     assertTrue(ResourceHelper.isProjectStyle("@style/LocalTheme"));
   }
 
@@ -126,5 +129,68 @@ public class ResourceHelperTest extends AndroidTestCase {
 
     color = new Color(0xff, 0xff, 0xff, 0x00);
     assertEquals("#00ffffff", ResourceHelper.colorToString(color));
+  }
+
+  public void testDisabledStateListStates() {
+    ResourceHelper.StateListState disabled = new ResourceHelper.StateListState("value", ImmutableMap.of("state_enabled", false), null);
+    ResourceHelper.StateListState disabledPressed =
+      new ResourceHelper.StateListState("value", ImmutableMap.of("state_enabled", false, "state_pressed", true), null);
+    ResourceHelper.StateListState pressed = new ResourceHelper.StateListState("value", ImmutableMap.of("state_pressed", true), null);
+    ResourceHelper.StateListState enabledPressed =
+      new ResourceHelper.StateListState("value", ImmutableMap.of("state_enabled", true, "state_pressed", true), null);
+    ResourceHelper.StateListState enabled = new ResourceHelper.StateListState("value", ImmutableMap.of("state_enabled", true), null);
+    ResourceHelper.StateListState selected = new ResourceHelper.StateListState("value", ImmutableMap.of("state_selected", true), null);
+    ResourceHelper.StateListState selectedPressed =
+      new ResourceHelper.StateListState("value", ImmutableMap.of("state_selected", true, "state_pressed", true), null);
+    ResourceHelper.StateListState enabledSelectedPressed =
+      new ResourceHelper.StateListState("value", ImmutableMap.of("state_enabled", true, "state_selected", true, "state_pressed", true),
+                                        null);
+    ResourceHelper.StateListState notFocused = new ResourceHelper.StateListState("value", ImmutableMap.of("state_focused", false), null);
+    ResourceHelper.StateListState notChecked = new ResourceHelper.StateListState("value", ImmutableMap.of("state_checked", false), null);
+    ResourceHelper.StateListState checkedNotPressed =
+      new ResourceHelper.StateListState("value", ImmutableMap.of("state_checked", true, "state_pressed", false), null);
+
+    ResourceHelper.StateList stateList = new ResourceHelper.StateList("stateList", "colors");
+    stateList.addState(pressed);
+    stateList.addState(disabled);
+    stateList.addState(selected);
+    assertThat(stateList.getDisabledStates()).containsExactly(disabled);
+
+    stateList.addState(disabledPressed);
+    assertThat(stateList.getDisabledStates()).containsExactly(disabled, disabledPressed);
+
+    stateList = new ResourceHelper.StateList("stateList", "colors");
+    stateList.addState(enabled);
+    stateList.addState(pressed);
+    stateList.addState(selected);
+    stateList.addState(enabledPressed); // Not reachable
+    stateList.addState(disabled);
+    assertThat(stateList.getDisabledStates()).containsExactly(pressed, selected, enabledPressed, disabled);
+
+    stateList = new ResourceHelper.StateList("stateList", "colors");
+    stateList.addState(enabledPressed);
+    stateList.addState(pressed);
+    stateList.addState(selected);
+    stateList.addState(disabled);
+    assertThat(stateList.getDisabledStates()).containsExactly(pressed, disabled);
+
+    stateList.addState(selectedPressed);
+    assertThat(stateList.getDisabledStates()).containsExactly(pressed, disabled, selectedPressed);
+
+    stateList = new ResourceHelper.StateList("stateList", "colors");
+    stateList.addState(enabledSelectedPressed);
+    stateList.addState(pressed);
+    stateList.addState(selected);
+    stateList.addState(disabled);
+    stateList.addState(selectedPressed);
+    assertThat(stateList.getDisabledStates()).containsExactly(disabled, selectedPressed);
+
+    stateList = new ResourceHelper.StateList("stateList", "colors");
+    stateList.addState(enabledPressed);
+    stateList.addState(notChecked);
+    stateList.addState(checkedNotPressed);
+    stateList.addState(selected);
+    stateList.addState(notFocused);
+    assertThat(stateList.getDisabledStates()).containsExactly(selected, notFocused);
   }
 }

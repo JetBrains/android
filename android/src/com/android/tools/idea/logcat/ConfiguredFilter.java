@@ -16,20 +16,15 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * A filter which can reject lines of logcat output based on user configured patterns.
  */
 final class ConfiguredFilter {
-  private static final Logger LOG = Logger.getInstance(ConfiguredFilter.class);
-
   @NotNull private final String myName;
   @Nullable private final Pattern myMessagePattern;
   @Nullable private final Pattern myTagPattern;
@@ -51,7 +46,7 @@ final class ConfiguredFilter {
     myLogLevel = logLevel;
   }
 
-  public boolean isApplicable(String message, String tag, String pkg, String pid, Log.LogLevel logLevel) {
+  public boolean isApplicable(String message, String tag, String pkg, int pid, Log.LogLevel logLevel) {
 
     if (myMessagePattern != null && (message == null || !myMessagePattern.matcher(message).find())) {
       return false;
@@ -65,7 +60,7 @@ final class ConfiguredFilter {
       return false;
     }
 
-    if (myPid != null && myPid.length() > 0 && !myPid.equals(pid)) {
+    if (myPid != null && myPid.length() > 0 && !myPid.equals(Integer.toString(pid))) {
       return false;
     }
 

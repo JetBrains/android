@@ -100,7 +100,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
 
         if (baseClassQName != null) {
           final String text = nameElement.getText();
-          return text != null && text.contains(".");
+          return text.contains(".");
         }
       }
     }
@@ -175,10 +175,8 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
         final ASTNode startTagNode = XmlChildRole.START_TAG_NAME_FINDER.findChild(myElement.getNode());
         if (startTagNode != null) {
           final String startTagName = startTagNode.getText();
-          if (startTagName != null) {
-             if (startTagName.startsWith(prefix)) {
-               return new Object[]{startTagName.substring(prefix.length())};
-             }
+          if (startTagName.startsWith(prefix)) {
+            return new Object[]{startTagName.substring(prefix.length())};
           }
         }
         return EMPTY_ARRAY;

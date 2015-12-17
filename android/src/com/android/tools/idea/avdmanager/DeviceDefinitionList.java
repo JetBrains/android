@@ -32,6 +32,7 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -365,6 +366,13 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       @Override
       public String valueOf(Device device) {
         return device.getDisplayName();
+      }
+
+      @Nullable
+      @Override
+      public String getPreferredStringValue() {
+        // Long string so that preferred column width is set appropriately
+        return "4.65\" 720 (Galaxy Nexus)";
       }
 
       @Nullable

@@ -32,6 +32,7 @@ import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
@@ -65,6 +66,8 @@ public class AndroidDomUtil {
   public static final Map<String, String> SPECIAL_RESOURCE_TYPES = Maps.newHashMapWithExpectedSize(20);
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
+
+  private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
 
   static {
     // This section adds additional resource type registrations where the attrs metadata is lacking. For
@@ -151,23 +154,11 @@ public class AndroidDomUtil {
       }
     }
     if (resourceTypes.size() > 0) {
-      final ResourceReferenceConverter converter = new ResourceReferenceConverter(resourceTypes);
+      final ResourceReferenceConverter converter = new ResourceReferenceConverter(resourceTypes, attr);
       converter.setAllowLiterals(containsNotReference);
       return converter;
     }
     return null;
-  }
-
-  @Nullable
-  public static ResolvingConverter<String> simplify(CompositeConverter composite) {
-    switch (composite.size()) {
-      case 0:
-        return null;
-      case 1:
-        return composite.getConverters().get(0);
-      default:
-        return composite;
-    }
   }
 
   @Nullable
@@ -210,14 +201,15 @@ public class AndroidDomUtil {
   @Nullable
   public static ResolvingConverter getConverter(@NotNull AttributeDefinition attr) {
     Set<AttributeFormat> formats = attr.getFormats();
-    CompositeConverter composite = new CompositeConverter();
+
+    CompositeConverter.Builder compositeBuilder = new CompositeConverter.Builder();
     String[] values = attr.getValues();
     boolean containsUnsupportedFormats = false;
 
     for (AttributeFormat format : formats) {
       ResolvingConverter<String> converter = getStringConverter(format, values);
       if (converter != null) {
-        composite.addConverter(converter);
+        compositeBuilder.addConverter(converter);
       }
       else {
         containsUnsupportedFormats = true;
@@ -226,18 +218,18 @@ public class AndroidDomUtil {
     ResourceReferenceConverter resConverter = getResourceReferenceConverter(attr);
     if (formats.contains(AttributeFormat.Flag)) {
       if (resConverter != null) {
-        composite.addConverter(new LightFlagConverter(values));
+        compositeBuilder.addConverter(new LightFlagConverter(values));
       }
-      return new FlagConverter(simplify(composite), values);
+      return new FlagConverter(compositeBuilder.build(), values);
     }
 
     if (resConverter == null && formats.contains(AttributeFormat.Enum)) {
-      resConverter = new ResourceReferenceConverter(Arrays.asList(ResourceType.INTEGER.getName()));
+      resConverter = new ResourceReferenceConverter(Collections.singletonList(ResourceType.INTEGER.getName()), attr);
       resConverter.setQuiet(true);
     }
-    ResolvingConverter<String> stringConverter = simplify(composite);
+    ResolvingConverter<String> stringConverter = compositeBuilder.build();
     if (resConverter != null) {
-      resConverter.setAdditionalConverter(simplify(composite), containsUnsupportedFormats);
+      resConverter.setAdditionalConverter(stringConverter, containsUnsupportedFormats);
       return resConverter;
     }
     return stringConverter;
@@ -320,7 +312,7 @@ public class AndroidDomUtil {
     }
     if (element instanceof StyledText) {
       // TODO: The documentation suggests that the allowed tags are <u>, <b> and <i>:
-      //   developer.android.com/guide/topics/resources/string-resource.html#FormattingAndStyling
+      //   http://developer.android.com/guide/topics/resources/string-resource.html#FormattingAndStyling
       // However, the full set of tags accepted by Html.fromHtml is much larger. Therefore,
       // instead consider *any* element nested inside a <string> definition to be a markup
       // element. See frameworks/base/core/java/android/text/Html.java and look for
@@ -345,11 +337,9 @@ public class AndroidDomUtil {
 
       // However, there are some attributes with other meanings: http://tools.android.com/tech-docs/tools-attributes
       // Filter some of these out such that they are not treated as the (unrelated but identically named) platform attributes
-      if (ATTR_CONTEXT.equals(localName)
-          || ATTR_IGNORE.equals(localName)
-          || ATTR_LOCALE.equals(localName)
-          || ATTR_TARGET_API.equals(localName)) {
-        return null;
+      AttributeDefinition toolsAttr = TOOLS_ATTRIBUTE_DEFINITIONS.getAttrDefByName(localName);
+      if (toolsAttr != null) {
+        return toolsAttr;
       }
     }
 

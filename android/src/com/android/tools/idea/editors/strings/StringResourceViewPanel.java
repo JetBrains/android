@@ -25,12 +25,15 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -48,10 +51,9 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableRowSorter;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
@@ -65,25 +67,23 @@ public class StringResourceViewPanel implements HyperlinkListener {
   private static final boolean HIDE_TRANSLATION_ORDER_LINK = Boolean.getBoolean("hide.order.translations");
 
   private final AndroidFacet myFacet;
-  private JPanel myContainer;
   private JBLoadingPanel myLoadingPanel;
+  private JPanel myContainer;
   private JBTable myTable;
-
   private JTextField myKey;
   private TextFieldWithBrowseButton myDefaultValueWithBrowseBtn;
-  private final JTextField myDefaultValue;
+  @VisibleForTesting final JTextComponent myDefaultValue;
   private TextFieldWithBrowseButton myTranslationWithBrowseBtn;
-  private final JTextField myTranslation;
-
+  @VisibleForTesting final JTextComponent myTranslation;
   private JPanel myToolbarPanel;
+
+  private final StringResourceTableModel myTableModel;
+  private StringResourceData myData;
 
   private LocalResourceRepository myResourceRepository;
   private long myModificationCount;
 
-  private StringResourceData myData;
-  private final StringResourceTableModel myTableModel;
-
-  public StringResourceViewPanel(AndroidFacet facet, Disposable parentDisposable) {
+  StringResourceViewPanel(AndroidFacet facet, Disposable parentDisposable) {
     myFacet = facet;
 
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), parentDisposable, 200);
@@ -112,17 +112,23 @@ public class StringResourceViewPanel implements HyperlinkListener {
     initEditPanel();
     initTable();
 
-    myTableModel = new StringResourceTableModel(null);
+    myTableModel = new StringResourceTableModel();
     myTable.setModel(myTableModel);
     myLoadingPanel.setLoadingText("Loading string resource data");
     myLoadingPanel.startLoading();
-    new ParseTask("Loading string resource data").queue();
+
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      new ParseTask("Loading string resource data").queue();
+    }
   }
 
   public void reloadData() {
     myLoadingPanel.setLoadingText("Updating string resource data");
     myLoadingPanel.startLoading();
-    new ParseTask("Updating string resource data").queue();
+
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      new ParseTask("Updating string resource data").queue();
+    }
   }
 
   private ActionToolbar createToolbar() {
@@ -144,6 +150,7 @@ public class StringResourceViewPanel implements HyperlinkListener {
         }
       }
     };
+
     group.add(addKeyAction);
 
     final AnAction addLocaleAction = new AnAction("Add Locale", "", AndroidIcons.Globe) {
@@ -192,17 +199,75 @@ public class StringResourceViewPanel implements HyperlinkListener {
               defaultValue = firstEntry.getValue();
             }
 
+            // TODO(juancnuno) Ask the user to pick a source set instead of defaulting to the primary resource directory
+            VirtualFile primaryResourceDir = myFacet.getPrimaryResourceDir();
+            assert primaryResourceDir != null;
+
             Locale l = (Locale)list.getSelectedValue();
-            StringsWriteUtils.createItem(myFacet, myFacet.getPrimaryResourceDir(), l, key,
-                                         StringResourceData.resourceToString(defaultValue), true);
+
+            StringsWriteUtils.createItem(myFacet, primaryResourceDir, l, key, StringResourceData.resourceToString(defaultValue), true);
             reloadData();
           }
         }).createPopup().showUnderneathOf(toolbar.getComponent());
       }
     };
-    group.addAction(addLocaleAction);
+
+    group.add(addLocaleAction);
+    group.add(newShowOnlyKeysNeedingTranslationsAction());
 
     return toolbar;
+  }
+
+  private AnAction newShowOnlyKeysNeedingTranslationsAction() {
+    return new CheckboxAction("Show only keys _needing translations") {
+      @Override
+      public boolean isSelected(AnActionEvent event) {
+        return myTable.getRowSorter() != null;
+      }
+
+      @Override
+      public void setSelected(AnActionEvent event, boolean showingOnlyKeysNeedingTranslations) {
+        setShowingOnlyKeysNeedingTranslations(showingOnlyKeysNeedingTranslations);
+      }
+
+      @Override
+      public void update(AnActionEvent event) {
+        event.getPresentation().setEnabled(myData != null);
+        super.update(event);
+      }
+    };
+  }
+
+  @VisibleForTesting
+  void setShowingOnlyKeysNeedingTranslations(boolean showingOnlyKeysNeedingTranslations) {
+    DefaultRowSorter<StringResourceTableModel, Integer> rowSorter;
+
+    if (showingOnlyKeysNeedingTranslations) {
+      rowSorter = new TableRowSorter<StringResourceTableModel>(myTableModel);
+      rowSorter.setRowFilter(new NeedsTranslationsRowFilter());
+    }
+    else {
+      rowSorter = null;
+    }
+
+    myTable.setRowSorter(rowSorter);
+  }
+
+  private static final class NeedsTranslationsRowFilter extends RowFilter<StringResourceTableModel, Integer> {
+    @Override
+    public boolean include(Entry<? extends StringResourceTableModel, ? extends Integer> entry) {
+      if ((Boolean)entry.getValue(ConstantColumn.UNTRANSLATABLE.ordinal())) {
+        return false;
+      }
+
+      for (int i = ConstantColumn.COUNT; i < entry.getValueCount(); i++) {
+        if (entry.getValue(i).equals("")) {
+          return true;
+        }
+      }
+
+      return false;
+    }
   }
 
   public boolean dataIsCurrent() {
@@ -225,13 +290,14 @@ public class StringResourceViewPanel implements HyperlinkListener {
     myTranslation.addKeyListener(keyListener);
   }
 
-  private void onTextFieldUpdate(JTextComponent component) {
+  @VisibleForTesting
+  void onTextFieldUpdate(JTextComponent component) {
     StringResourceTableModel model = (StringResourceTableModel)myTable.getModel();
     if (myTable.getSelectedColumnCount() != 1 || myTable.getSelectedRowCount() != 1) {
       return;
     }
 
-    int row = myTable.getSelectedRow();
+    int row = myTable.convertRowIndexToModel(myTable.getSelectedRow());
     int column;
 
     if (component == myKey) {
@@ -242,11 +308,12 @@ public class StringResourceViewPanel implements HyperlinkListener {
     }
     else {
       assert component == myTranslation;
-      column = myTable.getSelectedColumn();
+      column = myTable.convertColumnIndexToModel(myTable.getSelectedColumn());
     }
 
     String value = component.getText();
     model.setValueAt(value, row, column);
+    // TODO(juancnuno) If you refilter here change the key listener to update the model on Enter
   }
 
   private void initTable() {
@@ -261,7 +328,24 @@ public class StringResourceViewPanel implements HyperlinkListener {
     myTable.getSelectionModel().addListSelectionListener(selectionListener);
     myTable.getColumnModel().getSelectionModel().addListSelectionListener(selectionListener);
 
-    myTable.setDefaultEditor(String.class, new StringsCellEditor());
+    CellEditorListener cellEditorListener = new CellEditorListener() {
+      @Override
+      public void editingStopped(ChangeEvent event) {
+        refilter();
+      }
+
+      @Override
+      public void editingCanceled(ChangeEvent event) {
+      }
+    };
+
+    myTable.getDefaultEditor(Boolean.class).addCellEditorListener(cellEditorListener);
+
+    TableCellEditor cellEditor = new StringsCellEditor();
+    cellEditor.addCellEditorListener(cellEditorListener);
+
+    myTable.setDefaultEditor(String.class, cellEditor);
+
     myTable.getParent().addComponentListener(new ResizeListener(myTable));
   }
 
@@ -290,11 +374,13 @@ public class StringResourceViewPanel implements HyperlinkListener {
     // Application Version
     sb.append("?asVer=");
     ApplicationInfo ideInfo = ApplicationInfo.getInstance();
+
+    // @formatter:off
     sb.append(ideInfo.getMajorVersion()).append('.')
       .append(ideInfo.getMinorVersion()).append('.')
       .append(ideInfo.getMicroVersion()).append('.')
       .append(ideInfo.getPatchVersion());
-
+    // @formatter:on
 
     // Package name
     String pkg = ManifestInfo.get(myFacet.getModule(), false).getPackage();
@@ -362,21 +448,30 @@ public class StringResourceViewPanel implements HyperlinkListener {
 
     @Override
     public void onSuccess() {
-      myLoadingPanel.stopLoading();
-
-      myData = myResourceDataRef.get();
-      myResourceRepository = myResourceRepositoryRef.get();
-      myModificationCount = myResourceRepository.getModificationCount();
-
-      myTableModel.setData(myData);
-      myTableModel.fireTableStructureChanged();
-      ColumnUtil.setColumns(myTable);
+      parse(myResourceRepositoryRef.get(), myResourceDataRef.get());
     }
 
     @Override
     public void onCancel() {
       myLoadingPanel.stopLoading();
     }
+  }
+
+  @VisibleForTesting
+  void parse(@NotNull LocalResourceRepository resourceRepository) {
+    parse(resourceRepository, StringResourceParser.parse(myFacet, resourceRepository));
+  }
+
+  private void parse(@NotNull LocalResourceRepository resourceRepository, @NotNull StringResourceData data) {
+    myResourceRepository = resourceRepository;
+    myData = data;
+    myModificationCount = resourceRepository.getModificationCount();
+
+    myTableModel.setData(data);
+    myTableModel.fireTableStructureChanged();
+    ColumnUtil.setColumns(myTable);
+
+    myLoadingPanel.stopLoading();
   }
 
   private class CellSelectionListener implements ListSelectionListener {
@@ -395,10 +490,10 @@ public class StringResourceViewPanel implements HyperlinkListener {
         return;
       }
 
-      StringResourceTableModel model = (StringResourceTableModel) myTable.getModel();
+      StringResourceTableModel model = (StringResourceTableModel)myTable.getModel();
 
-      int row = myTable.getSelectedRow();
-      int column = myTable.getSelectedColumn();
+      int row = myTable.convertRowIndexToModel(myTable.getSelectedRow());
+      int column = myTable.convertColumnIndexToModel(myTable.getSelectedColumn());
       Locale locale = model.localeOfColumn(column);
 
       String key = model.keyOfRow(row);
@@ -438,8 +533,8 @@ public class StringResourceViewPanel implements HyperlinkListener {
         return;
       }
 
-      int row = myTable.getSelectedRow();
-      int column = myTable.getSelectedColumn();
+      int row = myTable.convertRowIndexToModel(myTable.getSelectedRow());
+      int column = myTable.convertColumnIndexToModel(myTable.getSelectedColumn());
 
       StringResourceTableModel model = (StringResourceTableModel)myTable.getModel();
       String key = model.keyOfRow(row);
@@ -452,12 +547,23 @@ public class StringResourceViewPanel implements HyperlinkListener {
       if (d.showAndGet()) {
         if (!StringUtil.equals(value, d.getDefaultValue())) {
           model.setValueAt(d.getDefaultValue(), row, ConstantColumn.DEFAULT_VALUE.ordinal());
+          refilter();
         }
 
         if (locale != null && !StringUtil.equals(translation, d.getTranslation())) {
           model.setValueAt(d.getTranslation(), row, column);
+          refilter();
         }
       }
+    }
+  }
+
+  private void refilter() {
+    @SuppressWarnings("unchecked") DefaultRowSorter<StringResourceTableModel, Integer> rowSorter =
+      (DefaultRowSorter<StringResourceTableModel, Integer>)myTable.getRowSorter();
+
+    if (rowSorter != null) {
+      rowSorter.sort();
     }
   }
 }

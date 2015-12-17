@@ -78,10 +78,6 @@ public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoPr
     return myAvdDisplayList;
   }
 
-  @Override
-  public void notifyRun() {
-  }
-
   @Nullable
   public AvdInfo getSelected() {
     return myAvdDisplayList.getAvdInfo();

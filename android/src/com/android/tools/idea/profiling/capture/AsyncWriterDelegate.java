@@ -89,7 +89,6 @@ class AsyncWriterDelegate implements Runnable {
   }
 
   void queueWrite(@NotNull CaptureHandle captureHandle, @NotNull byte[] data) throws InterruptedException {
-    ApplicationManager.getApplication().assertIsDispatchThread();
     myWriteQueue.put(new WriteMessage(captureHandle, data));
   }
 

@@ -19,7 +19,10 @@ import com.android.ide.common.blame.Message;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.*;
+import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.GradleBuildListener;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
@@ -62,9 +65,6 @@ import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntr
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
 
 /**
@@ -263,26 +263,9 @@ public class PostProjectBuildTasksExecutor {
         return;
       }
 
-      File[] outputFolderPaths = notNullize(buildFolderPath.listFiles());
-      if (outputFolderPaths.length == 0) {
-        rootModel.dispose();
-        return;
-      }
-
-      for (File outputFolderPath : outputFolderPaths) {
-        if (!androidModel.shouldManuallyExclude(outputFolderPath)) {
-          continue;
-        }
-        boolean alreadyExcluded = false;
-        for (VirtualFile excluded : parent.getExcludeFolderFiles()) {
-          if (filesEqual(outputFolderPath, virtualToIoFile(excluded))) {
-            alreadyExcluded = true;
-            break;
-          }
-        }
-        if (!alreadyExcluded) {
-          parent.addExcludeFolder(pathToIdeaUrl(outputFolderPath));
-        }
+      List<File> excludedFolderPaths = androidModel.getExcludedFolderPaths();
+      for (File folderPath : excludedFolderPaths) {
+        parent.addExcludeFolder(pathToIdeaUrl(folderPath));
       }
     }
     finally {

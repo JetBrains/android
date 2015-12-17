@@ -9,9 +9,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.run.AndroidRunConfiguration;
-import org.jetbrains.android.run.AndroidRunConfigurationType;
-import org.jetbrains.android.run.TargetSelectionMode;
+import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.AndroidRunConfigurationType;
+import com.android.tools.idea.run.TargetSelectionMode;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 

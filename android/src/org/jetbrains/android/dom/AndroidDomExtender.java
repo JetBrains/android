@@ -37,10 +37,7 @@ import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animation.AnimationElement;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.animator.AnimatorElement;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
-import org.jetbrains.android.dom.attrs.StyleableDefinition;
+import org.jetbrains.android.dom.attrs.*;
 import org.jetbrains.android.dom.color.ColorDomElement;
 import org.jetbrains.android.dom.color.ColorStateListItem;
 import org.jetbrains.android.dom.converters.CompositeConverter;
@@ -186,7 +183,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
     Converter converter = AndroidDomUtil.getSpecificConverter(xmlName, element);
     if (converter == null) {
-      converter = AndroidDomUtil.getConverter(attrDef);
+      if (SdkConstants.TOOLS_URI.equals(namespaceKey)) {
+        converter = ToolsAttributeUtil.getConverter(attrDef);
+      } else {
+        converter = AndroidDomUtil.getConverter(attrDef);
+      }
     }
 
     if (converter != null) {
@@ -340,9 +341,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       registerSubtags("reset-password", XmlResourceElement.class, callback, registeredSubtags);
       registerSubtags("force-lock", XmlResourceElement.class, callback, registeredSubtags);
       registerSubtags("wipe-data", XmlResourceElement.class, callback, registeredSubtags);
+      registerSubtags("set-global-proxy", XmlResourceElement.class, callback, registeredSubtags);
       registerSubtags("expire-password", XmlResourceElement.class, callback, registeredSubtags);
       registerSubtags("encrypted-storage", XmlResourceElement.class, callback, registeredSubtags);
       registerSubtags("disable-camera", XmlResourceElement.class, callback, registeredSubtags);
+      registerSubtags("disable-keyguard-features", XmlResourceElement.class, callback, registeredSubtags);
     }
 
     // DevicePolicyManager API
@@ -862,6 +865,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element);
   }
 
+  @SuppressWarnings("ClassExplicitlyAnnotation")
   private static class MyRequired implements Required {
     @Override
     public boolean value() {

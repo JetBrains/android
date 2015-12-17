@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import org.fest.swing.annotation.RunsInCurrentThread;
 import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
+import org.fest.swing.driver.BasicJTableCellReader;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTableFixture;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.Component;
-import java.awt.Font;
 import java.util.List;
 
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -38,6 +38,8 @@ import static org.junit.Assert.assertTrue;
 public class ThemeEditorTableFixture extends JTableFixture {
   private ThemeEditorTableFixture(Robot robot, ThemeEditorTable target) {
     super(robot, target);
+    replaceCellWriter(new ThemeEditorTableCellWriter(robot));
+    replaceCellReader(new BasicJTableCellReader(new ThemeEditorTableCellRendererReader()));
   }
 
   @NotNull
@@ -56,37 +58,7 @@ public class ThemeEditorTableFixture extends JTableFixture {
         }
 
         ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
-        return resourceComponent.getAttributeName();
-      }
-    });
-  }
-
-  @Nullable
-  public Font valueFontAt(@NotNull final TableCell cell) {
-    return execute(new GuiQuery<Font>() {
-      @Override
-      protected Font executeInEDT() throws Throwable {
-        Component renderer = rendererComponentAt(cell);
-        assertTrue(renderer instanceof ResourceComponent);
-        ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
-        return resourceComponent.getValueFont();
-      }
-    });
-  }
-
-  @Override
-  @Nullable
-  public String valueAt(@NotNull final TableCell cell) {
-    return execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
-        Component renderer = rendererComponentAt(cell);
-        if (!(renderer instanceof ResourceComponent)) {
-          return ThemeEditorTableFixture.super.valueAt(cell);
-        }
-
-        ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)renderer);
-        return resourceComponent.getValueString();
+        return resourceComponent.getLabelText();
       }
     });
   }

@@ -24,6 +24,7 @@ import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.aapt.AaptOutputParser;
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
+import com.android.tools.idea.gradle.output.parser.androidPlugin.DataBindingOutputParser;
 import com.android.utils.ILogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,6 +84,7 @@ public class BuildFailureParser implements PatternAwareOutputParser {
   }
 
   private AaptOutputParser myAaptParser = new AaptOutputParser();
+  private DataBindingOutputParser myDataBindingParser = new DataBindingOutputParser();
 
   @Override
   public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<Message> messages, @NotNull ILogger logger)
@@ -166,13 +168,18 @@ public class BuildFailureParser implements PatternAwareOutputParser {
                 messages.add(new Message(Message.Kind.ERROR, text, SourceFilePosition.UNKNOWN));
               }
             }
-            if (errorMessage.length() > 0) {
-              errorMessage.append("\n");
+            boolean handledByDataBinding = myDataBindingParser.parse(currentLine, reader, messages, logger);
+            if (!handledByDataBinding) {
+              if (errorMessage.length() > 0) {
+                errorMessage.append("\n");
+              }
+              errorMessage.append(currentLine);
             }
+
             if (isGradleQuotedLine(currentLine)) {
               lastQuotedLine = currentLine;
             }
-            errorMessage.append(currentLine);
+
           }
           break;
         case COMMAND_FAILURE_COMMAND_LINE:

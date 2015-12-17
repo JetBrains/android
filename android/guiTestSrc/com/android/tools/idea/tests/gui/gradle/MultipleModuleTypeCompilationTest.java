@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
 import org.junit.Test;
@@ -45,8 +44,8 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testAssembleTaskIsNotInvokedForLocalAarModule() throws IOException {
-    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-    GradleInvocationResult result = ideFrame.invokeProjectMake();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    GradleInvocationResult result = myProjectFrame.invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
     List<String> invokedTasks = result.getTasks();
     assertThat(invokedTasks).containsOnly(":app:compileDebugSources", ":app:compileDebugAndroidTestSources", ":javaLib:compileJava");
@@ -54,8 +53,8 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testAssembleTaskIsNotInvokedForLocalAarModuleOnJps() throws IOException {
-    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-    CompileContext context = ideFrame.invokeProjectMakeUsingJps();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    CompileContext context = myProjectFrame.invokeProjectMakeUsingJps();
 
     String[] invokedTasks = null;
     for (CompilerMessage msg : context.getMessages(INFORMATION)) {

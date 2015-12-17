@@ -17,6 +17,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
+import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,12 +31,25 @@ public final class AtomPath extends Path {
     return myAtoms.stringPath(builder).append("[").append(myIndex).append("]");
   }
 
+  @Override
+  public Path getParent() {
+    return myAtoms;
+  }
+
   public StatePath stateAfter() {
     return new StatePath().setAfter(this);
   }
 
-  public ResourcePath resourceAfter(BinaryID id) {
+  public static StatePath stateAfter(AtomPath atomPath) {
+    return (atomPath == null) ? null : atomPath.stateAfter();
+  }
+
+  public ResourcePath resourceAfter(ResourceID id) {
     return new ResourcePath().setAfter(this).setID(id);
+  }
+
+  public MemoryRangePath memoryAfter(PoolID pool, MemoryRange range) {
+    return new MemoryRangePath().setAfter(this).setPool(pool.value).setAddress(range.getBase()).setSize(range.getSize());
   }
 
   //<<<Start:Java.ClassBody:1>>>
@@ -65,11 +81,15 @@ public final class AtomPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {88, 17, -66, 109, -4, -30, -32, 18, 108, 66, 85, 45, -13, 94, 17, 26, -63, 107, -2, 59, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","Atom","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Atoms", new Pointer(new Struct(AtomsPath.Klass.INSTANCE.entity()))),
+      new Field("Index", new Primitive("uint64", Method.Uint64)),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -78,7 +98,7 @@ public final class AtomPath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new AtomPath(); }

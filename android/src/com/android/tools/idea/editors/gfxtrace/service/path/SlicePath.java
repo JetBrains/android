@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +27,11 @@ public final class SlicePath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
     return myArray.stringPath(builder).append("[").append(myStart).append(":").append(myEnd).append("]");
+  }
+
+  @Override
+  public Path getParent() {
+    return myArray;
   }
 
   //<<<Start:Java.ClassBody:1>>>
@@ -67,11 +73,16 @@ public final class SlicePath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-46, 42, 12, 30, -111, 46, 107, -115, -63, -34, 5, -14, 23, 30, -12, 66, 59, 18, -39, 118, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","Slice","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Array", new Interface("Path")),
+      new Field("Start", new Primitive("uint64", Method.Uint64)),
+      new Field("End", new Primitive("uint64", Method.Uint64)),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -80,7 +91,7 @@ public final class SlicePath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new SlicePath(); }

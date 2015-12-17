@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,11 +53,15 @@ public final class Resource implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-35, -30, 0, 24, 37, 69, 113, -71, -37, 111, -19, 57, -35, -114, 113, 75, -10, 118, 38, -50, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("atom","Resource","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
+      new Field("Data", new Slice("", new Primitive("byte", Method.Uint8))),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -65,7 +70,7 @@ public final class Resource implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new Resource(); }
@@ -73,7 +78,8 @@ public final class Resource implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Resource o = (Resource)obj;
-      e.id(o.myID);
+      o.myID.write(e);
+
       e.uint32(o.myData.length);
       e.write(o.myData, o.myData.length);
 
@@ -82,7 +88,8 @@ public final class Resource implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       Resource o = (Resource)obj;
-      o.myID = d.id();
+      o.myID = new BinaryID(d);
+
       o.myData = new byte[d.uint32()];
       d.read(o.myData, o.myData.length);
 

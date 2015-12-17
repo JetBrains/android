@@ -21,31 +21,33 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
+import com.intellij.ide.projectView.impl.ProjectRootsUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.RecentsManager;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
@@ -81,6 +83,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Set<Key<?>> IMPLICIT_PARAMETERS = ImmutableSet.<Key<?>>of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME);
 
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
+  public static final String CUSTOMIZE_ACTIVITY_TITLE = "Customize the Activity";
 
   private TemplateParameterStep2 myParameterStep;
   private final boolean myIsNewModule;
@@ -93,7 +96,8 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   /**
    * Creates a new instance of the wizard path.
    */
-  public AddAndroidActivityPath(@Nullable VirtualFile targetFolder, @Nullable File template,
+  public AddAndroidActivityPath(@Nullable VirtualFile targetFolder,
+                                @Nullable File template,
                                 Map<String, Object> predefinedParameterValues,
                                 Disposable parentDisposable) {
     myTemplate = template;
@@ -162,36 +166,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     return null;
   }
 
-  /**
-   * Calculate the package name from the given target directory. Returns the package name or null if no package name could
-   * be calculated.
-   */
-  @Nullable
-  public static String getPackageFromDirectory(@NotNull VirtualFile directory,
-                                               @NotNull SourceProvider sourceProvider,
-                                               @NotNull Module module, @NotNull String srcDir) {
-    File javaSourceRoot;
-    File javaDir = findSrcDirectory(sourceProvider);
-    if (javaDir == null) {
-      javaSourceRoot = new File(AndroidRootUtil.getModuleDirPath(module), srcDir);
-    }
-    else {
-      javaSourceRoot = new File(javaDir.getPath());
-    }
-
-    File javaSourcePackageRoot = VfsUtilCore.virtualToIoFile(directory);
-    if (!FileUtil.isAncestor(javaSourceRoot, javaSourcePackageRoot, true)) {
-      return null;
-    }
-
-    String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
-    String packageName = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
-    if (packageName == null || !AndroidUtils.isValidJavaPackageName(packageName)) {
-      return null;
-    }
-    return packageName;
-  }
-
   @Nullable
   private static File getModuleRoot(@Nullable Module module) {
     if (module == null) {
@@ -240,14 +214,19 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       paths.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
     if (testDir == null) {
-      String absolutePath = Joiner.on('/').join(androidModel.getRootDir().getPath(), TemplateWizard.TEST_SOURCE_PATH,
-                                                TemplateWizard.JAVA_SOURCE_PATH);
+      @SuppressWarnings("deprecation") VirtualFile rootDir = androidModel.getRootDir();
+
+      String absolutePath = Joiner.on('/').join(rootDir.getPath(), TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
       testDir = new File(FileUtil.toSystemDependentName(absolutePath));
     }
     assert javaPath != null;
+
+    String sourceRootPackagePrefix = getSourceDirectoryPackagePrefix(module, javaDir);
+    String relativePackageName = removeCommonPackagePrefix(sourceRootPackagePrefix, packageName);
+
     // Calculate package name
     paths.put(TemplateMetadata.ATTR_PACKAGE_NAME, packageName);
-    String relativePackageDir = packageName.replace('.', File.separatorChar);
+    String relativePackageDir = relativePackageName.replace('.', File.separatorChar);
     File srcOut = new File(javaDir, relativePackageDir);
     File testOut = new File(testDir, relativePackageDir);
     paths.put(ATTR_TEST_DIR, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
@@ -255,6 +234,45 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     paths.put(ATTR_APPLICATION_PACKAGE, ManifestInfo.get(module, false).getPackage());
     paths.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getAbsolutePath()));
     return paths;
+  }
+
+  /**
+   * Returns the package prefix of the module's content root if it can be found.
+   */
+  @NotNull
+  private static String getSourceDirectoryPackagePrefix(@NotNull Module module, File javaDir) {
+    VirtualFile javaVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(javaDir);
+    if (javaVirtualFile == null) {
+      return "";
+    }
+    SourceFolder sourceFolder = ProjectRootsUtil.findSourceFolder(module, javaVirtualFile);
+    if (sourceFolder == null) {
+      return "";
+    }
+    return sourceFolder.getPackagePrefix();
+  }
+
+  /**
+   * Makes the package name relative to a package prefix.
+   *
+   * Examples:
+   * getRelativePackageName("com.google", "com.google.android") -> "android"
+   * getRelativePackageName("com.google.android", "com.google.android") -> ""
+   * getRelativePackageName("com.google.android", "not.google.android") -> "not.google.android"
+   */
+  @NotNull
+  static String removeCommonPackagePrefix(
+      @NotNull String packagePrefix,
+      @NotNull String packageName) {
+    String relativePackageName = packageName;
+    if (packageName.equals(packagePrefix)) {
+      relativePackageName = "";
+    } else if (packageName.length() > packagePrefix.length()
+        && packageName.startsWith(packagePrefix)
+        && packageName.charAt(packagePrefix.length()) == '.') {
+      relativePackageName = relativePackageName.substring(packagePrefix.length() + 1);
+    }
+    return relativePackageName;
   }
 
   @Nullable
@@ -321,8 +339,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       myState.put(KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate, templateMetadata));
     }
     SourceProvider[] sourceProviders = getSourceProviders(module, myTargetFolder);
-    myParameterStep = new TemplateParameterStep2(getFormFactor(myTargetFolder), myPredefinedParameterValues,
-                                                 myParentDisposable, KEY_PACKAGE_NAME, sourceProviders);
+    myParameterStep =
+      new TemplateParameterStep2(getFormFactor(myTargetFolder), myPredefinedParameterValues, myParentDisposable, KEY_PACKAGE_NAME,
+                                 sourceProviders, CUSTOMIZE_ACTIVITY_TITLE);
     myAssetStudioStep = new IconStep(KEY_SELECTED_TEMPLATE, KEY_SOURCE_PROVIDER, myParentDisposable);
 
     addStep(myParameterStep);
@@ -359,7 +378,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       if (sourceProviders.size() > 0 && IdeaSourceProvider.containsFile(sourceProviders.get(0), targetDirectoryFile)) {
         File srcDirectory = findSrcDirectory(sourceProviders.get(0));
         if (srcDirectory != null) {
-          String packageName = getPackageFromDirectory(myTargetFolder, sourceProviders.get(0), module, srcDirectory.toString());
+          String packageName = ProjectRootManager.getInstance(module.getProject())
+            .getFileIndex()
+            .getPackageNameByDirectory(myTargetFolder);
           if (packageName != null) {
             return packageName;
           }
@@ -376,7 +397,46 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   }
 
   @Override
+  public boolean canPerformFinishingActions() {
+    return performFinishingOperation(true, null, null);
+  }
+
+  @Override
   public boolean performFinishingActions() {
+    final Project project = getProject();
+    assert project != null;
+
+    final List<File> filesToOpen = Lists.newArrayList();
+    final List<File> filesToReformat = Lists.newArrayList();
+
+    boolean success = new WriteCommandAction<Boolean>(project, "New Activity") {
+      @Override
+      protected void run(@NotNull Result<Boolean> result) throws Throwable {
+        boolean success = performFinishingOperation(false, filesToOpen, filesToReformat);
+        if (success) {
+          myAssetStudioStep.createAssets();
+        }
+        result.setResult(success);
+      }
+    }.execute().getResultObject();
+    if (!success) {
+      return false;
+    }
+
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        TemplateUtils.reformatAndRearrange(project, filesToReformat);
+
+        if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
+          TemplateUtils.openEditors(project, filesToOpen, true);
+        }
+      }
+    });
+    return true;
+  }
+
+  private boolean performFinishingOperation(boolean dryRun, @Nullable List<File> filesToOpen, @Nullable List<File> filesToReformat) {
     TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
     final Project project = getProject();
     Module module = getModule();
@@ -389,17 +449,18 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     }
     Map<String, Object> parameterMap = getTemplateParameterMap(templateEntry.getMetadata());
     saveRecentValues(project, parameterMap);
-    template.render(VfsUtilCore.virtualToIoFile(project.getBaseDir()), moduleRoot, parameterMap, project);
-    myAssetStudioStep.createAssets();
-    if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          TemplateUtils.openEditors(project, template.getFilesToOpen(), true);
-        }
-      });
-    }
-    return true;
+    // @formatter:off
+    final RenderingContext context = RenderingContext.Builder.newContext(template, project)
+      .withCommandName("New Activity")
+      .withDryRun(dryRun)
+      .withShowErrors(true)
+      .withModule(module)
+      .withParams(parameterMap)
+      .intoOpenFiles(filesToOpen)
+      .intoTargetFiles(filesToReformat)
+      .build();
+    // @formatter:on
+    return template.render(context);
   }
 
   @NotNull
@@ -476,9 +537,12 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       templateParameters.put(ATTR_DEBUG_KEYSTORE_SHA1, "");
     }
 
+    @SuppressWarnings("deprecation") String projectLocation = NewModuleWizardState.ATTR_PROJECT_LOCATION;
+
     Project project = getProject();
     assert project != null;
-    templateParameters.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+
+    templateParameters.put(projectLocation, project.getBasePath());
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
     // name as its containing project.
     String moduleName = new File(module.getModuleFilePath()).getParentFile().getName();

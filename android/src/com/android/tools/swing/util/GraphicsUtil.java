@@ -62,12 +62,15 @@ public class GraphicsUtil {
    * @param horzCentered if true, the string will be centered horizontally
    * @param vertCentered if true, the string will be centered vertically
    */
-  public static void drawCenteredString(Graphics g, Rectangle rect, String str, boolean horzCentered, boolean vertCentered) {
+  public static void drawCenteredString(Graphics2D g, Rectangle rect, String str, boolean horzCentered, boolean vertCentered) {
     FontMetrics fm = g.getFontMetrics(g.getFont());
     int textWidth = fm.stringWidth(str);
     int x = horzCentered ? Math.max(rect.x, rect.x + (rect.width - textWidth) / 2) : rect.x;
     int y = vertCentered ? Math.max(rect.y, rect.y + rect.height / 2 + fm.getAscent() * 2 / 5) : rect.y;
+    Shape oldClip = g.getClip();
+    g.clip(rect);
     g.drawString(str, x, y);
+    g.setClip(oldClip);
   }
 
   /**
@@ -76,7 +79,7 @@ public class GraphicsUtil {
    * @param rect the {@link Rectangle} to use as bounding box
    * @param str the string to draw
    */
-  public static void drawCenteredString(Graphics g, Rectangle rect, String str) {
+  public static void drawCenteredString(Graphics2D g, Rectangle rect, String str) {
     drawCenteredString(g, rect, str, true, true);
   }
 }

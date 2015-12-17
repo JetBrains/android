@@ -17,6 +17,7 @@ package org.jetbrains.android.resourceManagers;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
@@ -295,9 +296,9 @@ public abstract class ResourceManager {
 
     final Map<VirtualFile, Set<ResourceEntry>> file2resourceSet = new HashMap<VirtualFile, Set<ResourceEntry>>();
 
-    index.processValues(AndroidValueResourcesIndex.INDEX_ID, typeMarkerEntry, null, new FileBasedIndex.ValueProcessor<Set<AndroidValueResourcesIndex.MyResourceInfo>>() {
+    index.processValues(AndroidValueResourcesIndex.INDEX_ID, typeMarkerEntry, null, new FileBasedIndex.ValueProcessor<ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo>>() {
       @Override
-      public boolean process(VirtualFile file, Set<AndroidValueResourcesIndex.MyResourceInfo> infos) {
+      public boolean process(VirtualFile file, ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo> infos) {
         for (AndroidValueResourcesIndex.MyResourceInfo info : infos) {
           Set<ResourceEntry> resourcesInFile = file2resourceSet.get(file);
 
@@ -329,6 +330,11 @@ public abstract class ResourceManager {
 
   @NotNull
   public Collection<String> getResourceNames(@NotNull String type) {
+    return getResourceNames(type, false);
+  }
+
+  @NotNull
+  public Collection<String> getResourceNames(@NotNull String type, boolean publicOnly) {
     final Set<String> result = new HashSet<String>();
     result.addAll(getValueResourceNames(type));
     result.addAll(getFileResourcesNames(type));
@@ -490,9 +496,9 @@ public abstract class ResourceManager {
 
     FileBasedIndex.getInstance()
       .processValues(AndroidValueResourcesIndex.INDEX_ID, AndroidValueResourcesIndex.createTypeNameMarkerKey(resourceType, resourceName),
-                     null, new FileBasedIndex.ValueProcessor<Set<AndroidValueResourcesIndex.MyResourceInfo>>() {
+                     null, new FileBasedIndex.ValueProcessor<ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo>>() {
       @Override
-      public boolean process(VirtualFile file, Set<AndroidValueResourcesIndex.MyResourceInfo> infos) {
+      public boolean process(VirtualFile file, ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo> infos) {
         for (AndroidValueResourcesIndex.MyResourceInfo info : infos) {
           final String name = info.getResourceEntry().getName();
 

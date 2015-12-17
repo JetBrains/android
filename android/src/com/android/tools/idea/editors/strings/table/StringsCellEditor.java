@@ -16,11 +16,12 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.FontUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.AbstractTableCellEditor;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -64,8 +65,8 @@ public class StringsCellEditor extends AbstractTableCellEditor {
       return false;
     }
 
-    int row = source.getSelectedRow();
-    int col = source.getSelectedColumn();
+    int row = source.convertRowIndexToModel(source.getSelectedRow());
+    int col = source.convertColumnIndexToModel(source.getSelectedColumn());
 
     if (col == ConstantColumn.KEY.ordinal()) {
       return false; // TODO: keys are not editable, we want them to be refactor operations
@@ -81,6 +82,8 @@ public class StringsCellEditor extends AbstractTableCellEditor {
   @Override
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
     StringResourceTableModel model = (StringResourceTableModel)table.getModel();
+    row = table.convertRowIndexToModel(row);
+    column = table.convertColumnIndexToModel(column);
     String v = (String)model.getValueAt(row, column);
 
     myTextField.setText(v);
@@ -91,5 +94,10 @@ public class StringsCellEditor extends AbstractTableCellEditor {
   @Override
   public Object getCellEditorValue() {
     return myTextField.getText();
+  }
+
+  @VisibleForTesting
+  public void setCellEditorValue(@NotNull Object value) {
+    myTextField.setText((String)value);
   }
 }

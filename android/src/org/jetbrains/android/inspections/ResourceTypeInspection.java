@@ -333,6 +333,30 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             qualifiedName = a.getQualifiedName();
             if (qualifiedName != null && qualifiedName.endsWith(PERMISSION_ANNOTATION)) {
               checkPermissionRequirement(methodCall, holder, method, a);
+            } else if (STRING_DEF_ANNOTATION.equals(qualifiedName)) {
+              // Handle equals() as a special case: if you're invoking
+              //   .equals on a method whose return value annotated with @StringDef
+              //   we want to make sure that the equals parameter is compatible.
+              // 186598: StringDef dont warn using a getter and equals
+              PsiElement parent = methodCall.getParent();
+              PsiType type = method.getReturnType();
+              if (type != null && parent instanceof PsiReferenceExpression) {
+                PsiReferenceExpression expression = (PsiReferenceExpression)parent;
+                PsiElement name = expression.getReferenceNameElement();
+                if (name != null && "equals".equals(name.getText())) {
+                  PsiElement parent2 = parent.getParent();
+                  if (parent2 instanceof PsiMethodCallExpression) {
+                    PsiMethodCallExpression equalsCall = (PsiMethodCallExpression)parent2;
+                    PsiExpression[] arguments = equalsCall.getArgumentList().getExpressions();
+                    if (arguments.length == 1) {
+                      Constraints constraints = getAllowedValuesFromTypedef(type, a, methodCall.getManager());
+                      if (constraints != null) {
+                        checkConstraints(parent2, arguments[0], constraints, holder);
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
 
@@ -646,6 +670,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
           Set<String> revocablePermissions = requirement.getRevocablePermissions(lookup);
           AddCheckPermissionFix fix = new AddCheckPermissionFix(facet, requirement, methodCall, revocablePermissions);
+          // TODO: Use GlobalInspectionContext#isSuppressed here and for the other registerProblem calls
+          // to also check for the lint issue suppressions used by the command line check
           holder.registerProblem(methodCall, getUnhandledPermissionMessage(), fix);
         }
       }
@@ -835,7 +861,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
 
       JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-      PsiClass manifest = facade.findClass("android.Manifest.permission", GlobalSearchScope.moduleWithLibrariesScope(myFacet.getModule()));
+      GlobalSearchScope moduleScope = GlobalSearchScope.moduleWithLibrariesScope(myFacet.getModule());
+      PsiClass manifest = facade.findClass("android.Manifest.permission", moduleScope);
       Map<String, PsiField> permissionNames;
 
       if (manifest != null) {
@@ -870,6 +897,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       StringBuilder sb = new StringBuilder(200);
       sb.append("if (");
       boolean first = true;
+
+      PsiClass activityCompat = facade.findClass("android.support.v4.app.ActivityCompat", moduleScope);
+      boolean usingAppCompat = activityCompat != null;
+      if (usingAppCompat && (activityCompat.findMethodsByName("requestPermissions", false).length == 0)) {
+        // Using an older version of appcompat than 23.0.1. Later we should prompt the user to
+        // see if they'd like to upgrade instead; for now, revert to platform version.
+        usingAppCompat = false;
+      }
+
       for (String permission : myRevocablePermissions) {
         if (first) {
           first = false;
@@ -878,7 +914,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           sb.append(operator.getSymbol());
           sb.append(' ');
         }
+        if (usingAppCompat) {
+          sb.append("android.support.v4.app.ActivityCompat.");
+        }
         sb.append("checkSelfPermission(");
+        if (usingAppCompat) {
+          sb.append("this, ");
+        }
 
         // Try to map permission strings back to field references!
         PsiField field = permissionNames.get(permission);
@@ -891,13 +933,18 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
       sb.append(") {\n");
       sb.append(" // TODO: Consider calling\n" +
-                " //    public void requestPermissions(@NonNull String[] permissions, int requestCode)\n" +
+                " //    Activity").append(usingAppCompat ? "Compat" : "").append("#requestPermissions\n" +
                 " // here to request the missing permissions, and then overriding\n" +
                 " //   public void onRequestPermissionsResult(int requestCode, String[] permissions,\n" +
                 " //                                          int[] grantResults)\n" +
                 " // to handle the case where the user grants the permission. See the documentation\n" +
-                " // for Activity#requestPermissions for more details.\n");
+                " // for Activity").append(usingAppCompat ? "Compat" : "").append("#requestPermissions for more details.\n");
       PsiMethod method = PsiTreeUtil.getParentOfType(myCall, PsiMethod.class, true);
+
+      // TODO: Add additional information here, perhaps pointing to
+      //    http://android-developers.blogspot.com/2015/09/google-play-services-81-and-android-60.html
+      // or adding more of a skeleton from that article.
+
       if (method != null && !PsiType.VOID.equals(method.getReturnType())) {
         sb.append("return TODO;\n");
       } else {
@@ -1146,13 +1193,37 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           PsiField field = (PsiField)resolved;
           PsiExpression initializer = field.getInitializer();
           if (initializer != null) {
-            return guessSize(initializer);
+            Number number = guessSize(initializer);
+            if (number != null) {
+              // If we're surrounded by an if check involving the variable, then don't validate
+              // based on the initial value since it might be clipped to a valid range
+              PsiIfStatement ifStatement = PsiTreeUtil.getParentOfType(argument, PsiIfStatement.class, true);
+              if (ifStatement != null) {
+                PsiExpression condition = ifStatement.getCondition();
+                if (comparesReference(resolved, condition)) {
+                  return null;
+                }
+              }
+            }
+            return number;
           }
         } else if (resolved instanceof PsiLocalVariable) {
           PsiLocalVariable variable = (PsiLocalVariable) resolved;
           PsiExpression initializer = variable.getInitializer();
           if (initializer != null) {
-            return guessSize(initializer);
+            Number number = guessSize(initializer);
+            if (number != null) {
+              // If we're surrounded by an if check involving the variable, then don't validate
+              // based on the initial value since it might be clipped to a valid range
+              PsiIfStatement ifStatement = PsiTreeUtil.getParentOfType(argument, PsiIfStatement.class, true);
+              if (ifStatement != null) {
+                PsiExpression condition = ifStatement.getCondition();
+                if (comparesReference(resolved, condition)) {
+                  return null;
+                }
+              }
+            }
+            return number;
           }
         }
       } else if (argument instanceof PsiPrefixExpression) {
@@ -2011,7 +2082,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                    @NotNull final RangeAllowedValues allowedValues,
                                    @NotNull final PsiManager manager,
                                    @Nullable final Set<PsiExpression> visited) {
-    int result = isValidRangeExpression(argument, allowedValues, scope, manager, visited);
+    int result = isValidRangeExpression(argument, argument, allowedValues, scope, manager, visited);
     if (result == VALID) {
       return true;
     } else if (result == INVALID) {
@@ -2023,7 +2094,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
       @Override
       public boolean process(PsiExpression expression) {
-        int goodExpression = isValidRangeExpression(expression, allowedValues, scope, manager, visited);
+        int goodExpression = isValidRangeExpression(expression, argument, allowedValues, scope, manager, visited);
         b.set(goodExpression);
         return goodExpression == UNCERTAIN;
       }
@@ -2034,7 +2105,33 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return result != INVALID;
   }
 
+  private static boolean comparesReference(@NotNull PsiElement reference, @Nullable PsiExpression expression) {
+    if (expression instanceof PsiBinaryExpression) {
+      PsiBinaryExpression binary = (PsiBinaryExpression)expression;
+      IElementType tokenType = binary.getOperationTokenType();
+      if (tokenType == JavaTokenType.GE ||
+          tokenType == JavaTokenType.GT ||
+          tokenType == JavaTokenType.LT ||
+          tokenType == JavaTokenType.LE ||
+          tokenType == JavaTokenType.EQ) {
+        PsiExpression lOperand = binary.getLOperand();
+        PsiExpression rOperand = binary.getROperand();
+        if (lOperand instanceof PsiReferenceExpression) {
+          return reference.equals(((PsiReferenceExpression)lOperand).resolve());
+        }
+        if (rOperand instanceof PsiReferenceExpression) {
+          return reference.equals(((PsiReferenceExpression)rOperand).resolve());
+        }
+      } else if (tokenType == JavaTokenType.ANDAND || tokenType == JavaTokenType.OROR) {
+        return comparesReference(reference, binary.getLOperand()) || comparesReference(reference, binary.getROperand());
+      }
+    }
+
+    return false;
+  }
+
   private static int isValidRangeExpression(@NotNull PsiExpression e,
+                                            @Nullable PsiExpression argument,
                                             @NotNull RangeAllowedValues allowedValues,
                                             @NotNull PsiElement scope,
                                             @NotNull PsiManager manager,
@@ -2051,6 +2148,19 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited) ? VALID : UNCERTAIN;
     }
 
+    if (e != argument && argument instanceof PsiReferenceExpression) {
+      PsiIfStatement ifStatement = PsiTreeUtil.getParentOfType(argument, PsiIfStatement.class, true);
+      if (ifStatement != null) {
+        PsiElement resolved = ((PsiReferenceExpression)argument).resolve();
+        if (resolved != null) {
+          PsiExpression condition = ifStatement.getCondition();
+          if (comparesReference(resolved, condition)) {
+            return UNCERTAIN;
+          }
+        }
+      }
+    }
+
     // Range check
     int valid = allowedValues.isValid(expression);
     if (valid != UNCERTAIN) {
@@ -2065,6 +2175,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (field.getInitializer() != null) {
           int fieldValid = allowedValues.isValid(field.getInitializer());
           if (fieldValid != UNCERTAIN) {
+            if (fieldValid == INVALID && argument != null) {
+              PsiIfStatement ifStatement = PsiTreeUtil.getParentOfType(argument, PsiIfStatement.class, true);
+              if (ifStatement != null) {
+                PsiExpression condition = ifStatement.getCondition();
+                if (comparesReference(resolved, condition)) {
+                  return UNCERTAIN;
+                }
+              }
+            }
             return fieldValid;
           }
         }
@@ -2242,7 +2361,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       PsiType paramType = parameter.getType();
       // This is where we diverge from ExceptionUtil:
       //if (paramType.isAssignableFrom(exceptionType)) return true;
-      if (paramType.equals(exceptionType)) return true;
+      if (paramType instanceof PsiDisjunctionType) {
+        for (PsiType multiCatchType : ((PsiDisjunctionType)paramType).getDisjunctions()) {
+          if (multiCatchType.equals(exceptionType)) return true;
+        }
+      }
+      else if (paramType.equals(exceptionType)) return true;
     }
 
     return false;

@@ -20,7 +20,9 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.tools.idea.editors.vmtrace.VmTraceCaptureType;
 import com.android.tools.idea.profiling.capture.Capture;
+import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -53,9 +55,20 @@ public class OpenVmTraceHandler implements ClientData.IMethodProfilingHandler {
       @Override
       public void run() {
         try {
-          CaptureService service = CaptureService.getInstance(myProject);
-          Capture capture = service.createCapture(VmTraceCaptureType.class, data);
-          service.notifyCaptureReady(capture);
+          final CaptureService service = CaptureService.getInstance(myProject);
+          CaptureHandle handle = service.startCaptureFile(VmTraceCaptureType.class);
+          service.appendData(handle, data);
+          service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
+            @Override
+            public void onSuccess(Capture result) {
+              service.notifyCaptureReady(result);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+              LOG.error("Method Profiling - error when writing trace: " + t);
+            }
+          }, EdtExecutor.INSTANCE);
         }
         catch (IOException e) {
           throw new RuntimeException(e);

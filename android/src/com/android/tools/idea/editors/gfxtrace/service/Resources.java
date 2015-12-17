@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
@@ -30,29 +31,65 @@ import java.io.IOException;
 
 public final class Resources implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  private ResourceInfo[] myTextures;
+  private ResourceInfo[] myTextures1D;
+  private ResourceInfo[] myTextures2D;
+  private ResourceInfo[] myTextures3D;
+  private ResourceInfo[] myCubemaps;
 
   // Constructs a default-initialized {@link Resources}.
   public Resources() {}
 
 
-  public ResourceInfo[] getTextures() {
-    return myTextures;
+  public ResourceInfo[] getTextures1D() {
+    return myTextures1D;
   }
 
-  public Resources setTextures(ResourceInfo[] v) {
-    myTextures = v;
+  public Resources setTextures1D(ResourceInfo[] v) {
+    myTextures1D = v;
+    return this;
+  }
+
+  public ResourceInfo[] getTextures2D() {
+    return myTextures2D;
+  }
+
+  public Resources setTextures2D(ResourceInfo[] v) {
+    myTextures2D = v;
+    return this;
+  }
+
+  public ResourceInfo[] getTextures3D() {
+    return myTextures3D;
+  }
+
+  public Resources setTextures3D(ResourceInfo[] v) {
+    myTextures3D = v;
+    return this;
+  }
+
+  public ResourceInfo[] getCubemaps() {
+    return myCubemaps;
+  }
+
+  public Resources setCubemaps(ResourceInfo[] v) {
+    myCubemaps = v;
     return this;
   }
 
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {27, 34, 84, -57, -94, 2, -3, -38, -56, 14, 70, -12, 47, -37, 50, -109, -93, 60, -41, -20, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","Resources","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Textures1D", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
+      new Field("Textures2D", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
+      new Field("Textures3D", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
+      new Field("Cubemaps", new Slice("", new Struct(ResourceInfo.Klass.INSTANCE.entity()))),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -61,7 +98,7 @@ public final class Resources implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new Resources(); }
@@ -69,19 +106,46 @@ public final class Resources implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Resources o = (Resources)obj;
-      e.uint32(o.myTextures.length);
-      for (int i = 0; i < o.myTextures.length; i++) {
-        e.value(o.myTextures[i]);
+      e.uint32(o.myTextures1D.length);
+      for (int i = 0; i < o.myTextures1D.length; i++) {
+        e.value(o.myTextures1D[i]);
+      }
+      e.uint32(o.myTextures2D.length);
+      for (int i = 0; i < o.myTextures2D.length; i++) {
+        e.value(o.myTextures2D[i]);
+      }
+      e.uint32(o.myTextures3D.length);
+      for (int i = 0; i < o.myTextures3D.length; i++) {
+        e.value(o.myTextures3D[i]);
+      }
+      e.uint32(o.myCubemaps.length);
+      for (int i = 0; i < o.myCubemaps.length; i++) {
+        e.value(o.myCubemaps[i]);
       }
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       Resources o = (Resources)obj;
-      o.myTextures = new ResourceInfo[d.uint32()];
-      for (int i = 0; i <o.myTextures.length; i++) {
-        o.myTextures[i] = new ResourceInfo();
-        d.value(o.myTextures[i]);
+      o.myTextures1D = new ResourceInfo[d.uint32()];
+      for (int i = 0; i <o.myTextures1D.length; i++) {
+        o.myTextures1D[i] = new ResourceInfo();
+        d.value(o.myTextures1D[i]);
+      }
+      o.myTextures2D = new ResourceInfo[d.uint32()];
+      for (int i = 0; i <o.myTextures2D.length; i++) {
+        o.myTextures2D[i] = new ResourceInfo();
+        d.value(o.myTextures2D[i]);
+      }
+      o.myTextures3D = new ResourceInfo[d.uint32()];
+      for (int i = 0; i <o.myTextures3D.length; i++) {
+        o.myTextures3D[i] = new ResourceInfo();
+        d.value(o.myTextures3D[i]);
+      }
+      o.myCubemaps = new ResourceInfo[d.uint32()];
+      for (int i = 0; i <o.myCubemaps.length; i++) {
+        o.myCubemaps[i] = new ResourceInfo();
+        d.value(o.myCubemaps[i]);
       }
     }
     //<<<End:Java.KlassBody:2>>>

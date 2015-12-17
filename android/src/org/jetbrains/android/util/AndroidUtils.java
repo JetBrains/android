@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.tools.idea.run.*;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
@@ -90,8 +91,6 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
-import com.intellij.util.graph.Graph;
-import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
@@ -99,10 +98,6 @@ import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
-import org.jetbrains.android.run.AndroidRunConfiguration;
-import org.jetbrains.android.run.AndroidRunConfigurationBase;
-import org.jetbrains.android.run.AndroidRunConfigurationType;
-import org.jetbrains.android.run.TargetSelectionMode;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -258,10 +253,9 @@ public class AndroidUtils {
         configuration.setModule(module);
 
         if (activityClass != null) {
-          configuration.MODE = AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY;
-          configuration.ACTIVITY_CLASS = activityClass;
+          configuration.setLaunchActivity(activityClass);
         }
-        else if (AndroidRunConfiguration.isWatchFaceApp(facet)) {
+        else if (LaunchUtils.isWatchFaceApp(facet)) {
           // In case of a watch face app, there is only a service and no default activity that can be launched
           // Eventually, we'd need to support launching a service, but currently you cannot launch a watch face service as well.
           // See https://code.google.com/p/android/issues/detail?id=151353
@@ -375,7 +369,7 @@ public class AndroidUtils {
                                                @Nullable final OutputProcessor processor,
                                                @Nullable WaitingStrategies.Strategy strategy) throws ExecutionException {
     LOG.info(commandLine.getCommandLineString());
-    OSProcessHandler handler = new OSProcessHandler(commandLine);
+    OSProcessHandler handler = new OSProcessHandler(commandLine.createProcess(), "");
 
     final ProcessAdapter listener = new ProcessAdapter() {
       @Override
@@ -425,6 +419,20 @@ public class AndroidUtils {
       return relativePath;
     }
     return relativePath.substring(index + 1);
+  }
+
+  /**
+   * Return a suffix of passed string after the last dot, if at least one dot is present and
+   * resulting suffix is non-empty.
+   */
+  @Nullable
+  public static String getUnqualifiedName(@NotNull String qualifiedName) {
+    int start = qualifiedName.lastIndexOf('.');
+    if (start == -1 || start + 1 == qualifiedName.length()) {
+      return null;
+    }
+
+    return qualifiedName.substring(start + 1);
   }
 
   public static void printMessageToConsole(@NotNull Project project, @NotNull String s, @NotNull ConsoleViewContentType contentType) {
@@ -892,14 +900,23 @@ public class AndroidUtils {
 
   @NotNull
   public static Set<Module> getSetWithBackwardDependencies(@NotNull Collection<Module> modules) {
-    if (modules.isEmpty()) return Collections.emptySet();
-    Module next = modules.iterator().next();
-    Graph<Module> graph = ModuleManager.getInstance(next.getProject()).moduleGraph();
     final Set<Module> set = new HashSet<Module>();
+
     for (Module module : modules) {
-      GraphAlgorithms.getInstance().collectOutsRecursively(graph, module, set);
+      collectModules(module, set, ModuleManager.getInstance(module.getProject()).getModules());
     }
     return set;
+  }
+
+  private static void collectModules(Module module, Set<Module> result, Module[] allModules) {
+    if (!result.add(module)) {
+      return;
+    }
+    for (Module otherModule : allModules) {
+      if (ModuleRootManager.getInstance(otherModule).isDependsOn(module)) {
+        collectModules(otherModule, result, allModules);
+      }
+    }
   }
 
   @NotNull

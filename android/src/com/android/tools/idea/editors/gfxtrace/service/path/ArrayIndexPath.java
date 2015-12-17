@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +27,11 @@ public final class ArrayIndexPath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
     return myArray.stringPath(builder).append("[").append(myIndex).append("]");
+  }
+
+  @Override
+  public Path getParent() {
+    return myArray;
   }
 
   //<<<Start:Java.ClassBody:1>>>
@@ -57,11 +63,15 @@ public final class ArrayIndexPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {112, 69, -81, -42, 0, 32, 76, 44, 114, 54, 116, -61, 46, 30, -71, -11, 75, -26, 104, -5, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","ArrayIndex","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Array", new Interface("Path")),
+      new Field("Index", new Primitive("uint64", Method.Uint64)),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -70,7 +80,7 @@ public final class ArrayIndexPath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new ArrayIndexPath(); }

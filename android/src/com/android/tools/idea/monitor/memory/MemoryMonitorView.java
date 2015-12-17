@@ -24,6 +24,7 @@ import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.memory.actions.ToggleDebugRender;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
@@ -68,8 +69,6 @@ public class MemoryMonitorView extends BaseMonitorView<MemorySampler> implements
     myTimelineComponent.configureType(DeviceSampler.TYPE_TIMEOUT, TimelineComponent.Style.DASHED);
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
-    addOverlayText(PAUSED_LABEL, 0);
-
     setViewComponent(myTimelineComponent);
   }
 
@@ -90,6 +89,12 @@ public class MemoryMonitorView extends BaseMonitorView<MemorySampler> implements
     }
 
     return group;
+  }
+
+  @NotNull
+  @Override
+  public String getMonitorName() {
+    return "MemoryMonitor";
   }
 
   @NotNull

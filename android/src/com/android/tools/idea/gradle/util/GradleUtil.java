@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -34,9 +33,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.ExtensionPoint;
@@ -50,7 +50,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
@@ -64,15 +63,10 @@ import com.intellij.util.Function;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.SmartHashSet;
 import icons.AndroidIcons;
-import org.gradle.StartParameter;
-import org.gradle.wrapper.PathAssembler;
-import org.gradle.wrapper.WrapperConfiguration;
-import org.gradle.wrapper.WrapperExecutor;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
-import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -83,7 +77,6 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import javax.swing.*;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -109,7 +102,6 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
-import static com.intellij.openapi.util.SystemInfo.isWindows;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -124,10 +116,8 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.util.Collections.sort;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
-import static org.gradle.wrapper.WrapperExecutor.forWrapperPropertiesFile;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
-import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 
 /**
  * Utilities related to Gradle.
@@ -157,7 +147,7 @@ public final class GradleUtil {
   public static void clearStoredGradleJvmArgs(@NotNull final Project project) {
     GradleSettings settings = GradleSettings.getInstance(project);
     final String existingJvmArgs = settings.getGradleVmOptions();
-    settings.setGradleVmOptions("");
+    settings.setGradleVmOptions(null);
     if (!isEmptyOrSpaces(existingJvmArgs)) {
       invokeAndWaitIfNeeded(new Runnable() {
         @Override
@@ -417,6 +407,13 @@ public final class GradleUtil {
       return null;
     }
 
+    // Set the JDK again, just in case it changed name after creating a project.
+    // See https://code.google.com/p/android/issues/detail?id=156747
+    Sdk jdk = IdeSdks.getJdk();
+    if (jdk != null) {
+      projectSettings.setGradleJvm(jdk.getName());
+    }
+
     try {
       GradleExecutionSettings settings = getExecutionSettings(project, projectSettings.getExternalProjectPath(), GRADLE_SYSTEM_ID);
       if (settings != null) {
@@ -475,107 +472,14 @@ public final class GradleUtil {
     return null;
   }
 
-  public static void stopAllGradleDaemons(boolean interactive) throws IOException {
-    File gradleHome = findAnyGradleHome(interactive);
-    if (gradleHome == null) {
-      throw new FileNotFoundException("Unable to find path to Gradle home directory");
+  public static void stopAllGradleDaemonsAndRestart() {
+    DefaultGradleConnector.close();
+    Application application = ApplicationManager.getApplication();
+    if (application instanceof ApplicationImpl) {
+      ((ApplicationImpl)application).restart(true);
+    } else {
+      application.restart();
     }
-    File gradleExecutable = new File(gradleHome, join("bin", isWindows ? FN_GRADLE_WIN : FN_GRADLE_UNIX));
-    if (!gradleExecutable.isFile()) {
-      throw new FileNotFoundException("Unable to find Gradle executable: " + gradleExecutable.getPath());
-    }
-    new ProcessBuilder(gradleExecutable.getPath(), "--stop").start();
-  }
-
-  @Nullable
-  public static File findAnyGradleHome(boolean interactive) {
-    // Try cheapest option first:
-    String lastUsedGradleHome = getLastUsedGradleHome();
-    if (!lastUsedGradleHome.isEmpty()) {
-      File path = new File(lastUsedGradleHome);
-      if (isValidGradleHome(path)) {
-        return path;
-      }
-    }
-
-    ProjectManager projectManager = ProjectManager.getInstance();
-    for (Project project : projectManager.getOpenProjects()) {
-      File gradleHome = findGradleHome(project);
-      if (gradleHome != null) {
-        return gradleHome;
-      }
-    }
-
-    if (interactive) {
-      ChooseGradleHomeDialog chooseGradleHomeDialog = new ChooseGradleHomeDialog();
-      chooseGradleHomeDialog.setTitle("Choose Gradle Installation");
-      String description = "A Gradle installation is necessary to stop all daemons.\n" +
-                           "Please select the home directory of a Gradle installation, otherwise the project won't be closed.";
-      chooseGradleHomeDialog.setDescription(description);
-      if (!chooseGradleHomeDialog.showAndGet()) {
-        return null;
-      }
-      String enteredPath = chooseGradleHomeDialog.getEnteredGradleHomePath();
-      File gradleHomePath = new File(enteredPath);
-      if (isValidGradleHome(gradleHomePath)) {
-        chooseGradleHomeDialog.storeLastUsedGradleHomePath();
-        return gradleHomePath;
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  private static File findGradleHome(@NotNull Project project) {
-    GradleExecutionSettings settings = getGradleExecutionSettings(project);
-    if (settings != null) {
-      String gradleHome = settings.getGradleHome();
-      if (isNotEmpty(gradleHome)) {
-        File path = new File(gradleHome);
-        if (isValidGradleHome(path)) {
-          return path;
-        }
-      }
-    }
-
-    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
-    if (wrapperPropertiesFile != null) {
-      WrapperExecutor wrapperExecutor = forWrapperPropertiesFile(wrapperPropertiesFile, new StringBuilder());
-      WrapperConfiguration configuration = wrapperExecutor.getConfiguration();
-      File gradleHome = getGradleHome(project, configuration);
-      if (gradleHome != null) {
-        return gradleHome;
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  private static File getGradleHome(@NotNull Project project, @NotNull WrapperConfiguration configuration) {
-    File systemHomePath = StartParameter.DEFAULT_GRADLE_USER_HOME;
-    if ("PROJECT".equals(configuration.getDistributionBase())) {
-      systemHomePath = new File(getBaseDirPath(project), DOT_GRADLE);
-    }
-    if (!systemHomePath.isDirectory()) {
-      return null;
-    }
-    PathAssembler.LocalDistribution localDistribution = new PathAssembler(systemHomePath).getDistribution(configuration);
-    File distributionPath = localDistribution.getDistributionDir();
-    if (distributionPath != null) {
-      File[] children = notNullize(distributionPath.listFiles());
-      for (File child : children) {
-        if (child.isDirectory() && child.getName().startsWith("gradle-") && isValidGradleHome(child)) {
-          return child;
-        }
-      }
-    }
-    return null;
-  }
-
-  private static boolean isValidGradleHome(@NotNull File path) {
-    return path.isDirectory() && ServiceManager.getService(GradleInstallationManager.class).isGradleSdkHome(path);
   }
 
   /**
@@ -1129,6 +1033,9 @@ public final class GradleUtil {
   @Nullable
   static File addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
     try {
+      File file = createTempFile("asLocalRepo", DOT_GRADLE);
+      file.deleteOnExit();
+
       String contents = "allprojects {\n" +
                         "  buildscript {\n" +
                         "    repositories {\n" +
@@ -1136,8 +1043,9 @@ public final class GradleUtil {
                         "    }\n" +
                         "  }\n" +
                         "}\n";
-      File file = GradleExecutionHelper.writeToFileGradleInitScript(contents, "asLocalRepo");
+      writeToFile(file, contents);
       addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, file.getAbsolutePath());
+
       return file;
     }
     catch (IOException e) {

@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.MyTheme" parent="@android:style/Theme.Holo.NoActionBar.Overscan">
+    <style name="Theme.MyTheme" parent="android:Theme.Holo.NoActionBar.Overscan">
         <item name="android:windowIsFloating">true</item>
         <item name="android:actionModeStyle">@null</item>
         <item name="android:checkedTextViewStyle">@null</item>

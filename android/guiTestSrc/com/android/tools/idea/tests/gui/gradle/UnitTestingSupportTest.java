@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture.ContentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.UnitTestTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -28,29 +27,18 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@BelongsToTestGroups({TestGroup.UNIT_TESTING, TestGroup.PROJECT_SUPPORT})
+@BelongsToTestGroups({TestGroup.TEST_SUPPORT, TestGroup.PROJECT_SUPPORT})
 public class UnitTestingSupportTest extends GuiTestCase {
-  protected IdeFrameFixture myProjectFrame;
   private EditorFixture myEditor;
 
   @Test @IdeGuiTest
-  public void appModule_defaultMake() throws Exception {
-    doTest("Make", "app/src/test/java/com/android/tests", "UnitTest");
-  }
-  
-  @Test @IdeGuiTest
   public void appModule_gradleAwareMake() throws Exception {
-    doTest("Gradle-aware Make", "app/src/test/java/com/android/tests", "UnitTest");
-  }
-
-  @Test @IdeGuiTest
-  public void libModule_defaultMake() throws Exception {
-    doTest("Make", "lib/src/test/java/com/android/tests/lib", "LibUnitTest");
+    doTest("app/src/test/java/com/android/tests", "UnitTest");
   }
 
   @Test @IdeGuiTest
   public void libModule_gradleAwareMake() throws Exception {
-    doTest("Gradle-aware Make", "lib/src/test/java/com/android/tests/lib", "LibUnitTest");
+    doTest("lib/src/test/java/com/android/tests/lib", "LibUnitTest");
   }
   
   /**
@@ -63,9 +51,8 @@ public class UnitTestingSupportTest extends GuiTestCase {
    *   <li>You can fix a test and changes are picked up the next time tests are run (which means the correct gradle tasks are run).
    * </ul>
    */
-  private void doTest(@NotNull String makeStepName, @NotNull String path, @NotNull String testClass) throws Exception {
+  private void doTest(@NotNull String path, @NotNull String testClass) throws Exception {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
-    myProjectFrame.setJUnitDefaultBeforeRunTask(makeStepName);
 
     BuildVariantsToolWindowFixture buildVariants = myProjectFrame.getBuildVariantsWindow();
     buildVariants.activate();

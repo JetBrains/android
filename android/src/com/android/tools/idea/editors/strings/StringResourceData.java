@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
@@ -83,8 +82,8 @@ public class StringResourceData {
 
   @NotNull
   public static String resourceToString(@NotNull ResourceItem item) {
-    ResourceValue value = item.getResourceValue(false);
-    return value == null ? "" : value.getRawXmlValue().trim();
+    XmlTag tag = ((PsiResourceItem)item).getTag();
+    return tag == null ? "" : XmlTagUtils.unescape(tag).trim();
   }
 
   @Nullable
@@ -248,18 +247,17 @@ public class StringResourceData {
 
   @VisibleForTesting
   boolean isTranslationMissing(@NotNull String key, @NotNull Locale locale) {
-    if (locale.hasRegion()) {
-      locale = Locale.create(locale.qualifier.getLanguage());
-    }
-
     ResourceItem item = myTranslations.get(key, locale);
+    if (isTranslationMissing(item) && locale.hasRegion()) {
+      locale = Locale.create(locale.qualifier.getLanguage());
+      item = myTranslations.get(key, locale);
+    }
 
-    if (item == null || resourceToString(item).isEmpty()) {
-      return true;
-    }
-    else {
-      return false;
-    }
+    return isTranslationMissing(item);
+  }
+
+  private static boolean isTranslationMissing(@Nullable ResourceItem item) {
+    return item == null || resourceToString(item).isEmpty();
   }
 
   @VisibleForTesting

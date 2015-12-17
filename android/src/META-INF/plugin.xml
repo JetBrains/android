@@ -4,7 +4,7 @@
   <description>
     Supports the development of Open Handset Alliance Android applications with IntelliJ IDEA.
   </description>
-  <version>10.1.4</version>
+  <version>10.1.5</version>
   <vendor>JetBrains</vendor>
 
   <depends>JUnit</depends>
@@ -59,6 +59,14 @@
     </component>
     <component>
       <implementation-class>com.android.tools.idea.model.DeclaredPermissionsLookup</implementation-class>
+      <skipForDefaultProject/>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.profiling.view.EmptyManager</implementation-class>
+      <skipForDefaultProject/>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.profiling.view.AnalysisResultsManager</implementation-class>
       <skipForDefaultProject/>
     </component>
   </project-components>
@@ -162,6 +170,9 @@
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
+    <action id="Android.BuildApk" class="com.android.tools.idea.gradle.actions.BuildApkAction">
+      <add-to-group group-id="BuildMenu" relative-to-action="Android.GenerateSignedApk" anchor="before"/>
+    </action>
     <action id="AndroidConnectDebuggerAction"
             class="org.jetbrains.android.actions.AndroidConnectDebuggerAction"
             text="Attach debugger to Android process"
@@ -190,7 +201,7 @@
     </action>
     <action id="Android.TraceViewSearch" text="TraceView Search" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find"/>
     <action class="com.android.tools.idea.actions.ShowLicensesUsedAction" id="Android.ShowLicenses">
-      <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="About" />
+      <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
     </action>
     <action class="com.android.tools.idea.actions.AndroidShowThemeEditor" id="Android.ShowThemeEditor">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
@@ -199,8 +210,12 @@
         id="SendFeedback"
         class="com.android.tools.idea.actions.SendFeedbackAction"
         overrides="true"
-        text="Submit _Feedback..."
+        text="Submit _Feedback"
         description="Submit feedback to the Android Studio team"/>
+    <action id="AndroidDeepLinkCodeGeneratorAction" class="com.android.tools.idea.actions.DeepLinkCodeGeneratorAction"
+            text="Deep Link" description="Generate a new intent filter for deep linking">
+      <add-to-group group-id="GenerateGroup" anchor="first"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
@@ -229,7 +244,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService"/>
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectImporter"/>
-    <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApks"/>
+    <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApkCache"/>
     <applicationService serviceInterface="org.jetbrains.android.uipreview.AndroidEditorSettings"
                         serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
@@ -308,11 +323,11 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>
 
-    <runConfigurationProducer implementation="org.jetbrains.android.run.AndroidConfigurationProducer"/>
-    <runConfigurationProducer implementation="org.jetbrains.android.run.testing.AndroidTestConfigurationProducer" order="first"/>
-    <configurationType implementation="org.jetbrains.android.run.AndroidRunConfigurationType"/>
-    <configurationType implementation="org.jetbrains.android.run.testing.AndroidTestRunConfigurationType"/>
-    <programRunner implementation="org.jetbrains.android.run.AndroidDebugRunner" order="first"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.run.testing.AndroidTestConfigurationProducer" order="first"/>
+    <configurationType implementation="com.android.tools.idea.run.AndroidRunConfigurationType"/>
+    <configurationType implementation="com.android.tools.idea.run.testing.AndroidTestRunConfigurationType"/>
+    <programRunner implementation="com.android.tools.idea.run.AndroidDebugRunner" order="first"/>
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.facet.AndroidGradleFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.facet.JavaGradleFacetType"/>
@@ -329,7 +344,7 @@
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaCompletionContributor" order="first"/>
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"
                             id="resourceTypeCompletion" order="after javaBasic2ClassName"/>
-    <completion.contributor language="TEXT" implementationClass="org.jetbrains.android.run.AndroidActivityAliasCompletionContributor" order="first"/>
+    <completion.contributor language="TEXT" implementationClass="com.android.tools.idea.run.AndroidActivityAliasCompletionContributor" order="first"/>
     <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor" />
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>
@@ -370,6 +385,11 @@
       <category>Android</category>
     </intentionAction>
 
+    <intentionAction>
+      <className>com.android.tools.idea.actions.CreateDeepLinkIntentionAction</className>
+      <category>Android</category>
+    </intentionAction>
+
     <localInspection language="XML" shortName="AndroidDomInspection" bundle="messages.AndroidBundle" key="android.inspections.dom.name"
                      groupKey="android.inspections.group.name" enabledByDefault="true" level="ERROR"
                      implementationClass="org.jetbrains.android.inspections.AndroidDomInspection"/>
@@ -405,8 +425,6 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAlwaysShowAction" displayName="Usage of showAsAction=always" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAlwaysShowActionInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppCompatMethod" displayName="Using Wrong AppCompat Method" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAppCompatMethodInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAppCompatResource" displayName="Menu namespace" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAppCompatResourceInspection"/>
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintAppIndexingApiError" displayName="Wrong usage of AppIndexing api" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAppIndexingApiErrorInspection"/>
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintAppIndexingApiWarning" displayName="Missing AppIndexing Support" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAppIndexingApiWarningInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAssert" displayName="Assertions" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAssertInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintBackButton" displayName="Back button" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintBackButtonInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintButtonCase" displayName="Cancel/OK dialog button capitalization" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintButtonCaseInspection"/>
@@ -438,6 +456,9 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintFullBackupContent" displayName="Valid Full Backup Content File" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintFullBackupContentInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGetInstance" displayName="Cipher.getInstance with ECB" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGetInstanceInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGifUsage" displayName="Using .gif format for bitmaps is discouraged" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGifUsageInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGoogleAppIndexingDeepLinkError" displayName="Incorrect usage of app link for Google App Indexing" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGoogleAppIndexingDeepLinkErrorInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGoogleAppIndexingApiWarning" displayName="Missing support for Google App Indexing Api" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGoogleAppIndexingApiWarningInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGoogleAppIndexingWarning" displayName="Missing support for Google App Indexing" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGoogleAppIndexingWarningInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGradleCompatible" displayName="Incompatible Gradle Versions" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGradleCompatibleInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGradleCompatiblePlugin" displayName="Incompatible Android Gradle Plugin Version" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true"  level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGradleCompatiblePluginInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGradleDependency" displayName="Obsolete Gradle Dependency" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintGradleDependencyInspection"/>
@@ -477,6 +498,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInnerclassSeparator" displayName="Inner classes should use $ rather than ." groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintInnerclassSeparatorInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInvalidId" displayName="Invalid ID declaration" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintInvalidIdInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInvalidResourceFolder" displayName="Invalid Resource Folder" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintInvalidResourceFolderInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintInvalidUsesTagAttribute" displayName="Invalid name attribute for uses element." groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintInvalidUsesTagAttributeInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintJavascriptInterface" displayName="Missing @JavascriptInterface on methods" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintJavascriptInterfaceInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintLabelFor" displayName="Missing labelFor attribute" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintLabelForInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintLibraryCustomView" displayName="Custom views in libraries should use res-auto-namespace" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintLibraryCustomViewInspection"/>
@@ -485,13 +507,20 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintLogConditional" displayName="Unconditional Logging Calls" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintLogConditionalInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintLogTagMismatch" displayName="Mismatched Log Tags" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintLogTagMismatchInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintLongLogTag" displayName="Too Long Log Tags" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintLongLogTagInspection"/>
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintMangledCRLF" displayName="Mangled file line endings" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMangledCRLFInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintMangledCRLF" displayName="Mangled file line endings" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="false" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMangledCRLFInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintManifestOrder" displayName="Incorrect order of elements in manifest" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintManifestOrderInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintManifestResource" displayName="Manifest Resource References" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintManifestResourceInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMenuTitle" displayName="Missing menu title" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMenuTitleInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMergeRootFrame" displayName="FrameLayout can be replaced with &lt;merge> tag" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMergeRootFrameInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMipmapIcons" displayName="Use Mipmap Launcher Icons" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMipmapIconsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingApplicationIcon" displayName="Missing application icon" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingApplicationIconInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingId" displayName="Fragments should specify an id or tag" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingIdInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingIntentFilterForMediaSearch" displayName="Missing intent-filter with action android.media.action.MEDIA_PLAY_FROM_SEARCH" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingIntentFilterForMediaSearchInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingLeanbackLauncher" displayName="Missing Leanback Launcher Intent Filter." groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingLeanbackLauncherInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingLeanbackSupport" displayName="Missing Leanback Support." groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingLeanbackSupportInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingMediaBrowserServiceIntentFilter" displayName="Missing intent-filter with action android.media.browse.MediaBrowserService." groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingMediaBrowserServiceIntentFilterInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingOnPlayFromSearch" displayName="Missing onPlayFromSearch." groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingOnPlayFromSearchInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingTvBanner" displayName="TV Missing Banner" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingTvBannerInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingPrefix" displayName="Missing Android XML namespace" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingPrefixInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingQuantity" displayName="Missing quantity translation" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingQuantityInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintMissingSuperCall" displayName="Missing Super Call" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintMissingSuperCallInspection"/>
@@ -515,6 +544,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintPackagedPrivateKey" displayName="Packaged private key" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintPackagedPrivateKeyInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintPackageManagerGetSignatures" displayName="Potential Multiple Certificate Exploit" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintPackageManagerGetSignaturesInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintParcelCreator" displayName="Missing Parcelable CREATOR field" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintParcelCreatorInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintPermissionImpliesUnsupportedHardware" displayName="Permission Implies Unsupported Hardware" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintPermissionImpliesUnsupportedHardwareInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintPluralsCandidate" displayName="Potential Plurals" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintPluralsCandidateInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintPrivateResource" displayName="Using private resources" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintPrivateResourceInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintProguard" displayName="Using obsolete ProGuard configuration" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintProguardInspection"/>
@@ -542,6 +572,8 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintServiceCast" displayName="Wrong system service casts" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintServiceCastInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintSetJavaScriptEnabled" displayName="Using setJavaScriptEnabled" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintSetJavaScriptEnabledInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintSetTextI18n" displayName="TextView Internationalization" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintSetTextI18nInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintSetWorldReadable" displayName="File.setReadable() used to make file world-readable" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintSetWorldReadableInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintSetWorldWritable" displayName="File.setWritable() used to make file world-writable" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintSetWorldWritableInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintShiftFlags" displayName="Dangerous Flag Constant Declaration" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintShiftFlagsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintShortAlarm" displayName="Short or Frequent Alarm" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintShortAlarmInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintShowToast" displayName="Toast created but not shown" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintShowToastInspection"/>
@@ -549,6 +581,8 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintSimpleDateFormat" displayName="Implied locale in date format" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintSimpleDateFormatInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintSmallSp" displayName="Text size is too small" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintSmallSpInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintSpUsage" displayName="Using dp instead of sp for text sizes" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintSpUsageInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintSSLCertificateSocketFactoryCreateSocket" displayName="Insecure call to SSLCertificateSocketFactory.createSocket()" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintSSLCertificateSocketFactoryCreateSocketInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintSSLCertificateSocketFactoryGetInsecure" displayName="Call to SSLCertificateSocketFactory.getInsecure()" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintSSLCertificateSocketFactoryGetInsecureInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintStateListReachable" displayName="Unreachable state in a &lt;selector>" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintStateListReachableInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintStopShip" displayName="Code contains STOPSHIP marker" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintStopShipInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintStringFormatCount" displayName="Formatting argument types incomplete or inconsistent" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintStringFormatCountInspection"/>
@@ -572,6 +606,8 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUnknownId" displayName="Reference to an unknown id" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUnknownIdInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUnknownIdInLayout" displayName="Reference to an id that is not in the current layout" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUnknownIdInLayoutInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUnlocalizedSms" displayName="SMS phone number missing country code" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUnlocalizedSmsInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintUnprotectedSMSBroadcastReceiver" displayName="Unprotected SMS BroadcastReceiver" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUnprotectedSMSBroadcastReceiverInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintUnsupportedTvHardware" displayName="Unsupported TV Hardware Feature" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUnsupportedTvHardwareInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUnusedAttribute" displayName="Attribute unused on older versions" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUnusedAttributeInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUnusedIds" displayName="Unused id" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUnusedIdsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUnusedQuantity" displayName="Unused quantity translations" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUnusedQuantityInspection"/>
@@ -585,6 +621,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUsesMinSdkAttributes" displayName="Minimum SDK and target SDK attributes not defined" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUsesMinSdkAttributesInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUsingHttp" displayName="Using HTTP instead of HTTPS" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintUsingHttpInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintValidFragment" displayName="Fragment not instantiatable" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintValidFragmentInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintValidRestrictions" displayName="Invalid Restrictions Descriptor" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintValidRestrictionsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintVectorRaster" displayName="Vector Image Generation" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintVectorRasterInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintViewConstructor" displayName="Missing View constructors for XML inflation" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintViewConstructorInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintViewHolder" displayName="View Holder Candidates" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintViewHolderInspection"/>
@@ -610,6 +647,7 @@
     <annotator language="JAVA" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
 
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
+    <xml.tagNameProvider implementation="org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider" order="first" />
 
     <facet.toolWindow id="Android Monitor"
                       facetIdList="android"
@@ -662,6 +700,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.messages.ProjectSyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewConfiguration"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.DeviceStateAtLaunchService" />
 
     <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
@@ -673,6 +712,7 @@
                     serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
                     serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
+
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
     <psi.referenceProvider language="XML" providerClass="org.jetbrains.android.dom.AndroidXmlReferenceProvider">
       <pattern type="xml">xmlTag()</pattern>
@@ -691,9 +731,6 @@
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
-
-    <applicationConfigurable id="cloud.testing" groupId="build" groupWeight="200" instance="com.android.tools.idea.run.CloudTestingConfigurable"/>
-
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
@@ -720,7 +757,7 @@
 
     <usageTargetProvider implementation="org.jetbrains.android.AndroidUsagesTargetProvider"/>
     <renameHandler implementation="org.jetbrains.android.AndroidRenameHandler" order="first"/>
-    <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.rename.GradleAwareSourceRootRenameValidator"/>
+    <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
 
     <codeInsight.unresolvedReferenceQuickFixProvider implementation="org.jetbrains.android.inspections.AndroidResourceQuickFixProvider"/>
     <lang.psiAugmentProvider implementation="org.jetbrains.android.augment.AndroidPsiAugmentProvider"/>
@@ -738,7 +775,7 @@
     <editorNotificationProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
 
-    <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar;sdk-common.jar"/>
+    <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar;sdk-common.jar;gson-2.2.4.jar"/>
     <compileServer.plugin classpath="sdklib.jar;common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
 
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineStyleHandler"/>
@@ -751,7 +788,6 @@
     <editorNotificationProvider implementation="org.jetbrains.android.sdk.AndroidSdkNotConfiguredNotificationProvider"/>
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
     <compiler.buildTargetScopeProvider implementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetScopeProvider"/>
-    <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
     <!-- Temporarily disabled: need to display counts for files in multiple folders, and investigate bug
          where cloned layout files do not appear etc.
@@ -766,7 +802,7 @@
 
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>
     <projectStructureDetector implementation="org.jetbrains.android.newProject.AndroidProjectStructureDetector"/>
-    <resolveScopeProvider implementation="org.jetbrains.android.AndroidSdkResolveScopeProvider"/>
+    <sdkResolveScopeProvider implementation="org.jetbrains.android.AndroidSdkResolveScopeProvider"/>
     <lookup.charFilter implementation="org.jetbrains.android.dom.AndroidXmlCharFilter" order="before xml"/>
     <gotoRelatedProvider implementation="org.jetbrains.android.AndroidGotoRelatedProvider"/>
     <codeInsight.lineMarkerProvider language="XML" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
@@ -777,7 +813,7 @@
     <spellchecker.support language="Properties" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
-    <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
+    <testSrcLocator implementation="com.android.tools.idea.run.testing.AndroidTestLocationProvider"/>
     <junitPatcher implementation="com.android.tools.idea.gradle.AndroidJunitPatcher" />
 
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapRenderer" />
@@ -792,7 +828,7 @@
         implementation="com.android.tools.idea.gradle.quickfix.AndroidUnresolvedReferenceQuickFixProvider" order="last"/>
     <!-- Temporarily disabled due to https://code.google.com/p/android/issues/detail?id=183801 -->
     <!--<highlightVisitor implementation="com.android.tools.idea.gradle.highlight.GradleHighlightQuickfixReplacementVisitor" order="last"/>-->
-    <renameHandler implementation="com.android.tools.idea.gradle.GradleRenameModuleHandler" order="last"/>
+    <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
@@ -819,8 +855,6 @@
                     interface="com.android.tools.idea.gradle.editor.parser.GradleEditorModelCustomizer"/>
     <extensionPoint qualifiedName="com.android.gradle.gradleEditorEntityUi"
                     interface="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUi"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.run.cloudConfigurationProvider"
-                    interface="com.android.tools.idea.run.CloudConfigurationProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceCreators"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
@@ -829,6 +863,9 @@
                     interface="com.android.tools.idea.stats.UsageUploader" />
     <extensionPoint qualifiedName="com.android.ide.developerServiceBuildSystemOperations"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceBuildSystemOperations"/>
+    <extensionPoint qualifiedName="com.android.run.deployTarget" interface="com.android.tools.idea.run.editor.DeployTarget" />
+    <extensionPoint qualifiedName="com.android.run.deviceNameRenderer"
+                    interface="com.android.tools.idea.ddms.DeviceNameRendererEx"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -848,6 +885,7 @@
   <extensions defaultExtensionNs="com.android.gradle">
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.OldAndroidPluginErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.OutdatedAppEngineGradlePluginErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.GradleBrokenPipeErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.Gradle2RequiredErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.DaemonContextMismatchErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.ErrorOpeningZipFileErrorHandler"/>
@@ -876,12 +914,17 @@
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer"/>
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer"/>
     <buildVariantModuleCustomizer implementation="com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer"/>
-
   </extensions>
 
   <extensions defaultExtensionNs="com.android.ide">
-    <sdkEventListener implementation="com.android.tools.idea.sdk.GradleAndroidSdkEventListener"/>
+    <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
     <developerServiceBuildSystemOperations implementation="com.android.tools.idea.gradle.structure.services.GradleOperations"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.run">
+    <deployTarget implementation="com.android.tools.idea.run.editor.ShowChooserTarget" />
+    <deployTarget implementation="com.android.tools.idea.run.editor.UsbDeviceTarget" />
+    <deployTarget implementation="com.android.tools.idea.run.editor.EmulatorTarget" />
   </extensions>
 
   <!-- Layout editor -->

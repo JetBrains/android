@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.emulator;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Ignore;
@@ -39,16 +38,16 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
   @Ignore
   @Test @IdeGuiTest
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    myProjectFrame = importSimpleApplication();
 
-    projectFrame.runApp(APP_NAME);
-    projectFrame.findChooseDeviceDialog().selectEmulator("Nexus7")
+    myProjectFrame.runApp(APP_NAME);
+    myProjectFrame.findChooseDeviceDialog().selectEmulator("Nexus7")
                                          .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    projectFrame.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
+    myProjectFrame.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
 
-    projectFrame.getAndroidToolWindow().selectDevicesTab()
+    myProjectFrame.getAndroidToolWindow().selectDevicesTab()
                                        .selectProcess(PROCESS_NAME)
                                        .clickTerminateApplication();
   }
@@ -56,20 +55,20 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
   @Ignore
   @Test @IdeGuiTest
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    final EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame = importSimpleApplication();
+    final EditorFixture editor = myProjectFrame.getEditor();
     final int offset = editor.open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR).findOffset(
       "setContentView", "(R.layout.activity_my);", true);
     assertTrue(offset >= 0);
 
-    projectFrame.debugApp(APP_NAME);
-    projectFrame.findChooseDeviceDialog().selectEmulator("Nexus7")
+    myProjectFrame.debugApp(APP_NAME);
+    myProjectFrame.findChooseDeviceDialog().selectEmulator("Nexus7")
                                          .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    projectFrame.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
+    myProjectFrame.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
 
-    projectFrame.getAndroidToolWindow().selectDevicesTab()
+    myProjectFrame.getAndroidToolWindow().selectDevicesTab()
                                        .selectProcess(PROCESS_NAME)
                                        .clickTerminateApplication();
   }

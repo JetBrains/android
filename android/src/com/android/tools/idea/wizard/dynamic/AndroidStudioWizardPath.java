@@ -140,6 +140,12 @@ public interface AndroidStudioWizardPath {
   Step previous();
 
   /**
+   * Do the checks needed before performing the finishing actions.
+   * @return false to abort, true to do the finishing actions.
+   */
+  boolean canPerformFinishingActions();
+
+  /**
    * Declare any finishing actions that will take place at the completion of the wizard.
    * This function is called inside of a {@link WriteCommandAction}.
    *

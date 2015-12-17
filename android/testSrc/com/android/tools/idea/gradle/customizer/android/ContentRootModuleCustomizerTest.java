@@ -22,14 +22,10 @@ import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.SourceFolder;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.ExceptionUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -70,6 +66,11 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   }
 
   @Override
+  protected CompositeException checkForSettingsDamage() throws Exception {
+    return new CompositeException();
+  }
+
+  @Override
   protected void tearDown() throws Exception {
     if (myAndroidProject != null) {
       myAndroidProject.dispose();
@@ -94,18 +95,14 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   }
 
   public void testCustomizeModule() throws Exception {
-
-    final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-    try {
-      myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
-      modelsProvider.commit();
-    }
-    catch (Throwable t) {
-      modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
-    }
-
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
+    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    try {
+      myCustomizer.customizeModule(myProject, rootModel, myAndroidModel);
+    }
+    finally {
+      rootModel.commit();
+    }
     ContentEntry contentEntry = moduleRootManager.getContentEntries()[0];
 
     SourceFolder[] sourceFolders = contentEntry.getSourceFolders();
@@ -121,7 +118,6 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     ContentRootSourcePaths expectedPaths = new ContentRootSourcePaths();
     expectedPaths.storeExpectedSourcePaths(myAndroidProject);
-
 
     List<String> allExpectedPaths = Lists.newArrayList();
     allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.SOURCE));
