@@ -16,12 +16,15 @@
 package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.ui.properties.core.ObjectProperty;
 import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
-import com.google.common.base.Strings;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -31,19 +34,26 @@ import java.io.IOException;
  */
 public final class ImageAsset extends BaseAsset {
 
-  private final ObjectProperty<File> myImagePath =
-    new ObjectValueProperty<File>(new File(Strings.nullToEmpty(System.getProperty("user.home"))));
+  @NotNull private final ObjectProperty<File> myImagePath;
+
+  public ImageAsset() {
+    String pathToSampleImageInTemplate =
+      FileUtil.join(Template.CATEGORY_PROJECTS, "NewAndroidModule", "root", "res", "mipmap-xxxhdpi", "ic_launcher.png");
+
+    myImagePath = new ObjectValueProperty<File>(new File(TemplateManager.getTemplateRootFolder(), pathToSampleImageInTemplate));
+  }
 
   /**
    * The path to the image asset.
    */
+  @NotNull
   public ObjectProperty<File> imagePath() {
     return myImagePath;
   }
 
   @NotNull
   @Override
-  protected BufferedImage createAsImage() {
+  protected BufferedImage createAsImage(@NotNull Color color) {
     BufferedImage image = null;
     try {
       image = ImageIO.read(myImagePath.get());

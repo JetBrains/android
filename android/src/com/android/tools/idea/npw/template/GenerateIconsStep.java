@@ -16,8 +16,8 @@
 
 package com.android.tools.idea.npw.template;
 
-import com.android.tools.idea.npw.assetstudio.AndroidIconType;
-import com.android.tools.idea.npw.assetstudio.GenerateIconPanel;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsPanel;
 import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
@@ -29,33 +29,35 @@ import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Locale;
 
 /**
  * Step for supporting a template.xml's {@code <icon>} tag if one exists (which tells the template
  * to also generate icons in addition to regular files).
  */
-public final class GenerateIconStep extends ModelWizardStep<RenderTemplateModel> {
+public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel> {
 
   private final StudioWizardStepPanel myStudioPanel;
-  private final GenerateIconPanel myGenerateIconPanel;
+  private final GenerateIconsPanel myGenerateIconsPanel;
 
   private final ListenerManager myListeners = new ListenerManager();
 
-  public GenerateIconStep(@NotNull RenderTemplateModel model) {
+  public GenerateIconsStep(@NotNull RenderTemplateModel model) {
     super(model, "Generate Icons");
 
     AndroidIconType iconType = getModel().getTemplateHandle().getMetadata().getIconType();
     assert iconType != null; // It's an error to create <icon> tags w/o types
-    myGenerateIconPanel = new GenerateIconPanel(this, getModel().getFacet(), iconType);
+    myGenerateIconsPanel = new GenerateIconsPanel(this, getModel().getFacet(), iconType);
 
     myListeners.listenAndFire(model.getSourceSet(), new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myGenerateIconPanel.setProjectPaths(getModel().getPaths());
+        myGenerateIconsPanel.setProjectPaths(getModel().getPaths());
       }
     });
 
-    myStudioPanel = new StudioWizardStepPanel(myGenerateIconPanel, "Convert a source asset into " + iconType.getDisplayName());
+    myStudioPanel = new StudioWizardStepPanel(myGenerateIconsPanel,
+                                              "Convert a source asset into " + iconType.getDisplayName().toLowerCase(Locale.getDefault()));
   }
 
   @NotNull
@@ -74,18 +76,18 @@ public final class GenerateIconStep extends ModelWizardStep<RenderTemplateModel>
       iconName = evaluator.evaluate(iconNameExpression, getModel().getTemplateValues());
     }
 
-    myGenerateIconPanel.setOutputName(Strings.nullToEmpty(iconName));
+    myGenerateIconsPanel.setOutputName(Strings.nullToEmpty(iconName));
   }
 
   @NotNull
   @Override
   protected ObservableBool canGoForward() {
-    return myGenerateIconPanel.hasErrors().not();
+    return myGenerateIconsPanel.hasErrors().not();
   }
 
   @Override
   protected void onProceeding() {
-    getModel().setIconGenerator(myGenerateIconPanel.createIconGenerator());
+    getModel().setIconGenerator(myGenerateIconsPanel.getIconGenerator());
   }
 
   @Override

@@ -58,7 +58,7 @@ public final class BatchInvokerTest {
   }
 
   @Test
-  public void invocationsAreDeferredIfCurrentInvocationsAreRunning() throws Exception {
+  public void allDeferredInvocationsRunAtOnce() throws Exception {
     TestInvokeStrategy testStrategy = new TestInvokeStrategy();
     BatchInvoker invoker = new BatchInvoker(testStrategy);
 
@@ -70,8 +70,6 @@ public final class BatchInvokerTest {
 
     invoker.enqueue(addToValue1);
     invoker.enqueue(deferRunnable);
-    testStrategy.updateOneStep();
-    assertThat(intWrapper.value).isEqualTo(1);
     testStrategy.updateOneStep();
     assertThat(intWrapper.value).isEqualTo(11);
   }
@@ -114,6 +112,11 @@ public final class BatchInvokerTest {
     }
     catch (BatchInvoker.InfiniteCycleException ignored) {
     }
+
+    // Ensure invoker continues to work after throwing an exception
+    IntWrapper intWrapper = new IntWrapper();
+    invoker.enqueue(new AddToValue(0, intWrapper, 123));
+    assertThat(intWrapper.value).isEqualTo(123);
   }
 
   private static final class IntWrapper {
