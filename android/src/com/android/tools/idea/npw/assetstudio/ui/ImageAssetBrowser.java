@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio;
+package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.npw.assetstudio.assets.ClipartAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
@@ -27,11 +26,8 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -41,22 +37,16 @@ import java.util.List;
  * Panel which wraps a {@link ImageAsset}, allowing the user to browse for an image file to use as
  * an asset.
  */
-final class ImageAssetPanel extends JPanel implements AssetPanel, Disposable {
+public final class ImageAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent, Disposable {
   private final ImageAsset myImageAsset = new ImageAsset();
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);
 
-  private JPanel myRootPanel;
-  private TextFieldWithBrowseButton myImagePathTextField;
-  private JBLabel myPathLabel;
+  public ImageAssetBrowser() {
 
-  public ImageAssetPanel() {
-    super(new BorderLayout());
-    add(myRootPanel);
+    addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
 
-    myImagePathTextField.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
-
-    final TextProperty imagePathText = new TextProperty(myImagePathTextField.getTextField());
+    final TextProperty imagePathText = new TextProperty(getTextField());
     myBindings.bind(imagePathText, new Expression<String>(myImageAsset.imagePath()) {
       @NotNull
       @Override
@@ -76,7 +66,7 @@ final class ImageAssetPanel extends JPanel implements AssetPanel, Disposable {
     InvalidationListener onImageChanged = new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        ActionEvent e = new ActionEvent(ImageAssetPanel.this, ActionEvent.ACTION_PERFORMED, null);
+        ActionEvent e = new ActionEvent(ImageAssetBrowser.this, ActionEvent.ACTION_PERFORMED, null);
         for (ActionListener listener : myListeners) {
           listener.actionPerformed(e);
         }
@@ -92,7 +82,7 @@ final class ImageAssetPanel extends JPanel implements AssetPanel, Disposable {
   }
 
   @Override
-  public void addActionListener(@NotNull ActionListener l) {
+  public void addAssetListener(@NotNull ActionListener l) {
     myListeners.add(l);
   }
 

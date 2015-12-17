@@ -17,12 +17,10 @@ package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
 import com.android.tools.idea.ui.properties.ObservableProperty;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.IntProperty;
-import com.android.tools.idea.ui.properties.core.IntValueProperty;
+import com.android.tools.idea.ui.properties.core.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -32,13 +30,16 @@ import java.awt.image.BufferedImage;
  * Asset fields are all {@link ObservableProperty} instances, which allows for assets to be easily
  * bound to and modified by UI widgets.
  */
+@SuppressWarnings("UseJBColor") // Intentionally not using JBColor for Android icons
 public abstract class BaseAsset {
   private final BoolProperty myTrimmed = new BoolValueProperty();
   private final IntProperty myPaddingPercent = new IntValueProperty();
+  private final ObjectProperty<Color> myColor = new ObjectValueProperty<Color>(Color.BLACK);
 
   /**
    * Whether or not transparent space should be removed from the asset before rendering.
    */
+  @NotNull
   public BoolProperty trimmed() {
     return myTrimmed;
   }
@@ -49,8 +50,17 @@ public abstract class BaseAsset {
    * Expected values are between -10 (zoomed in enough to clip some of the asset's edges) and 50
    * (zoomed out so that the image is half size and centered).
    */
+  @NotNull
   public IntProperty paddingPercent() {
     return myPaddingPercent;
+  }
+
+  /**
+   * A color to use when rendering this image. Not all asset types are affected by this color.
+   */
+  @NotNull
+  public ObjectProperty<Color> color() {
+    return myColor;
   }
 
   /**
@@ -59,7 +69,7 @@ public abstract class BaseAsset {
    */
   @NotNull
   public final BufferedImage toImage() {
-    BufferedImage image = createAsImage();
+    BufferedImage image = createAsImage(myColor.get());
     if (myTrimmed.get()) {
       image = AssetStudioAssetGenerator.trim(image);
     }
@@ -68,5 +78,5 @@ public abstract class BaseAsset {
   }
 
   @NotNull
-  protected abstract BufferedImage createAsImage();
+  protected abstract BufferedImage createAsImage(@NotNull Color color);
 }

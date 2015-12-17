@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.SdkConstants;
 import com.android.assetstudiolib.GraphicGenerator;
+import com.android.ide.common.util.AssetUtil;
 import com.android.tools.idea.npw.RasterAssetSetStep;
 import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
 import com.android.tools.idea.ui.properties.core.StringProperty;
@@ -26,6 +27,7 @@ import com.intellij.util.IconUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
@@ -51,6 +53,7 @@ public final class ClipartAsset extends BaseAsset {
   /**
    * Return a list of all available names that identify clipart resources.
    */
+  @NotNull
   public static List<String> getAllClipartNames() {
     ImmutableList.Builder<String> listBuilder = new ImmutableList.Builder<String>();
     listBuilder.addAll(GraphicGenerator.getResourcesNames(RasterAssetSetStep.IMAGES_CLIPART_BIG, SdkConstants.DOT_PNG));
@@ -83,6 +86,7 @@ public final class ClipartAsset extends BaseAsset {
    * The name which identifies this clipart asset. Use {@link #getAllClipartNames()} to get a list
    * of all suitable values for this property.
    */
+  @NotNull
   public StringProperty clipartName() {
     return myClipartName;
   }
@@ -105,9 +109,10 @@ public final class ClipartAsset extends BaseAsset {
 
   @NotNull
   @Override
-  protected BufferedImage createAsImage() {
+  protected BufferedImage createAsImage(@NotNull Color color) {
     try {
-      return createImage();
+      BufferedImage image = createImage();
+      return AssetUtil.filledImage(image, color);
     }
     catch (IOException e) {
       return AssetStudioAssetGenerator.createDummyImage();

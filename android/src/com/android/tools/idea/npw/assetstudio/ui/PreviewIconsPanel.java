@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio;
+package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
+import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.ui.ImageComponent;
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBImageIcon;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,33 +44,40 @@ import java.util.Map;
  * {@link AssetStudioAssetGenerator} - particularly, xxhdpi, xhdpi, hdpi, and mdpi sets.
  */
 @SuppressWarnings("UseJBColor")
-public final class GeneratedIconsPanel extends JPanel {
+public final class PreviewIconsPanel extends JPanel {
 
-  @NotNull private final String myIconCategory;
-  @NotNull private final Theme myTheme;
-
+  private final Theme myTheme;
   private final Map<Density, ImageComponent> myIconImages = Maps.newHashMap();
+
+  @Nullable private CategoryIconMap.Filter myFilter;
 
   private JPanel myRootPanel;
   private JPanel myIconsPanel;
   private JBLabel myTitleLabel;
 
-  public GeneratedIconsPanel(@NotNull String iconCategory, @NotNull String title, @NotNull Theme theme) {
+  public PreviewIconsPanel(@NotNull String title, @NotNull Theme theme) {
     super(new BorderLayout());
     add(myRootPanel);
 
-    myIconCategory = iconCategory;
     myTitleLabel.setText(title);
+    myTitleLabel.setVisible(!title.isEmpty());
 
     myTheme = theme;
     myRootPanel.setBackground(myTheme.getMainColor());
+    myRootPanel.setOpaque(myTheme != Theme.TRANSPARENT);
     myTitleLabel.setForeground(myTheme.getAltColor());
+  }
+
+  public PreviewIconsPanel(@NotNull String title, @NotNull Theme theme, @NotNull CategoryIconMap.Filter filter) {
+    this(title, theme);
+    myFilter = filter;
   }
 
   private static void updateImage(@NotNull ImageComponent imageComponent, @NotNull BufferedImage sourceImage) {
     JBImageIcon icon = IconUtil.createImageIcon(sourceImage);
     Dimension d = new Dimension(icon.getIconWidth(), icon.getIconHeight());
     imageComponent.setPreferredSize(d);
+    imageComponent.setMinimumSize(d);
     imageComponent.setIcon(icon);
   }
 
@@ -79,31 +88,22 @@ public final class GeneratedIconsPanel extends JPanel {
    * time this is called. Additional calls should pass in maps with the same keys. This happens
    * automatically as long as you keep generating icons with consistent options.
    */
-  public void updateImages(@NotNull Map<String, Map<String, BufferedImage>> assetMap) {
-    Map<String, BufferedImage> iconSet = assetMap.get(myIconCategory);
-    if (iconSet == null) {
-      throw new IllegalStateException("Can't find icon set: " + myIconCategory);
-    }
+  public void updateImages(@NotNull CategoryIconMap categoryIconMap) {
 
-    Collection<Density> densities = Collections2.transform(iconSet.keySet(), new Function<String, Density>() {
-      @Nullable
-      @Override
-      public Density apply(String iconPath) {
-        for (Density density : Density.values()) {
-          if (iconPath.contains(density.getResourceValue())) {
-            return density;
-          }
-        }
-        throw new IllegalArgumentException("Unexpected icon path doesn't match any known densities: " + iconPath);
-      }
-    });
+    Map<Density, BufferedImage> densityImageMap;
+    if (myFilter != null) {
+      densityImageMap = categoryIconMap.toDensityMap(myFilter);
+    }
+    else {
+      densityImageMap = categoryIconMap.toDensityMap();
+    }
 
     if (myIconsPanel.getComponentCount() == 0) {
-      initializeIconComponents(densities);
+      initializeIconComponents(densityImageMap.keySet());
     }
 
-    for (Density density : densities) {
-      updateImage(myIconImages.get(density), getImage(density, iconSet));
+    for (Map.Entry<Density, BufferedImage> densityImageEntry : densityImageMap.entrySet()) {
+      updateImage(myIconImages.get(densityImageEntry.getKey()), densityImageEntry.getValue());
     }
   }
 
@@ -121,6 +121,7 @@ public final class GeneratedIconsPanel extends JPanel {
     for (Density density : densities) {
       JPanel iconPanel = new JPanel(new VerticalFlowLayout(false, false));
       iconPanel.setBackground(myTheme.getMainColor());
+      iconPanel.setOpaque(myTheme != Theme.TRANSPARENT);
 
       JBLabel title = new JBLabel(density.getResourceValue());
       title.setForeground(myTheme.getAltColor());
@@ -139,25 +140,14 @@ public final class GeneratedIconsPanel extends JPanel {
     }
   }
 
-  @NotNull
-  private BufferedImage getImage(@NotNull Density density, @NotNull Map<String, BufferedImage> iconSet) {
-    String resourceValue = density.getResourceValue();
-    for (String path : iconSet.keySet()) {
-      if (path.contains(resourceValue)) {
-        return iconSet.get(path);
-      }
-    }
-
-    throw new IllegalStateException(String.format("Can't find icon: %1$s (%2$s)", myIconCategory, resourceValue));
-  }
-
   /**
    * Color themes which are useful for acting as backdrops to our various icon types.
    */
   public enum Theme {
     DARK(Color.BLACK, Color.WHITE),
     LIGHT(Color.WHITE, Color.BLACK),
-    GRAY(Color.DARK_GRAY, Color.LIGHT_GRAY);
+    GRAY(Color.DARK_GRAY, Color.LIGHT_GRAY),
+    TRANSPARENT(UIUtil.TRANSPARENT_COLOR, JBColor.BLACK);
 
     private final Color myMainColor;
     private final Color myAltColor;
