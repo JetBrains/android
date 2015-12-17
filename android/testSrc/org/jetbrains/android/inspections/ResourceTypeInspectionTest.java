@@ -211,6 +211,9 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        view.setLayoutDirection(View.LAYOUT_DIRECTION_RTL); // OK\n" +
             "        view.setLayoutDirection(/*Must be one of: View.LAYOUT_DIRECTION_LTR, View.LAYOUT_DIRECTION_RTL, View.LAYOUT_DIRECTION_INHERIT, View.LAYOUT_DIRECTION_LOCALE*/View.TEXT_ALIGNMENT_TEXT_START/**/); // Error\n" +
             "        view.setLayoutDirection(/*Must be one of: View.LAYOUT_DIRECTION_LTR, View.LAYOUT_DIRECTION_RTL, View.LAYOUT_DIRECTION_INHERIT, View.LAYOUT_DIRECTION_LOCALE*/View.LAYOUT_DIRECTION_RTL | View.LAYOUT_DIRECTION_RTL/**/); // Error\n" +
+            "\n" +
+            "        // Regression test for http://b.android.com/197184\n" +
+            "        view.setLayoutDirection/*'setLayoutDirection(int)' in 'android.view.View' cannot be applied to '(int, int)'*/(View.LAYOUT_DIRECTION_RTL, View.LAYOUT_DIRECTION_LTR)/**/; // ERROR\n" +
             "    }\n" +
             "\n" +
             "    @TargetApi(Build.VERSION_CODES.KITKAT)\n" +
