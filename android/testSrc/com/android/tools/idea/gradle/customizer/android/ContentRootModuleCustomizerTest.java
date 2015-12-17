@@ -22,9 +22,12 @@ import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.CompositeException;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -66,11 +69,6 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   }
 
   @Override
-  protected CompositeException checkForSettingsDamage() throws Exception {
-    return new CompositeException();
-  }
-
-  @Override
   protected void tearDown() throws Exception {
     if (myAndroidProject != null) {
       myAndroidProject.dispose();
@@ -97,8 +95,10 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   public void testCustomizeModule() throws Exception {
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
-      myCustomizer.customizeModule(myProject, rootModel, myAndroidModel);
+      myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
+      modelsProvider.commit();
     }
     finally {
       rootModel.commit();

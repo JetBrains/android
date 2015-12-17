@@ -32,7 +32,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.Module;
@@ -127,7 +126,7 @@ public final class Projects {
                 @Override
                 public void run() {
                   ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-                  dataManager.importData(ProjectKeys.MODULE, modules, project, true /* synchronous */);
+                  dataManager.importData(modules, project, true /* synchronous */);
                 }
               });
             }
