@@ -18,6 +18,7 @@ package com.android.tools.idea.run.testing;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.intellij.execution.JavaExecutionUtil;

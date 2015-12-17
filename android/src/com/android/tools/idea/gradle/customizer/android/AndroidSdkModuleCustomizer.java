@@ -34,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
 
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
@@ -84,8 +86,7 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
       ideaModuleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
     }
 
-    AndroidProject androidProject = androidModel.getAndroidProject();
-    String compileTarget = androidProject.getCompileTarget();
+    String compileTarget = androidProject.getAndroidProject().getCompileTarget();
 
     Sdk sdk = findSuitableAndroidSdk(compileTarget);
     if (sdk == null) {
@@ -93,12 +94,12 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
 
       if (sdk == null) {
         // If SDK was not created, this might be an add-on.
-        sdk = findMatchingSdkForAddon(androidProject);
+        sdk = findMatchingSdkForAddon(androidProject.getAndroidProject());
       }
     }
 
     if (sdk != null) {
-      moduleModel.setSdk(sdk);
+      ideaModuleModel.setSdk(sdk);
       String sdkPath = sdk.getHomePath();
       if (sdkPath == null) {
         sdkPath = "<path not set>";
@@ -107,7 +108,7 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
       return;
     }
 
-    String text = String.format("Module '%1$s': platform '%2$s' not found.", moduleModel.getModule().getName(), compileTarget);
+    String text = String.format("Module '%1$s': platform '%2$s' not found.", module.getName(), compileTarget);
     LOG.warn(text);
 
     Message msg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.ERROR, text);

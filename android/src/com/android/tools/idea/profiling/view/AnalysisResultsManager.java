@@ -166,7 +166,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
     JComponent focus = content.getFocusComponent();
     LightToolWindow lightToolWindow = createContent(designer, content, getToolWindowTitleBarText(), icon, content.getMainPanel(),
                                                     focus == null ? content.getMainPanel() : focus, 320, createActions());
-    lightToolWindow.minimize();
+//    lightToolWindow.minimize();
     return lightToolWindow;
   }
 

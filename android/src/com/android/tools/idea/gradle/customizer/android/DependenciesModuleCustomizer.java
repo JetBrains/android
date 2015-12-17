@@ -190,7 +190,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
         // Include compile target as part of the name, to ensure the library name is unique to this Android platform.
 
         name = name + "-" + suffix; // e.g. maps-android-23, effects-android-23 (it follows the library naming convention: library-version
-        setUpLibraryDependency(moduleModel, name, DependencyScope.COMPILE, Collections.singletonList(library));
+        setUpLibraryDependency(module, moduleModel, name, DependencyScope.COMPILE, Collections.singletonList(library));
       }
     }
   }

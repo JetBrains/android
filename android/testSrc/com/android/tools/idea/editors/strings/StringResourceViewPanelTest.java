@@ -45,7 +45,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   @Override
-  protected void tearDown() throws Exception {
+  public void tearDown() throws Exception {
     Disposer.dispose(parentDisposable);
     super.tearDown();
   }
