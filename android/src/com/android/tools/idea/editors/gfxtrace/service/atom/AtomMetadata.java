@@ -31,6 +31,8 @@ import com.android.tools.rpclib.binary.Namespace;
 import java.io.IOException;
 
 public final class AtomMetadata implements BinaryObject {
+  public static final AtomMetadata NO_METADATA = new AtomMetadata().setDisplayName("<unknown>");
+
   public static AtomMetadata find(Entity c) {
     for (BinaryObject o : c.getMetadata()) {
       if (o instanceof AtomMetadata) {
@@ -39,7 +41,7 @@ public final class AtomMetadata implements BinaryObject {
         return meta;
       }
     }
-    return null;
+    return NO_METADATA;
   }
 
   boolean myIsPrepared = false;
@@ -63,6 +65,9 @@ public final class AtomMetadata implements BinaryObject {
           }
         }
       }
+    }
+    if (myDisplayName == null) {
+      myDisplayName = "<unknown>";
     }
   }
 
