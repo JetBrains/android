@@ -304,7 +304,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       if (argumentList == null) return;
       PsiExpression[] arguments = argumentList.getExpressions();
       int parametersIdx = 0;
-      for (int i = 0; i < arguments.length; i++) {
+      for (int i = 0; i < arguments.length && parametersIdx < parameters.length; i++) {
         PsiParameter parameter = parameters[parametersIdx];
         // If it's not an ellipsis type, we keep walking through the parameters list. If it's an ellipsis, that the last parameter we have
         // to look into
