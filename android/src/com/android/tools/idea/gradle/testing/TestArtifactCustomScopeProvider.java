@@ -53,7 +53,7 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
   }
 
   @Override
-  public boolean isVetoed(NamedScope scope, ScopePlace place) {
+  public boolean isVetoed(@NotNull NamedScope scope, @NotNull ScopePlace place) {
     // We want the scopes provided act as built-in scopes so people can't customize those scopes in
     // Setting -> Appearance & Behavior -> Scopes
     if (scope instanceof AndroidTestsScope && place == CustomScopesProviderEx.ScopePlace.ACTION) {
@@ -68,11 +68,11 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
     public AndroidTestsScope() {
       super(NAME, new AbstractPackageSet("test:*..*") {
         @Override
-        public boolean contains(VirtualFile file, NamedScopesHolder holder) {
+        public boolean contains(@Nullable VirtualFile file, @NotNull NamedScopesHolder holder) {
           return contains(file, holder.getProject(), holder);
         }
         @Override
-        public boolean contains(VirtualFile file, @NotNull Project project, @Nullable NamedScopesHolder holder) {
+        public boolean contains(@Nullable VirtualFile file, @NotNull Project project, @Nullable NamedScopesHolder holder) {
           if (file == null) {
             return false;
           }
@@ -97,11 +97,11 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
     public UnitTestsScope() {
       super(NAME, new AbstractPackageSet("test:*..*") {
         @Override
-        public boolean contains(VirtualFile file, NamedScopesHolder holder) {
+        public boolean contains(@Nullable VirtualFile file, @NotNull NamedScopesHolder holder) {
           return contains(file, holder.getProject(), holder);
         }
         @Override
-        public boolean contains(VirtualFile file, @NotNull Project project, @Nullable NamedScopesHolder holder) {
+        public boolean contains(@Nullable VirtualFile file, @NotNull Project project, @Nullable NamedScopesHolder holder) {
           if (file == null) {
             return false;
           }
