@@ -82,7 +82,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.service.JpsServiceManager;
-import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper;
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import javax.swing.*;
@@ -115,7 +115,7 @@ import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.android.AndroidPlugin.*;
-import static org.jetbrains.plugins.gradle.service.project.GradleExecutionHelper.prepare;
+import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 /**
  * Invokes Gradle tasks as a IDEA task in the background.
