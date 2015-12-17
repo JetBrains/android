@@ -15,33 +15,26 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.TimeoutException;
-import com.android.tools.idea.run.AndroidApplicationLauncher;
 import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.AndroidRunningState;
+import com.android.tools.idea.run.tasks.LaunchTask;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.IOException;
 
 public class NoLaunch extends LaunchOption<NoLaunch.State> {
   public static final NoLaunch INSTANCE = new NoLaunch();
 
   public static class State extends LaunchOptionState {
+    @Nullable
     @Override
-    public AndroidApplicationLauncher getLauncher(@NotNull AndroidFacet facet, @NotNull String extraAmOptions) {
-      return new AndroidApplicationLauncher() {
-        @Override
-        public LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
-          throws IOException, AdbCommandRejectedException, TimeoutException {
-          return LaunchResult.NOTHING_TO_DO;
-        }
-      };
+    public LaunchTask getLaunchTask(@NotNull String applicationId,
+                                    @NotNull AndroidFacet facet,
+                                    boolean waitForDebugger,
+                                    @NotNull String extraAmOptions) {
+      return null;
     }
   }
 

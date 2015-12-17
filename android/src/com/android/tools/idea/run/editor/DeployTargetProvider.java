@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.DeviceCount;
-import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
 import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
@@ -85,8 +84,7 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
                             @NotNull DeviceCount deviceCount,
                             boolean androidTests,
                             @NotNull Map<String, DeployTargetState> deployTargetStates,
-                            int runConfigId,
-                            @NotNull ProcessHandlerConsolePrinter printer) {
+                            int runConfigId) {
     throw new IllegalStateException();
   }
 
