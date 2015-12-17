@@ -41,6 +41,7 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashMap;
+import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -723,6 +724,11 @@ public class IntellijLintClient extends LintClient implements Disposable {
   @Override
   public URLConnection openConnection(@NonNull URL url) throws IOException {
     return HttpConfigurable.getInstance().openConnection(url.toExternalForm());
+  }
+
+  @Override
+  public ClassLoader createUrlClassLoader(@NonNull URL[] urls, @NonNull ClassLoader parent) {
+    return UrlClassLoader.build().parent(parent).urls(urls).get();
   }
 
   @NonNull
