@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.run.tasks.AndroidDeepLinkLaunchTask;
 import junit.framework.TestCase;
 
-public class AndroidDeepLinkLauncherTest extends TestCase {
+public class AndroidDeepLinkLaunchTaskTest extends TestCase {
   public void testAmStartCommandForDeepLink() {
-    assertEquals("am start  -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path",
-                 AndroidDeepLinkLauncher.getLaunchDeepLinkCommand("example://host/path", null, "", ""));
+    assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path",
+                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", null, false, ""));
     assertEquals("am start -D -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path",
-                 AndroidDeepLinkLauncher.getLaunchDeepLinkCommand("example://host/path", null, "-D", ""));
+                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", null, true, ""));
     assertEquals("am start -D -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path --es aa 'bb'",
-                 AndroidDeepLinkLauncher.getLaunchDeepLinkCommand("example://host/path", null, "-D", "--es aa 'bb'"));
-    assertEquals("am start  -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path com.example",
-                 AndroidDeepLinkLauncher.getLaunchDeepLinkCommand("example://host/path", "com.example", "", ""));
+                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", null, true, "--es aa 'bb'"));
+    assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path com.example",
+                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", "com.example", false, ""));
   }
 }

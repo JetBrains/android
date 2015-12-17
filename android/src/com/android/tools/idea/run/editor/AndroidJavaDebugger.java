@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
+import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
 
 public class AndroidJavaDebugger implements AndroidDebugger<AndroidDebuggerState> {
 
@@ -44,5 +50,15 @@ public class AndroidJavaDebugger implements AndroidDebugger<AndroidDebuggerState
   @Override
   public AndroidDebuggerConfigurable<AndroidDebuggerState> createConfigurable(@NotNull Project project) {
     return new AndroidDebuggerConfigurable<AndroidDebuggerState>();
+  }
+
+  @NotNull
+  @Override
+  public DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
+                                                   @NotNull Set<String> applicationIds,
+                                                   @NotNull AndroidFacet facet,
+                                                   @NotNull AndroidDebuggerState state,
+                                                   @NotNull String runConfigTypeId) {
+    return new ConnectJavaDebuggerTask(env.getProject(), applicationIds);
   }
 }

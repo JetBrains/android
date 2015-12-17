@@ -65,14 +65,14 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
   }
 
   @Override
+  @Nullable
   public DeployTarget showPrompt(@NotNull Executor executor,
                             @NotNull ExecutionEnvironment env,
                             @NotNull AndroidFacet facet,
                             @NotNull DeviceCount deviceCount,
                             boolean androidTests,
                             @NotNull Map<String, DeployTargetState> deployTargetStates,
-                            int runConfigId,
-                            @NotNull ProcessHandlerConsolePrinter printer) {
+                            int runConfigId) {
     State showChooserState = (State)deployTargetStates.get(getId());
     Project project = facet.getModule().getProject();
 
@@ -95,7 +95,7 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
 
     // show the dialog and get the state
     DeployTargetPickerDialog dialog =
-      new DeployTargetPickerDialog(runConfigId, facet, deviceCount, applicableTargets, deployTargetStates, printer);
+      new DeployTargetPickerDialog(runConfigId, facet, deviceCount, applicableTargets, deployTargetStates);
     if (dialog.showAndGet()) {
       DeployTarget result = dialog.getSelectedDeployTarget();
 

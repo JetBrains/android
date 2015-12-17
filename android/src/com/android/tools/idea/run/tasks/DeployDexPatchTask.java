@@ -13,27 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+public class DeployDexPatchTask implements LaunchTask {
+  @NotNull private final AndroidFacet myFacet;
 
-public class DexPatchInstaller implements PackageInstaller {
-  private final AndroidFacet myFacet;
-
-  public DexPatchInstaller(@NotNull AndroidFacet facet) {
+  public DeployDexPatchTask(@NotNull AndroidFacet facet) {
     myFacet = facet;
   }
 
+  @NotNull
   @Override
-  public boolean install(@NotNull IDevice device, @NotNull AtomicBoolean cancelInstallation, @NotNull ConsolePrinter printer) {
+  public String getDescription() {
+    return "Installing Dex files";
+  }
+
+  @Override
+  public int getDuration() {
+    return LaunchTaskDurations.DEPLOY_DEXPATCH;
+  }
+
+  @Override
+  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
     boolean result = FastDeployManager.installDex(myFacet, device);
     if (!result) {
-      printer.stdout("Pushing incremental patch to the device failed; you might need to do a clean build.");
+      printer.stderr("Pushing incremental patch to the device failed; you might need to do a clean build.");
     }
 
     return result;

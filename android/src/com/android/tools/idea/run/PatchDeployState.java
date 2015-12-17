@@ -124,18 +124,18 @@ public class PatchDeployState implements RunProfileState {
           return;
         }
 
-        if (coldSwap && (myProcessHandler instanceof AndroidMultiProcessHandler)) {
+        if (coldSwap && (myProcessHandler instanceof AndroidProcessHandler)) {
           LOG.info("Performing a cold swap, application will restart\n");
           myProcessHandler.notifyTextAvailable("Performing a cold swap, application will restart\n", ProcessOutputTypes.STDOUT);
-          ((AndroidMultiProcessHandler)myProcessHandler).reset();
+          ((AndroidProcessHandler)myProcessHandler).reset();
         }
 
         for (IDevice device : myDevices) {
           FastDeployManager.pushChanges(device, myFacet);
 
           if (coldSwap) {
-            if (myProcessHandler instanceof AndroidMultiProcessHandler) {
-              ((AndroidMultiProcessHandler)myProcessHandler).addTargetDevice(device);
+            if (myProcessHandler instanceof AndroidProcessHandler) {
+              ((AndroidProcessHandler)myProcessHandler).addTargetDevice(device);
             }
             else {
               // debugging: we need to listen for the client to come online, and then attach the debugger.
@@ -192,7 +192,7 @@ public class PatchDeployState implements RunProfileState {
       return;
     }
 
-    handler.putUserData(AndroidDebugRunner.ANDROID_SESSION_INFO, new AndroidSessionInfo(handler, debugDescriptor, debugState, myExecutor.getId()));
+    //handler.putUserData(AndroidDebugRunner.KEY, new AndroidSessionInfo(handler, debugDescriptor, debugState, myExecutor.getId()));
     handler.putUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT, client);
   }
 
@@ -231,7 +231,7 @@ public class PatchDeployState implements RunProfileState {
     return sb.toString().trim();
   }
 
-  /** HACK ALERT: This is a copy of {@link AndroidDebugState} with some minor changes.. */
+  /** HACK ALERT: This is a copy of erstwhile AndroidDebugState with some minor changes.. */
   private static class PatchAndroidDebugState implements RemoteState, AndroidExecutionState {
     private final Project myProject;
     private final ConsoleProvider myConsoleProvider;

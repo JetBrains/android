@@ -35,16 +35,16 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * {@link AndroidMultiProcessHandler} is a {@link com.intellij.execution.process.ProcessHandler} that corresponds to a single Android app
+ * {@link AndroidProcessHandler} is a {@link com.intellij.execution.process.ProcessHandler} that corresponds to a single Android app
  * potentially running on multiple connected devices after a launch of the app from Studio.
  *
  * It encodes the following behavior:
  *  - A stop action kills the processes
  *  - The process is assumed to have terminated if it has died in all the connected devices
  */
-public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler implements AndroidDebugBridge.IDeviceChangeListener,
+public class AndroidProcessHandler extends DefaultDebugProcessHandler implements AndroidDebugBridge.IDeviceChangeListener,
                                                                                  AndroidDebugBridge.IClientChangeListener {
-  private static final Logger LOG = Logger.getInstance(AndroidMultiProcessHandler.class);
+  private static final Logger LOG = Logger.getInstance(AndroidProcessHandler.class);
 
   // If the client is not present on the monitored devices after this time, then it is assumed to have died.
   // We are keeping it so long because sometimes (for cold-swap) it seems to take a while..
@@ -57,7 +57,7 @@ public class AndroidMultiProcessHandler extends DefaultDebugProcessHandler imple
   private long myDeviceAdded;
   private boolean myNoKill;
 
-  public AndroidMultiProcessHandler(@NotNull String applicationId) {
+  public AndroidProcessHandler(@NotNull String applicationId) {
     myApplicationId = applicationId;
     myDevices = new SmartList<String>();
     myClients = Sets.newHashSet();
