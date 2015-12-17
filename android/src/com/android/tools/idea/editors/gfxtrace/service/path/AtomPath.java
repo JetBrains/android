@@ -52,6 +52,10 @@ public final class AtomPath extends Path {
     return new MemoryRangePath().setAfter(this).setPool(pool.value).setAddress(range.getBase()).setSize(range.getSize());
   }
 
+  public FieldPath field(String name) {
+    return new FieldPath().setStruct(this).setName(name);
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private AtomsPath myAtoms;
   private long myIndex;

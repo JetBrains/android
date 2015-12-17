@@ -16,10 +16,30 @@
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
 
+import com.android.tools.rpclib.binary.BinaryClass;
 import com.android.tools.rpclib.binary.BinaryObject;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Path implements BinaryObject {
+  public static final Path EMPTY = new Path() {
+    @Override
+    public Path getParent() {
+      return null;
+    }
+
+    @Override
+    public StringBuilder stringPath(StringBuilder builder) {
+      return builder;
+    }
+
+    @NotNull
+    @Override
+    public BinaryClass klass() {
+      // The empty path cannot currently be reflected (and thus encoded, either).
+      throw new UnsupportedOperationException();
+    }
+  };
+
   private String myString;
 
   public abstract Path getParent();
