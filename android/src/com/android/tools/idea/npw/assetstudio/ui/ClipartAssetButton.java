@@ -24,7 +24,6 @@ import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +40,7 @@ import java.util.List;
  * Button which wraps a {@link ClipartAsset}, allowing the user to select a clipart target from a
  * grid of choices.
  */
-public final class ClipartAssetButton extends JButton implements AssetComponent, Disposable {
+public final class ClipartAssetButton extends JButton implements AssetComponent {
 
   private static final int CLIPART_BUTTON_SIZE = JBUI.scale(40);
   private static final int CLIPART_DIALOG_BORDER = JBUI.scale(10);
@@ -154,5 +153,6 @@ public final class ClipartAssetButton extends JButton implements AssetComponent,
   @Override
   public void dispose() {
     myBindings.releaseAll();
+    myListeners.clear();
   }
 }
