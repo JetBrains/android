@@ -34,6 +34,7 @@ public final class ColorProperty extends OptionalProperty<Color> implements Acti
 
   public ColorProperty(@NotNull ColorPanel colorPanel) {
     myColorPanel = colorPanel;
+    myColorPanel.addActionListener(this);
   }
 
   @Override

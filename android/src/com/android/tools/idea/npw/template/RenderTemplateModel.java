@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -58,7 +58,7 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final AndroidFacet myAndroidFacet;
 
   @Nullable AndroidProjectPaths myPaths;
-  @Nullable IconGenerator myIconGenerator;
+  @Nullable AndroidIconGenerator myIconGenerator;
 
   public RenderTemplateModel(@NotNull AndroidFacet androidFacet, @NotNull TemplateHandle templateHandle, @NotNull String commandName) {
     this(androidFacet, templateHandle, commandName, true);
@@ -119,7 +119,7 @@ public final class RenderTemplateModel extends WizardModel {
   /**
    * If this template should also generate icon assets, set an icon generator.
    */
-  public void setIconGenerator(@NotNull IconGenerator iconGenerator) {
+  public void setIconGenerator(@NotNull AndroidIconGenerator iconGenerator) {
     myIconGenerator = iconGenerator;
   }
 
@@ -155,7 +155,7 @@ public final class RenderTemplateModel extends WizardModel {
       protected void run(@NotNull Result<Boolean> result) throws Throwable {
         boolean success = renderTemplate(false, myPaths, filesToOpen, filesToReformat);
         if (success && myIconGenerator != null) {
-          myIconGenerator.generate(myPaths);
+          myIconGenerator.generateIntoPath(myPaths);
         }
 
         result.setResult(success);

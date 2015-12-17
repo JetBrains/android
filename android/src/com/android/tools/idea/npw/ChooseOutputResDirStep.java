@@ -17,6 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.npw.assetstudio.wizard.ConfirmGenerateIconsStep;
 import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.ui.FileTreeCellRenderer;
 import com.android.tools.idea.ui.FileTreeModel;
@@ -49,6 +50,8 @@ import java.util.Map;
 /**
  * This step allows the user to select a build variant and provides a preview
  * of the assets that are about to be created.
+ *
+ * @deprecated Replaced by {@link ConfirmGenerateIconsStep}
  */
 public class ChooseOutputResDirStep extends TemplateWizardStep {
 

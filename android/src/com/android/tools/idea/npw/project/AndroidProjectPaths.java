@@ -46,6 +46,10 @@ public final class AndroidProjectPaths {
   @Nullable private File myAidlDirectory;
   @Nullable private File myManifestDirectory;
 
+  public AndroidProjectPaths(@NotNull AndroidFacet androidFacet) {
+    this(androidFacet, getSourceProviders(androidFacet, null).get(0));
+  }
+
   public AndroidProjectPaths(@NotNull AndroidFacet androidFacet, @NotNull SourceProvider sourceProvider) {
     myAndroidFacet = androidFacet;
     Module module = getModule();

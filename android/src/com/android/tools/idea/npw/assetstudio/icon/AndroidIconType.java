@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio;
+package com.android.tools.idea.npw.assetstudio.icon;
 
+import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,6 +47,20 @@ public enum AndroidIconType {
   AndroidIconType(@NotNull String displayName, @NotNull String defaultNameFormat) {
     myDisplayName = displayName;
     myDefaultNameFormat = defaultNameFormat;
+  }
+
+  @NotNull
+  public static AndroidIconGenerator createIconGenerator(@NotNull AndroidIconType iconType) {
+    switch (iconType) {
+      case LAUNCHER:
+        return new AndroidLauncherIconGenerator();
+      case ACTIONBAR:
+        return new AndroidActionBarIconGenerator();
+      case NOTIFICATION:
+        return new AndroidNotificationIconGenerator();
+    }
+
+    throw new IllegalArgumentException("Can't create generator for unexpected icon type: " + iconType);
   }
 
   @NotNull
