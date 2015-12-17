@@ -777,6 +777,7 @@
 
     <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar;sdk-common.jar;gson-2.2.4.jar"/>
     <compileServer.plugin classpath="sdklib.jar;common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
+    <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineStyleHandler"/>
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineLayoutHandler" order="first"/>
@@ -802,7 +803,7 @@
 
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>
     <projectStructureDetector implementation="org.jetbrains.android.newProject.AndroidProjectStructureDetector"/>
-    <sdkResolveScopeProvider implementation="org.jetbrains.android.AndroidSdkResolveScopeProvider"/>
+    <resolveScopeProvider implementation="org.jetbrains.android.AndroidSdkResolveScopeProvider"/>
     <lookup.charFilter implementation="org.jetbrains.android.dom.AndroidXmlCharFilter" order="before xml"/>
     <gotoRelatedProvider implementation="org.jetbrains.android.AndroidGotoRelatedProvider"/>
     <codeInsight.lineMarkerProvider language="XML" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
@@ -813,7 +814,6 @@
     <spellchecker.support language="Properties" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
-    <testSrcLocator implementation="com.android.tools.idea.run.testing.AndroidTestLocationProvider"/>
     <junitPatcher implementation="com.android.tools.idea.gradle.AndroidJunitPatcher" />
 
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.BitmapRenderer" />
