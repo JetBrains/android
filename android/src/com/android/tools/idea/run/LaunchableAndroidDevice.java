@@ -85,9 +85,7 @@ public class LaunchableAndroidDevice implements AndroidDevice {
     SearchUtil.appendFragments(searchPrefix, getName(), attr.getStyle(), attr.getFgColor(), attr.getBgColor(), renderer);
   }
 
-  @NotNull
-  @Override
-  public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull ConsolePrinter printer) {
+  public ListenableFuture<IDevice> launch(@NotNull Project project) {
     return AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
   }
 

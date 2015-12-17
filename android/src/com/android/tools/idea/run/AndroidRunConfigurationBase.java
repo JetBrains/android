@@ -20,6 +20,10 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.FastDeployManager;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.run.editor.*;
+import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.tasks.LaunchTasksProvider;
+import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -173,7 +177,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected abstract List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet);
 
-  /** Subclasses should override to adjust the launch options passed to AndroidRunningState. */
+  /** Subclasses should override to adjust the launch options. */
   @NotNull
   protected LaunchOptions.Builder getLaunchOptions() {
     return LaunchOptions.builder()
@@ -271,7 +275,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    AndroidSessionInfo info = AndroidSessionManager.findOldSession(getProject(), getUniqueID());
+    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(getProject(), null, getUniqueID());
     if (info == null) {
       return null;
     }
@@ -305,9 +309,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     DeployTargetProvider currentTargetProvider = getCurrentDeployTargetProvider();
     DeployTargetState deployTargetState = getCurrentDeployTargetState();
-    ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
 
-    AndroidSessionInfo info = AndroidSessionManager.findOldSession(project, getUniqueID());
+    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
     if (info != null) {
       if (info.getExecutorId().equals(executor.getId()) && FastDeployManager.isPatchableApp(module)) {
         // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
@@ -317,7 +320,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         GradleInvoker.saveAllFilesSafely();
 
         // For incremental run, we don't want to show any dialogs and just redeploy directly to the last used devices
-        Collection<IDevice> devices = info.getState().getDevices();
+        Collection<IDevice> devices = info.getDevices();
         if (devices != null && canFastDeploy(module, devices)) {
           if (FastDeployManager.isRebuildRequired(devices, module)) {
             LOG.info("Cannot patch update since a full rebuild is required (typically because the manifest has changed)");
@@ -360,7 +363,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     DeployTarget deployTarget;
     if (currentTargetProvider.requiresRuntimePrompt()) {
       deployTarget = currentTargetProvider
-        .showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID(), printer);
+        .showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID());
       if (deployTarget == null) {
         return null;
       }
@@ -373,14 +376,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return deployTarget.getRunProfileState(executor, env, deployTargetState);
     }
 
-    // If there is a session that we will embed to, we need to re-use the devices from that session.
-    DeviceFutures deviceFutures = getOldSessionTarget(project, executor);
+    DeviceFutures deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID());
     if (deviceFutures == null) {
-      deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID(), printer);
-      if (deviceFutures == null) {
-        // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
-        return null;
-      }
+      // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
+      return null;
     }
 
     // Store the chosen target on the execution environment so before-run tasks can access it.
@@ -403,15 +402,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
 
-    ApkProvider apkProvider = getApkProvider(facet);
-    String packageName;
-    try {
-      packageName = apkProvider.getPackageName();
-    }
-    catch (ApkProvisionException e) {
-      throw new ExecutionException(e);
-    }
-
     if (debug) {
       // If we are debugging on a device, then the app needs to be debuggable
       for (ListenableFuture<IDevice> future : deviceFutures.get()) {
@@ -422,7 +412,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
         IDevice device = Futures.getUnchecked(future);
         if (!LaunchUtils.canDebugAppOnDevice(facet, device)) {
-          throw new ExecutionException(AndroidBundle.message("android.cannot.debug.noDebugPermissions", packageName, device.getName()));
+          throw new ExecutionException(AndroidBundle.message("android.cannot.debug.noDebugPermissions", module.getName(), device.getName()));
         }
       }
     }
@@ -431,29 +421,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       .setDebug(debug)
       .build();
 
-    PackageInstaller installer = getPackageInstaller(facet, dexSwap, launchOptions, apkProvider);
-
-    AndroidApplicationLauncher appLauncher = getApplicationLauncher(facet);
-    AndroidDebuggerState androidDebuggerState = getAndroidDebuggerState(DEBUGGER_TYPE);
-    if (androidDebuggerState != null) {
-      appLauncher = androidDebuggerState.getApplicationLauncher(appLauncher);
-    }
-
-    return new AndroidRunningState(
-      env,
-      facet,
-      apkProvider,
-      installer,
-      deviceFutures,
-      printer,
-      appLauncher,
-      launchOptions,
-      getUniqueID(),
-      getType().getId(),
-      getConsoleProvider(),
-      getAndroidDebuggerState(),
-      getAndroidDebugger()
-    );
+    ApkProvider apkProvider = getApkProvider(facet);
+    LaunchTasksProvider provider = new AndroidLaunchTasksProvider(this, env, facet, apkProvider, dexSwap, launchOptions);
+    return new AndroidRunState(env, getName(), module, apkProvider, getConsoleProvider(), deviceFutures.get(), provider);
   }
 
   private static boolean canFastDeploy(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
@@ -472,42 +442,17 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return true;
   }
 
-  @Nullable
-  private DeviceFutures getOldSessionTarget(@NotNull Project project, @NotNull Executor executor) {
-    AndroidSessionInfo sessionInfo = AndroidSessionManager.findOldSession(project, executor, getUniqueID());
-    if (sessionInfo != null) {
-      if (sessionInfo.isEmbeddable()) {
-        Collection<IDevice> oldDevices = sessionInfo.getState().getDevices();
-        Collection<IDevice> online = DeviceSelectionUtils.getOnlineDevices(oldDevices);
-        if (!online.isEmpty()) {
-          return DeviceFutures.forDevices(online);
-        }
-      }
-    }
-    return null;
-  }
-
-  @NotNull
-  private static PackageInstaller getPackageInstaller(@NotNull AndroidFacet facet,
-                                                      boolean dexSwap,
-                                                      @NotNull LaunchOptions launchOptions,
-                                                      @NotNull ApkProvider apkProvider) {
-    if (dexSwap) {
-      return new DexPatchInstaller(facet);
-    }
-    else {
-      return new InstantRunAwareApkInstaller(facet, launchOptions, apkProvider);
-    }
-  }
-
   @NotNull
   protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet);
 
   @NotNull
   protected abstract ConsoleProvider getConsoleProvider();
 
-  @NotNull
-  protected abstract AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet);
+  @Nullable
+  protected abstract LaunchTask getApplicationLaunchTask(@NotNull ApkProvider apkProvider,
+                                                         @NotNull AndroidFacet facet,
+                                                         boolean waitForDebugger,
+                                                         @NotNull LaunchStatus launchStatus);
 
   @NotNull
   public final DeviceCount getDeviceCount(boolean debug) {
@@ -552,12 +497,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
   }
 
-  public boolean usesSimpleLauncher() {
+  public boolean isNativeLaunch() {
     AndroidDebugger<?> androidDebugger = getAndroidDebugger();
     if (androidDebugger == null) {
-      return true;
+      return false;
     }
-    return androidDebugger.getId().equals(AndroidJavaDebugger.ID);
+    return !androidDebugger.getId().equals(AndroidJavaDebugger.ID);
   }
 
   @NotNull

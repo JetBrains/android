@@ -19,7 +19,10 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.DeviceCount;
+import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.ValidationError;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -59,7 +62,6 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @Nullable private final DeployTargetConfigurable myDeployTargetConfigurable;
 
   private final DevicePicker myDevicePicker;
-  private final ConsolePrinter myPrinter;
   private final ListenableFuture<AndroidDebugBridge> myAdbFuture;
 
   private JPanel myContentPane;
@@ -73,8 +75,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
                                   @NotNull final AndroidFacet facet,
                                   @NotNull DeviceCount deviceCount,
                                   @NotNull List<DeployTargetProvider> deployTargetProviders,
-                                  @NotNull Map<String, DeployTargetState> deployTargetStates,
-                                  @NotNull ConsolePrinter printer) {
+                                  @NotNull Map<String, DeployTargetState> deployTargetStates) {
     super(facet.getModule().getProject(), true);
 
     // TODO: Eventually we may support more than 1 custom run provider. In such a case, there should be
@@ -92,7 +93,6 @@ public class DeployTargetPickerDialog extends DialogWrapper {
       myDeployTargetProvider = null;
       myDeployTargetState = null;
     }
-    myPrinter = printer;
 
     // Tab 1
     myDevicePicker = new DevicePicker(getDisposable(), runContextId, facet, deviceCount);
@@ -222,7 +222,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     // NOTE: WE ARE LAUNCHING EMULATORS HERE
     List<ListenableFuture<IDevice>> futures = Lists.newArrayList();
     for (AndroidDevice device : devices) {
-      futures.add(device.launch(myFacet.getModule().getProject(), myPrinter));
+      futures.add(device.launch(myFacet.getModule().getProject()));
     }
 
     return DeviceFutures.forFutures(futures);

@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.activity;
+package com.android.tools.idea.run.tasks;
 
+import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidActivityLauncher {
+public interface LaunchTask {
   @NotNull
-  public static String getStartActivityCommand(@NotNull String activityPath, boolean waitForDebugger, @NotNull String extraFlags) {
-    return "am start" +
-           (waitForDebugger ? " -D" : "") +
-           " -n \"" + activityPath + "\"" +
-           " -a android.intent.action.MAIN" +
-           " -c android.intent.category.LAUNCHER" +
-           (extraFlags.isEmpty() ? "" : " " + extraFlags);
-  }
+  String getDescription();
 
-  @NotNull
-  public static String getLauncherActivityPath(@NotNull String packageName, @NotNull String activityName) {
-    return packageName + "/" + activityName.replace("$", "\\$");
-  }
+  int getDuration();
+
+  boolean perform(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer);
 }

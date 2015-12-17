@@ -145,7 +145,7 @@ public class ConnectedAndroidDevice implements AndroidDevice {
 
   @NotNull
   @Override
-  public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull ConsolePrinter printer) {
+  public ListenableFuture<IDevice> launch(@NotNull Project project) {
     return Futures.immediateFuture(myDevice);
   }
 
