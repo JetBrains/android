@@ -23,7 +23,6 @@ import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +36,7 @@ import java.util.List;
  * Panel which wraps a {@link ImageAsset}, allowing the user to browse for an image file to use as
  * an asset.
  */
-public final class ImageAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent, Disposable {
+public final class ImageAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent {
   private final ImageAsset myImageAsset = new ImageAsset();
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);
@@ -89,5 +88,6 @@ public final class ImageAssetBrowser extends TextFieldWithBrowseButton implement
   @Override
   public void dispose() {
     myBindings.releaseAll();
+    myListeners.clear();
   }
 }
