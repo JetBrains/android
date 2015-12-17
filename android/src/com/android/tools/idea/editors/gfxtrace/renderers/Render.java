@@ -31,7 +31,7 @@ public final class Render {
   @NotNull private static final Logger LOG = Logger.getInstance(Render.class);
   // object rendering functions
 
-  public static void render(@NotNull Object value, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull Object value, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
     if (value instanceof Dynamic) {
       render((Dynamic)value, component, attributes);
       return;
@@ -57,7 +57,7 @@ public final class Render {
       return;
     }
     if (value instanceof DynamicAtom) {
-      render((DynamicAtom)value, component, attributes);
+      render((DynamicAtom)value, component, attributes, -1);
       return;
     }
     if (value instanceof MemoryPointer) {
@@ -71,7 +71,7 @@ public final class Render {
     component.append(value.toString(), attributes);
   }
 
-  public static void render(@NotNull Dynamic dynamic, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull Dynamic dynamic, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
     MemoryPointer mp = tryMemoryPointer(dynamic);
     if (mp != null) {
       render(mp, component, attributes);
@@ -91,6 +91,7 @@ public final class Render {
    * Tries to convert a dynamic to a memory pointer if the schema representation is compatible.
    * There are several aliases for Memory.Pointer which are unique types, but we want to render
    * them as pointers.
+   *
    * @param dynamic object to attempt to convert to a memory pointer.
    * @return a memory pointer if the conversion is possible, otherwise null.
    */
@@ -114,47 +115,67 @@ public final class Render {
     return mp;
   }
 
-  public static void render(@NotNull Field field, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull Field field, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
     component.append(field.getName(), attributes);
   }
 
   public static void render(@NotNull StateController.Node node,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     if (node.key.type != null) {
       render(node.key.value, node.key.type, component, attributes);
-    } else {
+    }
+    else {
       component.append(String.valueOf(node.key.value), attributes);
     }
-    if (node.isLeaf() && node.value != null) {
+    if (node.isLeaf() && node.value != null && node.value.value != null) {
       component.append(": ", attributes);
       render(node.value.value, node.value.type, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
     }
   }
 
-  public static void render(@NotNull AtomController.Node node, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull AtomController.Node node,
+                            @NotNull SimpleColoredComponent component,
+                            @NotNull SimpleTextAttributes attributes) {
     render(node.index, component, attributes);
     if (node.atom != null) {
       component.append(": ", attributes);
-      render(node.atom, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+      if (node.atom instanceof DynamicAtom) {
+        render((DynamicAtom)node.atom, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES, node.hoveredParameter);
+      }
+      else {
+        render(node.atom, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+      }
     }
   }
 
   public static void render(@NotNull AtomController.Memory memory,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     render(memory.isRead ? "read:" : "write:", component, attributes);
     render(memory.observation.getRange(), component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
   }
 
   public static void render(@NotNull AtomController.Group group,
                             @NotNull final SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     component.append(group.group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
 
-  public static void render(@NotNull DynamicAtom atom, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
-    component.append(atom.getName() + "(", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+  public static void render(@NotNull DynamicAtom atom,
+                            @NotNull SimpleColoredComponent component,
+                            @NotNull SimpleTextAttributes attributes,
+                            int highlightedParameter) {
+    // We append text segments with integer tags for dynamic atoms, so that we can map segments back to parameters for highlighting them
+    // on hover. A tag of -1 means that the segment is not part of any parameter. A tag >= 0 means that the given segment is part of the
+    // parameter which has an index equal to the tag. Since the actual rendering of the parameter is done elsewhere there are text segments
+    // that are part of a parameter, but are un-tagged. To find the parameter mapping for those, the closest previous tagged segment will
+    // give the mapping. Given the following text segments with tags, for example:
+    //     "glFoo(":-1  "bar:":0  "barValue":null  ", ":-1  "baz:":1, "bazValue":null ")":-1
+    // The "bar:" and "barValue" segments will map to parameter 0, while "baz:" and "bazValue" will map to 1.
+    // See {@link #getAtomParameterIndex}.
+
+    component.append(atom.getName() + "(", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, -1);
     int resultIndex = atom.getResultIndex();
     int extrasIndex = atom.getExtrasIndex();
     boolean needComma = false;
@@ -162,25 +183,29 @@ public final class Render {
       if (i == resultIndex || i == extrasIndex) continue;
       Field field = atom.getFieldInfo(i);
       if (needComma) {
-        component.append(", " + field.getDeclared() + ":", SimpleTextAttributes.REGULAR_ATTRIBUTES);
-      } else {
-        component.append(field.getDeclared() + ":", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+        component.append(", ", SimpleTextAttributes.REGULAR_ATTRIBUTES, -1);
       }
       needComma = true;
       Object parameterValue = atom.getFieldValue(i);
-      render(parameterValue, field.getType(), component, attributes);
+      component.append(field.getDeclared() + ":",
+                       (i == highlightedParameter) ? SimpleTextAttributes.LINK_ATTRIBUTES : SimpleTextAttributes.REGULAR_ATTRIBUTES, i);
+      render(parameterValue, field.getType(), component, (i == highlightedParameter) ? SimpleTextAttributes.LINK_ATTRIBUTES : attributes);
     }
 
-    component.append(")", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    component.append(")", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, -1);
     if (resultIndex >= 0) {
-      component.append("->", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+      component.append("->", (resultIndex == highlightedParameter)
+                             ? SimpleTextAttributes.LINK_ATTRIBUTES
+                             : SimpleTextAttributes.REGULAR_ATTRIBUTES, resultIndex);
       Field field = atom.getFieldInfo(resultIndex);
       Object parameterValue = atom.getFieldValue(resultIndex);
       render(parameterValue, field.getType(), component, attributes);
     }
   }
 
-  public static void render(@NotNull MemoryPointer pointer, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull MemoryPointer pointer,
+                            @NotNull SimpleColoredComponent component,
+                            @NotNull SimpleTextAttributes attributes) {
     component.append("0x" + Long.toHexString(pointer.getAddress()), attributes);
     if (pointer.getPool().value != PoolID.ApplicationPool) {
       component.append("@", SimpleTextAttributes.GRAY_ATTRIBUTES);
@@ -188,7 +213,9 @@ public final class Render {
     }
   }
 
-  public static void render(@NotNull MemoryRange range, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
+  public static void render(@NotNull MemoryRange range,
+                            @NotNull SimpleColoredComponent component,
+                            @NotNull SimpleTextAttributes attributes) {
     component.append(Long.toString(range.getSize()), attributes);
     component.append(" bytes at ", SimpleTextAttributes.GRAY_ATTRIBUTES);
     component.append("0x" + Long.toHexString(range.getBase()), attributes);
@@ -200,7 +227,7 @@ public final class Render {
   public static void render(@NotNull Object value,
                             @NotNull Type type,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     if (type instanceof Primitive) {
       render(value, (Primitive)type, component, attributes);
       return;
@@ -239,14 +266,14 @@ public final class Render {
   public static void render(@NotNull Object value,
                             @NotNull Struct type,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     render(value, component, attributes);
   }
 
   public static void render(@NotNull Object value,
                             @NotNull Pointer type,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     component.append("*", SimpleTextAttributes.GRAY_ATTRIBUTES);
     render(value, component, attributes);
   }
@@ -254,7 +281,7 @@ public final class Render {
   public static void render(@NotNull Object value,
                             @NotNull Interface type,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     component.append("$", SimpleTextAttributes.GRAY_ATTRIBUTES);
     render(value, component, attributes);
   }
@@ -262,7 +289,7 @@ public final class Render {
   public static void render(@NotNull Object value,
                             @NotNull Array type,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     assert (value instanceof Object[]);
     render((Object[])value, type.getValueType(), component, attributes);
   }
@@ -270,7 +297,7 @@ public final class Render {
   public static void render(@NotNull Object value,
                             @NotNull Slice type,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     assert (value instanceof Object[]);
     render((Object[])value, type.getValueType(), component, attributes);
   }
@@ -278,69 +305,71 @@ public final class Render {
   public static void render(@NotNull Object value,
                             @NotNull Map type,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     render(value, component, attributes);
   }
 
   public static void render(@NotNull Object value,
                             @NotNull AnyType type,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     render(value, component, attributes);
   }
 
   public static void render(@NotNull Object value,
                             @NotNull Primitive type,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     ConstantSet constants = ConstantSet.lookup(type);
     if (constants != null) {
       for (Constant constant : constants.getEntries()) {
         if (value.equals(constant.getValue())) {
-          component.append(constant.getName(), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+          component.append(constant.getName(), attributes);
           return;
         }
       }
     }
+
+    // Note: casting to Number instead of Byte, Short, Integer, etc. in case the value was boxed into a different Number type.
     switch (type.getMethod().value) {
       case Method.Bool:
-        component.append(String.format("%b", (Boolean)value), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("%b", (Boolean)value), attributes);
         return;
       case Method.Int8:
-        component.append(String.format("%d", (Byte)value), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("%d", ((Number)value).byteValue()), attributes);
         return;
       case Method.Uint8:
-        component.append(String.format("%d", ((Byte)value).intValue() & 0xff), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("%d", ((Number)value).intValue() & 0xff), attributes);
         return;
       case Method.Int16:
-        component.append(String.format("%d", (Short)value), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("%d", ((Number)value).shortValue()), attributes);
         return;
       case Method.Uint16:
-        component.append(String.format("%d", ((Short)value).intValue() & 0xffff), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("%d", ((Number)value).intValue() & 0xffff), attributes);
         return;
       case Method.Int32:
-        component.append(String.format("%d", (Integer)value), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("%d", ((Number)value).intValue()), attributes);
         return;
       case Method.Uint32:
-        component.append(String.format("%d", ((Integer)value).longValue() & 0xffffffffL), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("%d", ((Number)value).longValue() & 0xffffffffL), attributes);
         return;
       case Method.Int64:
-        component.append(String.format("%d", (Long)value), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("%d", ((Number)value).longValue()), attributes);
         return;
       case Method.Uint64:
-        component.append(String.format("0x%s", Long.toHexString((Long)value)), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("0x%s", Long.toHexString(((Number)value).longValue())), attributes);
         return;
       case Method.Float32:
-        component.append(String.format("%f", (Float)value), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("%f", ((Number)value).floatValue()), attributes);
         return;
       case Method.Float64:
-        component.append(String.format("%f", (Double)value), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.format("%f", ((Number)value).doubleValue()), attributes);
         return;
       case Method.String:
-        component.append((String)value, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(String.valueOf(value), attributes);
         return;
       default:
-        component.append(value.toString(), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+        component.append(value.toString(), attributes);
         break;
     }
   }
@@ -351,7 +380,7 @@ public final class Render {
   public static void render(@NotNull Object[] array,
                             @NotNull Type valueType,
                             @NotNull SimpleColoredComponent component,
-                            SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes) {
     int count = Math.min(array.length, MAX_DISPLAY);
     component.append("[", SimpleTextAttributes.GRAY_ATTRIBUTES);
     for (int index = 0; index < count; ++index) {
@@ -363,5 +392,18 @@ public final class Render {
     if (count < array.length) {
       component.append("...", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
+  }
+
+  /**
+   * See {@link #render(DynamicAtom, SimpleColoredComponent, SimpleTextAttributes, int)}
+   */
+  public static int getAtomParameterIndex(@NotNull SimpleColoredComponent component, int x) {
+    for (int index = component.findFragmentAt(x); index >= 2; index--) {
+      Object tag = component.getFragmentTag(index);
+      if (tag != null && tag instanceof Integer) {
+        return (Integer)tag;
+      }
+    }
+    return -1;
   }
 }
