@@ -25,7 +25,6 @@ import com.android.tools.idea.ui.properties.expressions.value.AsValueExpression;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -37,7 +36,7 @@ import java.util.List;
  * Panel which wraps a {@link TextAsset}, allowing the user to enter text value and choose a font
  * from a pulldown.
  */
-public final class TextAssetEditor extends JPanel implements AssetComponent, Disposable {
+public final class TextAssetEditor extends JPanel implements AssetComponent {
   private final TextAsset myTextAsset = new TextAsset();
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);
@@ -99,5 +98,6 @@ public final class TextAssetEditor extends JPanel implements AssetComponent, Dis
   @Override
   public void dispose() {
     myBindings.releaseAll();
+    myListeners.clear();
   }
 }
