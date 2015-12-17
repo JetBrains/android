@@ -30,12 +30,9 @@ import java.util.Queue;
  * To use, simply call {@link #enqueue(Runnable)} any time, with the expectation that it may not
  * run immediately.
  *
- * This has two major advantages. First, it will allow us to avoid doing expensive updates on
- * redundant, intermediate changes, e.g. if you have five values in a complex mathematical
- * calculation, and all values change in the same frame, you only want to run the calculation once.
- * Second, it prevents us from locking the UI thread, even if you have one batch of runnables
- * triggering another batch which triggers yet more, each batch will be run separately, giving UI
- * components some time to settle.
+ * Doing this will allow us to avoid doing expensive updates on redundant, intermediate changes,
+ * e.g. if you have five values in a complex mathematical calculation, and all values change in
+ * the same frame, you only want to run the calculation once.
  */
 public final class BatchInvoker {
 
@@ -91,7 +88,6 @@ public final class BatchInvoker {
   private final Queue<Runnable> myDeferredRunnables = Queues.newArrayDeque();
 
   private boolean myUpdateInProgress;
-  private int myCycleCount;
 
   public BatchInvoker() {
     this(ApplicationManager.getApplication() != null ? APPLICATION_INVOKE_LATER_STRATEGY : SWING_INVOKE_LATER_STRATEGY);
@@ -130,25 +126,29 @@ public final class BatchInvoker {
     myStrategy.invoke(new Runnable() {
       @Override
       public void run() {
-        myUpdateInProgress = true;
-        for (Runnable runnable : myRunnables) {
-          runnable.run();
-        }
-        myRunnables.clear();
-        myUpdateInProgress = false;
-
-        if (!myDeferredRunnables.isEmpty()) {
-          myCycleCount++;
-          if (myCycleCount > MAX_CYCLE_COUNT) {
-            throw new InfiniteCycleException();
+        int cycleCount = 0;
+        while (true) {
+          myUpdateInProgress = true;
+          for (Runnable runnable : myRunnables) {
+            runnable.run();
           }
+          myRunnables.clear();
 
-          myRunnables.addAll(myDeferredRunnables);
-          myDeferredRunnables.clear();
-          enqueueInvoke();
-        }
-        else {
-          myCycleCount = 0;
+          myUpdateInProgress = false;
+
+          if (!myDeferredRunnables.isEmpty()) {
+            cycleCount++;
+            if (cycleCount > MAX_CYCLE_COUNT) {
+              myDeferredRunnables.clear();
+              throw new InfiniteCycleException();
+            }
+
+            myRunnables.addAll(myDeferredRunnables);
+            myDeferredRunnables.clear();
+          }
+          else {
+            break;
+          }
         }
       }
     });

@@ -16,12 +16,9 @@
 package com.android.tools.idea.ui.properties;
 
 import com.android.tools.idea.ui.properties.core.*;
-import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import javax.swing.*;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -113,7 +110,8 @@ public final class ListenerManagerTest {
 
   @Test
   public void listenAllWorks() throws Exception {
-    ListenerManager listeners = new ListenerManager();
+    TestInvokeStrategy testStrategy = new TestInvokeStrategy();
+    ListenerManager listeners = new ListenerManager(testStrategy);
 
     IntProperty x = new IntValueProperty(0);
     IntProperty y = new IntValueProperty(0);
@@ -131,11 +129,11 @@ public final class ListenerManagerTest {
     h.set(720);
 
     assertThat(mockRepaint.myRunCount).isZero();
-    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);  // Let properties propogate
+    testStrategy.updateOneStep();
     assertThat(mockRepaint.myRunCount).isEqualTo(1);
 
     grayscale.set(true);
-    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
+    testStrategy.updateOneStep();
     assertThat(mockRepaint.myRunCount).isEqualTo(2);
   }
 
@@ -198,7 +196,8 @@ public final class ListenerManagerTest {
 
   @Test
   public void releasingCompositeListenerWorks() throws Exception {
-    ListenerManager listeners = new ListenerManager();
+    TestInvokeStrategy testStrategy = new TestInvokeStrategy();
+    ListenerManager listeners = new ListenerManager(testStrategy);
 
     IntProperty a = new IntValueProperty();
     IntProperty b = new IntValueProperty();
@@ -212,14 +211,14 @@ public final class ListenerManagerTest {
     a.set(1);
     b.set(2);
     c.set(3);
-    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE); // Let properties propogate
+    testStrategy.updateOneStep();
     assertThat(compositeListener.myRunCount).isEqualTo(1);
 
     listeners.release(compositeListener);
     d.set(4);
     c.set(5);
     b.set(6);
-    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
+    testStrategy.updateOneStep();
 
     assertThat(compositeListener.myRunCount).isEqualTo(1);
   }
@@ -251,7 +250,8 @@ public final class ListenerManagerTest {
 
   @Test
   public void releaseAllReleasesAllCompositeListeners() throws Exception {
-    ListenerManager listeners = new ListenerManager();
+    TestInvokeStrategy testStrategy = new TestInvokeStrategy();
+    ListenerManager listeners = new ListenerManager(testStrategy);
 
     IntProperty a = new IntValueProperty();
     IntProperty b = new IntValueProperty();
@@ -265,14 +265,14 @@ public final class ListenerManagerTest {
     a.set(1);
     b.set(2);
     c.set(3);
-    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE); // Let properties propogate
+    testStrategy.updateOneStep();
     assertThat(compositeListener.myRunCount).isEqualTo(1);
 
     listeners.releaseAll();
     d.set(4);
     c.set(5);
     b.set(6);
-    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
+    testStrategy.updateOneStep();
 
     assertThat(compositeListener.myRunCount).isEqualTo(1);
   }
