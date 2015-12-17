@@ -1797,6 +1797,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintRecyclerViewInspection extends AndroidLintInspectionBase {
+    public AndroidLintRecyclerViewInspection() {
+      super(AndroidBundle.message("android.lint.inspections.recycler.view"), RecyclerViewDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintReferenceTypeInspection extends AndroidLintInspectionBase {
     public AndroidLintReferenceTypeInspection() {
       super(AndroidBundle.message("android.lint.inspections.reference.type"), DuplicateResourceDetector.TYPE_MISMATCH);
