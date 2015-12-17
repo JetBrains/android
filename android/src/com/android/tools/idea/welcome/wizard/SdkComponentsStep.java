@@ -40,6 +40,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -309,7 +310,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE));
   }
 
-  private static final class SdkComponentRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
+  private final class SdkComponentRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
     private final JPanel myPanel;
     private final JCheckBox myCheckBox;
     private Border myEmptyBorder;
@@ -328,11 +329,11 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      setupControl(table, value, isSelected, hasFocus);
+      setupControl(table, value, row, isSelected, hasFocus);
       return myPanel;
     }
 
-    private void setupControl(JTable table, Object value, boolean isSelected, boolean hasFocus) {
+    private void setupControl(JTable table, Object value, int row, boolean isSelected, boolean hasFocus) {
       myPanel.setBorder(getCellBorder(table, isSelected && hasFocus));
       Color foreground;
       Color background;
@@ -360,6 +361,8 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       myPanel.add(myCheckBox,
                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, indent * 2));
+      AccessibleContextUtil.setName(myPanel, myCheckBox);
+      AccessibleContextUtil.setDescription(myPanel, myTableModel.getComponentDescription(row));
     }
 
     private Border getCellBorder(JTable table, boolean isSelectedFocus) {
@@ -379,7 +382,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-      setupControl(table, value, true, true);
+      setupControl(table, value, row, true, true);
       return myPanel;
     }
 
