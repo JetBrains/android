@@ -15,23 +15,29 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.res2.ResourceItem;
+import com.android.resources.ResourceType;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.util.Function;
+import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
 import static java.io.File.separatorChar;
 
 public class FileResourceRepositoryTest extends TestCase {
-  public void test() throws IOException {
 
+  public void testCacheUseSoftReferences() throws IOException {
     File dir = Files.createTempDir();
     try {
       assertNotNull(FileResourceRepository.get(dir));
@@ -55,6 +61,23 @@ public class FileResourceRepositoryTest extends TestCase {
   public void testGetAllDeclaredIds() throws IOException {
     FileResourceRepository repository = getTestRepository();
     assertSameElements(repository.getAllDeclaredIds(), "id1", "id2", "id3");
+  }
+
+  public void testMultipleValues() throws IOException {
+    FileResourceRepository repository = getTestRepository();
+    List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, "hello");
+    assertNotNull(items);
+    List<String> helloVariants = ContainerUtil.map(
+      items,
+      new Function<ResourceItem, String>() {
+        @Override
+        public String fun(ResourceItem resourceItem) {
+          ResourceValue value = resourceItem.getResourceValue(false);
+          assertNotNull(value);
+          return value.getValue();
+        }
+    });
+    assertSameElements(helloVariants, "bonjour", "hello", "hola");
   }
 
   @NotNull
