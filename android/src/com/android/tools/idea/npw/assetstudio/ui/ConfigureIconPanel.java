@@ -77,6 +77,8 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
   private final ObjectProperty<BaseAsset> myActiveAsset;
   private final StringProperty myOutputName;
 
+  private final ImmutableMap<JRadioButton, ? extends AssetComponent> myAssetPanelMap;
+
   // @formatter:off
   private final Map<GraphicGenerator.Shape, String> myShapeNames = ImmutableMap.of(
     GraphicGenerator.Shape.NONE, "None",
@@ -172,6 +174,14 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
 
     myOutputName = new TextProperty(myOutputNameTextField);
 
+    // @formatter:off
+    myAssetPanelMap = ImmutableMap.of(
+      myImageRadioButton, myImageAssetBrowser,
+      myClipartRadioButton, myClipartAssetButton,
+      myTextRadioButton, myTextAssetEditor
+    );
+    // @formatter:on
+
     // Default the active asset type to "clipart", it's the most visually appealing and easy to
     // play around with.
     myActiveAsset = new ObjectValueProperty<BaseAsset>(myClipartAssetButton.getAsset());
@@ -180,6 +190,9 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     initializeListenersAndBindings();
 
     Disposer.register(disposableParent, this);
+    for (AssetComponent assetComponent : myAssetPanelMap.values()) {
+      Disposer.register(this, assetComponent);
+    }
     add(myRootPanel);
   }
 
@@ -203,19 +216,11 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
 
     updateBindingsAndUiForActiveIconType();
 
-    // @formatter:off
-    final ImmutableMap<JRadioButton, ? extends AssetComponent> assetPanelMap = ImmutableMap.of(
-      myImageRadioButton, myImageAssetBrowser,
-      myClipartRadioButton, myClipartAssetButton,
-      myTextRadioButton, myTextAssetEditor
-    );
-    // @formatter:on
-
     ActionListener radioSelectedListener = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         JRadioButton source = ((JRadioButton)e.getSource());
-        AssetComponent assetComponent = assetPanelMap.get(source);
+        AssetComponent assetComponent = myAssetPanelMap.get(source);
         myActiveAsset.set(assetComponent.getAsset());
       }
     };
@@ -231,7 +236,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
         fireAssetListeners();
       }
     };
-    for (AssetComponent assetComponent : assetPanelMap.values()) {
+    for (AssetComponent assetComponent : myAssetPanelMap.values()) {
       assetComponent.addAssetListener(assetPanelListener);
     }
 
