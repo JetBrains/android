@@ -231,16 +231,21 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
               ApplicationManager.getApplication().runWriteAction(new Runnable() {
                 @Override
                 public void run() {
-                  if (myProject == null) {
-                    myWizardState.putSdkDependentParams();
-                    myWizardState.put(ATTR_PROJECT_LOCATION, project.getBasePath());
-                    AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
-                    NewProjectWizard.createProject(myWizardState, project, assetGenerator);
-                  }
-                  else {
-                    myWizardState.put(ATTR_MODULE_NAME, getName());
-                    createModule();
-                  }
+                  DumbService.getInstance(project).withAlternativeResolveEnabled(new Runnable() {
+                    @Override
+                    public void run() {
+                      if (myProject == null) {
+                        myWizardState.putSdkDependentParams();
+                        myWizardState.put(ATTR_PROJECT_LOCATION, project.getBasePath());
+                        AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
+                        NewProjectWizard.createProject(myWizardState, project, assetGenerator);
+                      }
+                      else {
+                        myWizardState.put(ATTR_MODULE_NAME, getName());
+                        createModule();
+                      }
+                    }
+                  });
                 }
               });
             }
