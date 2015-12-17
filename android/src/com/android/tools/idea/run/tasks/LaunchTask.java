@@ -26,5 +26,5 @@ public interface LaunchTask {
 
   int getDuration();
 
-  boolean perform(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer);
+  boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer);
 }

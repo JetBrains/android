@@ -46,7 +46,7 @@ public class ClearLogcatTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
+  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     clearLogcatAndConsole(myProject, device);
     return true;
   }

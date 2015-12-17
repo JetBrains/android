@@ -50,7 +50,7 @@ public class ShowLogcatTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
+  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     Client client = myApplicationId == null ? null : device.getClient(myApplicationId);
     showLogcatConsole(myProject, device, client);
     return true;
