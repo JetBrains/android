@@ -162,7 +162,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myListeners.listen(selectedDeviceType, new Consumer<Optional<IdDisplay>>() {
       @Override
       public void consume(Optional<IdDisplay> idDisplayOptional) {
-        IdDisplay selectedType = idDisplayOptional.get();
+        IdDisplay selectedType = idDisplayOptional.orNull();
+        if (selectedType != null) {
           /**
            * TODO When the user selects round, the following could be done to make the UI cleaner
            * if(selectedType == WEAR){
@@ -177,6 +178,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
           getModel().getDeviceData().isTv().set(selectedType.equals(AvdWizardConstants.TV_TAG));
           myIsScreenRound.setEnabled(selectedType.equals(AvdWizardConstants.WEAR_TAG));
           myIsScreenRound.setSelected(getModel().getDeviceData().isScreenRound().get());
+        }
       }
     });
   }
