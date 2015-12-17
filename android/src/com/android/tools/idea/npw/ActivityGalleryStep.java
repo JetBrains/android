@@ -243,7 +243,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   @NotNull
   @Override
   protected String getStepTitle() {
-    return "Add an activity to " + myFormFactor.id;
+    return "Add an Activity to " + myFormFactor.id;
   }
 
   @Nullable
