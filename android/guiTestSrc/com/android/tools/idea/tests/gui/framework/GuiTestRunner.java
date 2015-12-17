@@ -93,7 +93,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
   }
 
   private void printTimestamp() {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+    final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     System.out.println(dateFormat.format(new Date()));
   }
 
