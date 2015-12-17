@@ -126,7 +126,7 @@ public final class Render {
     } else {
       component.append(String.valueOf(node.key.value), attributes);
     }
-    if (node.isLeaf() && node.value != null) {
+    if (node.isLeaf() && node.value != null && node.value.value != null) {
       component.append(": ", attributes);
       render(node.value.value, node.value.type, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
     }
