@@ -89,7 +89,6 @@ import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.frame.XExecutionStack;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -207,8 +206,8 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       return Collections.emptyList();
     }
 
-    if (processHandler instanceof AndroidMultiProcessHandler) {
-      return ImmutableList.copyOf(((AndroidMultiProcessHandler)processHandler).getDevices());
+    if (processHandler instanceof AndroidProcessHandler) {
+      return ImmutableList.copyOf(((AndroidProcessHandler)processHandler).getDevices());
     }
     else {
       Client c = processHandler.getUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT);

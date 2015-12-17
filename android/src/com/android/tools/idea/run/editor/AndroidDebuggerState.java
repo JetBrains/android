@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.AndroidApplicationLauncher;
 import com.android.tools.idea.run.ValidationError;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
@@ -32,11 +31,6 @@ public class AndroidDebuggerState implements JDOMExternalizable {
   @NotNull
   public List<ValidationError> validate(@NotNull AndroidFacet facet) {
     return Collections.emptyList();
-  }
-
-  @NotNull
-  public AndroidApplicationLauncher getApplicationLauncher(@NotNull AndroidApplicationLauncher parentLauncher) {
-    return parentLauncher;
   }
 
   @Override

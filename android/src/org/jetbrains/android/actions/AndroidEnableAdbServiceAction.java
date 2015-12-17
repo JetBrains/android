@@ -103,7 +103,7 @@ public class AndroidEnableAdbServiceAction extends ToggleAction {
 
       for (ProcessHandler process : processes) {
         if (!process.isProcessTerminated()) {
-          final AndroidSessionInfo info = process.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
+          final AndroidSessionInfo info = process.getUserData(AndroidSessionInfo.KEY);
           if (info != null) {
             pairs.add(Pair.create(process, info.getDescriptor()));
           }
