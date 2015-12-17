@@ -56,7 +56,7 @@ public class DeployApkTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
+  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     Collection<ApkInfo> apks;
     try {
       apks = myApkProvider.getApks(device);
@@ -82,7 +82,7 @@ public class DeployApkTask implements LaunchTask {
       }
 
       String pkgName = apk.getApplicationId();
-      if (!installer.uploadAndInstallApk(device, pkgName, apk.getFile(), state)) {
+      if (!installer.uploadAndInstallApk(device, pkgName, apk.getFile(), launchStatus)) {
         return false;
       }
 
