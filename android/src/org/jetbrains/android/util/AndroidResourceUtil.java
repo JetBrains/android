@@ -692,13 +692,11 @@ public class AndroidResourceUtil {
       final PsiJavaFile javaFile = (PsiJavaFile)file;
 
       final Manifest manifest = facet.getManifest();
-      if (manifest == null) {
-        return false;
-      }
-
-      final String manifestPackage = manifest.getPackage().getValue();
-      if (manifestPackage != null && javaFile.getPackageName().equals(manifestPackage)) {
-        return true;
+      if (manifest != null) {
+        final String manifestPackage = manifest.getPackage().getValue();
+        if (manifestPackage != null && javaFile.getPackageName().equals(manifestPackage)) {
+          return true;
+        }
       }
 
       for (String aPackage : AndroidUtils.getDepLibsPackages(facet.getModule())) {
