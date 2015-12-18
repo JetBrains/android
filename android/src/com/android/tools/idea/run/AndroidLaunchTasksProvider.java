@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.tasks.*;
@@ -58,7 +59,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @NotNull
   @Override
-  public List<LaunchTask> getTasks(@NotNull LaunchStatus launchStatus) {
+  public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus) {
     final List<LaunchTask> launchTasks = Lists.newArrayList();
 
     // TODO: needs to be able to switch between hotswap, coldswap, dexswap and regular deploy, currently hardcoded to a single sequence
@@ -69,13 +70,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
     launchTasks.add(new DismissKeyguardTask());
 
-    if (myLaunchOptions.isDeploy()) {
-      if (myDexSwap) {
-        launchTasks.add(new DeployDexPatchTask(myFacet));
-      }
-      else {
-        launchTasks.add(new DeployApkTask(myFacet, myLaunchOptions, myApkProvider));
-      }
+    LaunchTask deployTask = getDeployTask(device);
+    if (deployTask != null) {
+      launchTasks.add(deployTask);
     }
 
     String packageName = null;
@@ -97,6 +94,24 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     return launchTasks;
+  }
+
+  @Nullable
+  private LaunchTask getDeployTask(IDevice device) {
+    if (!myLaunchOptions.isDeploy()) {
+      return null;
+    }
+
+    if (myDexSwap) {
+      return new DeployDexPatchTask(myFacet);
+    }
+
+    //LaunchTask task = FastDeployManager.createDeployTask(myFacet, device);
+    //if (task != null) {
+    //  return task;
+    //}
+
+    return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider);
   }
 
   @Nullable
