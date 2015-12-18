@@ -37,7 +37,7 @@ public class DismissKeyguardTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
+  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     LaunchUtils.initiateDismissKeyguard(device);
     Uninterruptibles.sleepUninterruptibly(3, TimeUnit.SECONDS);
     return true;

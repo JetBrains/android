@@ -41,7 +41,7 @@ public class DeployDexPatchTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
+  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     boolean result = FastDeployManager.installDex(myFacet, device);
     if (!result) {
       printer.stderr("Pushing incremental patch to the device failed; you might need to do a clean build.");
