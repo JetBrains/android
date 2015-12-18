@@ -47,7 +47,7 @@ public abstract class ActivityLaunchTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
+  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     String activityName = getQualifiedActivityName(device, printer);
     if (activityName == null) {
       return false;
@@ -55,7 +55,7 @@ public abstract class ActivityLaunchTask implements LaunchTask {
 
     final String activityPath = AndroidActivityLauncher.getLauncherActivityPath(myApplicationId, activityName);
     String command = AndroidActivityLauncher.getStartActivityCommand(activityPath, myWaitForDebugger, myExtraAmOptions);
-    return ShellCommandLauncher.execute(command, device, state, printer, 5, TimeUnit.SECONDS);
+    return ShellCommandLauncher.execute(command, device, launchStatus, printer, 5, TimeUnit.SECONDS);
   }
 
   @Nullable

@@ -478,7 +478,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     }
 
     @Override
-    public boolean perform(@NotNull IDevice device, @NotNull final LaunchStatus state, @NotNull final ConsolePrinter printer) {
+    public boolean perform(@NotNull IDevice device, @NotNull final LaunchStatus launchStatus, @NotNull final ConsolePrinter printer) {
       printer.stdout("Running tests\n");
 
       final RemoteAndroidTestRunner runner = new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
@@ -503,7 +503,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         @Override
         public void run() {
           try {
-            runner.run(new AndroidTestListener(state, printer));
+            runner.run(new AndroidTestListener(launchStatus, printer));
           }
           catch (Exception e) {
             LOG.info(e);
