@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ClipartAsset;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
@@ -40,7 +39,7 @@ import java.util.List;
  * Button which wraps a {@link ClipartAsset}, allowing the user to select a clipart target from a
  * grid of choices.
  */
-public final class ClipartAssetButton extends JButton implements AssetComponent {
+public final class ClipartAssetButton extends JButton implements AssetComponent<ClipartAsset> {
 
   private static final int CLIPART_BUTTON_SIZE = JBUI.scale(40);
   private static final int CLIPART_DIALOG_BORDER = JBUI.scale(10);
@@ -98,7 +97,7 @@ public final class ClipartAssetButton extends JButton implements AssetComponent 
 
   @NotNull
   @Override
-  public BaseAsset getAsset() {
+  public ClipartAsset getAsset() {
     return myClipartAsset;
   }
 
