@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sdkv2;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.SettingsController;
@@ -39,7 +41,18 @@ public class StudioDownloader implements Downloader {
   private StudioDownloader() {};
 
   @Override
-  public InputStream download(@NotNull URL url, SettingsController settings, @NotNull ProgressIndicator indicator)
+  public InputStream downloadAndStream(@NotNull URL url, @Nullable SettingsController settings, @NotNull ProgressIndicator indicator)
+    throws IOException {
+    File file = downloadFully(url, settings, indicator);
+    if (file == null) {
+      return null;
+    }
+    return new FileInputStream(file);
+  }
+
+  @Nullable
+  @Override
+  public File downloadFully(@NonNull URL url, @Nullable SettingsController settings, @NonNull ProgressIndicator indicator)
     throws IOException {
     // We don't use the settings here explicitly, since HttpRequests picks up the network settings from studio directly.
     indicator.logInfo("Downloading " + url);
@@ -50,6 +63,6 @@ public class StudioDownloader implements Downloader {
     suffix = suffix.substring(suffix.lastIndexOf("/") + 1);
     File tempFile = FileUtil.createTempFile("StudioDownloader", suffix);
     HttpRequests.request(url.toExternalForm()).saveToFile(tempFile, new StudioProgressIndicatorAdapter(indicator));
-    return new FileInputStream(tempFile);
+    return tempFile;
   }
 }
