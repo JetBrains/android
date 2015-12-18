@@ -68,7 +68,6 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(myProcessHandler);
     ConsolePrinter consolePrinter = new ProcessHandlerConsolePrinter(myProcessHandler);
 
-    List<LaunchTask> launchTasks = myLaunchTasksProvider.getTasks(launchStatus);
     DebugConnectorTask debugSessionTask = myLaunchTasksProvider.getConnectDebuggerTask(launchStatus);
 
     if (debugSessionTask != null && myDeviceFutures.size() != 1) {
@@ -80,8 +79,6 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       AndroidProcessText.attach(myProcessHandler);
     }
 
-    int totalDuration = myDeviceFutures.size() * getTotalDuration(launchTasks, debugSessionTask);
-
     for (ListenableFuture<IDevice> deviceFuture : myDeviceFutures) {
       indicator.setText2("Waiting for target device to come online");
       IDevice device = waitForDevice(deviceFuture, indicator, launchStatus);
@@ -90,6 +87,9 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       }
 
       indicator.setText("Launching on " + device.getName());
+
+      List<LaunchTask> launchTasks = myLaunchTasksProvider.getTasks(device, launchStatus);
+      int totalDuration = myDeviceFutures.size() * getTotalDuration(launchTasks, debugSessionTask);
       int elapsed = 0;
 
       for (LaunchTask task : launchTasks) {
