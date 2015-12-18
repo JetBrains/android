@@ -434,8 +434,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 2, productFlavors.size());
     Iterator<ProductFlavorModel> iterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor1", iterator.next().name());
     assertEquals("productFlavors", "flavor2", iterator.next().name());
+    assertEquals("productFlavors", "flavor1", iterator.next().name());
 
     android.removeDefaultConfig();
     android.removeProductFlavor("flavor1");
@@ -453,8 +453,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 2, productFlavors.size());
     iterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor1", iterator.next().name());
     assertEquals("productFlavors", "flavor2", iterator.next().name());
+    assertEquals("productFlavors", "flavor1", iterator.next().name());
   }
 
   public void testRemoveAndApplyElements() throws Exception {
@@ -587,8 +587,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 2, productFlavors.size());
     Iterator<ProductFlavorModel> iterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor1", iterator.next().name());
     assertEquals("productFlavors", "flavor2", iterator.next().name());
+    assertEquals("productFlavors", "flavor1", iterator.next().name());
 
     android.removeDefaultConfig();
     android.removeProductFlavor("flavor1");
