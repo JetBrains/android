@@ -26,6 +26,8 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.google.common.collect.Lists;
+import com.intellij.util.ui.JBFont;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -128,9 +130,9 @@ public class AvdWizardConstants {
   public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(200, Unit.MiB);
 
   // Fonts
-  static final Font STANDARD_FONT = new Font("Sans", Font.PLAIN, 12);
-  static final Font FIGURE_FONT = new Font("Sans", Font.PLAIN, 10);
-  static final Font TITLE_FONT = new Font("Sans", Font.BOLD, 16);
+  static final Font STANDARD_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 12));
+  static final Font FIGURE_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 10));
+  static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
 
   // Tags
   public static final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");

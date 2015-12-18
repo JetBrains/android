@@ -18,7 +18,6 @@ package org.jetbrains.android.facet;
 
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,5 +28,5 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface ClassMapConstructor {
   @NotNull
-  String[] getTagNamesByClass(@NotNull PsiClass c);
+  String[] getTagNamesByClass(@NotNull PsiClass c, int apiLevel);
 }

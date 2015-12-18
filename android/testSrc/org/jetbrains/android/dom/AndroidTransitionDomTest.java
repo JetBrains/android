@@ -39,6 +39,37 @@ public class AndroidTransitionDomTest extends AndroidDomTest {
     toTestCompletion("root.xml", "root_after.xml");
   }
 
+  public void testTransitionManagerCompletion1() throws Throwable {
+    toTestCompletion("transitionManager1.xml", "transitionManager1_after.xml");
+  }
+
+  public void testTransitionManagerCompletion2() throws Throwable {
+    toTestCompletion("transitionManager2.xml", "transitionManager2_after.xml");
+  }
+
+  public void testTransitionManagerCompletion3() throws Throwable {
+    copyFileToProject("transition_scene.xml", "res/layout/transition_scene1.xml");
+    toTestCompletion("transitionManager3.xml", "transitionManager3_after.xml");
+  }
+
+  public void testTransitionManagerCompletion4() throws Throwable {
+    toTestCompletion("transitionManager4.xml", "transitionManager4_after.xml");
+  }
+
+  public void testTransitionManagerCompletion5() throws Throwable {
+    copyFileToProject("transition_scene.xml", "res/layout/the_transition_scene_result.xml");
+    toTestCompletion("transitionManager5.xml", "transitionManager5_after.xml");
+  }
+
+  public void testTransitionManagerCompletion6() throws Throwable {
+    toTestCompletion("transitionManager6.xml", "transitionManager6_after.xml");
+  }
+
+  public void testTransitionManagerCompletion7() throws Throwable {
+    copyFileToProject("changebounds.xml", "res/transition/changebounds.xml");
+    toTestCompletion("transitionManager7.xml", "transitionManager7_after.xml");
+  }
+
   public void testTagNames() throws Throwable {
     toTestCompletion("tn.xml", "tn_after.xml");
   }

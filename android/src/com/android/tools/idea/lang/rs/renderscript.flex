@@ -76,6 +76,9 @@ CharacterLiteral="'"([^\\\'\r\n]|{EscapeSequence})*("'"|\\)?
 StringLiteral=\"([^\\\"\r\n]|{EscapeSequence})*(\"|\\)?
 EscapeSequence=\\[^\r\n]
 
+VectorDigit = [2-4]
+RSPrimeType = "char"|"double"|"float"|"half"|"int"|"long"|"short"|"uchar"|"ulong"|"uint"|"ushort"
+RSVectorType = {RSPrimeType}{VectorDigit}
 %%
 
 <YYINITIAL> {
@@ -84,6 +87,7 @@ EscapeSequence=\\[^\r\n]
   "char"       |
   "const"      |
   "break"      |
+  "bool"       |
   "continue"   |
   "default"    |
   "do"         |
@@ -94,9 +98,14 @@ EscapeSequence=\\[^\r\n]
   "float"      |
   "for"        |
   "goto"       |
+  "half"       |
   "if"         |
   "inline"     |
   "int"        |
+  "int8_t"     |
+  "int16_t"    |
+  "int32_t"    |
+  "int64_t"    |
   "long"       |
   "register"   |
   "restrict"   |
@@ -108,11 +117,20 @@ EscapeSequence=\\[^\r\n]
   "struct"     |
   "switch"     |
   "typedef"    |
+  "uchar"      |
+  "ulong"      |
+  "uint"       |
+  "uint8_t"    |
+  "uint16_t"   |
+  "uint32_t"   |
+  "uint64_t"   |
   "union"      |
   "unsigned"   |
+  "ushort"     |
   "void"       |
   "volatile"   |
   "while"      |
+  "#pragma"    |
   "_Bool"      |
   "_Complex"   |
   "_Imaginary"        { return RenderscriptTokenType.KEYWORD; }
@@ -120,6 +138,266 @@ EscapeSequence=\\[^\r\n]
   "TRUE"       |
   "FALSE"      |
   "null"              { return RenderscriptTokenType.KEYWORD; }
+
+  {RSVectorType}              |
+  "rs_matrix2x2"              |
+  "rs_matrix3x3"              |
+  "rs_matrix4x4"              |
+  "rs_quaternion"             |
+  "rs_allocation"             |
+  "rs_allocation_cubemap_face"|
+  "rs_allocation_usage_type"  |
+  "rs_data_kind"              |
+  "rs_data_type"              |
+  "rs_element"                |
+  "rs_sampler"                |
+  "rs_sampler_value"          |
+  "rs_script"                 |
+  "rs_type"                   |
+  "rs_time_t"                 |
+  "rs_tm"                     |
+  "rs_for_each_strategy_t"    |
+  "rs_kernel_context"         |
+  "rs_script_call_t"          |
+  "RS_KERNEL"                 |
+  "__attribute__"     { return RenderscriptTokenType.KEYWORD; }
+
+  /* RenderScript defined APIs */
+  "abs"                               |
+  "acos"                              |
+  "acosh"                             |
+  "acospi"                            |
+  "asin"                              |
+  "asinh"                             |
+  "asinpi"                            |
+  "atan"                              |
+  "atan2"                             |
+  "atan2pi"                           |
+  "atanh"                             |
+  "atanpi"                            |
+  "cbrt"                              |
+  "ceil"                              |
+  "clamp"                             |
+  "clz"                               |
+  "copysign"                          |
+  "cos"                               |
+  "cosh"                              |
+  "cospi"                             |
+  "degrees"                           |
+  "erf"                               |
+  "erfc"                              |
+  "exp"                               |
+  "exp10"                             |
+  "exp2"                              |
+  "expm1"                             |
+  "fabs"                              |
+  "fdim"                              |
+  "floor"                             |
+  "fma"                               |
+  "fmax"                              |
+  "fmin"                              |
+  "fmod"                              |
+  "fract"                             |
+  "frexp"                             |
+  "half_recip"                        |
+  "half_rsqrt"                        |
+  "half_sqrt"                         |
+  "hypot"                             |
+  "ilogb"                             |
+  "ldexp"                             |
+  "lgamma"                            |
+  "log"                               |
+  "log10"                             |
+  "log1p"                             |
+  "log2"                              |
+  "logb"                              |
+  "mad"                               |
+  "max"                               |
+  "min"                               |
+  "mix"                               |
+  "modf"                              |
+  "nan"                               |
+  "native_acos"                       |
+  "native_acosh"                      |
+  "native_acospi"                     |
+  "native_asin"                       |
+  "native_asinh"                      |
+  "native_asinpi"                     |
+  "native_atan"                       |
+  "native_atan2"                      |
+  "native_atan2pi"                    |
+  "native_atanh"                      |
+  "native_atanpi"                     |
+  "native_cbrt"                       |
+  "native_cos"                        |
+  "native_cosh"                       |
+  "native_cospi"                      |
+  "native_divide"                     |
+  "native_exp"                        |
+  "native_exp10"                      |
+  "native_exp2"                       |
+  "native_expm1"                      |
+  "native_hypot"                      |
+  "native_log"                        |
+  "native_log10"                      |
+  "native_log1p"                      |
+  "native_log2"                       |
+  "native_powr"                       |
+  "native_recip"                      |
+  "native_rootn"                      |
+  "native_rsqrt"                      |
+  "native_sin"                        |
+  "native_sincos"                     |
+  "native_sinh"                       |
+  "native_sinpi"                      |
+  "native_sqrt"                       |
+  "native_tan"                        |
+  "native_tanh"                       |
+  "native_tanpi"                      |
+  "nextafter"                         |
+  "pow"                               |
+  "pown"                              |
+  "powr"                              |
+  "radians"                           |
+  "remainder"                         |
+  "remquo"                            |
+  "rint"                              |
+  "rootn"                             |
+  "round"                             |
+  "rsRand"                            |
+  "rsqrt"                             |
+  "sign"                              |
+  "sin"                               |
+  "sincos"                            |
+  "sinh"                              |
+  "sinpi"                             |
+  "sqrt"                              |
+  "step"                              |
+  "tan"                               |
+  "tanh"                              |
+  "tanpi"                             |
+  "tgamma"                            |
+  "trunc"                             |
+  "cross"                             |
+  "distance"                          |
+  "dot"                               |
+  "fast_distance"                     |
+  "fast_length"                       |
+  "fast_normalize"                    |
+  "length"                            |
+  "native_distance"                   |
+  "native_length"                     |
+  "native_normalize"                  |
+  "normalize"                         |
+  "convert_"{RSVectorType}            |
+  "rsExtractFrustumPlanes"            |
+  "rsIsSphereInFrustum"               |
+  "rsMatrixGet"                       |
+  "rsMatrixInverse"                   |
+  "rsMatrixInverseTranspose"          |
+  "rsMatrixLoad"                      |
+  "rsMatrixLoadFrustum"               |
+  "rsMatrixLoadIdentity"              |
+  "rsMatrixLoadMultiply"              |
+  "rsMatrixLoadOrtho"                 |
+  "rsMatrixLoadPerspective"           |
+  "rsMatrixLoadRotate"                |
+  "rsMatrixLoadScale"                 |
+  "rsMatrixLoadTranslate"             |
+  "rsMatrixMultiply"                  |
+  "rsMatrixRotate"                    |
+  "rsMatrixScale"                     |
+  "rsMatrixSet"                       |
+  "rsMatrixTranslate"                 |
+  "rsMatrixTranspose"                 |
+  "rsQuaternionAdd"                   |
+  "rsQuaternionConjugate"             |
+  "rsQuaternionDot"                   |
+  "rsQuaternionGetMatrixUnit"         |
+  "rsQuaternionLoadRotate"            |
+  "rsQuaternionLoadRotateUnit"        |
+  "rsQuaternionMultiply"              |
+  "rsQuaternionNormalize"             |
+  "rsQuaternionSet"                   |
+  "rsQuaternionSlerp"                 |
+  "rsAtomicAdd"                       |
+  "rsAtomicAnd"                       |
+  "rsAtomicCas"                       |
+  "rsAtomicDec"                       |
+  "rsAtomicInc"                       |
+  "rsAtomicMax"                       |
+  "rsAtomicMin"                       |
+  "rsAtomicOr"                        |
+  "rsAtomicSub"                       |
+  "rsAtomicXor"                       |
+  "rsGetDt"                           |
+  "rsLocaltime"                       |
+  "rsTime"                            |
+  "rsUptimeMillis"                    |
+  "rsUptimeNanos"                     |
+  "rsAllocationCopy1DRange"           |
+  "rsAllocationCopy2DRange"           |
+  "rsAllocationVLoadX"                |
+  "rsAllocationVLoadX_"{RSVectorType} |
+  "rsAllocationVStoreX"               |
+  "rsAllocationVStoreX_"{RSVectorType}|
+  "rsGetElementAt"                    |
+  "rsGetElementAt_"{RSPrimeType}      |
+  "rsGetElementAt_"{RSVectorType}     |
+  "rsGetElementAtYuv_uchar_U"         |
+  "rsGetElementAtYuv_uchar_V"         |
+  "rsGetElementAtYuv_uchar_Y"         |
+  "rsSample"                          |
+  "rsSetElementAt"                    |
+  "rsSetElementAt_"{RSPrimeType}      |
+  "rsSetElementAt_"{RSVectorType}     |
+  "rsAllocationGetDimFaces"           |
+  "rsAllocationGetDimLOD"             |
+  "rsAllocationGetDimX"               |
+  "rsAllocationGetDimY"               |
+  "rsAllocationGetDimZ"               |
+  "rsAllocationGetElement"            |
+  "rsClearObject"                     |
+  "rsElementGetBytesSize"             |
+  "rsElementGetDataKind"              |
+  "rsElementGetDataType"              |
+  "rsElementGetSubElement"            |
+  "rsElementGetSubElementArraySize"   |
+  "rsElementGetSubElementCount"       |
+  "rsElementGetSubElementName"        |
+  "rsElementGetSubElementNameLength"  |
+  "rsElementGetSubElementOffsetBytes" |
+  "rsElementGetVectorSize"            |
+  "rsIsObject"                        |
+  "rsSamplerGetAnisotropy"            |
+  "rsSamplerGetMagnification"         |
+  "rsSamplerGetMinification"          |
+  "rsSamplerGetWrapS"                 |
+  "rsSamplerGetWrapT"                 |
+  "rsForEach"                         |
+  "rsGetArray0"                       |
+  "rsGetArray1"                       |
+  "rsGetArray2"                       |
+  "rsGetArray3"                       |
+  "rsGetDimArray0"                    |
+  "rsGetDimArray1"                    |
+  "rsGetDimArray2"                    |
+  "rsGetDimArray3"                    |
+  "rsGetDimHasFaces"                  |
+  "rsGetDimLod"                       |
+  "rsGetDimX"                         |
+  "rsGetDimY"                         |
+  "rsGetDimZ"                         |
+  "rsGetFace"                         |
+  "rsGetLod"                          |
+  "rsAllocationIoReceive"             |
+  "rsAllocationIoSend"                |
+  "rsSendToClient"                    |
+  "rsSendToClientBlocking"            |
+  "rsDebug"                           |
+  "rsPackColorTo8888"                 |
+  "rsUnpackColor8888"                 |
+  "rsYuvToRGBA"       { return RenderscriptTokenType.KEYWORD; }
 
   "("          |
   ")"          |

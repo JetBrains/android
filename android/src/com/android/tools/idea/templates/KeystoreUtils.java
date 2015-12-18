@@ -17,6 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.ide.common.signing.KeystoreHelper;
 import com.android.prefs.AndroidLocation;
+import com.android.prefs.AndroidLocation.AndroidLocationException;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
@@ -43,7 +44,6 @@ import java.security.cert.Certificate;
  * Functions for dealing with singing configurations and keystore files.
  */
 public class KeystoreUtils {
-
   /**
    * Get the debug keystore path.
    *
@@ -69,6 +69,12 @@ public class KeystoreUtils {
     try {
       File debugLocation = new File(KeystoreHelper.defaultDebugKeystoreLocation());
       if (!debugLocation.exists()) {
+        File keystoreDirectory = new File(AndroidLocation.getFolder());
+
+        if (!keystoreDirectory.canWrite()) {
+          throw new AndroidLocationException("Could not create debug keystore because \"" + keystoreDirectory + "\" is not writable");
+        }
+
         ILogger logger = new StdLogger(StdLogger.Level.ERROR);
         // Default values taken from http://developer.android.com/tools/publishing/app-signing.html
         // Keystore name: "debug.keystore"
@@ -78,15 +84,14 @@ public class KeystoreUtils {
         KeystoreHelper.createDebugStore(null, debugLocation, "android", "android", "AndroidDebugKey", logger);
       }
       if (!debugLocation.exists()) {
-        throw new AndroidLocation.AndroidLocationException("Could not create debug keystore");
+        throw new AndroidLocationException("Could not create debug keystore");
       }
       return debugLocation;
     }
-    catch (AndroidLocation.AndroidLocationException e) {
-      throw new Exception("Failed to get debug keystore path", e);
+    catch (AndroidLocationException exception) {
+      throw new Exception("Failed to get debug keystore path", exception);
     }
   }
-
 
   /**
    * Gets a custom debug keystore defined in the build.gradle file for this module

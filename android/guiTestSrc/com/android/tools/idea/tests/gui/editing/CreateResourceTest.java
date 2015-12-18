@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
 import org.junit.Test;
 
@@ -33,8 +32,8 @@ public class CreateResourceTest extends GuiTestCase {
     // and makes sure the prefix is correct, including checking that we don't end up with
     // double prefixes as described in issue http://b.android.com/77421.
 
-    IdeFrameFixture ideFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-    EditorFixture editor = ideFrame.getEditor();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("lib/src/main/java/com/android/tools/test/mylibrary/LibraryActivity.java");
     editor.select(editor.findOffset("R.layout.^activity_library"),
                   editor.findOffset("R.layout.activity_library^);"));

@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +27,11 @@ public final class ImageInfoPath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
     return builder.append("ImageInfo(").append(myID).append(")");
+  }
+
+  @Override
+  public Path getParent() {
+    return null;
   }
 
   //<<<Start:Java.ClassBody:1>>>
@@ -47,11 +53,14 @@ public final class ImageInfoPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {37, 69, 111, -72, 117, -118, 16, -105, -124, 93, 90, 110, -96, -32, -31, 47, 44, -114, 85, -53, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","ImageInfo","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -60,7 +69,7 @@ public final class ImageInfoPath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new ImageInfoPath(); }
@@ -68,13 +77,15 @@ public final class ImageInfoPath extends Path {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ImageInfoPath o = (ImageInfoPath)obj;
-      e.id(o.myID);
+      o.myID.write(e);
+
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ImageInfoPath o = (ImageInfoPath)obj;
-      o.myID = d.id();
+      o.myID = new BinaryID(d);
+
     }
     //<<<End:Java.KlassBody:2>>>
   }

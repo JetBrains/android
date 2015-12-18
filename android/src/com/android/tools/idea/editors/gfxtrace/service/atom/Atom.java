@@ -37,10 +37,10 @@ public abstract class Atom {
     Observations observations = getObservations();
     if (observations != null) {
       for (Observation read : observations.getReads()) {
-        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(read, true), false));
+        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(index, read, true), false));
       }
       for (Observation write : observations.getWrites()) {
-        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(write, false), false));
+        atomNode.add(new DefaultMutableTreeNode(new AtomController.Memory(index, write, false), false));
       }
     }
   }
@@ -56,11 +56,13 @@ public abstract class Atom {
 
   public abstract Object getFieldValue(int index);
 
-  public abstract int getObservationsIndex();
+  public abstract int getExtrasIndex();
 
   public abstract Observations getObservations();
 
   public abstract int getResultIndex();
 
-  public abstract boolean getIsEndOfFrame();
+  public abstract boolean isEndOfFrame();
+
+  public abstract boolean isDrawCall();
 }

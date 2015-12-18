@@ -18,11 +18,11 @@ package com.android.tools.idea.editors.theme;
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
@@ -32,6 +32,7 @@ import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
+import com.android.tools.idea.configurations.ThemeSelectionPanel;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -77,12 +78,10 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.List;
 
 /**
  * Utility class for static methods which are used in different classes of theme editor
@@ -137,6 +136,15 @@ public class ThemeEditorUtils {
     return item.isDeprecated() ? "<html><body><strike>" + item.getQualifiedName() + "</strike></body></html>" : item.getQualifiedName();
   }
 
+  public static boolean isThemeEditorSelected(@NotNull Project project) {
+    for (FileEditor editor : FileEditorManager.getInstance(project).getSelectedEditors()) {
+      if (editor instanceof ThemeEditor) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public static void openThemeEditor(@NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
@@ -186,9 +194,9 @@ public class ThemeEditorUtils {
       }
     }
 
-    Multimap<String, ConfiguredElement<ItemResourceValue>> configuredValues = style.getConfiguredValues();
-    for (Map.Entry<String, ConfiguredElement<ItemResourceValue>> entry : configuredValues.entries()) {
-      attributeConfigurations.put(entry.getKey(), entry.getValue().getConfiguration());
+    Collection<ConfiguredElement<ItemResourceValue>> configuredValues = style.getConfiguredValues();
+    for (ConfiguredElement<ItemResourceValue> value : configuredValues) {
+      attributeConfigurations.put(ResolutionUtils.getQualifiedItemName(value.getElement()), value.getConfiguration());
     }
   }
 
@@ -197,9 +205,9 @@ public class ThemeEditorUtils {
    * as key.
    */
   static class AttributeInheritanceSet implements Iterable<ConfiguredElement<ItemResourceValue>> {
-    private HashSet<ConfiguredElement<ItemResourceValue>> myAttributes = Sets.newHashSet();
+    private final HashSet<ConfiguredElement<ItemResourceValue>> myAttributes = Sets.newHashSet();
     // Index by attribute configuration and name.
-    private Map<String, ConfiguredElement<ItemResourceValue>> myAttributesIndex = Maps.newHashMap();
+    private final Map<String, ConfiguredElement<ItemResourceValue>> myAttributesIndex = Maps.newHashMap();
 
     private static String getItemKey(@NotNull ConfiguredElement<ItemResourceValue> item) {
       return String.format("%1$s - %2$s", item.getConfiguration(), ResolutionUtils.getQualifiedItemName(item.getElement()));
@@ -250,7 +258,7 @@ public class ThemeEditorUtils {
       // configuration to simulate what the device would do when resolving attributes and match more specific folders.
       FolderConfiguration fullFolderConfiguration = FolderConfiguration.copyOf(fullBaseConfiguration);
       fullFolderConfiguration.add(folderConfiguration);
-      ResourceResolver resolver = resolverCache.getResourceResolver(configuration.getTarget(), style.getQualifiedName(), fullFolderConfiguration);
+      ResourceResolver resolver = resolverCache.getResourceResolver(configuration.getTarget(), style.getStyleResourceUrl(), fullFolderConfiguration);
       StyleResourceValue resolvedStyle = resolver.getStyle(style.getName(), style.isFramework());
 
       if (resolvedStyle == null) {
@@ -477,7 +485,9 @@ public class ThemeEditorUtils {
   public static String showCreateNewStyleDialog(@Nullable ThemeEditorStyle defaultParentStyle,
                                                 @NotNull final ThemeEditorContext themeEditorContext,
                                                 boolean isTheme,
-                                                @Nullable final String message) {
+                                                boolean enableParentChoice,
+                                                @Nullable final String message,
+                                                @Nullable ThemeSelectionPanel.ThemeChangedListener themeChangedListener) {
     // if isTheme is true, defaultParentStyle shouldn't be null
     String defaultParentStyleName = null;
     if (isTheme && defaultParentStyle == null) {
@@ -488,7 +498,11 @@ public class ThemeEditorUtils {
     }
 
     final NewStyleDialog dialog = new NewStyleDialog(isTheme, themeEditorContext, defaultParentStyleName,
-                         (defaultParentStyle == null) ? null : defaultParentStyle.getName(), message);
+                                                     (defaultParentStyle == null) ? null : defaultParentStyle.getName(), message);
+    dialog.enableParentChoice(enableParentChoice);
+    if (themeChangedListener != null) {
+      dialog.setThemeChangedListener(themeChangedListener);
+    }
 
     boolean createStyle = dialog.showAndGet();
     if (!createStyle) {
@@ -496,7 +510,7 @@ public class ThemeEditorUtils {
     }
 
     int minModuleApi = getMinApiLevel(themeEditorContext.getCurrentContextModule());
-    int minAcceptableApi = ResolutionUtils.getOriginalApiLevel(dialog.getStyleParentName(), themeEditorContext.getProject());
+    int minAcceptableApi = ResolutionUtils.getOriginalApiLevel(ResolutionUtils.getStyleResourceUrl(dialog.getStyleParentName()), themeEditorContext.getProject());
 
     final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
     FolderConfiguration config = new FolderConfiguration();
@@ -515,7 +529,7 @@ public class ThemeEditorUtils {
     boolean isCreated = createNewStyle(
       themeEditorContext.getCurrentContextModule(), dialog.getStyleName(), parentStyleName, fileName, dirNames);
 
-    return isCreated ? SdkConstants.STYLE_RESOURCE_PREFIX + dialog.getStyleName() : null;
+    return isCreated ? dialog.getStyleName() : null;
   }
 
   /**
@@ -549,6 +563,8 @@ public class ThemeEditorUtils {
    * @param toBeCopied theme to be copied
    */
   public static void copyTheme(int apiLevel, @NotNull final XmlTag toBeCopied) {
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+
     PsiFile file = toBeCopied.getContainingFile();
     assert file instanceof XmlFile : file;
     ResourceFolderType folderType = ResourceHelper.getFolderType(file);
@@ -583,6 +599,15 @@ public class ThemeEditorUtils {
         }
       }
     }
+  }
+
+  /**
+   * Returns version qualifier of FolderConfiguration.
+   * Returns -1, if FolderConfiguration has default version
+   */
+  public static int getVersionFromConfiguration(@NotNull FolderConfiguration configuration) {
+    VersionQualifier qualifier = configuration.getVersionQualifier();
+    return (qualifier != null) ? qualifier.getVersion() : -1;
   }
 
   /**
@@ -722,15 +747,15 @@ public class ThemeEditorUtils {
           return;
         }
         for (String simpleThemeName : resources.getItemsOfType(ResourceType.STYLE)) {
-          String themeQualifiedName = SdkConstants.STYLE_RESOURCE_PREFIX + simpleThemeName;
+          String themeStyleResourceUrl = SdkConstants.STYLE_RESOURCE_PREFIX + simpleThemeName;
           List<ResourceItem> themeItems = resources.getResourceItem(ResourceType.STYLE, simpleThemeName);
           assert themeItems != null;
           for (ResourceItem themeItem : themeItems) {
-            ResourceResolver resolver = resolverCache.getResourceResolver(target, themeQualifiedName, themeItem.getConfiguration());
+            ResourceResolver resolver = resolverCache.getResourceResolver(target, themeStyleResourceUrl, themeItem.getConfiguration());
             ResourceValue themeItemResourceValue = themeItem.getResourceValue(false);
             assert themeItemResourceValue != null;
             if (resolver.isTheme(themeItemResourceValue, cache)) {
-              themeNamesSet.add(themeQualifiedName);
+              themeNamesSet.add(simpleThemeName);
               break;
             }
           }
@@ -747,47 +772,26 @@ public class ThemeEditorUtils {
   public static ChooseResourceDialog getResourceDialog(@NotNull EditedStyleItem item,
                                                        @NotNull ThemeEditorContext context,
                                                        ResourceType[] allowedTypes) {
-    String itemValue = item.getValue();
-    String resourceName;
-    // If it points to an existing resource.
-    if (!RenderResources.REFERENCE_EMPTY.equals(itemValue) &&
-        !RenderResources.REFERENCE_NULL.equals(itemValue) &&
-        itemValue.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-      // Use the name of that resource.
-      resourceName = itemValue.substring(itemValue.indexOf('/') + 1);
-    }
-    else {
-      // Otherwise use the name of the attribute.
-      resourceName = item.getName();
-    }
-
-    resourceName = getDefaultResourceName(context, resourceName);
-
     Module module = context.getModuleForResources();
     final Configuration configuration = getConfigurationForModule(module);
 
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     assert resourceResolver != null;
 
-    ChooseResourceDialog dialog;
-    ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(resourceResolver, item.getSelectedValue(), context.getProject());
-    if (stateList != null) {
-      dialog = new ChooseResourceDialog(context.getModuleForResources(), context.getConfiguration(), allowedTypes, stateList,
-                                        ChooseResourceDialog.ResourceNameVisibility.FORCE, resourceName);
+    ItemResourceValue itemSelectedValue = item.getSelectedValue();
+
+    String value = itemSelectedValue.getValue();
+    boolean isFrameworkValue = itemSelectedValue.isFramework();
+
+    String nameSuggestion = value;
+    ResourceUrl url = ResourceUrl.parse(value, isFrameworkValue);
+    if (url != null) {
+      nameSuggestion = url.name;
     }
-    else {
-      String resolvedResource;
-      Color color = ResourceHelper.resolveColor(resourceResolver, item.getSelectedValue(), context.getProject());
-      if (color != null) {
-        resolvedResource = ResourceHelper.colorToString(color);
-      }
-      else {
-        resolvedResource = resourceResolver.resolveResValue(item.getSelectedValue()).getName();
-      }
-      dialog = new ChooseResourceDialog(context.getModuleForResources(), allowedTypes, resolvedResource, null,
-                                        ChooseResourceDialog.ResourceNameVisibility.FORCE, resourceName);
-    }
-    return dialog;
+    nameSuggestion = getDefaultResourceName(context, nameSuggestion);
+
+    return new ChooseResourceDialog(module, configuration, allowedTypes, value, isFrameworkValue,
+                                    ChooseResourceDialog.ResourceNameVisibility.FORCE, nameSuggestion);
   }
 
   /**
@@ -852,5 +856,26 @@ public class ThemeEditorUtils {
       }
     }
     return result + " Dark";
+  }
+
+  /**
+   * Returns a StringBuilder with the words concatenated into an enumeration w1, w2, ..., w(n-1) and  wn
+   */
+  @NotNull
+  public static String generateWordEnumeration(@NotNull Collection<String> words) {
+    StringBuilder sentenceBuilder = new StringBuilder();
+    int nWords = words.size();
+    int i = 0;
+    for (String word : words) {
+      sentenceBuilder.append(word);
+      if (i < nWords - 2) {
+        sentenceBuilder.append(", ");
+      }
+      else if (i == nWords - 2) {
+        sentenceBuilder.append(" and ");
+      }
+      i++;
+    }
+    return sentenceBuilder.toString();
   }
 }

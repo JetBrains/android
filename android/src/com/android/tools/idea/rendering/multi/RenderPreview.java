@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.Result.Status;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
@@ -668,6 +669,9 @@ public class RenderPreview implements Disposable {
       }
     } else {
       boolean drawShadows = !myRenderContext.hasAlphaChannel();
+      if (drawShadows && ResourceHelper.getFolderType(myRenderContext.getVirtualFile()) == ResourceFolderType.DRAWABLE) {
+        drawShadows = false;
+      }
       double scale = Math.min(1, getLayoutWidth() / (double)image.getWidth());
       shadowSize = drawShadows ? SMALL_SHADOW_SIZE : 0;
       if (scale < 1.0) {
@@ -727,6 +731,9 @@ public class RenderPreview implements Disposable {
       }
     } else {
       boolean drawShadows = !myRenderContext.hasAlphaChannel();
+      if (drawShadows && ResourceHelper.getFolderType(myRenderContext.getVirtualFile()) == ResourceFolderType.DRAWABLE) {
+        drawShadows = false;
+      }
       double scale = getLayoutWidth() / (double)image.getWidth();
       if (scale < 1.0) {
         image = ImageUtils.scale(image, 2 * scale, 2 * scale);

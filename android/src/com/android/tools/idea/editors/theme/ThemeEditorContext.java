@@ -19,6 +19,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,7 @@ import java.util.List;
  * It's assumed that only one instance of ThemeEditorContext should be created
  * and all classes using its capabilities should retain this single instance.
  */
-public class ThemeEditorContext {
+public class ThemeEditorContext implements Disposable {
   // Field is initialized in method called from constructor which checker doesn't see, warning could be ignored
   @SuppressWarnings("NullableProblems")
   private @NotNull Configuration myConfiguration;
@@ -136,8 +137,14 @@ public class ThemeEditorContext {
     setConfiguration(ThemeEditorUtils.getConfigurationForModule(module));
   }
 
-  @Nullable
+  @Nullable("if there is no theme selected or the current selected module is not valid")
   public ResourceResolver getResourceResolver() {
+    if (getCurrentContextModule().isDisposed()) {
+      // In some cases we might be asked for a resolver when the module has been already been disposed.
+      // This could happen when we are refreshing the attributes table and the old one is still visible.
+      return null;
+    }
+
     return myConfiguration.getResourceResolver();
   }
 
@@ -180,6 +187,7 @@ public class ThemeEditorContext {
     }
   }
 
+  @Override
   public void dispose() {
     myConfiguration.removeListener(myConfigurationListener);
     myConfigurationListeners.clear();

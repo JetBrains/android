@@ -19,7 +19,6 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
 import com.android.tools.rpclib.schema.Dynamic;
@@ -32,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class StateController extends TreeController {
@@ -45,6 +45,8 @@ public class StateController extends TreeController {
 
   private StateController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
+    myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU State"));
+    myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
   }
 
   public static class Typed {
@@ -110,24 +112,16 @@ public class StateController extends TreeController {
   }
 
   @Override
-  public void notifyPath(Path path) {
-    boolean updateState = false;
-    if (path instanceof AtomPath) {
-      updateState |= myStatePath.update(((AtomPath)path).stateAfter());
-    }
+  public void notifyPath(PathEvent event) {
+    boolean updateState = myStatePath.updateIfNotNull(AtomPath.stateAfter(event.findAtomPath()));
+
     if (updateState && myStatePath.getPath() != null) {
       Futures.addCallback(myEditor.getClient().get(myStatePath.getPath()), new LoadingCallback<Object>(LOG, myLoadingPanel) {
         @Override
         public void onSuccess(@Nullable final Object state) {
-          final DefaultMutableTreeNode stateNode = createNode("state", null, state);
-          EdtExecutor.INSTANCE.execute(new Runnable() {
-            @Override
-            public void run() {
-              setRoot(stateNode);
-            }
-          });
+          setRoot(createNode("state", null, state));
         }
-      });
+      }, EdtExecutor.INSTANCE);
     }
   }
 }

@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
@@ -69,6 +70,13 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
     File androidSdkHomePath = IdeSdks.getAndroidSdkPath();
     // Android SDK may be not configured in IntelliJ
     if (androidSdkHomePath == null) {
+      LOG.warn("Path to Android SDK not set");
+
+      List<Sdk> sdks = IdeSdks.getEligibleAndroidSdks();
+      LOG.warn("# of eligible SDKs: " + sdks.size());
+      for (Sdk sdk : sdks) {
+        LOG.info("sdk: " + sdk.toString());
+      }
       return;
     }
 
@@ -92,11 +100,16 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
 
     if (sdk != null) {
       ideaModuleModel.setSdk(sdk);
+      String sdkPath = sdk.getHomePath();
+      if (sdkPath == null) {
+        sdkPath = "<path not set>";
+      }
+      LOG.info("Setting SDK in the module model: " + sdk.getName() + " @ " + sdkPath);
       return;
     }
 
     String text = String.format("Module '%1$s': platform '%2$s' not found.", module.getName(), compileTarget);
-    LOG.info(text);
+    LOG.warn(text);
 
     Message msg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.ERROR, text);
     ProjectSyncMessages.getInstance(project).add(msg);

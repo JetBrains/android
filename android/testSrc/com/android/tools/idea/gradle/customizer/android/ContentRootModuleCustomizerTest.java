@@ -29,7 +29,6 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.ExceptionUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -94,18 +93,14 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   }
 
   public void testCustomizeModule() throws Exception {
-
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
       myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
+    }
+    finally {
       modelsProvider.commit();
     }
-    catch (Throwable t) {
-      modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
-    }
-
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ContentEntry contentEntry = moduleRootManager.getContentEntries()[0];
 
     SourceFolder[] sourceFolders = contentEntry.getSourceFolders();
@@ -121,7 +116,6 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     ContentRootSourcePaths expectedPaths = new ContentRootSourcePaths();
     expectedPaths.storeExpectedSourcePaths(myAndroidProject);
-
 
     List<String> allExpectedPaths = Lists.newArrayList();
     allExpectedPaths.addAll(expectedPaths.getPaths(ExternalSystemSourceType.SOURCE));

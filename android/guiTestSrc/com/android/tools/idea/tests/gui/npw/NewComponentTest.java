@@ -16,9 +16,7 @@
 package com.android.tools.idea.tests.gui.npw;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewXmlValueWizardFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JLabelFixture;
@@ -27,16 +25,16 @@ import org.junit.Test;
 
 import java.io.IOException;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.timing.Pause.pause;
 
 public class NewComponentTest extends GuiTestCase {
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest
   public void testNewValueWizard() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
+    myProjectFrame = importSimpleApplication();
 
-    projectFrame.getProjectView().selectAndroidPane();
-    projectFrame.invokeMenuPath("File", "New", "XML", "Values XML File");
+    myProjectFrame.getProjectView().selectAndroidPane();
+    myProjectFrame.invokeMenuPath("File", "New", "XML", "Values XML File");
 
     final NewXmlValueWizardFixture wizardFixture = NewXmlValueWizardFixture.find(myRobot);
     final JButtonFixture finishFixture = wizardFixture.findWizardButton("Finish");
@@ -49,14 +47,14 @@ public class NewComponentTest extends GuiTestCase {
       public boolean test() {
         return !finishFixture.isEnabled();
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    }, SHORT_TIMEOUT);
     wizardFixture.getFileNameField().enterText("2");
     pause(new Condition("Waiting for Finish to be enabled") {
       @Override
       public boolean test() {
         return finishFixture.isEnabled();
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    }, SHORT_TIMEOUT);
 
     // Now test an invalid file name. Currently we have "strings2" so add an space to make it invalid.
     wizardFixture.getFileNameField().enterText(" ");
@@ -65,7 +63,7 @@ public class NewComponentTest extends GuiTestCase {
       public boolean test() {
         return !finishFixture.isEnabled();
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    }, SHORT_TIMEOUT);
     errorLabel.requireText("<html>Values File Name is not a valid resource name. ' ' is not a valid resource name character</html>");
   }
 }

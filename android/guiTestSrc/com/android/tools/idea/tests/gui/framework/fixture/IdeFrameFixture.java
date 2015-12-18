@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.dsl.parser.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
@@ -36,13 +36,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.codeInspection.ui.InspectionTree;
-import com.intellij.execution.BeforeRunTask;
-import com.intellij.execution.BeforeRunTaskProvider;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -52,7 +45,6 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.compiler.CompilationStatusListener;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerManager;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -92,7 +84,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -101,12 +92,9 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.dsl.parser.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
 import static com.google.common.io.Files.write;
@@ -238,13 +226,21 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public Module getModule(@NotNull String name) {
+    Module module = findModule(name);
+    assertNotNull("Unable to find module with name " + quote(name), module);
+    return module;
+  }
+
+  @Nullable
+  public Module findModule(@NotNull String name) {
     for (Module module : getModuleManager().getModules()) {
       if (name.equals(module.getName())) {
         return module;
       }
     }
-    throw new AssertionError("Unable to find module with name " + quote(name));
+    return null;
   }
+
 
   @NotNull
   private ModuleManager getModuleManager() {
@@ -912,40 +908,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
-  /**
-   * Sets the "Before Launch" tasks in the "JUnit Run Configuration" template.
-   * @param taskName the name of the "Before Launch" task (e.g. "Make", "Gradle-aware Make")
-   */
-  @NotNull
-  public IdeFrameFixture setJUnitDefaultBeforeRunTask(@NotNull String taskName) {
-    Project project = getProject();
-    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(project);
-    ConfigurationType junitConfigurationType = runManager.getConfigurationType("JUnit");
-    assertNotNull("Failed to find run configuration type 'JUnit'", junitConfigurationType);
-
-    for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
-      RunnerAndConfigurationSettings template = runManager.getConfigurationTemplate(configurationFactory);
-      RunConfiguration runConfiguration = template.getConfiguration();
-      BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, project);
-
-      BeforeRunTaskProvider targetProvider = null;
-      for (BeforeRunTaskProvider<? extends BeforeRunTask> provider : taskProviders) {
-        if (taskName.equals(provider.getName())) {
-          targetProvider = provider;
-          break;
-        }
-      }
-      assertNotNull(String.format("Failed to find task provider '%1$s'", taskName), targetProvider);
-
-      BeforeRunTask task = targetProvider.createTask(runConfiguration);
-      assertNotNull(task);
-      task.setEnabled(true);
-
-      runManager.setBeforeRunTasks(runConfiguration, Collections.singletonList(task), false);
-    }
-    return this;
-  }
-
   @NotNull
   public FindDialogFixture invokeFindInPathDialog() {
     invokeMenuPath("Edit", "Find", "Find in Path...");
@@ -958,26 +920,28 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public GradleBuildModelFixture openAndParseBuildFileForModule(@NotNull String moduleName) {
+  public GradleBuildModelFixture parseBuildFileForModule(@NotNull String moduleName, boolean openInEditor) {
     Module module = getModule(moduleName);
-    return openAndParseBuildFile(module);
+    return parseBuildFile(module, openInEditor);
   }
 
   @NotNull
-  public GradleBuildModelFixture openAndParseBuildFile(@NotNull Module module) {
+  public GradleBuildModelFixture parseBuildFile(@NotNull Module module, boolean openInEditor) {
     VirtualFile buildFile = getGradleBuildFile(module);
     assertNotNull(buildFile);
-    return openAndParseBuildFile(buildFile);
+    return parseBuildFile(buildFile, openInEditor);
   }
 
   @NotNull
-  public GradleBuildModelFixture openAndParseBuildFile(@NotNull final VirtualFile buildFile) {
-    getEditor().open(buildFile, Tab.DEFAULT).getCurrentFile();
+  public GradleBuildModelFixture parseBuildFile(@NotNull final VirtualFile buildFile, boolean openInEditor) {
+    if (openInEditor) {
+      getEditor().open(buildFile, Tab.DEFAULT).getCurrentFile();
+    }
     final Ref<GradleBuildModel> buildModelRef = new Ref<GradleBuildModel>();
     new ReadAction() {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        buildModelRef.set(parseBuildFile(buildFile, getProject()));
+        buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject(), ""));
       }
     }.execute();
     GradleBuildModel buildModel = buildModelRef.get();

@@ -45,10 +45,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 import java.util.HashSet;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -88,7 +86,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertNotNull(androidTarget);
     sdkPlatformPath += "platforms/android-" + androidTarget.getVersion().getApiString();
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
     assertNotNull(theme);
 
     Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(theme);
@@ -107,7 +105,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ThemeEditorStyle theme = themeResolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
     assertNotNull(theme);
 
     Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(theme);
@@ -126,23 +124,6 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   public void testMinApiLevel() {
     myFixture.copyFileToProject("themeEditor/manifestWithApi.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     assertEquals(11, ThemeEditorUtils.getMinApiLevel(myModule));
-  }
-
-  /**
-   * Tests that the method getOriginalApiLevel correctly returns the api level
-   * in which a particular framework attribute or value was defined
-   */
-  private void assertOriginalApiLevel(@Nullable String name, int expectedApiLevel) {
-    assertEquals(expectedApiLevel, ResolutionUtils.getOriginalApiLevel(name, getProject()));
-  }
-
-  public void testOriginalApi() {
-    assertOriginalApiLevel("android:statusBarColor", 21); // framework attribute
-    assertOriginalApiLevel("@android:color/holo_purple", 14); // framework value
-    assertOriginalApiLevel("myString", -1); // random string
-    assertOriginalApiLevel("statusBarColor", -1); // no prefix attribute
-    assertOriginalApiLevel("@color/holo_purple", -1); // no prefix value
-    assertOriginalApiLevel(null, -1);
   }
 
   public void testCopyTheme() {
@@ -165,6 +146,35 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     }.execute();
     myFixture.checkResultByFile("res/values-v16/styles.xml", "themeEditor/testCopyTheme/styles-v16.xml", true);
     myFixture.checkResultByFile("res/values-v19/styles.xml", "themeEditor/testCopyTheme/styles-v19.xml", true);
+  }
+
+  /**
+   * Tests copyTheme method for following cases:
+   * 1. copyTheme(21, "values-en-night")
+   * 2. copyTheme(21, "values-v19")
+   */
+  public void testCopyThemeVersionOverride() {
+    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-en-night/styles.xml");
+    myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-v19/styles.xml");
+
+    LocalResourceRepository repository = AppResourceRepository.getAppResources(myModule, true);
+    assertNotNull(repository);
+    final List<ResourceItem> styleItems = repository.getResourceItem(ResourceType.STYLE, "AppTheme");
+    assertNotNull(styleItems);
+    assertEquals(2, styleItems.size());
+
+    new WriteCommandAction.Simple(myModule.getProject(), "Copy a theme") {
+      @Override
+      protected void run() throws Throwable {
+        for (ResourceItem styleItem : styleItems) {
+          XmlTag styleTag = LocalResourceRepository.getItemTag(getProject(), styleItem);
+          assertNotNull(styleTag);
+          ThemeEditorUtils.copyTheme(21, styleTag);
+        }
+      }
+    }.execute();
+    myFixture.checkResultByFile("res/values-en-night-v21/styles.xml", "themeEditor/styles_1.xml", true);
+    myFixture.checkResultByFile("res/values-v21/styles.xml", "themeEditor/styles_1.xml", true);
   }
 
   public void testResourceResolverVisitor() {
@@ -236,7 +246,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 20, null));
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
-    ThemeEditorStyle style = themeResolver.getTheme("@style/AppTheme");
+    ThemeEditorStyle style = themeResolver.getTheme("AppTheme");
     assertNotNull(style);
     Collection<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(style, themeResolver);
 
@@ -257,7 +267,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 17, null));
     themeResolver = new ThemeResolver(configuration);
 
-    style = themeResolver.getTheme("@style/AppTheme");
+    style = themeResolver.getTheme("AppTheme");
     assertNotNull(style);
     attributes = ThemeEditorUtils.resolveAllAttributes(style, themeResolver);
 
@@ -270,7 +280,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 20, null));
     themeResolver = new ThemeResolver(configuration);
 
-    style = themeResolver.getTheme("@style/PortraitOnlyTheme");
+    style = themeResolver.getTheme("PortraitOnlyTheme");
     assertNotNull(style);
     attributes = ThemeEditorUtils.resolveAllAttributes(style, themeResolver);
     myAttribute = findAttribute("myAttribute", attributes);
@@ -291,8 +301,8 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     configuration.setTarget(new CompatibilityRenderTarget(configuration.getTarget(), 20, null));
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
-    // AppThemeParent is defined in v20 only but it's parent it's defoned in both v20 AND v19
-    ThemeEditorStyle style = themeResolver.getTheme("@style/AppThemeParent");
+    // AppThemeParent is defined in v20 only but its parent is defined in both v20 AND v19
+    ThemeEditorStyle style = themeResolver.getTheme("AppThemeParent");
     assertNotNull(style);
     Collection<EditedStyleItem> attributes = ThemeEditorUtils.resolveAllAttributes(style, new ThemeResolver(configuration));
 
@@ -331,20 +341,27 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_2.xml", "res/values/styles.xml");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
     ThemeResolver res = new ThemeResolver(configuration);
-    assertEquals("X Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("@style/Theme.X.Light.Y")));
-    assertEquals("X Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme("@style/Theme.X.Dark.Y")));
-    assertEquals("Material Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("@style/Theme.Material.Light")));
-    assertEquals("Theme Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme("@android:style/Theme")));
-    assertEquals("Theme Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("@style/Theme.Light")));
+    assertEquals("X Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.X.Light.Y")));
+    assertEquals("X Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.X.Dark.Y")));
+    assertEquals("Material Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.Material.Light")));
+    assertEquals("Theme Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme("android:Theme")));
+    assertEquals("Theme Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.Light")));
+  }
+
+  public void testGenerateWordEnumeration() {
+    assertEquals("", ThemeEditorUtils.generateWordEnumeration(Collections.<String>emptyList()));
+    assertEquals("one", ThemeEditorUtils.generateWordEnumeration(Collections.singletonList("one")));
+    assertEquals("one and two", ThemeEditorUtils.generateWordEnumeration(Arrays.asList("one", "two")));
+    assertEquals("one, two and Three", ThemeEditorUtils.generateWordEnumeration(Arrays.asList("one", "two", "Three")));
   }
 
   public void testThemeNamesListOrder() {
     myFixture.copyFileToProject("themeEditor/styles_alphabetical.xml", "res/values/styles.xml");
     List<String> themeNames = ThemeEditorUtils.getModuleThemeQualifiedNamesList(myModule);
     assertThat(themeNames).hasSize(4)
-      .contains("@style/aTheme", Index.atIndex(0))
-      .contains("@style/BTheme", Index.atIndex(1))
-      .contains("@style/cTheme", Index.atIndex(2))
-      .contains("@style/DTheme", Index.atIndex(3));
+      .contains("aTheme", Index.atIndex(0))
+      .contains("BTheme", Index.atIndex(1))
+      .contains("cTheme", Index.atIndex(2))
+      .contains("DTheme", Index.atIndex(3));
   }
 }

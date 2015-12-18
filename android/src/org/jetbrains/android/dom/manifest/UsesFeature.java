@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom.manifest;
 
 import com.intellij.util.xml.Attribute;
-import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 
 public interface UsesFeature extends ManifestElementWithName {
@@ -24,4 +23,7 @@ public interface UsesFeature extends ManifestElementWithName {
 
   @Attribute("name")
   AndroidAttributeValue<String> getName();
+
+  @Attribute("required")
+  AndroidAttributeValue<Boolean> getRequired();
 }

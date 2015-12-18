@@ -18,12 +18,10 @@ package com.android.tools.idea.gradle.util;
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.model.AndroidModel;
@@ -32,14 +30,12 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
@@ -63,8 +59,8 @@ import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidS
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.lang.Boolean.TRUE;
@@ -144,7 +140,13 @@ public final class Projects {
   }
 
   public static void executeProjectChanges(@NotNull final Project project, @NotNull final Runnable changes) {
-    Runnable task = new Runnable() {
+    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
+      if (!project.isDisposed()) {
+        changes.run();
+      }
+      return;
+    }
+    invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
@@ -156,8 +158,7 @@ public final class Projects {
           }
         });
       }
-    };
-    ApplicationManager.getApplication().invokeAndWait(task, ModalityState.defaultModalityState());
+    });
   }
 
   public static void setHasSyncErrors(@NotNull Project project, boolean hasSyncErrors) {
@@ -381,24 +382,6 @@ public final class Projects {
   }
 
   /**
-   * @see #isGradleProjectModule(Module)
-   */
-  @Nullable
-  public static Module findGradleProjectModule(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    Module[] modules = moduleManager.getModules();
-    if (modules.length == 1) {
-      return modules[0];
-    }
-    for (Module module : modules) {
-      if (isGradleProjectModule(module)) {
-        return module;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Indicates whether the given module is the one that represents the project.
    * <p>
    * For example, in this project:
@@ -429,29 +412,6 @@ public final class Projects {
   }
 
   @Nullable
-  public static File getBuildFolderPath(@NotNull Module module) {
-    if (module.isDisposed() || !requiresAndroidModel(module.getProject())) {
-      return null;
-    }
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
-    if (gradleModel != null) {
-      return gradleModel.getAndroidProject().getBuildFolder();
-    }
-    JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
-    if (javaFacet != null) {
-      JavaModel javaModel = javaFacet.getJavaModel();
-      if (javaModel != null) {
-        return javaFacet.getJavaModel().getBuildFolderPath();
-      }
-      String path = javaFacet.getConfiguration().BUILD_FOLDER_PATH;
-      if (isNotEmpty(path)) {
-        return new File(toSystemDependentName(path));
-      }
-    }
-    return null;
-  }
-
-  @Nullable
   public static DependencySetupErrors getDependencySetupErrors(@NotNull Project project) {
     return project.getUserData(DEPENDENCY_SETUP_ERRORS);
   }
@@ -462,7 +422,7 @@ public final class Projects {
 
   @Nullable
   public static AndroidProject getAndroidModel(@NotNull VirtualFile file, @NotNull Project project) {
-    Module module = ModuleUtilCore.findModuleForFile(file, project);
+    Module module = findModuleForFile(file, project);
     if (module == null) {
       if (requiresAndroidModel(project)) {
         // You've edited a file that does not correspond to a module in a Gradle project; you are
@@ -470,7 +430,7 @@ public final class Projects {
         VirtualFile base = project.getBaseDir();
         VirtualFile parent = file.getParent();
         while (parent != null && parent.equals(base)) {
-          module = ModuleUtilCore.findModuleForFile(parent, project);
+          module = findModuleForFile(parent, project);
           if (module != null) {
             break;
           }
@@ -483,13 +443,12 @@ public final class Projects {
       }
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return null;
+    if (facet != null) {
+      AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+      if (androidModel != null) {
+        return androidModel.getAndroidProject();
+      }
     }
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
-    if (androidModel == null) {
-      return null;
-    }
-    return androidModel.getAndroidProject();
+    return null;
   }
 }

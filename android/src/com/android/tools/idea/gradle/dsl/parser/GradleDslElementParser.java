@@ -20,14 +20,16 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 /**
  * Parses a specific element of a build.gradle file.
+ *
+ * @deprecated Use {@link com.android.tools.idea.gradle.dsl.GradleDslParser} directly.
  */
-interface GradleDslElementParser {
+public interface GradleDslElementParser {
   /**
    * Attempts to parse the given PSI element.
    *
    * @param e the PSI element to parse.
-   * @param buildFile the build.gradle file being parsed.
+   * @param gradlePsiFile represents the build.gradle file being parsed.
    * @return {@code true} if this parser was able to parse the given PSI element; {@code false} otherwise.
    */
-  boolean parse(@NotNull GroovyPsiElement e, @NotNull GradleBuildModel buildFile);
+  boolean parse(@NotNull GroovyPsiElement e, @NotNull GradleDslFile gradlePsiFile);
 }

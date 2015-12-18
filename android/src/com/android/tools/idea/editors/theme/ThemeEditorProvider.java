@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -55,6 +56,7 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_THEME_EDITOR, UsageTracker.ACTION_THEME_EDITOR_OPEN, null, null);
     return new ThemeEditor(project, file);
   }
 

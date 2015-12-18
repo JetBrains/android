@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import freemarker.template.Configuration;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +61,8 @@ public final class FreemarkerUtils {
     paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
     paramMap.put("truncate", new FmTruncateStringMethod());
     paramMap.put("compareVersions", new FmCompareVersionsMethod());
-    paramMap.put("getApplicationTheme", new FMGetApplicationThemeMethod(paramMap));
+    paramMap.put("getApplicationTheme", new FmGetApplicationThemeMethod(paramMap));
+    paramMap.put("getAppManifestDir", new FmGetAppManifestDirMethod(paramMap));
 
     // Dependency list
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
@@ -80,22 +81,25 @@ public final class FreemarkerUtils {
    *                  to the enclosing file.
    */
   @NotNull
-  public static String processFreemarkerTemplate(@NotNull Configuration freemarker,
-                                                 @NotNull Map<String, Object> paramMap,
+  public static String processFreemarkerTemplate(@NotNull RenderingContext context,
                                                  @NotNull File file,
                                                  @Nullable TemplatePostProcessor processor) throws TemplateProcessingException {
-    StudioTemplateLoader loader = (StudioTemplateLoader)freemarker.getTemplateLoader();
-    File previousFolder = loader.getTemplateFolder();
     try {
-      file = loader.getSourceFile(file);
-      loader.setTemplateFolder(file.getParentFile());
-      freemarker.template.Template template = freemarker.getTemplate(file.getName());
+      StudioTemplateLoader loader = context.getLoader();
+      String name = loader.findTemplate(file);
+      freemarker.template.Template template = context.getFreemarkerConfiguration().getTemplate(name);
       StringWriter out = new StringWriter();
-      template.process(paramMap, out);
+      template.process(context.getParamMap(), out);
       out.flush();
       String content = out.toString().replace("\r", "");
       if (processor != null) {
-        processor.process(content);
+        try {
+          loader.pushTemplateFolder(loader.getSourceFile(file).getParentFile());
+          processor.process(content);
+        }
+        finally {
+          loader.popTemplateFolder();
+        }
       }
       return content;
     }
@@ -104,9 +108,6 @@ public final class FreemarkerUtils {
     }
     catch (IOException ex) {
       throw new TemplateProcessingException(ex);
-    }
-    finally {
-      loader.setTemplateFolder(previousFolder);
     }
   }
 
@@ -119,8 +120,17 @@ public final class FreemarkerUtils {
   }
 
   public static class TemplateProcessingException extends Exception {
-    public TemplateProcessingException(Exception inner) {
+    public TemplateProcessingException(@NotNull String message, @Nullable Exception inner) {
+      super(message, inner);
+    }
+    public TemplateProcessingException(@NotNull Exception inner) {
       super(inner);
+    }
+  }
+
+  public static class TemplateUserVisibleException extends TemplateProcessingException {
+    public TemplateUserVisibleException(@NotNull String message) {
+      super(message, null);
     }
   }
 }

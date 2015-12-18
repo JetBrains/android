@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.gradle.invoker.console.view;
 
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 
+import static com.android.tools.idea.gradle.project.GradleModuleImporter.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+
 /**
- * Makes "Gradle Console" tool window available only for Android Studio.
+ * Makes "Gradle Console" tool window available only for Gradle projects in Android Studio.
  */
 public class GradleConsoleCondition implements Condition<Project> {
   @Override
   public boolean value(Project project) {
-    return AndroidStudioInitializer.isAndroidStudio();
+    return isAndroidStudio() && project != null && (isBuildWithGradle(project) || isGradleProject(project.getBaseDir()));
   }
 }

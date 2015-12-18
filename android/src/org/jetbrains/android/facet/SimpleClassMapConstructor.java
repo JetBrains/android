@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.facet;
 
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -49,7 +50,7 @@ public class SimpleClassMapConstructor implements ClassMapConstructor {
 
   @Override
   @NotNull
-  public String[] getTagNamesByClass(@NotNull final PsiClass c) {
+  public String[] getTagNamesByClass(@NotNull final PsiClass c, final int apiLevel) {
     return ApplicationManager.getApplication().runReadAction(new Computable<String[]>() {
       @Override
       public String[] compute() {
@@ -57,7 +58,7 @@ public class SimpleClassMapConstructor implements ClassMapConstructor {
         if (name != null) {
           String qualifiedName = c.getQualifiedName();
           if (qualifiedName != null) {
-            if (!isAndroidLibraryClass(qualifiedName)) {
+            if (ResourceHelper.isClassPackageNeeded(qualifiedName, c, apiLevel)) {
               return new String[]{qualifiedName};
             }
             return new String[]{name, qualifiedName};
@@ -69,11 +70,6 @@ public class SimpleClassMapConstructor implements ClassMapConstructor {
     });
   }
 
-  protected static boolean isAndroidLibraryClass(@NotNull String qualifiedClassName) {
-    String[] ar = qualifiedClassName.split("\\.");
-    return ar.length < 0 || ar[0].equals("android");
-  }
-
   @Nullable
   public static PsiClass findClassByTagName(@NotNull AndroidFacet facet, @NotNull String name, @NotNull PsiClass baseClass) {
     final Module module = facet.getModule();
@@ -82,11 +78,12 @@ public class SimpleClassMapConstructor implements ClassMapConstructor {
     if (!name.contains(".")) {
       final PsiClass[] classes = PsiShortNamesCache.getInstance(project).
         getClassesByName(name, module.getModuleWithLibrariesScope());
+      final int apiLevel = facet.getModuleMinApi();
 
       for (PsiClass aClass : classes) {
-        final String qName = aClass.getQualifiedName();
+        final String qualifiedName = aClass.getQualifiedName();
 
-        if (qName != null && isAndroidLibraryClass(qName) && aClass.isInheritor(baseClass, true)) {
+        if (qualifiedName != null && !ResourceHelper.isClassPackageNeeded(qualifiedName, baseClass, apiLevel) && aClass.isInheritor(baseClass, true)) {
           return aClass;
         }
       }

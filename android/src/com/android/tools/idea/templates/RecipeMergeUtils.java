@@ -22,14 +22,15 @@ import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.manifmerger.ManifestMerger2;
 import com.android.manifmerger.MergingReport;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
+import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -42,8 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -96,7 +96,7 @@ public class RecipeMergeUtils {
    * or null if the file has already been/doesn't need to be updated.
    */
   @Nullable
-  public static String mergeXml(@NotNull Project project, String sourceXml, String targetXml, File targetFile) {
+  public static String mergeXml(@NotNull RenderingContext context, String sourceXml, String targetXml, File targetFile) {
     boolean ok;
     String fileName = targetFile.getName();
     String contents;
@@ -105,7 +105,7 @@ public class RecipeMergeUtils {
       assert currentDocument != null : targetXml + " failed to parse";
       Document fragment = XmlUtils.parseDocumentSilently(sourceXml, true);
       assert fragment != null : sourceXml + " failed to parse";
-      contents = mergeManifest(targetFile, sourceXml);
+      contents = mergeManifest(targetFile, targetXml, sourceXml);
       ok = contents != null;
     }
     else {
@@ -113,7 +113,7 @@ public class RecipeMergeUtils {
       String parentFolderName = targetFile.getParentFile().getName();
       ResourceFolderType folderType = ResourceFolderType.getFolderType(parentFolderName);
       // mergeResourceFile handles the file updates itself, so no content is returned in this case.
-      contents = mergeResourceFile(project, targetXml, sourceXml, folderType);
+      contents = mergeResourceFile(context, targetXml, sourceXml, fileName, folderType);
       ok = contents != null;
     }
 
@@ -123,6 +123,9 @@ public class RecipeMergeUtils {
       // syntax that many tools and editors recognize.
 
       contents = wrapWithMergeConflict(targetXml, sourceXml);
+
+      // Report the conflict as a warning:
+      context.getWarnings().add(String.format("Merge conflict for: %1$s this file must be fixed by hand", targetFile.getName()));
     }
     return contents;
   }
@@ -130,13 +133,15 @@ public class RecipeMergeUtils {
   /**
    * Merges the given resource file contents into the given resource file
    */
-  public static String mergeResourceFile(@NotNull Project project,
+  @SuppressWarnings("StatementWithEmptyBody")
+  public static String mergeResourceFile(@NotNull RenderingContext context,
                                          @NotNull String targetXml,
                                          @NotNull String sourceXml,
+                                         @NotNull String fileName,
                                          @Nullable ResourceFolderType folderType) {
-    XmlFile targetPsiFile = (XmlFile)PsiFileFactory.getInstance(project)
+    XmlFile targetPsiFile = (XmlFile)PsiFileFactory.getInstance(context.getProject())
       .createFileFromText("targetFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(targetXml));
-    XmlFile sourcePsiFile = (XmlFile)PsiFileFactory.getInstance(project)
+    XmlFile sourcePsiFile = (XmlFile)PsiFileFactory.getInstance(context.getProject())
       .createFileFromText("sourceFile", XMLLanguage.INSTANCE, StringUtil.convertLineSeparators(sourceXml));
     XmlTag root = targetPsiFile.getDocument().getRootTag();
     assert root != null : "Cannot find XML root in target: " + targetXml;
@@ -171,7 +176,7 @@ public class RecipeMergeUtils {
           String mergeStrategy = subTag.getAttributeValue(MERGE_ATTR_STRATEGY);
           subTag.setAttribute(MERGE_ATTR_STRATEGY, null);
           // remove the space left by the deleted attribute
-          CodeStyleManager.getInstance(project).reformat(subTag);
+          CodeStyleManager.getInstance(context.getProject()).reformat(subTag);
           String name = getResourceId(subTag);
           XmlTag replace = name != null ? old.get(name) : null;
           if (replace != null) {
@@ -208,7 +213,9 @@ public class RecipeMergeUtils {
             }
             else {
               // No explicit directive given, preserve the original value by default.
-              LOG.warn("Warning: Ignoring name conflict in resource file for name " + name);
+              context.getWarnings().add(String.format(
+                "Ignoring conflict for the value: %1$s wanted: \"%2$s\" but it already is: \"%3$s\" in the file: %4$s", name,
+                child.getText(), replace.getText(), fileName));
             }
           }
           else {
@@ -240,17 +247,22 @@ public class RecipeMergeUtils {
    * Merges the given manifest fragment into the given manifest file
    */
   @Nullable
-  private static String mergeManifest(@NotNull File targetManifest, @NotNull String mergeText) {
-    File tempFile = null;
+  private static String mergeManifest(@NotNull final File targetManifest, @NotNull final String targetXml, @NotNull final String mergeText) {
     try {
       //noinspection SpellCheckingInspection
-      tempFile = FileUtil.createTempFile("manifmerge", DOT_XML);
-      FileUtil.writeToFile(tempFile, mergeText);
+      final File tempFile2 = new File(targetManifest.getParentFile(), "nevercreated.xml");
       StdLogger logger = new StdLogger(StdLogger.Level.INFO);
-      ManifestMerger2.Invoker merger = ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
+      MergingReport mergeReport = ManifestMerger2.newMerger(targetManifest, logger, ManifestMerger2.MergeType.APPLICATION)
         .withFeatures(ManifestMerger2.Invoker.Feature.EXTRACT_FQCNS, ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)
-        .addLibraryManifest(tempFile);
-      MergingReport mergeReport = merger.merge();
+        .addLibraryManifest(tempFile2)
+        .withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
+          @Override
+          protected InputStream getInputStream(@NotNull File file) throws FileNotFoundException {
+            String text = FileUtil.filesEqual(file, targetManifest) ? targetXml : mergeText;
+            return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
+          }
+        })
+        .merge();
       if (mergeReport.getMergedDocument().isPresent()) {
         return XmlPrettyPrinter
           .prettyPrint(mergeReport.getMergedDocument().get().getXml(), createXmlFormatPreferences(), XmlFormatStyle.MANIFEST, "\n",
@@ -258,24 +270,10 @@ public class RecipeMergeUtils {
       }
       return null;
     }
-    catch (IOException e) {
-      LOG.error(e);
-    }
     catch (ManifestMerger2.MergeFailureException e) {
-      LOG.error(e);
-      try {
-        FileUtil.appendToFile(tempFile, String.format("<!--%s-->", e.getMessage()));
-      }
-      catch (IOException e1) {
-        LOG.error(e1);
-      }
+      LOG.warn(e);
+      return null;
     }
-    finally {
-      if (tempFile != null) {
-        tempFile.delete();
-      }
-    }
-    return null;
   }
 
 

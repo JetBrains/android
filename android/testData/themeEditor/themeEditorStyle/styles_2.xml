@@ -1,0 +1,6 @@
+<resources>
+  <style name="newParent" parent="android:Theme"></style>
+  <style name="AppTheme" parent="@android:style/Theme">
+  </style>
+
+</resources>

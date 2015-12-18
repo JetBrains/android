@@ -22,17 +22,22 @@ public final class Factory {
     //<<<Start:Java.FactoryBody:2>>>
     Image.register();
     ImageInfo.register();
-    LazyConverter.register();
     FmtATCRGBAEXPLICITALPHAAMD.register();
     FmtATCRGBAMD.register();
     FmtAlpha.register();
-    FmtETC1RGB8OES.register();
+    FmtETC1RGB8.register();
+    FmtETC2RGB8.register();
+    FmtETC2RGBA8EAC.register();
     FmtFloat32.register();
     FmtLuminance.register();
     FmtLuminanceAlpha.register();
     FmtPNG.register();
     FmtRGB.register();
+    FmtRGB565.register();
     FmtRGBA.register();
+    FmtRGBA4444.register();
+    FmtRGBA5551.register();
+    FmtRGBAF32.register();
     //<<<End:Java.FactoryBody:2>>>
   }
 }

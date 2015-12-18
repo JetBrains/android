@@ -98,7 +98,7 @@ public class GraphicsLayoutRenderer {
    */
   private final List<ResourceValue> myResourceLookupChain;
 
-  private ReentrantReadWriteLock myRenderSessionLock = new ReentrantReadWriteLock();
+  private final ReentrantReadWriteLock myRenderSessionLock = new ReentrantReadWriteLock();
   /*
    * The render session is lazily initialized. We need to wait until we have a valid Graphics2D
    * instance to launch it.
@@ -139,8 +139,11 @@ public class GraphicsLayoutRenderer {
     LayoutLibrary layoutLib;
     try {
       IAndroidTarget latestTarget = configuration.getConfigurationManager().getHighestApiTarget();
-      layoutLib = platform.getSdkData().getTargetData(latestTarget).getLayoutLibrary(project);
+      if (latestTarget == null) {
+        throw new UnsupportedLayoutlibException("GraphicsLayoutRenderer requires at least layoutlib version " + MIN_LAYOUTLIB_API_VERSION);
+      }
 
+      layoutLib = platform.getSdkData().getTargetData(latestTarget).getLayoutLibrary(project);
       if (layoutLib == null) {
         throw new InitializationException("getLayoutLibrary() returned null");
       }

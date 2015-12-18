@@ -91,6 +91,10 @@ public class GradleProperties {
     myProperties.setProperty(JVM_ARGS_PROPERTY_NAME, jvmArgs);
   }
 
+  public void clear() {
+    myProperties.clear();
+  }
+
   @Nullable
   public String getJvmArgs() {
     return myProperties.getProperty(JVM_ARGS_PROPERTY_NAME);
@@ -98,5 +102,10 @@ public class GradleProperties {
 
   public Properties getProperties() {
     return myProperties;
+  }
+
+  @NotNull
+  public File getPath() {
+    return myPath;
   }
 }

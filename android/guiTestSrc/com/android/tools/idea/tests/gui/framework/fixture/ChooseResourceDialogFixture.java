@@ -15,35 +15,43 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.editors.theme.StateListPicker;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.StateListPickerFixture;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.treeStructure.Tree;
 import org.fest.swing.core.GenericTypeMatcher;
 import com.intellij.ui.components.JBTabbedPane;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTabbedPaneFixture;
+import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.android.uipreview.ColorPicker;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.JLabel;
+import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourceDialog> {
   JTabbedPaneFixture myTabbedPane;
-  ColorPickerFixture myColorPicker;
 
   @NotNull
   public static ChooseResourceDialogFixture find(@NotNull Robot robot) {
     return new ChooseResourceDialogFixture(robot, find(robot, ChooseResourceDialog.class));
   }
 
+  @NotNull
+  public static ChooseResourceDialogFixture find(@NotNull Robot robot, @NotNull final GenericTypeMatcher<JDialog> matcher) {
+    return new ChooseResourceDialogFixture(robot, find(robot, ChooseResourceDialog.class, matcher));
+  }
+
   private ChooseResourceDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<ChooseResourceDialog> dialogAndWrapper) {
     super(robot, dialogAndWrapper);
     myTabbedPane = new JTabbedPaneFixture(robot, robot.finder().findByType(this.target(), JBTabbedPane.class));
-    myColorPicker = new ColorPickerFixture(robot, robot.finder().findByType(this.target(), ColorPicker.class));
   }
 
   @NotNull
@@ -62,14 +70,25 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
       GuiTests.waitUntilFound(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
         @Override
         protected boolean isMatching(@NotNull JLabel component) {
-          return component.isShowing() && !"".equals(component.getText()) && component.getIcon() == AllIcons.Actions.Lightning;
+          return component.isShowing() && !StringUtil.isEmpty(component.getText()) && component.getIcon() == AllIcons.Actions.Lightning;
         }
       });
     return error.getText();
   }
 
+  @NotNull
   public ColorPickerFixture getColorPicker() {
-    return myColorPicker;
+    return new ColorPickerFixture(robot(), robot().finder().findByType(this.target(), ColorPicker.class));
+  }
+
+  @NotNull
+  public StateListPickerFixture getStateListPicker() {
+    return new StateListPickerFixture(robot(), robot().finder().findByType(this.target(), StateListPicker.class));
+  }
+
+  @NotNull
+  public JTreeFixture getResourceTree() {
+    return new JTreeFixture(robot(), robot().finder().findByType(this.target(), Tree.class));
   }
 
   public void clickOK() {

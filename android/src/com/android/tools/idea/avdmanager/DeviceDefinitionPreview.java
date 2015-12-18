@@ -21,6 +21,7 @@ import com.android.sdklib.devices.Device;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,16 +45,16 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionList.DeviceCategorySelectionListener {
 
   private static final String NO_DEVICE_SELECTED = "No Device Selected";
-  private static final int FIGURE_PADDING = 3;
+  private static final int FIGURE_PADDING = JBUI.scale(3);
   private static final DecimalFormat FORMAT = new DecimalFormat(".##\"");
-  public static final int DIMENSION_LINE_WIDTH = 1; // px
-  public static final int OUTLINE_LINE_WIDTH = 5;   // px
+  public static final int DIMENSION_LINE_WIDTH = JBUI.scale(1); // px
+  public static final int OUTLINE_LINE_WIDTH = JBUI.scale(5);   // px
   private Device myDevice;
   double myMaxOutlineHeight;
   double myMaxOutlineWidth;
   double myMinOutlineHeightIn;
   double myMinOutlineWidthIn;
-  private static final int PADDING = 20;
+  private static final int PADDING = JBUI.scale(20);
 
   private static final JBColor OUR_GRAY = new JBColor(Gray._192, Gray._96);
 
@@ -90,8 +91,8 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     // Paint the device name
     g2d.setFont(TITLE_FONT);
     FontMetrics metrics = g.getFontMetrics(TITLE_FONT);
-    g2d.drawString(myDevice.getDisplayName(), 50, PADDING + metrics.getHeight() / 2);
-    g2d.drawLine(0, 50, getWidth(), 50);
+    g2d.drawString(myDevice.getDisplayName(), JBUI.scale(50), PADDING + metrics.getHeight() / 2);
+    g2d.drawLine(0, JBUI.scale(50), getWidth(), JBUI.scale(50));
 
     // Paint the device outline with dimensions labelled
     Dimension screenSize = getScaledDimension(myDevice);
@@ -103,7 +104,9 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       if (screenSize.getWidth() <= 0) {
         screenSize.width = 1;
       }
-      RoundRectangle2D roundRect = new RoundRectangle2D.Double(PADDING, 100, screenSize.width, screenSize.height, 10, 10);
+      RoundRectangle2D roundRect = new RoundRectangle2D.Double(PADDING, JBUI.scale(100),
+                                                               screenSize.width, screenSize.height,
+                                                               JBUI.scale(10), JBUI.scale(10));
       g2d.setStroke(new BasicStroke(DIMENSION_LINE_WIDTH));
       g2d.setColor(OUR_GRAY);
 
@@ -113,7 +116,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
       // Paint the width dimension
       String widthString = Integer.toString(pixelScreenSize.width) + "px";
-      int widthLineY = 95 - (metrics.getHeight() - metrics.getDescent()) / 2;
+      int widthLineY = JBUI.scale(95) - (metrics.getHeight() - metrics.getDescent()) / 2;
       g2d.drawLine(PADDING, widthLineY, round(PADDING + screenSize.width), widthLineY);
 
       // Erase the part of the line that the text overlays
@@ -125,32 +128,32 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
       // Paint the width text
       g2d.setColor(JBColor.foreground());
-      g2d.drawString(widthString, widthTextX, 95);
+      g2d.drawString(widthString, widthTextX, JBUI.scale(95));
 
       // Paint the height dimension
       g2d.setColor(OUR_GRAY);
       String heightString = Integer.toString(pixelScreenSize.height) + "px";
-      int heightLineX = round(PADDING + screenSize.width + 15);
-      g2d.drawLine(heightLineX, 100, heightLineX, round(100 + screenSize.height));
+      int heightLineX = round(PADDING + screenSize.width + JBUI.scale(15));
+      g2d.drawLine(heightLineX, JBUI.scale(100), heightLineX, round(JBUI.scale(100) + screenSize.height));
 
       // Erase the part of the line that the text overlays
       g2d.setColor(JBColor.background());
-      int heightTextY = round(100 + (screenSize.height + stringHeight) / 2);
+      int heightTextY = round(JBUI.scale(100) + (screenSize.height + stringHeight) / 2);
       g2d.drawLine(heightLineX, heightTextY + FIGURE_PADDING, heightLineX, heightTextY - stringHeight - FIGURE_PADDING);
 
       // Paint the height text
       g2d.setColor(JBColor.foreground());
-      g2d.drawString(heightString, heightLineX - 10, heightTextY);
+      g2d.drawString(heightString, heightLineX - JBUI.scale(10), heightTextY);
 
       // Paint the diagonal dimension
       g2d.setColor(OUR_GRAY);
       String diagString = FORMAT.format(myDevice.getDefaultHardware().getScreen().getDiagonalLength());
       int diagTextX = round(PADDING + (screenSize.width - metrics.stringWidth(diagString)) / 2);
-      int diagTextY = round(100 + (screenSize.height + stringHeight) / 2);
+      int diagTextY = round(JBUI.scale(100) + (screenSize.height + stringHeight) / 2);
 
       double chin = (double)myDevice.getChinSize();
       chin *= screenSize.getWidth() / myDevice.getScreenSize(myDevice.getDefaultState().getOrientation()).getWidth();
-      Line2D diagLine = new Line2D.Double(PADDING, 100 + screenSize.height + chin, PADDING + screenSize.width, 100);
+      Line2D diagLine = new Line2D.Double(PADDING, JBUI.scale(100) + screenSize.height + chin, PADDING + screenSize.width, JBUI.scale(100));
       if (isCircular) {
         // Move the endpoints of the line to within the circle. Each endpoint must move towards the center axis of the circle by
         // 0.5 * (l - l/sqrt(2)) where l is the diameter of the circle.
@@ -203,10 +206,10 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       int infoSegmentY;
       if (myDevice.getDefaultState().getOrientation().equals(ScreenOrientation.PORTRAIT)) {
         infoSegmentX = round(PADDING + screenSize.width + metrics.stringWidth(heightString) + PADDING);
-        infoSegmentY = 100;
+        infoSegmentY = JBUI.scale(100);
       } else {
         infoSegmentX = PADDING;
-        infoSegmentY = round(100 + screenSize.height + PADDING);
+        infoSegmentY = round(JBUI.scale(100) + screenSize.height + PADDING);
       }
       infoSegmentY += stringHeight;
       ScreenSize size = myDevice.getDefaultHardware().getScreen().getSize();

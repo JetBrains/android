@@ -24,7 +24,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.*;
-import org.jetbrains.android.run.AvdComboBox;
+import com.android.tools.idea.run.AvdComboBox;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 

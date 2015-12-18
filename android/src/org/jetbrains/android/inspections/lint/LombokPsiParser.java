@@ -34,6 +34,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.ArrayUtil;
@@ -932,16 +933,23 @@ public class LombokPsiParser extends JavaParser {
 
     @Override
     public boolean isSubclassOf(@NonNull String name, boolean strict) {
-      if (myClass != null) {
-        PsiClass cls = myClass;
+      return isInheritingFrom(name, strict);
+    }
+
+    @Override
+    public boolean isImplementing(@NonNull String name, boolean strict) {
+      return isInheritingFrom(name, strict);
+    }
+
+    @Override
+    public boolean isInheritingFrom(@NonNull String name, boolean strict) {
+      PsiClass cls = myClass;
+      if (cls != null) {
         if (strict) {
           cls = cls.getSuperClass();
         }
-        while (cls != null) {
-          if (name.equals(cls.getQualifiedName())) {
-            return true;
-          }
-          cls = cls.getSuperClass();
+        if (cls != null) {
+          return InheritanceUtil.isInheritor(cls, name);
         }
       }
       return false;
@@ -1179,7 +1187,14 @@ public class LombokPsiParser extends JavaParser {
             PsiLiteral literal = (PsiLiteral)mmv;
             list.add(literal.getValue());
           } else if (mmv instanceof PsiExpression) {
-            list.add(JavaConstantExpressionEvaluator.computeConstantExpression((PsiExpression)mmv, false));
+            Object o = JavaConstantExpressionEvaluator.computeConstantExpression((PsiExpression)mmv, false);
+            if (o == null && mmv instanceof PsiReferenceExpression) {
+              PsiElement resolved = ((PsiReferenceExpression)mmv).resolve();
+              if (resolved instanceof PsiField) {
+                o = new ResolvedPsiField((PsiField)resolved);
+              }
+            }
+            list.add(o);
           }
         }
 
@@ -1286,6 +1301,17 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public int getModifiers() {
       return 0;
+    }
+
+    @Override
+    @Nullable
+    public ResolvedPsiPackage getParentPackage() {
+      PsiPackage parentPackage = myPackage.getParentPackage();
+      if (parentPackage != null) {
+        return new ResolvedPsiPackage(parentPackage);
+      }
+
+      return null;
     }
 
     @NonNull

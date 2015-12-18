@@ -59,7 +59,6 @@ public abstract class AndroidLogcatView implements Disposable {
   static final String SELECTED_APP_FILTER = AndroidBundle.message("android.logcat.filters.selected");
   static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
   static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
-  static final String REGEX = "Re&gex";
 
   private final Project myProject;
   private final DeviceContext myDeviceContext;
@@ -113,11 +112,14 @@ public abstract class AndroidLogcatView implements Disposable {
       return;
     }
 
+    myLogFilterModel.beginRejectingOldMessages();
     AndroidLogcatUtils.clearLogcat(myProject, device);
 
     // In theory, we only need to clear the console. However, due to issues in the platform, clearing logcat via "logcat -c" could
     // end up blocking the current logcat readers. As a result, we need to issue a restart of the logging to work around the platform bug.
     // See https://code.google.com/p/android/issues/detail?id=81164 and https://android-review.googlesource.com/#/c/119673
+    // NOTE: We can avoid this and just clear the console if we ever decide to stop issuing a "logcat -c" to the device or if we are
+    // confident that https://android-review.googlesource.com/#/c/119673 doesn't happen anymore.
     if (device.equals(getSelectedDevice())) {
       notifyDeviceUpdated(true);
     }
@@ -308,22 +310,22 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  private volatile @Nullable AndroidLogcatReceiver myReciever;
+  private volatile @Nullable AndroidLogcatReceiver myReceiver;
 
   private void updateLogConsole() {
     IDevice device = getSelectedDevice();
     if (myDevice != device) {
       myDevice = device;
-      AndroidLogcatReceiver reciever = myReciever;
-      if (reciever != null) {
-        reciever.cancel();
+      AndroidLogcatReceiver receiver = myReceiver;
+      if (receiver != null) {
+        receiver.cancel();
       }
       if (device != null) {
         final ConsoleView console = myLogConsole.getConsole();
         if (console != null) {
           console.clear();
         }
-        myReciever = AndroidLogcatUtils.startLoggingThread(myProject, device, false, myLogConsole);
+        myReceiver = AndroidLogcatUtils.startLoggingThread(myProject, device, false, myLogConsole);
       }
     }
   }
@@ -406,7 +408,9 @@ public abstract class AndroidLogcatView implements Disposable {
     @Override
     public void actionPerformed(AnActionEvent e) {
       ConfigureLogcatFormatDialog dialog = new ConfigureLogcatFormatDialog(myProject);
-      dialog.show();
+      if (dialog.showAndGet()) {
+        myLogConsole.refresh();
+      }
     }
   }
 
@@ -454,6 +458,16 @@ public abstract class AndroidLogcatView implements Disposable {
     @Override
     public synchronized void addMessage(@NotNull String text) {
       super.addMessage(text);
+    }
+
+    /**
+     * Clear the current logs and replay all old messages. This is useful to do if the display
+     * format of the logs have changed, for example.
+     */
+    public void refresh() {
+      // Even if we haven't changed any filter, calling this method quickly refreshes the log as a
+      // side effect.
+      onTextFilterChange();
     }
   }
 }

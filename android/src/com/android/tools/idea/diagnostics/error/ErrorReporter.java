@@ -39,6 +39,7 @@ import com.intellij.openapi.diagnostic.SubmittedReportInfo;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
@@ -53,6 +54,9 @@ import java.util.Map;
 
 /** Sends crash reports to Google. Patterned after {@link com.intellij.diagnostic.ITNReporter} */
 public class ErrorReporter extends ErrorReportSubmitter {
+
+  private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
+
   @Override
   public String getReportActionText() {
     return AndroidBundle.message("error.report.to.google.action");
@@ -92,12 +96,6 @@ public class ErrorReporter extends ErrorReportSubmitter {
       bean.setAttachments(((AbstractMessage)data).getAttachments());
     }
 
-    List<Pair<String, String>> kv = IdeaITNProxy
-      .getKeyValuePairs(null, null, bean, IdeaLogger.getOurCompilationTimestamp(),
-                        ApplicationManager.getApplication(),
-                        (ApplicationInfoEx)ApplicationInfo.getInstance(),
-                        ApplicationNamesInfo.getInstance(), UpdateSettings.getInstance());
-
     final Project project = CommonDataKeys.PROJECT.getData(dataContext);
 
     Consumer<String> successCallback = new Consumer<String>() {
@@ -119,21 +117,28 @@ public class ErrorReporter extends ErrorReportSubmitter {
       public void consume(Exception e) {
         // TODO: check for updates
         String message = AndroidBundle.message("error.report.at.b.android", e.getMessage());
-        ReportMessages.GROUP.createNotification(ReportMessages.ERROR_REPORT,
-                                                message,
-                                                NotificationType.ERROR,
+        ReportMessages.GROUP.createNotification(ReportMessages.ERROR_REPORT, message, NotificationType.ERROR,
                                                 NotificationListener.URL_OPENING_LISTENER).setImportant(false).notify(project);
       }
     };
-    AnonymousFeedbackTask task =
-      new AnonymousFeedbackTask(project, "Submitting error report", true, t, pair2map(kv),
-                                bean.getMessage(), bean.getDescription(),
-                                ApplicationInfo.getInstance().getFullVersion(),
-                                successCallback, errorCallback);
-    if (project == null) {
-      task.run(new EmptyProgressIndicator());
+
+    Task.Backgroundable feedbackTask;
+    if (data instanceof ErrorReportCustomizer) {
+      feedbackTask = ((ErrorReportCustomizer) data).makeReportingTask(project, FEEDBACK_TASK_TITLE, true, bean, successCallback, errorCallback);
     } else {
-      ProgressManager.getInstance().run(task);
+      List<Pair<String, String>> kv = IdeaITNProxy
+        .getKeyValuePairs(null, null, bean, IdeaLogger.getOurCompilationTimestamp(), ApplicationManager.getApplication(),
+                          (ApplicationInfoEx)ApplicationInfo.getInstance(), ApplicationNamesInfo.getInstance(),
+                          UpdateSettings.getInstance());
+
+      feedbackTask =
+        new AnonymousFeedbackTask(project, FEEDBACK_TASK_TITLE, true, t, pair2map(kv), bean.getMessage(), bean.getDescription(),
+                                  ApplicationInfo.getInstance().getFullVersion(), successCallback, errorCallback);
+    }
+    if (project == null) {
+      feedbackTask.run(new EmptyProgressIndicator());
+    } else {
+      ProgressManager.getInstance().run(feedbackTask);
     }
     return true;
   }

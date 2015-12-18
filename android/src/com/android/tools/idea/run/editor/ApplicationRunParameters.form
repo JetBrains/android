@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.run.editor.ApplicationRunParameters">
+  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="9" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="442" height="252"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="d4c27" class="com.intellij.ui.TitledSeparator">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Installation Options"/>
+        </properties>
+      </component>
+      <component id="7943e" class="com.intellij.ui.components.JBLabel">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="&amp;Deploy:"/>
+        </properties>
+      </component>
+      <component id="9fdd5" class="com.intellij.openapi.ui.LabeledComponent" binding="myCustomArtifactLabeledComponent">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="2" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <componentClass value="com.intellij.openapi.ui.ComboBox"/>
+          <labelLocation value="West"/>
+          <text value="&amp;Artifact"/>
+        </properties>
+      </component>
+      <component id="90517" class="com.intellij.ui.TitledSeparator">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Launch Options"/>
+        </properties>
+      </component>
+      <component id="4f350" class="com.intellij.ui.components.JBLabel">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="&amp;Launch:"/>
+        </properties>
+      </component>
+      <component id="928cf" class="com.intellij.openapi.ui.ComboBox" binding="myLaunchOptionCombo">
+        <constraints>
+          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="14b6d" class="com.intellij.openapi.ui.ComboBox" binding="myDeployOptionCombo">
+        <constraints>
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <minimum-size width="100" height="-1"/>
+          </grid>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="38c16" class="com.intellij.openapi.ui.LabeledComponent" binding="myPmOptionsLabeledComponent">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <componentClass value="com.intellij.ui.components.JBTextField"/>
+          <labelLocation value="West"/>
+          <text value="&amp;Install Flags"/>
+        </properties>
+      </component>
+      <hspacer id="959dd">
+        <constraints>
+          <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="18318">
+        <constraints>
+          <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </hspacer>
+      <component id="44f4e" class="com.intellij.openapi.options.ex.ConfigurableCardPanel" binding="myLaunchOptionsCardPanel">
+        <constraints>
+          <grid row="6" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <vspacer id="3b1ee">
+        <constraints>
+          <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
+      <component id="9e85d" class="com.intellij.openapi.ui.LabeledComponent" binding="myAmOptionsLabeledComponent">
+        <constraints>
+          <grid row="7" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="2" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <componentClass value="com.intellij.ui.components.JBTextField"/>
+          <labelLocation value="West"/>
+          <text value="Launch &amp;Flags"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+  <buttonGroups>
+    <group name="buttonGroup1">
+      <member id="87e92"/>
+      <member id="8a8dd"/>
+      <member id="896e1"/>
+    </group>
+    <group name="myGroup1">
+      <member id="d1707"/>
+      <member id="92bc4"/>
+      <member id="14c7c"/>
+    </group>
+  </buttonGroups>
+</form>

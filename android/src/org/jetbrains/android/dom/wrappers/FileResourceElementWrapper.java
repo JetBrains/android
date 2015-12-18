@@ -118,6 +118,7 @@ public class FileResourceElementWrapper implements PsiFile, ResourceElementWrapp
     return myWrappee.getFileType();
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   @NotNull
   public PsiFile[] getPsiRoots() {
@@ -258,6 +259,7 @@ public class FileResourceElementWrapper implements PsiFile, ResourceElementWrapp
     return myWrappee.addAfter(element, anchor);
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void checkAdd(@NotNull PsiElement element) throws IncorrectOperationException {
     myWrappee.checkAdd(element);
@@ -284,6 +286,7 @@ public class FileResourceElementWrapper implements PsiFile, ResourceElementWrapp
     myWrappee.delete();
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void checkDelete() throws IncorrectOperationException {
     myWrappee.checkDelete();

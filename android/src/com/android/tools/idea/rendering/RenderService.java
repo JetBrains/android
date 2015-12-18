@@ -270,13 +270,9 @@ public class RenderService {
     // Look up the current minimum required version for layoutlib for each API level. Note that these
     // are minimum revisions; if a later version is available, it will be installed.
     switch (version.getFeatureLevel()) {
-      case 21:
-        if (version.isPreview()) {
-          revision = 4;
-        } else {
-          revision = 2;
-        }
-        break;
+      case 23: revision = 1; break;
+      case 22: revision = 2; break;
+      case 21: revision = 2; break;
       case 20: revision = 2; break;
       case 19: revision = 4; break;
       case 18: revision = 3; break;

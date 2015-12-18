@@ -19,7 +19,6 @@ import com.android.tools.idea.profiling.capture.Capture;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
@@ -65,5 +64,11 @@ public class CaptureNode extends SimpleNode {
       // The file might not be present anymore if the user deletes it from outside the editor.
       // Just ignore this issue, as the editor will soon pick up that the file is gone.
     }
+  }
+
+  @Override
+  protected void doUpdate() {
+    getTemplatePresentation().clearText();
+    getTemplatePresentation().addText(myCapture.getDescription(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
   }
 }

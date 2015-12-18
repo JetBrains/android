@@ -19,6 +19,7 @@ import com.android.ddmlib.Client;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.actions.RecordingAction;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
@@ -53,11 +54,11 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
     myTimelineComponent.configureStream(0, "Rx", new JBColor(0xff8000, 0xff8000));
     myTimelineComponent.configureStream(1, "Tx", new JBColor(0xffcc99, 0xffcc99));
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
+    myTimelineComponent.setStackStreams(false);
 
     // Some system images do not have the network stats file, it is a bug; we show a label before the bug is fixed.
-    addOverlayText(MISSING_LABEL, 0);
-    addOverlayText(PAUSED_LABEL, 1);
-    addOverlayText(STARTING_LABEL, 2);
+    addOverlayText(MISSING_LABEL, PAUSED_LABEL_PRIORITY - 1);
+    addOverlayText(STARTING_LABEL, PAUSED_LABEL_PRIORITY + 1);
 
     setViewComponent(myTimelineComponent);
     deviceContext.addListener(this, project);
@@ -103,6 +104,12 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
         }
       });
     }
+  }
+
+  @NotNull
+  @Override
+  public String getMonitorName() {
+    return "NetworkMonitor";
   }
 
   @NotNull

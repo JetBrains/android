@@ -104,11 +104,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
 
   @Override
   public JComponent createCustomComponent(Presentation presentation) {
-    JPanel panel = new JPanel(new GridBagLayout());
-    FlatComboButton button = createComboBoxButton(presentation);
-    panel.add(button,
-              new GridBagConstraints(0, 0, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-    return panel;
+    return createComboBoxButton(presentation);
   }
 
   protected FlatComboButton createComboBoxButton(Presentation presentation) {
@@ -316,14 +312,6 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
     private void updateTooltipText(String description) {
       String tooltip = KeymapUtil.createTooltipText(description, FlatComboAction.this);
       setToolTipText(!tooltip.isEmpty() ? tooltip : null);
-    }
-
-    @Override
-    public void updateUI() {
-      super.updateUI();
-      if (!UIUtil.isUnderGTKLookAndFeel()) {
-        setBorder(UIUtil.getButtonBorder());
-      }
     }
 
     protected class MyButtonModel extends DefaultButtonModel {

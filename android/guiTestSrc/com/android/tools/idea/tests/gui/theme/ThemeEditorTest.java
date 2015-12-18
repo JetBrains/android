@@ -18,14 +18,11 @@ package com.android.tools.idea.tests.gui.theme;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import org.fest.assertions.Index;
-import org.jetbrains.annotations.NotNull;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -42,17 +39,12 @@ import static org.fest.assertions.Assertions.assertThat;
  */
 @BelongsToTestGroups({THEME})
 public class ThemeEditorTest extends GuiTestCase {
-  @BeforeClass
-  public static void runBeforeClass() {
-    ThemeEditorTestUtils.enableThemeEditor();
-  }
-
   /**
    * Checks that no errors are present in the event log
    */
-  private static void checkNoErrors(@NotNull IdeFrameFixture projectFrame) {
-    projectFrame.robot().waitForIdle();
-    for(Notification notification : EventLog.getLogModel(projectFrame.getProject()).getNotifications()) {
+  private void checkNoErrors() {
+    myProjectFrame.robot().waitForIdle();
+    for(Notification notification : EventLog.getLogModel(myProjectFrame.getProject()).getNotifications()) {
       assertThat(notification.getType()).isNotEqualTo(NotificationType.ERROR);
     }
   }
@@ -60,8 +52,8 @@ public class ThemeEditorTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testOpenProject() throws IOException {
     // Test that we can open the simple application and the theme editor opens correctly
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
     // Search is empty
     themeEditor.getThemePreviewPanel().getSearchTextField().requireText("");
@@ -79,9 +71,9 @@ public class ThemeEditorTest extends GuiTestCase {
     // 7. Rename AppTheme
     assertThat(themeList)
       .hasSize(8)
-      .contains("@style/AppTheme", Index.atIndex(0))
-      .contains("@style/Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
-      .contains("@style/Theme.AppCompat.NoActionBar", Index.atIndex(3))
+      .contains("AppTheme", Index.atIndex(0))
+      .contains("Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
+      .contains("Theme.AppCompat.NoActionBar", Index.atIndex(3))
       .contains("Show all themes", Index.atIndex(4))
       .contains("Create New Theme", Index.atIndex(6))
       .contains("Rename AppTheme", Index.atIndex(7));
@@ -92,14 +84,14 @@ public class ThemeEditorTest extends GuiTestCase {
     // Check the attributes table is populated
     assertThat(themeEditor.getPropertiesTable().rowCount()).isGreaterThan(0);
 
-    projectFrame.getEditor().close();
-    checkNoErrors(projectFrame);
+    myProjectFrame.getEditor().close();
+    checkNoErrors();
   }
 
   @Test @IdeGuiTest
   public void testConfigurationToolbar() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(projectFrame);
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
 
     JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
     myRobot.click(apiButton);
@@ -107,9 +99,9 @@ public class ThemeEditorTest extends GuiTestCase {
 
     JButton deviceButton = themeEditor.findToolbarButton("The virtual device to render the layout with");
     myRobot.click(deviceButton);
-    clickPopupMenuItem("Nexus 6", deviceButton, myRobot);
+    clickPopupMenuItem("Nexus 6P", deviceButton, myRobot);
 
-    themeEditor.requireApi(21).requireDevice("Nexus 6");
+    themeEditor.requireApi(21).requireDevice("Nexus 6P");
 
     // Tests that Preview All Screen Sizes is disabled
     myRobot.click(deviceButton);

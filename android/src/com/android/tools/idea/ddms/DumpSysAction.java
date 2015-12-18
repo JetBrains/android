@@ -20,7 +20,9 @@ import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.editors.systeminfo.SystemInfoCaptureType;
 import com.android.tools.idea.profiling.capture.Capture;
+import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -78,10 +80,23 @@ public class DumpSysAction {
                 @Override
                 public void run() {
                   try {
-                    CaptureService service = CaptureService.getInstance(myProject);
-                    Capture capture = service.createCapture(SystemInfoCaptureType.class, receiver.getOutput().getBytes());
-                    capture.getFile().refresh(true, false);
-                    service.notifyCaptureReady(capture);
+                    final CaptureService service = CaptureService.getInstance(myProject);
+                    CaptureHandle handle = service.startCaptureFile(SystemInfoCaptureType.class);
+                    service.appendData(handle, receiver.getOutput().getBytes());
+                    service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
+                      @Override
+                      public void onSuccess(@Nullable Capture result) {
+                        if (result != null) {
+                          result.getFile().refresh(true, false);
+                          service.notifyCaptureReady(result);
+                        }
+                      }
+
+                      @Override
+                      public void onFailure(Throwable t) {
+                        showError(myProject, "Unexpected error while saving system information", t);
+                      }
+                    }, EdtExecutor.INSTANCE);
                   }
                   catch (IOException e) {
                     showError(myProject, "Unexpected error while saving system information", e);

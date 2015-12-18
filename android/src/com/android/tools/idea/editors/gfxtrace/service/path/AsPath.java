@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
@@ -33,6 +34,11 @@ public final class AsPath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
     return myObject.stringPath(builder).append(".As<").append(myType).append(">");
+  }
+
+  @Override
+  public Path getParent() {
+    return myObject;
   }
 
   //<<<Start:Java.ClassBody:1>>>
@@ -64,11 +70,15 @@ public final class AsPath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-65, 54, -6, -105, -102, 24, -107, -111, 31, -5, -113, 48, -83, -5, -68, 102, -125, -70, 77, 124, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","As","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Object", new Interface("Path")),
+      new Field("Type", new AnyType()),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -77,7 +87,7 @@ public final class AsPath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new AsPath(); }

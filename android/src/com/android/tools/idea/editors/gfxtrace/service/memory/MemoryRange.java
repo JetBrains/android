@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.memory;
 
+import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
@@ -58,11 +59,15 @@ public final class MemoryRange implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {77, 8, 67, -77, -73, 125, -116, 123, 95, 127, 84, -73, 123, -93, -42, 85, 119, 1, 82, 44, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("memory","Range","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Base", new Primitive("uint64", Method.Uint64)),
+      new Field("Size", new Primitive("uint64", Method.Uint64)),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -71,7 +76,7 @@ public final class MemoryRange implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new MemoryRange(); }

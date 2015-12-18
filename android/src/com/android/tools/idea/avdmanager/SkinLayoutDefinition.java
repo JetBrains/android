@@ -45,7 +45,7 @@ public class SkinLayoutDefinition {
 
   @Nullable
   public static SkinLayoutDefinition parseFile(@NotNull File file) {
-    String contents = TemplateUtils.readTextFile(file);
+    String contents = TemplateUtils.readTextFromDisk(file);
     if (contents == null) {
       return null;
     }

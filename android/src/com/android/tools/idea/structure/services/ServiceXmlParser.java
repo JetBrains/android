@@ -16,11 +16,14 @@
 package com.android.tools.idea.structure.services;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.FreemarkerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
+import com.android.tools.idea.templates.recipe.RenderingContext;
+import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.templates.TypedVariable;
 import com.android.tools.idea.templates.parse.SaxUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
-import com.android.tools.idea.templates.recipe.RecipeContext;
+import com.android.tools.idea.templates.recipe.RecipeExecutor;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.collections.ObservableList;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
@@ -33,12 +36,12 @@ import com.android.tools.idea.ui.properties.swing.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.containers.Stack;
-import freemarker.template.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
@@ -52,13 +55,13 @@ import javax.xml.parsers.SAXParserFactory;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -101,9 +104,11 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @NotNull private final Stack<String> myTagStack = new Stack<String>();
 
   @NotNull private ServicePanelBuilder myPanelBuilder;
-  @NotNull private ServiceCategory myServiceCategory;
-  @NotNull private DeveloperServiceMetadata myDeveloperServiceMetadata;
-  @NotNull private File myRecipeFile;
+
+  // These fields are not initialized by the constructor but are by the parsing step and not null afterward.
+  @NotNull @SuppressWarnings("NullableProblems") private ServiceCategory myServiceCategory;
+  @NotNull @SuppressWarnings("NullableProblems") private DeveloperServiceMetadata myDeveloperServiceMetadata;
+  @NotNull @SuppressWarnings("NullableProblems") private File myRecipeFile;
 
   public ServiceXmlParser(@NotNull Module module, @NotNull File rootPath, @NotNull ServiceContext serviceContext) {
     myModule = module;
@@ -190,39 +195,42 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     myTagStack.pop();
   }
 
-  @NotNull
-  public Recipe createRecipe(boolean executeRecipe) {
-    Configuration freemarker = new FreemarkerConfiguration();
-    StudioTemplateLoader loader = new StudioTemplateLoader(myRootPath);
-    Map<String, Object> paramMap = FreemarkerUtils.createParameterMap(myContext.toValueMap());
+  public void install() {
+    List<File> filesToOpen = Lists.newArrayList();
+    analyzeRecipe(false, filesToOpen, null, null, null);
+    TemplateUtils.openEditors(myModule.getProject(), filesToOpen, true);
+  }
 
+  private void analyzeRecipe(boolean findOnlyReferences,
+                             @Nullable Collection<File> openFiles,
+                             @Nullable Collection<String> dependencies,
+                             @Nullable Collection<File> sourceFiles,
+                             @Nullable Collection<File> targetFiles) {
     try {
-      freemarker.setTemplateLoader(loader);
-      String xml = FreemarkerUtils.processFreemarkerTemplate(freemarker, paramMap, myRecipeFile, null);
+      File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
+      // @formatter:off
+      RenderingContext context = RenderingContext.Builder
+        .newContext(myRootPath, myModule.getProject())
+        .withParams(myContext.toValueMap())
+        .withOutputRoot(moduleRoot)
+        .withModuleRoot(moduleRoot)
+        .withFindOnlyReferences(findOnlyReferences)
+        .withGradleSync(false)
+        .intoOpenFiles(openFiles)
+        .intoDependencies(dependencies)
+        .intoSourceFiles(sourceFiles)
+        .intoTargetFiles(targetFiles)
+        .build();
+      // @formatter:on
+      String xml = FreemarkerUtils.processFreemarkerTemplate(context, myRecipeFile, null);
       Recipe recipe = Recipe.parse(new StringReader(xml));
-
-      if (executeRecipe) {
-        RecipeContext recipeContext = new RecipeContext(myModule, loader, freemarker, paramMap, false);
-        recipe.execute(recipeContext);
-
-        // Convert relative paths to absolute paths, so TemplateUtils.openEditors can find them
-        List<File> relFilesToOpen = recipe.getFilesToOpen();
-        List<File> absFilesToOpen = Lists.newArrayListWithCapacity(relFilesToOpen.size());
-        for (File file : relFilesToOpen) {
-          absFilesToOpen.add(recipeContext.getTargetFile(file));
-        }
-        TemplateUtils.openEditors(myModule.getProject(), absFilesToOpen, true);
-      }
-
-      return recipe;
+      RecipeExecutor recipeExecutor = context.getRecipeExecutor();
+      recipe.execute(recipeExecutor);
     }
     catch (TemplateProcessingException e) {
       throw new RuntimeException(e);
     }
     catch (JAXBException e) {
-      throw new RuntimeException(e);
-    }
-    catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -277,17 +285,20 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   }
 
   private void closeServiceTag() {
-    Recipe recipe = createRecipe(false);
+    HashSet<String> dependencies = Sets.newHashSet();
+    List<File> sourceFiles = Lists.newArrayList();
+    List<File> targetFiles = Lists.newArrayList();
+    analyzeRecipe(true, null, dependencies, sourceFiles, targetFiles);
 
-    for (String d : recipe.getDependencies()) {
+    for (String d : dependencies) {
       myDeveloperServiceMetadata.addDependency(d);
     }
-    for (File f : recipe.getSourceFiles()) {
+    for (File f : sourceFiles) {
       if (f.getName().equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
-        parseManifestForPermissions(new File(myRootPath, f.toString()));
+        parseManifestForPermissions(f);
       }
     }
-    for (File f : recipe.getTargetFiles()) {
+    for (File f : targetFiles) {
       myDeveloperServiceMetadata.addModifiedFile(f);
     }
 
@@ -304,9 +315,9 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       saxParser.parse(f, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String tagName, Attributes attributes) throws SAXException {
-          if (tagName.equals(SdkConstants.TAG_USES_PERMISSION)
-              || tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_23)
-              || tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_M)) {
+          if (tagName.equals(SdkConstants.TAG_USES_PERMISSION) ||
+              tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_23) ||
+              tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_M)) {
             String permission = attributes.getValue(SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_NAME);
             // Most permissions are "android.permission.XXX", so for readability, just remove the prefix if present
             permission = permission.replace(SdkConstants.ANDROID_PKG_PREFIX + SdkConstants.ATTR_PERMISSION + ".", "");
@@ -357,7 +368,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       });
     }
   }
-  
+
   private void parseUiCheckbox(@NotNull Attributes attributes) {
     parseRowCol(attributes);
     JCheckBox checkbox = myPanelBuilder.addCheckbox();
@@ -401,12 +412,14 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       myPanelBuilder.getBindings().bind(textProperty, parseString(textKey));
     }
   }
+
   private void parseUiLink(@NotNull Attributes attributes) {
     parseRowCol(attributes);
-    HyperlinkLabel link = myPanelBuilder.addLink(requireAttr(attributes, Schema.UiLink.ATTR_TEXT),
-                                                 toUri(requireAttr(attributes, Schema.UiLink.ATTR_URL)));
+    HyperlinkLabel link =
+      myPanelBuilder.addLink(requireAttr(attributes, Schema.UiLink.ATTR_TEXT), toUri(requireAttr(attributes, Schema.UiLink.ATTR_URL)));
     bindTopLevelProperties(link, attributes);
   }
+
   private void parseUiPulldown(@NotNull Attributes attributes) {
     parseRowCol(attributes);
     String listKey = requireAttr(attributes, Schema.UiPulldown.ATTR_LIST);
@@ -463,8 +476,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   private ObservableValue<Boolean> parseBool(@NotNull final String value) {
     Matcher matcher = VAR_PATTERN.matcher(value);
     if (matcher.find()) {
-      String varName = matcher.group(1);
-      return (ObservableValue<Boolean>)myContext.getValue(varName);
+      // noinspection unchecked
+      return (ObservableValue<Boolean>)myContext.getValue(matcher.group(1));
     }
     else {
       final Boolean boolValue = (Boolean)TypedVariable.parse(TypedVariable.Type.BOOLEAN, value);
@@ -485,8 +498,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   private ObservableValue<String> parseString(@NotNull final String value) {
     Matcher matcher = VAR_PATTERN.matcher(value);
     if (matcher.find()) {
-      String varName = matcher.group(1);
-      return (ObservableValue<String>)myContext.getValue(varName);
+      // noinspection unchecked
+      return (ObservableValue<String>)myContext.getValue(matcher.group(1));
     }
     else {
       return new StringExpression() {
@@ -503,8 +516,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   private ObservableValue<Integer> parseInt(@NotNull final String value) {
     Matcher matcher = VAR_PATTERN.matcher(value);
     if (matcher.find()) {
-      String varName = matcher.group(1);
-      return (ObservableValue<Integer>)myContext.getValue(varName);
+      // noinspection unchecked
+      return (ObservableValue<Integer>)myContext.getValue(matcher.group(1));
     }
     else {
       final Integer intValue = (Integer)TypedVariable.parse(TypedVariable.Type.INTEGER, value);
@@ -526,8 +539,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   private <E> ObservableList<E> getList(@NotNull final String value) {
     Matcher matcher = VAR_PATTERN.matcher(value);
     if (matcher.find()) {
-      String varName = matcher.group(1);
-      return (ObservableList<E>)myContext.getValue(varName);
+      // noinspection unchecked
+      return (ObservableList<E>)myContext.getValue(matcher.group(1));
     }
     else {
       throw new RuntimeException("Invalid list value (did you forget ${...}): " + value);

@@ -20,11 +20,14 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.tools.chartlib.EventData;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.actions.AbstractClientAction;
 import com.android.tools.idea.editors.hprof.HprofCaptureType;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.android.tools.idea.profiling.capture.Capture;
+import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -39,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 public class DumpHprofAction extends AbstractClientAction {
   @NotNull private final Project myProject;
   @NotNull private EventData myEvents;
+  private boolean isCollectingHprofDump;
 
   public DumpHprofAction(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull EventData events) {
     super(deviceContext, AndroidBundle.message("android.ddms.actions.dump.hprof"),
@@ -49,10 +53,16 @@ public class DumpHprofAction extends AbstractClientAction {
 
   @Override
   protected void performAction(@NotNull Client c) {
+    isCollectingHprofDump = true;
     ApplicationManager.getApplication().executeOnPooledThread(new HprofRequest(c, myEvents));
   }
 
-  class HprofRequest implements Runnable, AndroidDebugBridge.IClientChangeListener {
+  @Override
+  protected boolean canPerformAction() {
+    return !isCollectingHprofDump;
+  }
+
+  private class HprofRequest implements Runnable, AndroidDebugBridge.IClientChangeListener {
 
     private final Client myClient;
     private CountDownLatch myResponse;
@@ -69,24 +79,29 @@ public class DumpHprofAction extends AbstractClientAction {
     public void run() {
       AndroidDebugBridge.addClientChangeListener(this);
 
-      myClient.dumpHprof();
-      synchronized (myEvents) {
-        myEvent = myEvents.start(System.currentTimeMillis(), MemoryMonitorView.EVENT_HPROF);
-      }
       try {
-        myResponse.await(1, TimeUnit.MINUTES);
-        // TODO Handle cases where it fails or times out.
-      }
-      catch (InterruptedException e) {
-        // Interrupted
-      }
-      // If the event had not finished, finish it now
-      synchronized (myEvents) {
-        if (myEvent != null) {
-          myEvent.stop(System.currentTimeMillis());
+        myClient.dumpHprof();
+        synchronized (myEvents) {
+          myEvent = myEvents.start(System.currentTimeMillis(), MemoryMonitorView.EVENT_HPROF);
+        }
+        try {
+          myResponse.await(1, TimeUnit.MINUTES);
+          // TODO Handle cases where it fails or times out.
+        }
+        catch (InterruptedException e) {
+          // Interrupted
+        }
+        // If the event had not finished, finish it now
+        synchronized (myEvents) {
+          if (myEvent != null) {
+            myEvent.stop(System.currentTimeMillis());
+          }
         }
       }
-      AndroidDebugBridge.removeClientChangeListener(this);
+      finally {
+        isCollectingHprofDump = false;
+        AndroidDebugBridge.removeClientChangeListener(this);
+      }
     }
 
     @Override
@@ -108,12 +123,23 @@ public class DumpHprofAction extends AbstractClientAction {
                 @Override
                 public void run() {
                   try {
-                    CaptureService service = CaptureService.getInstance(myProject);
-                    Capture capture = service.createCapture(HprofCaptureType.class, data.data);
-                    service.notifyCaptureReady(capture);
+                    final CaptureService service = CaptureService.getInstance(myProject);
+                    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class);
+                    service.appendDataCopy(handle, data.data);
+                    service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
+                      @Override
+                      public void onSuccess(Capture result) {
+                        service.notifyCaptureReady(result);
+                      }
+
+                      @Override
+                      public void onFailure(Throwable t) {
+                        Messages.showErrorDialog("Error writing Hprof data", "Dump Java Heap");
+                      }
+                    }, EdtExecutor.INSTANCE);
                   }
                   catch (IOException e) {
-                    throw new RuntimeException(e);
+                    Messages.showErrorDialog("Error create Hprof file", "Dump Java Heap");
                   }
                 }
               });

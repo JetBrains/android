@@ -22,6 +22,7 @@ import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.sdk.wizard.SmwOldApiDirectInstall;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -41,16 +42,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
-
 /**
  * A path to configure global details of a new Android project
  */
 public class ConfigureAndroidProjectPath extends DynamicWizardPath {
   private static final Logger LOG = Logger.getInstance(ConfigureAndroidProjectPath.class);
 
-  @NotNull
-  private final Disposable myParentDisposable;
+  @NotNull private final Disposable myParentDisposable;
 
   public ConfigureAndroidProjectPath(@NotNull Disposable parentDisposable) {
     myParentDisposable = parentDisposable;
@@ -70,10 +68,11 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
   public boolean validate() {
     if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
       setErrorHtml("<html>Your Android SDK is missing, out of date, or is missing templates. " +
-                   "Please ensure you are using SDK version " + VersionCheck.MIN_TOOLS_REV  + " or later.<br>" +
+                   "Please ensure you are using SDK version " + VersionCheck.MIN_TOOLS_REV + " or later.<br>" +
                    "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>");
       return false;
-    } else {
+    }
+    else {
       return true;
     }
   }
@@ -89,8 +88,9 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
    * be called early in the initialization of a wizard or path.
    * Variables:
    * Build Tools Version: Used to populate the project level build.gradle with the correct Gradle plugin version number
-   *                      If the required build tools version is not installed, a request is added for installation
+   * If the required build tools version is not installed, a request is added for installation
    * SDK Home: The location of the installed SDK
+   *
    * @param state the state store to populate with the values stored in the SDK
    */
   public static void putSdkDependentParams(@NotNull ScopedStateStore state) {
@@ -99,7 +99,8 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
     FullRevision minimumRequiredBuildToolVersion = FullRevision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
     if (buildTool != null && buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) >= 0) {
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
-    } else {
+    }
+    else {
       // We need to install a new build tools version
       state.listPush(WizardConstants.INSTALL_REQUESTS_KEY, PkgDesc.Builder.newBuildTool(minimumRequiredBuildToolVersion).create());
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, minimumRequiredBuildToolVersion.toString());
@@ -107,18 +108,26 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
 
     if (sdkData != null) {
       // Gradle expects a platform-neutral path
-      state.put(WizardConstants.SDK_HOME_KEY, FileUtil.toSystemIndependentName(sdkData.getPath()));
+      state.put(WizardConstants.SDK_HOME_KEY, FileUtil.toSystemIndependentName(sdkData.getLocation().getPath()));
     }
+  }
+
+  @Override
+  public boolean canPerformFinishingActions() {
+    return performFinishingOperation(true);
   }
 
   @Override
   public boolean performFinishingActions() {
     try {
+      if (!performFinishingOperation(false)) {
+        return false;
+      }
+
       Project project = getProject();
       assert project != null;
+
       File projectRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
-      Template projectTemplate = Template.createFromName(CATEGORY_PROJECTS, NewProjectWizardState.PROJECT_TEMPLATE_NAME);
-      projectTemplate.render(projectRoot, projectRoot, myState.flatten(), project);
       setGradleWrapperExecutable(projectRoot);
       return true;
     }
@@ -128,9 +137,25 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
     }
   }
 
+  private boolean performFinishingOperation(boolean dryRun) {
+    Project project = getProject();
+    assert project != null;
+
+    Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
+    // @formatter:off
+      final RenderingContext context = RenderingContext.Builder.newContext(projectTemplate, project)
+        .withCommandName("New Project")
+        .withDryRun(dryRun)
+        .withShowErrors(true)
+        .withParams(myState.flatten())
+        .intoTargetFiles(myState.get(WizardConstants.TARGET_FILES_KEY))
+        .build();
+      // @formatter:on
+    return projectTemplate.render(context);
+  }
+
   /**
    * Create a header banner for steps in this path.
-   * @return
    */
   protected static WizardStepHeaderSettings buildConfigurationHeader() {
     return WizardStepHeaderSettings.createProductHeader("New Project");
@@ -140,6 +165,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
    * Set the executable bit on the 'gradlew' wrapper script on Mac/Linux
    * On Windows, we use a separate gradlew.bat file which does not need an
    * executable bit.
+   *
    * @throws IOException
    */
   public static void setGradleWrapperExecutable(File projectRoot) throws IOException {

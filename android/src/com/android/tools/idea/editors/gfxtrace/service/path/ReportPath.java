@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,8 +29,14 @@ public final class ReportPath extends Path {
     return myCapture.stringPath(builder).append(".Report");
   }
 
+  @Override
+  public Path getParent() {
+    return myCapture;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private CapturePath myCapture;
+  private DevicePath myDevice;
 
   // Constructs a default-initialized {@link ReportPath}.
   public ReportPath() {}
@@ -44,14 +51,27 @@ public final class ReportPath extends Path {
     return this;
   }
 
+  public DevicePath getDevice() {
+    return myDevice;
+  }
+
+  public ReportPath setDevice(DevicePath v) {
+    myDevice = v;
+    return this;
+  }
+
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-61, 21, 48, 18, -76, -90, 126, 113, 58, -93, -20, -75, -109, 33, -10, 47, -46, -15, 79, -87, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","Report","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Capture", new Pointer(new Struct(CapturePath.Klass.INSTANCE.entity()))),
+      new Field("Device", new Pointer(new Struct(DevicePath.Klass.INSTANCE.entity()))),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -60,7 +80,7 @@ public final class ReportPath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new ReportPath(); }
@@ -69,12 +89,14 @@ public final class ReportPath extends Path {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ReportPath o = (ReportPath)obj;
       e.object(o.myCapture);
+      e.object(o.myDevice);
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ReportPath o = (ReportPath)obj;
       o.myCapture = (CapturePath)d.object();
+      o.myDevice = (DevicePath)d.object();
     }
     //<<<End:Java.KlassBody:2>>>
   }

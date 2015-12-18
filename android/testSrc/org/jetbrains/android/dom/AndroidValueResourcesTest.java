@@ -74,6 +74,25 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     doTestCompletionVariants("htmlTags.xml", "b", "i", "u");
   }
 
+  public void testParentStylesCompletion() throws Throwable {
+    doTestCompletionVariants("styles_parent.xml", "Parent", "Parent2", "AppTheme");
+  }
+
+  public void testParentStyleReferenceCompletion() throws Throwable {
+    doTestCompletionVariants("styles_parent_reference.xml", "@style/Parent", "@style/Parent2", "@style/AppTheme", "@style/NoXxxx",
+                             "@style/style1");
+  }
+
+  /** Checks the completion of parent styles when the attribute is empty */
+  public void testParentStylesEmptyCompletion() throws Throwable {
+    doTestCompletionVariants("styles_parent_empty.xml", "android:", "Parent", "AppTheme", "style1");
+  }
+
+  /** Checks the completion of parent styles when the attribute is only "@" */
+  public void testParentStylesEmptyReferenceCompletion() throws Throwable {
+    doTestCompletionVariants("styles_parent_empty_reference.xml", "@android:", "@style/Parent", "@style/AppTheme", "@style/style1");
+  }
+
   public void testStyles1() throws Throwable {
     doTestCompletionVariants("styles1.xml", "@drawable/picture1", "@drawable/picture2", "@drawable/picture3");
   }
@@ -307,6 +326,18 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     toTestCompletion("bool.xml", "bool_after.xml");
   }
 
+  public void testTranslatableAttributeCompletion() throws Throwable {
+    toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
+  }
+
+  public void testTranslatableFalseCompletion() throws Throwable {
+    toTestCompletion("strings_translatable_false.xml", "strings_translatable_false_after.xml");
+  }
+
+  public void testTranslatableTrueCompletion() throws Throwable {
+    toTestCompletion("strings_translatable_true.xml", "strings_translatable_true_after.xml");
+  }
+
   public void testInlineResourceField() throws Exception {
     copyFileToProject("value_resources.xml", "res/values/value_resources.xml");
     final VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
@@ -455,6 +486,10 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     VirtualFile file = copyFileToProject("lint.xml", "lint.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
+  }
+
+  public void testNamespaceCompletion() throws Exception {
+    doTestNamespaceCompletion(false, false, true, true);
   }
 
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {

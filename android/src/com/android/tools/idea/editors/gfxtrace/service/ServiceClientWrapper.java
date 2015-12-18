@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
+import com.android.tools.rpclib.schema.Message;
 import com.android.tools.idea.editors.gfxtrace.service.path.TimingInfoPath;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -57,7 +58,7 @@ public class ServiceClientWrapper extends ServiceClient {
     return myClient.getFramebufferDepth(device, after);
   }
   @Override
-  public ListenableFuture<Schema> getSchema() {
+  public ListenableFuture<Message> getSchema() {
     return myClient.getSchema();
   }
   @Override
@@ -67,6 +68,10 @@ public class ServiceClientWrapper extends ServiceClient {
   @Override
   public ListenableFuture<CapturePath> importCapture(String name, byte[] Data) {
     return myClient.importCapture(name, Data);
+  }
+  @Override
+  public ListenableFuture<CapturePath> loadCapture(String path) {
+    return myClient.loadCapture(path);
   }
   @Override
   public ListenableFuture<Path> set(Path p, Object v) {

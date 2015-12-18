@@ -16,8 +16,9 @@
 
 package org.jetbrains.android;
 
-import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
@@ -135,12 +136,21 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     Set<String> result = new HashSet<String>();
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet != null) {
-      result.add(SdkConstants.NS_RESOURCES);
-      String localNs = getLocalXmlNamespace(facet);
-      if (localNs != null) {
-        result.add(localNs);
+      result.add(TOOLS_URI);
+      ResourceFolderType type = ResourceHelper.getFolderType(file.getOriginalFile());
+      if (type == ResourceFolderType.VALUES) {
+        result.add(XLIFF_URI);
+      } else if (type != ResourceFolderType.MIPMAP && type != ResourceFolderType.RAW) {
+        result.add(NS_RESOURCES);
+        String localNs = getLocalXmlNamespace(facet);
+        if (localNs != null) {
+          result.add(localNs);
+        }
+        // Some xml files may contain xliff.
+        if (type == ResourceFolderType.XML) {
+          result.add(XLIFF_URI);
+        }
       }
-      result.add(SdkConstants.TOOLS_URI);
     }
     return result;
   }
@@ -156,13 +166,16 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     else if (namespace.equals(AUTO_URI) || namespace.startsWith(URI_PREFIX)) {
       return APP_PREFIX;
     }
+    else if (namespace.equals(XLIFF_PREFIX)) {
+      return XLIFF_PREFIX;
+    }
     return null;
   }
 
   @Nullable
   public static String getLocalXmlNamespace(@NotNull AndroidFacet facet) {
     if (facet.isLibraryProject() || facet.requiresAndroidModel()) {
-      return SdkConstants.AUTO_URI;
+      return AUTO_URI;
     }
     final Manifest manifest = facet.getManifest();
     if (manifest != null) {
@@ -174,7 +187,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
         }
       });
       if (aPackage != null && aPackage.length() != 0) {
-        return SdkConstants.URI_PREFIX + aPackage;
+        return URI_PREFIX + aPackage;
       }
     }
     return null;

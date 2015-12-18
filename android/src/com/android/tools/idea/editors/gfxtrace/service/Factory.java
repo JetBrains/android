@@ -21,6 +21,7 @@ public final class Factory {
   public static void register() {
     com.android.tools.rpclib.rpccore.Factory.register();
     com.android.tools.idea.editors.gfxtrace.service.atom.Factory.register();
+    com.android.tools.idea.editors.gfxtrace.service.gfxapi.Factory.register();
     com.android.tools.idea.editors.gfxtrace.service.image.Factory.register();
     com.android.tools.idea.editors.gfxtrace.service.memory.Factory.register();
     com.android.tools.idea.editors.gfxtrace.service.path.Factory.register();
@@ -35,7 +36,6 @@ public final class Factory {
     Report.register();
     ResourceInfo.register();
     Resources.register();
-    Schema.register();
     TimingInfo.register();
     CallFollow.register();
     CallGet.register();
@@ -46,6 +46,7 @@ public final class Factory {
     CallGetSchema.register();
     CallGetTimingInfo.register();
     CallImportCapture.register();
+    CallLoadCapture.register();
     CallSet.register();
     ResultFollow.register();
     ResultGet.register();
@@ -56,6 +57,7 @@ public final class Factory {
     ResultGetSchema.register();
     ResultGetTimingInfo.register();
     ResultImportCapture.register();
+    ResultLoadCapture.register();
     ResultSet.register();
     //<<<End:Java.FactoryBody:2>>>
   }

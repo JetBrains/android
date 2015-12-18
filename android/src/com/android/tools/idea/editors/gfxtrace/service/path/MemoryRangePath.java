@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,8 +26,13 @@ import java.io.IOException;
 public final class MemoryRangePath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
-    return myAfter.stringPath(builder).append("<").append(myPool).append(">")
+    return myAfter.stringPath(builder).append(".MemoryRange<").append(myPool).append(">")
       .append("[").append(Long.toHexString(myAddress)).append(":").append(Long.toHexString(getEndAddress())).append("]");
+  }
+
+  @Override
+  public Path getParent() {
+    return myAfter;
   }
 
   public long getEndAddress() {
@@ -82,11 +88,17 @@ public final class MemoryRangePath extends Path {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {104, 109, -113, -31, -117, 52, 82, -65, -86, 11, 60, -32, 8, -26, -41, 6, 110, 96, 9, -35, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("path","MemoryRange","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("After", new Pointer(new Struct(AtomPath.Klass.INSTANCE.entity()))),
+      new Field("Pool", new Primitive("uint64", Method.Uint64)),
+      new Field("Address", new Primitive("uint64", Method.Uint64)),
+      new Field("Size", new Primitive("uint64", Method.Uint64)),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -95,7 +107,7 @@ public final class MemoryRangePath extends Path {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new MemoryRangePath(); }

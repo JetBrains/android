@@ -1,0 +1,8 @@
+<resources>
+  <style name="Parent">
+  </style>
+
+  <style name="AppTheme" parent="<caret>">
+    <item name="android:windowBackground">@drawable/picture1</item>
+  </style>
+</resources>

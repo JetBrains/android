@@ -140,6 +140,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
   private static final int BUFFER_SIZE = 2048;
 
   private static final String GRADLE_RUNNING_MSG_TITLE = "Gradle Running";
+  private static final String PASSWORD_KEY_SUFFIX = ".password=";
 
   @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
 
@@ -302,7 +303,22 @@ class GradleTasksExecutor extends Task.Backgroundable {
           addLocalMavenRepoInitScriptCommandLineOption(commandLineArgs);
           attemptToUseEmbeddedGradle(project);
 
-          LOG.info("Build command line options: " + commandLineArgs);
+          // Don't include passwords in the log
+          String logMessage = "Build command line options: " + commandLineArgs;
+          if (logMessage.contains(PASSWORD_KEY_SUFFIX)) {
+            List<String> replaced = Lists.newArrayListWithExpectedSize(commandLineArgs.size());
+            for (String option : commandLineArgs) {
+              // -Pandroid.injected.signing.store.password=, -Pandroid.injected.signing.key.password=
+              int index = option.indexOf(".password=");
+              if (index == -1) {
+                replaced.add(option);
+              } else {
+                replaced.add(option.substring(0, index + PASSWORD_KEY_SUFFIX.length()) + "*********");
+              }
+            }
+            logMessage = replaced.toString();
+          }
+          LOG.info(logMessage);
 
           List<String> jvmArgs = Lists.newArrayList(myContext.getJvmArgs());
           BuildLauncher launcher = connection.newBuild();

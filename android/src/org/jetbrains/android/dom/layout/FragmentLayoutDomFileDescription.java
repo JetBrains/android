@@ -1,6 +1,5 @@
 package org.jetbrains.android.dom.layout;
 
-import com.android.SdkConstants;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
