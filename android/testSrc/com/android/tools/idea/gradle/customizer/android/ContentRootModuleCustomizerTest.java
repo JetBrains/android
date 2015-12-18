@@ -94,14 +94,12 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
   public void testCustomizeModule() throws Exception {
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
-    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
       myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
-      modelsProvider.commit();
     }
     finally {
-      rootModel.commit();
+      modelsProvider.commit();
     }
     ContentEntry contentEntry = moduleRootManager.getContentEntries()[0];
 
