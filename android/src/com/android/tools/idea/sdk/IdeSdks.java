@@ -73,7 +73,11 @@ public final class IdeSdks {
       sdkHome = sdk.getHomePath();
     }
     if (sdkHome != null) {
-      return new File(toSystemDependentName(sdkHome));
+      File candidate = new File(toSystemDependentName(sdkHome));
+      // Check if the sdk home is still valid. See https://code.google.com/p/android/issues/detail?id=197401 for more details.
+      if (isValidAndroidSdkPath(candidate)) {
+        return candidate;
+      }
     }
 
     // There is a possible case that android sdk which path was applied previously (setAndroidSdkPath()) didn't have any
