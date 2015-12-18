@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.idea.npw.RasterAssetSetStep;
-import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.google.common.collect.ImmutableList;
@@ -115,7 +115,7 @@ public final class ClipartAsset extends BaseAsset {
       return AssetUtil.filledImage(image, color);
     }
     catch (IOException e) {
-      return AssetStudioAssetGenerator.createDummyImage();
+      return AssetStudioUtils.createDummyImage();
     }
   }
 }
