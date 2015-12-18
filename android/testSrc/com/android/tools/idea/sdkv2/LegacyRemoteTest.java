@@ -59,7 +59,7 @@ public class LegacyRemoteTest extends AndroidTestCase {
       new LegacyRemoteRepoLoader(new FakeSettingsController(false), handler);
     sdk.setDownloadCache(new DownloadCache(fop, DownloadCache.Strategy.ONLY_CACHE));
     mgr.setFallbackRemoteRepoLoader(sdk);
-    FakeDownloader downloader = new FakeDownloader();
+    FakeDownloader downloader = new FakeDownloader(fop);
     // TODO: find a better way to get it into the cache/have the fallback load it
     fop.recordExistingFile(AndroidLocation.getFolder() + "cache/sdkbin-1_951b49ff-test_epo",
                            FileUtil.loadFile(new File(getClass().getResource("data/repository_sample_10.xml").toURI())));
