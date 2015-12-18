@@ -123,7 +123,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     List<String> propertyNameSegments = Splitter.on('.').splitToList(property);
     GradlePropertiesDslElement nestedElement = this;
     for (int i = 0; i < propertyNameSegments.size() - 1; i++) {
-      GradleDslElement element = nestedElement.getPropertyElement(propertyNameSegments.get(i));
+      GradleDslElement element = nestedElement.getPropertyElement(propertyNameSegments.get(i).trim());
       if (element instanceof GradlePropertiesDslElement) {
         nestedElement = (GradlePropertiesDslElement)element;
       } else {

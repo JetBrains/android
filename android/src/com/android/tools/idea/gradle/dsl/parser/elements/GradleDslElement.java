@@ -15,12 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.GradleSettingsModel;
-import com.android.tools.idea.gradle.dsl.model.ext.ExtModel;
-import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
-import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -40,8 +34,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
 
 import java.util.Collection;
-
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Provide Gradle specific abstraction over a {@link GroovyPsiElement}.
@@ -289,65 +281,5 @@ public abstract class GradleDslElement {
     if (!element.isValid()) { // If this element is deleted, also delete the parent if it is empty.
       deleteIfEmpty(parent);
     }
-  }
-
-  /**
-   * Returns the resolved value of the given {@code referenceText} of type {@code clazz} when the {@code referenceText} is referring to
-   * an element with the value of that type, or {@code null} otherwise.
-   */
-  @Nullable
-  protected <T> T resolveReference(@NotNull String referenceText, @NotNull Class<T> clazz) {
-
-    GradleDslFile dslFile = null;
-    GradleDslElement element = this;
-    while(element != null) {
-      if (element instanceof GradlePropertiesDslElement) {
-        T propertyValue = ((GradlePropertiesDslElement)element).getProperty(referenceText, clazz);
-        if (propertyValue != null) {
-          return propertyValue;
-        }
-        if (element instanceof GradleDslFile) {
-          dslFile = (GradleDslFile)element;
-          ExtDslElement extDslElement = dslFile.getProperty(ExtDslElement.NAME, ExtDslElement.class);
-          if (extDslElement != null) {
-            T extPropertyValue = extDslElement.getProperty(referenceText, clazz);
-            if (extPropertyValue != null) {
-              return extPropertyValue;
-            }
-          }
-        }
-      }
-      element = element.getParent();
-    }
-
-    // Now look the parent projects ext blocks.
-    if (dslFile != null) {
-      GradleSettingsModel gradleSettingsModel = GradleSettingsModel.get(dslFile.getProject());
-      if (gradleSettingsModel != null) {
-        String modulePath = gradleSettingsModel.moduleWithDirectory(virtualToIoFile(dslFile.getFile().getParent()));
-        if (modulePath != null) {
-          String parentModulePath = gradleSettingsModel.parentModule(modulePath);
-          while (parentModulePath != null) {
-            GradleBuildModel moduleModel = gradleSettingsModel.moduleModel(parentModulePath);
-            if (moduleModel != null) {
-              T extPropertyValue = moduleModel.ext().getProperty(referenceText, clazz);
-              if (extPropertyValue != null) {
-                return extPropertyValue;
-              }
-            }
-            parentModulePath = gradleSettingsModel.parentModule(parentModulePath);
-          }
-        }
-      }
-    }
-
-    if (clazz.isAssignableFrom(String.class)) {
-      if (myPsiElement != null && "rootDir".equals(referenceText)) { // resolve the rootDir reference to project root directory.
-        return clazz.cast(Projects.getBaseDirPath(myPsiElement.getProject()).getPath());
-      }
-      return clazz.cast(referenceText);
-    }
-
-    return null;
   }
 }
