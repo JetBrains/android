@@ -52,7 +52,7 @@ public final class ClipartAssetButton extends JButton implements AssetComponent 
 
   public ClipartAssetButton() {
 
-    setIconButtonDimensions();
+    setIconButtonDimensions(this);
     addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -89,11 +89,11 @@ public final class ClipartAssetButton extends JButton implements AssetComponent 
     return Logger.getInstance(ClipartAssetButton.class);
   }
 
-  private void setIconButtonDimensions() {
+  private static void setIconButtonDimensions(@NotNull JButton b) {
     Dimension d = new Dimension(CLIPART_BUTTON_SIZE, CLIPART_BUTTON_SIZE);
-    setMinimumSize(d);
-    setMaximumSize(d);
-    setPreferredSize(d);
+    b.setMinimumSize(d);
+    b.setMaximumSize(d);
+    b.setPreferredSize(d);
   }
 
   @NotNull
@@ -127,7 +127,7 @@ public final class ClipartAssetButton extends JButton implements AssetComponent 
         JButton btn = new JButton();
 
         btn.setIcon(ClipartAsset.createIcon(clipartName));
-        setIconButtonDimensions();
+        setIconButtonDimensions(btn);
         btn.addActionListener(new ActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {
