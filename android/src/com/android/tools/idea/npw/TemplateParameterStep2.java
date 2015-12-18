@@ -85,6 +85,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * Wizard step for specifying template-specific parameters.
+ * This class is used for configuring Android Activities AND non-Android lib modules.
  */
 public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   public static final Logger LOG = Logger.getInstance(TemplateParameterStep2.class);
@@ -95,7 +96,11 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   private final Map<String, Object> myPresetParameters = Maps.newHashMap();
   @NotNull private final Key<String> myPackageNameKey;
   private final LoadingCache<File, Optional<Icon>> myThumbnailsCache = CacheBuilder.newBuilder().build(new TemplateIconLoader());
-  @NotNull private final FormFactorUtils.FormFactor myFormFactor; // TODO: Use for icon
+  /**
+   * Can be null if this is used for non-android libs.
+   * TODO: Use for icon
+   */
+  @Nullable private final FormFactorUtils.FormFactor myFormFactor;
   private final SourceProvider[] mySourceProviders;
   private JLabel myTemplateIcon;
   private JPanel myTemplateParameters;
@@ -112,6 +117,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   private final StringEvaluator myEvaluator = new StringEvaluator();
   private Map<String, WizardParameterFactory> myExternalWizardParameterFactoryMap = null;
   private Map<JComponent, Parameter> myDataComponentParameters = new WeakHashMap<JComponent, Parameter>();
+  private final String myStepTitle;
 
   /**
    * Creates a new template parameters wizard step.
@@ -119,9 +125,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
    * @param presetParameters some parameter values may be predefined outside of this step.
    *                         User will not be allowed to change their values.
    */
-  public TemplateParameterStep2(@NotNull FormFactorUtils.FormFactor formFactor, Map<String, Object> presetParameters,
+  public TemplateParameterStep2(@Nullable FormFactorUtils.FormFactor formFactor, Map<String, Object> presetParameters,
                                 @Nullable Disposable disposable, @NotNull Key<String> packageNameKey,
-                                SourceProvider[] sourceProviders) {
+                                SourceProvider[] sourceProviders, String stepTitle) {
     super(disposable);
     myFormFactor = formFactor;
     mySourceProviders = sourceProviders;
@@ -131,6 +137,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     myRootPanel.setBorder(createBodyBorder());
     myTemplateDescription.setBorder(BorderFactory.createEmptyBorder(0, 0, myTemplateDescription.getFont().getSize(), 0));
     setBodyComponent(myRootPanel);
+    myStepTitle = stepTitle;
   }
 
   private static JComponent createTextFieldWithBrowse(Parameter parameter) {
@@ -881,7 +888,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   @NotNull
   @Override
   protected String getStepTitle() {
-    return "Customize the Activity";
+    return myStepTitle;
   }
 
   @Nullable
@@ -893,7 +900,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   @Nullable
   @Override
   protected Icon getStepIcon() {
-    return myFormFactor.getIcon();
+    return myFormFactor == null ? null : myFormFactor.getIcon();
   }
 
   @Override

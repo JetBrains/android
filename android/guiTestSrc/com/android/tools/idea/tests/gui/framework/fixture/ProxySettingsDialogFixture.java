@@ -27,6 +27,7 @@ import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static org.junit.Assert.assertNotNull;
 
 public class ProxySettingsDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
@@ -36,7 +37,7 @@ public class ProxySettingsDialogFixture extends IdeaDialogFixture<DialogWrapper>
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);
-        if (wrapper != null && wrapper.getClass() == ProxySettingsDialog.class) {
+        if (wrapper != null && wrapper.getClass() == ProxySettingsDialog.class && dialog.isShowing()) {
           wrapperRef.set(wrapper);
           return true;
         }
@@ -65,5 +66,17 @@ public class ProxySettingsDialogFixture extends IdeaDialogFixture<DialogWrapper>
 
     JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(robot(), checkBox);
     checkBoxFixture.select();
+  }
+
+  public void setDoNotShowThisDialog(boolean selected) {
+    JCheckBox checkBox = robot().finder().find(new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
+      @Override
+      protected boolean isMatching(@NotNull JCheckBox c) {
+        return c.isVisible() && c.isShowing() && "Do not show this dialog in the future".equals(c.getText());
+      }
+    });
+    assertNotNull(checkBox);
+    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(robot(), checkBox);
+    checkBoxFixture.setSelected(selected);
   }
 }

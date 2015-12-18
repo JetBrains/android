@@ -22,10 +22,12 @@ import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,7 +64,8 @@ abstract class AndroidDomTest extends AndroidTestCase {
     myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.java");
   }
 
-  protected void doTestNamespaceCompletion(boolean systemNamespace, boolean customNamespace) throws IOException {
+  protected void doTestNamespaceCompletion(boolean systemNamespace, boolean customNamespace, boolean toolsNamespace, boolean xliffNamespace)
+    throws IOException {
     final VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
@@ -71,22 +74,38 @@ abstract class AndroidDomTest extends AndroidTestCase {
     final List<String> expectedVariants = new ArrayList<String>();
 
     if (systemNamespace) {
-      expectedVariants.add("http://schemas.android.com/apk/res/android");
+      expectedVariants.add(SdkConstants.ANDROID_URI);
     }
     if (customNamespace) {
       expectedVariants.add("http://schemas.android.com/apk/res/p1.p2");
     }
-    expectedVariants.add(SdkConstants.TOOLS_URI);
+    if (toolsNamespace) {
+      expectedVariants.add(SdkConstants.TOOLS_URI);
+    }
+    if (xliffNamespace) {
+      expectedVariants.add(SdkConstants.XLIFF_URI);
+    }
+    Collections.sort(expectedVariants);
     assertEquals(expectedVariants, variants);
   }
 
   protected void doTestCompletionVariants(String fileName, String... variants) throws Throwable {
+    List<String> lookupElementStrings = getCompletionElements(fileName);
+    assertNotNull(lookupElementStrings);
+    UsefulTestCase.assertSameElements(lookupElementStrings, variants);
+  }
+
+  protected void doTestCompletionVarinatsContains(String fileName, String... variants) throws Throwable {
+    List<String> lookupElementStrings = getCompletionElements(fileName);
+    assertNotNull(lookupElementStrings);
+    assertContainsElements(lookupElementStrings, variants);
+  }
+
+  private List<String> getCompletionElements(String fileName) throws IOException {
     VirtualFile file = copyFileToProject(fileName);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
-    List<String> lookupElementStrings = myFixture.getLookupElementStrings();
-    assertNotNull(lookupElementStrings);
-    UsefulTestCase.assertSameElements(lookupElementStrings, variants);
+    return myFixture.getLookupElementStrings();
   }
 
   protected void doTestHighlighting() throws Throwable {
@@ -118,6 +137,18 @@ abstract class AndroidDomTest extends AndroidTestCase {
     VirtualFile file = copyFileToProject(fileBefore);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResultByFile(testFolder + '/' + fileAfter);
+  }
+
+  /**
+   * Variant of {@link #toTestCompletion(String, String)} that chooses the first completion variant
+   * when several possibilities are available.
+   */
+  protected void toTestFirstCompletion(@NotNull String fileBefore, @NotNull String fileAfter) throws Throwable {
+    VirtualFile file = copyFileToProject(fileBefore);
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.type('\n');
     myFixture.checkResultByFile(testFolder + '/' + fileAfter);
   }
 

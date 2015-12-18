@@ -20,14 +20,14 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.lang.annotation.HighlightSeverity;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.UNDO;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 // Temporarily disabled due to https://code.google.com/p/android/issues/detail?id=183801
 @Ignore
@@ -36,19 +36,19 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPO
 public class GradleIncreaseLanguageLevelTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testIncreaseLanguageLevel() throws IOException {
-    IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    EditorFixture editor = projectFrame.getEditor();
+    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("library/src/androidTest/java/com/android/library/ApplicationTest.java");
     editor.moveTo(editor.findOffset("super(Application.class);^"));
     editor.enterText("\nfloat x = 1_000;");
     editor.moveTo(editor.findOffset("1_0^00;"));
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     editor.invokeIntentionAction("Set language level to 7");
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
-    projectFrame.getEditor().invokeAction(EditorFixture.EditorAction.UNDO);
-    projectFrame.waitForGradleProjectSyncToFinish();
-    projectFrame.findMessageDialog("Undo").clickOk();
-    editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
+    myProjectFrame.getEditor().invokeAction(UNDO);
+    myProjectFrame.waitForGradleProjectSyncToFinish();
+    myProjectFrame.findMessageDialog("Undo").clickOk();
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
   }
 }

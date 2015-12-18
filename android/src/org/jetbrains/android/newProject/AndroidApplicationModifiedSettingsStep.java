@@ -4,7 +4,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.util.ArrayUtil;
-import org.jetbrains.android.run.TargetSelectionMode;
+import com.android.tools.idea.run.TargetSelectionMode;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;

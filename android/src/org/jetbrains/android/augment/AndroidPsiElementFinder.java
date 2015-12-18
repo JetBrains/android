@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 /**
- * @author Eugene.Kudelevsky
+ * An element finder which finds the Android internal R class, and inner classes within R classes.
  */
 public class AndroidPsiElementFinder extends PsiElementFinder {
   public static final String INTERNAL_PACKAGE_QNAME = "com.android.internal";

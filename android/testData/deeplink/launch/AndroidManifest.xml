@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.company.deeplink" >
+  <application
+      android:allowBackup="true"
+      android:icon="@mipmap/ic_launcher"
+      android:label="@string/app_name"
+      android:theme="@style/AppTheme" >
+    <activity
+        android:name=".MainActivity"
+        android:label="@string/app_name" >
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+    <activity
+        android:name=".view1"
+        android:label="@string/title_activity_view1" >
+      <intent-filter android:label="if-1" >
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data
+            android:host="www.company.com"
+            android:pathPrefix="/view1"
+            android:scheme="http" />
+      </intent-filter>
+    </activity>
+    <activity
+        android:name=".view2"
+        android:label="@string/title_activity_view2" >
+      <intent-filter android:label="if-2" >
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <!-- Accepts URIs that begin with "example://gizmos” -->
+        <data
+            android:host="gizmos"
+            android:scheme="example" />
+      </intent-filter>
+    </activity>
+    <activity
+        android:name=".view3"
+        android:label="@string/title_activity_view3" >
+      <intent-filter>
+        <category android:name="android.intent.category.DEFAULT" >
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data
+            android:host="www.company.com"
+            android:pathPrefix="/view3"
+            android:scheme="deeplink" />
+      </intent-filter>
+    </activity>
+    <activity
+        android:name=".view4"
+        android:label="@string/title_activity_view4" >
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data
+            android:host="www.company.com"
+            android:pathPrefix="/view4"
+            android:scheme="deeplink" />
+      </intent-filter>
+    </activity>
+    <activity
+        android:name=".view5"
+        android:label="@string/title_activity_view5" >
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" >
+        <data
+            android:host="www.company.com"
+            android:pathPrefix="/view5"
+            android:scheme="deeplink" />
+      </intent-filter>
+    </activity>
+    <activity
+        android:name=".view6"
+        android:label="@string/title_activity_view6" >
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" >
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data
+            android:host="www.company.com"
+            android:path="/view6"
+            android:scheme="deeplink" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

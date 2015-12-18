@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.quickfix;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
 import com.intellij.codeInsight.daemon.QuickFixBundle;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
@@ -35,10 +36,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
@@ -48,7 +47,7 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
   @NotNull private final LibraryOrderEntry myLibraryEntry;
   @NotNull private final PsiClass myClass;
 
-  @Nullable private final String myLibraryGradleEntry;
+  @Nullable private final ExternalDependencySpec myNewExternalDependency;
 
   public AddGradleLibraryDependencyFix(@NotNull LibraryOrderEntry libraryEntry,
                                        @NotNull PsiClass aCLass,
@@ -57,13 +56,31 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
     super(module, reference);
     myLibraryEntry = libraryEntry;
     myClass = aCLass;
-    myLibraryGradleEntry = getLibraryGradleEntry();
+    myNewExternalDependency = findNewExternalDependency();
+  }
+
+  /**
+   * Given a library entry, find out its corresponded gradle dependency entry like 'group:name:version".
+   */
+  @Nullable
+  private ExternalDependencySpec findNewExternalDependency() {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(myLibraryEntry.getOwnerModule());
+
+    ExternalDependencySpec result = null;
+    if (androidFacet != null) {
+      result = findNewExternalDependency(androidFacet);
+    }
+    if (result == null) {
+      result = findNewExternalDependencyByExaminingPath();
+    }
+    return result;
   }
 
   @Override
   @NotNull
   public String getText() {
-    return QuickFixBundle.message("orderEntry.fix.add.library.to.classpath", myLibraryGradleEntry);
+    assert myNewExternalDependency != null;
+    return QuickFixBundle.message("orderEntry.fix.add.library.to.classpath", myNewExternalDependency.compactNotation());
   }
 
   @Override
@@ -74,21 +91,16 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
 
   @Override
   public boolean isAvailable(@NotNull Project project, @Nullable Editor editor, @Nullable PsiFile file) {
-    return !project.isDisposed() && !myModule.isDisposed() && myLibraryEntry.isValid() && myLibraryGradleEntry != null;
+    return !project.isDisposed() && !myModule.isDisposed() && myLibraryEntry.isValid() && myNewExternalDependency != null;
   }
 
   @Override
   public void invoke(@NotNull final Project project, @Nullable final Editor editor, @Nullable PsiFile file) {
-    if (isEmpty(myLibraryGradleEntry)) {
+    if (myNewExternalDependency == null) {
       return;
     }
-    final String configurationName = getConfigurationName(myModule, false);
-    runWriteCommandActionAndSync(project, new Runnable() {
-      @Override
-      public void run() {
-        addDependency(myModule, configurationName, myLibraryGradleEntry);
-      }
-    }, new Computable<PsiClass[]>() {
+    String configurationName = getConfigurationName(myModule, false);
+    addDependencyAndSync(configurationName, myNewExternalDependency, new Computable<PsiClass[]>() {
       @Override
       public PsiClass[] compute() {
         return new PsiClass[]{myClass};
@@ -96,25 +108,8 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
     }, editor);
   }
 
-  /**
-   * Given a library entry, find out its corresponded gradle dependency entry like 'group:name:version".
-   */
   @Nullable
-  private String getLibraryGradleEntry() {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(myLibraryEntry.getOwnerModule());
-
-    String result = null;
-    if (androidFacet != null) {
-      result = getLibraryGradleEntry(androidFacet);
-    }
-    if (result == null) {
-      result = getLibraryGradleEntryByExaminingPath();
-    }
-    return result;
-  }
-
-  @Nullable
-  private String getLibraryGradleEntry(@NotNull AndroidFacet androidFacet) {
+  private ExternalDependencySpec findNewExternalDependency(@NotNull AndroidFacet androidFacet) {
     AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
     if (androidModel == null) {
       return null;
@@ -135,15 +130,11 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
     }
 
     // TODO use getRequestedCoordinates once the interface is fixed.
-    MavenCoordinates mavenCoordinates = matchedLibrary.getResolvedCoordinates();
-    if (mavenCoordinates == null) {
+    MavenCoordinates coordinates = matchedLibrary.getResolvedCoordinates();
+    if (coordinates == null) {
       return null;
     }
-    return mavenCoordinates.getGroupId() +
-           GRADLE_PATH_SEPARATOR +
-           mavenCoordinates.getArtifactId() +
-           GRADLE_PATH_SEPARATOR +
-           mavenCoordinates.getVersion();
+    return new ExternalDependencySpec(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
   }
 
   @Nullable
@@ -162,7 +153,7 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
    * therefor, if we can't get the artifact information from model, then try to extract from path.
    */
   @Nullable
-  private String getLibraryGradleEntryByExaminingPath() {
+  private ExternalDependencySpec findNewExternalDependencyByExaminingPath() {
     VirtualFile[] files = myLibraryEntry.getFiles(OrderRootType.CLASSES);
     if (files.length == 0) {
       return null;
@@ -181,7 +172,7 @@ public class AddGradleLibraryDependencyFix extends AbstractGradleDependencyFix {
         String artifactId = pathSegments.get(i);
         String version = pathSegments.get(i + 1);
         if (libraryName.endsWith(version)) {
-          return groupId + GRADLE_PATH_SEPARATOR + artifactId + GRADLE_PATH_SEPARATOR + version;
+          return new ExternalDependencySpec(artifactId, groupId, version);
         }
       }
     }

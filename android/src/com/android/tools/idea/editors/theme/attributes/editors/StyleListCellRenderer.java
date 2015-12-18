@@ -67,9 +67,7 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
 
     ThemeEditorStyle style = myContext.getThemeResolver().getTheme(stringValue);
     if (style == null) {
-      String simpleName = StringUtil.substringAfter(stringValue, "/");
-      assert simpleName != null;
-      append(simpleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
+      append(stringValue, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
       return;
     }
 
@@ -77,12 +75,12 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
     String styleName = style.getName();
     String parentName = parent != null ? parent.getName() : null;
 
-    String defaultAppTheme = null;
+    String defaultAppThemeResourceUrl = null;
     final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
     if (facet != null) {
       Manifest manifest = facet.getManifest();
       if (manifest != null && manifest.getApplication() != null && manifest.getApplication().getXmlTag() != null) {
-        defaultAppTheme = manifest.getApplication().getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);
+        defaultAppThemeResourceUrl = manifest.getApplication().getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);
       }
     }
 
@@ -106,7 +104,7 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
       append(styleName, SimpleTextAttributes.REGULAR_ATTRIBUTES, true);
     }
 
-    if (style.getQualifiedName().equals(defaultAppTheme)) {
+    if (style.getStyleResourceUrl().equals(defaultAppThemeResourceUrl)) {
       append("  -  Default", new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, new JBColor(0xFF4CAF50, 0xFFA5D6A7)), true);
     }
   }

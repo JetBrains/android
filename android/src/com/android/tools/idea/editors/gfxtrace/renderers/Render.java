@@ -17,12 +17,10 @@ package com.android.tools.idea.editors.gfxtrace.renderers;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
-import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryPointer;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
-import com.android.tools.rpclib.any.AnyType;
 import com.android.tools.rpclib.schema.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.SimpleColoredComponent;
@@ -58,8 +56,8 @@ public final class Render {
       render((AtomController.Memory)value, component, attributes);
       return;
     }
-    if (value instanceof AtomGroup) {
-      render((AtomGroup)value, component, attributes);
+    if (value instanceof AtomController.Group) {
+      render((AtomController.Group)value, component, attributes);
       return;
     }
     if (value instanceof DynamicAtom) {
@@ -125,18 +123,19 @@ public final class Render {
     render(memory.observation.getRange(), component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
   }
 
-  public static void render(@NotNull AtomGroup group, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
-    component.append(group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+  public static void render(@NotNull AtomController.Group group,
+                            @NotNull final SimpleColoredComponent component,
+                            SimpleTextAttributes attributes) {
+    component.append(group.group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
-
 
   public static void render(@NotNull DynamicAtom atom, @NotNull SimpleColoredComponent component, SimpleTextAttributes attributes) {
     component.append(atom.getName() + "(", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
     int resultIndex = atom.getResultIndex();
-    int observationsIndex = atom.getObservationsIndex();
+    int extrasIndex = atom.getExtrasIndex();
     boolean needComma = false;
     for (int i = 0; i < atom.getFieldCount(); ++i) {
-      if (i == resultIndex || i == observationsIndex) continue;
+      if (i == resultIndex || i == extrasIndex) continue;
       if (needComma) {
         component.append(", ", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       }
@@ -278,9 +277,6 @@ public final class Render {
       }
     }
     switch (type.getMethod().value) {
-      case Method.ID:
-        component.append(value.toString(), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
-        return;
       case Method.Bool:
         component.append(String.format("%b", (Boolean)value), SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
         return;

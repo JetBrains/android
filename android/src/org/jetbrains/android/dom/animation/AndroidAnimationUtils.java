@@ -63,7 +63,7 @@ public class AndroidAnimationUtils {
     children.addAll(facet.getClassMap(INTERPOLATOR_CLASS_NAME, new ClassMapConstructor() {
       @Override
       @NotNull
-      public String[] getTagNamesByClass(@NotNull PsiClass c) {
+      public String[] getTagNamesByClass(@NotNull PsiClass c, int apiLevel) {
         String name = c.getName();
         return name != null ? new String[] {StringUtil.decapitalize(name)} : ArrayUtil.EMPTY_STRING_ARRAY;
       }

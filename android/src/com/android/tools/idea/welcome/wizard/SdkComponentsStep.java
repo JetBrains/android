@@ -252,7 +252,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       // fix the path and then go backward and forward). Otherwise the experience is confusing.
       return true;
     }
-    myWasVisible = !myMode.hasValidSdkLocation() && myState.getNotNull(myKeyCustomInstall, true) || !validate();
+    myWasVisible = !myMode.hasValidSdkLocation() && (myState.getNotNull(myKeyCustomInstall, true) || !validate());
     return myWasVisible;
   }
 

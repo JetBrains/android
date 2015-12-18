@@ -35,6 +35,7 @@ public class AndroidIcons {
   public static final Icon RenderError = load("/icons/renderError.png");
   public static final Icon RefreshPreview = load("/icons/refreshPreview.png"); // 16x16
   public static final Icon ArrowDown = load("/icons/comboArrow.png"); // 16x16
+  public static final Icon GreyArrowDown = load("/icons/dropArrow.png"); // 20x20
   public static final Icon NotMatch = load("/icons/notMatch.png");
 
   public static final Icon AndroidFile = load("/icons/android_file.png"); // 16x16
@@ -68,6 +69,8 @@ public class AndroidIcons {
 
   public static final Icon AppModule = load("/icons/appModule.png");
   public static final Icon LibraryModule = load("/icons/libraryModule.png");
+
+  public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
 
   // Form factors
   public static class FormFactors {
@@ -173,19 +176,26 @@ public class AndroidIcons {
   public static class Views {
     public static final Icon AbsoluteLayout = load("/icons/views/AbsoluteLayout.png"); // 16x16
     public static final Icon AdapterViewFlipper = load("/icons/views/AdapterViewFlipper.png"); // 16x16
+    public static final Icon AdView = load("/icons/views/AdView.png"); // 16x16
     public static final Icon AnalogClock = load("/icons/views/AnalogClock.png"); // 16x16
+    public static final Icon AppbarLayout = load("/icons/views/AppBarLayout.png"); // 16x16
     public static final Icon AutoCompleteTextView = load("/icons/views/AutoCompleteTextView.png"); // 16x16
+    public static final Icon BrowseFragment = load("/icons/views/BrowseFragment.png"); // 16x16
     public static final Icon Button = load("/icons/views/Button.png"); // 16x16
+    public static final Icon CardView = load("/icons/views/CardView.png"); // 16x16
     public static final Icon CalendarView = load("/icons/views/CalendarView.png"); // 16x16
     public static final Icon CheckBox = load("/icons/views/CheckBox.png"); // 16x16
     public static final Icon CheckedTextView = load("/icons/views/CheckedTextView.png"); // 16x16
     public static final Icon Chronometer = load("/icons/views/Chronometer.png"); // 16x16
+    public static final Icon CoordinatorLayout = load("/icons/views/CoordinatorLayout.png"); // 16x16
     public static final Icon DatePicker = load("/icons/views/DatePicker.png"); // 16x16
+    public static final Icon DetailsFragment = load("/icons/views/DetailsFragment.png"); // 16x16
     public static final Icon DeviceScreen = load("/icons/views/DeviceScreen.png"); // 16x16
     public static final Icon DialerFilter = load("/icons/views/DialerFilter.png"); // 16x16
     public static final Icon DigitalClock = load("/icons/views/DigitalClock.png"); // 16x16
     public static final Icon EditText = load("/icons/views/EditText.png"); // 16x16
     public static final Icon ExpandableListView = load("/icons/views/ExpandableListView.png"); // 16x16
+    public static final Icon FloatingActionButton = load("/icons/views/FloatingActionButton.png"); // 16x16
     public static final Icon Fragment = load("/icons/views/fragment.png"); // 16x16
     public static final Icon FrameLayout = load("/icons/views/FrameLayout.png"); // 16x16
     public static final Icon Gallery = load("/icons/views/Gallery.png"); // 16x16
@@ -201,18 +211,24 @@ public class AndroidIcons {
     public static final Icon VerticalLinearLayout = load("/icons/views/VerticalLinearLayout.png"); // 16x16
     public static final Icon LinearLayout3 = load("/icons/views/LinearLayout3.png"); // 16x16
     public static final Icon ListView = load("/icons/views/ListView.png"); // 16x16
+    public static final Icon MapFragment = load("/icons/views/MapFragment.png"); // 16x16
+    public static final Icon MapView = load("/icons/views/MapView.png"); // 16x16
     public static final Icon MediaController = load("/icons/views/MediaController.png"); // 16x16
-    public static final Icon MultiAutoCompleteTextView = load("/icons/views/MultiAutoCompleteTextView.png"); // 16x16
     public static final Icon Merge = load("/icons/views/merge.png"); // 16x16
+    public static final Icon MultiAutoCompleteTextView = load("/icons/views/MultiAutoCompleteTextView.png"); // 16x16
+    public static final Icon NestedScrollView = load("/icons/views/NestedScrollView.png"); // 16x16
     public static final Icon NumberPicker = load("/icons/views/NumberPicker.png"); // 16x16
+    public static final Icon PlaybackOverlayFragment = load("/icons/views/PlaybackOverlayFragment.png"); // 16x16
     public static final Icon ProgressBar = load("/icons/views/ProgressBar.png"); // 16x16
     public static final Icon QuickContactBadge = load("/icons/views/QuickContactBadge.png"); // 16x16
     public static final Icon RadioButton = load("/icons/views/RadioButton.png"); // 16x16
     public static final Icon RadioGroup = load("/icons/views/RadioGroup.png"); // 16x16
     public static final Icon RatingBar = load("/icons/views/RatingBar.png"); // 16x16
+    public static final Icon RecyclerView = load("/icons/views/RecyclerView.png"); // 16x16
     public static final Icon RelativeLayout = load("/icons/views/RelativeLayout.png"); // 16x16
     public static final Icon RequestFocus = load("/icons/views/requestFocus.png"); // 16x16
     public static final Icon ScrollView = load("/icons/views/ScrollView.png"); // 16x16
+    public static final Icon SearchFragment = load("/icons/views/SearchFragment.png"); // 16x16
     public static final Icon SearchView = load("/icons/views/SearchView.png"); // 16x16
     public static final Icon SeekBar = load("/icons/views/SeekBar.png"); // 16x16
     public static final Icon SlidingDrawer = load("/icons/views/SlidingDrawer.png"); // 16x16
@@ -226,11 +242,13 @@ public class AndroidIcons {
     public static final Icon TableRow = load("/icons/views/TableRow.png"); // 16x16
     public static final Icon TabWidget = load("/icons/views/TabWidget.png"); // 16x16
     public static final Icon TextClock = load("/icons/views/TextClock.png"); // 16x16
+    public static final Icon TextInputLayout = load("/icons/views/TextInputLayout.png"); // 16x16
     public static final Icon TextSwitcher = load("/icons/views/TextSwitcher.png"); // 16x16
     public static final Icon TextureView = load("/icons/views/TextureView.png"); // 16x16
     public static final Icon TextView = load("/icons/views/TextView.png"); // 16x16
     public static final Icon TimePicker = load("/icons/views/TimePicker.png"); // 16x16
     public static final Icon ToggleButton = load("/icons/views/ToggleButton.png"); // 16x16
+    public static final Icon Toolbar = load("/icons/views/Toolbar.png"); // 16x16
     public static final Icon TwoLineListItem = load("/icons/views/TwoLineListItem.png"); // 16x16
     public static final Icon Unknown = load("/icons/views/customView.png"); // 16x16
     public static final Icon VideoView = load("/icons/views/VideoView.png"); // 16x13
@@ -264,5 +282,22 @@ public class AndroidIcons {
     public static final Icon Android = load("/icons/module_templates/android_module.png"); // 512x512
     public static final Icon EclipseModule = load("/icons/module_templates/eclipse_module.png"); // 512x512
     public static final Icon GradleModule = load("/icons/module_templates/gradle_module.png"); // 512x512
+  }
+
+  public static class ToolWindows {
+    public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.png"); // 13x13
+    public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.png"); // 13x13
+  }
+
+  public static class GfxTrace {
+    public static final Icon TraceFile = load("/icons/gfxtrace/trace_file.png"); // 16x16
+    public static final Icon ListenForTrace = load("/icons/gfxtrace/listen_for_trace.png"); // 16x16
+    public static final Icon InjectSpy = load("/icons/gfxtrace/inject_spy.png"); // 16x16
+    public static final Icon DepthBuffer = load("/icons/gfxtrace/depth_buffer.png"); // 16x16
+    public static final Icon ColorBuffer = load("/icons/gfxtrace/color_buffer.png"); // 16x16
+    public static final Icon WireframeNone = load("/icons/gfxtrace/wireframe_none.png"); // 16x16
+    public static final Icon WireframeOverlay = load("/icons/gfxtrace/wireframe_overlay.png"); // 16x16
+    public static final Icon WireframeAll = load("/icons/gfxtrace/wireframe_all.png"); // 16x16
+    public static final Icon FlipVertically = load("/icons/gfxtrace/flip_vertically.png"); // 16x16
   }
 }

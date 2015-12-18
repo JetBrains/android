@@ -20,6 +20,8 @@ import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.openapi.components.ApplicationComponent;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
+
 /**
  * Plugin to set up the android sdk {@link UpdatableExternalComponent} and
  * {@link com.android.tools.idea.updater.configure.SdkUpdaterConfigurable}.
@@ -27,7 +29,9 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidSdkUpdaterPlugin implements ApplicationComponent {
   @Override
   public void initComponent() {
-    ExternalComponentManagerImpl.getInstance().registerComponentSource(new SdkComponentSource());
+    if (isAndroidSdkManagerEnabled()) {
+      ExternalComponentManagerImpl.getInstance().registerComponentSource(new SdkComponentSource());
+    }
   }
 
   @Override

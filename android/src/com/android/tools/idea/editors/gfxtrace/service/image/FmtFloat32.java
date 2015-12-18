@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.image;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,11 +33,13 @@ final public class FmtFloat32 extends Format {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-28, 27, -76, 63, -44, -65, 60, -95, -108, 95, -102, 48, 34, 67, 44, -64, 97, -36, 0, 93, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("image","fmtFloat32","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -45,7 +48,7 @@ final public class FmtFloat32 extends Format {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new FmtFloat32(); }

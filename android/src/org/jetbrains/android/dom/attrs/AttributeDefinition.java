@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -113,5 +114,10 @@ public class AttributeDefinition {
   @Nullable
   public String getValueDoc(@NotNull String value) {
     return myValueDoc.get(value);
+  }
+
+  public boolean isValueDeprecated(@NotNull String value) {
+    final String doc = myValueDoc.get(value);
+    return doc != null && StringUtil.containsIgnoreCase(doc, "deprecated");
   }
 }

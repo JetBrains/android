@@ -141,6 +141,7 @@ RequestExecutionLevel admin # The uninstaller always runs in admin mode
 
 # StrFunc.nsh requires priming the commands which actually get used later
 ${StrRep}
+${StrStr}
 
 # Helper defines for Sections.nsh
 !define SelectSection '!insertmacro SelectSection'
@@ -416,7 +417,35 @@ Section "Performance (Intel® HAXM)" SectionHaxm
 
     !insertmacro INSTALL_HAXM "$var_HaxmPage_SelectedMB" $R0 $R1
     ${If} $R0 == 0
-        MessageBox MB_OK $R1 /SD IDOK
+        ${StrContains} $0 $R1 "For details, please check the installation log"
+        ${If} $0 == 1
+            # Error message has log file name inside quotes
+            # Find string from first quote to end
+            ${StrStr} $0 $R1 '"'
+            StrLen $1 $0
+            # String contains two quotes plus \r\n
+            IntOp $1 $1 - 4
+            # Get just the filename
+            StrCpy $2 $0 $1 1
+            FileOpen $0 $2 r
+            # If there's an error opening the file, just print out the original message
+            IfErrors plainbox
+            # Actual content is on second line. Skip the first line
+            # TODO: support case where log is more than one line long
+            FileReadUTF16LE $0 $1
+            FileReadUTF16LE $0 $1
+            FileClose $0
+            IfErrors plainbox
+            StrCpy $1 "$R1$\r$\n$\r$\n$1"
+            MessageBox MB_OK $1 /SD IDOK
+        ${Else}
+            # If we didn't find the normal error, just print out the normal error
+            Goto plainbox
+        ${EndIf}
+        Goto done
+        plainbox:
+            MessageBox MB_OK $R1 /SD IDOK
+        done:
     ${Endif}
 
     !endif # DRY_RUN && UNINSTALL_BUILDER

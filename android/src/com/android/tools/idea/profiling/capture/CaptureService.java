@@ -170,7 +170,22 @@ public class CaptureService {
   }
 
   /**
-   * Appends data to the backing file represented by {@code captureHandle}.
+   * Copies and appends {@code data} to the backing file represented by {@code captureHandle}. Useful when {@code data} is reused by caller.
+   *
+   * @param captureHandle the handle returned by {@link #startCaptureFile(Class)}
+   * @param data          the data to be appended to the file
+   * @throws IOException when there is an error writing to the file
+   */
+  public void appendDataCopy(@NotNull CaptureHandle captureHandle, @NotNull byte[] data) throws IOException {
+    try {
+      assert myAsyncWriterDelegate != null;
+      myAsyncWriterDelegate.queueWrite(captureHandle, Arrays.copyOf(data, data.length));
+    }
+    catch (InterruptedException ignored) {}
+  }
+
+  /**
+   * Appends {@code data} to the backing file represented by {@code captureHandle}. {@code data} SHOULD NOT be modified after this.
    *
    * @param captureHandle the handle returned by {@link #startCaptureFile(Class)}
    * @param data          the data to be appended to the file
@@ -179,7 +194,7 @@ public class CaptureService {
   public void appendData(@NotNull CaptureHandle captureHandle, @NotNull byte[] data) throws IOException {
     try {
       assert myAsyncWriterDelegate != null;
-      myAsyncWriterDelegate.queueWrite(captureHandle, Arrays.copyOf(data, data.length));
+      myAsyncWriterDelegate.queueWrite(captureHandle, data);
     }
     catch (InterruptedException ignored) {}
   }
@@ -346,9 +361,16 @@ public class CaptureService {
    * Synchronously appends to the file referenced by {@code captureHandle}.
    */
   static void appendDataSynchronous(@NotNull CaptureHandle captureHandle, @NotNull byte[] data) throws IOException {
+    appendDataSynchronous(captureHandle, data, 0, data.length);
+  }
+
+  /**
+   * Synchronously appends to the file referenced by {@code captureHandle}.
+   */
+  public static void appendDataSynchronous(@NotNull CaptureHandle captureHandle, @NotNull byte[] data, int offset, int length) throws IOException {
     FileOutputStream localFileOutputStream = captureHandle.getFileOutputStream();
     assert localFileOutputStream != null;
-    localFileOutputStream.write(data, 0, data.length);
+    localFileOutputStream.write(data, offset, length);
   }
 
   /**
@@ -371,9 +393,17 @@ public class CaptureService {
     }
 
     CaptureType type = captureHandle.getCaptureType();
+
+    // Attempt to find an existing Capture that symbolizes the file.
+    for (Capture capture : myCaptures.get(type)) {
+      if (vf.equals(capture.getFile())) {
+        return capture;
+      }
+    }
+
+    // If we can't find a Capture that symbolizes the file, we'll create a capture instead.
     Capture capture = type.createCapture(vf);
     myCaptures.put(type, capture);
-
     return capture;
   }
 

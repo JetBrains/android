@@ -16,5 +16,45 @@
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
 public interface PathListener {
-  void notifyPath(Path path);
+  void notifyPath(PathEvent event);
+
+  class PathEvent {
+    public final Path path;
+    public final Object source;
+
+    public PathEvent(Path path, Object source) {
+      this.path = path;
+      this.source = source;
+    }
+
+    /**
+     * Returns a path of the requested type if this event's path or one of its ancestors is of the given type, or {@code null}.
+     */
+    public <T extends Path> T findPathOfType(Class<T> cls) {
+      Path p = path;
+      while (p != null) {
+        if (cls.isInstance(p)) {
+          return cls.cast(p);
+        }
+        p = p.getParent();
+      }
+      return null;
+    }
+
+    public DevicePath findDevicePath() {
+      return findPathOfType(DevicePath.class);
+    }
+
+    public CapturePath findCapturePath() {
+      return findPathOfType(CapturePath.class);
+    }
+
+    public AtomPath findAtomPath() {
+      return findPathOfType(AtomPath.class);
+    }
+
+    public MemoryRangePath findMemoryPath() {
+      return findPathOfType(MemoryRangePath.class);
+    }
+  }
 }

@@ -17,12 +17,9 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
-import com.android.tools.idea.editors.theme.ParentThemesListModel;
-import com.android.tools.idea.editors.theme.ThemeEditorConstants;
-import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.configurations.ThemeSelectionPanel;
+import com.android.tools.idea.editors.theme.*;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantItemListener;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantsComboItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
@@ -40,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -57,7 +53,7 @@ import java.util.List;
  * Uses a dropdown to offer the choice between Material Dark, Material Light or Other.
  * Deals with Other through a separate dialog window.
  */
-public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, String> implements TableCellRenderer {
+public class ParentRendererEditor extends TypedCellRendererEditor<ThemeEditorStyle, String> {
   private static final Logger LOG = Logger.getInstance(ParentRendererEditor.class);
 
   public static final String NO_PARENT = "[no parent]";
@@ -68,10 +64,20 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
   private @Nullable String myResultValue;
   private final ThemeEditorContext myContext;
   private final JPanel myPanel;
+  private final ThemeParentChangedListener myThemeParentChangedListener;
   private ThemeEditorStyle myItem;
+  private final JLabel myLabel;
 
-  public ParentRendererEditor(@NotNull ThemeEditorContext context) {
+  public interface ThemeParentChangedListener extends ThemeSelectionPanel.ThemeChangedListener {
+    /**
+     * Returns the theme editor to its state before the theme parent was changed
+     */
+    void reset();
+  }
+
+  public ParentRendererEditor(@NotNull ThemeEditorContext context, @NotNull ThemeParentChangedListener themeParentChangedListener) {
     myContext = context;
+    myThemeParentChangedListener = themeParentChangedListener;
     myParentComboBox = new JComboBox();
     // Override isShowing because of the use of a {@link CellRendererPane}
     myPanel = new JPanel(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP)) {
@@ -103,9 +109,9 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
     myParentComboBox.setMinimumSize(ThemeEditorConstants.ATTRIBUTES_PANEL_COMBO_MIN_SIZE);
 
     JPanel topLine = new JPanel(new BorderLayout());
-    JLabel label = new JLabel(String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE,
+    myLabel = new JLabel(String.format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE,
                                             ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR), "Theme parent"));
-    topLine.add(label, BorderLayout.WEST);
+    topLine.add(myLabel, BorderLayout.WEST);
     topLine.add(myVariantsComboBox, BorderLayout.EAST);
 
     myPanel.add(topLine, BorderLayout.PAGE_START);
@@ -152,7 +158,6 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
     final String notSelectedVariantColor = ColorUtil.toHex(ThemeEditorConstants.NOT_SELECTED_VARIANT_COLOR);
     final ArrayList<VariantsComboItem> variants = Lists.newArrayListWithCapacity(allParents.size());
 
-    ConfigurationManager manager = myContext.getConfiguration().getConfigurationManager();
     ThemeEditorStyle currentParent = myItem.getParent(myContext.getThemeResolver());
 
     ConfiguredElement<String> selectedElement = null;
@@ -195,10 +200,14 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
   }
 
   @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+  public Component getRendererComponent(JTable table, ThemeEditorStyle value, boolean isSelected, boolean hasFocus, int row, int column) {
     final TableModel model = table.getModel();
-    final ThemeEditorStyle parent = ((ThemeEditorStyle)value).getParent();
+    final ThemeEditorStyle parent = value.getParent();
 
+    Font font = table.getFont();
+    Font scaledFont = font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE);
+    myParentComboBox.setFont(scaledFont);
+    myLabel.setFont(scaledFont);
     myParentComboBox.setEnabled(model.isCellEditable(row, column));
 
     if (parent == null) {
@@ -208,7 +217,7 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
     else {
       ImmutableList<String> defaultThemeNames = ThemeEditorUtils.getDefaultThemeNames(myContext.getThemeResolver());
       myParentComboBox.setModel(new ParentThemesListModel(defaultThemeNames, parent.getQualifiedName()));
-      myItem = (ThemeEditorStyle)value;
+      myItem = value;
     }
     updateVariantsCombo();
 
@@ -217,6 +226,11 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
 
   @Override
   public Component getEditorComponent(JTable table, ThemeEditorStyle value, boolean isSelected, int row, int column) {
+    Font font = table.getFont();
+    Font scaledFont = font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE);
+    myParentComboBox.setFont(scaledFont);
+    myLabel.setFont(scaledFont);
+
     ThemeEditorStyle parent = value.getParent();
     ImmutableList<String> defaultThemeNames = ThemeEditorUtils.getDefaultThemeNames(myContext.getThemeResolver());
     myParentComboBox.setModel(new ParentThemesListModel(defaultThemeNames, parent.getQualifiedName()));
@@ -238,10 +252,16 @@ public class ParentRendererEditor extends TypedCellEditor<ThemeEditorStyle, Stri
       String selectedValue = (String)myParentComboBox.getSelectedItem();
       if (ParentThemesListModel.SHOW_ALL_THEMES.equals(selectedValue)) {
         myParentComboBox.hidePopup();
-        final ThemeSelectionDialog dialog =
-          new ThemeSelectionDialog(myContext.getConfiguration(), Collections.singleton(myContext.getCurrentTheme().getQualifiedName()));
 
+        ThemeEditorStyle currentTheme = myContext.getCurrentTheme();
+        assert currentTheme != null;
+
+        final ThemeSelectionDialog dialog =
+          new ThemeSelectionDialog(myContext.getConfiguration(), Collections.singleton(currentTheme.getQualifiedName()));
+        dialog.setThemeChangedListener(myThemeParentChangedListener);
         dialog.show();
+
+        myThemeParentChangedListener.reset();
 
         if (dialog.isOK()) {
           String theme = dialog.getTheme();

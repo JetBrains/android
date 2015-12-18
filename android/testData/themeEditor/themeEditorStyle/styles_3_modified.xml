@@ -1,0 +1,5 @@
+<resources>
+  <style name="AppTheme" parent="@android:style/Theme">
+    <item name="android:colorAccent">#000000</item>
+  </style>
+</resources>

@@ -21,10 +21,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.templates.KeystoreUtils;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.templates.*;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
@@ -386,14 +384,21 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
           if (contentRoots.length > 0) {
             VirtualFile rootDir = contentRoots[0];
             File moduleRoot = VfsUtilCore.virtualToIoFile(rootDir);
-            myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters, myProject);
+            // @formatter:off
+            RenderingContext context = RenderingContext.Builder.newContext(myWizardState.myTemplate, myProject)
+              .withOutputRoot(projectRoot)
+              .withModuleRoot(moduleRoot)
+              .withParams(myWizardState.myParameters)
+              .build();
+            // @formatter:on
+            myWizardState.myTemplate.render(context);
             // Render the assets if necessary
             if (myAssetSetStep.isStepVisible()) {
               myAssetSetStep.createAssets(myModule);
             }
             // Open any new files specified by the template
             if (openEditors) {
-              TemplateUtils.openEditors(myProject, myWizardState.myTemplate.getFilesToOpen(), true);
+              TemplateUtils.openEditors(myProject, context.getFilesToOpen(), true);
             }
           }
         }

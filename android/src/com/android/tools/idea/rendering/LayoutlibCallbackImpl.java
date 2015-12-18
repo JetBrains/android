@@ -163,27 +163,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @SuppressWarnings("unchecked")
   public Object loadView(@NotNull String className, @NotNull Class[] constructorSignature, @NotNull Object[] constructorParameters)
       throws ClassNotFoundException {
-    if (className.indexOf('.') == -1 && !VIEW_FRAGMENT.equals(className) && !VIEW_INCLUDE.equals(className)) {
-      // When something is *really* wrong we get asked to load core Android classes.
-      // Ignore these; custom views should always have fully qualified names. However,
-      // we *do* want to warn when you have a tag which looks like a core class (e.g.
-      // no package name) but isn't recognized.
-      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-      try {
-        AndroidFacet facet = AndroidFacet.getInstance(myModule);
-        if (facet != null) {
-          List<String> known = AndroidLayoutUtil.getPossibleRoots(facet);
-          if (known.contains(className)) {
-            throw new ClassNotFoundException(className);
-          }
-        }
-      } finally {
-        RenderSecurityManager.exitSafeRegion(token);
-      }
-    }
-
     myUsed = true;
-
     if (NOT_VIEW.contains(className)) {
       return myClassLoader.loadClass(className, constructorSignature, constructorParameters);
     }

@@ -17,16 +17,19 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.Messages;
 
 import java.io.IOException;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemonsAndRestart;
+
 /**
  * Internal action that stops all running Gradle daemons.
  */
 public class StopGradleDaemonsAction extends DumbAwareAction {
-  private static final String TITLE = "Stop Gradle Daemons";
+  private static final String TITLE = "Stop Gradle Daemons and Restart";
 
   public StopGradleDaemonsAction() {
     super(TITLE);
@@ -34,13 +37,6 @@ public class StopGradleDaemonsAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    try {
-      GradleUtil.stopAllGradleDaemons(true);
-    }
-    catch (IOException error) {
-      Messages.showErrorDialog("Failed to stop Gradle daemons. Please run 'gradle --stop' from the command line.\n\n" +
-                               "Cause:\n" + error.getMessage(), TITLE
-      );
-    }
+    stopAllGradleDaemonsAndRestart();
   }
 }

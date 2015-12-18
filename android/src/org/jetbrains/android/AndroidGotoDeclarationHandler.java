@@ -16,18 +16,12 @@
 package org.jetbrains.android;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.module.Module;
 import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlElement;
-import com.intellij.psi.xml.XmlToken;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName;
@@ -45,9 +39,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.ATTR_CONTEXT;
-import static com.android.SdkConstants.TOOLS_URI;
-
 /**
  * @author Eugene.Kudelevsky
  */
@@ -55,9 +46,6 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
   @Override
   public PsiElement[] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
     if (!(sourceElement instanceof PsiIdentifier)) {
-      if (sourceElement instanceof XmlToken) {
-        return handleToolsNamespaceReferences((XmlToken)sourceElement);
-      }
       return null;
     }
     final PsiFile file = sourceElement.getContainingFile();
@@ -171,48 +159,6 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
 
   @Override
   public String getActionText(DataContext context) {
-    return null;
-  }
-
-  /**
-   * Handle go-to-declaration on {@code tools:} namespace attributes, such
-   * as {@code tools:context=".MyActivity"}.
-   * <p>
-   * This is not the Right Way To Do It; ideally, we should get the resource resolver
-   * to work on the tools attributes such that they are treated as references.
-   * However, until this is done properly, this method makes goto-handling
-   * for tools attributes better (see issue b.android.com/75702)
-   */
-  @Nullable
-  private static PsiElement[] handleToolsNamespaceReferences(@NotNull XmlToken token) {
-    if (!(token.getParent() instanceof XmlAttributeValue)) {
-      return null;
-    }
-    XmlAttributeValue valueElement = (XmlAttributeValue)token.getParent();
-    if (!(valueElement.getParent() instanceof XmlAttribute)) {
-      return null;
-    }
-    String value = valueElement.getValue();
-    if (value == null || value.isEmpty()) {
-      return null;
-    }
-    XmlAttribute attribute = (XmlAttribute)valueElement.getParent();
-    if (!ATTR_CONTEXT.equals(attribute.getLocalName()) || !TOOLS_URI.equals(attribute.getNamespace())) {
-      return null;
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(token);
-    if (facet == null) {
-      return null;
-    }
-    boolean startsWithDot = value.charAt(0) == '.';
-    if (startsWithDot || value.indexOf('.') == -1) {
-      Module module = facet.getModule();
-      String pkg = ManifestInfo.get(module, false).getPackage();
-      String fqn = startsWithDot ? pkg + value : pkg + '.' + value;
-      JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(module.getProject());
-      return psiFacade.findClasses(fqn, GlobalSearchScope.moduleScope(module));
-    }
-
     return null;
   }
 }

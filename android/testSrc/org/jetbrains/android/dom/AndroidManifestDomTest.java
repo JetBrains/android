@@ -250,8 +250,23 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestCompletionVariants(getTestName(false) + ".xml");
   }
 
-  public void testIntentCategoryCompletion() throws Throwable {
+  // Regression test for http://b.android.com/154004
+  public void testIntentActionCompletion4() throws Throwable {
+    toTestFirstCompletion("IntentActionCompletion4.xml", "IntentActionCompletion4_after.xml");
+  }
+
+  public void testIntentCategoryCompletion1() throws Throwable {
     doTestCompletion(false);
+  }
+
+  public void testIntentCategoryCompletion2() throws Throwable {
+    doTestCompletion(false);
+  }
+
+  // Tests for completion of actions outside of set of constants defined in android.intent.Intent
+  // Regression test for http://b.android.com/187026
+  public void testTelephonyActionCompletion() throws Throwable {
+    toTestCompletion("TelephonyActionCompletion.xml", "TelephonyActionCompletion_after.xml");
   }
 
   public void testIntentActionsHighlighting() throws Throwable {
@@ -357,11 +372,11 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testNamespaceCompletion() throws Throwable {
-    doTestNamespaceCompletion(true, true);
+    doTestNamespaceCompletion(true, true, true, false);
   }
 
   public void testNamespaceCompletion1() throws Throwable {
-    doTestNamespaceCompletion(true, false);
+    doTestNamespaceCompletion(true, false, true, false);
   }
 
   public void testCompatibleScreensCompletion() throws Throwable {

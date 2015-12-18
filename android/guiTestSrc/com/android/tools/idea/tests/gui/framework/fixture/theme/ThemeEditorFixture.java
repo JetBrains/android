@@ -41,12 +41,12 @@ import static org.junit.Assert.assertNotNull;
 
 public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, ThemeEditorComponent> {
   private final JComboBoxFixture myThemesComboBox;
-  private final JComboBoxFixture myModulesComboBox;
+  private @Nullable JComboBoxFixture myModulesComboBox;
 
   public ThemeEditorFixture(@NotNull Robot robot, @NotNull ThemeEditorComponent themeEditorComponent) {
     super(ThemeEditorFixture.class, robot, themeEditorComponent);
-    myThemesComboBox = new JComboBoxFixture(robot(), robot().finder().findByName(this.target().getSecondComponent(), AttributesPanel.THEME_SELECTOR_NAME, JComboBox.class));
-    myModulesComboBox = new JComboBoxFixture(robot(), robot().finder().findByName(this.target().getSecondComponent(), AttributesPanel.MODULE_SELECTOR_NAME, JComboBox.class));
+    myThemesComboBox = new JComboBoxFixture(robot(), robot().finder()
+      .findByName(this.target().getSecondComponent(), AttributesPanel.THEME_SELECTOR_NAME, JComboBox.class));
   }
 
   @NotNull
@@ -54,7 +54,10 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
     return myThemesComboBox;
   }
 
+  @NotNull
   public JComboBoxFixture getModulesComboBox() {
+    myModulesComboBox = new JComboBoxFixture(robot(), robot().finder()
+      .findByName(this.target().getSecondComponent(), AttributesPanel.MODULE_SELECTOR_NAME, JComboBox.class));
     return myModulesComboBox;
   }
 
@@ -76,6 +79,10 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
 
   @NotNull
   public List<String> getModulesList() {
+    if (myModulesComboBox == null) {
+      getModulesComboBox();
+    }
+    //noinspection ConstantConditions: getModulesComboBox either sets myModulesComboBox to a non-null value or throws an exception
     return ImmutableList.copyOf(myModulesComboBox.contents());
   }
 

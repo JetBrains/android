@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.idea.editors.gfxtrace.service.log.Severity;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
@@ -63,11 +64,16 @@ public final class ReportItem implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-118, -78, 20, 111, 64, -80, 11, 16, -87, 2, -5, -95, 118, 26, -23, -41, -100, 98, 64, -109, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","ReportItem","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("Severity", new Primitive("log.Severity", Method.Int32)),
+      new Field("Message", new Primitive("string", Method.String)),
+      new Field("Atom", new Primitive("uint64", Method.Uint64)),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -76,7 +82,7 @@ public final class ReportItem implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new ReportItem(); }

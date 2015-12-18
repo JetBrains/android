@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.swing.ui.SwatchComponent;
+import com.android.tools.swing.util.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,16 +45,24 @@ public class ColorPaletteComponent implements Icon {
     myAccentColor = null;
   }
 
+  public void paintColoredSquare(@NotNull Color color, @NotNull Graphics g, int x, int y, int w) {
+    if (color.getAlpha() != 0xff) {
+      GraphicsUtil.paintCheckeredBackground(g, new Rectangle(x, y, w, w));
+    }
+
+    g.setColor(color);
+    g.fillRect(x, y, w, w);
+  }
+
   @Override
   public void paintIcon(Component component, Graphics graphics, int i, int i1) {
     if (myPrimaryColor != null && myPrimaryDarkColor != null && myAccentColor != null) {
       setupAAPainting(graphics);
       Graphics2D g = (Graphics2D)graphics.create();
 
-      new SwatchComponent.ColorIcon(myPrimaryColor).paint(component, g, i + PADDING, i1 + PADDING, ICON_SIZE, ICON_SIZE);
-      new SwatchComponent.ColorIcon(myPrimaryDarkColor)
-        .paint(component, g, i + 2 * PADDING + ICON_SIZE, i1 + PADDING, ICON_SIZE, ICON_SIZE);
-      new SwatchComponent.ColorIcon(myAccentColor).paint(component, g, i + 3 * PADDING + 2 * ICON_SIZE, i1 + PADDING, ICON_SIZE, ICON_SIZE);
+      paintColoredSquare(myPrimaryColor, g, i + PADDING, i1 + PADDING, ICON_SIZE);
+      paintColoredSquare(myPrimaryDarkColor, g, i + 2 * PADDING + ICON_SIZE, i1 + PADDING, ICON_SIZE);
+      paintColoredSquare(myAccentColor, g, i + 3 * PADDING + 2 * ICON_SIZE, i1 + PADDING, ICON_SIZE);
       g.dispose();
     }
   }

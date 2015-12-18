@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
@@ -29,21 +30,47 @@ public class ResolutionUtilsTest extends AndroidTestCase {
 
   public void testGetQualifiedName() {
     StyleResourceValue styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", true);
-    assertEquals("@android:style/myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
+    assertEquals("android:myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
 
     styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", false);
-    assertEquals("@style/myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
+    assertEquals("myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
+  }
+
+  /**
+   * Tests {@link ResolutionUtils#getStyleResourceUrl(String)}
+   */
+  public void testGetStyleResourceUrl() {
+    assertEquals("@android:style/Theme", ResolutionUtils.getStyleResourceUrl("android:Theme"));
+    assertEquals("@namespace:style/Theme", ResolutionUtils.getStyleResourceUrl("namespace:Theme"));
+    assertEquals("@style/AppTheme", ResolutionUtils.getStyleResourceUrl("AppTheme"));
+  }
+
+  /**
+   * Tests {@link ResolutionUtils#getQualifiedNameFromResourceUrl(String)}
+   */
+  public void testGetQualifiedNameFromResourceUrl() {
+    assertEquals("android:Theme", ResolutionUtils.getQualifiedNameFromResourceUrl("@android:style/Theme"));
+    assertEquals("namespace:Theme", ResolutionUtils.getQualifiedNameFromResourceUrl("@namespace:style/Theme"));
+    assertEquals("AppTheme", ResolutionUtils.getQualifiedNameFromResourceUrl("@style/AppTheme"));
+  }
+
+  /**
+   * Tests {@link ResolutionUtils#getNameFromQualifiedName(String)}
+   */
+  public void testGetNameFromQualifiedName() {
+    assertEquals("Theme", ResolutionUtils.getNameFromQualifiedName("android:Theme"));
+    assertEquals("AppTheme", ResolutionUtils.getNameFromQualifiedName("AppTheme"));
   }
 
   public void testFrameworkStyleRead() {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout1.xml");
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
 
-    assertNotNull(ResolutionUtils.getStyle(configuration, "@android:style/TextAppearance", null));
+    assertNotNull(ResolutionUtils.getStyle(configuration, "android:TextAppearance", null));
 
-    ThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "@android:style/Theme.Holo.Light", null);
+    ThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "android:Theme.Holo.Light", null);
     assertEquals("Theme.Holo.Light", style.getName());
-    assertEmpty(style.getConfiguredValues().values()); // Style shouldn't have the values of the parent.
+    assertEmpty(style.getConfiguredValues()); // Style shouldn't have the values of the parent.
 
     try {
       style.setValue("newAttribute", "test");
@@ -63,6 +90,54 @@ public class ResolutionUtilsTest extends AndroidTestCase {
 
     style = style.getParent();
     assertEquals("Theme", style.getName());
-    assertNotEmpty(style.getConfiguredValues().values());
+    assertNotEmpty(style.getConfiguredValues());
+  }
+
+  public void testGetOriginalApiLevel() {
+    assertEquals(-1, ResolutionUtils.getOriginalApiLevel(null, getProject()));
+
+    // Testing Api of an attribute name
+    assertEquals(21, ResolutionUtils.getOriginalApiLevel("android:colorAccent", getProject()));
+    assertEquals(-1, ResolutionUtils.getOriginalApiLevel("colorAccent", getProject()));
+
+    // Testing Api of an attribute value
+    assertEquals(14, ResolutionUtils.getOriginalApiLevel("@android:color/holo_green_dark", getProject()));
+    assertEquals(21, ResolutionUtils.getOriginalApiLevel("?android:attr/colorAccent", getProject()));
+    assertEquals(3, ResolutionUtils.getOriginalApiLevel("@android:integer/config_longAnimTime", getProject()));
+    assertEquals(4, ResolutionUtils.getOriginalApiLevel("@android:drawable/stat_sys_vp_phone_call", getProject()));
+    assertEquals(-1, ResolutionUtils.getOriginalApiLevel("@android:color/black", getProject()));
+    assertEquals(-1, ResolutionUtils.getOriginalApiLevel("?attr/colorAccent", getProject()));
+    assertEquals(-1, ResolutionUtils.getOriginalApiLevel("@color/holo_green_dark", getProject()));
+  }
+
+  /**
+   * Tests {@link ResolutionUtils#getParentQualifiedName(StyleResourceValue)}
+   */
+  public void testGetParentQualifiedName() {
+    VirtualFile file = myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles.xml", "res/values/styles.xml");
+    Configuration configuration = myFacet.getConfigurationManager().getConfiguration(file);
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assertNotNull(resolver);
+    StyleResourceValue style;
+
+    style = resolver.getStyle("Theme", true);
+    assertNotNull(style);
+    assertEquals(null, ResolutionUtils.getParentQualifiedName(style));
+
+    style = resolver.getStyle("Theme.Holo.Light", true);
+    assertNotNull(style);
+    assertEquals("android:Theme", ResolutionUtils.getParentQualifiedName(style));
+
+    style = resolver.getStyle("ATheme", false);
+    assertNotNull(style);
+    assertEquals("android:Theme", ResolutionUtils.getParentQualifiedName(style));
+
+    style = resolver.getStyle("AppTheme", false);
+    assertNotNull(style);
+    assertEquals("ATheme", ResolutionUtils.getParentQualifiedName(style));
+
+    style = resolver.getStyle("ATheme.Red", false);
+    assertNotNull(style);
+    assertEquals("ATheme", ResolutionUtils.getParentQualifiedName(style));
   }
 }

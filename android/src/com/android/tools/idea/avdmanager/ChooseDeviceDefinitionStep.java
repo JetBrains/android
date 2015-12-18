@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
+import com.android.tools.swing.util.FormScalingUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,8 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription
   public ChooseDeviceDefinitionStep(@Nullable Disposable parentDisposable) {
     super(parentDisposable);
     setBodyComponent(myPanel);
+    FormScalingUtil.scaleComponentTree(this.getClass(), createStepBody());
+
     myDeviceDefinitionList.addSelectionListener(new DeviceDefinitionList.DeviceDefinitionSelectionListener() {
       @Override
       public void onDeviceSelectionChanged(@Nullable Device selectedDevice) {

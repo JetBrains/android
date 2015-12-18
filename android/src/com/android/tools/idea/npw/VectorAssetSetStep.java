@@ -18,6 +18,7 @@ package com.android.tools.idea.npw;
 import com.android.resources.Density;
 import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
+import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -111,6 +112,7 @@ public class VectorAssetSetStep extends CommonAssetSetStep {
                             UpdateListener updateListener,
                             @Nullable VirtualFile invocationTarget) {
     super(state, project, module, sidePanelIcon, updateListener, invocationTarget);
+    FormScalingUtil.scaleComponentTree(this.getClass(), myPanel);
 
     myImageFile.addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileDescriptor("svg"));
 

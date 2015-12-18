@@ -28,8 +28,7 @@ import org.jetbrains.android.dom.converters.ConstantFieldConverter;
 public interface Action extends ManifestElementWithName {
     @Attribute("name")
     @Convert(ConstantFieldConverter.class)
-    @LookupClass("android.content.Intent")
+    @LookupClass({"android.content.Intent", "android.telephony.TelephonyManager"})
     @LookupPrefix("android.intent.action")
     AndroidAttributeValue<String> getName();
 }
-    

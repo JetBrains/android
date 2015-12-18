@@ -1,10 +1,10 @@
 package org.jetbrains.android.dom;
 
-import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.utils.Pair;
+import com.intellij.lang.Language;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -16,6 +16,7 @@ import com.intellij.pom.PomTargetPsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.FakePsiElement;
+import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.util.*;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -29,6 +30,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.converters.AttributeValueDocumentationProvider;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
@@ -66,6 +68,9 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
   @Override
   public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
+    if (element instanceof ProvidedDocumentationPsiElement) {
+      return ((ProvidedDocumentationPsiElement)element).getDocumentation();
+    }
     if (element instanceof LazyValueResourceElementWrapper) {
       LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
       ValueResourceInfo resourceInfo = wrapper.getResourceInfo();
@@ -377,8 +382,47 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     return AndroidJavaDocRenderer.render(module, url);
   }
 
+  /**
+   * Fake PSI element to provide used to provide documentation on autocompletion,
+   * as described in https://devnet.jetbrains.com/thread/436977
+   */
+  static class ProvidedDocumentationPsiElement extends LightElement {
+    private final @NotNull String myValue;
+    private final @NotNull String myDocumentation;
+
+    public ProvidedDocumentationPsiElement(@NotNull PsiManager manager,
+                                           @NotNull Language language,
+                                           @NotNull String value,
+                                           @NotNull String documentation) {
+      super(manager, language);
+      myValue = value;
+      myDocumentation = documentation;
+    }
+
+    public @NotNull String getDocumentation() {
+      return myDocumentation;
+    }
+
+    @Override
+    public String toString() {
+      return myDocumentation;
+    }
+
+    /**
+     * {@link #getText()} is overridden to modify title of documentation popup
+     */
+    @Override
+    public String getText() {
+      return myValue;
+    }
+  }
+
   @Override
   public PsiElement getDocumentationElementForLookupItem(PsiManager psiManager, Object object, PsiElement element) {
+    if (object instanceof ResourceReferenceConverter.DocumentationHolder) {
+      final ResourceReferenceConverter.DocumentationHolder holder = (ResourceReferenceConverter.DocumentationHolder)object;
+      return new ProvidedDocumentationPsiElement(psiManager, Language.ANY, holder.getValue(), holder.getDocumentation());
+    }
     if (!(element instanceof XmlAttributeValue) || !(object instanceof String)) {
       return null;
     }

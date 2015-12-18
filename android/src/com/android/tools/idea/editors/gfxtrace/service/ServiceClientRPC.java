@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
+import com.android.tools.rpclib.schema.Message;
 import com.android.tools.idea.editors.gfxtrace.service.path.TimingInfoPath;
 import com.android.tools.rpclib.rpccore.Broadcaster;
 import java.io.InputStream;
@@ -65,7 +66,7 @@ public final class ServiceClientRPC extends ServiceClient {
     return myExecutorService.submit(new GetFramebufferDepthCallable(device, after));
   }
   @Override
-  public ListenableFuture<Schema> getSchema() {
+  public ListenableFuture<Message> getSchema() {
     return myExecutorService.submit(new GetSchemaCallable());
   }
   @Override
@@ -77,12 +78,17 @@ public final class ServiceClientRPC extends ServiceClient {
     return myExecutorService.submit(new ImportCaptureCallable(name, Data));
   }
   @Override
+  public ListenableFuture<CapturePath> loadCapture(String path) {
+    return myExecutorService.submit(new LoadCaptureCallable(path));
+  }
+  @Override
   public ListenableFuture<Path> set(Path p, Object v) {
     return myExecutorService.submit(new SetCallable(p, v));
   }
 
   private class FollowCallable implements Callable<Path> {
     private final CallFollow myCall;
+    private final Exception stack = new StackException();
 
     private FollowCallable(Path p) {
       myCall = new CallFollow();
@@ -90,12 +96,17 @@ public final class ServiceClientRPC extends ServiceClient {
     }
     @Override
     public Path call() throws Exception {
-      ResultFollow result = (ResultFollow)myBroadcaster.Send(myCall);
-      return result.getValue();
+      try {
+        ResultFollow result = (ResultFollow)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
     }
   }
   private class GetCallable implements Callable<Object> {
     private final CallGet myCall;
+    private final Exception stack = new StackException();
 
     private GetCallable(Path p) {
       myCall = new CallGet();
@@ -103,36 +114,51 @@ public final class ServiceClientRPC extends ServiceClient {
     }
     @Override
     public Object call() throws Exception {
-      ResultGet result = (ResultGet)myBroadcaster.Send(myCall);
-      return result.getValue();
+      try {
+        ResultGet result = (ResultGet)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
     }
   }
   private class GetCapturesCallable implements Callable<CapturePath[]> {
     private final CallGetCaptures myCall;
+    private final Exception stack = new StackException();
 
     private GetCapturesCallable() {
       myCall = new CallGetCaptures();
     }
     @Override
     public CapturePath[] call() throws Exception {
-      ResultGetCaptures result = (ResultGetCaptures)myBroadcaster.Send(myCall);
-      return result.getValue();
+      try {
+        ResultGetCaptures result = (ResultGetCaptures)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
     }
   }
   private class GetDevicesCallable implements Callable<DevicePath[]> {
     private final CallGetDevices myCall;
+    private final Exception stack = new StackException();
 
     private GetDevicesCallable() {
       myCall = new CallGetDevices();
     }
     @Override
     public DevicePath[] call() throws Exception {
-      ResultGetDevices result = (ResultGetDevices)myBroadcaster.Send(myCall);
-      return result.getValue();
+      try {
+        ResultGetDevices result = (ResultGetDevices)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
     }
   }
   private class GetFramebufferColorCallable implements Callable<ImageInfoPath> {
     private final CallGetFramebufferColor myCall;
+    private final Exception stack = new StackException();
 
     private GetFramebufferColorCallable(DevicePath device, AtomPath after, RenderSettings settings) {
       myCall = new CallGetFramebufferColor();
@@ -142,12 +168,17 @@ public final class ServiceClientRPC extends ServiceClient {
     }
     @Override
     public ImageInfoPath call() throws Exception {
-      ResultGetFramebufferColor result = (ResultGetFramebufferColor)myBroadcaster.Send(myCall);
-      return result.getValue();
+      try {
+        ResultGetFramebufferColor result = (ResultGetFramebufferColor)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
     }
   }
   private class GetFramebufferDepthCallable implements Callable<ImageInfoPath> {
     private final CallGetFramebufferDepth myCall;
+    private final Exception stack = new StackException();
 
     private GetFramebufferDepthCallable(DevicePath device, AtomPath after) {
       myCall = new CallGetFramebufferDepth();
@@ -156,24 +187,34 @@ public final class ServiceClientRPC extends ServiceClient {
     }
     @Override
     public ImageInfoPath call() throws Exception {
-      ResultGetFramebufferDepth result = (ResultGetFramebufferDepth)myBroadcaster.Send(myCall);
-      return result.getValue();
+      try {
+        ResultGetFramebufferDepth result = (ResultGetFramebufferDepth)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
     }
   }
-  private class GetSchemaCallable implements Callable<Schema> {
+  private class GetSchemaCallable implements Callable<Message> {
     private final CallGetSchema myCall;
+    private final Exception stack = new StackException();
 
     private GetSchemaCallable() {
       myCall = new CallGetSchema();
     }
     @Override
-    public Schema call() throws Exception {
-      ResultGetSchema result = (ResultGetSchema)myBroadcaster.Send(myCall);
-      return result.getValue();
+    public Message call() throws Exception {
+      try {
+        ResultGetSchema result = (ResultGetSchema)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
     }
   }
   private class GetTimingInfoCallable implements Callable<TimingInfoPath> {
     private final CallGetTimingInfo myCall;
+    private final Exception stack = new StackException();
 
     private GetTimingInfoCallable(DevicePath device, CapturePath capture, TimingFlags flags) {
       myCall = new CallGetTimingInfo();
@@ -183,12 +224,17 @@ public final class ServiceClientRPC extends ServiceClient {
     }
     @Override
     public TimingInfoPath call() throws Exception {
-      ResultGetTimingInfo result = (ResultGetTimingInfo)myBroadcaster.Send(myCall);
-      return result.getValue();
+      try {
+        ResultGetTimingInfo result = (ResultGetTimingInfo)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
     }
   }
   private class ImportCaptureCallable implements Callable<CapturePath> {
     private final CallImportCapture myCall;
+    private final Exception stack = new StackException();
 
     private ImportCaptureCallable(String name, byte[] Data) {
       myCall = new CallImportCapture();
@@ -197,12 +243,35 @@ public final class ServiceClientRPC extends ServiceClient {
     }
     @Override
     public CapturePath call() throws Exception {
-      ResultImportCapture result = (ResultImportCapture)myBroadcaster.Send(myCall);
-      return result.getValue();
+      try {
+        ResultImportCapture result = (ResultImportCapture)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
+    }
+  }
+  private class LoadCaptureCallable implements Callable<CapturePath> {
+    private final CallLoadCapture myCall;
+    private final Exception stack = new StackException();
+
+    private LoadCaptureCallable(String path) {
+      myCall = new CallLoadCapture();
+      myCall.setPath(path);
+    }
+    @Override
+    public CapturePath call() throws Exception {
+      try {
+        ResultLoadCapture result = (ResultLoadCapture)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
     }
   }
   private class SetCallable implements Callable<Path> {
     private final CallSet myCall;
+    private final Exception stack = new StackException();
 
     private SetCallable(Path p, Object v) {
       myCall = new CallSet();
@@ -211,8 +280,18 @@ public final class ServiceClientRPC extends ServiceClient {
     }
     @Override
     public Path call() throws Exception {
-      ResultSet result = (ResultSet)myBroadcaster.Send(myCall);
-      return result.getValue();
+      try {
+        ResultSet result = (ResultSet)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        throw (Exception)stack.initCause(e);
+      }
+    }
+  }
+  private static class StackException extends Exception {
+    @Override
+    public String toString() {
+      return String.valueOf(getCause());
     }
   }
 }

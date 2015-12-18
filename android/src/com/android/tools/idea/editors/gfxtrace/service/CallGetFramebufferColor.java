@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.rpclib.binary.*;
@@ -64,11 +65,16 @@ final class CallGetFramebufferColor implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-77, 56, 104, -115, 79, -6, -104, 34, 87, -32, 115, -112, -89, 7, 90, 93, -75, 1, -6, -31, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","callGetFramebufferColor","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("device", new Pointer(new Struct(DevicePath.Klass.INSTANCE.entity()))),
+      new Field("after", new Pointer(new Struct(AtomPath.Klass.INSTANCE.entity()))),
+      new Field("settings", new Struct(RenderSettings.Klass.INSTANCE.entity())),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -77,7 +83,7 @@ final class CallGetFramebufferColor implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new CallGetFramebufferColor(); }

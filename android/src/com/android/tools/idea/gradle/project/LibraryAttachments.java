@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
@@ -32,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static java.util.Collections.addAll;
 
 public class LibraryAttachments {
   @NotNull static final List<OrderRootType> SUPPORTED_TYPES = Lists.newArrayList(SOURCES, JavadocOrderRootType.getInstance());
@@ -39,7 +42,17 @@ public class LibraryAttachments {
   private static final Key<LibraryAttachments> LIBRARY_ATTACHMENTS = Key.create("project.library.attachments");
 
   @NotNull private final Project myProject;
-  @NotNull private final Map<OrderRootType, Multimap<String, String>> myAttachementsByType;
+
+  // Data is stored this way:
+  // Key:
+  //   Type of attachment [OrderRootType] (e.g. "SOURCES", "JAVADOC")
+  // Value:
+  //   Attachments per library [Map<String, List<String>>]
+  //     Key:
+  //       Library name [String] (e.g. "Guava")
+  //     Value:
+  //       Paths of the source/javadoc attachments of the library [List<String>] (e.g. "~/guava/guava-18.0-sources.jar")
+  @NotNull private final Map<OrderRootType, Map<String, List<String>>> myAttachmentsByType;
 
   @Nullable
   public static LibraryAttachments getStoredLibraryAttachments(@NotNull Project project) {
@@ -50,40 +63,50 @@ public class LibraryAttachments {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
     LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
     try {
-      Map<OrderRootType, Multimap<String, String>> attachmentsByType = Maps.newHashMap();
+      Map<OrderRootType, Map<String, List<String>>> attachmentsByType = Maps.newHashMap();
 
       for (Library library : model.getLibraries()) {
         for (OrderRootType type : SUPPORTED_TYPES) {
-          Multimap<String, String> attachments = ArrayListMultimap.create();
+          Map<String, List<String>> attachmentsByLibrary = attachmentsByType.get(type);
+          if (attachmentsByLibrary == null) {
+            attachmentsByLibrary = Maps.newHashMap();
+            attachmentsByType.put(type, attachmentsByLibrary);
+          }
           String name = library.getName();
           if (name != null) {
-            String[] urls = library.getUrls(type);
-            for (String url : urls) {
-              attachments.put(name, url);
+            List<String> attachments = attachmentsByLibrary.get(name);
+            if (attachments == null) {
+              attachments = Lists.newArrayList();
+              attachmentsByLibrary.put(name, attachments);
             }
+            String[] urls = library.getUrls(type);
+            addAll(attachments, urls);
           }
-          attachmentsByType.put(type, attachments);
+          attachmentsByType.put(type, attachmentsByLibrary);
         }
         model.removeLibrary(library);
       }
-      project.putUserData(LIBRARY_ATTACHMENTS, new LibraryAttachments(project, attachmentsByType));
+      LibraryAttachments attachments = new LibraryAttachments(project, attachmentsByType);
+      project.putUserData(LIBRARY_ATTACHMENTS, attachments);
     }
     finally {
       model.commit();
     }
   }
 
-  private LibraryAttachments(@NotNull Project project, @NotNull Map<OrderRootType, Multimap<String, String>> attachementsByType) {
+  private LibraryAttachments(@NotNull Project project, @NotNull Map<OrderRootType, Map<String, List<String>>> attachmentsByType) {
     myProject = project;
-    myAttachementsByType = attachementsByType;
+    myAttachmentsByType = attachmentsByType;
   }
 
   public void addUrlsTo(@NotNull Library.ModifiableModel libraryModel) {
-    for (OrderRootType type : myAttachementsByType.keySet()) {
-      Multimap<String, String> attachmentsByLibraryName = myAttachementsByType.get(type);
-      if (attachmentsByLibraryName != null) {
-        Collection<String> attachments = attachmentsByLibraryName.get(libraryModel.getName());
-        addUrlsToLibrary(type, libraryModel, attachments);
+    for (OrderRootType type : myAttachmentsByType.keySet()) {
+      Map<String, List<String>> attachmentsByLibrary = myAttachmentsByType.get(type);
+      if (attachmentsByLibrary != null) {
+        List<String> attachments = attachmentsByLibrary.get(libraryModel.getName());
+        if (attachments != null) {
+          addUrlsToLibrary(type, libraryModel, attachments);
+        }
       }
     }
   }

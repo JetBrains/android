@@ -18,7 +18,10 @@ package com.android.tools.idea.monitor;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.ClientData;
-import com.android.tools.idea.ddms.*;
+import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.ddms.OpenVmTraceHandler;
 import com.android.tools.idea.ddms.actions.DumpSysActions;
 import com.android.tools.idea.ddms.actions.ScreenRecorderAction;
 import com.android.tools.idea.ddms.actions.ScreenshotAction;
@@ -29,6 +32,8 @@ import com.android.tools.idea.monitor.cpu.CpuMonitorView;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.android.tools.idea.monitor.network.NetworkMonitorView;
+import com.android.tools.idea.run.AndroidDebugRunner;
+import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -64,11 +69,12 @@ import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
+import com.intellij.ui.content.ContentManagerAdapter;
+import com.intellij.ui.content.ContentManagerEvent;
 import com.intellij.util.messages.MessageBusConnection;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
-import org.jetbrains.android.run.AndroidDebugRunner;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
@@ -97,7 +103,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     // The object that needs to be created is the content manager of the execution manager for this project.
     ExecutionManager.getInstance(project).getContentManager();
 
-    RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(project).create("Android", "Android", "Android", project);
+    RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(project).create("Android", TOOL_WINDOW_ID, "Profiling Tools", project);
 
     toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
     toolWindow.setAvailable(true, null);
@@ -116,19 +122,42 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     logcatContent.setSearchComponent(logcatView.createSearchComponent());
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
 
-    Content memoryContent = createMemoryContent(layoutUi, project, deviceContext);
-    layoutUi.addContent(memoryContent, 1, PlaceInGrid.center, false);
+    final ViewContent memoryViewContent = createMemoryViewContent(layoutUi, project, deviceContext);
+    layoutUi.addContent(memoryViewContent.myContent, 1, PlaceInGrid.center, false);
 
-    Content cpuContent = createCpuContent(layoutUi, project, deviceContext);
-    layoutUi.addContent(cpuContent, 2, PlaceInGrid.center, false);
+    final ViewContent cpuViewContent = createCpuViewContent(layoutUi, project, deviceContext);
+    layoutUi.addContent(cpuViewContent.myContent, 2, PlaceInGrid.center, false);
 
-    Content gpuContent = createGpuContent(layoutUi, project, deviceContext);
-    layoutUi.addContent(gpuContent, 3, PlaceInGrid.center, false);
+    final ViewContent gpuViewContent = createGpuViewContent(layoutUi, project, deviceContext);
+    layoutUi.addContent(gpuViewContent.myContent, 3, PlaceInGrid.center, false);
 
-    Content networkContent = createNetworkContent(layoutUi, project, deviceContext);
-    layoutUi.addContent(networkContent, 4, PlaceInGrid.center, false);
+    final ViewContent networkViewContent = createNetworkViewContent(layoutUi, project, deviceContext);
+    layoutUi.addContent(networkViewContent.myContent, 4, PlaceInGrid.center, false);
 
     layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
+    layoutUi.addListener(new ContentManagerAdapter() {
+      @Override
+      public void selectionChanged(ContentManagerEvent event) {
+        Content selectedContent = event.getContent();
+        String eventLabel = null;
+        if (selectedContent == memoryViewContent.myContent) {
+          eventLabel = memoryViewContent.myView.getDescription();
+        }
+        else if (selectedContent == cpuViewContent.myContent) {
+          eventLabel = cpuViewContent.myView.getDescription();
+        }
+        else if (selectedContent == gpuViewContent.myContent) {
+          eventLabel = gpuViewContent.myView.getDescription();
+        }
+        else if (selectedContent == networkViewContent.myContent) {
+          eventLabel = networkViewContent.myView.getDescription();
+        }
+
+        if (eventLabel != null && event.getOperation() == ContentManagerEvent.ContentOperation.add) {
+          UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_MONITOR, UsageTracker.ACTION_MONITOR_ACTIVATED, eventLabel, null);
+        }
+      }
+    }, project);
 
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
 
@@ -204,40 +233,40 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     }, EdtExecutor.INSTANCE);
   }
 
-  private static Content createMemoryContent(@NotNull RunnerLayoutUi layoutUi,
-                                             @NotNull Project project,
-                                             @NotNull DeviceContext deviceContext) {
+  private static ViewContent createMemoryViewContent(@NotNull RunnerLayoutUi layoutUi,
+                                                     @NotNull Project project,
+                                                     @NotNull DeviceContext deviceContext) {
     MemoryMonitorView view = new MemoryMonitorView(project, deviceContext);
     Content content = layoutUi.createContent("Memory", view.createComponent(), "Memory", AndroidIcons.MemoryMonitor, null);
     content.setCloseable(false);
-    return content;
+    return new ViewContent(view, content);
   }
 
-  private static Content createCpuContent(@NotNull RunnerLayoutUi layoutUi,
-                                          @NotNull Project project,
-                                          @NotNull DeviceContext deviceContext) {
+  private static ViewContent createCpuViewContent(@NotNull RunnerLayoutUi layoutUi,
+                                                  @NotNull Project project,
+                                                  @NotNull DeviceContext deviceContext) {
     CpuMonitorView view = new CpuMonitorView(project, deviceContext);
     Content content = layoutUi.createContent("CPU", view.createComponent(), "CPU", AndroidIcons.CpuMonitor, null);
     content.setCloseable(false);
-    return content;
+    return new ViewContent(view, content);
   }
 
-  private static Content createGpuContent(@NotNull RunnerLayoutUi layoutUi,
-                                          @NotNull Project project,
-                                          @NotNull DeviceContext deviceContext) {
+  private static ViewContent createGpuViewContent(@NotNull RunnerLayoutUi layoutUi,
+                                                  @NotNull Project project,
+                                                  @NotNull DeviceContext deviceContext) {
     GpuMonitorView view = new GpuMonitorView(project, deviceContext);
     Content content = layoutUi.createContent("GPU", view.createComponent(), "GPU", AndroidIcons.GpuMonitor, null);
     content.setCloseable(false);
-    return content;
+    return new ViewContent(view, content);
   }
 
-  private static Content createNetworkContent(@NotNull RunnerLayoutUi layoutUi,
-                                              @NotNull Project project,
-                                              @NotNull DeviceContext deviceContext) {
+  private static ViewContent createNetworkViewContent(@NotNull RunnerLayoutUi layoutUi,
+                                                      @NotNull Project project,
+                                                      @NotNull DeviceContext deviceContext) {
     NetworkMonitorView view = new NetworkMonitorView(project, deviceContext);
     Content content = layoutUi.createContent("Network", view.createComponent(), "Network", AndroidIcons.NetworkMonitor, null);
     content.setCloseable(false);
-    return content;
+    return new ViewContent(view, content);
   }
 
   @NotNull
@@ -381,6 +410,17 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
         newPlatform = facet.getConfiguration().getAndroidPlatform();
       }
       return newPlatform;
+    }
+  }
+
+  private static class ViewContent {
+    @NotNull private BaseMonitorView<? extends DeviceSampler> myView;
+
+    @NotNull private Content myContent;
+
+    private ViewContent(@NotNull BaseMonitorView<? extends DeviceSampler> view, @NotNull Content content) {
+      myView = view;
+      myContent = content;
     }
   }
 }

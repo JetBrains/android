@@ -50,7 +50,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.Query;
-import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -98,8 +97,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
   private static final String PROGRESS = "Progress";
   private static final String PREVIEW = "Preview";
 
-  private final MessageBusConnection myConnection;
-
   private final JPanel myMainPanel;
   private Box myErrorPanel;
   private JTextPane myErrorLabel;
@@ -114,14 +111,14 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
   private List<ComponentDefinition> mySupportLibraryComponents = Collections.emptyList();
 
   /** List of component names that shouldn't be displayed. This is used in the case where a support component supersedes a framework one. */
-  private List<String> myDisabledComponents = new ArrayList<String>();
+  private final List<String> myDisabledComponents = new ArrayList<String>();
 
   private final ThemeEditorContext myContext;
   protected final NavigationComponent<Breadcrumb> myBreadcrumbs;
   protected final AndroidPreviewPanel myAndroidPreviewPanel;
   protected final JBScrollPane myScrollPane;
 
-  protected DumbService myDumbService;
+  protected final DumbService myDumbService;
 
   /** Filters components that are disabled or that do not belong to the current selected group */
   private final Predicate<ComponentDefinition> myGroupFilter = new Predicate<ComponentDefinition>() {
@@ -194,8 +191,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
     setMinimumSize(JBUI.size(200, 0));
 
     myContext = context;
-    myConnection = myContext.getProject().getMessageBus().connect();
-    myConnection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
+    myContext.getProject().getMessageBus().connect(this).subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
       @Override
       public void enteredDumbMode() {
         updateMainPanel();
@@ -225,7 +221,9 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
                                                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     myScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
-    myScrollPane.setBorder(null);
+    // We use an empty border instead of null, because a null border will be overridden by a change of UI,
+    // while an empty border will stay an empty border.
+    myScrollPane.setBorder(BorderFactory.createEmptyBorder());
     myScrollPane.setViewportBorder(null);
 
     myBreadcrumbs.setRootItem(new Breadcrumb("All components"));
@@ -327,12 +325,25 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
 
   @Override
   public void setBackground(Color bg) {
+    if(Objects.equal(bg, getBackground())) {
+      return;
+    }
     super.setBackground(bg);
 
     myAndroidPreviewPanel.setBackground(bg);
     myScrollPane.getViewport().setBackground(bg);
     myBreadcrumbs.setBackground(bg);
     myMainPanel.setBackground(bg);
+
+    // Necessary so that the preview uses the updated background color,
+    // since the background of the preview is set when it is built.
+    rebuild();
+  }
+
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    rebuild();
   }
 
   /**
@@ -468,6 +479,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
 
   private void createProgressPanel() {
     myProgressIcon = new AsyncProcessIcon("Indexing");
+    Disposer.register(this, myProgressIcon);
     JLabel progressMessage = new JLabel("Waiting for indexing...");
     JPanel progressBlock = new JPanel() {
       @Override
@@ -539,8 +551,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
 
   @Override
   public void dispose() {
-    Disposer.dispose(myProgressIcon);
-    myConnection.disconnect();
   }
 
   // Implements RenderContext

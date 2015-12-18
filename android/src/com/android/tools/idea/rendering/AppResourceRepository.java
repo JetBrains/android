@@ -45,7 +45,6 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.DOT_AAR;
-import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
 /**
@@ -131,7 +130,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     // TODO: When https://code.google.com/p/android/issues/detail?id=76744 is implemented we can
     // optimize this to only check changes in AAR files
     Project project = facet.getModule().getProject();
-    AndroidProjectBuildNotifications.subscribe(project, new AndroidProjectBuildNotifications.AndroidProjectBuildListener() {
+    AndroidProjectBuildNotifications.subscribe(project, facet, new AndroidProjectBuildNotifications.AndroidProjectBuildListener() {
       @Override
       public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
         repository.updateRoots();
@@ -250,7 +249,7 @@ public class AppResourceRepository extends MultiResourceRepository {
         String name = folder.getName();
         if (name.endsWith(DOT_AAR)) {
           libraryName = name.substring(0, name.length() - DOT_AAR.length());
-        } else if (folder.getPath().contains(EXPLODED_AAR)) {
+        } else if (folder.getPath().contains(AndroidGradleModel.EXPLODED_AAR)) {
           libraryName = folder.getParentFile().getName();
         }
       }
@@ -375,7 +374,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @Nullable
   public FileResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
     String aarPath = aarDirectory.getPath();
-    assert aarPath.endsWith(DOT_AAR) || aarPath.contains(EXPLODED_AAR) : aarPath;
+    assert aarPath.endsWith(DOT_AAR) || aarPath.contains(AndroidGradleModel.EXPLODED_AAR) : aarPath;
     for (LocalResourceRepository r : myLibraries) {
       if (r instanceof FileResourceRepository) {
         FileResourceRepository repository = (FileResourceRepository)r;

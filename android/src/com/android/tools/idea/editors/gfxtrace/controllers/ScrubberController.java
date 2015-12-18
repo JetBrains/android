@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
-import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
@@ -26,27 +25,33 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
+import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScrubberController extends CellController<ScrubberController.Data> {
+public class ScrubberController extends ImageCellController<ScrubberController.Data> {
+  private static final Dimension PREVIEW_SIZE = JBUI.size(192, 192);
+
   public static JComponent createUI(GfxTraceEditor editor) {
-    return new ScrubberController(editor).myPanel;
+    return new ScrubberController(editor).myList;
   }
 
-  public static class Data extends CellController.Data {
+  public static class Data extends ImageCellList.Data {
     @NotNull public final AtomPath atomPath;
     @NotNull public final Range range;
 
-    public Data(AtomPath atomPath, @NotNull Range range, @NotNull String label, @NotNull ImageIcon icon) {
-      super(label, icon);
+    public Data(AtomPath atomPath, @NotNull Range range, @NotNull String label) {
+      super(label);
       this.atomPath = atomPath;
       this.range = range;
     }
@@ -56,39 +61,38 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
   @NotNull private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
   @NotNull private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
   @NotNull private final RenderSettings myRenderSettings = new RenderSettings();
-  private boolean mDisableActivation = false;
 
   private ScrubberController(@NotNull final GfxTraceEditor editor) {
     super(editor);
-    myRenderSettings.setMaxWidth(CellRenderer.MAX_WIDTH);
-    myRenderSettings.setMaxHeight(CellRenderer.MAX_HEIGHT);
+    usingListWidget(CellList.Orientation.HORIZONTAL, GfxTraceEditor.LOADING_CAPTURE, PREVIEW_SIZE);
+    myRenderSettings.setMaxWidth(PREVIEW_SIZE.width);
+    myRenderSettings.setMaxHeight(PREVIEW_SIZE.height);
     myRenderSettings.setWireframeMode(WireframeMode.noWireframe());
   }
 
   @Override
-  public boolean loadCell(final Data cell) {
+  public void loadCell(final Data cell, final Runnable onLoad) {
     final DevicePath devicePath = myRenderDevice.getPath();
     if (devicePath == null) {
-      return false;
+      return;
     }
     final ServiceClient client = myEditor.getClient();
     ListenableFuture<ImageInfoPath> imagePathF = client.getFramebufferColor(devicePath, cell.atomPath, myRenderSettings);
     Futures.addCallback(imagePathF, new LoadingCallback<ImageInfoPath>(LOG, cell) {
       @Override
       public void onSuccess(@Nullable final ImageInfoPath imagePath) {
-        loadCellImage(cell, client, imagePath);
+        loadCellImage(cell, client, imagePath, onLoad);
       }
     });
-    return true;
   }
 
   @Override
-  void selected(@NotNull Data cell) {
-    if (mDisableActivation || myAtomsPath.getPath() == null) {
+  public void selected(@NotNull Data cell) {
+    if (myAtomsPath.getPath() == null) {
       return;
     }
     AtomPath atomPath = myAtomsPath.getPath().index(cell.range.getLast());
-    myEditor.activatePath(atomPath);
+    myEditor.activatePath(atomPath, this);
   }
 
 
@@ -100,9 +104,9 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
     range.setStart(0);
     for (int index = 0; index < atoms.getAtoms().length; ++index) {
       Atom atom = atoms.get(index);
-      if (atom.getIsEndOfFrame()) {
+      if (atom.isEndOfFrame()) {
         range.setEnd(index + 1);
-        Data frameData = new Data(path.index(index), range, Integer.toString(frameCount++), myRenderer.getDefaultIcon());
+        Data frameData = new Data(path.index(index), range, Integer.toString(frameCount++));
         generatedList.add(frameData);
         range = new Range();
         range.setStart(index + 1);
@@ -111,47 +115,36 @@ public class ScrubberController extends CellController<ScrubberController.Data> 
     return generatedList;
   }
 
-  public void selectFrame(long atomIndex) {
-    if (myData == null) return;
-    for (int i = 0; i < myData.size(); ++i) {
-      if (myData.get(i).range.contains(atomIndex)) {
-        try {
-          mDisableActivation = true;
-          selectItem(i);
-        }
-        finally {
-          mDisableActivation = false;
-        }
+  private void selectFrame(AtomPath atomPath) {
+    if (atomPath == null) {
+      return;
+    }
+
+    int index = 0;
+    for (Data data : myList.items()) {
+      if (data.range.contains(atomPath.getIndex())) {
+        myList.selectItem(index, false);
+        break;
       }
+      index++;
     }
   }
 
   @Override
-  public void notifyPath(Path path) {
-    boolean updateIcons = false;
-    if (path instanceof DevicePath) {
-      updateIcons |= myRenderDevice.update((DevicePath)path);
-    }
-    if (path instanceof CapturePath) {
-      updateIcons |= myAtomsPath.update(((CapturePath)path).atoms());
-    }
-    if (path instanceof AtomPath) {
-      selectFrame(((AtomPath)path).getIndex());
-    }
-    if (updateIcons && myAtomsPath.getPath() != null) {
-      Futures.addCallback(myEditor.getClient().get(myAtomsPath.getPath()), new LoadingCallback<AtomList>(LOG) {
+  public void notifyPath(PathEvent event) {
+    boolean updateIcons = myRenderDevice.updateIfNotNull(event.findDevicePath());
+    updateIcons = myAtomsPath.updateIfNotNull(CapturePath.atoms(event.findCapturePath())) | updateIcons;
+
+    selectFrame(event.findAtomPath());
+
+    final AtomsPath atomsPath = myAtomsPath.getPath();
+    if (updateIcons && atomsPath != null) {
+      Futures.addCallback(myEditor.getClient().get(atomsPath), new LoadingCallback<AtomList>(LOG) {
         @Override
         public void onSuccess(@Nullable final AtomList atoms) {
-          final List<Data> cells = prepareData(myAtomsPath.getPath(), atoms);
-          EdtExecutor.INSTANCE.execute(new Runnable() {
-            @Override
-            public void run() {
-              // Back in the UI thread here
-              populateUi(cells);
-            }
-          });
+          myList.setData(prepareData(atomsPath, atoms));
         }
-      });
+      }, EdtExecutor.INSTANCE);
     }
   }
 }

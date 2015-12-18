@@ -359,7 +359,7 @@ public abstract class ManifestInfo {
   }
 
   @NotNull
-  public List<UsesFeature> getRequiredFeatures() {
+  public List<UsesFeature> getUsedFeatures() {
     final List<Manifest> manifests = getManifests();
     if (manifests.isEmpty()) {
       Logger.getInstance(ManifestInfo.class).warn("List of manifests is empty, possibly needs a gradle sync.");

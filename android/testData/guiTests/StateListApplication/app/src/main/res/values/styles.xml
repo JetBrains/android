@@ -1,0 +1,6 @@
+<resources>
+    <style name="AppTheme" parent="android:Theme">
+        <item name="android:textColorPrimary">@color/text_color</item>
+        <item name="myColorAttribute">@color/myColor</item>
+    </style>
+</resources>

@@ -84,6 +84,7 @@ public class SelectNdkDialog extends DialogWrapper {
       myDownloadNdkRadioButton.setVisible(false);
       mySelectValidNdkRadioButton.setSelected(true);
       myNdkTextFieldWithButton.setEnabled(true);
+      getOKAction().setEnabled(false);
     }
 
     if (!showDownload && !showRemove) {
@@ -172,7 +173,6 @@ public class SelectNdkDialog extends DialogWrapper {
       myHasBeenEdited = true;
     }
     if (!myHasBeenEdited) {
-      getOKAction().setEnabled(false);
       return null;
     }
     String ndkError = validateAndroidNdkPath(ndkPath);

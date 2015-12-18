@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
-import com.android.tools.idea.sdk.SdkPaths;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -27,7 +26,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
@@ -39,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.sdk.IdeSdks.isValidAndroidSdkPath;
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -145,36 +144,37 @@ public final class SdkSync {
     }
   }
 
-  @VisibleForTesting
-  static void syncIdeAndProjectAndroidNdk(@NotNull final LocalProperties localProperties) {
+  private static void syncIdeAndProjectAndroidNdk(@NotNull final LocalProperties localProperties) {
     File projectAndroidNdkPath = localProperties.getAndroidNdkPath();
     File ideAndroidNdkPath = IdeSdks.getAndroidNdkPath();
 
     if (projectAndroidNdkPath != null) {
-      if (!SdkPaths.validateAndroidNdk(projectAndroidNdkPath, false).success) {
+      if (!validateAndroidNdk(projectAndroidNdkPath, false).success) {
         if (ideAndroidNdkPath != null) {
           Logger.getInstance(SdkSync.class).warn(String.format("Replacing invalid NDK path %1$s with %2$s",
                                                                projectAndroidNdkPath, ideAndroidNdkPath));
           setProjectNdk(localProperties, ideAndroidNdkPath);
+          return;
         }
-        else {
-          Logger.getInstance(SdkSync.class).warn(String.format("Removing invalid NDK path: %s", projectAndroidNdkPath));
-          setProjectNdk(localProperties, null);
-        }
+        Logger.getInstance(SdkSync.class).warn(String.format("Removing invalid NDK path: %s", projectAndroidNdkPath));
+        setProjectNdk(localProperties, null);
       }
+      return;
     }
-    else {
-      setProjectNdk(localProperties, ideAndroidNdkPath);
-    }
+    setProjectNdk(localProperties, ideAndroidNdkPath);
   }
 
   private static void setProjectNdk(@NotNull LocalProperties localProperties, @Nullable File ndkPath) {
+    File currentNdkPath = localProperties.getAndroidNdkPath();
+    if (filesEqual(currentNdkPath, ndkPath)) {
+      return;
+    }
     localProperties.setAndroidNdkPath(ndkPath);
     try {
       localProperties.save();
     }
     catch (IOException e) {
-      String msg = String.format("Unable to save '%1$s'", localProperties.getFilePath().getPath());
+      String msg = String.format("Unable to save '%1$s'", localProperties.getPropertiesFilePath().getPath());
       throw new ExternalSystemException(msg, e);
     }
   }
@@ -209,7 +209,7 @@ public final class SdkSync {
       localProperties.save();
     }
     catch (IOException e) {
-      String msg = String.format("Unable to save '%1$s'", localProperties.getFilePath().getPath());
+      String msg = String.format("Unable to save '%1$s'", localProperties.getPropertiesFilePath().getPath());
       throw new ExternalSystemException(msg, e);
     }
   }

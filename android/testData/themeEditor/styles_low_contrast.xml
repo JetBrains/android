@@ -1,0 +1,7 @@
+<resources>
+  <style name="MyTheme" parent="android:Theme">
+    <item name="android:colorPrimary">#FFFFFF</item>
+    <item name="android:textColor">#EEEEEE</item>
+    <item name="android:textColorPrimary">#DDDDDD</item>
+  </style>
+</resources>

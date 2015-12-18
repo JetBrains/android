@@ -22,7 +22,6 @@ import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,7 +31,7 @@ import java.awt.event.ActionListener;
  * Uses a ComboBox for a dropdown list of choices
  * In the case where other values are allowed, makes the ComboBox editable
  */
-public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, String> implements TableCellRenderer {
+public class EnumRendererEditor extends TypedCellRendererEditor<EditedStyleItem, String> {
   private final ComboBox myComboBox;
 
   public EnumRendererEditor() {
@@ -52,13 +51,12 @@ public class EnumRendererEditor extends TypedCellEditor<EditedStyleItem, String>
   }
 
   @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    EditedStyleItem item = (EditedStyleItem) value;
+  public Component getRendererComponent(JTable table, EditedStyleItem value, boolean isSelected, boolean hasFocus, int row, int column) {
     final Component component;
     if (column == 0) {
-      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(item), isSelected, hasFocus, row, column);
+      component = table.getDefaultRenderer(String.class).getTableCellRendererComponent(table, ThemeEditorUtils.getDisplayHtml(value), isSelected, hasFocus, row, column);
     } else {
-      String itemValue = item.getValue();
+      String itemValue = value.getValue();
       myComboBox.removeAllItems();
       myComboBox.addItem(itemValue);
       myComboBox.setSelectedItem(itemValue);

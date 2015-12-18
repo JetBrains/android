@@ -17,6 +17,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.idea.editors.gfxtrace.service.path.ResourceID;
+import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
@@ -29,8 +31,12 @@ import com.android.tools.rpclib.binary.Namespace;
 import java.io.IOException;
 
 public final class ResourceInfo implements BinaryObject {
+  public long getFirstAccess() {
+    return myAccesses.length > 0 ? myAccesses[0] : 0;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
-  private BinaryID myID;
+  private ResourceID myID;
   private String myName;
   private long[] myAccesses;
 
@@ -38,11 +44,11 @@ public final class ResourceInfo implements BinaryObject {
   public ResourceInfo() {}
 
 
-  public BinaryID getID() {
+  public ResourceID getID() {
     return myID;
   }
 
-  public ResourceInfo setID(BinaryID v) {
+  public ResourceInfo setID(ResourceID v) {
     myID = v;
     return this;
   }
@@ -68,11 +74,16 @@ public final class ResourceInfo implements BinaryObject {
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
-  private static final byte[] IDBytes = {-15, 58, 71, 50, 86, 117, 121, -94, 122, -70, -126, 5, -76, 35, 49, 109, -26, 14, 80, -50, };
-  public static final BinaryID ID = new BinaryID(IDBytes);
+
+  private static final Entity ENTITY = new Entity("service","ResourceInfo","","");
 
   static {
-    Namespace.register(ID, Klass.INSTANCE);
+    ENTITY.setFields(new Field[]{
+      new Field("ID", new Array("path.ResourceID", new Primitive("byte", Method.Uint8), 20)),
+      new Field("Name", new Primitive("string", Method.String)),
+      new Field("Accesses", new Slice("", new Primitive("uint64", Method.Uint64))),
+    });
+    Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
@@ -81,7 +92,7 @@ public final class ResourceInfo implements BinaryObject {
     INSTANCE;
 
     @Override @NotNull
-    public BinaryID id() { return ID; }
+    public Entity entity() { return ENTITY; }
 
     @Override @NotNull
     public BinaryObject create() { return new ResourceInfo(); }
@@ -89,7 +100,8 @@ public final class ResourceInfo implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ResourceInfo o = (ResourceInfo)obj;
-      e.id(o.myID);
+      o.myID.write(e);
+
       e.string(o.myName);
       e.uint32(o.myAccesses.length);
       for (int i = 0; i < o.myAccesses.length; i++) {
@@ -100,7 +112,8 @@ public final class ResourceInfo implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ResourceInfo o = (ResourceInfo)obj;
-      o.myID = d.id();
+      o.myID = new ResourceID(d);
+
       o.myName = d.string();
       o.myAccesses = new long[d.uint32()];
       for (int i = 0; i <o.myAccesses.length; i++) {

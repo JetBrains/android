@@ -83,6 +83,12 @@ public abstract class UsageTracker {
   public static final String CATEGORY_PROFILING = "profiling";
   public static final String ACTION_PROFILING_CAPTURE = "captureCreated";
   public static final String ACTION_PROFILING_OPEN = "captureOpened";
+  public static final String ACTION_PROFILING_CONVERT_HPROF = "hprofConversion";
+  public static final String ACTION_PROFILING_ANALYSIS_RUN = "analysisRan";
+
+  public static final String CATEGORY_MONITOR = "monitors";
+  public static final String ACTION_MONITOR_ACTIVATED = "activateMonitor";
+  public static final String ACTION_MONITOR_RUNNING = "runningMonitor";
 
   public static final String CATEGORY_SDK_MANAGER = "sdkManager";
   public static final String ACTION_SDK_MANAGER_TOOLBAR_CLICKED = "toolbarButtonClicked";
@@ -95,6 +101,17 @@ public abstract class UsageTracker {
   public static final String CATEGORY_TEMPLATE = "template";
   public static final String ACTION_TEMPLATE_RENDER = "render";
 
+  public static final String CATEGORY_THEME_EDITOR = "themeEditor";
+  public static final String ACTION_THEME_EDITOR_OPEN = "themeEditorOpened";
+
+  /**
+   * Tracking category for AppIndexing
+   */
+  public static final String CATEGORY_APP_INDEXING = "appIndexing";
+  public static final String ACTION_APP_INDEXING_DEEP_LINK_CREATED = "deepLinkCreated";
+  public static final String ACTION_APP_INDEXING_API_CODE_CREATED = "apiCodeCreated";
+  public static final String ACTION_APP_INDEXING_DEEP_LINK_LAUNCHED = "deepLinkLaunched";
+  public static final String ACTION_APP_INDEXING_TRIGGER_QUICKFIX = "triggerQuickfix";
 
   /**
    * When using the usage tracker, do NOT include any information that can identify the user
@@ -120,4 +137,8 @@ public abstract class UsageTracker {
    * Track the count of external dependencies (# of jars and # of aars per project). The application Id will be anonymized before upload.
    */
   public abstract void trackLibraryCount(@NotNull String applicationId, int jarDependencyCount, int aarDependencyCount);
+
+  public abstract void trackGradleArtifactVersions(@NotNull String applicationId,
+                                                   @NotNull String androidPluginVersion,
+                                                   @NotNull String gradleVersion);
 }
