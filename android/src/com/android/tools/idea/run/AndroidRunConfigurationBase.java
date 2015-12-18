@@ -347,13 +347,26 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // When performing a full launch, always terminate the previous sessions. Otherwise, we might end up with 2 active sessions of the same
     // launch, esp. if we first think we can do a fast deploy, then one of the conditionals above fails and we end up doing a full launch.
     if (info != null) {
-      // only run or debug of a config can be active at a time
-      String msg = "You currently have an active " + info.getExecutorId() + " session of the same launch configuration.\n" +
-                   "Do you want to kill that session and proceed with the current launch?";
-      if (ourKillLaunchOption.isToBeShown() &&
-          Messages.NO ==
-          Messages.showYesNoDialog(project, msg, "Launching " + getName(), AllIcons.General.QuestionDialog, ourKillLaunchOption)) {
-        return null;
+      String previousExecutor = info.getExecutorId();
+      String currentExecutor = executor.getId();
+
+      if (ourKillLaunchOption.isToBeShown()) {
+        String msg, noText;
+        if (previousExecutor.equals(currentExecutor)) {
+          msg = String.format("Restart App?\nThe app is already running. Would you like to kill it and restart the session?");
+          noText = "Cancel";
+        }
+        else {
+          msg = String.format("To switch from %1$s to %2$s, the app has to restart. Continue?", previousExecutor, currentExecutor);
+          noText = "Cancel " + currentExecutor;
+        }
+
+        String title = "Launching " + getName();
+        String yesText = "Restart " + getName();
+        if (Messages.NO ==
+            Messages.showYesNoDialog(project, msg, title, yesText, noText, AllIcons.General.QuestionDialog, ourKillLaunchOption)) {
+          return null;
+        }
       }
 
       LOG.info("Disconnecting existing session of the same launch configuration");
