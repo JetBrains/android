@@ -17,15 +17,16 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.avdmanager.AccelerationErrorCode;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.ElevatedCommandLine;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
@@ -68,6 +69,7 @@ public final class Haxm extends InstallableComponent {
   public static final Logger LOG = Logger.getInstance(Haxm.class);
   public static final IdDisplay ID_INTEL = new IdDisplay("intel", "");
   public static final String COMPONENT_PATH = "Hardware_Accelerated_Execution_Manager";
+  public static final String REPO_PACKAGE_PATH = "extras;intel;" + COMPONENT_PATH;
   public static final String RUNNING_INTEL_HAXM_INSTALLER_MESSAGE = "Running Intel® HAXM installer";
   private static final ScopedStateStore.Key<Integer> KEY_EMULATOR_MEMORY_MB =
     ScopedStateStore.createKey("emulator.memory", ScopedStateStore.Scope.PATH, Integer.class);
@@ -126,7 +128,8 @@ public final class Haxm extends InstallableComponent {
 
   public Haxm(@NotNull ScopedStateStore store, ScopedStateStore.Key<Boolean> isCustomInstall) {
     super(store, "Performance (Intel ® HAXM)", 2306867, "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
-                                                        "Android app emulation on your development computer. (Recommended)");
+                                                        "Android app emulation on your development computer. (Recommended)",
+          FileOpUtils.create());
     myIsCustomInstall = isCustomInstall;
   }
 
@@ -192,7 +195,7 @@ public final class Haxm extends InstallableComponent {
   }
 
   @Override
-  public void configure(@NotNull InstallContext installContext, @NotNull File sdk) {
+  public void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler) {
     AccelerationErrorCode error = checkHaxmInstallation();
     if (error == ALREADY_INSTALLED) {
       return;
@@ -201,7 +204,7 @@ public final class Haxm extends InstallableComponent {
       case INSTALL_HAXM:
       case REINSTALL_HAXM:
         try {
-          GeneralCommandLine commandLine = getInstallCommandLine(sdk);
+          GeneralCommandLine commandLine = getInstallCommandLine(sdkHandler.getLocation());
           runInstaller(installContext, commandLine);
         }
         catch (WizardException e) {
@@ -297,7 +300,7 @@ public final class Haxm extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    return ImmutableList.of(createExtra(ID_INTEL, COMPONENT_PATH));
+  public Collection<String> getRequiredSdkPackages(@Nullable Multimap<String, RemotePackage> remotePackages) {
+    return ImmutableList.of(REPO_PACKAGE_PATH);
   }
 }

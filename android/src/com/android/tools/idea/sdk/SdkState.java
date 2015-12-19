@@ -18,10 +18,16 @@ package com.android.tools.idea.sdk;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.repository.api.ProgressRunner;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.RemoteSdk;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioProgressRunner;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.utils.ILogger;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
@@ -42,6 +48,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+@Deprecated  // Use AndroidSdkHandler/RepoManager instead.
 public class SdkState {
 
   public final static long DEFAULT_EXPIRATION_PERIOD_MS = TimeUnit.DAYS.toMillis(1);
@@ -307,6 +314,26 @@ public class SdkState {
 
     @Override
     public void run(@NonNull ProgressIndicator indicator) {
+      // call load in the new system as well, in case some systems are expecting the associated
+      // triggers to fire
+      final StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+      AndroidSdkHandler.getInstance().getSdkManager(progress).load(0, null, null, null, new ProgressRunner() {
+        @Override
+        public void runAsyncWithProgress(@NonNull ProgressRunnable r) {
+          r.run(progress, this);
+        }
+
+        @Override
+        public void runSyncWithProgress(@NonNull ProgressRunnable r) {
+          r.run(progress, this);
+        }
+
+        @Override
+        public void runSyncWithoutProgress(@NonNull Runnable r) {
+          r.run();
+        }
+      }, StudioDownloader.getInstance(), StudioSettingsController.getInstance(), true);
+
       boolean success = false;
       try {
         IndicatorLogger logger = new IndicatorLogger(indicator);

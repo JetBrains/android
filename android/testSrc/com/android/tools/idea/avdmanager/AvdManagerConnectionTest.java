@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.repository.testframework.MockFileOp;
 import com.android.resources.Density;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.io.FileUtil;
@@ -32,15 +34,18 @@ public class AvdManagerConnectionTest extends AndroidGradleTestCase {
   private AvdInfo myAvdInfo;
   private Map<String, String> myPropertiesMap = Maps.newHashMap();
   private AvdManagerConnection myConnection;
+  private MockFileOp myFileOp = new MockFileOp();
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    tempDir = new File(getProject().getBasePath());
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(myFileOp);
+    sdkHandler.setLocation(new File("/sdk"));
+    tempDir = new File("/tmp");
 
     myAvdInfo =
       new AvdInfo("name", new File("ini"), "folder", "target", null, new IdDisplay("mockId", "mockDisplay"), "x86", myPropertiesMap);
-    myConnection = AvdManagerConnection.getDefaultAvdManagerConnection();
+    myConnection = new AvdManagerConnection(sdkHandler, myFileOp);
   }
 
   @Override
@@ -55,13 +60,13 @@ public class AvdManagerConnectionTest extends AndroidGradleTestCase {
 
   public void testGetAvdResolutionFromSkinFile() throws Exception {
     File tempFile = new File(tempDir, "layout");
-    FileUtil.writeToFile(tempFile, "parts { device { display { width 123 height 456 } } }");
+    myFileOp.recordExistingFile(tempFile.getPath(), "parts { device { display { width 123 height 456 } } }");
     assertEquals(new Dimension(123, 456), myConnection.getResolutionFromLayoutFile(tempFile));
   }
 
   public void testGetAvdResolutionFromFilePath() throws Exception {
     File tempFile = new File(tempDir, "layout");
-    FileUtil.writeToFile(tempFile, "parts { device { display { width 123 height 456 } } }");
+    myFileOp.recordExistingFile(tempFile.getPath(), "parts { device { display { width 123 height 456 } } }");
 
     myPropertiesMap.put("skin.path", tempDir.getPath());
     assertEquals(new Dimension(123, 456), myConnection.getAvdResolution(myAvdInfo));

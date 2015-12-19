@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPlatformPkgInfo;
-import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
-import com.android.tools.idea.sdk.remote.internal.packages.RemotePlatformPkgInfo;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.UpdatablePackage;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +44,7 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
 
   @Override
   public NodeStateHolder.SelectedState getInitialState() {
-    return myStateHolder.getPkg().hasRemote(myIncludePreview) && myStateHolder.getPkg().hasLocal()
+    return myStateHolder.getPkg().isUpdate(myIncludePreview)
            ? NodeStateHolder.SelectedState.MIXED
            : myStateHolder.getPkg().hasLocal() ? NodeStateHolder.SelectedState.INSTALLED : NodeStateHolder.SelectedState.NOT_INSTALLED;
   }
@@ -82,13 +80,13 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
 
   @Override
   public boolean includeInSummary() {
-    return myStateHolder.getPkg().getPkgDesc(true).getType() == PkgType.PKG_SOURCE ||
-           myStateHolder.getPkg().getPkgDesc(true).getType() == PkgType.PKG_PLATFORM;
+    return myStateHolder.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.SourceDetailsType ||
+           myStateHolder.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.PlatformDetailsType;
   }
 
   @Override
   public boolean isPrimary() {
-    return myStateHolder.getPkg().getPkgDesc(true).getType() == PkgType.PKG_PLATFORM;
+    return myStateHolder.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.PlatformDetailsType;
   }
 
   @Override
@@ -100,35 +98,24 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
                                 int row,
                                 boolean hasFocus) {
     SimpleTextAttributes attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-    UpdatablePkgInfo p = myStateHolder.getPkg();
     String result;
-    if (p.getPkgDesc(true).getType() == PkgType.PKG_PLATFORM) {
-      String versionName;
-      if (p.hasLocal()) {
-        versionName = ((LocalPlatformPkgInfo)p.getLocalInfo()).getAndroidTarget().getVersionName();
-      }
-      else {
-        versionName = ((RemotePlatformPkgInfo)p.getRemote(myIncludePreview)).getVersionName();
-      }
-      result = String.format("Android %s Platform", versionName);
-      if (p.getPkgDesc(myIncludePreview).isObsolete()) {
-        result += " (Obsolete)";
-      }
+    RepoPackage p = myStateHolder.getPkg().getRepresentative();
+    result = p.getDisplayName();
+    if (p.obsolete()) {
+      result += " (Obsolete)";
     }
-    else {
-      result = p.getPkgDesc(myIncludePreview).getListDescription();
-    }
+
     renderer.getTextRenderer().append(result, attributes);
   }
 
   @NotNull
-  public UpdatablePkgInfo getItem() {
+  public UpdatablePackage getItem() {
     return myStateHolder.getPkg();
   }
 
   @Override
   protected boolean canHaveMixedState() {
-    return myStateHolder.getPkg().hasRemote(myIncludePreview) && myStateHolder.getPkg().hasLocal();
+    return myStateHolder.getPkg().isUpdate(myIncludePreview);
   }
 
   @Override
@@ -137,14 +124,16 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
       return "Not installed";
     }
     else if (getInitialState() == NodeStateHolder.SelectedState.MIXED) {
-      return "Update Available: " + myStateHolder.getPkg().getRemote(myIncludePreview).getRevision();
+      // The initial state being mixed ensures we have a remote we care about
+      //noinspection ConstantConditions
+      return "Update Available: " + myStateHolder.getPkg().getRemote(myIncludePreview).getVersion();
     }
     else {
       return "Installed";
     }
   }
 
-  public IPkgDesc getItemDesc() {
-    return getItem().getPkgDesc(myIncludePreview);
+  public RepoPackage getPackage() {
+    return getItem().getRepresentative();
   }
 }
