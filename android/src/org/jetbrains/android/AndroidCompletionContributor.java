@@ -17,6 +17,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.lang.databinding.DataBindingCompletionUtil;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -31,10 +32,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.*;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.HashSet;
-import com.intellij.util.xml.Converter;
-import com.intellij.util.xml.DomElement;
-import com.intellij.util.xml.DomManager;
-import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.*;
 import com.intellij.util.xml.converters.DelimitedListConverter;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
@@ -47,6 +45,7 @@ import org.jetbrains.android.dom.converters.FlagConverter;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
+import org.jetbrains.android.dom.layout.Data;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
@@ -63,6 +62,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.*;
+
 
 public class AndroidCompletionContributor extends CompletionContributor {
 
@@ -189,11 +189,12 @@ public class AndroidCompletionContributor extends CompletionContributor {
     }
     else if (originalParent instanceof XmlAttributeValue) {
       completeTailsInFlagAttribute(parameters, resultSet, (XmlAttributeValue)originalParent);
+      completeDataBindingTypeAttr(parameters, resultSet, (XmlAttributeValue)originalParent);
     }
   }
 
   private static void addAndroidPrefixElement(PsiElement position, PsiElement parent, CompletionResultSet resultSet) {
-    if (position.getText().startsWith("android:")) {
+    if (position.getText().startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
       return;
     }
 
@@ -335,6 +336,23 @@ public class AndroidCompletionContributor extends CompletionContributor {
       };
     }
     return result.withLookupElement(PrioritizedLookupElement.withPriority(lookupElement, 100.0));
+  }
+
+  private static void completeDataBindingTypeAttr(CompletionParameters parameters,
+                                                  CompletionResultSet resultSet,
+                                                  XmlAttributeValue originalParent) {
+    PsiElement gp = originalParent.getParent();
+    if (!(gp instanceof XmlAttribute)) {
+      return;
+    }
+    GenericAttributeValue domElement = DomManager.getDomManager(gp.getProject()).getDomElement((XmlAttribute)gp);
+    if (domElement == null) {
+      return;
+    }
+    if ((DomUtil.getParentOfType(domElement, Data.class, true) != null && ((XmlAttribute)gp).getName().equals(SdkConstants.ATTR_TYPE))) {
+      // Ensure that the parent tag of the tag containing the attribute is "<data>" and the attribute being edited is "type"
+      DataBindingCompletionUtil.addCompletions(parameters, resultSet);
+    }
   }
 
   private static void completeTailsInFlagAttribute(CompletionParameters parameters,

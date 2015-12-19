@@ -10,4 +10,7 @@ public interface PsiDbDotExpr extends PsiDbExpr {
   @NotNull
   PsiDbExpr getExpr();
 
+  @NotNull
+  PsiDbFieldName getFieldName();
+
 }

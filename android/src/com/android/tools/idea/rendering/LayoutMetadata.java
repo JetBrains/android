@@ -160,7 +160,7 @@ public class LayoutMetadata {
   }
 
   /**
-   * Creates an {@link com.android.ide.common.rendering.api.AdapterBinding} for the given view object, or null if the user
+   * Creates an {@link AdapterBinding} for the given view object, or null if the user
    * has not yet chosen a target layout to use for the given AdapterView.
    *
    * @param viewObject the view object to create an adapter binding for
@@ -181,7 +181,7 @@ public class LayoutMetadata {
   }
 
   /**
-   * Creates an {@link com.android.ide.common.rendering.api.AdapterBinding} for the given view object, or null if the user
+   * Creates an {@link AdapterBinding} for the given view object, or null if the user
    * has not yet chosen a target layout to use for the given AdapterView.
    *
    * @param viewObject the view object to create an adapter binding for
@@ -345,7 +345,7 @@ public class LayoutMetadata {
             }
             for (XmlTag tag : PsiTreeUtil.findChildrenOfType(psiFile, XmlTag.class)) {
               XmlAttribute attribute = tag.getAttribute(ATTR_ID, ANDROID_URI);
-              if (attribute == null) {
+              if (attribute == null || attribute.getValue() == null) {
                 continue;
               }
               if (attribute.getValue().endsWith(id) && id.equals(stripIdPrefix(attribute.getValue()))) {

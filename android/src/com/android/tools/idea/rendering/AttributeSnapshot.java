@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.tools.idea.lang.databinding.DbUtil;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.google.common.collect.Lists;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
@@ -55,7 +55,7 @@ public class AttributeSnapshot {
     String value = psiAttribute.getValue();
     if (value != null && value.startsWith(PREFIX_BINDING_EXPR)) {
       // if this is a binding expression, get the default value.
-      value = DbUtil.getBindingExprDefault(psiAttribute);
+      value = DataBindingUtil.getBindingExprDefault(psiAttribute);
       if (value == null) {
         // If no default value, strip the attribute completely.
         return null;
