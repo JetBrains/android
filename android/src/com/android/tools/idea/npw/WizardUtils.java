@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.ui.wizard.PathValidator;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.CharMatcher;
 import com.intellij.ide.RecentProjectsManager;
