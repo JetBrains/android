@@ -29,9 +29,11 @@ import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.ui.validation.validators.PositiveDoubleValidator;
+import com.android.tools.idea.ui.validation.validators.PositiveIntValidator;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
-import com.android.tools.idea.ui.wizard.Validator;
-import com.android.tools.idea.ui.wizard.ValidatorPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
@@ -208,35 +210,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     return myStudioPanel;
   }
 
-  private static final class PositiveDoubleValidator implements Validator<Double> {
-    private String myErrorMessage;
-
-    public PositiveDoubleValidator(String errorMessage) {
-      myErrorMessage = errorMessage;
-    }
-
-    @NotNull
-    @Override
-    public Result validate(@NotNull Double value) {
-      return (!(value > 0) ? new Result(Severity.ERROR, myErrorMessage) : Result.OK);
-    }
-  }
-
-  private static final class PositiveIntValidator implements Validator<Integer> {
-    private String myErrorMessage;
-
-    public PositiveIntValidator(String errorMessage) {
-      myErrorMessage = errorMessage;
-    }
-
-    @NotNull
-    @Override
-    public Result validate(@NotNull Integer value) {
-      return (!(value > 0) ? new Result(Severity.ERROR, myErrorMessage) : Result.OK);
-    }
-  }
-
-  public void attachValidators() {
+  private void attachValidators() {
     myValidatorPanel.registerValidator(getModel().getDeviceData().name(), new Validator<String>() {
       @NotNull
       @Override

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.wizard;
+package com.android.tools.idea.ui.validation.validators;
 
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
+import com.android.tools.idea.ui.validation.Validator;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
