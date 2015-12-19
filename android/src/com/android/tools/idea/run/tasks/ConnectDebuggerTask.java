@@ -75,7 +75,7 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
   }
 
   @Nullable
-  private Client waitForClient(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
+  protected Client waitForClient(@NotNull IDevice device, @NotNull LaunchStatus state, @NotNull ConsolePrinter printer) {
     for (int i = 0; i < POLL_TIMEOUT; i++) {
       if (state.isLaunchTerminated()) {
         return null;
