@@ -20,6 +20,7 @@ import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.io.FileOp;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalSdk;
@@ -77,7 +78,7 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
   @Override
   public void saveProperties(Properties props) {
     super.saveProperties(props);
-    getPkgDesc().getAndroidVersion().saveProperties(props);
+    AndroidVersionHelper.saveProperties(getPkgDesc().getAndroidVersion(), props);
   }
 
   /**

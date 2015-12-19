@@ -18,10 +18,7 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.sdklib.AndroidTargetHash;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
+import com.android.sdklib.*;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalSdk;
@@ -93,7 +90,7 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
   public void saveProperties(Properties props) {
     super.saveProperties(props);
 
-    getAndroidVersion().saveProperties(props);
+    AndroidVersionHelper.saveProperties(getAndroidVersion(), props);
     mLayoutlibVersion.saveProperties(props);
 
     if (mVersionName != null) {
