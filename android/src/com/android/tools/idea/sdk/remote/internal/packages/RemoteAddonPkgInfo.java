@@ -19,6 +19,7 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.IdDisplay;
@@ -195,7 +196,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
   public void saveProperties(Properties props) {
     super.saveProperties(props);
 
-    getAndroidVersion().saveProperties(props);
+    AndroidVersionHelper.saveProperties(getAndroidVersion(), props);
     mLayoutlibVersion.saveProperties(props);
 
     props.setProperty(PkgProps.ADDON_NAME_ID, getPkgDesc().getName().getId());
