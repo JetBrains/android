@@ -157,7 +157,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   /**
    * Indicates whether the project requires a {@link AndroidProject} (obtained from a build system. To check if a project is a "Gradle
    * project," please use the method {@link Projects#isBuildWithGradle(Project)}.
-   * @return {@code true} if the project hasa {@code AndroidProject}; {@code false} otherwise.
+   * @return {@code true} if the project has a {@code AndroidProject}; {@code false} otherwise.
    */
   public boolean requiresAndroidModel() {
     return !getProperties().ALLOW_USER_CONFIGURATION;
@@ -196,6 +196,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @NotNull
   public SourceProvider getMainSourceProvider() {
     if (myAndroidModel != null) {
+      //noinspection deprecation
       return myAndroidModel.getDefaultSourceProvider();
     } else {
       if (myMainSourceSet == null) {
@@ -237,7 +238,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   /**
    * This returns the primary resource directory; the default location to place newly created resources etc.  This method is marked
    * deprecated since we should be gradually adding in UI to allow users to choose specific resource folders among the available flavors
-   * (see {@link #getFlavorSourceProviders()} etc).
+   * (see {@link com.android.tools.idea.gradle.AndroidGradleModel#getFlavorSourceProviders()} etc).
    *
    * @return the primary resource dir, if any.
    */

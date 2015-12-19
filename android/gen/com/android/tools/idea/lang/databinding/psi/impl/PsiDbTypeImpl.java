@@ -8,10 +8,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.android.tools.idea.lang.databinding.DataBindingPsiElement;
 import com.android.tools.idea.lang.databinding.psi.*;
 
-public class PsiDbTypeImpl extends ASTWrapperPsiElement implements PsiDbType {
+public class PsiDbTypeImpl extends DataBindingPsiElement implements PsiDbType {
 
   public PsiDbTypeImpl(ASTNode node) {
     super(node);

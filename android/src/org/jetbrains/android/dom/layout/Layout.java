@@ -19,6 +19,9 @@ import com.intellij.util.xml.DefinesXml;
 
 import java.util.List;
 
+/**
+ * This is for the top level {@code <layout>} tag used for data-binding.
+ */
 @DefinesXml
 public interface Layout extends LayoutElement, DataBindingElement {
   @SuppressWarnings("SpellCheckingInspection")
