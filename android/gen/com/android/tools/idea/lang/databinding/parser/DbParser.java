@@ -68,6 +68,9 @@ public class DbParser implements PsiParser, LightPsiParser {
     else if (t == EXPRESSION_LIST) {
       r = expressionList(b, 0);
     }
+    else if (t == FIELD_NAME) {
+      r = fieldName(b, 0);
+    }
     else if (t == ID_EXPR) {
       r = idExpr(b, 0);
     }
@@ -88,6 +91,9 @@ public class DbParser implements PsiParser, LightPsiParser {
     }
     else if (t == METHOD_EXPR) {
       r = expr(b, 0, 15);
+    }
+    else if (t == METHOD_NAME) {
+      r = methodName(b, 0);
     }
     else if (t == MUL_EXPR) {
       r = expr(b, 0, 11);
@@ -318,6 +324,18 @@ public class DbParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // IDENTIFIER
+  public static boolean fieldName(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "fieldName")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, FIELD_NAME, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // '<=' | '>=' | '<' | '>'
   static boolean ineqComparisonOp(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ineqComparisonOp")) return false;
@@ -354,6 +372,18 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, CHARACTER_LITERAL);
     if (!r) r = consumeToken(b, STRING_LITERAL);
     exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // IDENTIFIER
+  public static boolean methodName(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "methodName")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, METHOD_NAME, r);
     return r;
   }
 
@@ -737,13 +767,13 @@ public class DbParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // '.' IDENTIFIER '(' expressionList? ')'
+  // '.' methodName '(' expressionList? ')'
   private static boolean methodExpr_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "methodExpr_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeTokenSmart(b, DOT);
-    r = r && consumeToken(b, IDENTIFIER);
+    r = r && methodName(b, l + 1);
     r = r && consumeToken(b, LPARENTH);
     r = r && methodExpr_0_3(b, l + 1);
     r = r && consumeToken(b, RPARENTH);
@@ -758,13 +788,13 @@ public class DbParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // '.' IDENTIFIER
+  // '.' fieldName
   private static boolean dotExpr_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "dotExpr_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeTokenSmart(b, DOT);
-    r = r && consumeToken(b, IDENTIFIER);
+    r = r && fieldName(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }

@@ -82,28 +82,27 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
   private String getManifestPackage(@NotNull ConvertContext context) {
     DomElement domElement = context.getInvocationElement();
     Manifest manifest = domElement.getParentOfType(Manifest.class, true);
-    String packageName = manifest != null ? manifest.getPackage().getValue() : null;
+    String manifestPackage = manifest != null ? manifest.getPackage().getValue() : null;
 
-    if (packageName == null && myUseManifestBasePackage) {
-      packageName = ManifestInfo.get(context.getModule(), false).getPackage();
+    if (manifestPackage == null && myUseManifestBasePackage) {
+      manifestPackage = ManifestInfo.get(context.getModule(), false).getPackage();
     }
-
-    return packageName;
+    return manifestPackage;
   }
 
   @Override
   public PsiClass fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     if (s == null) return null;
-    String packageName = getManifestPackage(context);
+    String manifestPackage = getManifestPackage(context);
     s = s.replace('$', '.');
     String className = null;
 
-    if (packageName != null) {
+    if (manifestPackage != null) {
       if (s.startsWith(".")) {
-        className = packageName + s;
+        className = manifestPackage + s;
       }
       else {
-        className = packageName + "." + s;
+        className = manifestPackage + "." + s;
       }
     }
     JavaPsiFacade facade = JavaPsiFacade.getInstance(context.getPsiManager().getProject());
@@ -144,7 +143,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     final int start = attrValue.getValueTextRange().getStartOffset() - attrValue.getTextRange().getStartOffset();
 
     final DomElement domElement = context.getInvocationElement();
-    final String basePackage = getManifestPackage(context);
+    final String manifestPackage = getManifestPackage(context);
     final ExtendClass extendClassAnnotation = domElement.getAnnotation(ExtendClass.class);
 
     final String[] extendClassesNames = extendClassAnnotation != null
@@ -171,21 +170,20 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
       if (packageName.length() > 0) {
         offset += packageName.length();
         final TextRange range = new TextRange(offset - packageName.length(), offset);
-        result.add(
-          new MyReference(element, range, basePackage, startsWithPoint, start, true, module, extendClassesNames, inModuleOnly, isTestFile));
+        result.add(new MyReference(element, range, manifestPackage, startsWithPoint, start, true, module, extendClassesNames, inModuleOnly,
+                                   isTestFile));
       }
       offset++;
     }
 
     final String className = nameParts[nameParts.length - 1];
     final String[] classNameParts = className.split("\\$");
-
     for (String s : classNameParts) {
       if (s.length() > 0) {
         offset += s.length();
 
         final TextRange range = new TextRange(offset - s.length(), offset);
-        result.add(new MyReference(element, range, basePackage, startsWithPoint, start, false, module, extendClassesNames, inModuleOnly,
+        result.add(new MyReference(element, range, manifestPackage, startsWithPoint, start, false, module, extendClassesNames, inModuleOnly,
                                    isTestFile));
       }
       offset++;
@@ -262,7 +260,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
   }
 
   @NotNull
-  public static Collection<PsiClass> findInheritors(@NotNull Project project, @Nullable final Module module, @NotNull final String className, boolean inModuleOnly) {
+  public static Collection<PsiClass> findInheritors(@NotNull Project project, @Nullable final Module module,
+                                                    @NotNull final String className, boolean inModuleOnly) {
     PsiClass base = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project));
     if (base != null) {
       GlobalSearchScope scope = inModuleOnly && module != null
