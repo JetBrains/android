@@ -16,13 +16,16 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.repository.io.FileOp;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -44,9 +47,12 @@ public class SkinLayoutDefinition {
   @VisibleForTesting static final Pattern ourWhitespacePattern = Pattern.compile("\\s+");
 
   @Nullable
-  public static SkinLayoutDefinition parseFile(@NotNull File file) {
-    String contents = TemplateUtils.readTextFromDisk(file);
-    if (contents == null) {
+  public static SkinLayoutDefinition parseFile(@NotNull File file, @NotNull FileOp fop) {
+    String contents;
+    try {
+      contents = fop.toString(file, Charsets.UTF_8);
+    }
+    catch (IOException e) {
       return null;
     }
     return loadFromTokens(Splitter.on(ourWhitespacePattern).omitEmptyStrings().trimResults().split(contents).iterator());

@@ -110,13 +110,13 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     RemotePkgInfo[] packages = null;
     for (SchemaModule module : source.getPermittedModules()) {
       legacySource = null;
-      if (module == mySdkHandler.getRepositoryModule(progress)) {
+      if (module.equals(mySdkHandler.getRepositoryModule(progress))) {
         legacySource = new SdkRepoSource(source.getUrl(), "Legacy Repo Source");
       }
-      else if (module == mySdkHandler.getAddonModule(progress)) {
+      else if (module.equals(mySdkHandler.getAddonModule(progress))) {
         legacySource = new SdkAddonSource(source.getUrl(), "Legacy Addon Source");
       }
-      else if (module == mySdkHandler.getSysImgModule(progress)) {
+      else if (module.equals(mySdkHandler.getSysImgModule(progress))) {
         legacySource = new SdkSysImgSource(source.getUrl(), "Legacy System Image Source");
       }
       if (legacySource != null) {
@@ -150,6 +150,7 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
 
     private final RemotePkgInfo myWrapped;
     private RepositorySource mySource;
+    private TypeDetails myDetails;
 
     LegacyRemotePackage(RemotePkgInfo remote, RepositorySource source) {
       myWrapped = remote;
@@ -157,13 +158,17 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     }
 
     @Override
+    @Nullable
     public TypeDetails getTypeDetails() {
-      LayoutlibVersion layoutlibVersion = null;
-      if (myWrapped instanceof RemotePlatformPkgInfo) {
-        layoutlibVersion = ((RemotePlatformPkgInfo)myWrapped).getLayoutLibVersion();
+      if (myDetails == null) {
+        LayoutlibVersion layoutlibVersion = null;
+        if (myWrapped instanceof RemotePlatformPkgInfo) {
+          layoutlibVersion = ((RemotePlatformPkgInfo)myWrapped).getLayoutLibVersion();
+        }
+        ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+        myDetails = LegacyRepoUtils.createTypeDetails(myWrapped.getPkgDesc(), layoutlibVersion, progress);
       }
-      ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-      return LegacyRepoUtils.createTypeDetails(myWrapped.getPkgDesc(), layoutlibVersion, progress);
+      return myDetails;
     }
 
     @NotNull

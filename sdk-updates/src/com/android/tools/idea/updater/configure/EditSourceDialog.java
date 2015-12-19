@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSourceCategory;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
+import com.android.repository.api.RepositorySource;
+import com.android.repository.api.RepositorySourceProvider;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -29,7 +30,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Dialog box allowing the user to edit or create an {@link SdkSource}. Does some very basic validation.
+ * Dialog box allowing the user to edit or create an {@link RepositorySource}. Does some very basic validation.
  */
 public class EditSourceDialog extends DialogWrapper {
   private JPanel contentPane;
@@ -37,16 +38,16 @@ public class EditSourceDialog extends DialogWrapper {
   private JTextField myUrlField;
   private JBLabel myErrorLabel;
 
-  private SdkSources mySources;
-  private SdkSource myExistingSource;
+  private RepositorySourceProvider myProvider;
+  private RepositorySource myExistingSource;
 
   private boolean myUrlSet = false;
 
-  public EditSourceDialog(SdkSources sources, SdkSource existing) {
+  public EditSourceDialog(@NotNull RepositorySourceProvider provider, @Nullable RepositorySource existing) {
     super(null);
-    mySources = sources;
+    myProvider = provider;
     myExistingSource = existing;
-    myNameField.setText(existing == null ? "Custom Update Site" : existing.getUiName());
+    myNameField.setText(existing == null ? "Custom Update Site" : existing.getDisplayName());
     myUrlField.setText(existing == null ? "http://" : existing.getUrl());
     setModal(true);
 
@@ -98,10 +99,7 @@ public class EditSourceDialog extends DialogWrapper {
   @Nullable
   private String getErrorMessage(String urlString) {
     try {
-      final URL url = new URL(urlString);
-      if (!StringUtil.isNotEmpty(url.getHost())) {
-        return "URL must not be empty";
-      }
+      new URL(urlString);
     }
     catch (MalformedURLException e) {
       return "URL is invalid";
@@ -111,7 +109,7 @@ public class EditSourceDialog extends DialogWrapper {
       // URLs are generally case-insensitive (except for file:// where it all depends
       // on the current OS so we'll ignore this case.)
       // If we're editing a source, skip this.
-      for (SdkSource s : mySources.getSources(SdkSourceCategory.USER_ADDONS)) {
+      for (RepositorySource s : myProvider.getSources(null, null, new StudioLoggerProgressIndicator(getClass()), false)) {
         if (urlString.equalsIgnoreCase(s.getUrl())) {
           return "An update site with this URL already exists";
         }

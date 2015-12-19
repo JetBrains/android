@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.sdklib.SdkManager;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -52,7 +53,7 @@ public abstract class ComponentTreeNode {
 
   public abstract Collection<InstallableComponent> getChildrenToInstall();
 
-  public abstract void updateState(@Nullable SdkManager manager);
+  public abstract void updateState(@Nullable AndroidSdkHandler handler);
 
   @NotNull
   public abstract Collection<DynamicWizardStep> createSteps();

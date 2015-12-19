@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
+
+import com.android.repository.api.UpdatablePackage;
 
 import javax.swing.*;
 import java.util.Set;
@@ -96,13 +97,13 @@ class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
       return "Not Installed";
     } else {
       String revision;
-      UpdatablePkgInfo p = myMaxVersionNode.getItem();
+      UpdatablePackage p = myMaxVersionNode.getItem();
       if (p.hasRemote(myIncludePreview)) {
-        revision = p.getRemote(myIncludePreview).getPkgDesc().getRevision().toString();
+        revision = p.getRemote(myIncludePreview).getVersion().toString();
       }
       else {
         assert false;
-        revision = p.getLocalInfo().getDesc().getRevision().toString();
+        revision = p.getLocal().getVersion().toString();
       }
       return "Update Available: " + revision;
     }

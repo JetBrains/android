@@ -16,22 +16,26 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
-import com.android.repository.Revision;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.io.FileOp;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.*;
+import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalSdk;
-import com.android.tools.idea.avdmanager.*;
-import com.android.tools.idea.sdk.LogWrapper;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.tools.idea.avdmanager.AvdEditWizard;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.DeviceManagerConnection;
+import com.android.tools.idea.avdmanager.SystemImageDescription;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -76,21 +80,16 @@ public class AndroidVirtualDevice extends InstallableComponent {
   @Nullable
   private final AndroidVersion myLatestVersion;
 
-  public AndroidVirtualDevice(@NotNull ScopedStateStore store, Multimap<PkgType, RemotePkgInfo> remotePackages) {
+  public AndroidVirtualDevice(@NotNull ScopedStateStore store, @NotNull Multimap<String, RemotePackage> remotePackages, FileOp fop) {
     super(store, "Android Virtual Device", Storage.Unit.GiB.getNumberOfBytes(),
-          "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)");
-    RemotePkgInfo latestInfo = InstallComponentsPath.findLatestPlatform(remotePackages, false);
-    if (latestInfo != null) {
-      myLatestVersion = latestInfo.getPkgDesc().getAndroidVersion();
-    }
-    else {
-      myLatestVersion = null;
-    }
+          "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)", fop);
+    RemotePackage latestInfo = InstallComponentsPath.findLatestPlatform(remotePackages, false);
+    myLatestVersion = DetailsTypes.getAndroidVersion((DetailsTypes.PlatformDetailsType)latestInfo.getTypeDetails());
   }
 
   @NotNull
-  private static Device getDevice(@NotNull LocalSdk sdk) throws WizardException {
-    List<Device> devices = DeviceManagerConnection.getDeviceManagerConnection(sdk).getDevices();
+  private static Device getDevice(@NotNull File sdkPath) throws WizardException {
+    List<Device> devices = DeviceManagerConnection.getDeviceManagerConnection(sdkPath).getDevices();
     for (Device device : devices) {
       if (Objects.equal(device.getId(), ID_DEVICE_NEXUS_5)) {
         return device;
@@ -99,15 +98,12 @@ public class AndroidVirtualDevice extends InstallableComponent {
     throw new WizardException(String.format("No device definition with \"%s\" ID found", ID_DEVICE_NEXUS_5));
   }
 
-  private SystemImageDescription getSystemImageDescription(String sdkPath) throws WizardException {
-    SdkManager manager = SdkManager.createManager(sdkPath, new LogWrapper(LOG));
-    if (manager == null) {
-      throw new IllegalStateException();
-    }
-    LocalSdk sdk = manager.getLocalSdk();
+  private SystemImageDescription getSystemImageDescription(AndroidSdkHandler sdkHandler) throws WizardException {
     String platformHash =
       AndroidTargetHash.getAddonHashString(ID_VENDOR_GOOGLE.getDisplay(), ID_ADDON_GOOGLE_API_IMG.getDisplay(), myLatestVersion);
-    IAndroidTarget target = sdk.getTargetFromHashString(platformHash);
+    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    IAndroidTarget target =
+      sdkHandler.getAndroidTargetManager(progress).getTargetFromHashString(platformHash, progress);
     if (target == null) {
       throw new WizardException("Missing platform target SDK component required for an AVD setup");
     }
@@ -120,11 +116,9 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   @Nullable
   @VisibleForTesting
-  AvdInfo createAvd(@NotNull AvdManagerConnection connection, @NotNull LocalSdk sdk) throws WizardException {
-    Device d = getDevice(sdk);
-    File location = sdk.getLocation();
-    assert location != null;
-    SystemImageDescription systemImageDescription = getSystemImageDescription(location.getAbsolutePath());
+  AvdInfo createAvd(@NotNull AvdManagerConnection connection, @NotNull AndroidSdkHandler sdkHandler) throws WizardException {
+    Device d = getDevice(sdkHandler.getLocation());
+    SystemImageDescription systemImageDescription = getSystemImageDescription(sdkHandler);
 
     String cardSize = AvdEditWizard.toIniString(DEFAULT_INTERNAL_STORAGE, false);
     File hardwareSkinPath = AvdEditWizard.resolveSkinPath(d.getDefaultHardware().getSkinFile(), systemImageDescription);
@@ -178,13 +172,11 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<IPkgDesc> getRequiredSdkPackages(Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    Revision unspecifiedRevision = new Revision(Revision.NOT_SPECIFIED);
-    List<IPkgDesc> result = Lists.newArrayList();
+  public Collection<String> getRequiredSdkPackages(Multimap<String, RemotePackage> remotePackages) {
+    List<String> result = Lists.newArrayList();
     if (myLatestVersion != null) {
-      result.add(PkgDesc.Builder.newAddon(myLatestVersion, unspecifiedRevision, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG).create());
-      result.add(PkgDesc.Builder.newAddonSysImg(myLatestVersion, ID_VENDOR_GOOGLE, ID_ADDON_GOOGLE_API_IMG, SdkConstants.ABI_INTEL_ATOM,
-                                                unspecifiedRevision).create());
+      result.add(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG));
+      result.add(DetailsTypes.getSysImgPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG, SdkConstants.ABI_INTEL_ATOM));
     }
     return result;
   }
@@ -195,18 +187,13 @@ public class AndroidVirtualDevice extends InstallableComponent {
   }
 
   @Override
-  public void configure(@NotNull InstallContext installContext, @NotNull File sdkLocation) {
+  public void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler) {
     myProgressStep.getProgressIndicator().setIndeterminate(true);
     myProgressStep.getProgressIndicator().setText("Creating Android virtual device");
     installContext.print("Creating Android virtual device\n", ConsoleViewContentType.SYSTEM_OUTPUT);
-    String sdkPath = sdkLocation.getAbsolutePath();
-    SdkManager manager = SdkManager.createManager(sdkPath, new LogWrapper(LOG));
+
     try {
-      if (manager == null) {
-        throw new WizardException("Android SDK was not properly setup");
-      }
-      LocalSdk sdk = manager.getLocalSdk();
-      AvdInfo avd = createAvd(AvdManagerConnection.getAvdManagerConnection(sdk), sdk);
+      AvdInfo avd = createAvd(AvdManagerConnection.getAvdManagerConnection(sdkHandler), sdkHandler);
       if (avd == null) {
         throw new WizardException("Unable to create Android virtual device");
       }
@@ -221,21 +208,20 @@ public class AndroidVirtualDevice extends InstallableComponent {
   }
 
   @Override
-  protected boolean isSelectedByDefault(@Nullable SdkManager sdkManager) {
-    if (sdkManager == null) {
+  protected boolean isSelectedByDefault(@Nullable AndroidSdkHandler sdkHandler) {
+    if (sdkHandler == null) {
       return false;
     }
-    LocalSdk sdk = sdkManager.getLocalSdk();
     SystemImageDescription desired;
     try {
-      desired = getSystemImageDescription(sdk.getLocation().getPath());
+      desired = getSystemImageDescription(sdkHandler);
     }
     catch (WizardException e) {
       // ignore, error will be shown during configure if they opt to try to create.
       return false;
     }
 
-    AvdManagerConnection connection = AvdManagerConnection.getAvdManagerConnection(sdk);
+    AvdManagerConnection connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler);
     List<AvdInfo> avds = connection.getAvds(false);
     for (AvdInfo avd : avds) {
       if (avd.getAbiType().equals(desired.getAbiType()) && avd.getTarget() != null

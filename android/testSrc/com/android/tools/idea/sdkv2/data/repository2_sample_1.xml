@@ -82,7 +82,6 @@
 
 
     <remotePackage path="docs">
-        <type-details xsi:type="sdk:docDetailsType"/>
         <revision>
             <major>43</major>
         </revision>

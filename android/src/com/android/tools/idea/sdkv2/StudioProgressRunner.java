@@ -85,17 +85,25 @@ public class StudioProgressRunner implements ProgressRunner {
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
-        ProgressManager.getInstance().run(new Task(myProject, myProgressTitle, myCancellable) {
-          @Override
-          public boolean isModal() {
-            return myModal;
-          }
+        Task task;
+        if (myModal) {
+          task = new Task.Modal(myProject, myProgressTitle, myCancellable) {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+              r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this);
+            }
+          };
+        }
+        else {
+          task = new Task.Backgroundable(myProject, myProgressTitle, myCancellable) {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+              r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this);
+            }
+          };
+        }
 
-          @Override
-          public void run(@NotNull ProgressIndicator indicator) {
-            r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this);
-          }
-        });
+        ProgressManager.getInstance().run(task);
       }
     });
   }
