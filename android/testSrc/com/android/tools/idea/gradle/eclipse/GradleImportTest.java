@@ -3202,17 +3202,6 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     importer.setSdkLocation(sdkLocation);
     assertSame(sdkLocation, importer.getSdkLocation());
     assertSame(ndkLocation, importer.getNdkLocation());
-
-    String sdkPath = getTestSdkPathLocal();
-    if (sdkPath != null) {
-      ILogger logger = new StdLogger(StdLogger.Level.INFO);
-      SdkManager sdkManager = SdkManager.createManager(sdkPath, logger);
-      if (sdkManager != null) {
-        importer.setSdkManager(sdkManager);
-        assertSame(sdkManager, importer.getSdkManager());
-        assertEquals(new File(sdkPath), importer.getSdkLocation());
-      }
-    }
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
