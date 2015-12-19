@@ -153,7 +153,6 @@ public class SdkComponentSource implements ExternalComponentSource {
   @Override
   public Collection<? extends Pair<String, String>> getStatuses() {
     RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
-
     RepositoryPackages packages = mgr.getPackages();
     Revision toolsRevision = null;
     Revision platformRevision = null;
