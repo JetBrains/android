@@ -24,8 +24,8 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.lang.databinding.DbUtil;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -724,7 +724,7 @@ public class ResourceHelper {
     int depth = 0;
     while (value != null && depth < MAX_RESOURCE_INDIRECTION) {
       if (value.startsWith(PREFIX_BINDING_EXPR)) {
-        value = DbUtil.getBindingExprDefault(value);
+        value = DataBindingUtil.getBindingExprDefault(value);
         if (value == null) {
           return null;
         }
