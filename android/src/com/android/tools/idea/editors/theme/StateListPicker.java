@@ -82,7 +82,7 @@ public class StateListPicker extends JPanel {
   private final Configuration myConfiguration;
   private final ResourceHelper.StateList myStateList;
   private final List<StateComponent> myStateComponents;
-  private @Nullable final RenderTask myRenderTask;
+  private final @NotNull RenderTask myRenderTask;
 
   private boolean myIsBackgroundStateList;
   /** If not empty, it contains colors to compare with the state list items colors to find out any possible contrast problems,
@@ -449,7 +449,7 @@ public class StateListPicker extends JPanel {
     ResourceValue resValue = resourceResolver.findResValue(resourceName, false);
     resValue = resourceResolver.resolveResValue(resValue);
 
-    if (resValue != null && resValue.getResourceType() != ResourceType.COLOR && myRenderTask != null) {
+    if (resValue != null && resValue.getResourceType() != ResourceType.COLOR) {
       List<BufferedImage> images = myRenderTask.renderDrawableAllStates(resValue);
       if (images.isEmpty()) {
         component.setValueIcon(SwatchComponent.WARNING_ICON);
