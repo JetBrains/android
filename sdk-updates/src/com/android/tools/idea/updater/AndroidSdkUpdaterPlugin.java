@@ -31,12 +31,7 @@ public class AndroidSdkUpdaterPlugin implements ApplicationComponent {
   @Override
   public void initComponent() {
     if (isAndroidSdkManagerEnabled()) {
-      if (AndroidSdkHandler.getInstance().useSdkV2()) {
-        ExternalComponentManagerImpl.getInstance().registerComponentSource(new com.android.tools.idea.updater.v2.SdkComponentSource());
-      }
-      else {
-        ExternalComponentManagerImpl.getInstance().registerComponentSource(new SdkComponentSource());
-      }
+      ExternalComponentManagerImpl.getInstance().registerComponentSource(new SdkComponentSource());
     }
   }
 

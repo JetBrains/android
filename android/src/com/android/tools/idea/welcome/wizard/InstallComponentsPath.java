@@ -16,13 +16,14 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.android.SdkConstants;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.impl.meta.TypeDetails;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.*;
@@ -30,11 +31,9 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -50,7 +49,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -66,18 +64,23 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @NotNull private final ComponentInstaller myComponentInstaller;
   @NotNull private final File mySdkLocation;
   private ComponentTreeNode myComponentTree;
-  @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
+  @NotNull private final Multimap<String, RemotePackage> myRemotePackages;
+  // This will be different than the actual handler, since this will change as and when we change the path in the UI.
+  private AndroidSdkHandler myLocalHandler;
 
   public InstallComponentsPath(@NotNull ProgressStep progressStep,
                                @NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
-                               @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages,
+                               @NotNull Multimap<String, RemotePackage> remotePackages,
                                boolean installUpdates) {
     myProgressStep = progressStep;
     myMode = mode;
     mySdkLocation = sdkLocation;
     myRemotePackages = remotePackages;
-    myComponentInstaller = new ComponentInstaller(remotePackages, installUpdates);
+    // Create a new instance for use during installation
+    myLocalHandler = AndroidSdkHandler.getInstance().clone();
+
+    myComponentInstaller = new ComponentInstaller(remotePackages, installUpdates, myLocalHandler);
   }
 
   private ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason,
@@ -93,7 +96,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       components.add(new Haxm(stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
     if (createAvd) {
-      components.add(new AndroidVirtualDevice(stateStore, myRemotePackages));
+      components.add(new AndroidVirtualDevice(stateStore, myRemotePackages, FileOpUtils.create()));
     }
     return new ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components);
   }
@@ -224,22 +227,23 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
     addStep(new SdkComponentsStep(myComponentTree, FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, myMode));
 
-    SdkManager manager = SdkManager.createManager(pathString, new NullLogger());
+    myLocalHandler.setLocation(mySdkLocation);
     myComponentTree.init(myProgressStep);
-    myComponentTree.updateState(manager);
+    myComponentTree.updateState(myLocalHandler);
     for (DynamicWizardStep step : myComponentTree.createSteps()) {
       addStep(step);
     }
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      Supplier<Collection<RemotePkgInfo>> supplier = new Supplier<Collection<RemotePkgInfo>>() {
+      Supplier<Collection<RemotePackage>> supplier = new Supplier<Collection<RemotePackage>>() {
         @Override
-        public Collection<RemotePkgInfo> get() {
+        public Collection<RemotePackage> get() {
           Iterable<InstallableComponent> components = myComponentTree.getChildrenToInstall();
-          return myComponentInstaller.getPackagesToInstallInfos(myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION), components);
+          return myComponentInstaller.getPackagesToInstall(components);
         }
       };
 
-      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, supplier));
+      addStep(
+        new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, supplier));
     }
   }
 
@@ -248,29 +252,22 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     super.deriveValues(modified);
     if (modified.contains(WizardConstants.KEY_SDK_INSTALL_LOCATION)) {
       String sdkPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
-      SdkManager manager = null;
       if (sdkPath != null) {
-        manager = SdkManager.createManager(sdkPath, new NullLogger());
+        File sdkLocation = new File(sdkPath);
+        if (!FileUtil.filesEqual(myLocalHandler.getLocation(), sdkLocation)) {
+          myLocalHandler.setLocation(sdkLocation);
+          myComponentTree.updateState(myLocalHandler);
+        }
       }
-      myComponentTree.updateState(manager);
-    }
-    if (modified.contains(FirstRunWizard.KEY_CUSTOM_INSTALL) || modified.contains(WizardConstants.KEY_SDK_INSTALL_LOCATION) ||
-        myComponentTree.componentStateChanged(modified)) {
-      myState.put(WizardConstants.INSTALL_REQUESTS_KEY, getPackageDescriptions());
     }
   }
 
-  private List<IPkgDesc> getPackageDescriptions() {
-    String sdkLocationPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
-
-    Iterable<RemotePkgInfo> installIds =
-      myComponentInstaller.getPackagesToInstallInfos(sdkLocationPath, myComponentTree.getChildrenToInstall());
-
-    ImmutableList.Builder<IPkgDesc> packages = ImmutableList.builder();
-    for (RemotePkgInfo remotePackage : installIds) {
-      packages.add(remotePackage.getPkgDesc());
+  private List<String> getInstallPaths() {
+    List<String> result = Lists.newArrayList();
+    for (RemotePackage p : myComponentInstaller.getPackagesToInstall(myComponentTree.getChildrenToInstall())) {
+      result.add(p.getPath());
     }
-    return packages.build();
+    return result;
   }
 
   @NotNull
@@ -295,34 +292,39 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
     SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp());
     try {
-      initialize.then(checkSdk).then(install).then(setPreference).then(new ConfigureComponents(installContext, selectedComponents))
-        .execute(destination);
+      initialize.then(checkSdk).then(install).then(setPreference)
+        .then(new ConfigureComponents(installContext, selectedComponents, myLocalHandler)).execute(destination);
     }
     catch (InstallationCancelledException e) {
       installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
     }
   }
 
-  public static RemotePkgInfo findLatestPlatform(Multimap<PkgType, RemotePkgInfo> remotePackages, boolean preview) {
-    List<RemotePkgInfo> packages = Lists.newArrayList(remotePackages.get(PkgType.PKG_PLATFORM));
-    Collections.sort(packages);
-    Collections.reverse(packages);
-    RemotePkgInfo latest = null;
-    for (RemotePkgInfo pkg : packages) {
-      AndroidVersion version = pkg.getPkgDesc().getAndroidVersion();
-      assert version != null;
-
-      boolean isPreview = version.isPreview();
-      if (preview) {
-        if (isPreview) {
-          latest = pkg;
-        }
-        // if it's not a preview, there isn't a preview more recent than the latest non-preview. return null.
-        break;
+  public static RemotePackage findLatestPlatform(Multimap<String, RemotePackage> remotePackages, boolean preview) {
+    if (remotePackages == null) {
+      return null;
+    }
+    AndroidVersion max = null;
+    RemotePackage latest = null;
+    for (RemotePackage pkg : remotePackages.values()) {
+      TypeDetails details = pkg.getTypeDetails();
+      if (!(details instanceof DetailsTypes.PlatformDetailsType)) {
+        continue;
       }
-      else if (!isPreview) {
-        latest = pkg;
-        break;
+      DetailsTypes.PlatformDetailsType platformDetails = (DetailsTypes.PlatformDetailsType)details;
+      AndroidVersion version = DetailsTypes.getAndroidVersion(platformDetails);
+      if (max == null || version.compareTo(max) > 0) {
+        boolean isPreview = version.isPreview();
+        if (preview) {
+          if (isPreview) {
+            latest = pkg;
+            max = version;
+          }
+        }
+        else if (!isPreview) {
+          latest = pkg;
+          max = version;
+        }
       }
     }
     return latest;
@@ -463,6 +465,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
             @Override
             public void run() {
               IdeSdks.setAndroidSdkPath(input, null);
+              AndroidSdkHandler.getInstance().setLocation(input);
               AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
             }
           });
@@ -475,17 +478,20 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   private static class ConfigureComponents implements Function<File, File> {
     private final InstallContext myInstallContext;
     private final Collection<? extends InstallableComponent> mySelectedComponents;
+    private final AndroidSdkHandler mySdkHandler;
 
-    public ConfigureComponents(InstallContext installContext, Collection<? extends InstallableComponent> selectedComponents) {
+    public ConfigureComponents(InstallContext installContext, Collection<? extends InstallableComponent> selectedComponents,
+                               AndroidSdkHandler sdkHandler) {
       myInstallContext = installContext;
       mySelectedComponents = selectedComponents;
+      mySdkHandler = sdkHandler;
     }
 
     @Override
     public File apply(@Nullable File input) {
       assert input != null;
       for (InstallableComponent component : mySelectedComponents) {
-        component.configure(myInstallContext, input);
+        component.configure(myInstallContext, mySdkHandler);
       }
       return input;
     }

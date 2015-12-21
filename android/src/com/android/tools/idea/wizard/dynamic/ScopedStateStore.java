@@ -204,7 +204,7 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
    * Remove the given value from a list.
    * @return true iff the state changed as a result of this operation.
    */
-  public <T extends List, V> boolean listRemove(@NotNull Key<T> key, @NotNull V value) {
+  public <T extends List<? super V>, V> boolean listRemove(@NotNull Key<T> key, @NotNull V value) {
     boolean stateChanged = false;
     if (containsKey(key)) {
       T list = get(key);

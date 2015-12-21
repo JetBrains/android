@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.welcome.install;
 
+import com.android.SdkConstants;
 import com.android.ide.common.repository.SdkMavenRepository;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.devices.Storage;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Lists;
@@ -43,7 +49,7 @@ public final class AndroidSdk extends InstallableComponent {
                                "tools and utilities that enables you to debug, " +
                                "profile, and compile your apps.\n\n" +
                                "The setup wizard will update your current Android SDK " +
-                               "installation (if necessary) or install a new version.");
+                               "installation (if necessary) or install a new version.", FileOpUtils.create());
   }
 
   /**
@@ -51,13 +57,16 @@ public final class AndroidSdk extends InstallableComponent {
    * @return The Revision of the latest build tools package, or null if no remote build tools packages are available.
    */
   @Nullable
-  private static Revision getLatestCompatibleBuildToolsRevision(@NotNull Multimap<PkgType, RemotePkgInfo> packages) {
+  private static Revision getLatestCompatibleBuildToolsRevision(@NotNull Multimap<String, RemotePackage> packages) {
     Revision revision = null;
-    Collection<RemotePkgInfo> tools = packages.get(PkgType.PKG_BUILD_TOOLS);
-    for (RemotePkgInfo tool : tools) {
-      Revision fullRevision = tool.getPkgDesc().getRevision();
+    for (RemotePackage p : packages.values()) {
+      if (!p.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS)) {
+        continue;
+      }
+
+      Revision fullRevision = p.getVersion();
       // We never want to push preview platforms on users
-      if (fullRevision == null || fullRevision.isPreview()) {
+      if (fullRevision.isPreview()) {
         continue;
       }
       if (revision == null || fullRevision.compareTo(revision) > 0) {
@@ -69,30 +78,31 @@ public final class AndroidSdk extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    Collection<IPkgDesc> result = Lists.newArrayList();
-    result.add(PkgDesc.Builder.newTool(Revision.NOT_SPECIFIED, Revision.NOT_SPECIFIED).create());
-    result.add(PkgDesc.Builder.newPlatformTool(Revision.NOT_SPECIFIED).create());
+  public Collection<String> getRequiredSdkPackages(@Nullable Multimap<String, RemotePackage> remotePackages) {
+    Collection<String> result = Lists.newArrayList();
+    result.add(SdkConstants.FD_TOOLS);
+    result.add(SdkConstants.FD_PLATFORM_TOOLS);
     if (remotePackages != null) {
       Revision revision = getLatestCompatibleBuildToolsRevision(remotePackages);
       if (revision != null) {
-        result.add(PkgDesc.Builder.newBuildTool(revision).create());
+        result.add(SdkConstants.FD_BUILD_TOOLS + RepoPackage.PATH_SEPARATOR + revision.toString());
       }
     }
 
     for (SdkMavenRepository repository : SdkMavenRepository.values()) {
-      result.add(repository.getPackageDescription());
+      result.add(repository.getRepositoryLocation(new File(""), false).getPath().substring(1)
+                   .replace(File.separatorChar, RepoPackage.PATH_SEPARATOR));
     }
     return result;
   }
 
   @Override
-  public void configure(@NotNull InstallContext installContext, @NotNull File sdk) {
+  public void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler) {
     // Nothing to do, having components installed is enough
   }
 
   @Override
-  protected boolean isOptionalForSdkLocation(@Nullable SdkManager manager) {
+  protected boolean isOptionalForSdkLocation(@Nullable AndroidSdkHandler handler) {
     return false;
   }
 }
