@@ -20,27 +20,13 @@ import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderParamsFlags;
 import com.android.ide.common.rendering.RenderSecurityManager;
-import com.android.ide.common.rendering.api.ActionBarCallback;
-import com.android.ide.common.rendering.api.HardwareConfig;
-import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.RenderParams;
-import com.android.ide.common.rendering.api.RenderSession;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.Result;
-import com.android.ide.common.rendering.api.SessionParams;
-import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.AssetRepositoryImpl;
-import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderSecurityManagerFactory;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -54,21 +40,13 @@ import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -368,12 +346,11 @@ public class GraphicsLayoutRenderer {
    * Returns the initialised render session. This method is called only once during the {@link GraphicsLayoutRenderer} initialization and
    * will also do the an initial render of the layout.
    */
-  private static
   @Nullable
-  RenderSession initRenderSession(@NotNull final LayoutLibrary layoutLibrary,
-                                  @NotNull final SessionParams sessionParams,
-                                  @NotNull final RenderSecurityManager securityManager,
-                                  final @NotNull Object credential) {
+  private static RenderSession initRenderSession(@NotNull final LayoutLibrary layoutLibrary,
+                                                 @NotNull final SessionParams sessionParams,
+                                                 @NotNull final RenderSecurityManager securityManager,
+                                                 final @NotNull Object credential) {
     try {
       RenderSession session = RenderService.runRenderAction(new Callable<RenderSession>() {
         @Override
@@ -401,6 +378,9 @@ public class GraphicsLayoutRenderer {
         return null;
       }
 
+      if (layoutLibrary.supports(Features.SYSTEM_TIME)) {
+        session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
+      }
       Result result = session.getResult();
       if (result != null && result.getStatus() != Result.Status.SUCCESS) {
         //noinspection ThrowableResultOfMethodCallIgnored
