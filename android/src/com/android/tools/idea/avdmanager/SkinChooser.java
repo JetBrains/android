@@ -16,9 +16,10 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.targets.AndroidTargetManager;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -28,8 +29,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ComboboxWithBrowseButton;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,10 +37,11 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.avdmanager.AvdWizardConstants.NO_SKIN;
 
 /**
  * Combobox that populates itself with the skins used by existing devices. Also allows adding a
@@ -107,20 +107,11 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
         result.add(skinFile);
       }
     }
-    AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(SkinChooser.class);
+    AndroidTargetManager targetManager = AndroidSdkHandler.getInstance().getAndroidTargetManager(progress);
 
-    if (androidSdkData != null) {
-      LocalSdk mySdk = androidSdkData.getLocalSdk();
-      List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
-      for (IAndroidTarget target : targets) {
-        ISystemImage[] systemImages = target.getSystemImages();
-        if (systemImages != null) {
-          for (ISystemImage image : systemImages) {
-            SystemImageDescription desc = new SystemImageDescription(target, image);
-            for (File skin : desc.getSkins()) if (skin.exists()) result.add(skin);
-          }
-        }
-      }
+    for (IAndroidTarget target : targetManager.getTargets(true, progress)) {
+      Collections.addAll(result, target.getSkins());
     }
 
     List<File> resultList = Lists.newArrayList();
