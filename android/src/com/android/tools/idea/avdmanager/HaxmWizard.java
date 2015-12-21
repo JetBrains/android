@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.*;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
@@ -107,23 +108,23 @@ class HaxmWizard extends DynamicWizard {
 
     private void setupHaxm() throws IOException {
       final InstallContext installContext = new InstallContext(FileUtil.createTempDirectory("AndroidStudio", "Haxm", true), this);
-      final File destination = AndroidSdkUtils.tryToChooseAndroidSdk().getLocation();
+      final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance();
 
       final Collection<? extends InstallableComponent> selectedComponents = Lists.newArrayList(myHaxm);
       installContext.print("Looking for SDK updates...\n", ConsoleViewContentType.NORMAL_OUTPUT);
 
       // Assume install and configure take approximately the same time; assign 0.5 progressRatio to each
       InstallComponentsOperation install =
-        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(null, true), 0.5);
+        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(null, true, sdkHandler), 0.5);
 
       try {
         install.then(InstallOperation.wrap(installContext, new Function<File, File>() {
           @Override
           public File apply(@Nullable File input) {
-            myHaxm.configure(installContext, input);
+            myHaxm.configure(installContext, sdkHandler);
             return input;
           }
-        }, 0.5)).execute(destination);
+        }, 0.5)).execute(sdkHandler.getLocation());
       }
       catch (InstallationCancelledException e) {
         installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
@@ -147,9 +148,6 @@ class HaxmWizard extends DynamicWizard {
       ScopedStateStore.Key<Boolean> canShow = ScopedStateStore.createKey("ShowHaxmSteps", ScopedStateStore.Scope.PATH, Boolean.class);
       myState.put(canShow, true);
       Haxm haxm = new Haxm(getState(), canShow);
-      for (IPkgDesc desc : haxm.getRequiredSdkPackages(null)) {
-        myState.listPush(WizardConstants.INSTALL_REQUESTS_KEY, desc);
-      }
 
       for (DynamicWizardStep step : haxm.createSteps()) {
         addStep(step);

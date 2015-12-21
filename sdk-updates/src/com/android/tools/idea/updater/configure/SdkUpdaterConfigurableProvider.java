@@ -26,9 +26,6 @@ public class SdkUpdaterConfigurableProvider extends ConfigurableProvider {
   @Nullable
   @Override
   public Configurable createConfigurable() {
-    if (AndroidSdkHandler.getInstance().useSdkV2()) {
-      return new com.android.tools.idea.updater.configure.v2.SdkUpdaterConfigurable();
-    }
     return new SdkUpdaterConfigurable();
   }
 

@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.repository.api.RemotePackage;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.UIUtil;
@@ -39,13 +40,13 @@ import java.util.TreeSet;
 public final class InstallSummaryStep extends FirstRunWizardStep {
   private final Key<Boolean> myKeyCustomInstall;
   private final Key<String> myKeySdkInstallLocation;
-  private final Supplier<? extends Collection<RemotePkgInfo>> myPackagesProvider;
+  private final Supplier<? extends Collection<RemotePackage>> myPackagesProvider;
   private JPanel myPanel;
   private JTextPane mySummaryText;
 
   public InstallSummaryStep(Key<Boolean> keyCustomInstall,
                             Key<String> keySdkInstallLocation,
-                            Supplier<? extends Collection<RemotePkgInfo>> packagesProvider) {
+                            Supplier<? extends Collection<RemotePackage>> packagesProvider) {
     super("Verify Settings");
     myKeyCustomInstall = keyCustomInstall;
     myKeySdkInstallLocation = keySdkInstallLocation;
@@ -57,31 +58,32 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     setComponent(myPanel);
   }
 
-  private static Section getPackagesSection(@NotNull Collection<RemotePkgInfo> remotePackages) {
+  private static Section getPackagesSection(@NotNull Collection<RemotePackage> remotePackages) {
     return new Section("SDK Components to Download", getPackagesTable(remotePackages));
   }
 
   @Nullable
-  private static String getPackagesTable(@NotNull Collection<RemotePkgInfo> remotePackages) {
+  private static String getPackagesTable(@NotNull Collection<RemotePackage> remotePackages) {
     if (remotePackages.isEmpty()) {
       return null;
     }
-    TreeSet<RemotePkgInfo> sortedPackagesList = Sets.newTreeSet(new PackageInfoComparator());
+    TreeSet<RemotePackage> sortedPackagesList = Sets.newTreeSet(new PackageInfoComparator());
     sortedPackagesList.addAll(remotePackages);
     StringBuilder table = new StringBuilder("<table>");
-    for (RemotePkgInfo remotePkgInfo : sortedPackagesList) {
+    for (RemotePackage remotePkgInfo : sortedPackagesList) {
       // Adds some whitespace between name and size columns
-      table.append("<tr><td>").append(remotePkgInfo.getShortDescription()).append("</td><td>&nbsp;&nbsp;</td><td>")
-        .append(WelcomeUIUtils.getSizeLabel(remotePkgInfo.getDownloadSize())).append("</td></tr>");
+      table.append("<tr><td>").append(remotePkgInfo.getDisplayName()).append("</td><td>&nbsp;&nbsp;</td><td>")
+        .append(WelcomeUIUtils.getSizeLabel(remotePkgInfo.getArchive().getComplete().getSize())).append("</td></tr>");
     }
     table.append("</table>");
     return table.toString();
   }
 
-  private static Section getDownloadSizeSection(@NotNull Collection<RemotePkgInfo> remotePackages) {
+  private static Section getDownloadSizeSection(@NotNull Collection<RemotePackage> remotePackages) {
     long downloadSize = 0;
-    for (RemotePkgInfo remotePackage : remotePackages) {
-      downloadSize += remotePackage.getDownloadSize();
+    for (RemotePackage remotePackage : remotePackages) {
+      // TODO: patches?
+      downloadSize += remotePackage.getArchive().getComplete().getSize();
     }
     return new Section("Total Download Size", downloadSize == 0 ? "" : WelcomeUIUtils.getSizeLabel(downloadSize));
   }
@@ -90,6 +92,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
   public void onEnterStep() {
     super.onEnterStep();
     generateSummary();
+    invokeUpdate(null);
   }
 
   @Override
@@ -97,7 +100,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
   }
 
   private void generateSummary() {
-    Collection<RemotePkgInfo> packages = myPackagesProvider.get();
+    Collection<RemotePackage> packages = myPackagesProvider.get();
     Section[] sections = {getSetupTypeSection(), getSdkFolderSection(), getDownloadSizeSection(packages), getPackagesSection(packages)};
 
     StringBuilder builder = new StringBuilder("<html><head>");
@@ -176,9 +179,9 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
   /**
    * Sorts package info in descending size order. Packages with the same size are sorted alphabetically.
    */
-  private static class PackageInfoComparator implements Comparator<RemotePkgInfo> {
+  private static class PackageInfoComparator implements Comparator<RemotePackage> {
     @Override
-    public int compare(RemotePkgInfo o1, RemotePkgInfo o2) {
+    public int compare(RemotePackage o1, RemotePackage o2) {
       if (o1 == o2) {
         return 0;
       }
@@ -189,7 +192,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
         return 1;
       }
       ComparisonChain comparisonChain = ComparisonChain.start();
-      return comparisonChain.compare(o1.getShortDescription(), o2.getShortDescription()).result();
+      return comparisonChain.compare(o1.getDisplayName(), o2.getDisplayName()).result();
     }
   }
 }
