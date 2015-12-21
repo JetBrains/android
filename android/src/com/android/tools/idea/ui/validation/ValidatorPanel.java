@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.wizard;
+package com.android.tools.idea.ui.validation;
 
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
@@ -21,7 +21,6 @@ import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
@@ -104,8 +103,8 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   /**
    * Returns a property which indicates if any of the components in this panel are invalid.
    *
-   * This is a useful property to listen to when overriding {@link ModelWizardStep#canGoForward()},
-   * and you may even be able to just return it directly.
+   * This is a useful property for UIs to listen to, as they can bind various components (such as a
+   * next button) as appropriate, disabling functionality until all errors are resolved.
    */
   @NotNull
   public ObservableBool hasErrors() {
