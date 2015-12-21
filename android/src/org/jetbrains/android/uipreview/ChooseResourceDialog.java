@@ -25,8 +25,10 @@ import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.android.tools.idea.editors.theme.MaterialColors;
 import com.android.tools.idea.editors.theme.StateListPicker;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.android.tools.idea.ui.SearchField;
@@ -37,7 +39,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
@@ -80,6 +81,7 @@ import javax.swing.plaf.basic.BasicTabbedPaneUI;
 import javax.swing.text.View;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 
@@ -157,6 +159,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private boolean myOverwriteResource = false;
   private ResourceNameVisibility myResourceNameVisibility;
   private boolean myUseGlobalUndo;
+  private RenderTask myRenderTask;
 
   public interface ResourcePickerListener {
     void resourceChanged(String resource);
@@ -722,9 +725,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         myResultResourceName = null;
       }
       else {
-        // TODO actually get prefix name from namespace
-        String prefix = element.getGroup().getNamespace() == null ? "@" : SdkConstants.ANDROID_PREFIX;
-        myResultResourceName = prefix + element.getPath();
+        myResultResourceName = element.getResourceUrl();
       }
 
       panel.showPreview(element);
@@ -734,6 +735,68 @@ public class ChooseResourceDialog extends DialogWrapper {
 
   public void setUseGlobalUndo(boolean useGlobalUndo) {
     myUseGlobalUndo = useGlobalUndo;
+  }
+
+  // TODO can we just use ResourceUrl here instead?
+  @NotNull
+  private ResourceValue getResourceValue(@NotNull ResourceItem item) {
+    VirtualFile file = item.getFile();
+    ResourceGroup group = item.getGroup();
+    if (file != null) {
+      // No need to try and find the resource as we know exacty what its going to be like
+      return new ResourceValue(group.getType(), item.getName(), file.getPath(), group.isFramework());
+    }
+    else {
+      // drawable is a color so we NEED to find its value
+      Configuration config = ThemeEditorUtils.getConfigurationForModule(myModule);
+      ResourceResolver resolver = config.getResourceResolver();
+      assert resolver != null;
+      return resolver.findResValue(item.getResourceUrl(), group.isFramework());
+    }
+  }
+
+  @NotNull
+  private Icon getIcon(@NotNull ResourceItem item, int size) {
+    Icon icon = item.getIcon();
+    if (icon != null && size == icon.getIconWidth()) {
+      return icon;
+    }
+
+    VirtualFile file = item.getFile();
+    ResourceGroup group = item.getGroup();
+
+    if (file != null && ImageFileTypeManager.getInstance().isImage(file)) {
+      icon = new SizedIcon(size, new ImageIcon(file.getPath()));
+    }
+    else if (group.getType() == ResourceType.DRAWABLE || group.getType() == ResourceType.MIPMAP) {
+      if (myRenderTask == null) {
+        myRenderTask = DrawableRendererEditor.configureRenderTask(myModule, ThemeEditorUtils.getConfigurationForModule(myModule));
+        myRenderTask.setMaxRenderSize(150, 150); // dont make huge images here
+      }
+
+      BufferedImage image = myRenderTask.renderDrawable(getResourceValue(item));
+      if (image != null) {
+        icon = new SizedIcon(size, image);
+      }
+      // TODO maybe have a different icon for state list drawable
+    }
+    else if (group.getType() == ResourceType.COLOR) {
+      Configuration config = ThemeEditorUtils.getConfigurationForModule(myModule);
+      ResourceResolver resolver = config.getResourceResolver();
+      assert resolver != null;
+      Color color = ResourceHelper.resolveColor(resolver, getResourceValue(item), myModule.getProject());
+      if (color != null) { // maybe null for invalid color
+        icon = new ColorIcon(size, color);
+      }
+      // TODO maybe have a different icon when the resource points to more then 1 color
+    }
+
+    if (icon == null) {
+      // TODO, for resources with no icon, when we use RESOURCE_ITEM_ICON, we are re-doing the lookup each time.
+      icon = file == null ? RESOURCE_ITEM_ICON : file.getFileType().getIcon();
+    }
+    item.setIcon(icon);
+    return icon;
   }
 
   private class ResourcePanel {
@@ -852,7 +915,8 @@ public class ChooseResourceDialog extends DialogWrapper {
         return;
       }
 
-      String doc = AndroidJavaDocRenderer.render(myModule, element.getGroup().getType(), element.getName(), SdkConstants.ANDROID_NS_NAME.equals(element.getGroup().getNamespace()));
+      String doc =
+        AndroidJavaDocRenderer.render(myModule, element.getGroup().getType(), element.getName(), element.getGroup().isFramework());
       myHtmlTextArea.setText(doc);
       layout.show(myPreviewPanel, TEXT);
     }
@@ -871,7 +935,7 @@ public class ChooseResourceDialog extends DialogWrapper {
             Component component = super.getListCellRendererComponent(list, value, index, isSelected, false);
             // TODO show deprecated resources with a strikeout
             ResourceItem rItem = (ResourceItem) value;
-            setIcon(rItem.getIcon(JBUI.scale(80)));
+            setIcon(ChooseResourceDialog.this.getIcon(rItem, JBUI.scale(80)));
             return component;
           }
         };
@@ -887,7 +951,7 @@ public class ChooseResourceDialog extends DialogWrapper {
             Component component = super.getListCellRendererComponent(list, value, index, isSelected, false);
             // TODO show deprecated resources with a strikeout
             ResourceItem rItem = (ResourceItem) value;
-            setIcon(rItem.getIcon(JBUI.scale(28)));
+            setIcon(ChooseResourceDialog.this.getIcon(rItem, JBUI.scale(28)));
             return component;
           }
         };
@@ -991,11 +1055,9 @@ public class ChooseResourceDialog extends DialogWrapper {
     private List<ResourceItem> myItems = new ArrayList<ResourceItem>();
     private final String myNamespace;
     private final ResourceType myType;
-    private final ResourceManager myManager;
 
     public ResourceGroup(@Nullable String namespace, @NotNull ResourceType type, @NotNull ResourceManager manager, boolean includeFileResources) {
       myType = type;
-      myManager = manager;
       myNamespace = namespace;
 
       final String resourceType = type.getName();
@@ -1039,11 +1101,6 @@ public class ChooseResourceDialog extends DialogWrapper {
       return myType;
     }
 
-    @NotNull
-    public ResourceManager getManager() {
-      return myManager;
-    }
-
     @Nullable("null for app namespace")
     public String getNamespace() {
       return myNamespace;
@@ -1056,6 +1113,10 @@ public class ChooseResourceDialog extends DialogWrapper {
     @Override
     public String toString() {
       return myNamespace == null ? APP_NAMESPACE_LABEL : myNamespace;
+    }
+
+    public boolean isFramework() {
+      return SdkConstants.ANDROID_NS_NAME.equals(getNamespace());
     }
   }
 
@@ -1079,12 +1140,14 @@ public class ChooseResourceDialog extends DialogWrapper {
       return myName;
     }
 
-    public String getPath() {
-      return myGroup.getType().getName() + "/" + myName;
-    }
-
     public VirtualFile getFile() {
       return myFile;
+    }
+
+    @NotNull
+    public String getResourceUrl() {
+      return String
+        .format("@%s%s/%s", getGroup().getNamespace() == null ? "" : getGroup().getNamespace() + ":", myGroup.getType().getName(), myName);
     }
 
     @Override
@@ -1093,38 +1156,13 @@ public class ChooseResourceDialog extends DialogWrapper {
       return getName();
     }
 
-    public Icon getIcon(int size) {
-      if (myIcon == null || size != myIcon.getIconWidth()) {
-        // TODO, for resources with no icon, when we use RESOURCE_ITEM_ICON, we are re-doing the lookup each time.
-        Icon icon = RESOURCE_ITEM_ICON;
-        if (myFile != null) {
-          if (ImageFileTypeManager.getInstance().isImage(myFile)) {
-            icon = new SizedIcon(size, new ImageIcon(myFile.getPath()));
-          }
-          else {
-            icon = myFile.getFileType().getIcon();
-          }
-        }
-        if (myGroup.getType() == ResourceType.COLOR) {
-          long time = System.currentTimeMillis();
-          List<ResourceElement> resources = myGroup.getManager().findValueResources(myGroup.getType().getName(), myName);
-          if (ApplicationManagerEx.getApplicationEx().isInternal()) {
-            System.out.println("Time: " + (System.currentTimeMillis() - time)); // XXX
-          }
-          if (!resources.isEmpty()) {
-            String value = getResourceElementValue(resources.get(0));
-            if (value.startsWith("#")) {
-              Color color = ResourceHelper.parseColor(value);
-              if (color != null) { // maybe null for invalid color
-                icon = new ColorIcon(size, color);
-              }
-            }
-          }
-          // TODO maybe have a different icon when the resource points to more then 1 color
-        }
-        myIcon = icon;
-      }
+    @Nullable("if no icon has been set on this item")
+    public Icon getIcon() {
       return myIcon;
+    }
+
+    public void setIcon(@Nullable Icon icon) {
+      myIcon = icon;
     }
   }
 
@@ -1165,14 +1203,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     @NotNull
     @Override
     public NodeDescriptor createDescriptor(Object element, NodeDescriptor parentDescriptor) {
-      TreeNodeDescriptor descriptor = new TreeNodeDescriptor(parentDescriptor, element, element == null ? null : element.toString());
-      if (element instanceof ResourceGroup) {
-        descriptor.setIcon(AllIcons.Nodes.TreeClosed);
-      }
-      else if (element instanceof ResourceItem) {
-        descriptor.setIcon(((ResourceItem)element).getIcon(AllIcons.Nodes.TreeClosed.getIconWidth()));
-      }
-      return descriptor;
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -1182,31 +1213,6 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     @Override
     public void commit() {
-    }
-  }
-
-  // Copied from com.intellij.designer.componentTree.TreeNodeDescriptor
-  public static final class TreeNodeDescriptor extends NodeDescriptor {
-    private final Object myElement;
-
-    public TreeNodeDescriptor(@Nullable NodeDescriptor parentDescriptor, Object element) {
-      super(null, parentDescriptor);
-      myElement = element;
-    }
-
-    public TreeNodeDescriptor(@Nullable NodeDescriptor parentDescriptor, Object element, String name) {
-      this(parentDescriptor, element);
-      myName = name;
-    }
-
-    @Override
-    public boolean update() {
-      return true;
-    }
-
-    @Override
-    public Object getElement() {
-      return myElement;
     }
   }
 
