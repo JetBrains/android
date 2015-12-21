@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.sdk.wizard.v2.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
@@ -36,11 +35,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.avdmanager.AvdManagerConnection.PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2;
-import static com.android.tools.idea.avdmanager.AvdManagerConnection.TOOLS_REVISION_WITH_FIRST_QEMU2;
-
 /**
- * Solution strings used in {@link AccelerationErrorCode}.
+ * Solution strings used in {@link AccelerationErrorCode}, and associated Runnables to fix them.
  */
 public class AccelerationErrorSolution {
   private static final Logger LOG = Logger.getInstance(AccelerationErrorNotificationPanel.class);
@@ -132,9 +128,7 @@ public class AccelerationErrorSolution {
           @Override
           public void run() {
             try {
-              List<IPkgDesc> requested = Lists.newArrayList();
-              requested.add(PkgDesc.Builder.newTool(TOOLS_REVISION_WITH_FIRST_QEMU2, PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2).create());
-              showQuickFix(requested);
+              showQuickFix(ImmutableList.of(SdkConstants.FD_TOOLS, SdkConstants.FD_PLATFORM_TOOLS));
             }
             finally {
               reportBack();
@@ -147,9 +141,7 @@ public class AccelerationErrorSolution {
           @Override
           public void run() {
             try {
-              List<IPkgDesc> requested = Lists.newArrayList();
-              requested.add(PkgDesc.Builder.newPlatformTool(PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2).create());
-              showQuickFix(requested);
+              showQuickFix(ImmutableList.of(SdkConstants.FD_PLATFORM_TOOLS));
             }
             finally {
               reportBack();
@@ -163,8 +155,7 @@ public class AccelerationErrorSolution {
           public void run() {
             try {
               AvdManagerConnection avdManager = AvdManagerConnection.getDefaultAvdManagerConnection();
-              List<IPkgDesc> requested = avdManager.getSystemImageUpdates();
-              showQuickFix(requested);
+              showQuickFix(avdManager.getSystemImageUpdates());
             }
             finally {
               reportBack();
@@ -296,8 +287,8 @@ public class AccelerationErrorSolution {
     return Revision.parseRevision(version);
   }
 
-  private void showQuickFix(@NotNull List<IPkgDesc> requested) {
-    ModelWizardDialog sdkQuickfixWizard = SdkQuickfixUtils.createDialog(null, requested);
+  private void showQuickFix(@NotNull List<String> requested) {
+    ModelWizardDialog sdkQuickfixWizard = SdkQuickfixUtils.createDialogForPaths(null, requested);
     if (sdkQuickfixWizard != null) {
       sdkQuickfixWizard.show();
       if (sdkQuickfixWizard.getExitCode() == DialogWrapper.OK_EXIT_CODE) {

@@ -110,10 +110,6 @@ public class EmulatorTargetChooser {
         }
       });
     }
-    catch (AvdsNotSupportedException e) {
-      // can't be
-      LOG.error(e);
-    }
     catch (final AndroidLocation.AndroidLocationException e) {
       LOG.info(e);
       UIUtil.invokeLaterIfNeeded(new Runnable() {

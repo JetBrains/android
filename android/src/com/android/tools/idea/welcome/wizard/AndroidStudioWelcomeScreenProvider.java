@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkState;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonsListConstants;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
@@ -30,7 +34,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.WelcomeScreenProvider;
 import com.intellij.util.net.HttpConfigurable;
@@ -158,7 +161,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   @Nullable
   @Override
   public WelcomeScreen createWelcomeScreen(JRootPane rootPane) {
-    Multimap<PkgType, RemotePkgInfo> remotePackages = fetchPackages();
+    Multimap<String, RemotePackage> remotePackages = fetchPackages();
     FirstRunWizardMode wizardMode = getWizardMode();
     assert wizardMode != null; // This means isAvailable was false! Why are we even called?
     //noinspection AssignmentToStaticFieldFromInstanceMethod
@@ -167,7 +170,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   }
 
   @NotNull
-  private static Multimap<PkgType, RemotePkgInfo> fetchPackages() {
+  private static Multimap<String, RemotePackage> fetchPackages() {
     ConnectionState connectionState = checkInternetConnection();
     switch (connectionState) {
       case OK:
@@ -178,9 +181,12 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
         throw new IllegalArgumentException(connectionState.name());
     }
 
-    SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
-    state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, true);
-    return state.getPackages().getRemotePkgInfos();
+    StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(AndroidStudioWelcomeScreenProvider.class);
+    RepoManager mgr = AndroidSdkHandler.getInstance().getSdkManager(logger);
+    mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, logger, StudioDownloader.getInstance(),
+                          StudioSettingsController.getInstance());
+
+    return mgr.getPackages().getRemotePackages();
   }
 
   @Override

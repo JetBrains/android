@@ -270,11 +270,12 @@ public final class SdkQuickfixUtils {
    *
    * @return {@code null} on success, or an error message if there was a problem.
    */
-  private static String resolve(@Nullable Collection<String> requestedPaths,
-                                @Nullable Collection<UpdatablePackage> requestedPackages,
-                                @NonNull RepoManager mgr,
-                                @NonNull List<UpdatablePackage> result,
-                                @NonNull List<String> notFound) {
+  // TODO: Once welcome wizard is rewritten using ModelWizard this should be refactored as needed.
+  public static String resolve(@Nullable Collection<String> requestedPaths,
+                               @Nullable Collection<UpdatablePackage> requestedPackages,
+                               @NonNull RepoManager mgr,
+                               @NonNull List<UpdatablePackage> result,
+                               @NonNull List<String> notFound) {
     mgr.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
              new StudioProgressRunner(true, false, true, "Loading Remote Packages...", false, null),
              StudioDownloader.getInstance(), StudioSettingsController.getInstance(), true);
