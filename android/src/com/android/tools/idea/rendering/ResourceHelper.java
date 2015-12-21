@@ -27,6 +27,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -1027,6 +1028,11 @@ public class ResourceHelper {
         }
       }
       return false;
+    }
+
+    @NotNull
+    public String getDescription() {
+      return Joiner.on(", ").join(getAttributesNames(true));
     }
   }
 }
