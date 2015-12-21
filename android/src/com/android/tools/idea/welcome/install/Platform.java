@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.SdkVersionInfo;
+import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.io.FileOpUtils;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>Install Android SDK components for developing apps targeting Lollipop
@@ -56,36 +58,39 @@ public class Platform extends InstallableComponent {
                   @NotNull String description,
                   AndroidVersion version,
                   boolean isDefaultPlatform) {
-    super(store, name, size, description);
+    super(store, name, size, description, FileOpUtils.create());
     myVersion = version;
     myIsDefaultPlatform = isDefaultPlatform;
   }
 
   private static Platform getLatestPlatform(@NotNull ScopedStateStore store,
-                                            Multimap<PkgType, RemotePkgInfo> remotePackages,
+                                            Multimap<String, RemotePackage> remotePackages,
                                             boolean preview) {
-    RemotePkgInfo latest = InstallComponentsPath.findLatestPlatform(remotePackages, preview);
+    RemotePackage latest = InstallComponentsPath.findLatestPlatform(remotePackages, preview);
     if (latest != null) {
-      AndroidVersion version = latest.getPkgDesc().getAndroidVersion();
+      AndroidVersion version = DetailsTypes.getAndroidVersion(((DetailsTypes.PlatformDetailsType)latest.getTypeDetails()));
       String versionName = SdkVersionInfo.getAndroidName(version.getFeatureLevel());
       final String description = "Android platform libraries for targeting " + versionName + " platform";
-      return new Platform(store, versionName, latest.getDownloadSize(), description, version, !version.isPreview());
+      return new Platform(store, versionName, latest.getArchive().getComplete().getSize(), description, version, !version.isPreview());
     }
     return null;
   }
 
   @NotNull
-  private static LocalPkgInfo[] getPlatformPackages(@Nullable SdkManager manager) {
-    if (manager != null) {
-      LocalSdk localSdk = manager.getLocalSdk();
-      return localSdk.getPkgsInfos(PkgType.PKG_PLATFORM);
+  private static List<AndroidVersion> getInstalledPlatformVersions(@Nullable AndroidSdkHandler handler) {
+    List<AndroidVersion> result = Lists.newArrayList();
+    if (handler != null) {
+      RepositoryPackages packages = handler.getSdkManager(new StudioLoggerProgressIndicator(Platform.class)).getPackages();
+      for (LocalPackage p : packages.getLocalPackages().values()) {
+        if (p.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {
+          result.add(DetailsTypes.getAndroidVersion((DetailsTypes.PlatformDetailsType)p.getTypeDetails()));
+        }
+      }
     }
-    else {
-      return new LocalPkgInfo[0];
-    }
+    return result;
   }
 
-  public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store, Multimap<PkgType, RemotePkgInfo> remotePackages) {
+  public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store, Multimap<String, RemotePackage> remotePackages) {
     ComponentTreeNode latestPlatform = getLatestPlatform(store, remotePackages, false);
     ComponentTreeNode previewPlatform = null;
     // We never want to push preview platforms on our users (see http://b.android.com/175343 for more)
@@ -107,43 +112,45 @@ public class Platform extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    Revision unspecifiedRevision = Revision.NOT_SPECIFIED;
-    PkgDesc.Builder platform = PkgDesc.Builder.newPlatform(myVersion, unspecifiedRevision, Revision.NOT_SPECIFIED);
-    PkgDesc.Builder platformSources = PkgDesc.Builder.newSource(myVersion, unspecifiedRevision);
-    PkgDesc.Builder buildTool = PkgDesc.Builder.newBuildTool(findLatestCompatibleBuildTool(remotePackages, myVersion));
-    return ImmutableList.of(platform.create(), platformSources.create(), buildTool.create());
+  public Collection<String> getRequiredSdkPackages(@Nullable Multimap<String, RemotePackage> remotePackages) {
+    List<String> requests = Lists.newArrayList(DetailsTypes.getPlatformPath(myVersion), DetailsTypes.getSourcesPath(myVersion));
+    String buildTool = findLatestCompatibleBuildTool(remotePackages, myVersion);
+    if (buildTool != null) {
+      requests.add(buildTool);
+    }
+    return requests;
   }
 
-  private static Revision findLatestCompatibleBuildTool(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages,
-                                                            AndroidVersion version) {
+  private static String findLatestCompatibleBuildTool(@Nullable Multimap<String, RemotePackage> remotePackages, AndroidVersion version) {
     Revision revision = null;
+    String path = null;
     if (remotePackages != null) {
-      for (RemotePkgInfo remotePkgInfo : remotePackages.get(PkgType.PKG_BUILD_TOOLS)) {
-        Revision testRevision = remotePkgInfo.getPkgDesc().getRevision();
-        if (testRevision != null &&
-            testRevision.getMajor() == version.getApiLevel() && (revision == null || testRevision.compareTo(revision) > 0)) {
+      for (RemotePackage remote : remotePackages.values()) {
+        if (!remote.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS)) {
+          continue;
+        }
+        Revision testRevision = remote.getVersion();
+        if (testRevision.getMajor() == version.getApiLevel() && (revision == null || testRevision.compareTo(revision) > 0)) {
           revision = testRevision;
+          path = remote.getPath();
         }
       }
     }
-    return revision;
+    return path;
   }
 
   @Override
-  public void configure(@NotNull InstallContext installContext, @NotNull File sdk) {
+  public void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler) {
   }
 
   @Override
-  public boolean isOptionalForSdkLocation(@Nullable SdkManager manager) {
-    LocalPkgInfo[] infos = getPlatformPackages(manager);
-    if (infos.length == 0) {
+  public boolean isOptionalForSdkLocation(@Nullable AndroidSdkHandler handler) {
+    List<AndroidVersion> locals = getInstalledPlatformVersions(handler);
+    if (locals.isEmpty()) {
       return !myIsDefaultPlatform;
     }
-    for (LocalPkgInfo info : infos) {
-      IPkgDesc desc = info.getDesc();
+    for (AndroidVersion androidVersion : locals) {
       // No unchecking if the platform is already installed. We can update but not remove existing platforms
-      AndroidVersion androidVersion = desc.getAndroidVersion();
       int apiLevel = androidVersion == null ? 0 : androidVersion.getApiLevel();
       if (myVersion.getFeatureLevel() == apiLevel) {
         return false;
@@ -153,7 +160,7 @@ public class Platform extends InstallableComponent {
   }
 
   @Override
-  public boolean isSelectedByDefault(@Nullable SdkManager sdkManager) {
+  public boolean isSelectedByDefault(@Nullable AndroidSdkHandler sdkHandler) {
     return false;
   }
 }

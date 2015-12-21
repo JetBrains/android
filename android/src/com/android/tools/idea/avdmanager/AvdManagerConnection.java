@@ -16,28 +16,33 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.UpdatablePackage;
+import com.android.repository.impl.meta.TypeDetails;
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.run.EmulatorConnectionListener;
 import com.android.tools.idea.run.ExternalToolRunner;
 import com.android.tools.idea.sdk.LogWrapper;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -61,8 +66,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.WeakHashMap;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,7 +90,8 @@ import java.util.regex.Matcher;
 public class AvdManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG);
-  private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null);
+  private static final ProgressIndicator REPO_LOG = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
+  private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null, FileOpUtils.create());
   private static final int MNC_API_LEVEL_23 = 23;
   private static final int LMP_MR1_API_LEVEL_22 = 22;
   private static final int MNC_AOSP_MIN_REVISION = 6;
@@ -101,51 +105,51 @@ public class AvdManagerConnection {
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
 
-  private AvdManager ourAvdManager;
+  private AvdManager myAvdManager;
   private Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
-  private static Map<LocalSdk, AvdManagerConnection> ourCache = new WeakHashMap<LocalSdk, AvdManagerConnection>();
+  private static Map<File, AvdManagerConnection> ourCache = new WeakHashMap<File, AvdManagerConnection>();
   private static long ourMemorySize = -1;
+  private final FileOp myFileOp;
 
-  @Nullable private final LocalSdk myLocalSdk;
+  @Nullable private final AndroidSdkHandler mySdkHandler;
 
   @NotNull
   public static AvdManagerConnection getDefaultAvdManagerConnection() {
-      AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-      LocalSdk localSdk = null;
-      if (androidSdkData != null) {
-        localSdk = androidSdkData.getLocalSdk();
-      }
-    if (localSdk == null) {
+    AndroidSdkHandler handler = AndroidSdkHandler.getInstance();
+    if (handler.getLocation() == null) {
       return NULL_CONNECTION;
     }
     else {
-      return getAvdManagerConnection(localSdk);
+      return getAvdManagerConnection(handler);
     }
   }
 
   @NotNull
-  public synchronized static AvdManagerConnection getAvdManagerConnection(@NotNull LocalSdk localSdk) {
-    if (!ourCache.containsKey(localSdk)) {
-      ourCache.put(localSdk, new AvdManagerConnection(localSdk));
+  public synchronized static AvdManagerConnection getAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
+    File sdkPath = handler.getLocation();
+    if (!ourCache.containsKey(sdkPath)) {
+      ourCache.put(sdkPath, new AvdManagerConnection(handler, FileOpUtils.create()));
     }
-    return ourCache.get(localSdk);
+    return ourCache.get(sdkPath);
   }
 
-  private AvdManagerConnection(@Nullable LocalSdk localSdk) {
-    myLocalSdk = localSdk;
+  @VisibleForTesting
+  public AvdManagerConnection(@Nullable AndroidSdkHandler handler, FileOp fileOp) {
+    mySdkHandler = handler;
+    myFileOp = fileOp;
   }
 
   /**
    * Setup our static instances if required. If the instance already exists, then this is a no-op.
    */
   private boolean initIfNecessary() {
-    if (ourAvdManager == null) {
-      if (myLocalSdk == null) {
-        IJ_LOG.error("No Android SDK Found");
+    if (myAvdManager == null) {
+      if (mySdkHandler == null) {
+        IJ_LOG.warn("No Android SDK Found");
         return false;
       }
       try {
-        ourAvdManager = AvdManager.getInstance(myLocalSdk, SDK_LOG);
+        myAvdManager = AvdManager.getInstance(mySdkHandler, SDK_LOG, myFileOp);
       }
       catch (AndroidLocation.AndroidLocationException e) {
         IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);
@@ -156,29 +160,27 @@ public class AvdManagerConnection {
   }
 
   private File getEmulatorBinary() {
-    assert ourAvdManager != null;
-    return new File(ourAvdManager.getLocalSdk().getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR));
+    assert mySdkHandler != null;
+    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR));
   }
 
   private boolean hasQEMU2Installed() {
-    assert myLocalSdk != null;
-    LocalPkgInfo info = myLocalSdk.getPkgInfo(PkgType.PKG_TOOLS);
+    assert mySdkHandler != null;
+    LocalPackage info = mySdkHandler.getSdkManager(REPO_LOG).getPackages().getLocalPackages().get(SdkConstants.FD_TOOLS);
     if (info == null) {
       return false;
     }
-    return info.getDesc().getRevision().compareTo(TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0;
+    return info.getVersion().compareTo(TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0;
   }
 
   private boolean hasPlatformToolsForQEMU2Installed() {
-    assert myLocalSdk != null;
-    LocalPkgInfo[] infos = myLocalSdk.getPkgsInfos(PkgType.PKG_PLATFORM_TOOLS);
-    if (infos.length == 0) {
+    assert mySdkHandler != null;
+    LocalPackage info = mySdkHandler.getSdkManager(REPO_LOG).getPackages().getLocalPackages().get(SdkConstants.FD_PLATFORM_TOOLS);
+    if (info == null) {
       return false;
     }
-    for (LocalPkgInfo info : infos) {
-      if (info.getDesc().getRevision().compareTo(PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0) {
-        return true;
-      }
+    if (info.getVersion().compareTo(PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0) {
+      return true;
     }
     return false;
   }
@@ -191,61 +193,53 @@ public class AvdManagerConnection {
    * The qemu2 emulator has changes in the system images for platform 22 and 23 (Intel CPU architecture only).
    * This method will generate package updates if we detect that we have outdated system images for platform
    * 22 and 23. We also check the addon system images which includes the Google API.
-   * @return a list of packages that need to be updated.
+   * @return a list of package paths that need to be updated.
    */
   @NotNull
-  public List<IPkgDesc> getSystemImageUpdates() {
-    List<IPkgDesc> requested = Lists.newArrayList();
+  public List<String> getSystemImageUpdates() {
+    List<String> requested = Lists.newArrayList();
 
-    assert myLocalSdk != null;
-    LocalPkgInfo[] infos = myLocalSdk.getPkgsInfos(PkgType.PKG_SYS_IMAGE);
-    for (LocalPkgInfo info : infos) {
-      IPkgDesc desc = info.getDesc();
-      Abi abi = desc.getPath() != null ? Abi.getEnum(desc.getPath()) : Abi.ARMEABI;
+    assert mySdkHandler != null;
+    for (UpdatablePackage p : mySdkHandler.getSdkManager(REPO_LOG).getPackages().getConsolidatedPkgs().values()) {
+      LocalPackage local = p.getLocal();
+      if (local == null) {
+        continue;
+      }
+      TypeDetails details = local.getTypeDetails();
+      if (!(details instanceof DetailsTypes.SysImgDetailsType)) {
+        continue;
+      }
+      DetailsTypes.SysImgDetailsType sysImgDetails = (DetailsTypes.SysImgDetailsType)details;
+
+      Abi abi = Abi.getEnum(sysImgDetails.getAbi());
       boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
 
       if (isAvdIntel &&
-          desc.getAndroidVersion() != null &&
-          desc.getAndroidVersion().getApiLevel() == LMP_MR1_API_LEVEL_22 &&
-          SystemImage.DEFAULT_TAG.equals(desc.getTag()) &&
-          desc.getRevision().getMajor() < LMP_AOSP_MIN_REVISION) {
-        requested.add(
-          PkgDesc.Builder.newSysImg(desc.getAndroidVersion(), desc.getTag(), abi.toString(), new Revision(LMP_AOSP_MIN_REVISION)).create());
+          sysImgDetails.getApiLevel() == LMP_MR1_API_LEVEL_22 &&
+          local.getVersion().getMajor() < LMP_AOSP_MIN_REVISION &&
+          SystemImage.DEFAULT_TAG.equals(sysImgDetails.getTag())) {
+        requested.add(local.getPath());
       }
 
       if (isAvdIntel &&
-          desc.getAndroidVersion() != null &&
-          desc.getAndroidVersion().getApiLevel() == MNC_API_LEVEL_23 &&
-          SystemImage.DEFAULT_TAG.equals(desc.getTag()) &&
-          desc.getRevision().getMajor() < MNC_AOSP_MIN_REVISION) {
-        requested.add(
-          PkgDesc.Builder.newSysImg(desc.getAndroidVersion(), desc.getTag(), abi.toString(), new Revision(MNC_AOSP_MIN_REVISION)).create());
-      }
-    }
-
-    infos = myLocalSdk.getPkgsInfos(PkgType.PKG_ADDON_SYS_IMAGE);
-    for (LocalPkgInfo info : infos) {
-      IPkgDesc desc = info.getDesc();
-      Abi abi = desc.getPath() != null ? Abi.getEnum(desc.getPath()) : Abi.ARMEABI;
-      boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
-
-      if (isAvdIntel &&
-          desc.getAndroidVersion() != null &&
-          desc.getAndroidVersion().getApiLevel() == LMP_MR1_API_LEVEL_22 &&
-          GOOGLE_APIS_TAG.equals(desc.getTag()) &&
-          desc.getRevision().getMajor() < LMP_GAPI_MIN_REVISION &&
-          desc.getVendor() != null) {
-        requested.add(PkgDesc.Builder.newAddonSysImg(
-          desc.getAndroidVersion(), desc.getVendor(), desc.getTag(), abi.toString(), new Revision(LMP_GAPI_MIN_REVISION)).create());
+          sysImgDetails.getApiLevel() == MNC_API_LEVEL_23 &&
+          local.getVersion().getMajor() < MNC_AOSP_MIN_REVISION &&
+          SystemImage.DEFAULT_TAG.equals(sysImgDetails.getTag())) {
+        requested.add(local.getPath());
       }
       if (isAvdIntel &&
-          desc.getAndroidVersion() != null &&
-          desc.getAndroidVersion().getApiLevel() == MNC_API_LEVEL_23 &&
-          GOOGLE_APIS_TAG.equals(desc.getTag()) &&
-          desc.getRevision().getMajor() < MNC_GAPI_MIN_REVISION &&
-          desc.getVendor() != null) {
-        requested.add(PkgDesc.Builder.newAddonSysImg(
-          desc.getAndroidVersion(), desc.getVendor(), desc.getTag(), desc.getPath(), new Revision(MNC_GAPI_MIN_REVISION)).create());
+          sysImgDetails.getApiLevel() == LMP_MR1_API_LEVEL_22 &&
+          GOOGLE_APIS_TAG.equals(sysImgDetails.getTag()) &&
+          local.getVersion().getMajor() < LMP_GAPI_MIN_REVISION &&
+          sysImgDetails.getVendor() != null) {
+        requested.add(local.getPath());
+      }
+      if (isAvdIntel &&
+          sysImgDetails.getApiLevel() == MNC_API_LEVEL_23 &&
+          GOOGLE_APIS_TAG.equals(sysImgDetails.getTag()) &&
+          local.getVersion().getMajor() < MNC_GAPI_MIN_REVISION &&
+          sysImgDetails.getVendor() != null) {
+        requested.add(local.getPath());
       }
     }
     return requested;
@@ -263,13 +257,13 @@ public class AvdManagerConnection {
     }
     if (forceRefresh) {
       try {
-        ourAvdManager.reloadAvds(SDK_LOG);
+        myAvdManager.reloadAvds(SDK_LOG);
       }
       catch (AndroidLocation.AndroidLocationException e) {
         IJ_LOG.error("Could not find Android SDK!", e);
       }
     }
-    ArrayList<AvdInfo> avdInfos = Lists.newArrayList(ourAvdManager.getAllAvds());
+    ArrayList<AvdInfo> avdInfos = Lists.newArrayList(myAvdManager.getAllAvds());
     boolean needsRefresh = false;
     for (AvdInfo info : avdInfos) {
       if (info.getStatus() == AvdInfo.AvdStatus.ERROR_IMAGE_DIR) {
@@ -313,11 +307,14 @@ public class AvdManagerConnection {
       if (skinPath.isAbsolute()) {
         skinDir = skinPath;
       } else {
-        skinDir = new File(ourAvdManager.getLocalSdk().getLocation(), skin);
+        if (mySdkHandler == null) {
+          return null;
+        }
+        skinDir = new File(mySdkHandler.getLocation(), skin);
       }
-      if (skinDir.isDirectory()) {
+      if (myFileOp.isDirectory(skinDir)) {
         File layoutFile = new File(skinDir, "layout");
-        if (layoutFile.isFile()) {
+        if (myFileOp.isFile(layoutFile)) {
           return getResolutionFromLayoutFile(layoutFile);
         }
       }
@@ -332,7 +329,7 @@ public class AvdManagerConnection {
   @Nullable
   protected Dimension getResolutionFromLayoutFile(@NotNull File layoutFile) {
     if (!ourSkinLayoutDefinitions.containsKey(layoutFile)) {
-      ourSkinLayoutDefinitions.put(layoutFile, SkinLayoutDefinition.parseFile(layoutFile));
+      ourSkinLayoutDefinitions.put(layoutFile, SkinLayoutDefinition.parseFile(layoutFile, myFileOp));
     }
     SkinLayoutDefinition layoutDefinition = ourSkinLayoutDefinitions.get(layoutFile);
     if (layoutDefinition != null) {
@@ -380,16 +377,16 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return;
     }
-    ourAvdManager.deleteAvd(info, SDK_LOG);
+    myAvdManager.deleteAvd(info, SDK_LOG);
   }
 
   public boolean isAvdRunning(@NotNull AvdInfo info) {
-    return ourAvdManager.isAvdRunning(info, SDK_LOG);
+    return myAvdManager.isAvdRunning(info, SDK_LOG);
   }
 
 
   public void stopAvd(@NotNull final AvdInfo info) {
-    ourAvdManager.stopAvd(info);
+    myAvdManager.stopAvd(info);
   }
 
   /**
@@ -419,10 +416,10 @@ public class AvdManagerConnection {
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
     // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
     // perform the same action here. If it is not stale, then we should show this error and if possible, bring that window to the front.
-    if (ourAvdManager.isAvdRunning(info, SDK_LOG)) {
+    if (myAvdManager.isAvdRunning(info, SDK_LOG)) {
       String baseFolder;
       try {
-        baseFolder = ourAvdManager.getBaseAvdFolder();
+        baseFolder = myAvdManager.getBaseAvdFolder();
       }
       catch (AndroidLocation.AndroidLocationException e) {
         baseFolder = "$HOME";
@@ -632,15 +629,15 @@ public class AvdManagerConnection {
    */
   @Nullable
   public AvdInfo createOrUpdateAvd(@Nullable AvdInfo currentInfo,
-                                          @NotNull String avdName,
-                                          @NotNull Device device,
-                                          @NotNull SystemImageDescription systemImageDescription,
-                                          @NotNull ScreenOrientation orientation,
-                                          boolean isCircular,
-                                          @Nullable String sdCard,
-                                          @Nullable File skinFolder,
-                                          @NotNull Map<String, String> hardwareProperties,
-                                          boolean createSnapshot) {
+                                   @NotNull String avdName,
+                                   @NotNull Device device,
+                                   @NotNull SystemImageDescription systemImageDescription,
+                                   @NotNull ScreenOrientation orientation,
+                                   boolean isCircular,
+                                   @Nullable String sdCard,
+                                   @Nullable File skinFolder,
+                                   @NotNull Map<String, String> hardwareProperties,
+                                   boolean createSnapshot) {
     if (!initIfNecessary()) {
       return null;
     }
@@ -650,7 +647,7 @@ public class AvdManagerConnection {
       if (currentInfo != null) {
         avdFolder = new File(currentInfo.getDataFolderPath());
       } else {
-        avdFolder = AvdInfo.getDefaultAvdFolder(ourAvdManager, avdName, true);
+        avdFolder = AvdInfo.getDefaultAvdFolder(myAvdManager, avdName, myFileOp, true);
       }
     }
     catch (AndroidLocation.AndroidLocationException e) {
@@ -676,25 +673,25 @@ public class AvdManagerConnection {
       hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION, ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase());
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName())) {
-      boolean success = ourAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
+      boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
       if (!success) {
         return null;
       }
     }
-    return ourAvdManager.createAvd(avdFolder,
-                                   avdName,
-                                   systemImageDescription.getTarget(),
-                                   systemImageDescription.getTag(),
-                                   systemImageDescription.getAbiType(),
-                                   skinFolder,
-                                   skinName,
-                                   sdCard,
-                                   hardwareProperties,
-                                   device.getBootProps(),
-                                   createSnapshot,
-                                   false, // Remove Previous
-                                   currentInfo != null, // edit existing
-                                   SDK_LOG);
+    return myAvdManager.createAvd(avdFolder,
+                                  avdName,
+                                  systemImageDescription.getTarget(),
+                                  systemImageDescription.getTag(),
+                                  systemImageDescription.getAbiType(),
+                                  skinFolder,
+                                  skinName,
+                                  sdCard,
+                                  hardwareProperties,
+                                  device.getBootProps(),
+                                  createSnapshot,
+                                  false,
+                                  currentInfo != null,
+                                  SDK_LOG);
   }
 
   @Nullable
@@ -740,7 +737,7 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return false;
     }
-    return ourAvdManager.getAvd(candidate, false) != null;
+    return myAvdManager.getAvd(candidate, false) != null;
   }
 
   static boolean isAvdRepairable(AvdInfo.AvdStatus avdStatus) {
@@ -753,7 +750,7 @@ public class AvdManagerConnection {
   public boolean updateAvdImageFolder(@NotNull AvdInfo avdInfo) {
     if (initIfNecessary()) {
       try {
-        ourAvdManager.updateAvd(avdInfo, SDK_LOG);
+        myAvdManager.updateAvd(avdInfo, SDK_LOG);
         return true;
       }
       catch (IOException e) {
@@ -766,7 +763,7 @@ public class AvdManagerConnection {
   public boolean updateDeviceChanged(@NotNull AvdInfo avdInfo) {
     if (initIfNecessary()) {
       try {
-        ourAvdManager.updateDeviceChanged(avdInfo, SDK_LOG);
+        myAvdManager.updateDeviceChanged(avdInfo, SDK_LOG);
         return true;
       }
       catch (IOException e) {
@@ -805,7 +802,7 @@ public class AvdManagerConnection {
   }
 
   public boolean findAvdWithName(String name) {
-    for (AvdInfo avd : getDefaultAvdManagerConnection().getAvds(false)) {
+    for (AvdInfo avd : getAvds(false)) {
       if (getAvdDisplayName(avd).equals(name)) {
         return true;
       }

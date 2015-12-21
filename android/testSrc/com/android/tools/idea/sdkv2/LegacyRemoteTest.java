@@ -42,7 +42,7 @@ import java.util.Map;
 public class LegacyRemoteTest extends AndroidTestCase {
   public void testLegacyRemoteSdk() throws Exception {
     MockFileOp fop = new MockFileOp();
-    final AndroidSdkHandler handler = new AndroidSdkHandler(fop, true);
+    final AndroidSdkHandler handler = new AndroidSdkHandler(fop);
     FakeProgressIndicator progress = new FakeProgressIndicator();
     RepoManager mgr = handler.getSdkManager(progress);
     progress.assertNoErrorsOrWarnings();
