@@ -25,11 +25,9 @@ import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -75,7 +73,7 @@ public abstract class InstallableComponent extends ComponentTreeNode {
    * @param remotePackages an up-to-date list of the packages in the Android SDK repositories, if one can be obtained.
    */
   @NotNull
-  public abstract Collection<String> getRequiredSdkPackages(@Nullable Multimap<String, RemotePackage> remotePackages);
+  public abstract Collection<String> getRequiredSdkPackages(@Nullable Map<String, RemotePackage> remotePackages);
 
   public abstract void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler);
 

@@ -150,10 +150,12 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     private final RemotePkgInfo myWrapped;
     private RepositorySource mySource;
     private TypeDetails myDetails;
+    private RemotePackage mNewPackageInstance;
 
     LegacyRemotePackage(RemotePkgInfo remote, RepositorySource source) {
       myWrapped = remote;
       mySource = source;
+      mNewPackageInstance = ((CommonFactory)RepoManager.getCommonModule().createLatestFactory()).createRemotePackage();
     }
 
     @Override
@@ -278,6 +280,26 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
         }
       }
       return null;
+    }
+
+    @Nullable
+    @Override
+    public String getChannel() {
+      if (getVersion().isPreview()) {
+        // We map the old concept of previews to the second-stablest channel.
+        return getValidChannels()[1];
+      }
+      return getValidChannels()[0];
+    }
+
+    @Override
+    public boolean isValidChannel(String value) {
+      return mNewPackageInstance.isValidChannel(value);
+    }
+
+    @Override
+    public String[] getValidChannels() {
+      return mNewPackageInstance.getValidChannels();
     }
 
     @Override

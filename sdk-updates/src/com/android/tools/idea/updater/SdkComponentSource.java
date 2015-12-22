@@ -119,11 +119,10 @@ public class SdkComponentSource implements ExternalComponentSource {
 
     Set<String> ignored = settings != null ? Sets.newHashSet(settings.getIgnoredBuildNumbers()) : ImmutableSet.<String>of();
 
-    boolean previewChannel = settings != null && PREVIEW_CHANNEL.equals(settings.getExternalUpdateChannels().get(getName()));
     for (com.android.repository.api.UpdatablePackage p : myRepoManager.getPackages().getConsolidatedPkgs().values()) {
       if (remote) {
-        if (p.hasRemote(previewChannel)) {
-          RemotePackage remotePackage = p.getRemote(previewChannel);
+        if (p.hasRemote()) {
+          RemotePackage remotePackage = p.getRemote();
           if (!ignored.contains(getPackageRevisionId(remotePackage))) {
             result.add(new UpdatablePackage(remotePackage));
           }

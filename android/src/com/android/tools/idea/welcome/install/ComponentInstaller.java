@@ -27,23 +27,23 @@ import com.android.tools.idea.sdkv2.StudioDownloader;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Installs SDK components.
  */
 public final class ComponentInstaller {
-  @Nullable private final Multimap<String, RemotePackage> myRemotePackages;
+  @Nullable private final Map<String, RemotePackage> myRemotePackages;
   private final boolean myInstallUpdates;
   private final AndroidSdkHandler mySdkHandler;
 
-  public ComponentInstaller(@Nullable Multimap<String, RemotePackage> remotePackages,
+  public ComponentInstaller(@Nullable Map<String, RemotePackage> remotePackages,
                             boolean installUpdates,
                             @NotNull AndroidSdkHandler sdkHandler) {
     myRemotePackages = remotePackages;
@@ -73,7 +73,7 @@ public final class ComponentInstaller {
     SdkQuickfixUtils.resolve(null, requests, sdkManager, resolved, problems);
     List<RemotePackage> result = Lists.newArrayList();
     for (UpdatablePackage p : resolved) {
-      result.add(p.getRemote(true));
+      result.add(p.getRemote());
     }
     return result;
   }

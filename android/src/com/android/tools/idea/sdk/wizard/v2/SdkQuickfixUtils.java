@@ -184,8 +184,7 @@ public final class SdkQuickfixUtils {
   private static void verifyAvailability(List<UpdatablePackage> requestedPackages, List<UpdatablePackage> unavailableDownloads) {
     for (Iterator<UpdatablePackage> iter = requestedPackages.listIterator(); iter.hasNext(); ) {
       UpdatablePackage p = iter.next();
-      // TODO: channels
-      if (!p.hasRemote(true)) {
+      if (!p.hasRemote()) {
         iter.remove();
         unavailableDownloads.add(p);
       }
@@ -307,8 +306,7 @@ public final class SdkQuickfixUtils {
     if (requestedPaths != null) {
       for (String path : requestedPaths) {
         UpdatablePackage p = packages.get(path);
-        // TODO: channels
-        if (p == null || !p.hasRemote(true)) {
+        if (p == null || !p.hasRemote()) {
           notFound.add(path);
         }
         else {
@@ -319,8 +317,7 @@ public final class SdkQuickfixUtils {
 
     List<RemotePackage> remotes = Lists.newArrayList();
     for (UpdatablePackage p : resolved) {
-      // TODO: channels
-      remotes.add(p.getRemote(true));
+      remotes.add(p.getRemote());
     }
     final AtomicReference<String> warning = new AtomicReference<String>();
     ProgressIndicator errorCollector = new ProgressIndicatorAdapter() {
@@ -353,9 +350,8 @@ public final class SdkQuickfixUtils {
 
     for (UpdatablePackage p : installRequests) {
       // At this point we know everything has a remote
-      // TODO: channels
-      RemotePackage remote = p.getRemote(true);
-      if (isWindows && p.isUpdate(true)) {
+      RemotePackage remote = p.getRemote();
+      if (isWindows && p.isUpdate()) {
         problems.add(remote);
       }
       else {

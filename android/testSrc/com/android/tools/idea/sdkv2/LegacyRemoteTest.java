@@ -55,8 +55,8 @@ public class LegacyRemoteTest extends AndroidTestCase {
       new ConstantSourceProvider("http://www.example.com/testRepo2", "Repo2", ImmutableList.of(handler.getRepositoryModule(progress))));
     progress.assertNoErrorsOrWarnings();
 
-    LegacyRemoteRepoLoader sdk =
-      new LegacyRemoteRepoLoader(new FakeSettingsController(false));
+    FakeSettingsController settings = new FakeSettingsController(false);
+    LegacyRemoteRepoLoader sdk = new LegacyRemoteRepoLoader(settings);
     sdk.setDownloadCache(new DownloadCache(fop, DownloadCache.Strategy.ONLY_CACHE));
     mgr.setFallbackRemoteRepoLoader(sdk);
     FakeDownloader downloader = new FakeDownloader(fop);
@@ -67,16 +67,26 @@ public class LegacyRemoteTest extends AndroidTestCase {
     downloader.registerUrl(new URL("http://www.example.com/testRepo2"), getClass().getResourceAsStream("data/repository2_sample_1.xml"));
     downloader.registerUrl(new URL("http://www.example.com/testRepo"), getClass().getResourceAsStream("data/repository_sample_10.xml"));
     FakeProgressRunner runner = new FakeProgressRunner();
+
     mgr.load(0, Lists.<RepoManager.RepoLoadedCallback>newArrayList(), Lists.<RepoManager.RepoLoadedCallback>newArrayList(),
-             Lists.<Runnable>newArrayList(), runner, downloader, new FakeSettingsController(false), true);
+             Lists.<Runnable>newArrayList(), runner, downloader, settings, true);
     runner.getProgressIndicator().assertNoErrorsOrWarnings();
     RepositoryPackages packages = mgr.getPackages();
 
     Map<String, UpdatablePackage> consolidatedPkgs = packages.getConsolidatedPkgs();
+    assertEquals(12, consolidatedPkgs.size());
+    assertEquals(12, packages.getNewPkgs().size());
+
+    settings.setChannel("10-beta");
+    mgr.load(0, Lists.<RepoManager.RepoLoadedCallback>newArrayList(), Lists.<RepoManager.RepoLoadedCallback>newArrayList(),
+             Lists.<Runnable>newArrayList(), runner, downloader, settings, true);
+    runner.getProgressIndicator().assertNoErrorsOrWarnings();
+    packages = mgr.getPackages();
+
+    consolidatedPkgs = packages.getConsolidatedPkgs();
     assertEquals(14, consolidatedPkgs.size());
-    assertEquals(17, packages.getNewPkgs().size());
     UpdatablePackage doc = consolidatedPkgs.get("docs");
-    assertEquals(new Revision(43), doc.getRemote(false).getVersion());
+    assertEquals(new Revision(43), doc.getRemote().getVersion());
     UpdatablePackage pastry = consolidatedPkgs.get("platforms;android-Pastry");
     TypeDetails pastryDetails = pastry.getRepresentative().getTypeDetails();
     assertInstanceOf(pastryDetails, DetailsTypes.PlatformDetailsType.class);

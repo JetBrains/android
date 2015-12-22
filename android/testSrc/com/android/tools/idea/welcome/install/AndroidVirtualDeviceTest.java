@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.repository.api.Dependency;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.TypeDetails;
-import com.android.repository.testframework.FakeDownloader;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
@@ -32,10 +30,9 @@ import com.android.sdklib.repositoryv2.meta.RepoFactory;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -44,7 +41,6 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestBase;
 
 import java.io.File;
-import java.net.URL;
 import java.util.Map;
 
 public class AndroidVirtualDeviceTest extends AndroidTestBase {
@@ -124,7 +120,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
     platformDetailsType.setApiLevel(23);
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-    Multimap<String, RemotePackage> remotes = HashMultimap.create();
+    Map<String, RemotePackage> remotes = Maps.newHashMap();
     remotes.put("platforms;android-23", remotePlatform);
     AndroidVirtualDevice avd = new AndroidVirtualDevice(new ScopedStateStore(ScopedStateStore.Scope.STEP, null, null), remotes, fop);
     final AvdInfo avdInfo = avd.createAvd(connection, sdkHandler);

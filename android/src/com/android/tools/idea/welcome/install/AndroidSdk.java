@@ -17,26 +17,20 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.SdkMavenRepository;
+import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOpUtils;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.devices.Storage;
-import com.android.repository.Revision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Android SDK installable component.
@@ -57,7 +51,7 @@ public final class AndroidSdk extends InstallableComponent {
    * @return The Revision of the latest build tools package, or null if no remote build tools packages are available.
    */
   @Nullable
-  private static Revision getLatestCompatibleBuildToolsRevision(@NotNull Multimap<String, RemotePackage> packages) {
+  private static Revision getLatestCompatibleBuildToolsRevision(@NotNull Map<String, RemotePackage> packages) {
     Revision revision = null;
     for (RemotePackage p : packages.values()) {
       if (!p.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS)) {
@@ -78,7 +72,7 @@ public final class AndroidSdk extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<String> getRequiredSdkPackages(@Nullable Multimap<String, RemotePackage> remotePackages) {
+  public Collection<String> getRequiredSdkPackages(@Nullable Map<String, RemotePackage> remotePackages) {
     Collection<String> result = Lists.newArrayList();
     result.add(SdkConstants.FD_TOOLS);
     result.add(SdkConstants.FD_PLATFORM_TOOLS);
