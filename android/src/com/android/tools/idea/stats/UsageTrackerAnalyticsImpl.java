@@ -79,7 +79,7 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
                             "appId", anonymize(applicationId),
                             "pluginVer", androidPluginVersion,
                             "gradleVer", gradleVersion,
-                            "instantRunEnabled", Boolean.toString(instantRunEnabled)));
+                            "canInstantRun", Boolean.toString(instantRunEnabled)));
   }
 
   @NotNull
