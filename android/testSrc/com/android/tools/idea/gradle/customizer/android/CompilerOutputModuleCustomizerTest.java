@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -62,7 +63,12 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
       customizer.customizeModule(myProject, myModule, modelsProvider, androidModel);
       CompilerModuleExtension compilerSettings = modelsProvider.getModifiableRootModel(myModule).getModuleExtension(CompilerModuleExtension.class);
       compilerOutputPath = compilerSettings.getCompilerOutputUrl();
-      modelsProvider.commit();
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          modelsProvider.commit();
+        }
+      });
     }
     catch (Throwable t) {
       modelsProvider.dispose();

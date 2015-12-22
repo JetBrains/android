@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -92,7 +93,7 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
 
     // ModuleCustomizers should be called.
     //noinspection ConstantConditions
-    IdeModifiableModelsProviderImpl provider = new IdeModifiableModelsProviderImpl(myProject);
+    final IdeModifiableModelsProviderImpl provider = new IdeModifiableModelsProviderImpl(myProject);
     myCustomizer1.customizeModule(eq(myProject), eq(myModule), eq(provider), eq(myAndroidModel));
     expectLastCall();
 
@@ -103,7 +104,13 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
     replay(myCustomizer1, myCustomizer2);
 
     service.importData(nodes, null, myProject, provider);
-    provider.commit();
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        provider.commit();
+      }
+    });
+
     verify(myCustomizer1, myCustomizer2);
   }
 
