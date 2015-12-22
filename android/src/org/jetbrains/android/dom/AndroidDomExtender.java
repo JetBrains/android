@@ -732,9 +732,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
 
   public static abstract class MyCallback {
     @Nullable
-    abstract DomExtension processAttribute(@NotNull XmlName xmlName,
-                                           @NotNull AttributeDefinition attrDef,
-                                           @Nullable String parentStyleableName);
+    public abstract DomExtension processAttribute(@NotNull XmlName xmlName,
+                                                  @NotNull AttributeDefinition attrDef,
+                                                  @Nullable String parentStyleableName);
 
     void processSubtag(@NotNull XmlName xmlName, @NotNull Type type) {
     }
