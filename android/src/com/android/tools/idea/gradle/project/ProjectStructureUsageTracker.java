@@ -78,10 +78,11 @@ class ProjectStructureUsageTracker {
     if (target != null) {
       AndroidProject androidProject = target.getAndroidProject();
       Revision gradleVersion = getGradleVersion(myProject);
+      boolean instantRunEnabled = FastDeployManager.isInstantRunEnabled(myProject) && FastDeployManager.isPatchableApp(target);
       UsageTracker.getInstance().trackGradleArtifactVersions(target.getApplicationId(),
                                                              androidProject.getModelVersion(),
                                                              gradleVersion != null ? gradleVersion.toString() : "<Not Found>",
-                                                             FastDeployManager.isInstantRunEnabled(myProject));
+                                                             instantRunEnabled);
     }
   }
 
