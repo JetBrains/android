@@ -66,7 +66,13 @@ public class AndroidProjectWizardTest extends NewProjectWizardTestCase {
   }
 
   public void testAddAndroidModuleToJavaProject() throws Exception {
-    ProjectRootManager.getInstance(getProject()).setProjectSdk(IdeaTestUtil.getMockJdk17());
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        ProjectRootManager.getInstance(getProject()).setProjectSdk(IdeaTestUtil.getMockJdk17());
+      }
+    });
+
     Module module = createModuleFromTemplate(AndroidProjectTemplatesFactory.ANDROID, AndroidProjectTemplatesFactory.EMPTY_MODULE, null);
     assertNotNull(module);
     Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
