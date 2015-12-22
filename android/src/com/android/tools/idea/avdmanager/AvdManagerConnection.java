@@ -66,6 +66,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.WeakHashMap;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -115,7 +116,7 @@ public class AvdManagerConnection {
 
   @NotNull
   public static AvdManagerConnection getDefaultAvdManagerConnection() {
-    AndroidSdkHandler handler = AndroidSdkHandler.getInstance();
+    AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
     if (handler.getLocation() == null) {
       return NULL_CONNECTION;
     }

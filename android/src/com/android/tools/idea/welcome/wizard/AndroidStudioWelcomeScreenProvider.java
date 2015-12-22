@@ -39,6 +39,7 @@ import com.intellij.openapi.wm.WelcomeScreenProvider;
 import com.intellij.util.net.HttpConfigurable;
 import com.intellij.util.proxy.CommonProxy;
 import org.jetbrains.android.AndroidPlugin;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -182,7 +183,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     }
 
     StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(AndroidStudioWelcomeScreenProvider.class);
-    RepoManager mgr = AndroidSdkHandler.getInstance().getSdkManager(logger);
+    RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(logger);
     mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, logger, new StudioDownloader(),
                           StudioSettingsController.getInstance());
 

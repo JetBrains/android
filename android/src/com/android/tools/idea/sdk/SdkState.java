@@ -39,6 +39,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.concurrency.Semaphore;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -318,7 +319,8 @@ public class SdkState {
       try {
         // call load in the new system as well, in case some systems are expecting the associated
         // triggers to fire
-        AndroidSdkHandler.getInstance().getSdkManager(progress).load(0, null, null, null, new ProgressRunner() {
+        AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
+        handler.getSdkManager(progress).load(0, null, null, null, new ProgressRunner() {
           @Override
           public void runAsyncWithProgress(@NonNull ProgressRunnable r) {
             r.run(progress, this);

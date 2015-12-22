@@ -43,6 +43,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.ui.AncestorListenerAdapter;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,7 +103,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         }
       }
     };
-    mySdkHandler = AndroidSdkHandler.getInstance();
+    mySdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
     myPanel =
       new SdkUpdaterConfigPanel(mySdkHandler, channelChangedCallback, new StudioDownloader(), StudioSettingsController.getInstance());
     JComponent component = myPanel.getComponent();
