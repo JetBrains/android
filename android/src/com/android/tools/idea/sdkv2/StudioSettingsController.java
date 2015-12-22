@@ -16,8 +16,12 @@
 
 package com.android.tools.idea.sdkv2;
 
+import com.android.repository.api.RepoManager;
 import com.android.repository.api.SettingsController;
+import com.android.repository.impl.meta.CommonFactory;
 import com.intellij.openapi.components.*;
+import com.intellij.openapi.updateSettings.impl.ChannelStatus;
+import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -36,6 +40,8 @@ import org.jetbrains.annotations.Nullable;
 public class StudioSettingsController implements PersistentStateComponent<StudioSettingsController.PersistentState>, SettingsController {
 
   private PersistentState myState = new PersistentState();
+  private String[] myValidChannels =
+    ((CommonFactory)RepoManager.getCommonModule().createLatestFactory()).createRemotePackage().getValidChannels();
 
   @Override
   public boolean getForceHttp() {
@@ -45,6 +51,21 @@ public class StudioSettingsController implements PersistentStateComponent<Studio
   @Override
   public void setForceHttp(boolean forceHttp) {
     myState.myForceHttp = forceHttp;
+  }
+
+  @Override
+  @Nullable
+  public String getChannel() {
+    // Studio channels are named like "Beta Channel", "Dev Channel", etc. Repo channels are named like
+    // "10-beta", "20-dev", etc. We match them up based on the common parts of the names.
+    String channel = ChannelStatus.fromCode(UpdateSettings.getInstance().getUpdateChannelType()).getDisplayName().toLowerCase();
+    channel = channel.substring(0, channel.indexOf(' '));
+    for (String repoChannel : myValidChannels) {
+      if (repoChannel.endsWith("-" + channel)) {
+        return repoChannel;
+      }
+    }
+    return null;
   }
 
   @Nullable

@@ -28,14 +28,13 @@ import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>Install Android SDK components for developing apps targeting Lollipop
@@ -64,9 +63,8 @@ public class Platform extends InstallableComponent {
   }
 
   private static Platform getLatestPlatform(@NotNull ScopedStateStore store,
-                                            Multimap<String, RemotePackage> remotePackages,
-                                            boolean preview) {
-    RemotePackage latest = InstallComponentsPath.findLatestPlatform(remotePackages, preview);
+                                            Map<String, RemotePackage> remotePackages) {
+    RemotePackage latest = InstallComponentsPath.findLatestPlatform(remotePackages);
     if (latest != null) {
       AndroidVersion version = DetailsTypes.getAndroidVersion(((DetailsTypes.PlatformDetailsType)latest.getTypeDetails()));
       String versionName = SdkVersionInfo.getAndroidName(version.getFeatureLevel());
@@ -90,19 +88,9 @@ public class Platform extends InstallableComponent {
     return result;
   }
 
-  public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store, Multimap<String, RemotePackage> remotePackages) {
-    ComponentTreeNode latestPlatform = getLatestPlatform(store, remotePackages, false);
-    ComponentTreeNode previewPlatform = null;
-    // We never want to push preview platforms on our users (see http://b.android.com/175343 for more)
-    //   ComponentTreeNode previewPlatform = getLatestPlatform(store, remotePackages, true);
-    //noinspection ConstantConditions
-    if (previewPlatform != null) {
-      if (latestPlatform != null) {
-        return new ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms",
-                                     latestPlatform, previewPlatform);
-      }
-      latestPlatform = previewPlatform;  // in case somehow we have a preview but no non-preview
-    }
+  public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store, Map<String, RemotePackage> remotePackages) {
+    // Previously we also installed a preview platform, but no longer (see http://b.android.com/175343 for more).
+    ComponentTreeNode latestPlatform = getLatestPlatform(store, remotePackages);
     if (latestPlatform != null) {
       return new ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms",
                                    latestPlatform);
@@ -112,7 +100,7 @@ public class Platform extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<String> getRequiredSdkPackages(@Nullable Multimap<String, RemotePackage> remotePackages) {
+  public Collection<String> getRequiredSdkPackages(@Nullable Map<String, RemotePackage> remotePackages) {
     List<String> requests = Lists.newArrayList(DetailsTypes.getPlatformPath(myVersion), DetailsTypes.getSourcesPath(myVersion));
     String buildTool = findLatestCompatibleBuildTool(remotePackages, myVersion);
     if (buildTool != null) {
@@ -121,7 +109,7 @@ public class Platform extends InstallableComponent {
     return requests;
   }
 
-  private static String findLatestCompatibleBuildTool(@Nullable Multimap<String, RemotePackage> remotePackages, AndroidVersion version) {
+  private static String findLatestCompatibleBuildTool(@Nullable Map<String, RemotePackage> remotePackages, AndroidVersion version) {
     Revision revision = null;
     String path = null;
     if (remotePackages != null) {
