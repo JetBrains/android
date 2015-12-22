@@ -319,7 +319,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       AndroidDomExtender.processAttrsAndSubtags((AndroidDomElement)parentDomElement, new AndroidDomExtender.MyCallback() {
         @Nullable
         @Override
-        DomExtension processAttribute(@NotNull XmlName xn, @NotNull AttributeDefinition attrDef, @Nullable String parentStyleableName) {
+        public DomExtension processAttribute(@NotNull XmlName xn, @NotNull AttributeDefinition attrDef, @Nullable String parentStyleableName) {
           if (xn.getLocalName().equals(localName) && namespace.equals(xn.getNamespaceKey())) {
             result.set(Pair.of(attrDef, parentStyleableName));
             throw new MyStopException();
