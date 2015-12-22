@@ -57,7 +57,7 @@ public final class ComponentInstaller {
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
     // Reload if needed (probably won't be).
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, StudioDownloader.getInstance(),
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, new StudioDownloader(),
                                  StudioSettingsController.getInstance());
     RepositoryPackages allPackages = sdkManager.getPackages();
     for (InstallableComponent component : components) {
@@ -81,7 +81,7 @@ public final class ComponentInstaller {
   public void installPackages(@NotNull List<RemotePackage> packages, ProgressIndicator progress) throws WizardException {
     for (RemotePackage request : packages) {
       AndroidSdkHandler.findBestInstaller(request)
-        .install(request, StudioDownloader.getInstance(), StudioSettingsController.getInstance(), progress,
+        .install(request, new StudioDownloader(), StudioSettingsController.getInstance(), progress,
                  mySdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass())), FileOpUtils.create());
     }
   }
