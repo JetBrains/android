@@ -132,7 +132,7 @@ public class GpuSampler extends DeviceSampler {
   }
 
   public static int decodeApiLevel(@NotNull Client client) {
-    int apiLevel = client.getDevice().getApiLevel();
+    int apiLevel = client.getDevice().getVersion().getApiLevel();
     // TODO remove this version promotion workaround after M launches
     if (apiLevel == 22) {
       String versionString = client.getDevice().getProperty(IDevice.PROP_BUILD_VERSION);
