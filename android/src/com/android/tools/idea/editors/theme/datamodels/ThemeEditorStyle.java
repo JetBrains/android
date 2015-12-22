@@ -35,7 +35,9 @@ import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -56,7 +58,10 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Wrapper for style configurations that allows modifying attributes directly in the XML file.
@@ -455,7 +460,7 @@ public class ThemeEditorStyle {
     // we should modify every FolderConfiguration, thus we set desiredApi to -1
     final int desiredApi = (maxApi <= minSdk) ? -1 : maxApi;
 
-    new WriteCommandAction.Simple(myProject, "Setting value of " + attribute, null) {
+    new WriteCommandAction.Simple(myProject, "Setting value of " + attribute) {
       @Override
       protected void run() {
         // Makes the command global even if only one xml file is modified
