@@ -603,7 +603,10 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       return false;
     }
 
-    AndroidGradleModel model = getAppModel(module);
+    return isPatchableApp(getAppModel(module));
+  }
+
+  public static boolean isPatchableApp(@Nullable AndroidGradleModel model) {
     if (model == null) {
       return false;
     }
