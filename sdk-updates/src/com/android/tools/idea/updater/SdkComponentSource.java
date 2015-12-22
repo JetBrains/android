@@ -33,6 +33,7 @@ import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +58,7 @@ public class SdkComponentSource implements ExternalComponentSource {
 
   private void initIfNecessary(@Nullable ProgressIndicator indicator) {
     if (myRepoManager == null) {
-      RepoManager mgr = AndroidSdkHandler.getInstance().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+      RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
       com.android.repository.api.ProgressIndicator progress;
       if (indicator != null) {
         progress = new RepoProgressIndicatorAdapter(indicator);
@@ -151,11 +152,8 @@ public class SdkComponentSource implements ExternalComponentSource {
   @NotNull
   @Override
   public Collection<? extends Pair<String, String>> getStatuses() {
-    RepoManager mgr = AndroidSdkHandler.getInstance().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
-    ProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading SDK...", true, null);
-    // Pass in null as the downloader since we aren't interested in remote packages
-    mgr.loadSynchronously(DEFAULT_EXPIRATION_PERIOD_MS, new StudioLoggerProgressIndicator(getClass()), null,
-                          StudioSettingsController.getInstance());
+    RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+
     RepositoryPackages packages = mgr.getPackages();
     Revision toolsRevision = null;
     Revision platformRevision = null;

@@ -22,6 +22,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.IAndroidTarget.OptionalLibrary;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.logcat.AdbErrors;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -858,6 +859,15 @@ public final class AndroidSdkUtils {
       }
     }
     return ourSdkData;
+  }
+
+  @NotNull
+  public static AndroidSdkHandler tryToChooseSdkHandler() {
+    AndroidSdkData data = tryToChooseAndroidSdk();
+    if (data == null) {
+      return AndroidSdkHandler.getInstance(null);
+    }
+    return data.getSdkHandler();
   }
 
   public static void setSdkData(@Nullable AndroidSdkData data) {

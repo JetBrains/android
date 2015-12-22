@@ -42,7 +42,7 @@ import java.util.Map;
 public class LegacyRemoteTest extends AndroidTestCase {
   public void testLegacyRemoteSdk() throws Exception {
     MockFileOp fop = new MockFileOp();
-    final AndroidSdkHandler handler = new AndroidSdkHandler(fop);
+    final AndroidSdkHandler handler = new AndroidSdkHandler(null, fop);
     FakeProgressIndicator progress = new FakeProgressIndicator();
     RepoManager mgr = handler.getSdkManager(progress);
     progress.assertNoErrorsOrWarnings();
@@ -56,7 +56,7 @@ public class LegacyRemoteTest extends AndroidTestCase {
     progress.assertNoErrorsOrWarnings();
 
     LegacyRemoteRepoLoader sdk =
-      new LegacyRemoteRepoLoader(new FakeSettingsController(false), handler);
+      new LegacyRemoteRepoLoader(new FakeSettingsController(false));
     sdk.setDownloadCache(new DownloadCache(fop, DownloadCache.Strategy.ONLY_CACHE));
     mgr.setFallbackRemoteRepoLoader(sdk);
     FakeDownloader downloader = new FakeDownloader(fop);

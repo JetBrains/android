@@ -78,7 +78,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     mySdkLocation = sdkLocation;
     myRemotePackages = remotePackages;
     // Create a new instance for use during installation
-    myLocalHandler = AndroidSdkHandler.getInstance().clone();
+    myLocalHandler = AndroidSdkHandler.getInstance(mySdkLocation);
 
     myComponentInstaller = new ComponentInstaller(remotePackages, installUpdates, myLocalHandler);
   }
@@ -227,7 +227,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
     addStep(new SdkComponentsStep(myComponentTree, FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, myMode));
 
-    myLocalHandler.setLocation(mySdkLocation);
     myComponentTree.init(myProgressStep);
     myComponentTree.updateState(myLocalHandler);
     for (DynamicWizardStep step : myComponentTree.createSteps()) {
@@ -255,7 +254,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       if (sdkPath != null) {
         File sdkLocation = new File(sdkPath);
         if (!FileUtil.filesEqual(myLocalHandler.getLocation(), sdkLocation)) {
-          myLocalHandler.setLocation(sdkLocation);
+          myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
           myComponentTree.updateState(myLocalHandler);
         }
       }
@@ -465,7 +464,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
             @Override
             public void run() {
               IdeSdks.setAndroidSdkPath(input, null);
-              AndroidSdkHandler.getInstance().setLocation(input);
               AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
             }
           });

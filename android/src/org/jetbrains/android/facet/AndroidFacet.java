@@ -116,6 +116,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   private AvdManager myAvdManager = null;
   private AndroidSdkData mySdkData;
+  private AndroidSdkHandler myHandler;
   private boolean myDataBindingEnabled = false;
 
   private SystemResourceManager myPublicSystemResourceManager;
@@ -384,9 +385,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public AvdManager getAvdManager(ILogger log) throws AndroidLocation.AndroidLocationException {
     if (myAvdManager == null) {
-
-      AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance();
-      myAvdManager = AvdManager.getInstance(sdkHandler, log);
+      myAvdManager = AvdManager.getInstance(myHandler, log);
     }
     return myAvdManager;
   }
@@ -395,7 +394,14 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public AndroidSdkData getSdkData() {
     if (mySdkData == null) {
       AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-      mySdkData = platform != null ? platform.getSdkData() : null;
+      if (platform != null) {
+        mySdkData = platform.getSdkData();
+        myHandler = mySdkData.getSdkHandler();
+      }
+      else {
+        mySdkData = null;
+        myHandler = AndroidSdkHandler.getInstance(null);
+      }
     }
 
     return mySdkData;

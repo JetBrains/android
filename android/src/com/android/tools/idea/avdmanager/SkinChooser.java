@@ -29,6 +29,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ComboboxWithBrowseButton;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,7 +109,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
       }
     }
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(SkinChooser.class);
-    AndroidTargetManager targetManager = AndroidSdkHandler.getInstance().getAndroidTargetManager(progress);
+    AndroidTargetManager targetManager = AndroidSdkUtils.tryToChooseSdkHandler().getAndroidTargetManager(progress);
 
     for (IAndroidTarget target : targetManager.getTargets(true, progress)) {
       Collections.addAll(result, target.getSkins());

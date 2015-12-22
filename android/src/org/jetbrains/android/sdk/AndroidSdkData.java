@@ -23,6 +23,7 @@ import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalPlatformPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -59,6 +60,7 @@ public class AndroidSdkData {
   private final int mySdkToolsRevision;
 
   private static final ConcurrentMap<String/* sdk path */, SoftReference<AndroidSdkData>> ourCache = Maps.newConcurrentMap();
+  private AndroidSdkHandler mySdkHandler;
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull File sdkLocation) {
@@ -88,7 +90,7 @@ public class AndroidSdkData {
       return null;
     }
 
-    AndroidSdkData sdkData = new AndroidSdkData(new LocalSdk(canonicalLocation));
+    AndroidSdkData sdkData = new AndroidSdkData(canonicalLocation);
     ourCache.put(canonicalPath, new SoftReference<AndroidSdkData>(sdkData));
     return sdkData;
   }
@@ -122,8 +124,9 @@ public class AndroidSdkData {
     return getSdkData(module.getProject());
   }
 
-  private AndroidSdkData(@NotNull LocalSdk localSdk) {
-    myLocalSdk = localSdk;
+  private AndroidSdkData(@NotNull File localSdk) {
+    myLocalSdk = new LocalSdk(localSdk);
+    mySdkHandler = AndroidSdkHandler.getInstance(localSdk);
     File location = getLocation();
     String locationPath = location.getPath();
     myPlatformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
@@ -133,7 +136,7 @@ public class AndroidSdkData {
 
   @NotNull
   public File getLocation() {
-    File location = myLocalSdk.getLocation();
+    File location = mySdkHandler.getLocation();
 
     // The LocalSdk should always have been initialized.
     assert location != null;
@@ -205,10 +208,6 @@ public class AndroidSdkData {
     return myPlatformToolsRevision;
   }
 
-  public int getSdkToolsRevision() {
-    return mySdkToolsRevision;
-  }
-
   @Override
   public boolean equals(Object obj) {
     if (obj == null) return false;
@@ -241,5 +240,10 @@ public class AndroidSdkData {
       myTargetDataByTarget.put(target, new SoftReference<AndroidTargetData>(targetData));
     }
     return targetData;
+  }
+
+  @NotNull
+  public AndroidSdkHandler getSdkHandler() {
+    return mySdkHandler;
   }
 }

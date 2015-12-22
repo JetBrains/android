@@ -22,6 +22,7 @@ import com.android.annotations.Nullable;
 import com.android.repository.Revision;
 import com.android.repository.api.License;
 import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.CommonFactory;
 import com.android.repository.io.FileOp;
 import com.android.sdklib.repository.PkgProps;
@@ -201,8 +202,7 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
       Node ref = usesLicense.getAttributes().getNamedItem(SdkRepoConstants.ATTR_REF);
       if (ref != null) {
         String licenseRef = ref.getNodeValue();
-        ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-        CommonFactory f = (CommonFactory)AndroidSdkHandler.getInstance().getSdkManager(progress).getCommonModule().createLatestFactory();
+        CommonFactory f = (CommonFactory)RepoManager.getCommonModule().createLatestFactory();
         License l = f.createLicenseType();
         l.setId(licenseRef);
         l.setValue(licenses.get(licenseRef));

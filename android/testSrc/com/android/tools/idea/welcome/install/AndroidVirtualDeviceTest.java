@@ -115,8 +115,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), "nexus_5"));
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop);
-    sdkHandler.setLocation(new File("/sdk"));
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), fop);
 
     final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, fop);
     FakePackage remotePlatform = new FakePackage("platforms;android-23", new Revision(1), ImmutableList.<Dependency>of());

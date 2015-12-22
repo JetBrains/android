@@ -33,6 +33,7 @@ import com.intellij.openapi.updateSettings.impl.AbstractUpdateDialog;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -74,7 +75,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
             ProgressIndicator repoProgress = new RepoProgressIndicatorAdapter(indicator);
             Downloader downloader = new StudioDownloader(indicator);
             SettingsController settings = StudioSettingsController.getInstance();
-            RepoManager mgr = AndroidSdkHandler.getInstance().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+            RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
             for (RemotePackage p : myPackages) {
               // TODO: use quickfix wizard
               AndroidSdkHandler.findBestInstaller(p).install(p, downloader, settings, repoProgress, mgr, FileOpUtils.create());
