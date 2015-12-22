@@ -28,9 +28,11 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
 import java.util.Set;
 
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
@@ -49,6 +51,9 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
                                        @NotNull ProcessHandlerLaunchStatus launchStatus,
                                        @NotNull ProcessHandlerConsolePrinter printer) {
     String debugPort = Integer.toString(client.getDebuggerListenPort());
+    int pid = client.getClientData().getPid();
+    Logger.getInstance(ConnectJavaDebuggerTask.class)
+      .info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
 
     // detach old process handler
     RunContentDescriptor descriptor = ((AndroidDebugRunner)currentLaunchInfo.runner).getDescriptor();

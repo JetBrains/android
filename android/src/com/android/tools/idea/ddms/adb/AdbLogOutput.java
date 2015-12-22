@@ -64,7 +64,7 @@ public class AdbLogOutput {
           // Note: These aren't programming errors, but setup/installation errors. So we inform the user via an entry in the
           // event log, and append to the system log file so that we can potentially inspect and understand bug reports.
           LOG.warn(message);
-          EVENT_LOG.createNotification(message, MessageType.ERROR).notify(null);
+          EVENT_LOG.createNotification(message, MessageType.WARNING).notify(null);
           break;
       }
     }
