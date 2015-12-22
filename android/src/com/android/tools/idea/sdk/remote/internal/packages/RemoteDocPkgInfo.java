@@ -19,6 +19,7 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalSdk;
@@ -74,7 +75,7 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
   public void saveProperties(Properties props) {
     super.saveProperties(props);
 
-    getPkgDesc().getAndroidVersion().saveProperties(props);
+    AndroidVersionHelper.saveProperties(getPkgDesc().getAndroidVersion(), props);
   }
 
   /**

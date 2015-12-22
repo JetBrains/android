@@ -20,6 +20,7 @@ import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.io.FileOp;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
@@ -88,7 +89,7 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
   public void saveProperties(Properties props) {
     super.saveProperties(props);
 
-    getAndroidVersion().saveProperties(props);
+    AndroidVersionHelper.saveProperties(getAndroidVersion(), props);
 
     if (getMinApiLevel() != MIN_API_LEVEL_NOT_SPECIFIED) {
       props.setProperty(PkgProps.SAMPLE_MIN_API_LEVEL, Integer.toString(getMinApiLevel()));
