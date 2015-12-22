@@ -141,7 +141,7 @@ public class GradleInvokerOptions {
     AndroidVersion min = null;
 
     for (IDevice device : devices) {
-      AndroidVersion version = DevicePropertyUtil.getDeviceVersion(device);
+      AndroidVersion version = device.getVersion();
       if (version != AndroidVersion.DEFAULT && (min == null || version.getFeatureLevel() < min.getFeatureLevel())) {
         min = version;
       }

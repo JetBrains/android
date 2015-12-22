@@ -98,7 +98,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     AndroidSessionInfo value = new AndroidSessionInfo(debugProcessHandler, debugDescriptor, uniqueId, currentLaunchInfo.executor.getId());
     debugProcessHandler.putUserData(AndroidSessionInfo.KEY, value);
     debugProcessHandler.putUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT, client);
-    debugProcessHandler.putUserData(AndroidDebugRunner.ANDROID_DEVICE_API_LEVEL, DevicePropertyUtil.getDeviceVersion(client.getDevice()));
+    debugProcessHandler.putUserData(AndroidDebugRunner.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());
 
     // Reverted: b/25506206
     // kill the process when the debugger is stopped
