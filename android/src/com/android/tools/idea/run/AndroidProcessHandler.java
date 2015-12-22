@@ -68,7 +68,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
 
   public void addTargetDevice(@NotNull IDevice device) {
     myDevices.add(device.getSerialNumber());
-    setMinDeviceApiLevel(DevicePropertyUtil.getDeviceVersion(device));
+    setMinDeviceApiLevel(device.getVersion());
 
     Client client = device.getClient(myApplicationId);
     if (client != null) {

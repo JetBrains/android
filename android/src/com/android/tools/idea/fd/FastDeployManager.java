@@ -689,7 +689,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
    * edits such as whitespace or comments.
    */
   private static boolean isRebuildRequired(@NotNull IDevice device, @NotNull Module module) {
-    AndroidVersion deviceVersion = DevicePropertyUtil.getDeviceVersion(device);
+    AndroidVersion deviceVersion = device.getVersion();
     if (!isInstantRunCapableDeviceVersion(deviceVersion)) {
       String message = "Device with API level " + deviceVersion + " not capable of instant run.";
       LOG.info(message);
