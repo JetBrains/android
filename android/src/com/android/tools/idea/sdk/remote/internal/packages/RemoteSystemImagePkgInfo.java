@@ -20,6 +20,7 @@ import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.SystemImage;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.IdDisplay;
@@ -116,7 +117,7 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
   public void saveProperties(Properties props) {
     super.saveProperties(props);
 
-    getAndroidVersion().saveProperties(props);
+    AndroidVersionHelper.saveProperties(getAndroidVersion(), props);
     props.setProperty(PkgProps.SYS_IMG_ABI, getAbi());
     props.setProperty(PkgProps.SYS_IMG_TAG_ID, getTag().getId());
     props.setProperty(PkgProps.SYS_IMG_TAG_DISPLAY, getTag().getDisplay());
