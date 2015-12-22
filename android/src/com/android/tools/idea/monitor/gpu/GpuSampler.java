@@ -18,6 +18,7 @@ package com.android.tools.idea.monitor.gpu;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
@@ -132,12 +133,6 @@ public class GpuSampler extends DeviceSampler {
   }
 
   public static int decodeApiLevel(@NotNull Client client) {
-    int apiLevel = client.getDevice().getVersion().getApiLevel();
-    // TODO remove this version promotion workaround after M launches
-    if (apiLevel == 22) {
-      String versionString = client.getDevice().getProperty(IDevice.PROP_BUILD_VERSION);
-      return "M".equals(versionString) ? MHandler.MIN_API_LEVEL : 22;
-    }
-    return apiLevel;
+    return client.getDevice().getVersion().getFeatureLevel();
   }
 }
