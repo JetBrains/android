@@ -77,7 +77,7 @@ public class ConnectedAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public AndroidVersion getVersion() {
-    return DevicePropertyUtil.getDeviceVersion(myDevice);
+    return myDevice.getVersion();
   }
 
   @NotNull
