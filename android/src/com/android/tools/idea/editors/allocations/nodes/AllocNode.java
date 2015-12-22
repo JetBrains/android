@@ -18,11 +18,16 @@ package com.android.tools.idea.editors.allocations.nodes;
 import com.android.ddmlib.AllocationInfo;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This class represents a set of same-typed allocations that share similar allocation circumstances.
+ * For example, multiple individual {@link Byte} allocations at the same stack location can be grouped together.
+ */
 public class AllocNode extends AbstractTreeNode {
   @NotNull final private AllocationInfo myAllocation;
 
   AllocNode(@NotNull AllocationInfo allocation) {
     myAllocation = allocation;
+    myCount = 1; // Start the count at one for this object itself.
   }
 
   @Override
@@ -36,12 +41,15 @@ public class AllocNode extends AbstractTreeNode {
   }
 
   @Override
-  public int getCount() {
-    return 1;
+  public int getValue() {
+    return myCount * myAllocation.getSize();
   }
 
-  @Override
-  public int getValue() {
-    return myAllocation.getSize();
+  /**
+   * A single {@link AllocNode} can represent multiple similar allocations.
+   * This method simply increments the counter that keeps track of the number of similar allocations that have occurred.
+   */
+  protected void incrementCount() {
+    myCount++;
   }
 }

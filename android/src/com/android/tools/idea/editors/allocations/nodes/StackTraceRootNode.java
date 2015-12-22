@@ -19,7 +19,7 @@ import com.android.ddmlib.AllocationInfo;
 import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 
-public class StackTraceNode extends AbstractTreeNode implements MainTreeNode {
+public class StackTraceRootNode extends AbstractTreeNode implements MainTreeNode {
   private TIntObjectHashMap<ThreadNode> myChildrenMap = new TIntObjectHashMap<ThreadNode>();
 
   @Override
@@ -29,7 +29,7 @@ public class StackTraceNode extends AbstractTreeNode implements MainTreeNode {
     if (thread == null) {
       thread = new ThreadNode(id);
       myChildrenMap.put(id, thread);
-      addChild(thread);
+      insertChild(thread);
     }
     thread.insert(alloc, 0);
   }

@@ -15,11 +15,31 @@
  */
 package com.android.tools.idea.editors.allocations.nodes;
 
+import com.android.ddmlib.AllocationInfo;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ClassNode extends PackageNode {
+  @NotNull
+  private Map<String, AllocNode> mySimilarObjectsMap = new HashMap<>();
 
   public ClassNode(@NotNull String name) {
     super(name);
+  }
+
+  @Override
+  protected void addChild(@NotNull AbstractTreeNode node) {
+    assert node instanceof AllocNode;
+    AllocationInfo allocInfo = ((AllocNode)node).getAllocation();
+    String key = String.format("%s,%s", allocInfo.getAllocatedClass(), allocInfo.getSize());
+    if (mySimilarObjectsMap.containsKey(key)) {
+      mySimilarObjectsMap.get(key).incrementCount();
+    }
+    else {
+      super.addChild(node);
+      mySimilarObjectsMap.put(key, (AllocNode)node);
+    }
   }
 }
