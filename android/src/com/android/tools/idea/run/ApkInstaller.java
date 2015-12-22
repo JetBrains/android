@@ -205,7 +205,7 @@ public class ApkInstaller {
   }
 
   private String validateSdkVersion(@NotNull IDevice device) {
-    AndroidVersion deviceVersion = DevicePropertyUtil.getDeviceVersion(device);
+    AndroidVersion deviceVersion = device.getVersion();
     AndroidVersion minSdkVersion = myFacet.getAndroidModuleInfo().getRuntimeMinSdkVersion();
     if (!deviceVersion.canRun(minSdkVersion)) {
       myPrinter.stderr("Device API level: " + deviceVersion.toString()); // Log the device version to console for easy reference.
