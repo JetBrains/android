@@ -33,7 +33,7 @@ public class AndroidProjectInfo {
   }
 
   public void setHasNativeModules(boolean hasNativeModules) {
-    myProject.putUserData(HAS_NATIVE_MODULES, true);
+    myProject.putUserData(HAS_NATIVE_MODULES, hasNativeModules);
   }
 
   public boolean hasNativeModules() {
