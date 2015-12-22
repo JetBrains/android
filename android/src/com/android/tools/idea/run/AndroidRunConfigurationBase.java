@@ -245,7 +245,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  private DeployTargetState getCurrentDeployTargetState() {
+  protected DeployTargetState getCurrentDeployTargetState() {
     DeployTargetProvider currentTarget = getCurrentDeployTargetProvider();
     return myDeployTargetStates.get(currentTarget.getId());
   }
