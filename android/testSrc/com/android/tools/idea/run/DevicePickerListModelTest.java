@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.annotations.Nullable;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.google.common.collect.Maps;
@@ -98,8 +99,7 @@ public class DevicePickerListModelTest {
     IDevice device = mock(IDevice.class);
     when(device.isEmulator()).thenReturn(isEmulator);
     when(device.getAvdName()).thenReturn(avdName);
-    when(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)).thenReturn(Integer.toString(apiLevel));
-    when(device.getProperty(IDevice.PROP_BUILD_VERSION)).thenReturn(buildVersion);
+    when(device.getVersion()).thenReturn(new AndroidVersion(apiLevel, buildVersion));
     return device;
   }
 
