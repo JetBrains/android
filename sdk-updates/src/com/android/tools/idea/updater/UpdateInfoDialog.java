@@ -72,7 +72,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
           @Override
           public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
             ProgressIndicator repoProgress = new RepoProgressIndicatorAdapter(indicator);
-            Downloader downloader = StudioDownloader.getInstance();
+            Downloader downloader = new StudioDownloader(indicator);
             SettingsController settings = StudioSettingsController.getInstance();
             RepoManager mgr = AndroidSdkHandler.getInstance().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
             for (RemotePackage p : myPackages) {
