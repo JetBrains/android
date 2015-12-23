@@ -103,7 +103,8 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       }
     };
     mySdkHandler = AndroidSdkHandler.getInstance();
-    myPanel = new SdkUpdaterConfigPanel(mySdkHandler, channelChangedCallback, StudioDownloader.getInstance(), StudioSettingsController.getInstance());
+    myPanel =
+      new SdkUpdaterConfigPanel(mySdkHandler, channelChangedCallback, new StudioDownloader(), StudioSettingsController.getInstance());
     JComponent component = myPanel.getComponent();
     component.addAncestorListener(new AncestorListenerAdapter() {
       @Override

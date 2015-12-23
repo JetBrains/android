@@ -65,7 +65,7 @@ public class SdkComponentSource implements ExternalComponentSource {
       else {
         progress = new StudioLoggerProgressIndicator(getClass());
       }
-      mgr.loadSynchronously(DEFAULT_EXPIRATION_PERIOD_MS, progress, StudioDownloader.getInstance(), StudioSettingsController.getInstance());
+      mgr.loadSynchronously(DEFAULT_EXPIRATION_PERIOD_MS, progress, new StudioDownloader(indicator), StudioSettingsController.getInstance());
       myRepoManager = mgr;
     }
   }
