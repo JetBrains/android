@@ -35,6 +35,7 @@ import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.HierarchyListener;
 
@@ -92,6 +93,23 @@ public class MemoryMonitorView extends BaseMonitorView<MemorySampler> implements
     }
 
     return group;
+  }
+
+  @NotNull
+  @Override
+  public String getTitleName() {
+    return "Memory";
+  }
+
+  @NotNull
+  @Override
+  public Icon getTitleIcon() {
+    return AndroidIcons.MemoryMonitor;
+  }
+
+  @Override
+  protected int getDefaultPosition() {
+    return 0;
   }
 
   @NotNull
