@@ -20,7 +20,6 @@ import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.actions.RecordingAction;
-import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
@@ -28,9 +27,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.Future;
 
@@ -107,6 +108,23 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
         }
       });
     }
+  }
+
+  @NotNull
+  @Override
+  public String getTitleName() {
+    return "Network";
+  }
+
+  @NotNull
+  @Override
+  public Icon getTitleIcon() {
+    return AndroidIcons.NetworkMonitor;
+  }
+
+  @Override
+  protected int getDefaultPosition() {
+    return 2;
   }
 
   @NotNull
