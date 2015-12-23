@@ -191,7 +191,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
         final ArrayList<Row> items = Lists.newArrayList();
         final Set<RepositorySource> initial = Sets.newHashSet();
         for (RepositorySource source : myHandler.getSdkManager(myLogger)
-          .getSources(StudioDownloader.getInstance(), StudioSettingsController.getInstance(), myLogger, false)) {
+          .getSources(new StudioDownloader(), StudioSettingsController.getInstance(), myLogger, false)) {
           items.add(new Row(source));
           initial.add(source);
         }
@@ -295,7 +295,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     }
     // Force refresh so the file is reloaded.
     myHandler.getSdkManager(myLogger)
-      .getSources(StudioDownloader.getInstance(), StudioSettingsController.getInstance(), myLogger, true);
+      .getSources(new StudioDownloader(), StudioSettingsController.getInstance(), myLogger, true);
     myInitialItems = null;
     refreshUi();
   }

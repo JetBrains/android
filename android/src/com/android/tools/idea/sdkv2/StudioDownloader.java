@@ -20,11 +20,15 @@ import com.android.annotations.Nullable;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.SettingsController;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.io.HttpRequests;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
 /**
@@ -32,13 +36,21 @@ import java.net.URL;
  * stream from that file.
  */
 public class StudioDownloader implements Downloader {
-  private static final StudioDownloader INSTANCE = new StudioDownloader();
+  private com.intellij.openapi.progress.ProgressIndicator myStudioProgressIndicator;
 
-  public static Downloader getInstance() {
-    return INSTANCE;
+  /**
+   * Creates a new {@code StudioDownloader}. The current {@link com.intellij.openapi.progress.ProgressIndicator} will be picked up
+   * when downloads are run.
+   */
+  public StudioDownloader() {};
+
+  /**
+   * Like {@link #StudioDownloader()}}, but will run downloads using the given {@link com.intellij.openapi.progress.ProgressIndicator}.
+   * @param progress
+   */
+  public StudioDownloader(@Nullable com.intellij.openapi.progress.ProgressIndicator progress) {
+    myStudioProgressIndicator = progress;
   }
-
-  private StudioDownloader() {};
 
   @Override
   public InputStream downloadAndStream(@NotNull URL url, @Nullable SettingsController settings, @NotNull ProgressIndicator indicator)
@@ -62,7 +74,13 @@ public class StudioDownloader implements Downloader {
     String suffix = url.getPath();
     suffix = suffix.substring(suffix.lastIndexOf("/") + 1);
     File tempFile = FileUtil.createTempFile("StudioDownloader", suffix);
-    HttpRequests.request(url.toExternalForm()).saveToFile(tempFile, new StudioProgressIndicatorAdapter(indicator));
+    tempFile.deleteOnExit();
+    com.intellij.openapi.progress.ProgressIndicator studioProgress = myStudioProgressIndicator;
+    if (studioProgress == null) {
+      studioProgress = ProgressManager.getInstance().getProgressIndicator();
+    }
+    HttpRequests.request(url.toExternalForm())
+      .saveToFile(tempFile, new StudioProgressIndicatorAdapter(indicator, studioProgress));
     return tempFile;
   }
 }

@@ -278,7 +278,7 @@ public final class SdkQuickfixUtils {
                                @NonNull List<String> notFound) {
     mgr.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
              new StudioProgressRunner(true, false, true, "Loading Remote Packages...", false, null),
-             StudioDownloader.getInstance(), StudioSettingsController.getInstance(), true);
+             new StudioDownloader(), StudioSettingsController.getInstance(), true);
     Map<String, UpdatablePackage> packages = mgr.getPackages().getConsolidatedPkgs();
     if (requestedPackages == null) {
       requestedPackages = Lists.newArrayList();

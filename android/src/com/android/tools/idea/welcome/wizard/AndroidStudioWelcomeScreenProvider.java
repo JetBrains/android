@@ -183,7 +183,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
 
     StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(AndroidStudioWelcomeScreenProvider.class);
     RepoManager mgr = AndroidSdkHandler.getInstance().getSdkManager(logger);
-    mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, logger, StudioDownloader.getInstance(),
+    mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, logger, new StudioDownloader(),
                           StudioSettingsController.getInstance());
 
     return mgr.getPackages().getRemotePackages();

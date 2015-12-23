@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.sdk.wizard.v2;
 
-import com.android.repository.api.*;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.SettingsController;
 import com.android.repository.impl.installer.PackageInstaller;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
@@ -25,9 +28,9 @@ import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -76,7 +79,6 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   private CustomLogger myCustomLogger;
   private static final Object LOGGER_LOCK = new Object();
 
-  @NotNull private final Downloader myDownloader = StudioDownloader.getInstance();
   @NotNull private final SettingsController mySettings = StudioSettingsController.getInstance();
 
   @NotNull private final Runnable myOnError = new Runnable() {
@@ -225,7 +227,8 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           myCustomLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
           boolean success = false;
           try {
-            success = installer.install(remote, myDownloader, mySettings, myProgress, myRepoManager, mySdkHandler.getFileOp());
+            success =
+              installer.install(remote, new StudioDownloader(indicator), mySettings, myProgress, myRepoManager, mySdkHandler.getFileOp());
           }
           catch (Exception e) {
             Logger.getInstance(getClass()).warn(e);
