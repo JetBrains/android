@@ -222,7 +222,7 @@
         text="Submit _Feedback"
         description="Submit feedback to the Android Studio team"/>
     <action id="AndroidDeepLinkCodeGeneratorAction" class="com.android.tools.idea.actions.DeepLinkCodeGeneratorAction"
-            text="Deep Link" description="Generate a new intent filter for deep linking">
+            text="URL" description="Generate a new intent filter for URLs">
       <add-to-group group-id="GenerateGroup" anchor="first"/>
     </action>
   </actions>

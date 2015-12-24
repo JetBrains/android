@@ -56,7 +56,7 @@ public class DeepLinkCodeGeneratorAction extends AnAction {
       "\n%1$s:scheme=\"http\"/>";
   private static final String IF_COMMENT_TEXT =
       "<!-- ATTENTION: This intent was auto-generated. Follow instructions at\n" +
-      "  https://g.co/AppIndexing/AndroidStudio to publish your Android app deep links. -->";
+      "  https://g.co/AppIndexing/AndroidStudio to publish your URLs. -->";
   private static final String DATA_COMMENT_TEXT =
       "<!-- ATTENTION: This data URL was auto-generated. We recommend that you use the HTTP scheme.\n" +
       "  TODO: Change the host or pathPrefix as necessary. -->";
