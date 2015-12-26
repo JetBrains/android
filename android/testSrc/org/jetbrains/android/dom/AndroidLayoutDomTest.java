@@ -196,6 +196,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testDataBindingHighlighting() throws Throwable {
+    copyFileToProject("User.java", "src/com/android/example/bindingdemo/vo/User.java");
     doTestHighlighting("binding1.xml");
   }
 
