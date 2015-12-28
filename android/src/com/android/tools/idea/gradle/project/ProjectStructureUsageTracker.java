@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.builder.model.*;
 import com.android.repository.Revision;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.Sets;
@@ -78,7 +79,7 @@ class ProjectStructureUsageTracker {
     if (target != null) {
       AndroidProject androidProject = target.getAndroidProject();
       Revision gradleVersion = getGradleVersion(myProject);
-      boolean instantRunEnabled = InstantRunManager.isInstantRunEnabled(myProject) && InstantRunManager.isPatchableApp(target);
+      boolean instantRunEnabled = InstantRunSettings.isInstantRunEnabled(myProject) && InstantRunManager.isPatchableApp(target);
       UsageTracker.getInstance().trackGradleArtifactVersions(target.getApplicationId(),
                                                              androidProject.getModelVersion(),
                                                              gradleVersion != null ? gradleVersion.toString() : "<Not Found>",
