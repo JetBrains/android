@@ -18,16 +18,24 @@ package com.android.tools.idea.fd.actions;
 import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
+import com.intellij.openapi.util.Ref;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -66,7 +74,7 @@ public class InstantRunWithoutRestart extends AnAction {
     for (IDevice device : devices) {
       if (InstantRunManager.isAppRunning(device, module)) {
         if (InstantRunManager.buildIdsMatch(device, module)) {
-          manager.performUpdate(device, getUpdateMode(), module);
+          performUpdate(manager, device, getUpdateMode(), module);
         } else {
           InstantRunManager.postBalloon(MessageType.ERROR,
                                         "Local Gradle build id doesn't match what's installed on the device; full build required",
@@ -75,6 +83,53 @@ public class InstantRunWithoutRestart extends AnAction {
         break;
       }
     }
+  }
+
+  private static void performUpdate(@NotNull InstantRunManager manager,
+                                    @NotNull IDevice device,
+                                    @NotNull UpdateMode updateMode,
+                                    @Nullable Module module) {
+    AndroidFacet facet = manager.findAppModule(module);
+    if (facet != null) {
+      AndroidGradleModel model = AndroidGradleModel.get(facet);
+      if (model != null) {
+        runGradle(manager, device, model, facet, updateMode);
+      }
+    }
+  }
+
+  private static void runGradle(@NotNull final InstantRunManager manager,
+                                @NotNull final IDevice device,
+                                @NotNull final AndroidGradleModel model,
+                                @NotNull final AndroidFacet facet,
+                                @NotNull final UpdateMode updateMode) {
+    File arsc = InstantRunManager.findResourceArsc(facet);
+    final long arscBefore = arsc != null ? arsc.lastModified() : 0L;
+
+    // Clean out *old* patch files (e.g. from a previous build such that if you for example
+    // only change a resource, we don't redeploy the same .dex file over and over!
+    // This should be performed by the Gradle plugin; this is a temporary workaround.
+    InstantRunManager.removeOldPatches(model);
+
+    final Project project = facet.getModule().getProject();
+    final GradleInvoker invoker = GradleInvoker.getInstance(project);
+
+    final Ref<GradleInvoker.AfterGradleInvocationTask> reference = Ref.create();
+    final GradleInvoker.AfterGradleInvocationTask task = new GradleInvoker.AfterGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull GradleInvocationResult result) {
+        // Get rid of listener. We should add more direct task listening to the GradleTasksExecutor; this
+        // seems race-condition and unintentional side effect prone.
+        invoker.removeAfterGradleInvocationTask(reference.get());
+
+        // Build is done: send message to app etc
+        manager.pushChanges(device, model, facet, updateMode, arscBefore);
+      }
+    };
+    reference.set(task);
+    invoker.addAfterGradleInvocationTask(task);
+    String taskName = InstantRunManager.getIncrementalDexTask(model, facet.getModule());
+    invoker.executeTasks(Collections.singletonList(taskName));
   }
 
   @NotNull
