@@ -116,6 +116,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintFloatMathInspection extends AndroidLintInspectionBase {
+    public AndroidLintFloatMathInspection() {
+      super(AndroidBundle.message("android.lint.inspections.float.math"), MathDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintFullBackupContentInspection extends AndroidLintInspectionBase {
     public AndroidLintFullBackupContentInspection() {
       super(AndroidBundle.message("android.lint.inspections.full.backup.content"), FullBackupContentDetector.ISSUE);
@@ -391,6 +397,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintBadHostnameVerifierInspection extends AndroidLintInspectionBase {
+    public AndroidLintBadHostnameVerifierInspection() {
+      super(AndroidBundle.message("android.lint.inspections.bad.hostname.verifier"), BadHostnameVerifierDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintButtonCaseInspection extends AndroidLintInspectionBase {
     public AndroidLintButtonCaseInspection() {
       super(AndroidBundle.message("android.lint.inspections.button.case"), ButtonDetector.CASE);
@@ -651,6 +663,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintDefaultLocaleInspection extends AndroidLintInspectionBase {
+    public AndroidLintDefaultLocaleInspection() {
+      super(AndroidBundle.message("android.lint.inspections.default.locale"), LocaleDetector.STRING_LOCALE);
+    }
+  }
+
   public static class AndroidLintDeprecatedInspection extends AndroidLintInspectionBase {
     public AndroidLintDeprecatedInspection() {
       super(AndroidBundle.message("android.lint.inspections.deprecated"), DeprecationDetector.ISSUE);
@@ -752,6 +770,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintViewHolderInspection extends AndroidLintInspectionBase {
     public AndroidLintViewHolderInspection() {
       super(AndroidBundle.message("android.lint.inspections.view.holder"), ViewHolderDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintViewTagInspection extends AndroidLintInspectionBase {
+    public AndroidLintViewTagInspection() {
+      super(AndroidBundle.message("android.lint.inspections.view.tag"), ViewTagDetector.ISSUE);
     }
   }
 
@@ -1108,6 +1132,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintTrustAllX509TrustManagerInspection extends AndroidLintInspectionBase {
+    public AndroidLintTrustAllX509TrustManagerInspection() {
+      super(AndroidBundle.message("android.lint.inspections.trust.all.x509.trust.manager"), TrustAllX509TrustManagerDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintTypographyDashesInspection extends AndroidLintTypographyInspectionBase {
     public AndroidLintTypographyDashesInspection() {
       super(AndroidBundle.message("android.lint.inspections.typography.dashes"), TypographyDetector.DASHES);
@@ -1379,6 +1409,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintAddJavascriptInterfaceInspection extends AndroidLintInspectionBase {
     public AndroidLintAddJavascriptInterfaceInspection() {
       super(AndroidBundle.message("android.lint.inspections.add.javascript.interface"), AddJavascriptInterfaceDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintAllowAllHostnameVerifierInspection extends AndroidLintInspectionBase {
+    public AndroidLintAllowAllHostnameVerifierInspection() {
+      super(AndroidBundle.message("android.lint.inspections.allow.all.hostname.verifier"), AllowAllHostnameVerifierDetector.ISSUE);
     }
   }
 
@@ -1847,6 +1883,13 @@ public class AndroidLintInspectionToolProvider {
       return new AndroidLintQuickFix[] { new ConvertNamespaceQuickFix() };
     }
   }
+
+  public static class AndroidLintSecureRandomInspection extends AndroidLintInspectionBase {
+    public AndroidLintSecureRandomInspection() {
+      super(AndroidBundle.message("android.lint.inspections.secure.random"), SecureRandomDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintSelectableTextInspection extends AndroidLintInspectionBase {
     public AndroidLintSelectableTextInspection() {
       super(AndroidBundle.message("android.lint.inspections.selectable.text"), TextViewDetector.SELECTABLE);
@@ -2161,6 +2204,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintUnsafeNativeCodeLocationInspection extends AndroidLintInspectionBase {
     public AndroidLintUnsafeNativeCodeLocationInspection() {
       super(AndroidBundle.message("android.lint.inspections.unsafe.native.code.location"), UnsafeNativeCodeDetector.UNSAFE_NATIVE_CODE_LOCATION);
+    }
+  }
+
+  public static class AndroidLintUnsafeProtectedBroadcastReceiverInspection extends AndroidLintInspectionBase {
+    public AndroidLintUnsafeProtectedBroadcastReceiverInspection() {
+      super(AndroidBundle.message("android.lint.inspections.unsafe.protected.broadcast.receiver"), UnsafeBroadcastReceiverDetector.ACTION_STRING);
     }
   }
 

@@ -254,8 +254,6 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       detectorClass = ApiDetector.class;
     } else if (detectorClass == IntellijGradleDetector.class) {
       detectorClass = GradleDetector.class;
-    } else if (detectorClass == IntellijRegistrationDetector.class) {
-      detectorClass = RegistrationDetector.class;
     } else if (detectorClass == IntellijViewTypeDetector.class) {
       detectorClass = ViewTypeDetector.class;
     }
@@ -295,12 +293,11 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static boolean isRelevant(Issue issue) {
     // Supported more directly by other IntelliJ checks(?)
     if (issue == NamespaceDetector.TYPO ||                  // IDEA has its own spelling check
-        issue == SupportAnnotationDetector.RESOURCE_TYPE || // We have a separate inspection for this
-        issue == SupportAnnotationDetector.TYPE_DEF ||      // We have a separate inspection for this
         issue == NamespaceDetector.UNUSED ||                // IDEA already does full validation
         issue == ManifestTypoDetector.ISSUE ||              // IDEA already does full validation
-        issue == ManifestDetector.WRONG_PARENT ||           // IDEA already does full validation
-        issue == LocaleDetector.STRING_LOCALE) {            // IDEA checks for this in Java code
+        issue == ManifestDetector.WRONG_PARENT ||           // IDEA checks for this in Java code
+        // Reimplemented by ResourceTypeInspection
+        issue.getImplementation().getDetectorClass() == SupportAnnotationDetector.class) {
       return false;
     }
 
