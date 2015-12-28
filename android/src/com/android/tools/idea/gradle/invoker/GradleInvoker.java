@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.invoker;
 
 import com.android.SdkConstants;
 import com.android.builder.model.BaseArtifact;
-import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
@@ -230,7 +230,7 @@ public class GradleInvoker {
                            @Nullable final ExternalSystemTaskNotificationListener taskListener,
                            final boolean waitForCompletion) {
     // Inject instant run attributes?
-    if (FastDeployManager.isInstantRunEnabled(myProject)) {
+    if (InstantRunManager.isInstantRunEnabled(myProject)) {
       // 194996: Don't instrument classes when running as test
       // The Gradle plugin shouldn't instrument classes when about to run as
       // a test. We need to not pass the instant run options in that case.
@@ -246,7 +246,7 @@ public class GradleInvoker {
         }
       }
       if (!isTest) {
-        commandLineArguments = FastDeployManager.get(myProject).updateGradleCommandLine(commandLineArguments);
+        commandLineArguments = InstantRunManager.get(myProject).updateGradleCommandLine(commandLineArguments);
       }
     }
 

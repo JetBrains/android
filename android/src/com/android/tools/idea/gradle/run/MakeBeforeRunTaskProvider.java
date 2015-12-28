@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -234,7 +234,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       if (configuration instanceof ModuleBasedConfiguration) {
         Module module = ((ModuleBasedConfiguration)configuration).getConfigurationModule().getModule();
         if (module != null) {
-          FastDeployManager.removeOldPatches(module);
+          InstantRunManager.removeOldPatches(module);
         }
       }
 

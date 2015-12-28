@@ -17,7 +17,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -271,7 +271,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    if (!FastDeployManager.isPatchableApp(module)) {
+    if (!InstantRunManager.isPatchableApp(module)) {
       return null;
     }
 
@@ -282,7 +282,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     if (info.getExecutorId().equals(executor.getId())) {
       // Make sure instant run is supported on the relevant device, if found.
-      if (FastDeployManager.isInstantRunCapableDeviceVersion(FastDeployManager.getMinDeviceApiLevel(info.getProcessHandler()))) {
+      if (InstantRunManager.isInstantRunCapableDeviceVersion(InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler()))) {
         return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
       }
     }
@@ -312,7 +312,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
     if (info != null) {
-      if (info.getExecutorId().equals(executor.getId()) && FastDeployManager.isPatchableApp(module)) {
+      if (info.getExecutorId().equals(executor.getId()) && InstantRunManager.isPatchableApp(module)) {
         // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
         // we need to save the files a bit earlier than that here (turning the Gradle file save into
         // a no-op) because we need to check whether the manifest file has been edited since an
@@ -322,15 +322,15 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         // For incremental run, we don't want to show any dialogs and just redeploy directly to the last used devices
         Collection<IDevice> devices = info.getDevices();
         if (devices != null && canFastDeploy(module, devices)) {
-          if (FastDeployManager.isRebuildRequired(devices, module)) {
+          if (InstantRunManager.isRebuildRequired(devices, module)) {
             LOG.info("Cannot patch update since a full rebuild is required (typically because the manifest has changed)");
-            FastDeployManager.postBalloon(MessageType.INFO,
+            InstantRunManager.postBalloon(MessageType.INFO,
                                           "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)",
                                           project);
           }
           else {
-            if (FastDeployManager.DISPLAY_STATISTICS) {
-              FastDeployManager.notifyBegin();
+            if (InstantRunManager.DISPLAY_STATISTICS) {
+              InstantRunManager.notifyBegin();
             }
 
             env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
@@ -407,8 +407,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (devices != null && !devices.isEmpty()) {
       // At this point, we've determined that we can't do a hot or cold swap.
       // But we do have a bunch of devices, and rather than installing the full apk, we could potentially do a dex swap
-      if (FastDeployManager.isPatchableApp(module)) {
-        if (FastDeployManager.canDexSwap(module, devices)) {
+      if (InstantRunManager.isPatchableApp(module)) {
+        if (InstantRunManager.canDexSwap(module, devices)) {
           env.putCopyableUserData(DEXSWAP, Boolean.TRUE);
           dexSwap = true;
         }
@@ -442,11 +442,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private static boolean canFastDeploy(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
     for (IDevice device : usedDevices) {
       // TODO: we may eventually support a push to device even if the app isn't running
-      if (!FastDeployManager.isAppRunning(device, module)) {
+      if (!InstantRunManager.isAppRunning(device, module)) {
         LOG.info("Cannot patch update since the app is not running on device: " + device.getName());
         return false;
       }
-      if (!FastDeployManager.buildIdsMatch(device, module)) {
+      if (!InstantRunManager.buildIdsMatch(device, module)) {
         LOG.info("Local Gradle build id doesn't match what's installed on the device; full build required");
         return false;
       }

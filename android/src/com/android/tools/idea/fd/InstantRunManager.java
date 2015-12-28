@@ -24,7 +24,7 @@ import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.client.UserFeedback;
 import com.android.tools.fd.runtime.ApplicationPatch;
-import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -111,16 +111,16 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 
 /**
- * The {@linkplain FastDeployManager} is responsible for handling Instant Run related functionality
+ * The {@linkplain InstantRunManager} is responsible for handling Instant Run related functionality
  * in the IDE: determining if an app is running with the fast deploy runtime, whether it's up to date, communicating with it, etc.
  */
-public final class FastDeployManager implements ProjectComponent, BulkFileListener {
+public final class InstantRunManager implements ProjectComponent, BulkFileListener {
   public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.0.0-alpha1";
   public static final Revision MINIMUM_GRADLE_PLUGIN_VERSION = Revision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
   private static final Object INSTANCE_LOCK = new Object();
 
-  private static final Logger LOG = Logger.getInstance(FastDeployManager.class);
+  private static final Logger LOG = Logger.getInstance(InstantRunManager.class);
   private static final ILogger ILOGGER = new LogWrapper(LOG);
 
   /** Display instant run statistics */
@@ -155,7 +155,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
 
   /** Don't call directly: this is a project component instantiated by the IDE; use {@link #get(Project)} instead! */
   @SuppressWarnings("WeakerAccess") // Called by infrastructure
-  public FastDeployManager(@NotNull Project project) {
+  public InstantRunManager(@NotNull Project project) {
     myProject = project;
     if (isInstantRunEnabled(project)) {
       startFileListener();
@@ -171,9 +171,9 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
 
   /** Returns the per-project instance of the fast deploy manager */
   @NotNull
-  public static FastDeployManager get(@NotNull Project project) {
+  public static InstantRunManager get(@NotNull Project project) {
     //noinspection ConstantConditions
-    return project.getComponent(FastDeployManager.class);
+    return project.getComponent(InstantRunManager.class);
   }
 
   /** Finds the devices associated with all run configurations for the given project */
@@ -656,12 +656,12 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   public static void perform(@NotNull final IDevice device, @NotNull final Module module, final boolean forceRestart) {
     Project project = module.getProject();
     UpdateMode updateMode = forceRestart ? UpdateMode.COLD_SWAP : UpdateMode.HOT_SWAP;
-    FastDeployManager manager = get(project);
+    InstantRunManager manager = get(project);
     manager.performUpdate(device, updateMode, module);
   }
 
   public static void pushChanges(@NotNull final IDevice device, @NotNull final AndroidFacet facet) {
-    FastDeployManager manager = get(facet.getModule().getProject());
+    InstantRunManager manager = get(facet.getModule().getProject());
     manager.pushChanges(device, facet, getLastInstalledArscTimestamp(device, facet));
   }
 
@@ -700,7 +700,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       return true;
     }
 
-    FastDeployManager manager = get(module.getProject());
+    InstantRunManager manager = get(module.getProject());
     AndroidFacet facet = manager.findAppModule(module);
     if (facet == null) {
       return false;
@@ -762,7 +762,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
   @NotNull
   @Override
   public String getComponentName() {
-    return "FastDeployManager";
+    return "InstantRunManager";
   }
 
   @Override
@@ -801,7 +801,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
 
   /** Synchronizes the file listening state with whether instant run is enabled */
   static void updateFileListener(@NotNull Project project) {
-    FastDeployManager manager = get(project);
+    InstantRunManager manager = get(project);
     boolean listening = manager.myConnection != null;
     if (isInstantRunEnabled(project)) {
       if (!listening) {
@@ -951,7 +951,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       // Supported in version 1.6 of the Gradle plugin and up
       return modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
     } catch (NumberFormatException e) {
-      Logger.getInstance(FastDeployManager.class).warn("Failed to parse '" + version + "'", e);
+      Logger.getInstance(InstantRunManager.class).warn("Failed to parse '" + version + "'", e);
       return false;
     }
   }
@@ -1121,7 +1121,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
       }
     }
     catch (Throwable t) {
-      Logger.getInstance(FastDeployManager.class).error("Couldn't generate dex", t);
+      Logger.getInstance(InstantRunManager.class).error("Couldn't generate dex", t);
     }
 
     displayVerifierStatus(model, facet);
@@ -1160,14 +1160,14 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     if (restart.exists()) {
       boolean deleted = restart.delete();
       if (!deleted) {
-        Logger.getInstance(FastDeployManager.class).error("Couldn't delete " + restart);
+        Logger.getInstance(InstantRunManager.class).error("Couldn't delete " + restart);
       }
     }
     File incremental = DexFileType.RELOAD_DEX.getFile(model);
     if (incremental.exists()) {
       boolean deleted = incremental.delete();
       if (!deleted) {
-        Logger.getInstance(FastDeployManager.class).error("Couldn't delete " + incremental);
+        Logger.getInstance(InstantRunManager.class).error("Couldn't delete " + incremental);
       }
     }
   }
@@ -1393,7 +1393,7 @@ public final class FastDeployManager implements ProjectComponent, BulkFileListen
     @Override
     public void notifyEnd(UpdateMode updateMode) {
       if (DISPLAY_STATISTICS) {
-        FastDeployManager.notifyEnd(myModule.getProject());
+        InstantRunManager.notifyEnd(myModule.getProject());
       }
 
       if (updateMode == UpdateMode.HOT_SWAP && !isRestartActivity(myModule.getProject()) && !ourHideRestartTip) {
