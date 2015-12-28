@@ -39,21 +39,18 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final Project myProject;
   private final AndroidFacet myFacet;
   private final ApkProvider myApkProvider;
-  private final boolean myDexSwap;
   private final LaunchOptions myLaunchOptions;
 
   public AndroidLaunchTasksProvider(@NotNull AndroidRunConfigurationBase runConfig,
                                     @NotNull ExecutionEnvironment env,
                                     @NotNull AndroidFacet facet,
                                     @NotNull ApkProvider apkProvider,
-                                    boolean dexSwap,
                                     @NotNull LaunchOptions launchOptions) {
     myRunConfig = runConfig;
     myEnv = env;
     myProject = facet.getModule().getProject();
     myFacet = facet;
     myApkProvider = apkProvider;
-    myDexSwap = dexSwap;
     myLaunchOptions = launchOptions;
   }
 
@@ -100,10 +97,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private LaunchTask getDeployTask(IDevice device) {
     if (!myLaunchOptions.isDeploy()) {
       return null;
-    }
-
-    if (myDexSwap) {
-      return new DeployDexPatchTask(myFacet);
     }
 
     //LaunchTask task = InstantRunManager.createDeployTask(myFacet, device);
