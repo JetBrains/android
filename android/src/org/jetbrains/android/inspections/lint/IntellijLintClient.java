@@ -74,6 +74,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
   @Nullable protected Map<com.android.tools.lint.detector.api.Project, Module> myModuleMap;
 
   public IntellijLintClient(@NonNull Project project) {
+    super(CLIENT_STUDIO);
     myProject = project;
   }
 
