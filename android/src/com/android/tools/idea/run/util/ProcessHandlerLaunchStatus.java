@@ -27,6 +27,11 @@ public class ProcessHandlerLaunchStatus implements LaunchStatus {
     myHandler = handler;
   }
 
+  @NotNull
+  public ProcessHandler getProcessHandler() {
+    return myHandler;
+  }
+
   public void setProcessHandler(@NotNull ProcessHandler handler) {
     myHandler = handler;
   }
