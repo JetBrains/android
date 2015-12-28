@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.run;
 import com.android.ddmlib.IDevice;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.ddms.DevicePropertyUtil;
-import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -79,7 +78,7 @@ public class GradleInvokerOptions {
       LOG.info(String.format("Module %1$s can be updated incrementally.", module.getName()));
       AndroidGradleModel model = AndroidGradleModel.get(module);
       assert model != null : "Module selected for fast deploy, but doesn't seem to have the right gradle model";
-      String dexTask = FastDeployManager.getIncrementalDexTask(model, module);
+      String dexTask = InstantRunManager.getIncrementalDexTask(model, module);
       if (isDexSwap) {
         cmdLineArgs = Lists.newArrayList(cmdLineArgs);
         cmdLineArgs.add("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_DEX_ONLY");
