@@ -20,6 +20,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.application.ApplicationManager;
@@ -67,7 +68,7 @@ public class ApkInstaller {
                                      @NotNull File localFile,
                                      @NotNull LaunchStatus launchStatus) {
 
-    if (InstantRunManager.isInstantRunEnabled(myProject) && InstantRunManager.isPatchableApp(myFacet.getModule())) {
+    if (InstantRunSettings.isInstantRunEnabled(myProject) && InstantRunManager.isPatchableApp(myFacet.getModule())) {
       try {
         InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
       } catch (Exception e) {
