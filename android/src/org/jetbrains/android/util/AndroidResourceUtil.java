@@ -530,8 +530,8 @@ public class AndroidResourceUtil {
     final List<VirtualFile> dirs = new ArrayList<VirtualFile>();
 
     for (VirtualFile resourcesDir : resourceDirs) {
-      if (resourcesDir == null) {
-        return dirs;
+      if (resourcesDir == null || !resourcesDir.isValid()) {
+        continue;
       }
       if (resourceType == null) {
         ContainerUtil.addAll(dirs, resourcesDir.getChildren());
