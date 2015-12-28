@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<instant-run
+    api-level="23"
+    build-id="1451325959168" >
+
+  <task
+      name="javac"
+      duration="0" />
+  <task
+      name="verifier"
+      duration="36" />
+
+  <artifact
+      location="/Users/app/build/intermediates/split-apk/debug/dependencies_55eb.apk"
+      type="SPLIT" />
+  <artifact
+      location="/Users/app/build/intermediates/split-apk/debug/slice_0_9a2a.apk"
+      type="SPLIT" />
+  <artifact
+      location="/Users/app/build/outputs/apk/app-debug.apk"
+      type="MAIN" />
+
+  <build build-id="1451325959168" >
+    <artifact
+        location="/Users/app/build/intermediates/split-apk/debug/dependencies_55eb.apk"
+        type="SPLIT" />
+    <artifact
+        location="/Users/app/build/intermediates/split-apk/debug/slice_0_9a2a.apk"
+        type="SPLIT" />
+    <artifact
+        location="/Users/app/build/outputs/apk/app-debug.apk"
+        type="MAIN" />
+  </build>
+
+</instant-run>

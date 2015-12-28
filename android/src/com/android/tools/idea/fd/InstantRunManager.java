@@ -108,13 +108,6 @@ public final class InstantRunManager implements ProjectComponent {
   /** Local port on the desktop machine that we tunnel to the Android device via */
   private static final int STUDIO_PORT = 8888;
 
-  /** The name of the attribute in the build-info.xml file from Gradle which names the build-id */
-  private static final String BUILD_ID_ATTR = "build-id";
-  /** The name of the attribute in the build-info.xml file from Gradle which names the verifier status */
-  private static final String VERIFIER_ATTR = "verifier";
-  /** The value set on the {@link #VERIFIER_ATTR} if the verifier was successful */
-  private static final String VERIFIER_COMPATIBLE_VALUE = "COMPATIBLE";
-
   private static final String RESOURCE_FILE_NAME = "resources.ap_";
 
   @NotNull private final Project myProject;
@@ -241,87 +234,10 @@ public final class InstantRunManager implements ProjectComponent {
    */
   @Nullable
   private static String getLocalBuildId(@NotNull Module module) {
-    Element root = getLocalBuildInfo(module);
-    if (root == null) {
-      return null;
-    }
-
-    String id = root.getAttribute(BUILD_ID_ATTR);
-    if (id.isEmpty()) {
-      return null;
-    }
-
-    return id;
-  }
-
-  /**
-   * Returns the verifier status from the last build
-   *
-   * @param model the relevant model
-   * @return the status; "COMPATIBLE" if the build succeeded
-   */
-  @Nullable
-  private static String getVerifierStatus(@NotNull AndroidGradleModel model) {
-    Element root = getLocalBuildInfo(getLocalBuildInfoFile(model));
-    if (root == null) {
-      return null;
-    }
-
-    String id = root.getAttribute(VERIFIER_ATTR);
-    if (id.isEmpty()) {
-      return null;
-    }
-
-    return id;
-  }
-
-  @Nullable
-  private static Element getLocalBuildInfo(@NotNull Module module) {
-    assert isPatchableApp(module);
-
     AndroidGradleModel model = getAppModel(module);
-    return getLocalBuildInfo(getLocalBuildInfoFile(model));
+    InstantRunBuildInfo buildInfo = model == null ? null : InstantRunBuildInfo.get(model);
+    return buildInfo == null ? null : buildInfo.getBuildId();
   }
-
-  @Nullable
-  private static Element getLocalBuildInfo(@Nullable File file) {
-    try {
-      if (file != null && file.exists()) {
-        String xml = Files.toString(file, Charsets.UTF_8);
-        Document document = XmlUtils.parseDocumentSilently(xml, false);
-        if (document != null) {
-          return document.getDocumentElement();
-        }
-      }
-    }
-    catch (Throwable t) {
-      LOG.warn(t);
-    }
-
-    return null;
-  }
-
-  @Nullable
-  private static File getLocalBuildInfoFile(@Nullable AndroidGradleModel model) {
-    try {
-      if (model != null) {
-        InstantRun instantRun = model.getSelectedVariant().getMainArtifact().getInstantRun();
-        File file = instantRun.getInfoFile();
-        if (!file.exists()) {
-          // Temporary hack workaround; model is passing the wrong value! See InstantRunAnchorTask.java
-          return new File(instantRun.getRestartDexFile().getParentFile(), "build-info.xml");
-        }
-        return file;
-      }
-    }
-    catch (Throwable t) {
-      LOG.warn(t);
-    }
-
-    return null;
-  }
-
-
 
   /**
    * Checks whether the local and remote build id's match
@@ -463,17 +379,8 @@ public final class InstantRunManager implements ProjectComponent {
    * Returns whether an update will result in a cold swap by looking at the results of a gradle build.
    */
   public static boolean isColdSwap(@NotNull AndroidGradleModel model) {
-    String status = getVerifierStatus(model);
-    if (status != null) {
-      return !VERIFIER_COMPATIBLE_VALUE.equals(status);
-    }
-
-    File restart = DexFileType.RESTART_DEX.getFile(model);
-    if (!restart.exists()) {
-      return false;
-    }
-
-    return DexFileType.RELOAD_DEX.getFile(model).exists();
+    InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+    return buildInfo == null || buildInfo.canHotswap();
   }
 
   private static long getLastInstalledArscTimestamp(@NotNull IDevice device, @NotNull AndroidFacet facet) {
@@ -871,8 +778,9 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   public static void displayVerifierStatus(@NotNull AndroidGradleModel model, @NotNull AndroidFacet facet) {
-    String status = getVerifierStatus(model);
-    if (status != null && !status.equals(VERIFIER_COMPATIBLE_VALUE)) {
+    InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+    if (buildInfo != null && !buildInfo.canHotswap()) {
+      String status = buildInfo.getVerifierStatus();
       // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
       status = StringUtil.capitalizeWords(status.toLowerCase(Locale.US).replace('_', ' '), true);
       postBalloon(MessageType.WARNING, "Couldn't apply changes on the fly: " + status, facet.getModule().getProject());
