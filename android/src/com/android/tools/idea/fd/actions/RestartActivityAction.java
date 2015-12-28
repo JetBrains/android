@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fd;
+package com.android.tools.idea.fd.actions;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessHandler;
@@ -46,7 +47,7 @@ public class RestartActivityAction extends AnAction {
     Module module = LangDataKeys.MODULE.getData(e.getDataContext());
     Project project = e.getProject();
     e.getPresentation().setEnabled(
-      module != null && FastDeployManager.isPatchableApp(module) && !getActiveSessions(project).isEmpty() && !isDebuggerPaused(project));
+      module != null && InstantRunManager.isPatchableApp(module) && !getActiveSessions(project).isEmpty() && !isDebuggerPaused(project));
   }
 
   private static List<ProcessHandler> getActiveSessions(@Nullable Project project) {
@@ -84,12 +85,12 @@ public class RestartActivityAction extends AnAction {
   /** Restarts the activity associated with the given module */
   public static void restartActivity(@NotNull Module module) {
     Project project = module.getProject();
-    for (IDevice device : FastDeployManager.findDevices(project)) {
-      if (FastDeployManager.isAppRunning(device, module)) {
-        if (FastDeployManager.isShowToastEnabled(project)) {
-          FastDeployManager.showToast(device, module, "Activity Restarted");
+    for (IDevice device : InstantRunManager.findDevices(project)) {
+      if (InstantRunManager.isAppRunning(device, module)) {
+        if (InstantRunManager.isShowToastEnabled(project)) {
+          InstantRunManager.showToast(device, module, "Activity Restarted");
         }
-        FastDeployManager.restartActivity(device, module);
+        InstantRunManager.restartActivity(device, module);
       }
     }
   }

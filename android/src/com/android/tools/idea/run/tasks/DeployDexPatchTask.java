@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -42,7 +42,7 @@ public class DeployDexPatchTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    boolean result = FastDeployManager.installDex(myFacet, device);
+    boolean result = InstantRunManager.installDex(myFacet, device);
     if (!result) {
       printer.stderr("Pushing incremental patch to the device failed; you might need to do a clean build.");
     }

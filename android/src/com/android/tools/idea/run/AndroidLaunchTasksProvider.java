@@ -106,7 +106,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       return new DeployDexPatchTask(myFacet);
     }
 
-    //LaunchTask task = FastDeployManager.createDeployTask(myFacet, device);
+    //LaunchTask task = InstantRunManager.createDeployTask(myFacet, device);
     //if (task != null) {
     //  return task;
     //}

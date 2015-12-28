@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fd;
+package com.android.tools.idea.fd.actions;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.UpdateMode;
-import com.intellij.icons.AllIcons;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -26,7 +26,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
@@ -59,17 +58,17 @@ public class InstantRunWithoutRestart extends AnAction {
 
   private void perform(Module module) {
     Project project = module.getProject();
-    if (!FastDeployManager.isInstantRunEnabled(project) || !FastDeployManager.isPatchableApp(module)) {
+    if (!InstantRunManager.isInstantRunEnabled(project) || !InstantRunManager.isPatchableApp(module)) {
       return;
     }
-    List<IDevice> devices = FastDeployManager.findDevices(project);
-    FastDeployManager manager = FastDeployManager.get(project);
+    List<IDevice> devices = InstantRunManager.findDevices(project);
+    InstantRunManager manager = InstantRunManager.get(project);
     for (IDevice device : devices) {
-      if (FastDeployManager.isAppRunning(device, module)) {
-        if (FastDeployManager.buildIdsMatch(device, module)) {
+      if (InstantRunManager.isAppRunning(device, module)) {
+        if (InstantRunManager.buildIdsMatch(device, module)) {
           manager.performUpdate(device, getUpdateMode(), module);
         } else {
-          FastDeployManager.postBalloon(MessageType.ERROR,
+          InstantRunManager.postBalloon(MessageType.ERROR,
                                         "Local Gradle build id doesn't match what's installed on the device; full build required",
                                         project);
         }
