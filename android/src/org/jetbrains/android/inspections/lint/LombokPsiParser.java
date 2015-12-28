@@ -35,6 +35,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.InheritanceUtil;
+import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.ArrayUtil;
@@ -614,6 +615,13 @@ public class LombokPsiParser extends JavaParser {
       return LombokPsiParser.isInPackage(myMethod.getContainingClass(), pkg, includeSubPackages);
     }
 
+
+    @Nullable
+    @Override
+    public Node findAstNode() {
+      return LombokPsiConverter.toNode(myMethod);
+    }
+
     @Override
     public int hashCode() {
       return myMethod.hashCode();
@@ -658,6 +666,13 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public String getSignature() {
       return myVariable.toString();
+    }
+
+
+    @Nullable
+    @Override
+    public Node findAstNode() {
+      return LombokPsiConverter.toNode(myVariable);
     }
 
     @Override
@@ -735,6 +750,12 @@ public class LombokPsiParser extends JavaParser {
       return LombokPsiParser.isInPackage(myField.getContainingClass(), pkg, includeSubPackages);
     }
 
+
+    @Nullable
+    @Override
+    public Node findAstNode() {
+      return LombokPsiConverter.toNode(myField);
+    }
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
@@ -936,6 +957,37 @@ public class LombokPsiParser extends JavaParser {
       return null;
     }
 
+    @NonNull
+    @Override
+    public Iterable<ResolvedClass> getInterfaces() {
+      if (myClass != null) {
+        PsiClass[] interfaces = myClass.getInterfaces();
+        if (interfaces.length > 0) {
+          List<ResolvedClass> list = Lists.newArrayListWithExpectedSize(interfaces.length);
+          for (PsiClass cls : interfaces) {
+            list.add(new ResolvedPsiClass(cls));
+          }
+          return list;
+        }
+      }
+      return Collections.emptyList();
+    }
+
+    @Override
+    public TypeDescriptor getType() {
+      if (myClass != null) {
+        return new PsiTypeDescriptor(PsiTypesUtil.getClassType(myClass)) {
+          @Nullable
+          @Override
+          public ResolvedClass getTypeClass() {
+            return ResolvedPsiClass.this;
+          }
+        };
+      }
+
+      return super.getType();
+    }
+
     @Nullable
     @Override
     public ResolvedClass getContainingClass() {
@@ -1071,6 +1123,12 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public boolean isInPackage(@NonNull String pkg, boolean includeSubPackages) {
       return LombokPsiParser.isInPackage(myClass, pkg, includeSubPackages);
+    }
+
+    @Nullable
+    @Override
+    public Node findAstNode() {
+      return myClass != null ? LombokPsiConverter.toNode(myClass) : null;
     }
 
     @NonNull
