@@ -19,8 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.ddms.DevicePropertyUtil;
-import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.application.ApplicationManager;
@@ -68,9 +67,9 @@ public class ApkInstaller {
                                      @NotNull File localFile,
                                      @NotNull LaunchStatus launchStatus) {
 
-    if (FastDeployManager.isInstantRunEnabled(myProject) && FastDeployManager.isPatchableApp(myFacet.getModule())) {
+    if (InstantRunManager.isInstantRunEnabled(myProject) && InstantRunManager.isPatchableApp(myFacet.getModule())) {
       try {
-        FastDeployManager.transferLocalIdToDeviceId(device, myFacet.getModule());
+        InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
       } catch (Exception e) {
         myPrinter.stderr(e.toString());
       }

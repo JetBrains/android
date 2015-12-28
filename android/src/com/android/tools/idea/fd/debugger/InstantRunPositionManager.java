@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fd;
+package com.android.tools.idea.fd.debugger;
 
+import com.android.tools.idea.fd.InstantRunManager;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.PositionManagerImpl;
 import com.sun.jdi.Field;
@@ -30,7 +31,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
   @Override
   protected ReferenceType mapClass(ReferenceType type) {
     ReferenceType ret = type;
-    if (FastDeployManager.isInstantRunEnabled(getDebugProcess().getProject())) {
+    if (InstantRunManager.isInstantRunEnabled(getDebugProcess().getProject())) {
       Field change = type.fieldByName("$change");
       if (change != null) {
         Value value = type.getValue(change);

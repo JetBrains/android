@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceUrl;
-import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.utils.XmlUtils;
 import com.google.common.hash.HashCode;
@@ -97,7 +97,7 @@ public class InstalledPatchCache implements Disposable {
    */
   @NotNull
   public static HashCode computeManifestResources(@NotNull AndroidFacet facet) {
-    File manifest = FastDeployManager.findMergedManifestFile(facet);
+    File manifest = InstantRunManager.findMergedManifestFile(facet);
     if (manifest != null) { // ensures exists too
       HashFunction hashFunction = Hashing.goodFastHash(32);
       final AppResourceRepository resources = AppResourceRepository.getAppResources(facet, true);

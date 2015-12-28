@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fd;
+package com.android.tools.idea.fd.debugger;
 
 import com.intellij.debugger.PositionManager;
 import com.intellij.debugger.PositionManagerFactory;
