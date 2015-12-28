@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class NativeArtifactStub implements NativeArtifact {
@@ -53,6 +54,12 @@ public class NativeArtifactStub implements NativeArtifact {
 
   @NotNull
   @Override
+  public String getGroupName() {
+    return myName;
+  }
+
+  @NotNull
+  @Override
   public Collection<NativeFolder> getSourceFolders() {
     return myNativeFolders;
   }
@@ -66,6 +73,12 @@ public class NativeArtifactStub implements NativeArtifact {
   @Override
   public Collection<NativeFile> getSourceFiles() {
     return myNativeFiles;
+  }
+
+  @NotNull
+  @Override
+  public Collection<File> getExportedHeaders() {
+    return Collections.emptyList();
   }
 
   public void addSourceFile(@NotNull String path) {
