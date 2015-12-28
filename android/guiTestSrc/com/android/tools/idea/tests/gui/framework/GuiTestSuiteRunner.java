@@ -54,7 +54,7 @@ public class GuiTestSuiteRunner extends Suite {
   }
 
   @NotNull
-  private static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError {
+  public static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass) throws InitializationError {
     List<File> guiTestClassFiles = Lists.newArrayList();
     List<TestGroup> suiteGroups = getSuiteGroups(suiteClass);
     File parentDir = getParentDir(suiteClass);
@@ -125,20 +125,26 @@ public class GuiTestSuiteRunner extends Suite {
     if (suiteGroups.isEmpty()) {
       return true;
     }
-    for (Annotation annotation : testClass.getAnnotations()) {
+    for (TestGroup testGroup : getGroups(testClass)) {
+      if (suiteGroups.contains(testGroup)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @NotNull
+  public static List<TestGroup> getGroups(@NotNull Class<?> suiteClass) {
+    for (Annotation annotation : suiteClass.getAnnotations()) {
       if (annotation instanceof BelongsToTestGroups) {
-        TestGroup[] testGroups = ((BelongsToTestGroups)annotation).value();
-        if (testGroups != null) {
-          for (TestGroup testGroup : testGroups) {
-            if (suiteGroups.contains(testGroup)) {
-              return true;
-            }
-          }
+        TestGroup[] values = ((BelongsToTestGroups)annotation).value();
+        if (values != null) {
+          return Lists.newArrayList(values);
         }
         break;
       }
     }
-    return false;
+    return Collections.emptyList();
   }
 
   @Override
