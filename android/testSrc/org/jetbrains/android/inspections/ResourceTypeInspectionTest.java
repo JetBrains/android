@@ -1220,6 +1220,33 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testColorAndDrawable() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=197411
+    doCheck("\n" +
+            "package test.pkg;\n" +
+            "\n" +
+            "import android.app.Activity;\n" +
+            "import android.support.annotation.ColorRes;\n" +
+            "import android.support.annotation.DrawableRes;\n" +
+            "import android.widget.TextView;\n" +
+            "\n" +
+            "public class X extends Activity {\n" +
+            "    @ColorRes int getSwipeColor() {\n" +
+            "        return android.R.color.black;\n" +
+            "    }\n" +
+            "\n" +
+            "    @DrawableRes int getDrawableIcon() {\n" +
+            "        return android.R.drawable.ic_delete;\n" +
+            "    }\n" +
+            "    \n" +
+            "    public void test(TextView view) {\n" +
+            "        getResources().getColor(getSwipeColor()); // OK: color to color\n" +
+            "        view.setBackgroundResource(getSwipeColor()); // OK: color promotes to drawable\n" +
+            "        getResources().getColor(/*Expected resource of type color*/getDrawableIcon()/**/); // Not OK: drawable doesn't promote to color\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   @Override
   protected String[] getEnvironmentClasses() {
     @Language("JAVA")

@@ -1146,6 +1146,10 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     /** Returns true if this resource type constraint allows a type of the given name */
+    public boolean isTypeAllowed(@NotNull ResourceType type) {
+      return isTypeAllowed(type.getName());
+    }
+
     public boolean isTypeAllowed(@NotNull String typeName) {
       for (ResourceType type : types) {
         if (type.getName().equals(typeName) ||
@@ -1172,11 +1176,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         // to a parameter which is @ColorInt: OK
         return true;
       }
-      for (ResourceType t1 : other.types) {
-        for (ResourceType t2 : types) {
-          if (t1 == t2) {
-            return true;
-          }
+      for (ResourceType type : other.types) {
+        if (isTypeAllowed(type)) {
+          return true;
         }
       }
 
@@ -2117,10 +2119,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           if (r != null && R_CLASS.equals(r.getName())) {
             ResourceType type = ResourceType.getEnum(containingClass.getName());
             if (type != null) {
-              for (ResourceType t : allowedValues.types) {
-                if (t == type) {
-                  return VALID;
-                }
+              if (allowedValues.isTypeAllowed(type)) {
+                return VALID;
               }
               return INVALID;
             }
