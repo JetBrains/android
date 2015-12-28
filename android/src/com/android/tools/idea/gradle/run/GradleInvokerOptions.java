@@ -71,18 +71,13 @@ public class GradleInvokerOptions {
       return new GradleInvokerOptions(Collections.singletonList(userGoal), null, cmdLineArgs);
     }
 
-    boolean isDexSwap = Boolean.TRUE.equals(env.getCopyableUserData(AndroidRunConfigurationBase.DEXSWAP));
     final Module[] modules = getModules(project, context, configuration);
-    if (isDexSwap || Boolean.TRUE.equals(env.getCopyableUserData(AndroidRunConfigurationBase.FAST_DEPLOY))) {
+    if (Boolean.TRUE.equals(env.getCopyableUserData(AndroidRunConfigurationBase.FAST_DEPLOY))) {
       Module module = modules[0];
       LOG.info(String.format("Module %1$s can be updated incrementally.", module.getName()));
       AndroidGradleModel model = AndroidGradleModel.get(module);
       assert model != null : "Module selected for fast deploy, but doesn't seem to have the right gradle model";
       String dexTask = InstantRunManager.getIncrementalDexTask(model, module);
-      if (isDexSwap) {
-        cmdLineArgs = Lists.newArrayList(cmdLineArgs);
-        cmdLineArgs.add("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_DEX_ONLY");
-      }
       return new GradleInvokerOptions(Collections.singletonList(dexTask), null, cmdLineArgs);
     }
 
