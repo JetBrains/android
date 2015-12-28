@@ -111,9 +111,9 @@
       <separator/>
     </group>
 
-    <action id="Android.InstantRunNoRestart" class="com.android.tools.idea.fd.InstantRunWithoutRestart"/>
-    <action id="Android.InstantRunRestart" class="com.android.tools.idea.fd.InstantRunWithRestart"/>
-    <action id="Android.RestartActivity" class="com.android.tools.idea.fd.RestartActivityAction">
+    <action id="Android.InstantRunNoRestart" class="com.android.tools.idea.fd.actions.InstantRunWithoutRestart"/>
+    <action id="Android.InstantRunRestart" class="com.android.tools.idea.fd.actions.InstantRunWithRestart"/>
+    <action id="Android.RestartActivity" class="com.android.tools.idea.fd.actions.RestartActivityAction">
       <add-to-group group-id="DebugMainMenu" anchor="before" relative-to-action="StepOver"/>
     </action>
 
@@ -241,8 +241,8 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.InstantRunPositionManagerFactory"/>
-    <debuggerExtension implementation="com.android.tools.idea.fd.InstantRunDebuggerExtension"/>
+    <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.debugger.InstantRunPositionManagerFactory"/>
+    <debuggerExtension implementation="com.android.tools.idea.fd.debugger.InstantRunDebuggerExtension"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleNotificationExtension"/>
@@ -1004,7 +1004,7 @@
       <implementation-class>com.android.tools.idea.rendering.AarResourceClassRegistry</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.fd.FastDeployManager</implementation-class>
+      <implementation-class>com.android.tools.idea.fd.InstantRunManager</implementation-class>
     </component>
   </project-components>
 

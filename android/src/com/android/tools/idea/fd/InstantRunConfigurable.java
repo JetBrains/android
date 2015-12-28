@@ -51,8 +51,8 @@ import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.tools.idea.fd.FastDeployManager.MINIMUM_GRADLE_PLUGIN_VERSION;
-import static com.android.tools.idea.fd.FastDeployManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
+import static com.android.tools.idea.fd.InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION;
+import static com.android.tools.idea.fd.InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
 
 public class InstantRunConfigurable
     implements SearchableConfigurable, Configurable.NoScroll, HyperlinkListener, GradleSyncListener, Disposable {
@@ -115,7 +115,7 @@ public class InstantRunConfigurable
     myBuildConfiguration.RESTART_ACTIVITY = isRestartActivity();
     myBuildConfiguration.SHOW_TOAST = isShowToast();
 
-    FastDeployManager.updateFileListener(myProject);
+    InstantRunManager.updateFileListener(myProject);
   }
 
   @Override
@@ -160,7 +160,7 @@ public class InstantRunConfigurable
       AndroidGradleModel model = AndroidGradleModel.get(module);
       if (model != null) {
         isGradle = true;
-        if (FastDeployManager.isInstantRunSupported(model)) {
+        if (InstantRunManager.isInstantRunSupported(model)) {
           isCurrentPlugin = true;
           break;
         }
