@@ -27,8 +27,6 @@ import com.android.tools.fd.runtime.ApplicationPatch;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
-import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -645,26 +643,6 @@ public final class InstantRunManager implements ProjectComponent, BulkFileListen
     return DexFileType.RELOAD_DEX.getFile(model).exists();
   }
 
-  /**
-   * Performs an incremental update of the app associated with the given module on the given device
-   *
-   * @param device the device to apply the update to
-   * @param module a module context, normally the main app module (but if it's a library module
-   *               the infrastructure will look for other app modules
-   * @param forceRestart if true, force a full restart of the given app (normally false)
-   */
-  public static void perform(@NotNull final IDevice device, @NotNull final Module module, final boolean forceRestart) {
-    Project project = module.getProject();
-    UpdateMode updateMode = forceRestart ? UpdateMode.COLD_SWAP : UpdateMode.HOT_SWAP;
-    InstantRunManager manager = get(project);
-    manager.performUpdate(device, updateMode, module);
-  }
-
-  public static void pushChanges(@NotNull final IDevice device, @NotNull final AndroidFacet facet) {
-    InstantRunManager manager = get(facet.getModule().getProject());
-    manager.pushChanges(device, facet, getLastInstalledArscTimestamp(device, facet));
-  }
-
   private static long getLastInstalledArscTimestamp(@NotNull IDevice device, @NotNull AndroidFacet facet) {
     String pkgName = getPackageName(facet);
     if (pkgName == null) {
@@ -818,56 +796,6 @@ public final class InstantRunManager implements ProjectComponent, BulkFileListen
     return buildConfiguration.RESTART_ACTIVITY;
   }
 
-  public void performUpdate(@NotNull IDevice device, @NotNull UpdateMode updateMode, @Nullable Module module) {
-    AndroidFacet facet = findAppModule(module);
-    if (facet != null) {
-      AndroidGradleModel model = AndroidGradleModel.get(facet);
-      if (model != null) {
-        runGradle(device, model, facet, updateMode);
-      }
-    }
-  }
-
-  private void pushChanges(@NotNull IDevice device, @NotNull AndroidFacet facet, long deviceArscTimestamp) {
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
-    if (model != null) {
-      afterBuild(device, model, facet, UpdateMode.HOT_SWAP, deviceArscTimestamp);
-    }
-  }
-
-  private void runGradle(@NotNull final IDevice device,
-                         @NotNull final AndroidGradleModel model,
-                         @NotNull final AndroidFacet facet,
-                         @NotNull final UpdateMode updateMode) {
-    File arsc = findResourceArsc(facet);
-    final long arscBefore = arsc != null ? arsc.lastModified() : 0L;
-
-    // Clean out *old* patch files (e.g. from a previous build such that if you for example
-    // only change a resource, we don't redeploy the same .dex file over and over!
-    // This should be performed by the Gradle plugin; this is a temporary workaround.
-    removeOldPatches(model);
-
-    final Project project = facet.getModule().getProject();
-    final GradleInvoker invoker = GradleInvoker.getInstance(project);
-
-    final Ref<GradleInvoker.AfterGradleInvocationTask> reference = Ref.create();
-    final GradleInvoker.AfterGradleInvocationTask task = new GradleInvoker.AfterGradleInvocationTask() {
-      @Override
-      public void execute(@NotNull GradleInvocationResult result) {
-        // Get rid of listener. We should add more direct task listening to the GradleTasksExecutor; this
-        // seems race-condition and unintentional side effect prone.
-        invoker.removeAfterGradleInvocationTask(reference.get());
-
-        // Build is done: send message to app etc
-        afterBuild(device, model, facet, updateMode, arscBefore);
-      }
-    };
-    reference.set(task);
-    invoker.addAfterGradleInvocationTask(task);
-    String taskName = getIncrementalDexTask(model, facet.getModule());
-    invoker.executeTasks(Collections.singletonList(taskName));
-  }
-
   @Nullable
   private static File findBuildFolder(@NotNull AndroidFacet facet) {
     String rootPath = AndroidRootUtil.getModuleDirPath(facet.getModule());
@@ -990,7 +918,17 @@ public final class InstantRunManager implements ProjectComponent, BulkFileListen
     return new InstantRunClient(packageName, STUDIO_PORT, new BalloonUserFeedback(module), ILOGGER);
   }
 
-  private void afterBuild(@NotNull IDevice device,
+  public static void pushChanges(@NotNull final IDevice device, @NotNull final AndroidFacet facet) {
+    InstantRunManager manager = get(facet.getModule().getProject());
+    long deviceArscTimestamp = getLastInstalledArscTimestamp(device, facet);
+
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    if (model != null) {
+      manager.pushChanges(device, model, facet, UpdateMode.HOT_SWAP, deviceArscTimestamp);
+    }
+  }
+
+  public void pushChanges(@NotNull IDevice device,
                           @NotNull AndroidGradleModel model,
                           @NotNull AndroidFacet facet,
                           @NotNull UpdateMode updateMode,
@@ -1023,7 +961,7 @@ public final class InstantRunManager implements ProjectComponent, BulkFileListen
     refreshDebugger(pkgName);
   }
 
-  private void refreshDebugger(String packageName) {
+  private void refreshDebugger(@NotNull String packageName) {
     // First we reapply the breakpoints on the new code, otherwise the breakpoints
     // remain set on the old classes and will never be hit again.
     ApplicationManager.getApplication().runReadAction(new Runnable() {
@@ -1151,7 +1089,7 @@ public final class InstantRunManager implements ProjectComponent, BulkFileListen
     }
   }
 
-  private static void removeOldPatches(AndroidGradleModel model) {
+  public static void removeOldPatches(@NotNull AndroidGradleModel model) {
     // This method may be called even when instant run isn't eligible
     if (!isInstantRunSupported(model)) {
       return;
@@ -1320,7 +1258,7 @@ public final class InstantRunManager implements ProjectComponent, BulkFileListen
   }
 
   @Nullable
-  private AndroidFacet findAppModule(@Nullable Module module) {
+  public AndroidFacet findAppModule(@Nullable Module module) {
     return findAppModule(module, myProject);
   }
 
