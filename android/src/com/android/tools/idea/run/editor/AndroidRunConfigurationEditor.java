@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunConfigurable;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -276,7 +276,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
 
     AndroidGradleModel model = AndroidGradleModel.get(module);
-    if (model == null || FastDeployManager.isInstantRunSupported(model)) {
+    if (model == null || InstantRunManager.isInstantRunSupported(model)) {
       myOldVersionLabel.setVisible(false);
       return;
     }

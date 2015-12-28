@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.fd.FastDeployManager;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.UsageTracker;
@@ -67,9 +67,9 @@ public class DeployApkTask implements LaunchTask {
       return false;
     }
 
-    File arsc = FastDeployManager.findResourceArsc(myFacet);
+    File arsc = InstantRunManager.findResourceArsc(myFacet);
     long arscTimestamp = arsc == null ? 0 : arsc.lastModified();
-    File manifest = FastDeployManager.findMergedManifestFile(myFacet);
+    File manifest = InstantRunManager.findMergedManifestFile(myFacet);
     long manifestTimeStamp = manifest == null ? 0L : manifest.lastModified();
 
     ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
