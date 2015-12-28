@@ -47,6 +47,11 @@ import static org.jetbrains.android.inspections.lint.IntellijLintUtils.SUPPRESS_
  * <p>
  * TODO:
  * <ul>
+ *   <li> Port this part from the bytecode based check:
+ * if (owner.equals("java/text/SimpleDateFormat")) {
+ *   checkSimpleDateFormat(context, method, node, minSdk);
+ * }
+ *   </li>
  *   <li>Compare to the bytecode based results</li>
  * </ul>
  */
