@@ -22,9 +22,7 @@ import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.fd.client.UpdateMode;
-import com.android.tools.fd.client.UserFeedback;
 import com.android.tools.fd.runtime.ApplicationPatch;
-import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -55,8 +53,6 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
@@ -64,10 +60,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
-import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.GeneratedSourcesFilter;
 import com.intellij.openapi.roots.ProjectFileIndex;
@@ -115,7 +109,7 @@ import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 public final class InstantRunManager implements ProjectComponent, BulkFileListener {
   public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.0.0-alpha1";
   public static final Revision MINIMUM_GRADLE_PLUGIN_VERSION = Revision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
-  private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
+  public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
   private static final Object INSTANCE_LOCK = new Object();
 
   private static final Logger LOG = Logger.getInstance(InstantRunManager.class);
@@ -915,7 +909,7 @@ public final class InstantRunManager implements ProjectComponent, BulkFileListen
   @NotNull
   private static InstantRunClient getInstantRunClient(@NotNull Module module) {
     String packageName = getPackageName(findAppModule(module, module.getProject()));
-    return new InstantRunClient(packageName, STUDIO_PORT, new BalloonUserFeedback(module), ILOGGER);
+    return new InstantRunClient(packageName, STUDIO_PORT, new InstantRunUserFeedback(module), ILOGGER);
   }
 
   public static void pushChanges(@NotNull final IDevice device, @NotNull final AndroidFacet facet) {
@@ -1146,11 +1140,6 @@ public final class InstantRunManager implements ProjectComponent, BulkFileListen
     });
   }
 
-
-
-
-
-  private static boolean ourHideRestartTip;
   private static boolean ourCheckedForOldPlugin;
 
   /**
@@ -1294,104 +1283,13 @@ public final class InstantRunManager implements ProjectComponent, BulkFileListen
     }
   }
 
-
-
-
-
-  private static class BalloonUserFeedback implements UserFeedback {
-
-    private final Module myModule;
-
-    public BalloonUserFeedback(Module module) {
-      myModule = module;
-    }
-
-    @Override
-    public void error(String message) {
-      postBalloon(MessageType.ERROR, message, myModule.getProject());
-    }
-
-    @Override
-    public void warning(String message) {
-      postBalloon(MessageType.WARNING, message, myModule.getProject());
-    }
-
-    @Override
-    public void info(String message) {
-      postBalloon(MessageType.INFO, message, myModule.getProject());
-
-    }
-
-    @Override
-    public void noChanges() {
-      Notification notification = NOTIFICATION_GROUP.createNotification("Instant Run:", "No Changes.", NotificationType.INFORMATION, null);
-      notification.notify(myModule.getProject());
-    }
-
-    @Override
-    public void notifyEnd(UpdateMode updateMode) {
-      if (DISPLAY_STATISTICS) {
-        InstantRunManager.notifyEnd(myModule.getProject());
-      }
-
-      if (updateMode == UpdateMode.HOT_SWAP && !isRestartActivity(myModule.getProject()) && !ourHideRestartTip) {
-        StringBuilder sb = new StringBuilder(300);
-        sb.append("<html>");
-        sb.append("Instant Run applied code changes.\n");
-        sb.append("You can restart the current activity by clicking <a href=\"restart\">here</a>");
-        Shortcut[] shortcuts = ActionManager.getInstance().getAction("Android.RestartActivity").getShortcutSet().getShortcuts();
-        String shortcut;
-        if (shortcuts.length > 0) {
-          shortcut = KeymapUtil.getShortcutText(shortcuts[0]);
-          sb.append(" or pressing ").append(shortcut).append(" anytime");
-        }
-        sb.append(".\n");
-
-        sb.append("You can also <a href=\"configure\">configure</a> restarts to happen automatically. ");
-        sb.append("(<a href=\"dismiss\">Dismiss</a>, <a href=\"dismiss_all\">Dismiss All</a>)");
-        sb.append("</html>");
-        String message = sb.toString();
-        final Ref<Notification> notificationRef = Ref.create();
-        NotificationListener listener = new NotificationListener() {
-          @Override
-          public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-              String action = event.getDescription();
-              if ("restart".equals(action)) {
-                RestartActivityAction.restartActivity(myModule);
-              }
-              else if ("configure".equals(action)) {
-                InstantRunConfigurable configurable = new InstantRunConfigurable(myModule.getProject());
-                ShowSettingsUtil.getInstance().editConfigurable(myModule.getProject(), configurable);
-              }
-              else if ("dismiss".equals(action)) {
-                notificationRef.get().hideBalloon();
-              }
-              else if ("dismiss_all".equals(action)) {
-                //noinspection AssignmentToStaticFieldFromInstanceMethod
-                ourHideRestartTip = true;
-                notificationRef.get().hideBalloon();
-              }
-              else {
-                assert false : action;
-              }
-            }
-          }
-        };
-        Notification notification = NOTIFICATION_GROUP.createNotification("Instant Run", message, NotificationType.INFORMATION, listener);
-        notificationRef.set(notification);
-        notification.notify(myModule.getProject());
-      }
-    }
-  }
-
   private static long ourBeginTime;
 
   public static void notifyBegin() {
     ourBeginTime = System.currentTimeMillis();
   }
 
-  private static void notifyEnd(Project project) {
+  static void notifyEnd(@NotNull Project project) {
     long end = System.currentTimeMillis();
     final String message = "Instant Run: " + (end - ourBeginTime) + "ms";
     postBalloon(MessageType.INFO, message, project);
