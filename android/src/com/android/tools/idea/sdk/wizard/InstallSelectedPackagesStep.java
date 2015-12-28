@@ -283,6 +283,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
             sdkDir.refresh(true, true);
           }
           mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
+          SdkState.getInstance(mySdkData).loadAsync(0, false, null, null, null, true);
         }
       });
     }
