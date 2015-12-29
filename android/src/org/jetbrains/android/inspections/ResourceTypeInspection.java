@@ -53,13 +53,11 @@ import com.intellij.psi.util.*;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.slicer.*;
 import com.intellij.util.Function;
-import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
 import com.siyeh.ig.psiutils.ExpressionUtils;
 import gnu.trove.THashSet;
 import lombok.ast.BinaryOperator;
 import lombok.ast.NullLiteral;
-import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -70,7 +68,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.PermissionFinder.Operation.*;
@@ -256,6 +253,109 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     };
   }
 
+  /**
+   * Class that contains the result of evaluating whether an expression is valid or not.
+   */
+  static class InspectionResult {
+    private static final InspectionResult VALID_RESULT = new InspectionResult(Status.VALID);
+    private static final InspectionResult UNCERTAIN_RESULT = new InspectionResult(Status.UNCERTAIN);
+    private static final InspectionResult INVALID_RESULT_NO_NODE = new InspectionResult(Status.INVALID);
+
+    private final Status myStatus;
+    private final PsiExpression myErrorNode;
+
+    private InspectionResult(@NotNull Status status) {
+      myStatus = status;
+      myErrorNode = null;
+    }
+
+    private InspectionResult(@NotNull PsiExpression element) {
+      myStatus = Status.INVALID;
+      myErrorNode = element;
+    }
+
+    /**
+     * Returns an invalid result using the passed node as the expression that caused the error.
+     */
+    @NotNull
+    public static InspectionResult invalid(@NotNull PsiExpression node) {
+      return new InspectionResult(node);
+    }
+
+    /**
+     * Returns an invalid result for which we don't know the error node yet. {@link #isInvalid} will return false until an error node is
+     * assigned using {@link #useErrorNode}.
+     */
+    @NotNull
+    public static InspectionResult invalidWithoutNode() {
+      return INVALID_RESULT_NO_NODE;
+    }
+
+    @NotNull
+    public static InspectionResult valid() {
+      return VALID_RESULT;
+    }
+
+    @NotNull
+    public static InspectionResult uncertain() {
+      return UNCERTAIN_RESULT;
+    }
+
+    public boolean isValid() {
+      return myStatus == Status.VALID;
+    }
+
+    /**
+     * Returns whether this is an invalid result. If the result is invalid, {@link #getErrorNode()} will return the node that caused the
+     * problem.
+     */
+    public boolean isInvalid() {
+      return myStatus == Status.INVALID && myErrorNode != null;
+    }
+
+    /**
+     * Returns true if the current result is uncertain. A result will be uncertain if the result it's not either valid or invalid.
+     * A result can be also uncertain when, even being invalid, it hasn't been assigned an error location yet.
+     *
+     * @return
+     */
+    public boolean isUncertain() {
+      return myStatus == Status.UNCERTAIN || (myStatus == Status.INVALID && myErrorNode == null);
+    }
+
+    /**
+     * Returns a new InspectionResult that uses the passed {@link PsiExpression} as error node to report. This allows setting a new error
+     * location to give better indication or what expression caused the error.
+     */
+    @NotNull
+    public InspectionResult useErrorNode(@NotNull PsiExpression errorNode) {
+      if (myStatus == Status.INVALID && errorNode != myErrorNode) {
+        return invalid(errorNode);
+      }
+
+      return this;
+    }
+
+    /**
+     * Returns the error node that caused the expression to be invalid. If this method is called on a result that is not invalid, it will
+     * throw a {@link IllegalStateException}.
+     */
+    @NotNull
+    public PsiExpression getErrorNode() {
+      if (!isInvalid() || myErrorNode == null) {
+        throw new IllegalStateException();
+      }
+
+      return myErrorNode;
+    }
+
+    private enum Status {
+      VALID,
+      INVALID,
+      UNCERTAIN
+    }
+  }
+
   private static void checkExpression(@NotNull PsiExpression expression,
                                       @NotNull PsiModifierListOwner owner,
                                       @Nullable PsiType type,
@@ -280,16 +380,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     if (constraints.next != null && ExpressionUtils.isLiteral(expression)) {
       // The only possible combination of constraints is @IntDef and @IntRange, which allows you
       // to specify that an argument must be one of a set of constants, OR, a number in a range.
-      if (!isAllowed(scope, expression, constraints, manager, null)) {
-        if (!isAllowed(scope, expression, constraints.next, manager, null)) {
-          registerProblem(expression, constraints, holder);
-        }
-      } else if (!isAllowed(scope, expression, constraints.next, manager, null)) {
-        registerProblem(expression, constraints.next, holder);
+      InspectionResult result = isAllowed(scope, expression, constraints, manager, null);
+      if (result.isInvalid() && isAllowed(scope, expression, constraints.next, manager, null).isInvalid()) {
+        registerProblem(result.getErrorNode(), constraints, holder);
       }
-    } else {
-      if (!isAllowed(scope, expression, constraints, manager, null)) {
-        registerProblem(expression, constraints, holder);
+    }
+    else {
+      InspectionResult result = isAllowed(scope, expression, constraints, manager, null);
+      if (result.isInvalid()) {
+        registerProblem(result.getErrorNode(), constraints, holder);
       }
     }
   }
@@ -1193,9 +1292,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return "";
     }
 
-    @MagicConstant(intValues={VALID,INVALID,UNCERTAIN})
-    public int isValid(@NotNull PsiExpression argument) {
-      return UNCERTAIN;
+    public InspectionResult isValid(@NotNull PsiExpression argument) {
+      return InspectionResult.uncertain();
     }
 
     @Nullable
@@ -1289,8 +1387,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
      * here we consider this a compatible range; we don't flag this as
      * an error. If however, the ranges don't overlap, *then* we complain.
      */
-    public int isCompatibleWith(@NotNull RangeAllowedValues other) {
-      return UNCERTAIN;
+    public InspectionResult isCompatibleWith(@NotNull RangeAllowedValues other) {
+      return InspectionResult.uncertain();
     }
   }
 
@@ -1306,15 +1404,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     @Override
-    @MagicConstant(intValues = {VALID, INVALID, UNCERTAIN})
-    public int isValid(@NotNull PsiExpression argument) {
+    public InspectionResult isValid(@NotNull PsiExpression argument) {
       Number literalValue = guessSize(argument);
       if (literalValue != null) {
         long value = literalValue.longValue();
-        return value >= from && value <= to ? VALID : INVALID;
+        return value >= from && value <= to ? InspectionResult.valid() : InspectionResult.invalid(argument);
       }
 
-      return UNCERTAIN;
+      return InspectionResult.uncertain();
     }
 
     @NotNull
@@ -1343,15 +1440,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     @Override
-    public int isCompatibleWith(@NotNull RangeAllowedValues other) {
+    public InspectionResult isCompatibleWith(@NotNull RangeAllowedValues other) {
       if (other instanceof IntRangeConstraint) {
         IntRangeConstraint otherRange = (IntRangeConstraint)other;
-        return otherRange.from > to || otherRange.to < from ? INVALID : VALID;
+        return otherRange.from > to || otherRange.to < from ? InspectionResult.invalidWithoutNode() : InspectionResult.valid();
       } else if (other instanceof FloatRangeConstraint) {
         FloatRangeConstraint otherRange = (FloatRangeConstraint)other;
-        return otherRange.from > to || otherRange.to < from ? INVALID : VALID;
+        return otherRange.from > to || otherRange.to < from ? InspectionResult.invalidWithoutNode() : InspectionResult.valid();
       }
-      return UNCERTAIN;
+      return InspectionResult.uncertain();
     }
   }
 
@@ -1373,18 +1470,17 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     @Override
-    @MagicConstant(intValues={VALID,INVALID,UNCERTAIN})
-    public int isValid(@NotNull PsiExpression argument) {
+    public InspectionResult isValid(@NotNull PsiExpression argument) {
       Number number = guessSize(argument);
       if (number != null) {
         double value = number.doubleValue();
         if (!((fromInclusive && value >= from || !fromInclusive && value > from) &&
               (toInclusive && value <= to || !toInclusive && value < to))) {
-          return INVALID;
+          return InspectionResult.invalid(argument);
         }
-        return VALID;
+        return InspectionResult.valid();
       }
-      return UNCERTAIN;
+      return InspectionResult.uncertain();
     }
 
     @NotNull
@@ -1446,15 +1542,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     @Override
-    public int isCompatibleWith(@NotNull RangeAllowedValues other) {
+    public InspectionResult isCompatibleWith(@NotNull RangeAllowedValues other) {
       if (other instanceof FloatRangeConstraint) {
         FloatRangeConstraint otherRange = (FloatRangeConstraint)other;
-        return otherRange.from > to || otherRange.to < from ? INVALID : VALID;
+        return otherRange.from > to || otherRange.to < from ? InspectionResult.invalidWithoutNode() : InspectionResult.valid();
       } else if (other instanceof IntRangeConstraint) {
         IntRangeConstraint otherRange = (IntRangeConstraint)other;
-        return otherRange.from > to || otherRange.to < from ? INVALID : VALID;
+        return otherRange.from > to || otherRange.to < from ? InspectionResult.invalidWithoutNode() : InspectionResult.valid();
       }
-      return UNCERTAIN;
+      return InspectionResult.uncertain();
     }
   }
 
@@ -1476,22 +1572,21 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     @Override
-    @MagicConstant(intValues={VALID,INVALID,UNCERTAIN})
-    public int isValid(@NotNull PsiExpression argument) {
+    public InspectionResult isValid(@NotNull PsiExpression argument) {
       Number size = guessSize(argument);
       if (size == null) {
-        return UNCERTAIN;
+        return InspectionResult.uncertain();
       }
       int actual = size.intValue();
       if (exact != -1) {
         if (exact != actual) {
-          return INVALID;
+          return InspectionResult.invalid(argument);
         }
       } else if (actual < min || actual > max || actual % multiple != 0) {
-        return INVALID;
+        return InspectionResult.invalid(argument);
       }
 
-      return VALID;
+      return InspectionResult.valid();
     }
 
     @Override
@@ -1583,15 +1678,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     @Override
-    public int isCompatibleWith(@NotNull RangeAllowedValues other) {
+    public InspectionResult isCompatibleWith(@NotNull RangeAllowedValues other) {
       if (other instanceof SizeConstraint) {
         SizeConstraint otherRange = (SizeConstraint)other;
         if ((exact != -1 || otherRange.exact != -1) && exact != otherRange.exact) {
-          return INVALID;
+          return InspectionResult.invalidWithoutNode();
         }
-        return otherRange.min > max || otherRange.max < min ? INVALID : VALID;
+        return otherRange.min > max || otherRange.max < min ? InspectionResult.invalidWithoutNode() : InspectionResult.valid();
       }
-      return UNCERTAIN;
+      return InspectionResult.uncertain();
     }
   }
 
@@ -1830,11 +1925,12 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
   }
 
-  private static boolean isAllowed(@NotNull final PsiElement scope,
-                                   @NotNull final PsiExpression argument,
-                                   @NotNull final Constraints constraints,
-                                   @NotNull final PsiManager manager,
-                                   @Nullable final Set<PsiExpression> visited) {
+  @NotNull
+  private static InspectionResult isAllowed(@NotNull final PsiElement scope,
+                                            @NotNull final PsiExpression argument,
+                                            @NotNull final Constraints constraints,
+                                            @NotNull final PsiManager manager,
+                                            @Nullable final Set<PsiExpression> visited) {
     if (constraints instanceof ResourceTypeAllowedValues) {
       return isResourceTypeAllowed(scope, argument, (ResourceTypeAllowedValues)constraints, manager, visited);
     } else if (constraints instanceof RangeAllowedValues) {
@@ -1845,48 +1941,63 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       assert constraints instanceof AllowedValues;
       final AllowedValues a = (AllowedValues)constraints;
 
-      if (isGoodExpression(argument, a, scope, manager, visited)) return true;
+      InspectionResult result = isGoodExpression(argument, a, scope, manager, visited);
+      if (result.isValid()) {
+        return result;
+      }
 
-      return processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
+      InspectionResult flowResult = processValuesFlownTo(argument, scope, manager, new Function<PsiExpression, InspectionResult>() {
         @Override
-        public boolean process(PsiExpression expression) {
+        public InspectionResult fun(PsiExpression expression) {
           return isGoodExpression(expression, a, scope, manager, visited);
         }
       });
+
+      if (flowResult.isUncertain()) {
+        return result;
+      }
+
+      return flowResult;
     }
   }
+
 
   /**
    * Verifies that all elements in an array initializer expression are within the allowed values
    */
-  private static boolean checkArrayInitializerExpression(@NotNull PsiArrayInitializerExpression e,
-                                                         @NotNull AllowedValues allowedValues,
-                                                         @NotNull PsiElement scope,
-                                                         @NotNull PsiManager manager,
-                                                         @Nullable Set<PsiExpression> visited) {
+  private static InspectionResult checkArrayInitializerExpression(@NotNull PsiArrayInitializerExpression e,
+                                                                  @NotNull AllowedValues allowedValues,
+                                                                  @NotNull PsiElement scope,
+                                                                  @NotNull PsiManager manager,
+                                                                  @Nullable Set<PsiExpression> visited) {
     for (PsiExpression arrayValueExpression : e.getInitializers()) {
-      if (!isGoodExpression(arrayValueExpression, allowedValues, scope, manager, visited)) {
-        return false;
+      // We use the arrayValueExpression as the error node to report exactly which value caused the problem
+      InspectionResult result = isGoodExpression(arrayValueExpression, allowedValues, scope, manager, visited).useErrorNode(arrayValueExpression);
+
+      if (result.isInvalid()) {
+        return result;
       }
     }
-    return true;
+
+    return InspectionResult.valid();
   }
 
-  private static boolean isGoodExpression(@NotNull PsiExpression e,
-                                          @NotNull AllowedValues allowedValues,
-                                          @NotNull PsiElement scope,
-                                          @NotNull PsiManager manager,
-                                          @Nullable Set<PsiExpression> visited) {
+  private static InspectionResult isGoodExpression(@NotNull PsiExpression e,
+                                                   @NotNull AllowedValues allowedValues,
+                                                   @NotNull PsiElement scope,
+                                                   @NotNull PsiManager manager,
+                                                   @Nullable Set<PsiExpression> visited) {
     PsiExpression expression = PsiUtil.deparenthesizeExpression(e);
-    if (expression == null) return true;
+    if (expression == null) return InspectionResult.valid();
     if (visited == null) visited = new THashSet<PsiExpression>();
-    if (!visited.add(expression)) return true;
+    if (!visited.add(expression)) return InspectionResult.valid();
     if (expression instanceof PsiConditionalExpression) {
       PsiExpression thenExpression = ((PsiConditionalExpression)expression).getThenExpression();
-      boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited);
-      if (!thenAllowed) return false;
+      boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited).isValid();
+      if (!thenAllowed) return InspectionResult.invalid(thenExpression);
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
-      return elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited);
+      return (elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited).isValid()) ? InspectionResult
+        .valid() : InspectionResult.invalid(elseExpression);
     }
     else if (expression instanceof PsiNewExpression) {
       PsiArrayInitializerExpression arrayInitializerExpression = ((PsiNewExpression)expression).getArrayInitializer();
@@ -1898,26 +2009,30 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return checkArrayInitializerExpression((PsiArrayInitializerExpression)expression, allowedValues, scope, manager, visited);
     }
 
-    if (isOneOf(expression, allowedValues, manager)) return true;
+    if (isOneOf(expression, allowedValues, manager)) {
+      return InspectionResult.valid();
+    }
 
     if (allowedValues.canBeOred) {
       PsiExpression zero = getLiteralExpression(expression, manager, "0");
-      if (same(expression, zero, manager)) return true;
+      if (same(expression, zero, manager)) return InspectionResult.valid();
       PsiExpression one = getLiteralExpression(expression, manager, "-1");
-      if (same(expression, one, manager)) return true;
+      if (same(expression, one, manager)) return InspectionResult.valid();
       if (expression instanceof PsiPolyadicExpression) {
         IElementType tokenType = ((PsiPolyadicExpression)expression).getOperationTokenType();
         if (JavaTokenType.OR.equals(tokenType) || JavaTokenType.AND.equals(tokenType) || JavaTokenType.PLUS.equals(tokenType)) {
           for (PsiExpression operand : ((PsiPolyadicExpression)expression).getOperands()) {
-            if (!isAllowed(scope, operand, allowedValues, manager, visited)) return false;
+            if (isAllowed(scope, operand, allowedValues, manager, visited).isInvalid()) return InspectionResult.invalid(operand);
           }
-          return true;
+          return InspectionResult.valid();
         }
       }
       if (expression instanceof PsiPrefixExpression &&
           JavaTokenType.TILDE.equals(((PsiPrefixExpression)expression).getOperationTokenType())) {
         PsiExpression operand = ((PsiPrefixExpression)expression).getOperand();
-        return operand == null || isAllowed(scope, operand, allowedValues, manager, visited);
+        return (operand == null || isAllowed(scope, operand, allowedValues, manager, visited).isValid())
+               ? InspectionResult.valid()
+               : InspectionResult.invalid(operand);
       }
     }
 
@@ -1932,11 +2047,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     Constraints allowedForRef;
     if (resolved instanceof PsiModifierListOwner &&
         (allowedForRef = getAllowedValues((PsiModifierListOwner)resolved, getType((PsiModifierListOwner)resolved), null)) != null &&
-        allowedForRef.isSubsetOf(allowedValues, manager)) return true;
+        allowedForRef.isSubsetOf(allowedValues, manager)) {
+      return InspectionResult.valid();
+    }
 
     //noinspection ConstantConditions
-    return PsiType.NULL.equals(expression.getType());
+    return PsiType.NULL.equals(expression.getType()) ? InspectionResult.valid() : InspectionResult.invalid(expression);
   }
+
 
   private static long getLongValue(@Nullable PsiElement value, long defaultValue) {
     if (value == null) {
@@ -1999,56 +2117,42 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return defaultValue;
   }
 
-  /** Return value from {@link #isValidResourceTypeExpression} : the expression is valid */
-  private static final int VALID = 1001;
-  /** Return value from {@link #isValidResourceTypeExpression} : the expression is not valid */
-  private static final int INVALID = VALID + 1;
-  /** Return value from {@link #isValidResourceTypeExpression} : uncertain whether the resource type is valid */
-  private static final int UNCERTAIN = INVALID + 1;
-
-  private static boolean isResourceTypeAllowed(@NotNull final PsiElement scope,
-                                               @NotNull final PsiExpression argument,
-                                               @NotNull final ResourceTypeAllowedValues allowedValues,
-                                               @NotNull final PsiManager manager,
-                                               @Nullable final Set<PsiExpression> visited) {
-    int result = isValidResourceTypeExpression(argument, allowedValues, scope, manager, visited);
-    if (result == VALID) {
-      return true;
-    } else if (result == INVALID) {
-      return false;
+  @NotNull
+  private static InspectionResult isResourceTypeAllowed(@NotNull final PsiElement scope,
+                                                        @NotNull final PsiExpression argument,
+                                                        @NotNull final ResourceTypeAllowedValues allowedValues,
+                                                        @NotNull final PsiManager manager,
+                                                        @Nullable final Set<PsiExpression> visited) {
+    InspectionResult result = isValidResourceTypeExpression(argument, allowedValues, scope, manager, visited);
+    if (!result.isUncertain()) {
+      return result;
     }
-    assert result == UNCERTAIN;
 
-    final AtomicInteger b = new AtomicInteger();
-    processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
+    return processValuesFlownTo(argument, scope, manager, new Function<PsiExpression, InspectionResult>() {
       @Override
-      public boolean process(PsiExpression expression) {
-        int goodExpression = isValidResourceTypeExpression(expression, allowedValues, scope, manager, visited);
-        b.set(goodExpression);
-        return goodExpression == UNCERTAIN;
+      public InspectionResult fun(PsiExpression expression) {
+        return isValidResourceTypeExpression(expression, allowedValues, scope, manager, visited);
       }
     });
-    result = b.get();
-    // Treat uncertain as allowed: this means that we were passed some integer whose origins
-    // we don't recognize; don't flag those.
-    return result != INVALID;
   }
 
-  private static int isValidResourceTypeExpression(@NotNull PsiExpression e,
-                                                   @NotNull ResourceTypeAllowedValues allowedValues,
-                                                   @NotNull PsiElement scope,
-                                                   @NotNull PsiManager manager,
-                                                   @Nullable Set<PsiExpression> visited) {
+  @NotNull
+  private static InspectionResult isValidResourceTypeExpression(@NotNull PsiExpression e,
+                                                                @NotNull ResourceTypeAllowedValues allowedValues,
+                                                                @NotNull PsiElement scope,
+                                                                @NotNull PsiManager manager,
+                                                                @Nullable Set<PsiExpression> visited) {
     PsiExpression expression = PsiUtil.deparenthesizeExpression(e);
-    if (expression == null) return VALID;
+    if (expression == null) return InspectionResult.valid();
     if (visited == null) visited = new THashSet<PsiExpression>();
-    if (!visited.add(expression)) return VALID;
+    if (!visited.add(expression)) return InspectionResult.valid();
     if (expression instanceof PsiConditionalExpression) {
       PsiExpression thenExpression = ((PsiConditionalExpression)expression).getThenExpression();
-      boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited);
-      if (!thenAllowed) return INVALID;
+      boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited).isValid();
+      if (!thenAllowed) return InspectionResult.invalid(expression);
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
-      return elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited) ? VALID : UNCERTAIN;
+      return (elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited).isValid()) ? InspectionResult
+        .valid() : InspectionResult.invalid(expression);
     }
 
     // Resource type check
@@ -2062,7 +2166,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           if (R_CLASS.equals(((PsiReferenceExpression)r).getReferenceName())) {
             String typeName = typeDef.getReferenceName();
             if (typeName != null) {
-              return allowedValues.isTypeAllowed(typeName) ? VALID : INVALID;
+              return allowedValues.isTypeAllowed(typeName) ? InspectionResult.valid() : InspectionResult.invalid(expression);
             }
           }
         }
@@ -2078,14 +2182,16 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             if (outerMost instanceof PsiClass && R_CLASS.equals(((PsiClass)outerMost).getName())) {
               PsiClass typeClass = (PsiClass)parent;
               String typeClassName = typeClass.getName();
-              return typeClassName != null && allowedValues.isTypeAllowed(typeClassName) ? VALID : INVALID;
+              return typeClassName != null && allowedValues.isTypeAllowed(typeClassName)
+                     ? InspectionResult.valid()
+                     : InspectionResult.invalid(expression);
             }
           }
         }
 
         if (allowedValues.types.isEmpty() && PsiType.INT.equals(expression.getType())) {
           // Passing literal integer to a color
-          return VALID;
+          return InspectionResult.valid();
         }
       }
 
@@ -2093,7 +2199,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       // no id was specified (the support library does this in a few places for example)
       Object value = ((PsiLiteral)expression).getValue();
       if (value instanceof Integer) {
-        return ((Integer)value).intValue() == 0 ? VALID : INVALID;
+        return ((Integer)value).intValue() == 0 ? InspectionResult.valid() : InspectionResult.invalid(expression);
       }
     } else if (expression instanceof PsiPrefixExpression) {
       // Allow a literal '-1' as the resource type; this is sometimes used to communicate that
@@ -2103,7 +2209,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           ppe.getOperand() instanceof PsiLiteral) {
         Object value = ((PsiLiteral)ppe.getOperand()).getValue();
         if (value instanceof Integer) {
-          return ((Integer)value).intValue() == 1 ? VALID : INVALID;
+          return ((Integer)value).intValue() == 1 ? InspectionResult.valid() : InspectionResult.invalid(expression);
         }
       }
     }
@@ -2120,9 +2226,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             ResourceType type = ResourceType.getEnum(containingClass.getName());
             if (type != null) {
               if (allowedValues.isTypeAllowed(type)) {
-                return VALID;
+                return InspectionResult.valid();
               }
-              return INVALID;
+              return InspectionResult.invalid(expression);
             }
           }
         }
@@ -2140,39 +2246,32 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       if (allowedForRef instanceof ResourceTypeAllowedValues) {
         // Happy if *any* of the resource types on the annotation matches any of the
         // annotations allowed for this API
-        return allowedValues.isCompatibleWith((ResourceTypeAllowedValues)allowedForRef) ? VALID : INVALID;
+        return allowedValues.isCompatibleWith((ResourceTypeAllowedValues)allowedForRef)
+               ? InspectionResult.valid()
+               : InspectionResult.invalid(expression);
       }
     }
 
-    return UNCERTAIN;
+    return InspectionResult.uncertain();
   }
 
-  private static boolean isInRange(@NotNull final PsiElement scope,
-                                   @NotNull final PsiExpression argument,
-                                   @NotNull final RangeAllowedValues allowedValues,
-                                   @NotNull final PsiManager manager,
-                                   @Nullable final Set<PsiExpression> visited) {
-    int result = isValidRangeExpression(argument, argument, allowedValues, scope, manager, visited);
-    if (result == VALID) {
-      return true;
-    } else if (result == INVALID) {
-      return false;
+  @NotNull
+  private static InspectionResult isInRange(@NotNull final PsiElement scope,
+                                            @NotNull final PsiExpression argument,
+                                            @NotNull final RangeAllowedValues allowedValues,
+                                            @NotNull final PsiManager manager,
+                                            @Nullable final Set<PsiExpression> visited) {
+    InspectionResult result = isValidRangeExpression(argument, argument, allowedValues, scope, manager, visited);
+    if (!result.isUncertain()) {
+      return result;
     }
-    assert result == UNCERTAIN;
 
-    final AtomicInteger b = new AtomicInteger();
-    processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
+    return processValuesFlownTo(argument, scope, manager, new Function<PsiExpression, InspectionResult>() {
       @Override
-      public boolean process(PsiExpression expression) {
-        int goodExpression = isValidRangeExpression(expression, argument, allowedValues, scope, manager, visited);
-        b.set(goodExpression);
-        return goodExpression == UNCERTAIN;
+      public InspectionResult fun(PsiExpression expression) {
+        return isValidRangeExpression(expression, argument, allowedValues, scope, manager, visited);
       }
     });
-    result = b.get();
-    // Treat uncertain as allowed: this means that we were passed some integer whose origins
-    // we don't recognize; don't flag those.
-    return result != INVALID;
   }
 
   private static boolean comparesReference(@NotNull PsiElement reference, @Nullable PsiExpression expression) {
@@ -2200,22 +2299,25 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return false;
   }
 
-  private static int isValidRangeExpression(@NotNull PsiExpression e,
-                                            @Nullable PsiExpression argument,
-                                            @NotNull RangeAllowedValues allowedValues,
-                                            @NotNull PsiElement scope,
-                                            @NotNull PsiManager manager,
-                                            @Nullable Set<PsiExpression> visited) {
+  @NotNull
+  private static InspectionResult isValidRangeExpression(@NotNull PsiExpression e,
+                                                         @Nullable PsiExpression argument,
+                                                         @NotNull RangeAllowedValues allowedValues,
+                                                         @NotNull PsiElement scope,
+                                                         @NotNull PsiManager manager,
+                                                         @Nullable Set<PsiExpression> visited) {
     PsiExpression expression = PsiUtil.deparenthesizeExpression(e);
-    if (expression == null) return VALID;
+    if (expression == null) return InspectionResult.valid();
     if (visited == null) visited = new THashSet<PsiExpression>();
-    if (!visited.add(expression)) return VALID;
+    if (!visited.add(expression)) return InspectionResult.valid();
     if (expression instanceof PsiConditionalExpression) {
       PsiExpression thenExpression = ((PsiConditionalExpression)expression).getThenExpression();
-      boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited);
-      if (!thenAllowed) return INVALID;
+      if (thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited).isInvalid()) {
+        return InspectionResult.invalid(expression);
+      }
       PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
-      return elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited) ? VALID : UNCERTAIN;
+      return (elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited).isValid()) ? InspectionResult
+        .valid() : InspectionResult.invalid(expression);
     }
 
     if (e != argument && argument instanceof PsiReferenceExpression) {
@@ -2225,16 +2327,16 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (resolved != null) {
           PsiExpression condition = ifStatement.getCondition();
           if (comparesReference(resolved, condition)) {
-            return UNCERTAIN;
+            return InspectionResult.uncertain();
           }
         }
       }
     }
 
     // Range check
-    int valid = allowedValues.isValid(expression);
-    if (valid != UNCERTAIN) {
-      return valid;
+    InspectionResult fieldValid = allowedValues.isValid(expression);
+    if (!fieldValid.isUncertain()) {
+      return fieldValid;
     }
 
     PsiElement resolved = null;
@@ -2243,14 +2345,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       if (resolved instanceof PsiField) {
         PsiField field = (PsiField)resolved;
         if (field.getInitializer() != null) {
-          int fieldValid = allowedValues.isValid(field.getInitializer());
-          if (fieldValid != UNCERTAIN) {
-            if (fieldValid == INVALID && argument != null) {
+          fieldValid = allowedValues.isValid(field.getInitializer());
+          if (!fieldValid.isUncertain()) {
+            if (fieldValid.isInvalid() && argument != null) {
               PsiIfStatement ifStatement = PsiTreeUtil.getParentOfType(argument, PsiIfStatement.class, true);
               if (ifStatement != null) {
                 PsiExpression condition = ifStatement.getCondition();
                 if (comparesReference(resolved, condition)) {
-                  return UNCERTAIN;
+                  return InspectionResult.uncertain();
                 }
               }
             }
@@ -2265,8 +2367,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                                                  : (PsiArrayInitializerExpression)expression;
       if (arrayInitializerExpression != null) {
         for (PsiExpression initializer : arrayInitializerExpression.getInitializers()) {
-          if (!isAllowed(scope, initializer, allowedValues, manager, visited)) {
-            return INVALID;
+          if (isAllowed(scope, initializer, allowedValues, manager, visited).isInvalid()) {
+            return InspectionResult.invalid(expression);
           }
         }
       }
@@ -2281,14 +2383,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       PsiType type = getType((PsiModifierListOwner)resolved);
       allowedForRef = getAllowedValues((PsiModifierListOwner)resolved, type, null);
       if (allowedForRef instanceof RangeAllowedValues) {
-        return allowedValues.isCompatibleWith((RangeAllowedValues)allowedForRef);
+        return allowedValues.isCompatibleWith((RangeAllowedValues)allowedForRef).useErrorNode(expression);
       }
     }
 
-    return UNCERTAIN;
+    return InspectionResult.uncertain();
   }
 
-  private static boolean isGrantedPermission(@NotNull PsiExpression argument, @NotNull IndirectPermission permission) {
+  @NotNull
+  private static InspectionResult isGrantedPermission(@NotNull PsiExpression argument, @NotNull IndirectPermission permission) {
     PsiMethodCallExpression call = PsiTreeUtil.getParentOfType(argument, PsiMethodCallExpression.class);
     if (call != null) {
       String signature = permission.signature;
@@ -2302,18 +2405,18 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       else {
         PsiType type = argument.getType();
         if (type == null || !CLASS_INTENT.equals(type.getCanonicalText())) {
-          return true;
+          return InspectionResult.valid();
         }
         operation = ACTION;
       }
       permission.result = search(argument, operation);
       if (permission.result != null) {
         // Finish check in registerProblem
-        return false;
+        return InspectionResult.invalid(argument);
       }
     }
     // No unsatisfied permission requirement found
-    return true;
+    return InspectionResult.valid();
   }
 
   // Would be nice to reuse the MagicConstantInspection's cache for this, but it's not accessible
@@ -2353,10 +2456,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return manager.areElementsEquivalent(e2, e1);
   }
 
-  private static boolean processValuesFlownTo(@NotNull final PsiExpression argument,
-                                              @NotNull PsiElement scope,
-                                              @NotNull PsiManager manager,
-                                              @NotNull final Processor<PsiExpression> processor) {
+  @NotNull
+  private static InspectionResult processValuesFlownTo(@NotNull final PsiExpression argument,
+                                                       @NotNull PsiElement scope,
+                                                       @NotNull PsiManager manager,
+                                                       @NotNull final Function<PsiExpression, InspectionResult> processor) {
     SliceAnalysisParams params = new SliceAnalysisParams();
     params.dataFlowToThis = true;
     params.scope = new AnalysisScope(new LocalSearchScope(scope), manager.getProject());
@@ -2374,10 +2478,17 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         continue;
       }
       PsiElement element = usage.getElement();
-      if (element instanceof PsiExpression && !processor.process((PsiExpression)element)) return false;
+      if (element instanceof PsiExpression) {
+        // If we report an error, use the current expression being evaluated. This will mark the error in the argument as opposed to using
+        // the original field or variable declaration.
+        InspectionResult result = processor.fun((PsiExpression)element).useErrorNode(argument);
+        if (result.isInvalid()) {
+          return result;
+        }
+      }
     }
 
-    return !children.isEmpty();
+    return !children.isEmpty() ? InspectionResult.valid() : InspectionResult.uncertain();
   }
 
   // Based on ExceptionUtil#isHandled and various methods it calls, but unlike that method, it checks to
