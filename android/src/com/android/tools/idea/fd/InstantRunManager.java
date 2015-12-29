@@ -178,42 +178,6 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   /**
-   * Updates the command line arguments for launching a Gradle task to enable instant run. This method should
-   * only be called when instant run is enabled.
-   */
-  @NotNull
-  public List<String> updateGradleCommandLine(@NotNull List<String> original) {
-    checkForObsoletePreviewGradlePlugins(myProject);
-
-    assert InstantRunSettings.isInstantRunEnabled(myProject);
-
-    for (String arg : original) {
-      if (arg.startsWith("-Pandroid.optional.compilation=")) {
-        // Already handled (e.g. RESTART_DEX_ONLY)
-        return original;
-      }
-    }
-
-    List<String> arguments = Lists.newArrayListWithExpectedSize(original.size() + 1);
-    arguments.addAll(original);
-    //noinspection SpellCheckingInspection
-    String property = "-Pandroid.optional.compilation=INSTANT_DEV";
-
-    FileChangeListener.Changes changes = myFileChangeListener.getChangesAndReset();
-    if (!changes.nonSourceChanges) {
-      if (changes.localResourceChanges) {
-        property += ",LOCAL_RES_ONLY";
-      }
-      if (changes.localJavaChanges) {
-        property += ",LOCAL_JAVA_ONLY";
-      }
-    }
-
-    arguments.add(property);
-    return arguments;
-  }
-
-  /**
    * Checks whether the app associated with the given module is already running on the given device
    *
    * @param device the device to check
@@ -380,7 +344,7 @@ public final class InstantRunManager implements ProjectComponent {
    */
   public static boolean isColdSwap(@NotNull AndroidGradleModel model) {
     InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
-    return buildInfo == null || buildInfo.canHotswap();
+    return buildInfo != null && !buildInfo.canHotswap();
   }
 
   private static long getLastInstalledArscTimestamp(@NotNull IDevice device, @NotNull AndroidFacet facet) {
@@ -497,6 +461,10 @@ public final class InstantRunManager implements ProjectComponent {
 
   @Override
   public void disposeComponent() {
+  }
+
+  public FileChangeListener.Changes getChangesAndReset() {
+    return myFileChangeListener.getChangesAndReset();
   }
 
   /** Synchronizes the file listening state with whether instant run is enabled */
