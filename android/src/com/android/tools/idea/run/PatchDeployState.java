@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
@@ -108,7 +109,7 @@ public class PatchDeployState implements RunProfileState {
 
         AndroidGradleModel model = AndroidGradleModel.get(myFacet);
         boolean coldSwap = model != null && InstantRunManager.isColdSwap(model);
-        if (coldSwap && !InstantRunManager.isColdSwapEnabled(myFacet.getModule().getProject())) {
+        if (coldSwap && !InstantRunSettings.isColdSwapEnabled(myFacet.getModule().getProject())) {
           InstantRunManager.displayVerifierStatus(model, myFacet);
           LOG.info("Cold swap is not supported yet, restarting run configuration");
           myProcessHandler.destroyProcess();

@@ -17,6 +17,7 @@ package com.android.tools.idea.fd.actions;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessHandler;
@@ -87,7 +88,7 @@ public class RestartActivityAction extends AnAction {
     Project project = module.getProject();
     for (IDevice device : InstantRunManager.findDevices(project)) {
       if (InstantRunManager.isAppRunning(device, module)) {
-        if (InstantRunManager.isShowToastEnabled(project)) {
+        if (InstantRunSettings.isShowToastEnabled(project)) {
           InstantRunManager.showToast(device, module, "Activity Restarted");
         }
         InstantRunManager.restartActivity(device, module);

@@ -24,7 +24,6 @@ import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.runtime.ApplicationPatch;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -126,7 +125,7 @@ public final class InstantRunManager implements ProjectComponent {
   public InstantRunManager(@NotNull Project project) {
     myProject = project;
     myFileChangeListener = new FileChangeListener(project);
-    myFileChangeListener.setEnabled(isInstantRunEnabled(project));
+    myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled(project));
   }
 
   /** Returns the per-project instance of the fast deploy manager */
@@ -193,7 +192,7 @@ public final class InstantRunManager implements ProjectComponent {
   public List<String> updateGradleCommandLine(@NotNull List<String> original) {
     checkForObsoletePreviewGradlePlugins(myProject);
 
-    assert isInstantRunEnabled(myProject);
+    assert InstantRunSettings.isInstantRunEnabled(myProject);
 
     for (String arg : original) {
       if (arg.startsWith("-Pandroid.optional.compilation=")) {
@@ -368,7 +367,7 @@ public final class InstantRunManager implements ProjectComponent {
    */
   public static boolean canDexSwap(@NotNull Module module, @SuppressWarnings("UnusedParameters") @NotNull Collection<IDevice> devices) {
     //noinspection IfStatementWithIdenticalBranches
-    if (!isColdSwapEnabled(module.getProject())) {
+    if (!InstantRunSettings.isColdSwapEnabled(module.getProject())) {
       return false;
     }
 
@@ -431,7 +430,7 @@ public final class InstantRunManager implements ProjectComponent {
    * @return true if the app is using an incremental support enabled Gradle plugin
    */
   public static boolean isPatchableApp(@NotNull Module module) {
-    if (!isInstantRunEnabled(module.getProject())) {
+    if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
       return false;
     }
 
@@ -593,34 +592,10 @@ public final class InstantRunManager implements ProjectComponent {
   public void disposeComponent() {
   }
 
-  /** Is instant run enabled in the given project */
-  public static boolean isInstantRunEnabled(@NotNull Project project) {
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    return buildConfiguration.INSTANT_RUN;
-  }
-
-  /** Is showing toasts enabled in the given project */
-  public static boolean isShowToastEnabled(@NotNull Project project) {
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    return buildConfiguration.SHOW_TOAST;
-  }
-
-  /** Is cold swap enabled in the given project */
-  public static boolean isColdSwapEnabled(@NotNull Project project) {
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    return buildConfiguration.COLD_SWAP;
-  }
-
   /** Synchronizes the file listening state with whether instant run is enabled */
   static void updateFileListener(@NotNull Project project) {
     InstantRunManager manager = get(project);
-    manager.myFileChangeListener.setEnabled(isInstantRunEnabled(project));
-  }
-
-  /** Assuming instant run is enabled, does code patching require an activity restart in the given project? */
-  public static boolean isRestartActivity(@NotNull Project project) {
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    return buildConfiguration.RESTART_ACTIVITY;
+    manager.myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled(project));
   }
 
   @Nullable
@@ -768,7 +743,8 @@ public final class InstantRunManager implements ProjectComponent {
     InstantRunClient instantRunClient = getInstantRunClient(facet.getModule());
     Project project = facet.getModule().getProject();
     String buildId = StringUtil.notNullize(getLocalBuildId(facet.getModule()));
-    instantRunClient.push(device, buildId, changes, updateMode, isRestartActivity(project), isShowToastEnabled(project));
+    instantRunClient.push(device, buildId, changes, updateMode, InstantRunSettings.isRestartActivity(project),
+                          InstantRunSettings.isShowToastEnabled(project));
 
     String pkgName = getPackageName(facet);
     if (pkgName == null) {
@@ -992,7 +968,7 @@ public final class InstantRunManager implements ProjectComponent {
     // Only check & warn once per session
     ourCheckedForOldPlugin = true;
 
-    if (!isInstantRunEnabled(project)) {
+    if (!InstantRunSettings.isInstantRunEnabled(project)) {
       return;
     }
 

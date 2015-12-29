@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.fd.debugger;
 
-import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.PositionManagerImpl;
 import com.sun.jdi.Field;
@@ -31,7 +31,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
   @Override
   protected ReferenceType mapClass(ReferenceType type) {
     ReferenceType ret = type;
-    if (InstantRunManager.isInstantRunEnabled(getDebugProcess().getProject())) {
+    if (InstantRunSettings.isInstantRunEnabled(getDebugProcess().getProject())) {
       Field change = type.fieldByName("$change");
       if (change != null) {
         Value value = type.getValue(change);
