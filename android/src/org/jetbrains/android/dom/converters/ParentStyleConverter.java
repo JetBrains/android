@@ -56,7 +56,7 @@ public class ParentStyleConverter extends ResourceReferenceConverter {
 
     final ResourceValue resValue = value.getValue();
 
-    if (resValue == null || resValue.getPackage() != null) {
+    if (resValue == null || resValue.getNamespace() != null) {
       return refsFromSuper;
     }
     final AndroidFacet facet = AndroidFacet.getInstance(context);
