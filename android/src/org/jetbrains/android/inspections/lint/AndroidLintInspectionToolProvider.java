@@ -273,7 +273,7 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintGoogleAppIndexingUrlErrorInspection extends AndroidLintInspectionBase {
     public AndroidLintGoogleAppIndexingUrlErrorInspection() {
-      super(AndroidBundle.message("android.lint.inspections.appindexing.url.error"), AppIndexingApiDetector.ISSUE_URL_ERROR);
+      super(AndroidBundle.message("android.lint.inspections.google.app.indexing.url.error"), AppIndexingApiDetector.ISSUE_URL_ERROR);
     }
 
     @NotNull
@@ -285,7 +285,7 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintGoogleAppIndexingWarningInspection extends AndroidLintInspectionBase {
     public AndroidLintGoogleAppIndexingWarningInspection() {
-      super(AndroidBundle.message("android.lint.inspections.appindexing.warning"), AppIndexingApiDetector.ISSUE_APP_INDEXING);
+      super(AndroidBundle.message("android.lint.inspections.google.app.indexing.warning"), AppIndexingApiDetector.ISSUE_APP_INDEXING);
     }
 
     @NotNull
@@ -297,7 +297,7 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintGoogleAppIndexingApiWarningInspection extends AndroidLintInspectionBase {
     public AndroidLintGoogleAppIndexingApiWarningInspection() {
-      super(AndroidBundle.message("android.lint.inspections.appindexing.api.warning"), AppIndexingApiDetector.ISSUE_APP_INDEXING_API);
+      super(AndroidBundle.message("android.lint.inspections.google.app.indexing.api.warning"), AppIndexingApiDetector.ISSUE_APP_INDEXING_API);
     }
 
     @NotNull
@@ -309,13 +309,13 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintAppLinksAutoVerifyErrorInspection extends AndroidLintInspectionBase {
     public AndroidLintAppLinksAutoVerifyErrorInspection() {
-      super(AndroidBundle.message("android.lint.inspections.auto.verify.error"), AppLinksAutoVerifyDetector.ISSUE_ERROR);
+      super(AndroidBundle.message("android.lint.inspections.app.links.auto.verify.error"), AppLinksAutoVerifyDetector.ISSUE_ERROR);
     }
   }
 
   public static class AndroidLintAppLinksAutoVerifyWarningInspection extends AndroidLintInspectionBase {
     public AndroidLintAppLinksAutoVerifyWarningInspection() {
-      super(AndroidBundle.message("android.lint.inspections.auto.verify.warning"), AppLinksAutoVerifyDetector.ISSUE_WARNING);
+      super(AndroidBundle.message("android.lint.inspections.app.links.auto.verify.warning"), AppLinksAutoVerifyDetector.ISSUE_WARNING);
     }
   }
 
@@ -930,12 +930,6 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
-  public static class AndroidLintGradleCompatiblePluginInspection extends AndroidLintInspectionBase {
-    public AndroidLintGradleCompatiblePluginInspection() {
-      super(AndroidBundle.message("android.lint.inspections.gradle.plugin.compatible"), GradleDetector.GRADLE_PLUGIN_COMPATIBILITY);
-    }
-  }
-
   public static class AndroidLintGradleDependencyInspection extends AndroidLintInspectionBase {
     public AndroidLintGradleDependencyInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.dependency"), GradleDetector.DEPENDENCY);
@@ -1017,6 +1011,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintGradlePathInspection extends AndroidLintInspectionBase {
     public AndroidLintGradlePathInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.path"), GradleDetector.PATH);
+    }
+  }
+
+  public static class AndroidLintGradlePluginVersionInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradlePluginVersionInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.plugin.version"), GradleDetector.GRADLE_PLUGIN_COMPATIBILITY);
     }
   }
 
@@ -2152,7 +2152,7 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintMissingTvBannerInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingTvBannerInspection() {
-      super(AndroidBundle.message("android.lint.inspections.missing.tvbanner"), AndroidTvDetector.MISSING_BANNER);
+      super(AndroidBundle.message("android.lint.inspections.missing.tv.banner"), AndroidTvDetector.MISSING_BANNER);
     }
     @NotNull
     @Override
@@ -2215,8 +2215,9 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintUnsupportedTvHardwareInspection extends AndroidLintInspectionBase {
     public AndroidLintUnsupportedTvHardwareInspection() {
-      super(AndroidBundle.message("android.lint.inspections.unsupported.tvhardware"), AndroidTvDetector.UNSUPPORTED_TV_HARDWARE);
+      super(AndroidBundle.message("android.lint.inspections.unsupported.tv.hardware"), AndroidTvDetector.UNSUPPORTED_TV_HARDWARE);
     }
+
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
