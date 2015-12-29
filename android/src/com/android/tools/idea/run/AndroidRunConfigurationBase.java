@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -304,6 +305,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         throw new ExecutionException("Unable to obtain debug bridge. Please check if there is a different tool using adb that is active.");
       }
       debug = true;
+    }
+
+    if (InstantRunSettings.isInstantRunEnabled(project)) {
+      InstantRunManager.checkForObsoletePreviewGradlePlugins(project);
     }
 
     AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
