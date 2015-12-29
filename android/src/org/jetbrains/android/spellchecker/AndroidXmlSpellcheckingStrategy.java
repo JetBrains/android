@@ -220,7 +220,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
       AndroidResourceReferenceBase reference = findResourceReference(element);
 
       if (reference != null) {
-        if (reference.getResourceValue().getPackage() == null) {
+        if (reference.getResourceValue().getNamespace() == null) {
           consumer.consumeToken(element, true, TextSplitter.getInstance());
         }
         return;
