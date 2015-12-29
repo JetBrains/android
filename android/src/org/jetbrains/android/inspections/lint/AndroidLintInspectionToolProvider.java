@@ -271,9 +271,9 @@ public class AndroidLintInspectionToolProvider {
     return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 
-  public static class AndroidLintGoogleAppIndexingDeepLinkErrorInspection extends AndroidLintInspectionBase {
-    public AndroidLintGoogleAppIndexingDeepLinkErrorInspection() {
-      super(AndroidBundle.message("android.lint.inspections.appindexing.deeplink.error"), AppIndexingApiDetector.ISSUE_DEEP_LINK_ERROR);
+  public static class AndroidLintGoogleAppIndexingUrlErrorInspection extends AndroidLintInspectionBase {
+    public AndroidLintGoogleAppIndexingUrlErrorInspection() {
+      super(AndroidBundle.message("android.lint.inspections.appindexing.url.error"), AppIndexingApiDetector.ISSUE_URL_ERROR);
     }
 
     @NotNull
