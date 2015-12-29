@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.sdkv2;
 
+import com.android.repository.api.Channel;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.SettingsController;
 import com.android.repository.impl.meta.CommonFactory;
@@ -40,8 +41,6 @@ import org.jetbrains.annotations.Nullable;
 public class StudioSettingsController implements PersistentStateComponent<StudioSettingsController.PersistentState>, SettingsController {
 
   private PersistentState myState = new PersistentState();
-  private String[] myValidChannels =
-    ((CommonFactory)RepoManager.getCommonModule().createLatestFactory()).createRemotePackage().getValidChannels();
 
   @Override
   public boolean getForceHttp() {
@@ -55,17 +54,28 @@ public class StudioSettingsController implements PersistentStateComponent<Studio
 
   @Override
   @Nullable
-  public String getChannel() {
-    // Studio channels are named like "Beta Channel", "Dev Channel", etc. Repo channels are named like
-    // "10-beta", "20-dev", etc. We match them up based on the common parts of the names.
-    String channel = ChannelStatus.fromCode(UpdateSettings.getInstance().getUpdateChannelType()).getDisplayName().toLowerCase();
-    channel = channel.substring(0, channel.indexOf(' '));
-    for (String repoChannel : myValidChannels) {
-      if (repoChannel.endsWith("-" + channel)) {
-        return repoChannel;
-      }
+  public Channel getChannel() {
+    Channel res = null;
+    ChannelStatus channelStatus = ChannelStatus.fromCode(UpdateSettings.getInstance().getUpdateChannelType());
+    switch (channelStatus) {
+      case RELEASE:
+        res = Channel.create(0);
+        break;
+      case BETA:
+        res = Channel.create(1);
+        break;
+      case MILESTONE:
+        res = Channel.create(2);
+        break;
+      case EAP:
+        res = Channel.create(3);
+        break;
+      default:
+        // should never happen
+        return null;
     }
-    return null;
+    res.setValue(channelStatus.getDisplayName());
+    return res;
   }
 
   @Nullable
