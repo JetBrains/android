@@ -21,6 +21,7 @@ import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -58,7 +59,9 @@ public class InstantRunBuildInfo {
   }
 
   public boolean canHotswap() {
-    return VALUE_VERIFIER_STATUS_COMPATIBLE.equals(getVerifierStatus());
+    String verifierStatus = getVerifierStatus();
+    return StringUtil.isEmpty(verifierStatus) // not populated if there were no changes in versions <= 2.0.0-alpha3
+           || VALUE_VERIFIER_STATUS_COMPATIBLE.equals(verifierStatus);
   }
 
   @Nullable
