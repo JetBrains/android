@@ -18,6 +18,7 @@ package com.android.tools.idea.fd.actions;
 import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -66,7 +67,7 @@ public class InstantRunWithoutRestart extends AnAction {
 
   private void perform(Module module) {
     Project project = module.getProject();
-    if (!InstantRunManager.isInstantRunEnabled(project) || !InstantRunManager.isPatchableApp(module)) {
+    if (!InstantRunSettings.isInstantRunEnabled(project) || !InstantRunManager.isPatchableApp(module)) {
       return;
     }
     List<IDevice> devices = InstantRunManager.findDevices(project);
