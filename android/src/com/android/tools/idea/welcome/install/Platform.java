@@ -62,8 +62,9 @@ public class Platform extends InstallableComponent {
     myIsDefaultPlatform = isDefaultPlatform;
   }
 
+  @Nullable
   private static Platform getLatestPlatform(@NotNull ScopedStateStore store,
-                                            Map<String, RemotePackage> remotePackages) {
+                                            @Nullable Map<String, RemotePackage> remotePackages) {
     RemotePackage latest = InstallComponentsPath.findLatestPlatform(remotePackages);
     if (latest != null) {
       AndroidVersion version = DetailsTypes.getAndroidVersion(((DetailsTypes.PlatformDetailsType)latest.getTypeDetails()));
@@ -88,7 +89,8 @@ public class Platform extends InstallableComponent {
     return result;
   }
 
-  public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store, Map<String, RemotePackage> remotePackages) {
+  @Nullable
+  public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store, @Nullable Map<String, RemotePackage> remotePackages) {
     // Previously we also installed a preview platform, but no longer (see http://b.android.com/175343 for more).
     ComponentTreeNode latestPlatform = getLatestPlatform(store, remotePackages);
     if (latestPlatform != null) {

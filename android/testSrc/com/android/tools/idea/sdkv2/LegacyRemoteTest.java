@@ -17,6 +17,7 @@ package com.android.tools.idea.sdkv2;
 
 import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
+import com.android.repository.api.Channel;
 import com.android.repository.api.ConstantSourceProvider;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.UpdatablePackage;
@@ -50,9 +51,11 @@ public class LegacyRemoteTest extends AndroidTestCase {
     progress.assertNoErrorsOrWarnings();
     
     mgr.registerSourceProvider(
-      new ConstantSourceProvider("http://www.example.com/testRepo", "Repo", ImmutableList.of(handler.getRepositoryModule(progress))));
+      new ConstantSourceProvider("http://www.example.com/testRepo", "Repo", ImmutableList.of(handler.getRepositoryModule(progress),
+                                                                                             RepoManager.getGenericModule())));
     mgr.registerSourceProvider(
-      new ConstantSourceProvider("http://www.example.com/testRepo2", "Repo2", ImmutableList.of(handler.getRepositoryModule(progress))));
+      new ConstantSourceProvider("http://www.example.com/testRepo2", "Repo2", ImmutableList.of(handler.getRepositoryModule(progress),
+                                                                                               RepoManager.getGenericModule())));
     progress.assertNoErrorsOrWarnings();
 
     FakeSettingsController settings = new FakeSettingsController(false);
@@ -77,7 +80,7 @@ public class LegacyRemoteTest extends AndroidTestCase {
     assertEquals(12, consolidatedPkgs.size());
     assertEquals(12, packages.getNewPkgs().size());
 
-    settings.setChannel("10-beta");
+    settings.setChannel(Channel.create(1));
     mgr.load(0, Lists.<RepoManager.RepoLoadedCallback>newArrayList(), Lists.<RepoManager.RepoLoadedCallback>newArrayList(),
              Lists.<Runnable>newArrayList(), runner, downloader, settings, true);
     runner.getProgressIndicator().assertNoErrorsOrWarnings();

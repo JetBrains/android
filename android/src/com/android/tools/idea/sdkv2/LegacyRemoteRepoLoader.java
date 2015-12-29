@@ -282,24 +282,14 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
       return null;
     }
 
-    @Nullable
+    @NotNull
     @Override
-    public String getChannel() {
+    public Channel getChannel() {
       if (getVersion().isPreview()) {
         // We map the old concept of previews to the second-stablest channel.
-        return getValidChannels()[1];
+        return Channel.create(1);
       }
-      return getValidChannels()[0];
-    }
-
-    @Override
-    public boolean isValidChannel(String value) {
-      return mNewPackageInstance.isValidChannel(value);
-    }
-
-    @Override
-    public String[] getValidChannels() {
-      return mNewPackageInstance.getValidChannels();
+      return Channel.create(0);
     }
 
     @Override

@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.repository.api.LocalPackage;
-import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoManager;
-import com.android.repository.api.UpdatablePackage;
+import com.android.repository.api.*;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -66,7 +63,7 @@ import java.util.Set;
 public class SdkUpdaterConfigurable implements SearchableConfigurable {
   private SdkUpdaterConfigPanel myPanel;
   private AndroidSdkHandler mySdkHandler;
-  private String myCurrentChannel;
+  private Channel myCurrentChannel;
   private Runnable myChannelChangedCallback;
 
   @NotNull
@@ -99,7 +96,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     myChannelChangedCallback = new Runnable() {
       @Override
       public void run() {
-        String channel = StudioSettingsController.getInstance().getChannel();
+        Channel channel = StudioSettingsController.getInstance().getChannel();
         if (!Objects.equal(channel, myCurrentChannel)) {
           myCurrentChannel = channel;
           myPanel.refresh();

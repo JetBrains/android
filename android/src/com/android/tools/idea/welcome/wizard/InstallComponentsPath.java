@@ -299,7 +299,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
   }
 
-  public static RemotePackage findLatestPlatform(Map<String, RemotePackage> remotePackages) {
+  @Nullable
+  public static RemotePackage findLatestPlatform(@Nullable Map<String, RemotePackage> remotePackages) {
     if (remotePackages == null) {
       return null;
     }
