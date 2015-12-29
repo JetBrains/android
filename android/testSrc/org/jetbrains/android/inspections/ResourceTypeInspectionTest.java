@@ -229,7 +229,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        Object ok5 = context.bindService(intent, connection, flags1);\n" +
             "\n" +
             "        Object error1 = context.bindService(intent, connection,\n" +
-            "                /*Must be one or more of: Context.BIND_AUTO_CREATE, Context.BIND_DEBUG_UNBIND, Context.BIND_NOT_FOREGROUND, Context.BIND_ABOVE_CLIENT, Context.BIND_ALLOW_OOM_MANAGEMENT, Context.BIND_WAIVE_PRIORITY, Context.BIND_IMPORTANT, Context.BIND_ADJUST_WITH_ACTIVITY*/Context.BIND_ABOVE_CLIENT | Context.CONTEXT_IGNORE_SECURITY/**/);\n" +
+            "                Context.BIND_ABOVE_CLIENT | /*Must be one or more of: Context.BIND_AUTO_CREATE, Context.BIND_DEBUG_UNBIND, Context.BIND_NOT_FOREGROUND, Context.BIND_ABOVE_CLIENT, Context.BIND_ALLOW_OOM_MANAGEMENT, Context.BIND_WAIVE_PRIORITY, Context.BIND_IMPORTANT, Context.BIND_ADJUST_WITH_ACTIVITY*/Context.CONTEXT_IGNORE_SECURITY/**/);\n" +
             "        int flags2 = Context.BIND_ABOVE_CLIENT | Context.CONTEXT_IGNORE_SECURITY;\n" +
             "        Object error2 = context.bindService(intent, connection, /*Must be one or more of: Context.BIND_AUTO_CREATE, Context.BIND_DEBUG_UNBIND, Context.BIND_NOT_FOREGROUND, Context.BIND_ABOVE_CLIENT, Context.BIND_ALLOW_OOM_MANAGEMENT, Context.BIND_WAIVE_PRIORITY, Context.BIND_IMPORTANT, Context.BIND_ADJUST_WITH_ACTIVITY*/flags2/**/);\n" +
             "    }\n" +
@@ -262,7 +262,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    public void testCall() {\n" +
             "        restrictedArray(new int[]{VALUE_A}); // OK\n" +
             "        restrictedArray(new int[]{VALUE_A, VALUE_B}); // OK\n" +
-            "        restrictedArray(/*Must be one of: X.VALUE_A, X.VALUE_B*/new int[]{VALUE_A, 0, VALUE_B}/**/); // ERROR;\n" +
+            "        restrictedArray(new int[]{VALUE_A, /*Must be one of: X.VALUE_A, X.VALUE_B*/0/**/, VALUE_B}); // ERROR;\n" +
             "        restrictedArray(VALID_ARRAY); // OK\n" +
             "        restrictedArray(/*Must be one of: X.VALUE_A, X.VALUE_B*/INVALID_ARRAY/**/); // ERROR\n" +
             "        restrictedArray(/*Must be one of: X.VALUE_A, X.VALUE_B*/INVALID_ARRAY2/**/); // ERROR\n" +
