@@ -68,7 +68,7 @@ public class InstantRunUserFeedback implements UserFeedback {
       InstantRunManager.notifyEnd(myModule.getProject());
     }
 
-    if (updateMode == UpdateMode.HOT_SWAP && !InstantRunManager.isRestartActivity(myModule.getProject()) && !ourHideRestartTip) {
+    if (updateMode == UpdateMode.HOT_SWAP && !InstantRunSettings.isRestartActivity(myModule.getProject()) && !ourHideRestartTip) {
       StringBuilder sb = new StringBuilder(300);
       sb.append("<html>");
       sb.append("Instant Run applied code changes.\n");
