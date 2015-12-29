@@ -1247,6 +1247,155 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testSuppressNames() throws Exception {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.BinderThread;\n" +
+            "import android.support.annotation.CheckResult;\n" +
+            "import android.support.annotation.ColorInt;\n" +
+            "import android.support.annotation.ColorRes;\n" +
+            "import android.support.annotation.FloatRange;\n" +
+            "import android.support.annotation.IntDef;\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "import android.support.annotation.RequiresPermission;\n" +
+            "import android.support.annotation.Size;\n" +
+            "import android.support.annotation.StringRes;\n" +
+            "import android.support.annotation.UiThread;\n" +
+            "\n" +
+            "import java.lang.annotation.Retention;\n" +
+            "import java.lang.annotation.RetentionPolicy;\n" +
+            "\n" +
+            "import static android.Manifest.permission.ACCESS_COARSE_LOCATION;\n" +
+            "import static android.Manifest.permission.ACCESS_FINE_LOCATION;\n" +
+            "\n" +
+            "@SuppressWarnings(\"unused\")\n" +
+            "public class X {\n" +
+            "\n" +
+            "    @ColorInt private int colorInt;\n" +
+            "    @ColorRes private int colorRes;\n" +
+            "    @StringRes private int stringRes;\n" +
+            "\n" +
+            "    @BinderThread\n" +
+            "    public void testOk() {\n" +
+            "        setColor(colorRes); // OK\n" +
+            "        setColorInt(colorInt); // OK\n" +
+            "        printBetween(5); // OK\n" +
+            "        printBetweenFromInclusiveToInclusive(3.0f); // OK\n" +
+            "        printMinMultiple(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }); // OK\n" +
+            "        int result = checkMe(); // OK\n" +
+            "        setDuration(LENGTH_LONG); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @BinderThread\n" +
+            "    public void testErrors() {\n" +
+            "        setColor(/*Expected resource of type color*/colorInt/**/); // ERROR\n" +
+            "        setColorInt(/*Should pass resolved color instead of resource id here: `getResources().getColor(colorRes)`*/colorRes/**/); // ERROR\n" +
+            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 1)*/1/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToInclusive(/*Value must be ≥ 2.5 and ≤ 5.0 (was 1.0f)*/1.0f/**/); // ERROR\n" +
+            "        printMinMultiple(/*Size must be at least 4 and a multiple of 3 (was 8)*/new int[] { 1, 2, 3, 4, 5, 6, 7, 8 }/**/); // ERROR\n" +
+            "        /*The result of 'checkMe' is not used*/checkMe()/**/; // ERROR\n" +
+            "        /*Missing permissions required by X.requiresPermission: android.permission.ACCESS_FINE_LOCATION or android.permission.ACCESS_COARSE_LOCATION*/requiresPermission()/**/; // ERROR\n" +
+            "        /*Method requiresUiThread must be called from the UI thread, currently inferred thread is binder*/requiresUiThread()/**/; // ERROR\n" +
+            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG*/5/**/); // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    @BinderThread\n" +
+            "    public void testSuppressedViaComment() {\n" +
+            "        //noinspection ResourceType\n" +
+            "        setColor(colorInt); // ERROR\n" +
+            "        //noinspection ResourceAsColor\n" +
+            "        setColorInt(colorRes); // ERROR\n" +
+            "        //noinspection Range\n" +
+            "        printBetween(1); // ERROR\n" +
+            "        //noinspection Range\n" +
+            "        printBetweenFromInclusiveToInclusive(1.0f); // ERROR\n" +
+            "        //noinspection Range\n" +
+            "        printMinMultiple(new int[] { 1, 2, 3, 4, 5, 6, 7, 8 }); // ERROR\n" +
+            "        //noinspection CheckResult\n" +
+            "        checkMe(); // ERROR\n" +
+            "        //noinspection MissingPermission\n" +
+            "        requiresPermission(); // ERROR\n" +
+            "        //noinspection WrongThread\n" +
+            "        requiresUiThread(); // ERROR\n" +
+            "        //noinspection WrongConstant\n" +
+            "        setDuration(5); // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    @BinderThread\n" +
+            "    public void testSuppressedViaOldInspectionName() {\n" +
+            "        //noinspection ResourceType\n" +
+            "        setColor(colorInt); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        setColorInt(colorRes); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        printBetween(1); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        printBetweenFromInclusiveToInclusive(1.0f); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        printMinMultiple(new int[] { 1, 2, 3, 4, 5, 6, 7, 8 }); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        checkMe(); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        requiresPermission(); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        requiresUiThread(); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        setDuration(5); // SUPPRESSED\n" +
+            "    }\n" +
+            "\n" +
+            "    @SuppressWarnings({\"ResourceAsColor\", \"Range\", \"CheckResult\", \"MissingPermission\", \"WrongThread\", \"WrongConstant\"})\n" +
+            "    @BinderThread\n" +
+            "    public void testSuppressedViaAnnotation() {\n" +
+            "        setColorInt(colorRes); // SUPPRESSED\n" +
+            "        printBetween(1); // SUPPRESSED\n" +
+            "        printBetweenFromInclusiveToInclusive(1.0f); // SUPPRESSED\n" +
+            "        printMinMultiple(new int[] { 1, 2, 3, 4, 5, 6, 7, 8 }); // SUPPRESSED\n" +
+            "        checkMe(); // SUPPRESSED\n" +
+            "        requiresPermission(); // SUPPRESSED\n" +
+            "        requiresUiThread(); // SUPPRESSED\n" +
+            "        setDuration(5); // SUPPRESSED\n" +
+            "    }\n" +
+            "\n" +
+            "    @SuppressWarnings(\"ResourceType\")\n" +
+            "    @BinderThread\n" +
+            "    public void testSuppressedViaOldAnnotation() {\n" +
+            "        setColorInt(colorRes); // SUPPRESSED\n" +
+            "        printBetween(1); // SUPPRESSED\n" +
+            "        printBetweenFromInclusiveToInclusive(1.0f); // SUPPRESSED\n" +
+            "        printMinMultiple(new int[] { 1, 2, 3, 4, 5, 6, 7, 8 }); // SUPPRESSED\n" +
+            "        checkMe(); // SUPPRESSED\n" +
+            "        requiresPermission(); // SUPPRESSED\n" +
+            "        requiresUiThread(); // SUPPRESSED\n" +
+            "        setDuration(5); // SUPPRESSED\n" +
+            "    }\n" +
+            "\n" +
+            "\n" +
+            "    private void setColor(@ColorRes int color) { }\n" +
+            "    private void setColorInt(@ColorInt int color) { }\n" +
+            "    public void printBetween(@IntRange(from=4,to=7) int arg) { }\n" +
+            "    public void printMinMultiple(@Size(min=4,multiple=3) int[] arg) { }\n" +
+            "    public void printBetweenFromInclusiveToInclusive(@FloatRange(from=2.5,to=5.0) float arg) { }\n" +
+            "    @CheckResult\n" +
+            "    public int checkMe() { return 0; }\n" +
+            "\n" +
+            "    @RequiresPermission(anyOf = {ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION})\n" +
+            "    public void requiresPermission() { }\n" +
+            "\n" +
+            "    @UiThread\n" +
+            "    public void requiresUiThread() { }\n" +
+            "\n" +
+            "    @IntDef({LENGTH_INDEFINITE, LENGTH_SHORT, LENGTH_LONG})\n" +
+            "    @Retention(RetentionPolicy.SOURCE)\n" +
+            "    public @interface Duration {}\n" +
+            "\n" +
+            "    public static final int LENGTH_INDEFINITE = -2;\n" +
+            "    public static final int LENGTH_SHORT = -1;\n" +
+            "    public static final int LENGTH_LONG = 0;\n" +
+            "    public void setDuration(@Duration int duration) {\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   @Override
   protected String[] getEnvironmentClasses() {
     @Language("JAVA")
@@ -1399,6 +1548,14 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                              "public @interface UnrelatedNameEndsWithThread {\n" +
                              "}";
     classes.add(unrelatedThread);
+
+    @Language("JAVA")
+    String checkResult = "@Retention(SOURCE)\n" +
+                       "@Target({METHOD})\n" +
+                       "public @interface CheckResult {\n" +
+                       "}\n";
+    classes.add(header + checkResult);
+
 
     return ArrayUtil.toStringArray(classes);
   }
