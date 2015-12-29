@@ -306,9 +306,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       debug = true;
     }
 
-    DeployTargetProvider currentTargetProvider = getCurrentDeployTargetProvider();
-    DeployTargetState deployTargetState = getCurrentDeployTargetState();
-
     AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
     if (info != null) {
       if (info.getExecutorId().equals(executor.getId()) && InstantRunManager.isPatchableApp(module)) {
@@ -346,44 +343,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // When performing a full launch, always terminate the previous sessions. Otherwise, we might end up with 2 active sessions of the same
     // launch, esp. if we first think we can do a fast deploy, then one of the conditionals above fails and we end up doing a full launch.
     if (info != null) {
-      String previousExecutor = info.getExecutorId();
-      String currentExecutor = executor.getId();
-
-      if (ourKillLaunchOption.isToBeShown()) {
-        String msg, noText;
-        if (previousExecutor.equals(currentExecutor)) {
-          msg = String.format("Restart App?\nThe app is already running. Would you like to kill it and restart the session?");
-          noText = "Cancel";
-        }
-        else {
-          msg = String.format("To switch from %1$s to %2$s, the app has to restart. Continue?", previousExecutor, currentExecutor);
-          noText = "Cancel " + currentExecutor;
-        }
-
-        String title = "Launching " + getName();
-        String yesText = "Restart " + getName();
-        if (Messages.NO ==
-            Messages.showYesNoDialog(project, msg, title, yesText, noText, AllIcons.General.QuestionDialog, ourKillLaunchOption)) {
-          return null;
-        }
-      }
-
-      LOG.info("Disconnecting existing session of the same launch configuration");
-      info.getProcessHandler().detachProcess();
-    }
-
-    DeployTarget deployTarget;
-    if (currentTargetProvider.requiresRuntimePrompt()) {
-      deployTarget = currentTargetProvider
-        .showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID());
-      if (deployTarget == null) {
+      boolean continueLaunch = promptAndKillSession(executor, project, info);
+      if (!continueLaunch) {
         return null;
       }
     }
-    else {
-      deployTarget = currentTargetProvider.getDeployTarget();
+
+    DeployTarget deployTarget = getDeployTarget(executor, env, debug, facet);
+    if (deployTarget == null) {
+      return null;
     }
 
+    DeployTargetState deployTargetState = getCurrentDeployTargetState();
     if (deployTarget.hasCustomRunProfileState(executor)) {
       return deployTarget.getRunProfileState(executor, env, deployTargetState);
     }
@@ -402,17 +373,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     if (debug) {
-      // If we are debugging on a device, then the app needs to be debuggable
-      for (ListenableFuture<IDevice> future : deviceFutures.get()) {
-        if (!future.isDone()) {
-          // this is an emulator, and we assume that all emulators are debuggable
-          continue;
-        }
-
-        IDevice device = Futures.getUnchecked(future);
-        if (!LaunchUtils.canDebugAppOnDevice(facet, device)) {
-          throw new ExecutionException(AndroidBundle.message("android.cannot.debug.noDebugPermissions", module.getName(), device.getName()));
-        }
+      String error = canDebug(deviceFutures, facet, module.getName());
+      if (error != null) {
+        throw new ExecutionException(error);
       }
     }
 
@@ -423,6 +386,73 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     ApkProvider apkProvider = getApkProvider(facet);
     LaunchTasksProvider provider = new AndroidLaunchTasksProvider(this, env, facet, apkProvider, launchOptions);
     return new AndroidRunState(env, getName(), module, apkProvider, getConsoleProvider(), deviceFutures.get(), provider);
+  }
+
+  private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
+    // If we are debugging on a device, then the app needs to be debuggable
+    for (ListenableFuture<IDevice> future : deviceFutures.get()) {
+      if (!future.isDone()) {
+        // this is an emulator, and we assume that all emulators are debuggable
+        continue;
+      }
+
+      IDevice device = Futures.getUnchecked(future);
+      if (!LaunchUtils.canDebugAppOnDevice(facet, device)) {
+        return AndroidBundle.message("android.cannot.debug.noDebugPermissions", moduleName, device.getName());
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private DeployTarget getDeployTarget(@NotNull Executor executor,
+                                       @NotNull ExecutionEnvironment env,
+                                       boolean debug,
+                                       @NotNull AndroidFacet facet) throws ExecutionException {
+    DeployTargetProvider currentTargetProvider = getCurrentDeployTargetProvider();
+
+    DeployTarget deployTarget;
+    if (currentTargetProvider.requiresRuntimePrompt()) {
+      deployTarget =
+        currentTargetProvider.showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID());
+      if (deployTarget == null) {
+        return null;
+      }
+    }
+    else {
+      deployTarget = currentTargetProvider.getDeployTarget();
+    }
+
+    return deployTarget;
+  }
+
+  private boolean promptAndKillSession(@NotNull Executor executor, Project project, AndroidSessionInfo info) {
+    String previousExecutor = info.getExecutorId();
+    String currentExecutor = executor.getId();
+
+    if (ourKillLaunchOption.isToBeShown()) {
+      String msg, noText;
+      if (previousExecutor.equals(currentExecutor)) {
+        msg = String.format("Restart App?\nThe app is already running. Would you like to kill it and restart the session?");
+        noText = "Cancel";
+      }
+      else {
+        msg = String.format("To switch from %1$s to %2$s, the app has to restart. Continue?", previousExecutor, currentExecutor);
+        noText = "Cancel " + currentExecutor;
+      }
+
+      String title = "Launching " + getName();
+      String yesText = "Restart " + getName();
+      if (Messages.NO ==
+          Messages.showYesNoDialog(project, msg, title, yesText, noText, AllIcons.General.QuestionDialog, ourKillLaunchOption)) {
+        return false;
+      }
+    }
+
+    LOG.info("Disconnecting existing session of the same launch configuration");
+    info.getProcessHandler().detachProcess();
+    return true;
   }
 
   private static boolean canFastDeploy(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
