@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle.run;
 import com.android.ddmlib.IDevice;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.fd.FileChangeListener;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -71,6 +73,17 @@ public class GradleInvokerOptions {
       return new GradleInvokerOptions(Collections.singletonList(userGoal), null, cmdLineArgs);
     }
 
+    // Inject instant run attributes
+    if (InstantRunSettings.isInstantRunEnabled(project)) {
+      // 194996: Don't instrument classes when running as test
+      // The Gradle plugin shouldn't instrument classes when about to run as
+      // a test. We need to not pass the instant run options in that case.
+      // Either GradleInvoker needs to be aware of what it is building, or this logic needs to be in the gradle plugin.
+      if (!MakeBeforeRunTaskProvider.isUnitTestConfiguration(configuration)) {
+        cmdLineArgs.add(getInstantRunProperties(project));
+      }
+    }
+
     final Module[] modules = getModules(project, context, configuration);
     if (Boolean.TRUE.equals(env.getCopyableUserData(AndroidRunConfigurationBase.FAST_DEPLOY))) {
       Module module = modules[0];
@@ -93,6 +106,24 @@ public class GradleInvokerOptions {
     GradleInvoker.TestCompileType testCompileType = getTestCompileType(configuration);
     List<String> tasks = GradleInvoker.findTasksToExecute(modules, buildMode, testCompileType);
     return new GradleInvokerOptions(tasks, buildMode, cmdLineArgs);
+  }
+
+  @NotNull
+  private static String getInstantRunProperties(@NotNull Project project) {
+    StringBuilder sb = new StringBuilder(50);
+    sb.append("-Pandroid.optional.compilation=INSTANT_DEV");
+
+    FileChangeListener.Changes changes = InstantRunManager.get(project).getChangesAndReset();
+    if (!changes.nonSourceChanges) {
+      if (changes.localResourceChanges) {
+        sb.append(",LOCAL_RES_ONLY");
+      }
+      if (changes.localJavaChanges) {
+        sb.append(",LOCAL_JAVA_ONLY");
+      }
+    }
+
+    return sb.toString();
   }
 
   @NotNull
