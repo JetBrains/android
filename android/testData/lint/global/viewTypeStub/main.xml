@@ -1,0 +1,7 @@
+<ViewStub xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/My_Stub_Id"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:inflatedId="@+id/My_Inflated_Id"
+    android:layout="@layout/stub_inflated_layout"
+    />
