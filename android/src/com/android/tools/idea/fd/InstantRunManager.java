@@ -101,10 +101,6 @@ public final class InstantRunManager implements ProjectComponent {
   private static final Logger LOG = Logger.getInstance(InstantRunManager.class);
   private static final ILogger ILOGGER = new LogWrapper(LOG);
 
-  /** Display instant run statistics */
-  @SuppressWarnings("SimplifiableConditionalExpression")
-  public static final boolean DISPLAY_STATISTICS = System.getProperty("fd.stats") != null ? Boolean.getBoolean("fd.stats") : false;
-
   /** Local port on the desktop machine that we tunnel to the Android device via */
   private static final int STUDIO_PORT = 8888;
 
@@ -966,17 +962,5 @@ public final class InstantRunManager implements ProjectComponent {
     catch (Throwable e) {
       LOG.warn(e);
     }
-  }
-
-  private static long ourBeginTime;
-
-  public static void notifyBegin() {
-    ourBeginTime = System.currentTimeMillis();
-  }
-
-  static void notifyEnd(@NotNull Project project) {
-    long end = System.currentTimeMillis();
-    final String message = "Instant Run: " + (end - ourBeginTime) + "ms";
-    postBalloon(MessageType.INFO, message, project);
   }
 }

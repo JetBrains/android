@@ -16,21 +16,34 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+public class HotSwapTask implements LaunchTask {
+  private final AndroidFacet myFacet;
 
-public interface LaunchTasksProvider {
+  public HotSwapTask(@NotNull AndroidFacet facet) {
+    myFacet = facet;
+  }
+
   @NotNull
-  List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus);
+  @Override
+  public String getDescription() {
+    return "Hotswapping changes";
+  }
 
-  @Nullable
-  DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus);
+  @Override
+  public int getDuration() {
+    return LaunchTaskDurations.DEPLOY_HOTSWAP;
+  }
 
-  boolean createsNewProcess();
-
-  @Nullable
-  String getSuccessMessage();
+  @Override
+  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    printer.stdout("Hotswapping changes...");
+    InstantRunManager.pushChanges(device, myFacet);
+    return true;
+  }
 }

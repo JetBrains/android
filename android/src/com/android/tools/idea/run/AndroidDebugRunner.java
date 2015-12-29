@@ -42,13 +42,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   @Override
   protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment env)
     throws ExecutionException {
-    //TODO: this should be handled by the run state: the LaunchTasksProvider should be able to indicate whether it creates a new process
-    //TODO: or not. If it doesn't create a new process, then the result of AndroidRunState.execute should be null.
-    if (state instanceof PatchDeployState) {
-      ((PatchDeployState)state).start();
-      return null;
-    }
-
     boolean showRunContent = env.getRunProfile() instanceof AndroidTestRunConfiguration;
     RunnerAndConfigurationSettings runnerAndConfigurationSettings = env.getRunnerAndConfigurationSettings();
     if (runnerAndConfigurationSettings != null) {

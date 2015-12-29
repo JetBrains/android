@@ -15,22 +15,16 @@
  */
 package com.android.tools.idea.run.tasks;
 
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public interface LaunchTasksProvider {
+/**
+ * {@link LaunchTasksProviderFactory} provides an additional level of indirection so that the {@link LaunchTasksProvider}
+ * can be created once the results of a build are known.
+ *
+ * An alternative solution would be to just have the {@link LaunchTasksProvider} understand that all its methods are called only after a
+ * build is complete, and reconfigure itself based on the build results.
+ */
+public interface LaunchTasksProviderFactory {
   @NotNull
-  List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus);
-
-  @Nullable
-  DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus);
-
-  boolean createsNewProcess();
-
-  @Nullable
-  String getSuccessMessage();
+  LaunchTasksProvider get();
 }
