@@ -23,6 +23,7 @@ import com.android.tools.idea.model.DeclaredPermissionsLookup;
 import com.android.tools.lint.checks.PermissionFinder;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.tools.lint.checks.PermissionRequirement;
+import com.android.tools.lint.detector.api.Issue;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -30,9 +31,15 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
+import com.intellij.codeInsight.daemon.HighlightDisplayKey;
+import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.codeInsight.daemon.impl.actions.*;
 import com.intellij.codeInspection.*;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
@@ -53,6 +60,7 @@ import com.intellij.psi.util.*;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.slicer.*;
 import com.intellij.util.Function;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
 import com.siyeh.ig.psiutils.ExpressionUtils;
 import gnu.trove.THashSet;
@@ -67,6 +75,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
@@ -162,7 +171,6 @@ import static com.intellij.psi.util.PsiFormatUtilBase.SHOW_NAME;
  * <p>
  */
 public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
-
   @NotNull
   @Override
   public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder,
@@ -666,7 +674,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     if (threadContext != null && !isCompatibleThread(threadContext, qualifiedName)) {
       String message = String.format("Method %1$s must be called from the %2$s thread, currently inferred thread is %3$s",
         method.getName(), describeThread(qualifiedName), describeThread(threadContext));
-      holder.registerProblem(methodCall, message);
+      registerProblem(holder, THREAD, methodCall, message);
     }
   }
 
@@ -758,7 +766,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (!list.isEmpty()) {
           fixes = list.toArray(new LocalQuickFix[list.size()]);
         }
-        holder.registerProblem(methodCall, message, fixes);
+        registerProblem(holder, MISSING_PERMISSION, methodCall, message, fixes);
       } else if (requirement.isRevocable(lookup) && AndroidModuleInfo.get(facet).getTargetSdkVersion().getFeatureLevel() >= 23) {
         JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
         PsiClass securityException = psiFacade.findClass("java.lang.SecurityException", GlobalSearchScope.allScope(project));
@@ -785,9 +793,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
           Set<String> revocablePermissions = requirement.getRevocablePermissions(lookup);
           AddCheckPermissionFix fix = new AddCheckPermissionFix(facet, requirement, methodCall, revocablePermissions);
-          // TODO: Use GlobalInspectionContext#isSuppressed here and for the other registerProblem calls
-          // to also check for the lint issue suppressions used by the command line check
-          holder.registerProblem(methodCall, getUnhandledPermissionMessage(), fix);
+          registerProblem(holder, MISSING_PERMISSION, methodCall, getUnhandledPermissionMessage(), fix);
         }
       }
     }
@@ -831,13 +837,13 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             }
             message = String.format("The result of '%1$s' is not used; did you mean to call '%2$s'?", method.getName(), name);
             if (suggest.startsWith("#") && methodCall instanceof PsiMethodCallExpression) {
-              holder.registerProblem(methodCall, message, new ReplaceCallFix((PsiMethodCallExpression)methodCall, suggest));
+              registerProblem(holder, CHECK_RESULT, methodCall, message, new ReplaceCallFix((PsiMethodCallExpression)methodCall, suggest));
               return;
             }
           }
         }
       }
-      holder.registerProblem(methodCall, message);
+      registerProblem(holder, CHECK_RESULT, methodCall, message);
     }
   }
 
@@ -1873,23 +1879,28 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
     }
     else if (constraint instanceof ResourceTypeAllowedValues) {
+      Issue issue = RESOURCE_TYPE;
       List<ResourceType> types = ((ResourceTypeAllowedValues)constraint).types;
       String message;
       if (types.isEmpty()) {
+        // Keep in sync with guessLintIssue
         message = String.format("Should pass resolved color instead of resource id here: `getResources().getColor(%1$s)`",
                                 argument.getText());
+        issue = COLOR_USAGE;
       }
       else if (types.size() == 1) {
+        // Keep in sync with guessLintIssue
         message = "Expected resource of type " + types.get(0);
       }
       else {
+        // Keep in sync with guessLintIssue
         message = "Expected resource type to be one of " + Joiner.on(", ").join(types);
       }
-      holder.registerProblem(argument, message);
+      registerProblem(holder, issue, argument, message);
     }
     else if (constraint instanceof RangeAllowedValues) {
       String message = ((RangeAllowedValues)constraint).describe(argument);
-      holder.registerProblem(argument, message);
+      registerProblem(holder, RANGE, argument, message);
     }
     else {
       assert constraint instanceof AllowedValues;
@@ -1908,6 +1919,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         }
       };
       String values = StringUtil.join(typedef.values, formatter, ", ");
+      // Keep in sync with guessLintIssue
       String message;
       if (typedef.canBeOred) {
         message = "Must be one or more of: " + values;
@@ -1921,7 +1933,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         message += " or " + StringUtil.decapitalize(((RangeAllowedValues)constraint.next).describe(argument));
       }
 
-      holder.registerProblem(argument, message);
+      registerProblem(holder, TYPE_DEF, argument, message);
     }
   }
 
@@ -2578,5 +2590,184 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return true;
     }
     return false;
+  }
+
+  private static void registerProblem(@NotNull ProblemsHolder holder,
+                                      @NotNull Issue lintIssue,
+                                      @NotNull PsiElement psiElement,
+                                      @NotNull @Nls(capitalization = Nls.Capitalization.Sentence) String message,
+                                      @Nullable LocalQuickFix... fixes) {
+    // Look for aliases
+    if (SuppressManager.getInstance().isSuppressedFor(psiElement, lintIssue.getId())) {
+      return;
+    }
+
+    assert guessLintIssue(message) != null : message;
+
+    holder.registerProblem(psiElement, message, fixes);
+  }
+
+  /** Given an error message produced by this inspection, guess the corresponding
+   * lint issue id in {@link com.android.tools.lint.checks.SupportAnnotationDetector}
+   *
+   * @param message the error message
+   * @return the corresponding lint issue, if recognized
+   */
+  @Nullable
+  private static Issue guessLintIssue(@NotNull String message) {
+    if (message.startsWith("Should pass resolved color ")) {
+      return COLOR_USAGE;
+    } else if (message.startsWith("The result of ")) {
+      return CHECK_RESULT;
+    } else if (message.startsWith("Call requires permission ") || message.startsWith("Missing permissions ")) {
+      return MISSING_PERMISSION;
+    } else if (message.startsWith("Value must ") || message.startsWith("Length ") || message.startsWith("Size ")) {
+      return RANGE;
+    } else if (message.startsWith("Must be one ")) {
+      return TYPE_DEF;
+    } else if (message.startsWith("Expected resource ")) {
+      return RESOURCE_TYPE;
+    } else if (message.contains("must be called from ")) {
+      return THREAD;
+    }
+
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      throw new IllegalArgumentException(message);
+    }
+
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public SuppressIntentionAction[] getSuppressActions(final PsiElement element) {
+    // The suppress actions are hardcoded to use the suppress id "ResourceType",
+    // e.g. the inspection id for the whole ResourceTypeInspection.
+    // However, we'd really like to have more specific resource id's instead;
+    // in particular, the same ones used by the command line version of the same
+    // check in lint (in SupportAnnotationDetector).
+    //
+    // We can't change the id used by the SuppressQuickFix, and we can't just
+    // replace the SuppressQuickFix array passed to convertBatchToSuppressIntentionActions
+    // because the SuppressQuickFix interface ony gives us the element, not the
+    // warning error message (and we need to use the error message to figure out
+    // the corresponding lint issue type for an inspection message).
+    //
+    // Therefore, we wrap the each SuppressIntentionAction with a delegator,
+    // and when the user actually invokes the SuppressIntentionAction, we
+    // look up the current message, and if we can find the corresponding
+    // lint issue we create a new SuppressQuickFix (with the right id),
+    // wrap it, and invoke that action instead.
+
+    String shortName = getShortName();
+    HighlightDisplayKey key = HighlightDisplayKey.find(shortName);
+    SuppressQuickFix[] actions = SuppressManager.getInstance().createBatchSuppressActions(key);
+    SuppressIntentionAction[] suppressActions = SuppressIntentionActionFromFix.convertBatchToSuppressIntentionActions(actions);
+    if (suppressActions.length == actions.length) {
+      int index = 0;
+      List<SuppressIntentionAction> replaced = Lists.newArrayListWithExpectedSize(suppressActions.length);
+      for (SuppressIntentionAction action : suppressActions) {
+        replaced.add(new MyDelegatingSuppressAction(action, actions[index++]));
+      }
+      return replaced.toArray(new SuppressIntentionAction[replaced.size()]);
+    }
+
+    return suppressActions;
+  }
+
+  private static class MyDelegatingSuppressAction extends SuppressIntentionAction {
+    /** The real action, used for looking up icons and names, etc */
+    private final SuppressIntentionAction myDelegate;
+
+    /** The quickfix that action is wrapping; we can't access it from the outside
+     * but we know what it should be since we wrapped it in the first place
+     * via {@link SuppressIntentionActionFromFix#convertBatchToSuppressIntentionActions}
+     */
+    private final SuppressQuickFix myFix;
+
+    public MyDelegatingSuppressAction(SuppressIntentionAction delegate, SuppressQuickFix fix) {
+      myDelegate = delegate;
+      myFix = fix;
+    }
+
+    @Override
+    public Icon getIcon(int flags) {
+      return myDelegate.getIcon(flags);
+    }
+
+    @NotNull
+    @Override
+    public String getText() {
+      return myDelegate.getText();
+    }
+
+    @Override
+    protected void setText(@NotNull String text) {
+    }
+
+    @Override
+    public boolean startInWriteAction() {
+      return myDelegate.startInWriteAction();
+    }
+
+    @Override
+    public String toString() {
+      return myDelegate.toString();
+    }
+
+    @Override
+    public void invoke(@NotNull Project project, Editor editor, @NotNull PsiElement element) throws IncorrectOperationException {
+      DaemonCodeAnalyzerImpl codeAnalyzer = (DaemonCodeAnalyzerImpl)DaemonCodeAnalyzer.getInstance(project);
+      Document hostDocument = editor.getDocument();
+      int offset = editor.getCaretModel().getOffset();
+      HighlightInfo infoAtCursor = codeAnalyzer.findHighlightByOffset(hostDocument, offset, true);
+      if (infoAtCursor != null) {
+        String description = infoAtCursor.getDescription();
+        Issue issue = guessLintIssue(description);
+        if (issue != null) {
+          String id = issue.getId();
+          SuppressQuickFix action = myFix;
+          SuppressQuickFix replaced;
+          HighlightDisplayKey localKey = HighlightDisplayKey.findOrRegister(id, id, id);
+          if (action instanceof SuppressLocalWithCommentFix) {
+            replaced = new SuppressLocalWithCommentFix(localKey);
+          }
+          else if (action instanceof SuppressByJavaCommentFix) {
+            replaced = new SuppressByJavaCommentFix(localKey);
+          }
+          else if (action instanceof SuppressParameterFix) {
+            replaced = new SuppressParameterFix(localKey);
+          }
+          else if (action instanceof SuppressForClassFix) {
+            replaced = new SuppressForClassFix(localKey);
+          }
+          else if (action instanceof SuppressFix) {
+            replaced = new SuppressFix(localKey);
+          }
+          else {
+            myDelegate.invoke(project, editor, element);
+            return;
+          }
+
+          SuppressIntentionAction wrapped = SuppressIntentionActionFromFix.convertBatchToSuppressIntentionAction(replaced);
+          wrapped.invoke(project, editor, element);
+          return;
+        }
+      }
+
+      myDelegate.invoke(project, editor, element);
+    }
+
+    @Override
+    public boolean isAvailable(@NotNull Project project, Editor editor, @NotNull PsiElement element) {
+      return myDelegate.isAvailable(project, editor, element);
+    }
+
+    @Nls
+    @NotNull
+    @Override
+    public String getFamilyName() {
+      return myDelegate.getFamilyName();
+    }
   }
 }
