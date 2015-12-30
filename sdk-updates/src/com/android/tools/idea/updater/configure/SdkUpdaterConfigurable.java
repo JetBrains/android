@@ -22,7 +22,7 @@ import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
-import com.android.tools.idea.sdk.wizard.v2.SdkQuickfixUtils;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdkv2.StudioDownloader;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
@@ -226,7 +226,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
           }
         }, "Uninstalling", false, null, myPanel.getComponent());
         if (!requestedPackages.isEmpty()) {
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(myPanel.getComponent(), requestedPackages.values());
+          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPackages(myPanel.getComponent(), requestedPackages.values());
           if (dialog != null) {
             dialog.show();
           }
