@@ -19,10 +19,12 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
+import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.collect.*;
@@ -34,6 +36,7 @@ import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
@@ -311,71 +314,48 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       InstantRunManager.checkForObsoletePreviewGradlePlugins(project);
     }
 
+    DeviceFutures deviceFutures = null;
     AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
+
+    // Attempt to figure out if we should fast deploy to a set of devices
     if (info != null) {
-      if (info.getExecutorId().equals(executor.getId()) && InstantRunManager.isPatchableApp(module)) {
-        // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
-        // we need to save the files a bit earlier than that here (turning the Gradle file save into
-        // a no-op) because we need to check whether the manifest file has been edited since an
-        // edited manifest changes what the incremental run build has to do.
-        GradleInvoker.saveAllFilesSafely();
-
-        // For incremental run, we don't want to show any dialogs and just redeploy directly to the last used devices
-        Collection<IDevice> devices = info.getDevices();
-        if (devices != null && canFastDeploy(module, devices)) {
-          if (InstantRunManager.isRebuildRequired(devices, module)) {
-            LOG.info("Cannot patch update since a full rebuild is required (typically because the manifest has changed)");
-            InstantRunManager.postBalloon(MessageType.INFO,
-                                          "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)",
-                                          project);
-          }
-          else {
-            if (InstantRunManager.DISPLAY_STATISTICS) {
-              InstantRunManager.notifyBegin();
-            }
-
-            env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
-            env.putCopyableUserData(DEVICE_FUTURES_KEY, DeviceFutures.forDevices(devices));
-
-            return new PatchDeployState(executor, env, this, getConsoleProvider(), info.getDescriptor(), facet, devices);
-          }
-        }
-
-        LOG.info("Skipping fast deploy, devices from last run: " + (devices == null ? "none" : devices.size()));
-      }
+      deviceFutures = getFastDeployDevices(executor, env, facet, info);
     }
 
-    // When performing a full launch, always terminate the previous sessions. Otherwise, we might end up with 2 active sessions of the same
-    // launch, esp. if we first think we can do a fast deploy, then one of the conditionals above fails and we end up doing a full launch.
-    if (info != null) {
+    // If we should not be fast deploying, but there is an existing session, then terminate those sessions. Otherwise, we might end up with
+    // 2 active sessions of the same launch, especially if we first think we can do a fast deploy, then end up doing a full launch
+    if (info != null && deviceFutures == null) {
       boolean continueLaunch = promptAndKillSession(executor, project, info);
       if (!continueLaunch) {
         return null;
       }
     }
 
-    DeployTarget deployTarget = getDeployTarget(executor, env, debug, facet);
-    if (deployTarget == null) {
-      return null;
-    }
-
-    DeployTargetState deployTargetState = getCurrentDeployTargetState();
-    if (deployTarget.hasCustomRunProfileState(executor)) {
-      return deployTarget.getRunProfileState(executor, env, deployTargetState);
-    }
-
-    DeviceFutures deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID());
+    // If we are not fast deploying, then figure out (prompting user if needed) where to deploy
     if (deviceFutures == null) {
-      // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
-      return null;
-    }
+      DeployTarget deployTarget = getDeployTarget(executor, env, debug, facet);
+      if (deployTarget == null) {
+        return null;
+      }
 
-    // Store the chosen target on the execution environment so before-run tasks can access it.
-    env.putCopyableUserData(DEVICE_FUTURES_KEY, deviceFutures);
+      DeployTargetState deployTargetState = getCurrentDeployTargetState();
+      if (deployTarget.hasCustomRunProfileState(executor)) {
+        return deployTarget.getRunProfileState(executor, env, deployTargetState);
+      }
+
+      deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID());
+      if (deviceFutures == null) {
+        // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
+        return null;
+      }
+    }
 
     if (deviceFutures.get().isEmpty()) {
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
+
+    // Store the chosen target on the execution environment so before-run tasks can access it.
+    env.putCopyableUserData(DEVICE_FUTURES_KEY, deviceFutures);
 
     if (debug) {
       String error = canDebug(deviceFutures, facet, module.getName());
@@ -388,9 +368,66 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       .setDebug(debug)
       .build();
 
+    ProcessHandler processHandler = info == null ? null : info.getProcessHandler();
+
     ApkProvider apkProvider = getApkProvider(facet);
-    LaunchTasksProvider provider = new AndroidLaunchTasksProvider(this, env, facet, apkProvider, launchOptions);
-    return new AndroidRunState(env, getName(), module, apkProvider, getConsoleProvider(), deviceFutures.get(), provider);
+    LaunchTasksProviderFactory providerFactory = new AndroidLaunchTasksProviderFactory(this, env, facet, apkProvider, launchOptions);
+    return new AndroidRunState(env, getName(), module, apkProvider, getConsoleProvider(), deviceFutures.get(), providerFactory, processHandler);
+  }
+
+  @Nullable
+  private static DeviceFutures getFastDeployDevices(@NotNull Executor executor,
+                                                    @NotNull ExecutionEnvironment env,
+                                                    @NotNull AndroidFacet facet,
+                                                    @NotNull AndroidSessionInfo info) {
+    if (!info.getExecutorId().equals(executor.getId())) {
+      String msg = String.format("Cannot instant run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
+                                 executor.getId());
+      LOG.info(msg);
+      return null;
+    }
+
+    Collection<IDevice> devices = info.getDevices();
+    if (devices == null) {
+      LOG.info("Cannot instant run since we could not locate the devices from the existing launch session");
+      return null;
+    }
+
+    Module module = facet.getModule();
+    if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
+      LOG.info("Instant run not enabled in settings");
+      return null;
+    }
+
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    if (!InstantRunManager.isPatchableApp(model)) {
+      LOG.info("Cannot instant run since the gradle version doesn't support it");
+      return null;
+    }
+
+    // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
+    // we need to save the files a bit earlier than that here (turning the Gradle file save into
+    // a no-op) because we need to check whether the manifest file has been edited since an
+    // edited manifest changes what the incremental run build has to do.
+    GradleInvoker.saveAllFilesSafely();
+
+    String status = checkAppStatusOnDevice(module, devices);
+    if (status != null) {
+      LOG.info("Cannot instant run since " + status);
+      return null;
+    }
+
+    if (InstantRunManager.isRebuildRequired(devices, module)) {
+      LOG.info("Cannot patch update since a full rebuild is required (typically because the manifest has changed)");
+      InstantRunManager
+        .postBalloon(MessageType.INFO, "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)",
+                     module.getProject());
+    }
+    else {
+      env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
+    }
+
+    return DeviceFutures.forDevices(devices);
   }
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
@@ -460,20 +497,20 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return true;
   }
 
-  private static boolean canFastDeploy(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
+  @Nullable
+  private static String checkAppStatusOnDevice(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
     for (IDevice device : usedDevices) {
       // TODO: we may eventually support a push to device even if the app isn't running
       if (!InstantRunManager.isAppRunning(device, module)) {
-        LOG.info("Cannot patch update since the app is not running on device: " + device.getName());
-        return false;
+        return "app is not running on device " + device.getName();
       }
+
       if (!InstantRunManager.buildIdsMatch(device, module)) {
-        LOG.info("Local Gradle build id doesn't match what's installed on the device; full build required");
-        return false;
+        return "local Gradle build id doesn't match what's installed on the device; full build required";
       }
     }
 
-    return true;
+    return null;
   }
 
   @NotNull

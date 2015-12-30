@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
+import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -41,7 +42,8 @@ public class AndroidRunState implements RunProfileState {
   @NotNull private final ApkProvider myApkProvider;
   @NotNull private final ConsoleProvider myConsoleProvider;
   @NotNull private final Collection<ListenableFuture<IDevice>> myDeviceFutures;
-  @NotNull private final LaunchTasksProvider myLaunchTasksProvider;
+  @NotNull private final LaunchTasksProviderFactory myLaunchTasksProviderFactory;
+  @Nullable private final ProcessHandler myPreviousSessionProcessHandler;
 
   public AndroidRunState(@NotNull ExecutionEnvironment env,
                          @NotNull String launchConfigName,
@@ -49,20 +51,22 @@ public class AndroidRunState implements RunProfileState {
                          @NotNull ApkProvider apkProvider,
                          @NotNull ConsoleProvider consoleProvider,
                          @NotNull Collection<ListenableFuture<IDevice>> deviceFutures,
-                         @NotNull LaunchTasksProvider launchTasksProvider) {
+                         @NotNull LaunchTasksProviderFactory launchTasksProviderFactory,
+                         @Nullable ProcessHandler processHandler) {
     myEnv = env;
     myLaunchConfigName = launchConfigName;
     myModule = module;
     myApkProvider = apkProvider;
     myConsoleProvider = consoleProvider;
     myDeviceFutures = deviceFutures;
-    myLaunchTasksProvider = launchTasksProvider;
+    myLaunchTasksProviderFactory = launchTasksProviderFactory;
+    myPreviousSessionProcessHandler = processHandler;
   }
 
   @Nullable
   @Override
   public ExecutionResult execute(Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
-    AndroidProcessHandler processHandler;
+    ProcessHandler processHandler;
     ConsoleView console;
 
     String applicationId;
@@ -73,14 +77,14 @@ public class AndroidRunState implements RunProfileState {
       throw new ExecutionException("Unable to obtain application id");
     }
 
-    if (myLaunchTasksProvider.createsNewProcess()) {
+    LaunchTasksProvider launchTasksProvider = myLaunchTasksProviderFactory.get();
+
+    if (launchTasksProvider.createsNewProcess()) {
       processHandler = new AndroidProcessHandler(applicationId);
       console = attachConsole(processHandler, executor);
     } else {
-      // TODO: reuse existing process handler? (when hotswap is plugged in e.g.)
-      processHandler = null;
+      processHandler = myPreviousSessionProcessHandler;
       console = null;
-      throw new IllegalStateException("Not implemented yet!");
     }
 
     LaunchInfo launchInfo = new LaunchInfo(executor, runner, myEnv, myConsoleProvider);
@@ -90,7 +94,7 @@ public class AndroidRunState implements RunProfileState {
                                                  launchInfo,
                                                  processHandler,
                                                  myDeviceFutures,
-                                                 myLaunchTasksProvider);
+                                                 launchTasksProvider);
     ProgressManager.getInstance().run(task);
 
     return console == null ? null : new DefaultExecutionResult(console, processHandler);
