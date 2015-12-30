@@ -80,6 +80,13 @@ public class AndroidRunState implements RunProfileState {
     LaunchTasksProvider launchTasksProvider = myLaunchTasksProviderFactory.get();
 
     if (launchTasksProvider.createsNewProcess()) {
+      // In the case of cold swap, there is an existing process that is connected, but we are going to launch a new one.
+      // Detach the previous process handler so that we don't end up with 2 run tabs for the same launch (the existing one
+      // and the new one).
+      if (myPreviousSessionProcessHandler != null) {
+        myPreviousSessionProcessHandler.detachProcess();
+      }
+
       processHandler = new AndroidProcessHandler(applicationId);
       console = attachConsole(processHandler, executor);
     } else {

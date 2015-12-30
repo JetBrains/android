@@ -24,20 +24,41 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class InstantRunBuildInfoTest {
   @Test
   public void testBuildId() throws IOException {
     InstantRunBuildInfo info = getBuildInfo("instantrun", "build-info1.xml");
-    assertEquals("1451325959168", info.getBuildId());
+    assertEquals("1451508349243", info.getBuildId());
+  }
+
+  @Test
+  public void testApiLevel() throws IOException {
+    InstantRunBuildInfo info = getBuildInfo("instantrun", "build-info1.xml");
+    assertEquals("23", info.getApiLevel());
+  }
+
+  @Test
+  public void testSplitApks() throws IOException {
+    InstantRunBuildInfo info = getBuildInfo("instantrun", "build-info1.xml");
+
+    List<InstantRunArtifact> artifacts = info.getArtifacts();
+    assertEquals(11, artifacts.size());
+    assertTrue(InstantRunBuildInfo.hasMainApk(artifacts));
   }
 
   @NotNull
-  private InstantRunBuildInfo getBuildInfo(@NotNull String... buildInfoPath) throws IOException {
-    String xml = Files.toString(getBuildInfoFile(buildInfoPath), Charsets.UTF_8);
-    return InstantRunBuildInfo.getInstantRunBuildInfo(xml);
+  private static InstantRunBuildInfo getBuildInfo(@NotNull String... buildInfoPath) throws IOException {
+    File buildInfoFile = getBuildInfoFile(buildInfoPath);
+    String xml = Files.toString(buildInfoFile, Charsets.UTF_8);
+    InstantRunBuildInfo buildInfo = InstantRunBuildInfo.getInstantRunBuildInfo(xml);
+    assertNotNull("Unable to create build info from file @ " + buildInfoFile.getPath(), buildInfo);
+    return buildInfo;
   }
 
   @NotNull

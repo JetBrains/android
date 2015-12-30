@@ -16,6 +16,11 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.fd.InstantRunBuildInfo;
+import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.fd.InstantRunUtils;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.tasks.*;
@@ -92,16 +97,25 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   }
 
   @Nullable
-  private LaunchTask getDeployTask(IDevice device) {
+  private LaunchTask getDeployTask(@NotNull IDevice device) {
     if (!myLaunchOptions.isDeploy()) {
       return null;
     }
 
-    //LaunchTask task = InstantRunManager.createDeployTask(myFacet, device);
-    //if (task != null) {
-    //  return task;
-    //}
+    if (InstantRunSettings.isInstantRunEnabled(myProject)) { // TODO: also qualify to -alpha4
+      AndroidGradleModel model = AndroidGradleModel.get(myFacet);
+      assert model != null;
 
+      InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+      assert buildInfo != null : "No build-info.xml found for module " + myFacet.getModule().getName();
+
+      AndroidVersion deviceVersion = device.getVersion();
+      assert deviceVersion.isGreaterOrEqualThan(23) : "TODO: we only support M or above";
+
+      return new SplitApkDeployTask(myFacet, buildInfo);
+    }
+
+    // regular APK deploy flow
     return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider);
   }
 

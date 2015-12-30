@@ -19,11 +19,11 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
@@ -68,8 +68,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   /** The key used to store the selected device target as copyable user data on each execution environment. */
   public static final Key<DeviceFutures> DEVICE_FUTURES_KEY = Key.create("android.device.futures");
-
-  public static final Key<Boolean> FAST_DEPLOY = Key.create("android.fast.deploy");
 
   private static final DialogWrapper.DoNotAskOption ourKillLaunchOption = new MyDoNotPromptOption();
 
@@ -411,20 +409,23 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // edited manifest changes what the incremental run build has to do.
     GradleInvoker.saveAllFilesSafely();
 
-    String status = checkAppStatusOnDevice(module, devices);
-    if (status != null) {
-      LOG.info("Cannot instant run since " + status);
+    boolean buildIdsMatch = buildIdsMatch(module, devices);
+    if (!buildIdsMatch) {
+      LOG.info("Cannot instant run since build ids don't match what is on disk.");
       return null;
     }
 
-    if (InstantRunManager.isRebuildRequired(devices, module)) {
-      LOG.info("Cannot patch update since a full rebuild is required (typically because the manifest has changed)");
+    InstantRunUtils.setDeviceHasKnownBuild(env, true);
+    InstantRunUtils.setAppRunning(env, isAppRunning(module, devices));
+
+    if (InstantRunManager.canBuildIncrementally(devices, module)) {
+      InstantRunUtils.setIncrementalBuild(env, true);
+    }
+    else {
+      LOG.info("Cannot patch update since a full build is required (typically because the manifest has changed)");
       InstantRunManager
         .postBalloon(MessageType.INFO, "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)",
                      module.getProject());
-    }
-    else {
-      env.putCopyableUserData(FAST_DEPLOY, Boolean.TRUE);
     }
 
     return DeviceFutures.forDevices(devices);
@@ -497,20 +498,24 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return true;
   }
 
-  @Nullable
-  private static String checkAppStatusOnDevice(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
+  private static boolean isAppRunning(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
     for (IDevice device : usedDevices) {
-      // TODO: we may eventually support a push to device even if the app isn't running
       if (!InstantRunManager.isAppRunning(device, module)) {
-        return "app is not running on device " + device.getName();
-      }
-
-      if (!InstantRunManager.buildIdsMatch(device, module)) {
-        return "local Gradle build id doesn't match what's installed on the device; full build required";
+        return false;
       }
     }
 
-    return null;
+    return true;
+  }
+
+  private static boolean buildIdsMatch(@NotNull Module module, @NotNull Collection<IDevice> devices) {
+    for (IDevice device : devices) {
+      if (!InstantRunManager.buildIdsMatch(device, module)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @NotNull
