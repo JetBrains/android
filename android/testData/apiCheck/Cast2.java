@@ -1,4 +1,4 @@
-<error descr="The SDK platform-tools version ((16.0.2)) is too old  to check APIs compiled with API 17; please update">import android.database.Cursor;</error>
+import android.database.Cursor;
 import android.os.ParcelFileDescriptor;
 
 import java.io.Closeable;

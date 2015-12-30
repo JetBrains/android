@@ -1,4 +1,4 @@
-<error descr="The SDK platform-tools version ((16.0.2)) is too old  to check APIs compiled with API 17; please update">import android.content.res.AssetFileDescriptor;</error>
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.database.CursorWindow;
 import android.os.Parcelable;
