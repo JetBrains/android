@@ -40,7 +40,7 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
   }
 
   public void testIncompatiblePlugin() throws Exception {
-    AndroidLintGradleCompatiblePluginInspection inspection = new AndroidLintGradleCompatiblePluginInspection();
+    AndroidLintGradlePluginVersionInspection inspection = new AndroidLintGradlePluginVersionInspection();
     doTest(inspection, null);
   }
 
@@ -118,7 +118,7 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
   }
 
   public void testIgnoresGStringsInDependencies() throws Exception {
-    AndroidLintGradleCompatiblePluginInspection inspection = new AndroidLintGradleCompatiblePluginInspection();
+    AndroidLintGradlePluginVersionInspection inspection = new AndroidLintGradlePluginVersionInspection();
     doTest(inspection, null);
   }
 
