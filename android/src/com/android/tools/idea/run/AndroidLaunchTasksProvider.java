@@ -59,8 +59,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus) {
     final List<LaunchTask> launchTasks = Lists.newArrayList();
 
-    // TODO: needs to be able to switch between hotswap, coldswap, dexswap and regular deploy, currently hardcoded to a single sequence
-
     if (myLaunchOptions.isClearLogcatBeforeStart()) {
       launchTasks.add(new ClearLogcatTask(myProject));
     }
@@ -148,5 +146,11 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @Override
   public boolean createsNewProcess() {
     return true;
+  }
+
+  @Nullable
+  @Override
+  public String getSuccessMessage() {
+    return "Launched";
   }
 }
