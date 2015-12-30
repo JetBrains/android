@@ -108,7 +108,7 @@ class HaxmWizard extends DynamicWizard {
 
     private void setupHaxm() throws IOException {
       final InstallContext installContext = new InstallContext(FileUtil.createTempDirectory("AndroidStudio", "Haxm", true), this);
-      final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance();
+      final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
 
       final Collection<? extends InstallableComponent> selectedComponents = Lists.newArrayList(myHaxm);
       installContext.print("Looking for SDK updates...\n", ConsoleViewContentType.NORMAL_OUTPUT);

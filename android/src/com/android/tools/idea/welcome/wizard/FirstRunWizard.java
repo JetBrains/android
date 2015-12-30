@@ -17,8 +17,6 @@ package com.android.tools.idea.welcome.wizard;
 
 import com.android.repository.api.RemotePackage;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
@@ -28,12 +26,12 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.android.utils.NullLogger;
-import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -45,7 +43,7 @@ public class FirstRunWizard extends DynamicWizard {
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
 
   @NotNull private final FirstRunWizardMode myMode;
-  @Nullable private final Multimap<String, RemotePackage> myRemotePackages;
+  @Nullable private final Map<String, RemotePackage> myRemotePackages;
   /**
    * On the first user click on finish button, we show progress step & perform setup.
    * Second attempt will close the wizard.
@@ -56,7 +54,7 @@ public class FirstRunWizard extends DynamicWizard {
 
   public FirstRunWizard(@NotNull DynamicWizardHost host,
                         @NotNull FirstRunWizardMode mode,
-                        @NotNull Multimap<String, RemotePackage> remotePackages) {
+                        @NotNull Map<String, RemotePackage> remotePackages) {
     super(null, null, WIZARD_TITLE, host);
     myMode = mode;
     myJdkPath = new SetupJdkPath(mode);

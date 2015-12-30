@@ -16,8 +16,13 @@
 
 package com.android.tools.idea.sdkv2;
 
+import com.android.repository.api.Channel;
+import com.android.repository.api.RepoManager;
 import com.android.repository.api.SettingsController;
+import com.android.repository.impl.meta.CommonFactory;
 import com.intellij.openapi.components.*;
+import com.intellij.openapi.updateSettings.impl.ChannelStatus;
+import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -45,6 +50,32 @@ public class StudioSettingsController implements PersistentStateComponent<Studio
   @Override
   public void setForceHttp(boolean forceHttp) {
     myState.myForceHttp = forceHttp;
+  }
+
+  @Override
+  @Nullable
+  public Channel getChannel() {
+    Channel res = null;
+    ChannelStatus channelStatus = ChannelStatus.fromCode(UpdateSettings.getInstance().getUpdateChannelType());
+    switch (channelStatus) {
+      case RELEASE:
+        res = Channel.create(0);
+        break;
+      case BETA:
+        res = Channel.create(1);
+        break;
+      case MILESTONE:
+        res = Channel.create(2);
+        break;
+      case EAP:
+        res = Channel.create(3);
+        break;
+      default:
+        // should never happen
+        return null;
+    }
+    res.setValue(channelStatus.getDisplayName());
+    return res;
   }
 
   @Nullable

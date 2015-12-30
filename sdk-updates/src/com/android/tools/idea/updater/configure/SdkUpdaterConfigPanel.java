@@ -124,16 +124,6 @@ public class SdkUpdaterConfigPanel {
   private HyperlinkLabel myChannelLink;
 
   /**
-   * Whether there are any preview packages available.
-   */
-  private boolean myHasPreview;
-
-  /**
-   * Channel-based setting of whether to show preview packages.
-   */
-  private boolean myIncludePreview;
-
-  /**
    * Tab pane containing {@link #myPlatformComponentsPanel}, {@link #myToolComponentsPanel}, and {@link #myUpdateSitesPanel}.
    */
   private JBTabbedPane myTabPane;
@@ -283,17 +273,6 @@ public class SdkUpdaterConfigPanel {
   }
 
   /**
-   * Sets whether (based on the selected channel) we should show preview packages or not.
-   */
-  public void setIncludePreview(boolean includePreview) {
-    myIncludePreview = includePreview;
-    myChannelLink.setVisible(myHasPreview && !myIncludePreview);
-    myPlatformComponentsPanel.setIncludePreview(includePreview);
-    myToolComponentsPanel.setIncludePreview(includePreview);
-    loadPackages(getRepoManager().getPackages());
-  }
-
-  /**
    * Gets our main component. Useful for e.g. creating modal dialogs that need to show on top of this (that is, with this as the parent).
    */
   public JComponent getComponent() {
@@ -437,10 +416,6 @@ public class SdkUpdaterConfigPanel {
     Set<UpdatablePackage> buildToolsPackages = Sets.newTreeSet();
     Set<UpdatablePackage> toolsPackages = Sets.newTreeSet();
     for (UpdatablePackage info : packages.getConsolidatedPkgs().values()) {
-      if (!myIncludePreview && !info.hasLocal() && !info.hasRemote(false)) {
-        // We're not looking for previews, and this only has a preview available.
-        continue;
-      }
       RepoPackage p = info.getRepresentative();
       TypeDetails details = p.getTypeDetails();
       if (details instanceof DetailsTypes.ApiDetailsType) {
@@ -452,11 +427,9 @@ public class SdkUpdaterConfigPanel {
       else {
         toolsPackages.add(info);
       }
-      if (info.hasPreview()) {
-        myHasPreview = true;
-      }
     }
-    myChannelLink.setVisible(myHasPreview && !myIncludePreview);
+    // TODO: when should we show this?
+    //myChannelLink.setVisible(myHasPreview && !myIncludePreview);
     myPlatformComponentsPanel.setPackages(platformPackages);
     myToolComponentsPanel.setPackages(toolsPackages, buildToolsPackages);
   }

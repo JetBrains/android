@@ -16,14 +16,11 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.android.repository.api.RemotePackage;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
-import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.ui.UISettings;
@@ -59,7 +56,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
   private static final Insets BUTTON_MARGINS = new Insets(2, 16, 2, 16);
   @NotNull private final FirstRunWizardMode myMode;
-  @NotNull private final Multimap<String, RemotePackage> myRemotePackages;
+  @NotNull private final Map<String, RemotePackage> myRemotePackages;
 
   private Action myCancelAction = new CancelAction();
   private Action myPreviousAction = new PreviousAction();
@@ -77,7 +74,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   private boolean myIsActive;
 
   public FirstRunWizardHost(@NotNull FirstRunWizardMode mode,
-                            @NotNull Multimap<String, RemotePackage> remotePackages) {
+                            @NotNull Map<String, RemotePackage> remotePackages) {
     super(new BorderLayout());
     myMode = mode;
     myRemotePackages = remotePackages;

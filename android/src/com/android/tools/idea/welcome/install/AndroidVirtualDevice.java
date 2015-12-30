@@ -44,7 +44,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -80,10 +79,10 @@ public class AndroidVirtualDevice extends InstallableComponent {
   @Nullable
   private final AndroidVersion myLatestVersion;
 
-  public AndroidVirtualDevice(@NotNull ScopedStateStore store, @NotNull Multimap<String, RemotePackage> remotePackages, FileOp fop) {
+  public AndroidVirtualDevice(@NotNull ScopedStateStore store, @NotNull Map<String, RemotePackage> remotePackages, FileOp fop) {
     super(store, "Android Virtual Device", Storage.Unit.GiB.getNumberOfBytes(),
           "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)", fop);
-    RemotePackage latestInfo = InstallComponentsPath.findLatestPlatform(remotePackages, false);
+    RemotePackage latestInfo = InstallComponentsPath.findLatestPlatform(remotePackages);
     myLatestVersion = DetailsTypes.getAndroidVersion((DetailsTypes.PlatformDetailsType)latestInfo.getTypeDetails());
   }
 
@@ -172,7 +171,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<String> getRequiredSdkPackages(Multimap<String, RemotePackage> remotePackages) {
+  public Collection<String> getRequiredSdkPackages(Map<String, RemotePackage> remotePackages) {
     List<String> result = Lists.newArrayList();
     if (myLatestVersion != null) {
       result.add(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG));

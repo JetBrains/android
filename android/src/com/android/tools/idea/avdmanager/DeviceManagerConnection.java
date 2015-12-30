@@ -28,6 +28,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.WeakHashMap;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +67,7 @@ public class DeviceManagerConnection {
 
   @NotNull
   public static DeviceManagerConnection getDefaultDeviceManagerConnection() {
-    File sdkPath = AndroidSdkHandler.getInstance().getLocation();
+    File sdkPath = AndroidSdkUtils.tryToChooseSdkHandler().getLocation();
     if (sdkPath != null) {
       return getDeviceManagerConnection(sdkPath);
     }
