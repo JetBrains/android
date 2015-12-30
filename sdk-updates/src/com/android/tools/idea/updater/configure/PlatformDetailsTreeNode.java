@@ -32,19 +32,17 @@ import javax.swing.event.ChangeListener;
  */
 class PlatformDetailsTreeNode extends UpdaterTreeNode {
   private NodeStateHolder myStateHolder;
-  private boolean myIncludePreview;
   private final ChangeListener myChangeListener;
 
-  public PlatformDetailsTreeNode(@NotNull NodeStateHolder state, boolean includePreview, @Nullable ChangeListener changeListener) {
+  public PlatformDetailsTreeNode(@NotNull NodeStateHolder state, @Nullable ChangeListener changeListener) {
     myStateHolder = state;
-    myIncludePreview = includePreview;
     myStateHolder.setState(getInitialState());
     myChangeListener = changeListener;
   }
 
   @Override
   public NodeStateHolder.SelectedState getInitialState() {
-    return myStateHolder.getPkg().isUpdate(myIncludePreview)
+    return myStateHolder.getPkg().isUpdate()
            ? NodeStateHolder.SelectedState.MIXED
            : myStateHolder.getPkg().hasLocal() ? NodeStateHolder.SelectedState.INSTALLED : NodeStateHolder.SelectedState.NOT_INSTALLED;
   }
@@ -115,7 +113,7 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
 
   @Override
   protected boolean canHaveMixedState() {
-    return myStateHolder.getPkg().isUpdate(myIncludePreview);
+    return myStateHolder.getPkg().isUpdate();
   }
 
   @Override
@@ -126,7 +124,7 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
     else if (getInitialState() == NodeStateHolder.SelectedState.MIXED) {
       // The initial state being mixed ensures we have a remote we care about
       //noinspection ConstantConditions
-      return "Update Available: " + myStateHolder.getPkg().getRemote(myIncludePreview).getVersion();
+      return "Update Available: " + myStateHolder.getPkg().getRemote().getVersion();
     }
     else {
       return "Installed";
