@@ -278,18 +278,7 @@ public abstract class IdeaSourceProvider {
         return Collections.emptyList();
       }
 
-      Set<File> sourceFolders = Sets.newLinkedHashSet();
-      for (NativeArtifact artifact : nativeAndroidGradleModel.getSelectedVariant().getArtifacts()) {
-        for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
-          sourceFolders.add(sourceFolder.getFolderPath());
-        }
-        for (NativeFile sourceFile : artifact.getSourceFiles()) {
-          File parentFile = sourceFile.getFilePath().getParentFile();
-          if (parentFile != null) {
-            sourceFolders.add(parentFile);
-          }
-        }
-      }
+      Collection<File> sourceFolders = nativeAndroidGradleModel.getSelectedVariant().getSourceFolders();
 
       Collection<VirtualFile> result = Sets.newLinkedHashSetWithExpectedSize(sourceFolders.size());
       LocalFileSystem fileSystem = LocalFileSystem.getInstance();
@@ -299,6 +288,7 @@ public abstract class IdeaSourceProvider {
           result.add(virtualFile);
         }
       }
+
       return result;
     }
 
