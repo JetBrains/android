@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.repository.Revision;
@@ -25,6 +26,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
@@ -683,13 +685,13 @@ public class PostProjectSetupTasksExecutor {
 
     @Override
     protected void execute(@NotNull Project project) {
-      List<IPkgDesc> requested = Lists.newArrayList();
+      List<String> requested = Lists.newArrayList();
       if (myVersion.getMajor() == 23) {
         Revision minBuildToolsRev = new Revision(20, 0, 0);
-        requested.add(PkgDesc.Builder.newPlatformTool(minBuildToolsRev).create());
+        requested.add(DetailsTypes.getBuildToolsPath(minBuildToolsRev));
       }
-      requested.add(PkgDesc.Builder.newTool(myVersion, myVersion).create());
-      ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(project, requested);
+      requested.add(SdkConstants.FD_TOOLS);
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
       if (dialog != null && dialog.showAndGet()) {
         GradleProjectImporter.getInstance().requestProjectSync(project, null);
       }

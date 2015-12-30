@@ -244,11 +244,6 @@ public class RenderLogger extends LayoutLog {
         return;
       }
 
-      if (throwable instanceof NoSuchMethodError && "java.lang.System.arraycopy([CI[CII)V".equals(message)) {
-        addMessage(getProblemForIssue73732(throwable));
-        return;
-      }
-
       if ("Unable to find the layout for Action Bar.".equals(description)) {
         description += "\nConsider updating to a more recent version of appcompat, or switch the rendering library in the IDE " +
                        "down to API 21";
@@ -692,65 +687,6 @@ public class RenderLogger extends LayoutLog {
   @Nullable
   public List<String> getMissingFragments() {
     return myMissingFragments;
-  }
-
-  @NotNull
-  private RenderProblem.Html getProblemForIssue73732(Throwable throwable) {
-    RenderProblem.Html problem = RenderProblem.create(ERROR);
-    problem.tag("73732");
-    problem.throwable(throwable);
-    HtmlBuilder builder = problem.getHtmlBuilder();
-    builder.add("There are some known bugs in this version of the rendering library. Until a new version is available, use the " +
-                "rendering library from L-preview.");
-    if (myModule == null) {
-      // Shouldn't really happen, but just in case...
-      return problem;
-    }
-    ShowExceptionFix detailsFix = new ShowExceptionFix(myModule.getProject(), throwable);
-    builder.addLink(" ", "Show Exception", ".", getLinkManager().createRunnableLink(detailsFix));
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
-    if (platform == null) {
-      // Again, shouldn't happen.
-      return problem;
-    }
-    // Check if L-preview is installed.
-    final AndroidSdkData sdkData = platform.getSdkData();
-    final IAndroidTarget targetL = sdkData.findTargetByApiLevel("L");
-    if (targetL != null) {
-      // L-preview found.
-      builder.addLink(" Click ", "here", " to use L-preview.", getLinkManager().createRunnableLink(new Runnable() {
-        @Override
-        public void run() {
-          AndroidFacet facet = AndroidFacet.getInstance(myModule);
-          if (facet != null) {
-            facet.getConfigurationManager().setTarget(targetL);
-          }
-        }
-      }));
-      return problem;
-    }
-    builder.addLink(" Click ", "here", " to install L-preview SDK Platform", getLinkManager().createRunnableLink(new Runnable() {
-      @Override
-      public void run() {
-        IPkgDesc lPreviewLib =
-          PkgDesc.Builder.newPlatform(new AndroidVersion(21, "L"), new Revision(4), Revision.NOT_SPECIFIED).create();
-        List<IPkgDesc> requested = Lists.newArrayList(lPreviewLib);
-        ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(myModule.getProject(), requested);
-        if (dialog != null && dialog.showAndGet()) {
-          // Force target to be recomputed.
-          sdkData.getLocalSdk().clearLocalPkg(EnumSet.of(PkgType.PKG_PLATFORM));
-          AndroidFacet facet = AndroidFacet.getInstance(myModule);
-          if (facet != null) {
-            facet.getConfigurationManager().setTarget(null);
-          }
-          // http://b.android.com/76622
-          Messages.showInfoMessage(myModule.getProject(),
-                                   "Note: Due to a bug, you may need to restart the IDE for the new LayoutLibrary to take full effect.",
-                                   "Restart Recommended");
-        }
-      }
-    }));
-    return problem;
   }
 
   /**
