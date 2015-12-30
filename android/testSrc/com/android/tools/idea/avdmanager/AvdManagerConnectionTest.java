@@ -39,8 +39,7 @@ public class AvdManagerConnectionTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(myFileOp);
-    sdkHandler.setLocation(new File("/sdk"));
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), myFileOp);
     tempDir = new File("/tmp");
 
     myAvdInfo =

@@ -56,7 +56,6 @@ public class PlatformComponentsPanel {
   @SuppressWarnings("unused") private AsyncProcessIcon myPlatformLoadingIcon;
   @SuppressWarnings("unused") private JPanel myRootPanel;
   private boolean myModified;
-  private boolean myIncludePreview;
 
   private UpdaterTreeNode myPlatformDetailsRootNode;
   private UpdaterTreeNode myPlatformSummaryRootNode;
@@ -104,7 +103,7 @@ public class PlatformComponentsPanel {
         RepoPackage pkg = info.getRepresentative();
         NodeStateHolder holder = new NodeStateHolder(info);
         myStates.add(holder);
-        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener);
+        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener);
         marker.add(node);
         versionNodes.add(node);
         if (pkg.obsolete() && pkg.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {
@@ -188,13 +187,6 @@ public class PlatformComponentsPanel {
 
   public void clearState() {
     myStates.clear();
-  }
-
-  /**
-   * After changing whether previews are included, setPackages() must be called again with appropriately filtered packages.
-   */
-  public void setIncludePreview(boolean includePreview) {
-    myIncludePreview = includePreview;
   }
 
   public void setEnabled(boolean enabled) {

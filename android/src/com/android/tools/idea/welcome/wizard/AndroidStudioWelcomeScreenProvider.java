@@ -17,9 +17,7 @@ package com.android.tools.idea.welcome.wizard;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonsListConstants;
 import com.android.tools.idea.sdkv2.StudioDownloader;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
@@ -27,8 +25,7 @@ import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -59,7 +57,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   /**
    * Analyzes system state and decides if and how the wizard should be invoked.
    *
-   * @return one of the {@link com.android.tools.idea.welcome.config.FirstRunWizardMode} constants or {@code null} if wizard is not needed.
+   * @return one of the {@link FirstRunWizardMode} constants or {@code null} if wizard is not needed.
    */
   @Nullable
   public static FirstRunWizardMode getWizardMode() {
@@ -161,7 +159,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   @Nullable
   @Override
   public WelcomeScreen createWelcomeScreen(JRootPane rootPane) {
-    Multimap<String, RemotePackage> remotePackages = fetchPackages();
+    Map<String, RemotePackage> remotePackages = fetchPackages();
     FirstRunWizardMode wizardMode = getWizardMode();
     assert wizardMode != null; // This means isAvailable was false! Why are we even called?
     //noinspection AssignmentToStaticFieldFromInstanceMethod
@@ -170,19 +168,19 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   }
 
   @NotNull
-  private static Multimap<String, RemotePackage> fetchPackages() {
+  private static Map<String, RemotePackage> fetchPackages() {
     ConnectionState connectionState = checkInternetConnection();
     switch (connectionState) {
       case OK:
         break;
       case NO_CONNECTION:
-        return ImmutableMultimap.of();
+        return ImmutableMap.of();
       default:
         throw new IllegalArgumentException(connectionState.name());
     }
 
     StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(AndroidStudioWelcomeScreenProvider.class);
-    RepoManager mgr = AndroidSdkHandler.getInstance().getSdkManager(logger);
+    RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(logger);
     mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, logger, new StudioDownloader(),
                           StudioSettingsController.getInstance());
 

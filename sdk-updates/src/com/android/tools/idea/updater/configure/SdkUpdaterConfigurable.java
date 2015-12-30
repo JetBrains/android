@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.repository.api.LocalPackage;
-import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoManager;
-import com.android.repository.api.UpdatablePackage;
+import com.android.repository.api.*;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -30,19 +27,23 @@ import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdkv2.StudioDownloader;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdkv2.StudioSettingsController;
-import com.android.tools.idea.updater.SdkComponentSource;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
+import com.google.common.base.Objects;
 import com.google.common.collect.*;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.ui.AncestorListenerAdapter;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,8 +62,9 @@ import java.util.Set;
  */
 public class SdkUpdaterConfigurable implements SearchableConfigurable {
   private SdkUpdaterConfigPanel myPanel;
-  private boolean myIncludePreview;
   private AndroidSdkHandler mySdkHandler;
+  private Channel myCurrentChannel;
+  private Runnable myChannelChangedCallback;
 
   @NotNull
   @Override
@@ -91,25 +93,24 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nullable
   @Override
   public JComponent createComponent() {
-    final Runnable channelChangedCallback = new Runnable() {
+    myChannelChangedCallback = new Runnable() {
       @Override
       public void run() {
-        boolean newIncludePreview =
-          SdkComponentSource.PREVIEW_CHANNEL.equals(UpdateSettings.getInstance().getExternalUpdateChannels().get(SdkComponentSource.NAME));
-        if (newIncludePreview != myIncludePreview) {
-          myIncludePreview = newIncludePreview;
-          myPanel.setIncludePreview(myIncludePreview);
+        Channel channel = StudioSettingsController.getInstance().getChannel();
+        if (!Objects.equal(channel, myCurrentChannel)) {
+          myCurrentChannel = channel;
+          myPanel.refresh();
         }
       }
     };
-    mySdkHandler = AndroidSdkHandler.getInstance();
+    mySdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
     myPanel =
-      new SdkUpdaterConfigPanel(mySdkHandler, channelChangedCallback, new StudioDownloader(), StudioSettingsController.getInstance());
+      new SdkUpdaterConfigPanel(mySdkHandler, myChannelChangedCallback, new StudioDownloader(), StudioSettingsController.getInstance());
     JComponent component = myPanel.getComponent();
     component.addAncestorListener(new AncestorListenerAdapter() {
       @Override
       public void ancestorAdded(AncestorEvent event) {
-        channelChangedCallback.run();
+        myChannelChangedCallback.run();
       }
     });
 
@@ -122,7 +123,22 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
   @Override
   public boolean isModified() {
-    return myPanel.isModified();
+    if (myPanel.isModified()) {
+      return true;
+    }
+
+    // If the user modifies the channel, comes back here, and then applies the change, we want to be able to update
+    // right away. Thus we mark ourselves as modified if UpdateSettingsConfigurable is modified, and then reload in
+    // apply().
+    DataContext dataContext = DataManager.getInstance().getDataContext(myPanel.getComponent());
+    Settings data = Settings.KEY.getData(dataContext);
+    if (data != null) {
+      Configurable updatesConfigurable = data.find("preferences.updates");
+      if (updatesConfigurable != null) {
+        return updatesConfigurable.isModified();
+      }
+    }
+    return false;
   }
 
   @Override
@@ -140,9 +156,9 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         }
       }
       else if (holder.getState() == NodeStateHolder.SelectedState.INSTALLED &&
-               (holder.getPkg().isUpdate(myIncludePreview) || !holder.getPkg().hasLocal())) {
+               (holder.getPkg().isUpdate() || !holder.getPkg().hasLocal())) {
         UpdatablePackage pkg = holder.getPkg();
-        requestedPackages.put(pkg.getRemote(myIncludePreview), pkg);
+        requestedPackages.put(pkg.getRemote(), pkg);
       }
     }
     boolean found = false;
@@ -221,6 +237,10 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       else {
         throw new ConfigurationException("Installation was canceled.");
       }
+    }
+    else {
+      // We didn't have any changes, so just reload (maybe the channel changed).
+      myChannelChangedCallback.run();
     }
   }
 

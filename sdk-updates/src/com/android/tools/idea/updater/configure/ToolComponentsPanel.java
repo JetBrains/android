@@ -104,21 +104,21 @@ public class ToolComponentsPanel {
     for (UpdatablePackage info : myBuildToolsPackages) {
       NodeStateHolder holder = new NodeStateHolder(info);
       myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener);
+      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener);
       buildToolsParent.add(node);
       buildToolsNodes.add(node);
     }
     myToolsDetailsRootNode.add(buildToolsParent);
 
-    myToolsSummaryRootNode.add(new BuildToolsSummaryTreeNode(buildToolsNodes, myIncludePreview));
+    myToolsSummaryRootNode.add(new BuildToolsSummaryTreeNode(buildToolsNodes));
 
     for (UpdatablePackage info : myToolsPackages) {
       NodeStateHolder holder = new NodeStateHolder(info);
       myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener);
+      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener);
       myToolsDetailsRootNode.add(node);
       if (!info.getRepresentative().obsolete()) {
-        myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener));
+        myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myModificationListener));
       }
     }
     refreshModified();
@@ -195,12 +195,5 @@ public class ToolComponentsPanel {
 
   public void clearState() {
     myStates.clear();
-  }
-
-  /**
-   * After changing whether previews are included, setPackages() must be called again with appropriately filtered packages.
-   */
-  public void setIncludePreview(boolean includePreview) {
-    myIncludePreview = includePreview;
   }
 }

@@ -51,7 +51,7 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
   /**
    * Reference to the {@link AndroidSdkHandler} that's using this loader.
    */
-  private final AndroidSdkHandler mySdkHandler;
+  private final AndroidSdkHandler HANDLER = AndroidSdkHandler.getInstance(null);
 
   /**
    * Caching downloader used by {@link SdkSource}s.
@@ -74,9 +74,8 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
    * @param settingsController For download-related settings.
    * @param handler            The {@link AndroidSdkHandler} that's using this loader.
    */
-  public LegacyRemoteRepoLoader(@NotNull SettingsController settingsController, @NotNull AndroidSdkHandler handler) {
+  public LegacyRemoteRepoLoader(@NotNull SettingsController settingsController) {
     mySettingsController = settingsController;
-    mySdkHandler = handler;
     myLocalSdk = new LocalSdk();
   }
 
@@ -110,13 +109,13 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     RemotePkgInfo[] packages = null;
     for (SchemaModule module : source.getPermittedModules()) {
       legacySource = null;
-      if (module.equals(mySdkHandler.getRepositoryModule(progress))) {
+      if (module.equals(HANDLER.getRepositoryModule(progress))) {
         legacySource = new SdkRepoSource(source.getUrl(), "Legacy Repo Source");
       }
-      else if (module.equals(mySdkHandler.getAddonModule(progress))) {
+      else if (module.equals(HANDLER.getAddonModule(progress))) {
         legacySource = new SdkAddonSource(source.getUrl(), "Legacy Addon Source");
       }
-      else if (module.equals(mySdkHandler.getSysImgModule(progress))) {
+      else if (module.equals(HANDLER.getSysImgModule(progress))) {
         legacySource = new SdkSysImgSource(source.getUrl(), "Legacy System Image Source");
       }
       if (legacySource != null) {
@@ -151,10 +150,12 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     private final RemotePkgInfo myWrapped;
     private RepositorySource mySource;
     private TypeDetails myDetails;
+    private RemotePackage mNewPackageInstance;
 
     LegacyRemotePackage(RemotePkgInfo remote, RepositorySource source) {
       myWrapped = remote;
       mySource = source;
+      mNewPackageInstance = ((CommonFactory)RepoManager.getCommonModule().createLatestFactory()).createRemotePackage();
     }
 
     @Override
@@ -207,7 +208,7 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     @NotNull
     @Override
     public CommonFactory createFactory() {
-      return (CommonFactory)mySdkHandler.getCommonModule(new StudioLoggerProgressIndicator(getClass())).createLatestFactory();
+      return (CommonFactory)HANDLER.getCommonModule(new StudioLoggerProgressIndicator(getClass())).createLatestFactory();
     }
 
     @Override
@@ -255,9 +256,7 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     public Archive getArchive() {
       for (com.android.tools.idea.sdk.remote.internal.archives.Archive archive : myWrapped.getArchives()) {
         if (archive.isCompatible()) {
-          ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-          SchemaModule commonModule = AndroidSdkHandler.getInstance().getSdkManager(progress).getCommonModule();
-          CommonFactory f = (CommonFactory)commonModule.createLatestFactory();
+          CommonFactory f = (CommonFactory)RepoManager.getCommonModule().createLatestFactory();
           Archive arch = f.createArchiveType();
           Archive.CompleteType complete = f.createCompleteType();
           complete.setChecksum(archive.getChecksum());
@@ -281,6 +280,16 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
         }
       }
       return null;
+    }
+
+    @NotNull
+    @Override
+    public Channel getChannel() {
+      if (getVersion().isPreview()) {
+        // We map the old concept of previews to the second-stablest channel.
+        return Channel.create(1);
+      }
+      return Channel.create(0);
     }
 
     @Override
