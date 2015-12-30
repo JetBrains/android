@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
+import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.sdklib.BuildToolInfo;
-import com.android.repository.Revision;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixBuildToolsVersionHyperlink;
