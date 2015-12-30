@@ -46,7 +46,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
     @Override
     public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
       if  (DEEP_LINK == null || DEEP_LINK.isEmpty()) {
-        return ImmutableList.of(ValidationError.warning("Deep Link not specified"));
+        return ImmutableList.of(ValidationError.warning("URL not specified"));
       } else {
         return ImmutableList.of();
       }
@@ -62,7 +62,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
   @NotNull
   @Override
   public String getDisplayName() {
-    return "Deep Link";
+    return "URL";
   }
 
   @NotNull
