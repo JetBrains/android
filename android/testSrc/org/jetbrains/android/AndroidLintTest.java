@@ -571,6 +571,15 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintWrongViewCastInspection());
   }
 
+  public void testViewTypeStub() throws Exception {
+    // Regression test for 183136: don't take id references to imply a
+    // view type of the referencing type
+    myFixture.copyFileToProject(getGlobalTestDir() + "/stub_inflated_layout.xml", "res/layout/stub_inflated_layout.xml");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/main.xml", "res/layout/main.xml");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/WrongCastActivity.java", "src/p1/p2/WrongCastActivity.java");
+    doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintWrongViewCastInspection());
+  }
+
   public void testDuplicateIcons() throws Exception {
     myFixture.copyFileToProject(getGlobalTestDir() + "/dup1.png", "res/drawable/dup1.png");
     myFixture.copyFileToProject(getGlobalTestDir() + "/dup2.png", "res/drawable/dup2.png");
