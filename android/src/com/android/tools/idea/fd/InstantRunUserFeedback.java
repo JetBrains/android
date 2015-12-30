@@ -64,10 +64,6 @@ public class InstantRunUserFeedback implements UserFeedback {
 
   @Override
   public void notifyEnd(UpdateMode updateMode) {
-    if (InstantRunManager.DISPLAY_STATISTICS) {
-      InstantRunManager.notifyEnd(myModule.getProject());
-    }
-
     if (updateMode == UpdateMode.HOT_SWAP && !InstantRunSettings.isRestartActivity(myModule.getProject()) && !ourHideRestartTip) {
       StringBuilder sb = new StringBuilder(300);
       sb.append("<html>");

@@ -23,6 +23,7 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -30,7 +31,10 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +43,7 @@ import java.util.concurrent.TimeoutException;
 public class LaunchTaskRunner extends Task.Backgroundable {
   @NotNull private final String myConfigName;
   @NotNull private final LaunchInfo myLaunchInfo;
-  @NotNull private final AndroidProcessHandler myProcessHandler;
+  @NotNull private final ProcessHandler myProcessHandler;
   @NotNull private final Collection<ListenableFuture<IDevice>> myDeviceFutures;
   @NotNull private final LaunchTasksProvider myLaunchTasksProvider;
 
@@ -48,7 +52,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   public LaunchTaskRunner(@NotNull Project project,
                           @NotNull String configName,
                           @NotNull LaunchInfo launchInfo,
-                          @NotNull AndroidProcessHandler processHandler,
+                          @NotNull ProcessHandler processHandler,
                           @NotNull Collection<ListenableFuture<IDevice>> deviceFutures,
                           @NotNull LaunchTasksProvider launchTasksProvider) {
     super(project, "Launching " + configName);
@@ -78,6 +82,9 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       // we need to copy over console output from the first console to the debug console once it is established
       AndroidProcessText.attach(myProcessHandler);
     }
+
+    DateFormat dateFormat = new SimpleDateFormat("MM/dd HH:mm:ss");
+    consolePrinter.stdout("\n" + dateFormat.format(new Date()) + ": Launching " + myConfigName);
 
     for (ListenableFuture<IDevice> deviceFuture : myDeviceFutures) {
       indicator.setText2("Waiting for target device to come online");
@@ -121,9 +128,10 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         debugSessionTask
           .perform(myLaunchInfo, device, (ProcessHandlerLaunchStatus)launchStatus, (ProcessHandlerConsolePrinter)consolePrinter);
       }
-      else {
-        // we only need this if we are not debugging..
-        myProcessHandler.addTargetDevice(device);
+      else { // we only need to inform the process handler if we aren't debugging, or doing a hot swap
+        if (myLaunchTasksProvider.createsNewProcess() && myProcessHandler instanceof AndroidProcessHandler) {
+          ((AndroidProcessHandler)myProcessHandler).addTargetDevice(device);
+        }
       }
     }
   }
@@ -138,10 +146,12 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     }
     else {
       type = NotificationType.INFORMATION;
-      message = "Launched";
+      message = myLaunchTasksProvider.getSuccessMessage();
     }
 
-    LaunchUtils.showNotification(myProject, myLaunchInfo.executor, myConfigName, message, type);
+    if (message != null) {
+      LaunchUtils.showNotification(myProject, myLaunchInfo.executor, myConfigName, message, type);
+    }
   }
 
   @Nullable
