@@ -32,7 +32,7 @@ public class CreateDeepLinkIntentionAction extends AbstractIntentionAction {
 
   @Override
   public String getText() {
-    return "Create Deep Link";
+    return "Add URL";
   }
 
   @Override

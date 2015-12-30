@@ -46,7 +46,7 @@ public class DeepLinkConfigurable implements LaunchOptionConfigurable<DeepLinkLa
           return;
         }
         DeepLinkChooserDialog dialog = new DeepLinkChooserDialog(project, module);
-        dialog.setTitle("Select Deep Link");
+        dialog.setTitle("Select URL");
         dialog.show();
 
         String deepLinkSelected = dialog.getSelectedDeepLink();
@@ -55,7 +55,7 @@ public class DeepLinkConfigurable implements LaunchOptionConfigurable<DeepLinkLa
         }
       }
     });
-    myDeepLinkField.getChildComponent().getEmptyText().setText("Specify deep link declared in the manifest");
+    myDeepLinkField.getChildComponent().getEmptyText().setText("Specify URL declared in the manifest");
   }
 
   private void createUIComponents() {
