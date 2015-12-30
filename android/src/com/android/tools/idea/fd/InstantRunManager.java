@@ -31,8 +31,6 @@ import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
-import com.android.utils.XmlUtils;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
@@ -74,8 +72,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -94,7 +90,7 @@ import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
  * in the IDE: determining if an app is running with the fast deploy runtime, whether it's up to date, communicating with it, etc.
  */
 public final class InstantRunManager implements ProjectComponent {
-  public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.0.0-alpha1";
+  public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.0.0-alpha4";
   public static final Revision MINIMUM_GRADLE_PLUGIN_VERSION = Revision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
 
@@ -352,24 +348,24 @@ public final class InstantRunManager implements ProjectComponent {
     return ServiceManager.getService(InstalledPatchCache.class).getInstalledArscTimestamp(device, pkgName);
   }
 
-  /** Returns true if any of the devices in the given list require a rebuild */
-  public static boolean isRebuildRequired(@NotNull Collection<IDevice> devices, @NotNull Module module) {
+  /** Returns true if any of the devices in the given list require a full build. */
+  public static boolean canBuildIncrementally(@NotNull Collection<IDevice> devices, @NotNull Module module) {
     for (IDevice device : devices) {
-      if (isRebuildRequired(device, module)) {
-        return true;
+      if (needsFullBuild(device, module)) {
+        return false;
       }
     }
 
-    return false;
+    return true;
   }
 
   /**
-   * Returns true if a full rebuild is required for the app. Currently, this is the
+   * Returns true if a full build is required for the app. Currently, this is the
    * case if something in the manifest has changed (at the moment, we're only looking
    * at manifest file edits, not diffing the contents or disregarding "irrelevant"
    * edits such as whitespace or comments.
    */
-  private static boolean isRebuildRequired(@NotNull IDevice device, @NotNull Module module) {
+  private static boolean needsFullBuild(@NotNull IDevice device, @NotNull Module module) {
     AndroidVersion deviceVersion = device.getVersion();
     if (!isInstantRunCapableDeviceVersion(deviceVersion)) {
       String message = "Device with API level " + deviceVersion + " not capable of instant run.";
