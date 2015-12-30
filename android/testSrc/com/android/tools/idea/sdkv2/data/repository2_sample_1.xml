@@ -16,6 +16,7 @@
   -->
 <sdk:sdk-repository
         xmlns:sdk="http://schemas.android.com/sdk/android/repo/repository2/01"
+        xmlns:generic="http://schemas.android.com/repository/android/generic/01"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <!-- Define a couple of licenses. These will be referenced by uses-license later. -->
@@ -82,6 +83,7 @@
 
 
     <remotePackage path="docs">
+        <type-details xsi:type="generic:genericDetailsType"/>
         <revision>
             <major>43</major>
         </revision>

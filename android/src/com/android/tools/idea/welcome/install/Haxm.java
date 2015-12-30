@@ -32,7 +32,6 @@ import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Platform;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -54,6 +53,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -300,7 +300,7 @@ public final class Haxm extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<String> getRequiredSdkPackages(@Nullable Multimap<String, RemotePackage> remotePackages) {
+  public Collection<String> getRequiredSdkPackages(@Nullable Map<String, RemotePackage> remotePackages) {
     return ImmutableList.of(REPO_PACKAGE_PATH);
   }
 }

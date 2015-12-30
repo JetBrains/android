@@ -38,6 +38,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +61,7 @@ public final class SdkQuickfixUtils {
    */
   @Nullable
   public static ModelWizardDialog createDialogForPaths(@Nullable Component parent, @NotNull Collection<String> requestedPaths) {
-    return createDialog(null, parent, requestedPaths, null, AndroidSdkHandler.getInstance());
+    return createDialog(null, parent, requestedPaths, null, getSdkHandler());
   }
 
   /**
@@ -71,7 +73,22 @@ public final class SdkQuickfixUtils {
    */
   @Nullable
   public static ModelWizardDialog createDialog(@Nullable Component parent, @NotNull Collection<UpdatablePackage> requestedPackages) {
-    return createDialog(null, parent, null, requestedPackages, AndroidSdkHandler.getInstance());
+    return createDialog(null, parent, null, requestedPackages, getSdkHandler());
+  }
+
+  private static AndroidSdkHandler getSdkHandler() {
+    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
+
+    if (data == null) {
+      String title = "SDK Problem";
+      String msg = "<html>" + "Your Android SDK is missing or out of date." + "<br>" +
+                   "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
+      Messages.showErrorDialog(msg, title);
+
+      return null;
+    }
+
+    return data.getSdkHandler();
   }
 
   @VisibleForTesting
@@ -80,7 +97,10 @@ public final class SdkQuickfixUtils {
                                         @Nullable Component parent,
                                         @Nullable Collection<String> requestedPaths,
                                         @Nullable Collection<UpdatablePackage> requestedPackages,
-                                        @NonNull AndroidSdkHandler sdkHandler) {
+                                        @Nullable AndroidSdkHandler sdkHandler) {
+    if (sdkHandler == null) {
+      return null;
+    }
 
     RepoManager mgr = sdkHandler.getSdkManager(REPO_LOGGER);
 
@@ -164,8 +184,7 @@ public final class SdkQuickfixUtils {
   private static void verifyAvailability(List<UpdatablePackage> requestedPackages, List<UpdatablePackage> unavailableDownloads) {
     for (Iterator<UpdatablePackage> iter = requestedPackages.listIterator(); iter.hasNext(); ) {
       UpdatablePackage p = iter.next();
-      // TODO: channels
-      if (!p.hasRemote(true)) {
+      if (!p.hasRemote()) {
         iter.remove();
         unavailableDownloads.add(p);
       }
@@ -287,8 +306,7 @@ public final class SdkQuickfixUtils {
     if (requestedPaths != null) {
       for (String path : requestedPaths) {
         UpdatablePackage p = packages.get(path);
-        // TODO: channels
-        if (p == null || !p.hasRemote(true)) {
+        if (p == null || !p.hasRemote()) {
           notFound.add(path);
         }
         else {
@@ -299,8 +317,7 @@ public final class SdkQuickfixUtils {
 
     List<RemotePackage> remotes = Lists.newArrayList();
     for (UpdatablePackage p : resolved) {
-      // TODO: channels
-      remotes.add(p.getRemote(true));
+      remotes.add(p.getRemote());
     }
     final AtomicReference<String> warning = new AtomicReference<String>();
     ProgressIndicator errorCollector = new ProgressIndicatorAdapter() {
@@ -333,9 +350,8 @@ public final class SdkQuickfixUtils {
 
     for (UpdatablePackage p : installRequests) {
       // At this point we know everything has a remote
-      // TODO: channels
-      RemotePackage remote = p.getRemote(true);
-      if (isWindows && p.isUpdate(true)) {
+      RemotePackage remote = p.getRemote();
+      if (isWindows && p.isUpdate()) {
         problems.add(remote);
       }
       else {

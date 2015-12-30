@@ -33,6 +33,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.EditableModel;
@@ -209,7 +210,12 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
         myLoadingFinishedCallback.run();
       }
     });
-    myRefreshCallback.run();
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        myRefreshCallback.run();
+      }
+    }, ModalityState.any());
   }
 
   /**

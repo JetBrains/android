@@ -29,16 +29,14 @@ import java.util.Set;
 class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
   PlatformDetailsTreeNode myMaxVersionNode;
   Set<UpdaterTreeNode> myBuildToolsNodes;
-  boolean myIncludePreview;
 
-  public BuildToolsSummaryTreeNode(Set<UpdaterTreeNode> buildToolsNodes, boolean includePreview) {
+  public BuildToolsSummaryTreeNode(Set<UpdaterTreeNode> buildToolsNodes) {
     myBuildToolsNodes = buildToolsNodes;
     for (UpdaterTreeNode node : myBuildToolsNodes) {
       if (myMaxVersionNode == null || node.compareTo(myMaxVersionNode) > 0) {
         myMaxVersionNode = (PlatformDetailsTreeNode)node;
       }
     }
-    myIncludePreview = includePreview;
   }
 
   @Override
@@ -98,8 +96,8 @@ class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
     } else {
       String revision;
       UpdatablePackage p = myMaxVersionNode.getItem();
-      if (p.hasRemote(myIncludePreview)) {
-        revision = p.getRemote(myIncludePreview).getVersion().toString();
+      if (p.hasRemote()) {
+        revision = p.getRemote().getVersion().toString();
       }
       else {
         assert false;

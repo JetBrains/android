@@ -281,11 +281,9 @@ public class GradleSpecificInitializer implements Runnable {
   private static void setupSdks() {
     File androidHome = IdeSdks.getAndroidSdkPath();
 
-    final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance();
-    sdkHandler.setRemoteFallback(new LegacyRemoteRepoLoader(StudioSettingsController.getInstance(), sdkHandler));
+    AndroidSdkHandler.setRemoteFallback(new LegacyRemoteRepoLoader(StudioSettingsController.getInstance()));
 
     if (androidHome != null) {
-      sdkHandler.setLocation(androidHome);
       WizardUtils.ValidationResult sdkValidationResult =
         WizardUtils.validateLocation(androidHome.getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
       if (sdkValidationResult.isError()) {
@@ -305,7 +303,6 @@ public class GradleSpecificInitializer implements Runnable {
     Sdk sdk = findFirstCompatibleAndroidSdk();
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
-      sdkHandler.setLocation(new File(sdk.getHomePath()));
       assert sdkHomePath != null;
       IdeSdks.createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
       return;
@@ -319,7 +316,6 @@ public class GradleSpecificInitializer implements Runnable {
         if (androidSdkPath == null) {
           return;
         }
-        sdkHandler.setLocation(androidSdkPath);
 
         FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
         // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
