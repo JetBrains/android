@@ -21,10 +21,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.FileChangeListener;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
@@ -66,50 +68,55 @@ public class GradleInvokerOptions {
                                             @NotNull RunConfiguration configuration,
                                             @NotNull ExecutionEnvironment env,
                                             @Nullable String userGoal) {
-    Collection<IDevice> devices = getTargetDevices(env);
-    List<String> cmdLineArgs = getGradleArgumentsToTarget(devices);
-
     if (!StringUtil.isEmpty(userGoal)) {
-      return new GradleInvokerOptions(Collections.singletonList(userGoal), null, cmdLineArgs);
-    }
-
-    // Inject instant run attributes
-    if (InstantRunSettings.isInstantRunEnabled(project)) {
-      // 194996: Don't instrument classes when running as test
-      // The Gradle plugin shouldn't instrument classes when about to run as
-      // a test. We need to not pass the instant run options in that case.
-      // Either GradleInvoker needs to be aware of what it is building, or this logic needs to be in the gradle plugin.
-      if (!MakeBeforeRunTaskProvider.isUnitTestConfiguration(configuration)) {
-        cmdLineArgs.add(getInstantRunProperties(project));
-      }
+      return new GradleInvokerOptions(Collections.singletonList(userGoal), null, Collections.<String>emptyList());
     }
 
     final Module[] modules = getModules(project, context, configuration);
-    if (Boolean.TRUE.equals(env.getCopyableUserData(AndroidRunConfigurationBase.FAST_DEPLOY))) {
-      Module module = modules[0];
-      LOG.info(String.format("Module %1$s can be updated incrementally.", module.getName()));
-      AndroidGradleModel model = AndroidGradleModel.get(module);
-      assert model != null : "Module selected for fast deploy, but doesn't seem to have the right gradle model";
-      String dexTask = InstantRunManager.getIncrementalDexTask(model, module);
-      return new GradleInvokerOptions(Collections.singletonList(dexTask), null, cmdLineArgs);
-    }
-
     if (MakeBeforeRunTaskProvider.isUnitTestConfiguration(configuration)) {
       // Make sure all "intermediates/classes" directories are up-to-date.
       Module[] affectedModules = getAffectedModules(project, modules);
       BuildMode buildMode = BuildMode.COMPILE_JAVA;
       List<String> tasks = GradleInvoker.findTasksToExecute(affectedModules, buildMode, GradleInvoker.TestCompileType.JAVA_TESTS);
-      return new GradleInvokerOptions(tasks, buildMode, cmdLineArgs);
+      return new GradleInvokerOptions(tasks, buildMode, Collections.<String>emptyList());
+    }
+
+    List<String> cmdLineArgs = Lists.newArrayList();
+
+    // Inject instant run attributes
+    // Note that these are specifically not injected for the unit test configurations above
+    if (InstantRunSettings.isInstantRunEnabled(project)) {
+      cmdLineArgs.add(getInstantDevProperty(project));
+      cmdLineArgs.addAll(getDeviceSpecificArguments(getTargetDevices(env)));
+
+      if (InstantRunUtils.isIncrementalBuild(env)) {
+        Module module = modules[0];
+        LOG.info(String.format("Module %1$s can be updated incrementally.", module.getName()));
+        AndroidGradleModel model = AndroidGradleModel.get(module);
+        assert model != null : "Module selected for fast deploy, but doesn't seem to have the right gradle model";
+        String dexTask = InstantRunManager.getIncrementalDexTask(model, module);
+        return new GradleInvokerOptions(Collections.singletonList(dexTask), null, cmdLineArgs);
+      }
     }
 
     BuildMode buildMode = BuildMode.ASSEMBLE;
     GradleInvoker.TestCompileType testCompileType = getTestCompileType(configuration);
-    List<String> tasks = GradleInvoker.findTasksToExecute(modules, buildMode, testCompileType);
+
+    List<String> tasks = Lists.newArrayList();
+
+    // When instant run property is set, Gradle always generates incremental builds from the current state on disk.
+    // This means that the IDE is responsible for looking at what is on the device and validating that the build on device
+    // matches one from the history of builds.
+    if (InstantRunSettings.isInstantRunEnabled(project) && !InstantRunUtils.deviceHasKnownBuild(env)) {
+      tasks.add(GradleBuilds.CLEAN_TASK_NAME);
+    }
+    tasks.addAll(GradleInvoker.findTasksToExecute(modules, buildMode, testCompileType));
+
     return new GradleInvokerOptions(tasks, buildMode, cmdLineArgs);
   }
 
   @NotNull
-  private static String getInstantRunProperties(@NotNull Project project) {
+  private static String getInstantDevProperty(@NotNull Project project) {
     StringBuilder sb = new StringBuilder(50);
     sb.append("-Pandroid.optional.compilation=INSTANT_DEV");
 
@@ -157,21 +164,21 @@ public class GradleInvokerOptions {
   private static final String PROPERTY_BUILD_DENSITY = "android.injected.build.density";
 
   @NotNull
-  private static List<String> getGradleArgumentsToTarget(Collection<IDevice> devices) {
+  private static List<String> getDeviceSpecificArguments(@NotNull Collection<IDevice> devices) {
     if (devices.isEmpty()) {
       return Collections.emptyList();
     }
+
     List<String> properties = new ArrayList<String>(2);
+
     // Find the minimum value of the build API level and pass it to Gradle as a property
     AndroidVersion min = null;
-
     for (IDevice device : devices) {
       AndroidVersion version = device.getVersion();
       if (version != AndroidVersion.DEFAULT && (min == null || version.getFeatureLevel() < min.getFeatureLevel())) {
         min = version;
       }
     }
-
     if (min != null) {
       properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, min.getApiString()));
     }
@@ -184,6 +191,7 @@ public class GradleInvokerOptions {
         properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
       }
     }
+
     return properties;
   }
 

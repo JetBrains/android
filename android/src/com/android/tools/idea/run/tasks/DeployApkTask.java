@@ -67,11 +67,6 @@ public class DeployApkTask implements LaunchTask {
       return false;
     }
 
-    File arsc = InstantRunManager.findResourceArsc(myFacet);
-    long arscTimestamp = arsc == null ? 0 : arsc.lastModified();
-    File manifest = InstantRunManager.findMergedManifestFile(myFacet);
-    long manifestTimeStamp = manifest == null ? 0L : manifest.lastModified();
-
     ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
     for (ApkInfo apk : apks) {
       if (!apk.getFile().exists()) {
@@ -86,16 +81,25 @@ public class DeployApkTask implements LaunchTask {
         return false;
       }
 
-      InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
-      patchCache.setInstalledArscTimestamp(device, pkgName, arscTimestamp);
-      patchCache.setInstalledManifestTimestamp(device, pkgName, manifestTimeStamp);
-      HashCode currentHash = InstalledPatchCache.computeManifestResources(myFacet);
-      patchCache.setInstalledManifestResourcesHash(device, pkgName, currentHash);
+      cacheInstallationData(device, myFacet, pkgName);
     }
 
     trackInstallation(device);
 
     return true;
+  }
+
+  public static void cacheInstallationData(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
+    File arsc = InstantRunManager.findResourceArsc(facet);
+    long arscTimestamp = arsc == null ? 0 : arsc.lastModified();
+    File manifest = InstantRunManager.findMergedManifestFile(facet);
+    long manifestTimeStamp = manifest == null ? 0L : manifest.lastModified();
+
+    InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
+    patchCache.setInstalledArscTimestamp(device, pkgName, arscTimestamp);
+    patchCache.setInstalledManifestTimestamp(device, pkgName, manifestTimeStamp);
+    HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
+    patchCache.setInstalledManifestResourcesHash(device, pkgName, currentHash);
   }
 
   private static int ourInstallationCount = 0;
