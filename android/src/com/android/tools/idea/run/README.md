@@ -25,19 +25,16 @@ The following steps are taken to actually perform a launch:
 
 1. User first selects a particular configuration. This would be an instance of `AndroidRunConfiguration` (which implements `RunProfile`).
 2. She then clicks on Run/Debug or Profile, each of which corresponds to a different `Executor`.
-3. A `ProgramRunner` is selected based on the above two (configuration + executor). Currently, we have
-     1. An `AndroidDebugRunner` that is used for running and debugging Android Java apps
-     2. A `PatchRunner` that is used for fast deploy by patching up the app.
-     3. An `AndroidNativeDebugRunner` that is used for NDK launches
-   The infrastructure chooses the first runner that `canRun` the given configuration state and executor.
+3. A `ProgramRunner` is selected based on the above two (configuration + executor). The android plugin defines a `AndroidDebugRunner`,
+   which is very simple and mostly just ends up calling the run state. (The infrastructure chooses the first runner that `canRun` the given
+   configuration state and executor.
 4. An `ExecutionEnvironment` is created, and the `ProgramRunner.execute()` is called.
      1. This results in a call to `RunProfile.getState()`, which maps to `AndroidRunConfiguration.getState()`:
      2. We do a bunch of checks, then pick a device to deploy to, extract other necessary parameters and return a `RunProfileState`.
         (IntelliJ docs suggest that the returned `RunProfileState` object should describe a process about to be started.
         At this stage, the command line parameters, environment variables and other information required to start the process is initialized).
         In the android plugin, the returned state may be:
-          1. `AndroidRunningState` if this is the first time we are deploying to a local device
-          2. `PatchDeployState` if we can detect that the same app is being patched
+          1. `AndroidRunState` if this we are deploying to a local device
           3. One of the various Cloud launch specific states if deploying to the cloud.
      3. `ExecutionManager.startRunProfile` ends up calling `compileAndRun`
           1. We look at the `BeforeRunTask` instances registered on the run configuration.
@@ -56,23 +53,12 @@ The following steps are taken to actually perform a launch:
 ```
 
 5. The first step in the above snippet (`starter.execute`) results in the ProgramRunner's execute method being called.
-   In the case of '`AndroidDebugRunner.doExecute()`, we do things conditionally based on the Executor and the configuration:
-     1. For test configurations, we set the target package name.
-     2. For debug launches, we set the `DebugLauncher` on the `AndroidRunningState`. We also attempt to embed to an existing session.
+   In the case of '`AndroidDebugRunner.doExecute()`, we simply end up calling `super.doExecute()`
 6. Finally, we call `AndroidRunningState.execute`. IntelliJ docs say that the `RunProfileState.execute` method "starts the process,
    attaches a ProcessHandler to its input and output streams, creates a console to display the process output, and returns an
    `ExecutionResult` object aggregating the console and the process handler." In the Android plugin, we do pretty much the same thing,
    except that actually starting the process is moved to a separate pooled thread. This means that all error conditions will have to
    be communicated via the process handler..
-7. `AndroidRunningState.start` waits for each device on which the application has to be launched to come online, and calls
-   `prepareAndStartApp(device)`.
-8. `prepareAndStartApp` does the following:
-     1. If in debug mode, checks whether the app can actually be debugged on this device.
-     2. Clears logcat if necessary.
-     3. Queries the APK provider to obtain the APKs to be installed on this device, and installs them.
-     4. Uses the application launcher to launch the application (i.e. launch activity, or do nothing..)
-     5. If in debug mode, then attempts to connect the debugger if the app is ready
-     6. If not in debug mode, attempts to show the logcat panel.
 
 
 
