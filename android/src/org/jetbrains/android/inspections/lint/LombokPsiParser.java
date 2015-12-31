@@ -29,6 +29,7 @@ import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
@@ -69,20 +70,28 @@ public class LombokPsiParser extends JavaParser {
   public Node parseJava(@NonNull final JavaContext context) {
     assert myLock == null;
     myLock = ApplicationManager.getApplication().acquireReadActionLock();
-    Node compilationUnit = parse(context);
-    if (compilationUnit == null) {
-      myLock.finish();
-      myLock = null;
+    try {
+      Node node = parse(context);
+      if (node != null) {
+        return node;
+      }
     }
-    return compilationUnit;
+    catch (Throwable ignore) {
+    }
+    myLock.finish();
+    myLock = null;
+    return null;
   }
 
   @Override
   public void dispose(@NonNull JavaContext context, @NonNull Node compilationUnit) {
     if (context.getCompilationUnit() != null) {
+      context.setCompilationUnit(null);
+    }
+
+    if (myLock != null) {
       myLock.finish();
       myLock = null;
-      context.setCompilationUnit(null);
     }
   }
 
@@ -98,7 +107,10 @@ public class LombokPsiParser extends JavaParser {
     PsiJavaFile javaFile = (PsiJavaFile)psiFile;
 
     try {
-        return LombokPsiConverter.convert(javaFile);
+      return LombokPsiConverter.convert(javaFile);
+    } catch (ProcessCanceledException ignore) {
+      context.getDriver().cancel();
+      return null;
     } catch (Throwable t) {
       myClient.log(t, "Failed converting PSI parse tree to Lombok for file %1$s",
                     context.file.getPath());
