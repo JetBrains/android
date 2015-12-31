@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.fd.InstantRunBuildInfo;
+import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
@@ -54,16 +55,13 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
 
   // Returns whether the build results indicate that we can perform a hotswap
   private boolean canHotSwap() {
-    if (!isInstantRunBuild()) {
+    if (!InstantRunUtils.isIncrementalBuild(myEnv)) {
       return false;
     }
 
     AndroidGradleModel model = AndroidGradleModel.get(myFacet);
     InstantRunBuildInfo info = model == null ? null : InstantRunBuildInfo.get(model);
-    return info != null && info.canHotswap();
+    return info != null && info.canHotswap() && InstantRunUtils.isAppRunning(myEnv);
   }
 
-  private boolean isInstantRunBuild() {
-    return Boolean.TRUE.equals(myEnv.getCopyableUserData(AndroidRunConfigurationBase.FAST_DEPLOY));
-  }
 }
