@@ -22,8 +22,7 @@ import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Set;
@@ -51,9 +50,9 @@ public final class LicenseAgreementModel extends WizardModel {
   }
 
 
-  public LicenseAgreementModel(@NotNull AndroidSdkData data) {
-    if (data.getLocalSdk().getLocation() != null) {
-      mySdkRoot.setValue(data.getLocalSdk().getLocation());
+  public LicenseAgreementModel(@Nullable File sdkLocation) {
+    if (sdkLocation != null) {
+      mySdkRoot.setValue(sdkLocation);
     }
     else {
       mySdkRoot.clear();

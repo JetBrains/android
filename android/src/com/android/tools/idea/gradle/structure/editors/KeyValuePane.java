@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.gradle.structure.editors;
 
-import com.android.sdklib.BuildToolInfo;
+import com.android.SdkConstants;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalBuildToolPkgInfo;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileKeyType;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
@@ -92,10 +93,10 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
   public KeyValuePane(@NotNull Project project, @NotNull ModificationListener listener) {
     myProject = project;
     myListener = listener;
-    LocalSdk sdk = null;
+    AndroidSdkHandler sdkHandler = null;
     AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (androidSdkData != null) {
-      sdk = androidSdkData.getLocalSdk();
+      sdkHandler = androidSdkData.getSdkHandler();
     }
     // Use immutable maps with builders for our built-in value maps because ImmutableBiMap ensures that iteration order is the same as
     // insertion order.
@@ -103,20 +104,14 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     ImmutableBiMap.Builder<String, String> apisMapBuilder = ImmutableBiMap.builder();
     ImmutableBiMap.Builder<String, String> compiledApisMapBuilder = ImmutableBiMap.builder();
 
-    if (sdk != null) {
-      LocalPkgInfo[] buildToolsPackages = sdk.getPkgsInfos(PkgType.PKG_BUILD_TOOLS);
-      for (LocalPkgInfo buildToolsPackage : buildToolsPackages) {
-        if (!(buildToolsPackage instanceof LocalBuildToolPkgInfo)) {
-          continue;
-        }
-        BuildToolInfo buildToolInfo = ((LocalBuildToolPkgInfo)buildToolsPackage).getBuildToolInfo();
-        if (buildToolInfo == null) {
-          continue;
-        }
-        String buildToolVersion = buildToolInfo.getRevision().toString();
-        buildToolsMapBuilder.put(buildToolVersion, buildToolVersion);
+    if (sdkHandler != null) {
+      ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
+      RepositoryPackages packages = sdkHandler.getSdkManager(logger).getPackages();
+      for (LocalPackage p : packages.getLocalPackagesForPrefix(SdkConstants.FD_BUILD_TOOLS)) {
+        buildToolsMapBuilder.put(p.getVersion().toString(), p.getVersion().toString());
       }
-      for (IAndroidTarget target : sdk.getTargets()) {
+
+      for (IAndroidTarget target : sdkHandler.getAndroidTargetManager(logger).getTargets(logger)) {
         String label = getTargetLabel(target);
         String apiString, platformString;
         if (target.isPlatform()) {

@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.repository.Revision;
-import com.android.sdklib.*;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.ISystemImage;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.sdk.SdkLoadedCallback;
 import com.android.tools.idea.sdk.SdkPackages;
 import com.android.tools.idea.sdk.SdkState;
@@ -411,14 +414,12 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
   private void installForDevice() {
     int apiLevel = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
-    List<IPkgDesc> requestedPackages = Lists.newArrayListWithCapacity(3);
-    requestedPackages.add(PkgDesc.Builder.newSysImg(new AndroidVersion(apiLevel, null), SystemImage.DEFAULT_TAG,
-                                                    Abi.X86.toString(), new Revision(1)).create());
-    requestedPackages.add(PkgDesc.Builder.newSysImg(new AndroidVersion(apiLevel, null), WEAR_TAG,
-                                                    Abi.X86.toString(), new Revision(1)).create());
-    requestedPackages.add(PkgDesc.Builder.newSysImg(new AndroidVersion(apiLevel, null), TV_TAG,
-                                                    Abi.X86.toString(), new Revision(1)).create());
-    ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(null, requestedPackages);
+    List<String> requestedPackages = Lists.newArrayListWithCapacity(3);
+    requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null),
+                                                     SystemImage.DEFAULT_TAG, Abi.X86.toString()));
+    requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), WEAR_TAG, Abi.X86.toString()));
+    requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), TV_TAG, Abi.X86.toString()));
+    ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(this, requestedPackages);
     if (dialog != null) {
       dialog.show();
       refreshImages(true);
@@ -619,9 +620,10 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
     private void downloadImage(SystemImageDescription image) {
       IPkgDesc request = image.getRemotePackage();
-      List<IPkgDesc> requestedPackages = Lists.newArrayList(request);
+      List<String> requestedPackages = Lists
+        .newArrayList(DetailsTypes.getSysImgPath(request.getVendor(), request.getAndroidVersion(), request.getTag(), request.getPath()));
       ModelWizardDialog dialog =
-        SdkQuickfixUtils.createDialogWithParent(SystemImageList.this, requestedPackages);
+        SdkQuickfixUtils.createDialogForPaths(SystemImageList.this, requestedPackages);
       if (dialog != null) {
         dialog.show();
         refreshImages(true);

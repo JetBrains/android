@@ -16,9 +16,6 @@
 
 package com.android.tools.idea.gradle.structure;
 
-import com.android.repository.Revision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
@@ -69,6 +66,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
@@ -330,8 +328,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
           Messages.showErrorDialog(getContentPanel(), "Please select a valid SDK before downloading the NDK.");
           return;
         }
-        List<IPkgDesc> requested = ImmutableList.of(PkgDesc.Builder.newNdk(Revision.NOT_SPECIFIED).create());
-        ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(null, requested);
+        List<String> requested = ImmutableList.of(FD_NDK);
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myWholePanel, requested);
         if (dialog != null && dialog.showAndGet()) {
           File ndk = IdeSdks.getAndroidNdkPath();
           if (ndk != null) {
