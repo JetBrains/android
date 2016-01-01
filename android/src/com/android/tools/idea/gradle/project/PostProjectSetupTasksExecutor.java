@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.repository.Revision;
+import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
@@ -45,6 +47,7 @@ import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Joiner;
@@ -59,15 +62,12 @@ import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.execution.junit.JUnitConfigurationType;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -88,9 +88,6 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
 import java.io.File;
 import java.util.*;
 
@@ -462,9 +459,11 @@ public class PostProjectSetupTasksExecutor {
           if (additionalData != null && sdkData != null) {
             IAndroidTarget target = additionalData.getBuildTarget(sdkData);
             if (target == null) {
-              LocalSdk localSdk = sdkData.getLocalSdk();
-              localSdk.clearLocalPkg(EnumSet.of(PkgType.PKG_PLATFORM));
-              target = localSdk.getTargetFromHashString(additionalData.getBuildTargetHashString());
+              AndroidSdkHandler sdkHandler = sdkData.getSdkHandler();
+              ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
+              sdkHandler.getSdkManager(logger).loadSynchronously(0, logger, null, null);
+              target =
+                sdkHandler.getAndroidTargetManager(logger).getTargetFromHashString(additionalData.getBuildTargetHashString(), logger);
             }
             if (target != null) {
               SdkModificator sdkModificator = sdk.getSdkModificator();
@@ -686,13 +685,13 @@ public class PostProjectSetupTasksExecutor {
 
     @Override
     protected void execute(@NotNull Project project) {
-      List<IPkgDesc> requested = Lists.newArrayList();
+      List<String> requested = Lists.newArrayList();
       if (myVersion.getMajor() == 23) {
         Revision minBuildToolsRev = new Revision(20, 0, 0);
-        requested.add(PkgDesc.Builder.newPlatformTool(minBuildToolsRev).create());
+        requested.add(DetailsTypes.getBuildToolsPath(minBuildToolsRev));
       }
-      requested.add(PkgDesc.Builder.newTool(myVersion, myVersion).create());
-      ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(project, requested);
+      requested.add(SdkConstants.FD_TOOLS);
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
       if (dialog != null && dialog.showAndGet()) {
         GradleProjectImporter.getInstance().requestProjectSync(project, null);
       }

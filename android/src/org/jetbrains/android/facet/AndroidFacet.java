@@ -385,6 +385,8 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public AvdManager getAvdManager(ILogger log) throws AndroidLocation.AndroidLocationException {
     if (myAvdManager == null) {
+      // ensure the handler is created
+      getSdkData();
       myAvdManager = AvdManager.getInstance(myHandler, log);
     }
     return myAvdManager;
