@@ -17,6 +17,8 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.run.ApkProviderUtil;
+import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -44,6 +46,17 @@ public class HotSwapTask implements LaunchTask {
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     printer.stdout("Hotswapping changes...");
     InstantRunManager.pushChanges(device, myFacet);
+
+    String pkgName;
+    try {
+      pkgName = ApkProviderUtil.computePackageName(myFacet);
+    }
+    catch (ApkProvisionException e) {
+      launchStatus.terminateLaunch("Unable to obtain application id: " + e);
+      return false;
+    }
+
+    DeployApkTask.cacheInstallationData(device, myFacet, pkgName);
     return true;
   }
 }
