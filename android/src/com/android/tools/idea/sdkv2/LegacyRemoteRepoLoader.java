@@ -162,12 +162,15 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     @Nullable
     public TypeDetails getTypeDetails() {
       if (myDetails == null) {
-        LayoutlibVersion layoutlibVersion = null;
+        int layoutlibApi = 0;
         if (myWrapped instanceof RemotePlatformPkgInfo) {
-          layoutlibVersion = ((RemotePlatformPkgInfo)myWrapped).getLayoutLibVersion();
+          LayoutlibVersion layoutlibVersion = ((RemotePlatformPkgInfo)myWrapped).getLayoutLibVersion();
+          if (layoutlibVersion != null) {
+            layoutlibApi = layoutlibVersion.getApi();
+          }
         }
         ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-        myDetails = LegacyRepoUtils.createTypeDetails(myWrapped.getPkgDesc(), layoutlibVersion, progress);
+        myDetails = LegacyRepoUtils.createTypeDetails(myWrapped.getPkgDesc(), layoutlibApi, progress);
       }
       return myDetails;
     }

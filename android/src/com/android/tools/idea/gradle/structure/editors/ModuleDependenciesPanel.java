@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -313,7 +312,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
       // User cancelled installation.
       return null;
     }
-    List<IPkgDesc> requested = Lists.newArrayList();
+    List<String> requested = Lists.newArrayList();
     SdkMavenRepository repository;
     if (coordinateText.startsWith("com.android.support")) {
       repository = SdkMavenRepository.ANDROID;
@@ -326,8 +325,8 @@ public class ModuleDependenciesPanel extends EditorPanel {
       assert false;  // EXTRAS_REPOSITORY.containsKey() should have returned false.
       return coordinateText + ':' + REVISION_ANY;
     }
-    requested.add(repository.getPackageDescription());
-    ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(myProject, requested);
+    requested.add(repository.getPackageId());
+    ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
     if (dialog != null) {
       dialog.setTitle("Install Missing Components");
       if (dialog.showAndGet()) {

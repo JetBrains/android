@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.tools.idea.sdk.wizard.v2.SdkQuickfixUtils;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
@@ -288,7 +288,7 @@ public class AccelerationErrorSolution {
   }
 
   private void showQuickFix(@NotNull List<String> requested) {
-    ModelWizardDialog sdkQuickfixWizard = SdkQuickfixUtils.createDialogForPaths(null, requested);
+    ModelWizardDialog sdkQuickfixWizard = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
     if (sdkQuickfixWizard != null) {
       sdkQuickfixWizard.show();
       if (sdkQuickfixWizard.getExitCode() == DialogWrapper.OK_EXIT_CODE) {

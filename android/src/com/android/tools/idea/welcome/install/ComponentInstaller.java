@@ -22,7 +22,7 @@ import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.tools.idea.sdk.wizard.v2.SdkQuickfixUtils;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdkv2.StudioDownloader;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdkv2.StudioSettingsController;
