@@ -19,12 +19,10 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
@@ -300,11 +298,11 @@ public class RenderService {
           //noinspection AssignmentToStaticFieldFromInstanceMethod
           ourWarnAboutObsoleteLayoutLibVersions = false;
 
-          List<IPkgDesc> requested = Lists.newArrayList();
+          List<String> requested = Lists.newArrayList();
           // The revision to install. Note that this will install a higher version than this if available;
           // e.g. even if we ask for version 4, if revision 7 is available it will be installed, not revision 4.
-          requested.add(PkgDesc.Builder.newPlatform(version, new Revision(revision), Revision.NOT_SPECIFIED).create());
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(module.getProject(), requested);
+          requested.add(DetailsTypes.getPlatformPath(version));
+          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(module.getProject(), requested);
 
           if (dialog != null && dialog.showAndGet()) {
             if (renderContext != null) {

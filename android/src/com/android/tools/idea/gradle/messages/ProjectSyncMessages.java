@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.messages;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors.MissingModule;
@@ -367,9 +366,9 @@ public class ProjectSyncMessages {
 
     @Override
     protected void execute(@NotNull Project project) {
-      List<IPkgDesc> requested = Lists.newArrayList();
-      requested.add(myRepository.getPackageDescription());
-      ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(project, requested);
+      List<String> requested = Lists.newArrayList();
+      requested.add(myRepository.getPackageId());
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
       if (dialog != null) {
         dialog.setTitle("Install Missing Components");
         if (dialog.showAndGet()) {

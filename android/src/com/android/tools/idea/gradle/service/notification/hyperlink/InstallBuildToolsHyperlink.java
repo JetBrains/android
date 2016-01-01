@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.repository.Revision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -53,10 +52,10 @@ public class InstallBuildToolsHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    List<IPkgDesc> requested = Lists.newArrayList();
+    List<String> requested = Lists.newArrayList();
     Revision minBuildToolsRev = Revision.parseRevision(myVersion);
-    requested.add(PkgDesc.Builder.newBuildTool(minBuildToolsRev).create());
-    ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(project, requested);
+    requested.add(DetailsTypes.getBuildToolsPath(minBuildToolsRev));
+    ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
     if (dialog != null && dialog.showAndGet()) {
       if (myBuildFile != null) {
         FixBuildToolsVersionHyperlink.fixBuildToolsVersionAndSync(project, myBuildFile, myVersion);

@@ -17,11 +17,9 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.annotations.NonNull;
 import com.android.repository.api.ProgressIndicatorAdapter;
-import com.android.tools.idea.sdk.SdkLoggerIntegration;
-import com.google.common.base.Objects;
+import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * Integrates SDK manager progress reporting with the wizard UI.
  *
  * TODO: hopefully the welcome wizard rewrite will allow this to be removed in favor of
- * {@link com.android.tools.idea.sdk.wizard.v2.InstallSelectedPackagesStep}.
+ * {@link InstallSelectedPackagesStep}.
  */
 public class SdkManagerProgressIndicatorIntegration extends ProgressIndicatorAdapter {
   private final ProgressIndicator myIndicator;
