@@ -1261,8 +1261,15 @@ public class AndroidResourceUtil {
   }
 
   @NotNull
-  public static String getFieldNameByResourceName(@NotNull String fieldName) {
-    return fieldName.replace('.', '_').replace('-', '_').replace(':', '_');
+  public static String getFieldNameByResourceName(@NotNull String styleName) {
+    for (int i = 0, n = styleName.length(); i < n; i++) {
+      char c = styleName.charAt(i);
+      if (c == '.' || c == '-' || c == ':') {
+        return styleName.replace('.', '_').replace('-', '_').replace(':', '_');
+      }
+    }
+
+    return styleName;
   }
 
   /**
