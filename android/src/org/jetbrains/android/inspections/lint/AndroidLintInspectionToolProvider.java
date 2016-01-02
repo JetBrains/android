@@ -23,8 +23,12 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.refactoring.UnusedResourcesQuickFix;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -185,6 +189,21 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintUnusedResourcesInspection extends AndroidLintInspectionBase {
     public AndroidLintUnusedResourcesInspection() {
       super(AndroidBundle.message("android.lint.inspections.unused.resources"), UnusedResourceDetector.ISSUE);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      String resource = UnusedResourceDetector.getUnusedResource(message, RAW);
+      if (resource != null) {
+        String resourceUrl = "@" + resource.substring(2).replace('.', '/');
+        return new AndroidLintQuickFix[]{
+          new UnusedResourcesQuickFix(null),
+          new UnusedResourcesQuickFix(resource),
+          new SetAttributeQuickFix("Add a tools:keep attribute to mark as implicitly used", ATTR_KEEP, TOOLS_URI, resourceUrl)};
+      } else {
+        return new AndroidLintQuickFix[] {new UnusedResourcesQuickFix(null) };
+      }
     }
   }
 
