@@ -38,8 +38,8 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.ide.RecentProjectsManager;
+import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -51,8 +51,6 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.options.ex.IdeConfigurablesGroup;
-import com.intellij.openapi.options.ex.ProjectConfigurablesGroup;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
@@ -89,8 +87,10 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -749,7 +749,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       @Override
       public void run() {
         Project project = getProject();
-        ShowSettingsUtil.getInstance().showSettingsDialog(project, new ProjectConfigurablesGroup(project), new IdeConfigurablesGroup());
+        ShowSettingsUtil.getInstance().showSettingsDialog(project, ShowSettingsUtilImpl.getConfigurableGroups(project, true));
       }
     });
     return IdeSettingsDialogFixture.find(robot());
@@ -1054,7 +1054,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   private static String[] debuggerTreeRootToChildrenTexts(XDebuggerTreeNode treeRoot) {
-    List<TreeNode> children = (List<TreeNode>)treeRoot.getChildren();
+    List<? extends TreeNode> children = treeRoot.getChildren();
     String[] childrenTexts = new String[children.size()];
     int i = 0;
     for (TreeNode child : children) {
