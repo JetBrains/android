@@ -16,12 +16,14 @@
 package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -30,12 +32,21 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.Set;
+
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 /**
  * Provides Gradle specific abstraction over a {@link GroovyFile}.
  */
 public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
+  @NotNull private final Set<GradleDslFile> myChildModuleDslFiles = Sets.newHashSet();
+
+  @Nullable private GradleDslFile myParentModuleDslFile;
 
   protected GradleDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     super(null, null, moduleName);
@@ -100,5 +111,25 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull
   public VirtualFile getFile() {
     return myFile;
+  }
+
+  @NotNull
+  public File getDirectoryPath() {
+    return virtualToIoFile(getFile().getParent());
+  }
+
+  public void setParentModuleDslFile(@NotNull GradleDslFile parentModuleDslFile) {
+    myParentModuleDslFile = parentModuleDslFile;
+    myParentModuleDslFile.myChildModuleDslFiles.add(this);
+  }
+
+  @Nullable
+  public GradleDslFile getParentModuleDslFile() {
+    return myParentModuleDslFile;
+  }
+
+  @NotNull
+  public Collection<GradleDslFile> getChildModuleDslFiles() {
+    return myChildModuleDslFiles;
   }
 }
