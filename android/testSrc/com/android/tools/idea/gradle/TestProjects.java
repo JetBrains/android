@@ -119,6 +119,7 @@ public final class TestProjects {
 
   private static void createNativeProject(@NotNull NativeAndroidProjectStub nativeAndroidProjectStub) {
     NativeArtifactStub artifactStub = nativeAndroidProjectStub.addNativeArtifact("lib");
+    artifactStub.addExportedHeaders("src/main/headers/");
     artifactStub.addSourceFolder("src/main/xyz/");
     artifactStub.addSourceFile("src/main/abc/foo.c");
   }
