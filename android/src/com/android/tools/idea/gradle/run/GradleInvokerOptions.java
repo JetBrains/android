@@ -102,16 +102,7 @@ public class GradleInvokerOptions {
     BuildMode buildMode = BuildMode.ASSEMBLE;
     GradleInvoker.TestCompileType testCompileType = getTestCompileType(configuration);
 
-    List<String> tasks = Lists.newArrayList();
-
-    // When instant run property is set, Gradle always generates incremental builds from the current state on disk.
-    // This means that the IDE is responsible for looking at what is on the device and validating that the build on device
-    // matches one from the history of builds.
-    if (InstantRunSettings.isInstantRunEnabled(project) && !InstantRunUtils.deviceHasKnownBuild(env)) {
-      tasks.add(GradleBuilds.CLEAN_TASK_NAME);
-    }
-    tasks.addAll(GradleInvoker.findTasksToExecute(modules, buildMode, testCompileType));
-
+    List<String> tasks = GradleInvoker.findTasksToExecute(modules, buildMode, testCompileType);
     return new GradleInvokerOptions(tasks, buildMode, cmdLineArgs);
   }
 
