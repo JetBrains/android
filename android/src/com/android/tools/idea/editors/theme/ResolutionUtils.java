@@ -96,10 +96,8 @@ public class ResolutionUtils {
    */
   @NotNull
   public static String getNameFromQualifiedName(@NotNull String qualifiedName) {
-    if (qualifiedName.startsWith(SdkConstants.PREFIX_ANDROID)) {
-      return qualifiedName.substring(SdkConstants.PREFIX_ANDROID.length());
-    }
-    return qualifiedName;
+    int colonIndex = qualifiedName.indexOf(':');
+    return colonIndex != -1 ? qualifiedName.substring(colonIndex + 1) : qualifiedName;
   }
 
   /**

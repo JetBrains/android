@@ -27,7 +27,7 @@ public class AndroidRefactoringUtil {
       final String parentStyleName = parentStyleRefValue.getResourceName();
 
       if (parentStyleName != null) {
-        return new StyleRefData(parentStyleName, parentStyleRefValue.getPackage());
+        return new StyleRefData(parentStyleName, parentStyleRefValue.getNamespace());
       }
     }
     else {
