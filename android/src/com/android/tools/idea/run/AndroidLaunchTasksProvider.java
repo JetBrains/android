@@ -108,9 +108,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
     if (InstantRunSettings.isInstantRunEnabled(myProject)) {
       AndroidGradleModel model = AndroidGradleModel.get(myFacet);
-      assert model != null;
 
-      if (InstantRunManager.isPatchableApp(model)) {
+      if (model != null && InstantRunManager.isPatchableApp(model)) {
         InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
         if (buildInfo == null) {
           String reason = "Gradle build-info.xml not found for module " + myFacet.getModule().getName() +
