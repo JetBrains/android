@@ -118,6 +118,9 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     Set<File> sourceFolderPaths = Sets.newLinkedHashSet();
     for (NativeArtifact artifact : myNativeAndroidProject.getArtifacts()) {
+      for (File headerRoot : artifact.getExportedHeaders()) {
+        sourceFolderPaths.add(headerRoot);
+      }
       for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
         sourceFolderPaths.add(sourceFolder.getFolderPath());
       }

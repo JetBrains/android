@@ -17,9 +17,7 @@ package com.android.tools.idea.gradle;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -81,10 +79,13 @@ public class NativeAndroidGradleModel implements Serializable {
 
   private void populateVariantsByName() {
     for (NativeArtifact artifact : myNativeAndroidProject.getArtifacts()) {
-      // TODO: Use the artifact group name as variant name when available.
-      NativeVariant variant = new NativeVariant(artifact.getName());
+      String variantName = artifact.getGroupName();
+      NativeVariant variant = myVariantsByName.get(variantName);
+      if (variant == null) {
+        variant = new NativeVariant(variantName);
+        myVariantsByName.put(variant.getName(), variant);
+      }
       variant.addArtifact(artifact);
-      myVariantsByName.put(variant.getName(), variant);
     }
     if (myVariantsByName.isEmpty()) {
       // There will mostly be at least one variant, but create a dummy variant when there are none.
@@ -203,6 +204,26 @@ public class NativeAndroidGradleModel implements Serializable {
     @NotNull
     public Collection<NativeArtifact> getArtifacts() {
       return myArtifactsByName.values();
+    }
+
+    @NotNull
+    public Collection<File> getSourceFolders() {
+      Set<File> sourceFolders = Sets.newLinkedHashSet();
+      for (NativeArtifact artifact : getArtifacts()) {
+        for (File headerRoot : artifact.getExportedHeaders()) {
+          sourceFolders.add(headerRoot);
+        }
+        for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
+          sourceFolders.add(sourceFolder.getFolderPath());
+        }
+        for (NativeFile sourceFile : artifact.getSourceFiles()) {
+          File parentFile = sourceFile.getFilePath().getParentFile();
+          if (parentFile != null) {
+            sourceFolders.add(parentFile);
+          }
+        }
+      }
+      return ImmutableList.copyOf(sourceFolders);
     }
   }
 }
