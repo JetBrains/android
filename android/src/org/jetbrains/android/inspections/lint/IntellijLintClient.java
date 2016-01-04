@@ -15,6 +15,8 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -483,8 +485,12 @@ public class IntellijLintClient extends LintClient implements Disposable {
       final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
 
       if (vFile == null) {
-        LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
-        return "";
+        try {
+          return Files.toString(file, Charsets.UTF_8);
+        } catch (IOException ioe) {
+          LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
+          return "";
+        }
       }
       final String content = getFileContent(vFile);
 
