@@ -58,6 +58,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
    * Tests {@link ResolutionUtils#getNameFromQualifiedName(String)}
    */
   public void testGetNameFromQualifiedName() {
+    assertEquals("Theme", ResolutionUtils.getNameFromQualifiedName("app:Theme"));
     assertEquals("Theme", ResolutionUtils.getNameFromQualifiedName("android:Theme"));
     assertEquals("AppTheme", ResolutionUtils.getNameFromQualifiedName("AppTheme"));
   }
