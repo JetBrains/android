@@ -277,7 +277,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     importProject(project, project.getName(), projectRoot, listener);
 
     assertTrue(requiresAndroidModel(project));
-    assertFalse(isIdeaAndroidProject(project));
+    assertFalse(isLegacyIdeaAndroidProject(project));
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {

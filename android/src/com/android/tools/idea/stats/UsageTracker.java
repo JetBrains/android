@@ -162,4 +162,6 @@ public abstract class UsageTracker {
                                                    @NotNull String androidPluginVersion,
                                                    @NotNull String gradleVersion,
                                                    boolean instantRunEnabled);
+
+  public abstract void trackLegacyIdeaAndroidProject(@NotNull String applicationId);
 }
