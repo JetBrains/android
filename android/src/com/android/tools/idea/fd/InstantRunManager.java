@@ -817,8 +817,6 @@ public final class InstantRunManager implements ProjectComponent {
     });
   }
 
-  private static boolean ourCheckedForOldPlugin;
-
   /**
    * Warn if using an obsolete <b>preview</b> version of a Gradle plugin (using older
    * stable Gradle plugins is expected and possibly intentional, but sticking with
@@ -829,13 +827,6 @@ public final class InstantRunManager implements ProjectComponent {
    * @param project the project that was just synced or attempted built
    */
   public static void checkForObsoletePreviewGradlePlugins(Project project) {
-    if (ourCheckedForOldPlugin) {
-      return;
-    }
-
-    // Only check & warn once per session
-    ourCheckedForOldPlugin = true;
-
     if (!InstantRunSettings.isInstantRunEnabled(project)) {
       return;
     }
@@ -872,7 +863,7 @@ public final class InstantRunManager implements ProjectComponent {
             continue;
           }
 
-          if (modelVersion.equals("2.0.0-alpha1") || modelVersion.equals("2.0.0-alpha2")) {
+          if (modelVersion.equals("2.0.0-alpha1") || modelVersion.equals("2.0.0-alpha2") || modelVersion.equals("2.0.0-alpha3")) {
             showObsoleteWarning(project, modelVersion);
             break;
           }
@@ -887,7 +878,7 @@ public final class InstantRunManager implements ProjectComponent {
   private static void showObsoleteWarning(@NotNull final Project project, String modelVersion) {
     String message = "<html>" +
                      String.format(
-                       "This project is using a preview version of the Gradle plugin (%1$s) and a newer version is available (%2$s)",
+                       "Instant run requires a newer version of Gradle plugin (%2$s). This project is currently using %1$s.",
                        modelVersion, GRADLE_PLUGIN_LATEST_VERSION) +
                      "<br/>You can <a href=\"update\">update to " + GRADLE_PLUGIN_LATEST_VERSION + "</a>." +
                      "</html>";
