@@ -47,7 +47,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_FIELD;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_FIELD;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class GradleBuildModel extends GradleFileModel {
   @Nullable
@@ -70,7 +69,7 @@ public class GradleBuildModel extends GradleFileModel {
       return;
     }
 
-    String modulePath = gradleSettingsModel.moduleWithDirectory(virtualToIoFile(buildDslFile.getFile().getParent()));
+    String modulePath = gradleSettingsModel.moduleWithDirectory(buildDslFile.getDirectoryPath());
     if (modulePath == null) {
       return;
     }
@@ -80,8 +79,10 @@ public class GradleBuildModel extends GradleFileModel {
       return;
     }
 
-    SubProjectsDslElement subProjectsDslElement =
-      parentModuleModel.myGradleDslFile.getProperty(SubProjectsDslElement.NAME, SubProjectsDslElement.class);
+    GradleDslFile parentModuleDslFile = parentModuleModel.myGradleDslFile;
+    buildDslFile.setParentModuleDslFile(parentModuleDslFile);
+
+    SubProjectsDslElement subProjectsDslElement = parentModuleDslFile.getProperty(SubProjectsDslElement.NAME, SubProjectsDslElement.class);
     if (subProjectsDslElement == null) {
       return;
     }
