@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildInfo;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -70,12 +71,15 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
     launchTasks.add(new DismissKeyguardTask());
 
-    LaunchTask deployTask = getDeployTask(device);
+    LaunchTask deployTask = getDeployTask(device, launchStatus);
     if (deployTask != null) {
       launchTasks.add(deployTask);
     }
+    if (launchStatus.isLaunchTerminated()) {
+      return launchTasks;
+    }
 
-    String packageName = null;
+    String packageName;
     try {
       packageName = myApkProvider.getPackageName();
       LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApkProvider, myFacet, myLaunchOptions.isDebug(), launchStatus);
@@ -97,22 +101,32 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   }
 
   @Nullable
-  private LaunchTask getDeployTask(@NotNull IDevice device) {
+  private LaunchTask getDeployTask(@NotNull IDevice device, @NotNull LaunchStatus launchStatus) {
     if (!myLaunchOptions.isDeploy()) {
       return null;
     }
 
-    if (InstantRunSettings.isInstantRunEnabled(myProject)) { // TODO: also qualify to -alpha4
+    if (InstantRunSettings.isInstantRunEnabled(myProject)) {
       AndroidGradleModel model = AndroidGradleModel.get(myFacet);
       assert model != null;
 
-      InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
-      assert buildInfo != null : "No build-info.xml found for module " + myFacet.getModule().getName();
+      if (InstantRunManager.isPatchableApp(model)) {
+        InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+        if (buildInfo == null) {
+          String reason = "Gradle build-info.xml not found for module " + myFacet.getModule().getName() +
+                          ". Please make sure that you are using gradle plugin '2.0.0-alpha4' or higher.";
+          launchStatus.terminateLaunch(reason);
+          return null;
+        }
 
-      AndroidVersion deviceVersion = device.getVersion();
-      assert deviceVersion.isGreaterOrEqualThan(23) : "TODO: we only support M or above";
+        AndroidVersion deviceVersion = device.getVersion();
+        if (!deviceVersion.isGreaterOrEqualThan(23)) {
+          launchStatus.terminateLaunch("Currently, cold swap is only supported on API 23 and above.");
+          return null;
+        }
 
-      return new SplitApkDeployTask(myFacet, buildInfo);
+        return new SplitApkDeployTask(myFacet, buildInfo);
+      }
     }
 
     // regular APK deploy flow
