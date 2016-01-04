@@ -33,6 +33,7 @@ public class NativeArtifactStub implements NativeArtifact {
   @NotNull private final FileStructure myFileStructure;
   @NotNull private final List<NativeFolder> myNativeFolders = Lists.newArrayList();
   @NotNull private final List<NativeFile> myNativeFiles = Lists.newArrayList();
+  @NotNull private final List<File> myExportedHeaders = Lists.newArrayList();
 
   public NativeArtifactStub(@NotNull String name, @NotNull File outputFile, @NotNull FileStructure fileStructure) {
     myName = name;
@@ -75,15 +76,20 @@ public class NativeArtifactStub implements NativeArtifact {
     return myNativeFiles;
   }
 
-  @NotNull
-  @Override
-  public Collection<File> getExportedHeaders() {
-    return Collections.emptyList();
-  }
-
   public void addSourceFile(@NotNull String path) {
     File file = myFileStructure.createProjectFile(path);
     myNativeFiles.add(new NativeFileStub(file));
+  }
+
+  @NotNull
+  @Override
+  public Collection<File> getExportedHeaders() {
+    return myExportedHeaders;
+  }
+
+  public void addExportedHeaders(@NotNull String dirPath) {
+    File directory = myFileStructure.createProjectDir(dirPath);
+    myExportedHeaders.add(directory);
   }
 
   @NotNull
