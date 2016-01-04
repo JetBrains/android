@@ -81,7 +81,7 @@ public class DeployApkTask implements LaunchTask {
         return false;
       }
 
-      cacheInstallationData(device, myFacet, pkgName);
+      cacheInstallationData(device, myFacet, pkgName, true, true, true);
     }
 
     trackInstallation(device);
@@ -89,17 +89,25 @@ public class DeployApkTask implements LaunchTask {
     return true;
   }
 
-  public static void cacheInstallationData(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
-    File arsc = InstantRunManager.findResourceArsc(facet);
-    long arscTimestamp = arsc == null ? 0 : arsc.lastModified();
-    File manifest = InstantRunManager.findMergedManifestFile(facet);
-    long manifestTimeStamp = manifest == null ? 0L : manifest.lastModified();
-
+  public static void cacheInstallationData(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName,
+                                           boolean updatedManifest, boolean updatedCode, boolean updatedResources) {
     InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
-    patchCache.setInstalledArscTimestamp(device, pkgName, arscTimestamp);
-    patchCache.setInstalledManifestTimestamp(device, pkgName, manifestTimeStamp);
-    HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
-    patchCache.setInstalledManifestResourcesHash(device, pkgName, currentHash);
+
+    if (updatedResources) {
+      File arsc = InstantRunManager.findResourceArsc(facet);
+      long arscTimestamp = arsc == null ? 0 : arsc.lastModified();
+      patchCache.setInstalledArscTimestamp(device, pkgName, arscTimestamp);
+    }
+
+    if (updatedManifest) {
+      File manifest = InstantRunManager.findMergedManifestFile(facet);
+      long manifestTimeStamp = manifest == null ? 0L : manifest.lastModified();
+
+      patchCache.setInstalledManifestTimestamp(device, pkgName, manifestTimeStamp);
+
+      HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
+      patchCache.setInstalledManifestResourcesHash(device, pkgName, currentHash);
+    }
   }
 
   private static int ourInstallationCount = 0;
