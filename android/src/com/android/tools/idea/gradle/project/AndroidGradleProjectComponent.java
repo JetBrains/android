@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
@@ -38,8 +39,11 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.Function;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,7 +113,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       // button and editor notifications.
       syncState.notifyUser();
     }
-    if (shouldShowMigrateToGradleNotification() && isAndroidStudio() && isIdeaAndroidProject(myProject)) {
+    if (shouldShowMigrateToGradleNotification() && isAndroidStudio() && isLegacyIdeaAndroidProject(myProject)) {
+      trackLegacyIdeaAndroidProject();
       // Suggest that Android Studio users use Gradle instead of IDEA project builder.
       showMigrateToGradleWarning();
       return;
@@ -126,6 +131,46 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
   private boolean shouldShowMigrateToGradleNotification() {
     return PropertiesComponent.getInstance(myProject).getBoolean(SHOW_MIGRATE_TO_GRADLE_POPUP, true);
+  }
+
+  private void trackLegacyIdeaAndroidProject() {
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
+      @Override
+      public void run() {
+        String packageName = null;
+
+        ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+        for (Module module : moduleManager.getModules()) {
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          if (facet != null && !facet.requiresAndroidModel()) {
+            boolean library = facet.isLibraryProject();
+            if (!library) {
+              // Prefer the package name from an app module.
+              packageName = getPackageNameInLegacyIdeaAndroidModule(facet);
+              if (packageName != null) {
+                break;
+              }
+            }
+            else if (packageName == null) {
+              String modulePackageName = getPackageNameInLegacyIdeaAndroidModule(facet);
+              if (modulePackageName != null) {
+                packageName = modulePackageName;
+              }
+            }
+          }
+        }
+        if (packageName != null) {
+          UsageTracker.getInstance().trackLegacyIdeaAndroidProject(packageName);
+        }
+      }
+    });
+  }
+
+  @Nullable
+  private static String getPackageNameInLegacyIdeaAndroidModule(@NotNull AndroidFacet facet) {
+    // This invocation must happen after the project has been initialized.
+    Manifest manifest = facet.getManifest();
+    return manifest != null ? manifest.getPackage().getValue() : null;
   }
 
   private void showMigrateToGradleWarning() {
