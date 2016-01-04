@@ -470,7 +470,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (myWithExplicitResourceType || !element.isReference()) {
       return element.toString();
     }
-    return ResourceValue.referenceTo(element.getPrefix(), element.getPackage(), null,
+    return ResourceValue.referenceTo(element.getPrefix(), element.getNamespace(), null,
                                      element.getResourceName()).toString();
   }
 
@@ -486,7 +486,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         if (value != null) {
           ResourceValue resourceValue = ResourceValue.parse(value, false, myWithPrefix, true);
           if (resourceValue != null) {
-            String aPackage = resourceValue.getPackage();
+            String aPackage = resourceValue.getNamespace();
             ResourceType resType = resourceValue.getType();
             if (resType == null && myResourceTypes.size() == 1) {
               resType = ResourceType.getEnum(myResourceTypes.get(0));
@@ -536,7 +536,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
           // is a reference to R.id.foo, but
           //    android:id="@+id/foo"
           // is not; it's the place we're defining it.
-          if (resValue.getPackage() == null && "+id".equals(resType)
+          if (resValue.getNamespace() == null && "+id".equals(resType)
               && element != null && element.getParent() instanceof XmlAttribute) {
             XmlAttribute attribute = (XmlAttribute)element.getParent();
             if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
