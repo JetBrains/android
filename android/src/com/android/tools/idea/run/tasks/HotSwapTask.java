@@ -16,13 +16,16 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.fd.client.UpdateMode;
+import com.android.tools.idea.fd.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.run.ApkProviderUtil;
-import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
 
 public class HotSwapTask implements LaunchTask {
   private final AndroidFacet myFacet;
@@ -45,18 +48,22 @@ public class HotSwapTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     printer.stdout("Hotswapping changes...");
-    InstantRunManager.pushChanges(device, myFacet);
 
-    String pkgName;
-    try {
-      pkgName = ApkProviderUtil.computePackageName(myFacet);
-    }
-    catch (ApkProvisionException e) {
-      launchStatus.terminateLaunch("Unable to obtain application id: " + e);
-      return false;
+    InstantRunManager manager = InstantRunManager.get(myFacet.getModule().getProject());
+
+    AndroidGradleModel model = AndroidGradleModel.get(myFacet);
+    assert model != null;
+    InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+    if (buildInfo != null) {
+      try {
+        manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, buildInfo);
+        // Note that the above method will update the build id on the device
+        // and the InstalledPatchCache, so we don't have to do it again.
+      } catch (IOException e) {
+        launchStatus.terminateLaunch("Error installing hot swap patches: " + e);
+      }
     }
 
-    DeployApkTask.cacheInstallationData(device, myFacet, pkgName);
     return true;
   }
 }
