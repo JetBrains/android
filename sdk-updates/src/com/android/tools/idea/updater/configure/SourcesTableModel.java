@@ -177,7 +177,6 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
    */
   public void setSdkHandler(AndroidSdkHandler handler) {
     myHandler = handler;
-    refreshUi();
   }
 
   /**
