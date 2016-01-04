@@ -114,4 +114,8 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
 
     findAndClickCancelButton(this);
   }
+
+  public void close() {
+    robot().close(target());
+  }
 }
