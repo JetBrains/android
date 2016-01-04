@@ -113,10 +113,12 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       // button and editor notifications.
       syncState.notifyUser();
     }
-    if (shouldShowMigrateToGradleNotification() && isAndroidStudio() && isLegacyIdeaAndroidProject(myProject)) {
+    if (isAndroidStudio() && isLegacyIdeaAndroidProject(myProject)) {
       trackLegacyIdeaAndroidProject();
-      // Suggest that Android Studio users use Gradle instead of IDEA project builder.
-      showMigrateToGradleWarning();
+      if (shouldShowMigrateToGradleNotification()) {
+        // Suggest that Android Studio users use Gradle instead of IDEA project builder.
+        showMigrateToGradleWarning();
+      }
       return;
     }
 
@@ -134,6 +136,10 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   }
 
   private void trackLegacyIdeaAndroidProject() {
+    if (!UsageTracker.getInstance().canTrack()) {
+      return;
+    }
+
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
