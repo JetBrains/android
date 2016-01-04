@@ -27,6 +27,7 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
 
   private static final String GLOGS_CATEGORY_LIBCOUNT = "gradlelibs";
   private static final String GLOGS_CATEGORY_VERSIONS = "gradleVersions";
+  private static final String GLOGS_CATEGORY_LEGACY_IDEA_ANDROID_PROJECT = "legacyIdeaAndroidProject";
 
   private final UsageUploader myUploader;
 
@@ -74,12 +75,26 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
     if (!trackingEnabled()) {
       return;
     }
+    // @formatter:off
     myUploader.trackEvent(GLOGS_CATEGORY_VERSIONS,
                           ImmutableMap.of(
                             "appId", anonymize(applicationId),
                             "pluginVer", androidPluginVersion,
                             "gradleVer", gradleVersion,
                             "canInstantRun", Boolean.toString(instantRunEnabled)));
+    // @formatter:on
+  }
+
+  @Override
+  public void trackLegacyIdeaAndroidProject(@NotNull String applicationId) {
+    if (!trackingEnabled()) {
+      return;
+    }
+    // @formatter:off
+    myUploader.trackEvent(GLOGS_CATEGORY_LEGACY_IDEA_ANDROID_PROJECT,
+                          ImmutableMap.of(
+                            "appId", anonymize(applicationId)));
+    // @formatter:on
   }
 
   @NotNull

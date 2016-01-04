@@ -284,7 +284,7 @@ public final class Projects {
    * @param project the given project.
    * @return {@code true} if the given project is a legacy IDEA Android project; {@code false} otherwise.
    */
-  public static boolean isIdeaAndroidProject(@NotNull Project project) {
+  public static boolean isLegacyIdeaAndroidProject(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
