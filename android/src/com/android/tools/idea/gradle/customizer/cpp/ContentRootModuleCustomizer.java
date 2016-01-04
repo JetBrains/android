@@ -15,16 +15,10 @@
  */
 package com.android.tools.idea.gradle.customizer.cpp;
 
-import com.android.builder.model.NativeAndroidProject;
-import com.android.builder.model.NativeArtifact;
-import com.android.builder.model.NativeFile;
-import com.android.builder.model.NativeFolder;
-import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -34,7 +28,6 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
@@ -55,18 +48,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                      @NotNull Collection<ContentEntry> contentEntries,
                                      @NotNull NativeAndroidGradleModel nativeAndroidGradleModel,
                                      @NotNull List<RootSourceFolder> orphans) {
-    Set<File> sourceFolders = Sets.newLinkedHashSet();
-    for (NativeArtifact artifact : nativeAndroidGradleModel.getSelectedVariant().getArtifacts()) {
-      for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
-        sourceFolders.add(sourceFolder.getFolderPath());
-      }
-      for (NativeFile sourceFile : artifact.getSourceFiles()) {
-        File parentFile = sourceFile.getFilePath().getParentFile();
-        if (parentFile != null) {
-          sourceFolders.add(parentFile);
-        }
-      }
-    }
+    Collection<File> sourceFolders = nativeAndroidGradleModel.getSelectedVariant().getSourceFolders();
     if (!sourceFolders.isEmpty()) {
       addSourceFolders(contentEntries, sourceFolders, SOURCE, orphans, false);
     }
