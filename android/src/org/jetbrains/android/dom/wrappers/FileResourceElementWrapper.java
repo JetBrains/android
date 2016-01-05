@@ -37,13 +37,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 7, 2009
- * Time: 10:06:22 PM
- * To change this template use File | Settings | File Templates.
- */
 public class FileResourceElementWrapper implements PsiFile, ResourceElementWrapper, PsiElementNavigationItem {
   private final PsiFile myWrappee;
   private final PsiDirectory myResourceDir;

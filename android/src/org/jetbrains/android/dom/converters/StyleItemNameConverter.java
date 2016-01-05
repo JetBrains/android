@@ -31,13 +31,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 12, 2009
- * Time: 2:50:25 PM
- * To change this template use File | Settings | File Templates.
- */
 public class StyleItemNameConverter extends ResolvingConverter<String> {
   @NotNull
   @Override

@@ -26,13 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Apr 1, 2009
- * Time: 7:45:03 PM
- * To change this template use File | Settings | File Templates.
- */
 public class LightFlagConverter extends ResolvingConverter<String> {
   private final Set<String> myValues = new HashSet<String>();
 

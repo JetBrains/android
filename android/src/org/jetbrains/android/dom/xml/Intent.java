@@ -22,13 +22,6 @@ import org.jetbrains.android.dom.LookupClass;
 import org.jetbrains.android.dom.LookupPrefix;
 import org.jetbrains.android.dom.converters.ConstantFieldConverter;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 12, 2009
- * Time: 6:15:33 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface Intent extends XmlResourceElement {
   @Convert(ConstantFieldConverter.class)
   @LookupClass("android.content.Intent")

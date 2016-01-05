@@ -18,13 +18,6 @@ package org.jetbrains.android.dom.resources;
 
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 5, 2009
- * Time: 6:24:50 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface StringArray extends ResourceElement {
   List<ArrayElement> getItems();
 }
