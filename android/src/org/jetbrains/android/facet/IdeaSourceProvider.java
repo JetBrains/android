@@ -135,7 +135,7 @@ public abstract class IdeaSourceProvider {
 
     /** Convert a set of IO files into a set of equivalent virtual files */
     private static Collection<VirtualFile> convertFileSet(@NotNull Collection<File> fileSet) {
-      Collection<VirtualFile> result = Sets.newHashSetWithExpectedSize(fileSet.size());
+      Collection<VirtualFile> result = Lists.newArrayListWithCapacity(fileSet.size());
       LocalFileSystem fileSystem = LocalFileSystem.getInstance();
       for (File file : fileSet) {
         VirtualFile virtualFile = fileSystem.findFileByIoFile(file);
