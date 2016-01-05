@@ -109,7 +109,7 @@ public final class Render {
       }
     }
     long address = ((Long)dynamic.getFieldValue(0)).longValue();
-    PoolID poolId = new PoolID(((Integer)dynamic.getFieldValue(1)).intValue());
+    PoolID poolId = PoolID.findOrCreate(((Number)dynamic.getFieldValue(1)).intValue());
     mp.setAddress(address);
     mp.setPool(poolId);
     return mp;
@@ -207,7 +207,7 @@ public final class Render {
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
     component.append("0x" + Long.toHexString(pointer.getAddress()), attributes);
-    if (pointer.getPool().value != PoolID.ApplicationPool) {
+    if (!PoolID.ApplicationPool.equals(pointer.getPool())) {
       component.append("@", SimpleTextAttributes.GRAY_ATTRIBUTES);
       component.append(pointer.getPool().toString(), attributes);
     }
@@ -331,41 +331,41 @@ public final class Render {
     }
 
     // Note: casting to Number instead of Byte, Short, Integer, etc. in case the value was boxed into a different Number type.
-    switch (type.getMethod().value) {
-      case Method.Bool:
+    switch (type.getMethod().getValue()) {
+      case Method.BoolValue:
         component.append(String.format("%b", (Boolean)value), attributes);
         return;
-      case Method.Int8:
+      case Method.Int8Value:
         component.append(String.format("%d", ((Number)value).byteValue()), attributes);
         return;
-      case Method.Uint8:
+      case Method.Uint8Value:
         component.append(String.format("%d", ((Number)value).intValue() & 0xff), attributes);
         return;
-      case Method.Int16:
+      case Method.Int16Value:
         component.append(String.format("%d", ((Number)value).shortValue()), attributes);
         return;
-      case Method.Uint16:
+      case Method.Uint16Value:
         component.append(String.format("%d", ((Number)value).intValue() & 0xffff), attributes);
         return;
-      case Method.Int32:
+      case Method.Int32Value:
         component.append(String.format("%d", ((Number)value).intValue()), attributes);
         return;
-      case Method.Uint32:
+      case Method.Uint32Value:
         component.append(String.format("%d", ((Number)value).longValue() & 0xffffffffL), attributes);
         return;
-      case Method.Int64:
+      case Method.Int64Value:
         component.append(String.format("%d", ((Number)value).longValue()), attributes);
         return;
-      case Method.Uint64:
+      case Method.Uint64Value:
         component.append(String.format("0x%s", Long.toHexString(((Number)value).longValue())), attributes);
         return;
-      case Method.Float32:
+      case Method.Float32Value:
         component.append(String.format("%f", ((Number)value).floatValue()), attributes);
         return;
-      case Method.Float64:
+      case Method.Float64Value:
         component.append(String.format("%f", ((Number)value).doubleValue()), attributes);
         return;
-      case Method.String:
+      case Method.StringValue:
         component.append(String.valueOf(value), attributes);
         return;
       default:
