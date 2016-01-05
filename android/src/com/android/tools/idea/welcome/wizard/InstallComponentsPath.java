@@ -24,6 +24,7 @@ import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
+import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.*;
@@ -31,14 +32,13 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
@@ -153,10 +153,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
    * @return null if the user cancels from the UI
    */
   @NotNull
-  @VisibleForTesting
-  static InstallOperation<File, File> downloadAndUnzipSdkSeed(@NotNull InstallContext context,
-                                                              @NotNull final File destination,
-                                                              double progressShare) {
+  private static InstallOperation<File, File> downloadAndUnzipSdkSeed(@NotNull InstallContext context,
+                                                                      @NotNull final File destination,
+                                                                      double progressShare) {
     final double DOWNLOAD_OPERATION_PROGRESS_SHARE = progressShare * 0.8;
     final double UNZIP_OPERATION_PROGRESS_SHARE = progressShare * 0.15;
     final double MOVE_OPERATION_PROGRESS_SHARE = progressShare - DOWNLOAD_OPERATION_PROGRESS_SHARE - UNZIP_OPERATION_PROGRESS_SHARE;
@@ -241,8 +240,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         }
       };
 
-      addStep(
-        new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, supplier));
+      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, supplier));
     }
   }
 
@@ -259,14 +257,6 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         }
       }
     }
-  }
-
-  private List<String> getInstallPaths() {
-    List<String> result = Lists.newArrayList();
-    for (RemotePackage p : myComponentInstaller.getPackagesToInstall(myComponentTree.getChildrenToInstall())) {
-      result.add(p.getPath());
-    }
-    return result;
   }
 
   @NotNull
@@ -447,20 +437,15 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     @Override
     public File apply(@Nullable final File input) {
       assert input != null;
-      final Application application = ApplicationManager.getApplication();
-      // SDK can only be set from write action, write action can only be started from UI thread
-      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+
+      ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), new Runnable() {
         @Override
         public void run() {
-          application.runWriteAction(new Runnable() {
-            @Override
-            public void run() {
-              IdeSdks.setAndroidSdkPath(input, null);
-              AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
-            }
-          });
+          IdeSdks.setAndroidSdkPath(input, ProjectManager.getInstance().getDefaultProject());
+          AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
         }
-      }, application.getAnyModalityState());
+      });
+
       return input;
     }
   }
@@ -470,7 +455,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     private final Collection<? extends InstallableComponent> mySelectedComponents;
     private final AndroidSdkHandler mySdkHandler;
 
-    public ConfigureComponents(InstallContext installContext, Collection<? extends InstallableComponent> selectedComponents,
+    public ConfigureComponents(InstallContext installContext,
+                               Collection<? extends InstallableComponent> selectedComponents,
                                AndroidSdkHandler sdkHandler) {
       myInstallContext = installContext;
       mySelectedComponents = selectedComponents;
