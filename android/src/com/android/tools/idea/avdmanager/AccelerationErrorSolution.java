@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,6 +67,10 @@ public class AccelerationErrorSolution {
     "  2) Run the following command: C:\\Windows\\system32> bcdedit /set hypervisorlaunchtype off\n" +
     "  3) Reboot your machine.\n";
 
+  static final String SOLUTION_REBOOT_AFTER_TURNING_HYPER_V_OFF =
+    "Hyper-V was successfully turned off. However a system restart is required for this to take effect.\n\n" +
+    "Do you want to reboot now?\n";
+
   /**
    * Solution to problems that we can fix from Android Studio.
    */
@@ -77,7 +82,8 @@ public class AccelerationErrorSolution {
     UPDATE_SYSTEM_IMAGES("Update System Images"),
     INSTALL_KVM("Install KVM"),
     INSTALL_HAXM("Install Haxm"),
-    REINSTALL_HAXM("Reinstall Haxm");
+    REINSTALL_HAXM("Reinstall Haxm"),
+    TURNOFF_HYPER_V("Turn off Hyper-V");
 
     private final String myDescription;
 
@@ -212,6 +218,38 @@ public class AccelerationErrorSolution {
               HaxmWizard wizard = new HaxmWizard();
               wizard.init();
               myChangesMade = wizard.showAndGet();
+            }
+            finally {
+              reportBack();
+            }
+          }
+        };
+
+      case TURNOFF_HYPER_V:
+        return new Runnable() {
+          @Override
+          public void run() {
+            try {
+              GeneralCommandLine turnHyperVOff = new ElevatedCommandLine();
+              turnHyperVOff.setExePath("bcdedit");
+              turnHyperVOff.addParameters("/set", "hypervisorlaunchtype", "off");
+              turnHyperVOff.setWorkDirectory(FileUtilRt.getTempDirectory());
+              try {
+                execute(turnHyperVOff);
+                int response = Messages
+                  .showOkCancelDialog(myProject, SOLUTION_REBOOT_AFTER_TURNING_HYPER_V_OFF, "Reboot Now", Messages.getQuestionIcon());
+                if (response == Messages.OK) {
+                  GeneralCommandLine reboot = new ElevatedCommandLine();
+                  reboot.setExePath("shutdown");
+                  reboot.addParameters("/g", "/t", "10");  // shutdown & restart after a 10 sec delay
+                  reboot.setWorkDirectory(FileUtilRt.getTempDirectory());
+                  execute(reboot);
+                }
+              }
+              catch (ExecutionException ex) {
+                LOG.error(ex);
+                Messages.showWarningDialog(myProject, SOLUTION_TURN_OFF_HYPER_V, "Operation Failed");
+              }
             }
             finally {
               reportBack();

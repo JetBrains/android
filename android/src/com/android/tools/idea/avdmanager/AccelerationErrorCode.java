@@ -46,7 +46,7 @@ public enum AccelerationErrorCode {
   DEV_IOCTL_FAILED_WIN_MAC(13, "HAXM device: ioctl denied.", REINSTALL_HAXM, "Reinstall HAXM."),
   DEV_OBSOLETE_LINUX(14, "KVM module is too old.", NONE, "Upgrade your kernel."),
   DEV_OBSOLETE_WIN_MAC(14, "Virtual machine acceleration driver out-of-date.", REINSTALL_HAXM, "Reinstall HAXM."),
-  HYPERV_ENABLED(15, "Android Emulator is incompatible with Hyper-V.", NONE, SOLUTION_TURN_OFF_HYPER_V),
+  HYPER_V_ENABLED(15, "Android Emulator is incompatible with Hyper-V.", TURNOFF_HYPER_V, SOLUTION_TURN_OFF_HYPER_V),
   EMULATOR_ERROR(138, "Accelerator Detection Problem.", NONE, "Please file a bug against Android Studio."),
   UNKNOWN_ERROR(-1, "Unknown Error", NONE, "Please file a bug against Android Studio."),
   NO_EMULATOR_INSTALLED(-2, "No emulator installed", DOWNLOAD_EMULATOR, "Please download the emulator"),
@@ -105,7 +105,7 @@ public enum AccelerationErrorCode {
       case 12: return SystemInfo.isLinux ? DEV_OPEN_FAILED_LINUX : DEV_OPEN_FAILED_WIN_MAC;
       case 13: return SystemInfo.isLinux ? DEV_IOCTL_FAILED_LINUX : DEV_IOCTL_FAILED_WIN_MAC;
       case 14: return SystemInfo.isLinux ? DEV_OBSOLETE_LINUX : DEV_OBSOLETE_WIN_MAC;
-      case 15: return HYPERV_ENABLED;
+      case 15: return HYPER_V_ENABLED;
       default: return UNKNOWN_ERROR;
     }
   }
