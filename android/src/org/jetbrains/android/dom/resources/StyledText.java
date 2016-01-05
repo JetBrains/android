@@ -20,13 +20,6 @@ import org.jetbrains.android.dom.AndroidDomElement;
 
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 25, 2009
- * Time: 6:55:03 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface StyledText extends AndroidDomElement {
   List<StyledText> getBs();
   List<StyledText> getIs();

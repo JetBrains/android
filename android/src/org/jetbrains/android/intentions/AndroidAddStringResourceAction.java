@@ -69,13 +69,6 @@ import java.util.Set;
 import static com.android.SdkConstants.*;
 import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Mar 9, 2009
- * Time: 5:02:31 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidAddStringResourceAction extends AbstractIntentionAction implements HighPriorityAction {
 
   @Override
