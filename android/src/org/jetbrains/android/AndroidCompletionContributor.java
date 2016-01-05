@@ -57,7 +57,6 @@ import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SimpleClassMapConstructor;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -84,7 +83,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
     }
     else if (LayoutDomFileDescription.isLayoutFile(xmlFile)) {
       final Map<String,PsiClass> classMap = facet.getClassMap(
-        AndroidUtils.VIEW_CLASS_NAME, SimpleClassMapConstructor.getInstance());
+        AndroidUtils.VIEW_CLASS_NAME);
 
       for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
         final PsiClass aClass = classMap.get(rootTag);

@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SimpleClassMapConstructor;
+import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,6 +67,6 @@ public class AndroidXmlResourcesUtil {
 
   public static boolean isSupportedRootTag(@NotNull AndroidFacet facet, @NotNull String rootTagName) {
     return ROOT_TAGS.contains(rootTagName) ||
-           SimpleClassMapConstructor.findClassByTagName(facet, rootTagName, SdkConstants.CLASS_PREFERENCE) != null;
+           LayoutViewClassUtils.findClassByTagName(facet, rootTagName, SdkConstants.CLASS_PREFERENCE) != null;
   }
 }
