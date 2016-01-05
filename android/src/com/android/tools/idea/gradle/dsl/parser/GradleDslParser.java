@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
@@ -412,14 +413,25 @@ public final class GradleDslParser {
     GradleDslExpressionMap expressionMap = new GradleDslExpressionMap(parentElement, mapPsiElement, propertyName);
     for (GrNamedArgument namedArgument : namedArguments) {
       String argName = namedArgument.getLabelName();
-      if (!isEmpty(argName)) {
-        GrExpression valueExpression = namedArgument.getExpression();
-        if (valueExpression != null) {
-          GradleDslElement valueElement = getExpressionElement(expressionMap, mapPsiElement, argName, valueExpression);
-          if (valueElement != null) {
-            expressionMap.setParsedElement(argName, valueElement);
-          }
+      if (isEmpty(argName)) {
+        continue;
+      }
+      GrExpression valueExpression = namedArgument.getExpression();
+      if (valueExpression == null) {
+        continue;
+      }
+      GradleDslElement valueElement = getExpressionElement(expressionMap, mapPsiElement, argName, valueExpression);
+      if (valueElement == null && valueExpression instanceof GrListOrMap) {
+        GrListOrMap listOrMap = (GrListOrMap)valueExpression;
+        if (listOrMap.isMap()) {
+          valueElement = getExpressionMap(expressionMap, listOrMap, argName, listOrMap.getNamedArguments());
         }
+        else { // ex: flatDir name: "libs", dirs: ["libs1", "libs2"]
+          valueElement = getExpressionList(expressionMap, listOrMap, argName, listOrMap.getInitializers());
+        }
+      }
+      if (valueElement != null) {
+        expressionMap.setParsedElement(argName, valueElement);
       }
     }
     return expressionMap;
@@ -477,6 +489,9 @@ public final class GradleDslParser {
         else if (resultElement instanceof RepositoriesDslElement) {
           if (MavenRepositoryDslElement.MAVEN.equals(nestedElementName) || MavenRepositoryDslElement.JCENTER.equals(nestedElementName)) {
             newElement = new MavenRepositoryDslElement(resultElement, nestedElementName);
+          }
+          else if (FlatDirRepositoryDslElement.FLAT_DIR_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new FlatDirRepositoryDslElement(resultElement);
           }
           else {
             return null;

@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Represents a repository defined with maven {}.
  */
-public class MavenRepositoryModel extends RepositoryModel {
+public class MavenRepositoryModel extends UrlBasedRepositoryModel {
   private static final String URL = "url";
   private static final String NAME = "name";
   private static final String ARTIFACT_URLS = "artifactUrls";
