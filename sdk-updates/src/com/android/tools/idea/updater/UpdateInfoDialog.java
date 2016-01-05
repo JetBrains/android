@@ -15,25 +15,19 @@
  */
 package com.android.tools.idea.updater;
 
-import com.android.repository.api.*;
+import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.Archive;
-import com.android.repository.io.FileOpUtils;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
-import com.android.tools.idea.sdkv2.StudioDownloader;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdkv2.StudioSettingsController;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
+import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.updateSettings.impl.AbstractUpdateDialog;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -48,17 +42,19 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
   private static final String RELEASE_NOTES_URL = "http://developer.android.com/tools/revisions/index.html";
 
   private final List<RemotePackage> myPackages;
+  private final JComponent myComponent;
 
   protected UpdateInfoDialog(boolean enableLink, List<RemotePackage> packages) {
     super(enableLink);
     myPackages = packages;
     getCancelAction().putValue(DEFAULT_ACTION, Boolean.TRUE);
+    myComponent = new UpdateInfoPanel(myPackages).getRootPanel();
     init();
   }
 
   @Override
   protected JComponent createCenterPanel() {
-    return new UpdateInfoPanel(myPackages).getRootPanel();
+    return myComponent;
   }
 
   @NotNull
@@ -69,19 +65,15 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
     actions.add(new AbstractAction("Update Now") {
       @Override
       public void actionPerformed(ActionEvent e) {
-        ProgressManager.getInstance().run(new Task.Modal(null, "Installing... ", true) {
-          @Override
-          public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
-            ProgressIndicator repoProgress = new RepoProgressIndicatorAdapter(indicator);
-            Downloader downloader = new StudioDownloader(indicator);
-            SettingsController settings = StudioSettingsController.getInstance();
-            RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
-            for (RemotePackage p : myPackages) {
-              // TODO: use quickfix wizard
-              AndroidSdkHandler.findBestInstaller(p).install(p, downloader, settings, repoProgress, mgr, FileOpUtils.create());
-            }
-          }
-        });
+        List<String> paths = Lists.newArrayList();
+        for (RemotePackage p : myPackages) {
+          paths.add(p.getPath());
+        }
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myComponent, paths);
+        // Can be null if there was an error, in theory. In that case createDialogForPaths shows the error itself.
+        if (dialog != null) {
+          dialog.show();
+        }
         close(0);
       }
     });
