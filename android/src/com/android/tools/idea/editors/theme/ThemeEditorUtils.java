@@ -27,6 +27,7 @@ import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -758,24 +759,11 @@ public class ThemeEditorUtils {
   }
 
   /**
-   * Returns a StringBuilder with the words concatenated into an enumeration w1, w2, ..., w(n-1) and  wn
+   * Returns a string with the words concatenated into an enumeration w1, w2, ..., w(n-1) and wn
    */
   @NotNull
   public static String generateWordEnumeration(@NotNull Collection<String> words) {
-    StringBuilder sentenceBuilder = new StringBuilder();
-    int nWords = words.size();
-    int i = 0;
-    for (String word : words) {
-      sentenceBuilder.append(word);
-      if (i < nWords - 2) {
-        sentenceBuilder.append(", ");
-      }
-      else if (i == nWords - 2) {
-        sentenceBuilder.append(" and ");
-      }
-      i++;
-    }
-    return sentenceBuilder.toString();
+    return AndroidTextUtils.generateCommaSeparatedList(words, "and");
   }
 
   @NotNull
