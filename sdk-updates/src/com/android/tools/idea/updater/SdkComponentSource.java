@@ -17,13 +17,18 @@ package com.android.tools.idea.updater;
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.repository.api.*;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
-import com.android.tools.idea.sdkv2.*;
+import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -40,8 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import static com.android.repository.api.RepoManager.DEFAULT_EXPIRATION_PERIOD_MS;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An {@link ExternalComponentSource} that retrieves information from the {@link LocalSdk} and {@link RemoteSdk} provided
@@ -54,20 +58,20 @@ public class SdkComponentSource implements ExternalComponentSource {
   public static final String PREVIEW_CHANNEL = "Preview Channel";
   public static final String STABLE_CHANNEL = "Stable Channel";
 
-  private RepoManager myRepoManager;
+  private RepositoryPackages myPackages;
 
   private void initIfNecessary(@Nullable ProgressIndicator indicator) {
-    if (myRepoManager == null) {
-      RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
-      com.android.repository.api.ProgressIndicator progress;
-      if (indicator != null) {
-        progress = new RepoProgressIndicatorAdapter(indicator);
-      }
-      else {
-        progress = new StudioLoggerProgressIndicator(getClass());
-      }
-      mgr.loadSynchronously(DEFAULT_EXPIRATION_PERIOD_MS, progress, new StudioDownloader(indicator), StudioSettingsController.getInstance());
-      myRepoManager = mgr;
+    RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+    com.android.repository.api.ProgressIndicator progress;
+    if (indicator != null) {
+      progress = new RepoProgressIndicatorAdapter(indicator);
+    }
+    else {
+      progress = new StudioLoggerProgressIndicator(getClass());
+    }
+    if (mgr
+      .loadSynchronously(TimeUnit.MINUTES.toMillis(1), progress, new StudioDownloader(indicator), StudioSettingsController.getInstance())) {
+      myPackages = mgr.getPackages();
     }
   }
 
@@ -119,7 +123,7 @@ public class SdkComponentSource implements ExternalComponentSource {
 
     Set<String> ignored = settings != null ? Sets.newHashSet(settings.getIgnoredBuildNumbers()) : ImmutableSet.<String>of();
 
-    for (com.android.repository.api.UpdatablePackage p : myRepoManager.getPackages().getConsolidatedPkgs().values()) {
+    for (com.android.repository.api.UpdatablePackage p : myPackages.getConsolidatedPkgs().values()) {
       if (remote) {
         if (p.hasRemote()) {
           RemotePackage remotePackage = p.getRemote();
