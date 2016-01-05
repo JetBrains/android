@@ -97,6 +97,9 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       @Override
       public void run() {
         Channel channel = StudioSettingsController.getInstance().getChannel();
+        if (myCurrentChannel == null) {
+          myCurrentChannel = channel;
+        }
         if (!Objects.equal(channel, myCurrentChannel)) {
           myCurrentChannel = channel;
           myPanel.refresh();

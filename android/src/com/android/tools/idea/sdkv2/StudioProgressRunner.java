@@ -18,12 +18,10 @@ package com.android.tools.idea.sdkv2;
 import com.android.repository.api.ProgressRunner;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.*;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,23 +57,37 @@ public class StudioProgressRunner implements ProgressRunner {
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
-        ProgressManager.getInstance().runProcessWithProgressAsynchronously(
-          new Task.Backgroundable(myProject, myProgressTitle, myCancellable, new PerformInBackgroundOption() {
-            @Override
-            public boolean shouldStartInBackground() {
-              return !myModal;
-            }
+        Task.Backgroundable task = new Task.Backgroundable(myProject, myProgressTitle, myCancellable, new PerformInBackgroundOption() {
+          @Override
+          public boolean shouldStartInBackground() {
+            return !myModal;
+          }
 
-            @Override
-            public void processSentToBackground() {
-              myModal = false;
-            }
-          }) {
-            @Override
-            public void run(@NotNull ProgressIndicator indicator) {
-              r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this);
-            }
-          }, new ProgressWindow(myCancellable, myBackgroundable, myProject));
+          @Override
+          public void processSentToBackground() {
+            // no special processing needed
+          }
+        }) {
+          @Override
+          public void run(@NotNull ProgressIndicator indicator) {
+            r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this);
+          }
+
+          @Override
+          public boolean isConditionalModal() {
+            return true;
+          }
+        };
+
+        boolean hasOpenProjects = ProjectManager.getInstance().getOpenProjects().length > 0;
+        if (hasOpenProjects) {
+          ProgressManager.getInstance().run(task);
+        }
+        else {
+          // If we don't have any open projects run(task) will show a modal popup no matter what.
+          // Instead explicitly use an empty progress indicator to suppress that.
+          ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, new EmptyProgressIndicator());
+        }
       }
     });
   }
