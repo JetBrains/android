@@ -29,6 +29,9 @@ import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigu
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.fest.assertions.Assertions.assertThat;
 
+/**
+ * Tests for {@link DependenciesModel} and {@link ArtifactDependencyModel}.
+ */
 public class ArtifactDependencyTest extends GradleFileModelTestCase {
   public void testParsingWithCompactNotationAndConfigurationClosure() throws IOException {
     String text = "dependencies {\n" +

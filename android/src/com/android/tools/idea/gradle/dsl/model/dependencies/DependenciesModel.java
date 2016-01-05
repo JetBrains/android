@@ -17,17 +17,16 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel.*;
-
 public class DependenciesModel extends GradleDslBlockModel {
-
   public DependenciesModel(@NotNull DependenciesDslElement dslElement) {
     super(dslElement);
   }
@@ -88,14 +87,8 @@ public class DependenciesModel extends GradleDslBlockModel {
 
   @NotNull
   public DependenciesModel addArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency) {
-    GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
-    if (list == null) {
-      list = new GradleDslElementList(myDslElement, configurationName);
-      myDslElement.setNewElement(configurationName, list);
-    }
-    GradleDslLiteral literal = new GradleDslLiteral(list, configurationName);
-    literal.setValue(dependency.compactNotation());
-    list.addNewElement(literal);
+    GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
+    ArtifactDependencyModel.createAndAddToList(list, configurationName, dependency);
     return this;
   }
 
@@ -106,7 +99,7 @@ public class DependenciesModel extends GradleDslBlockModel {
       GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
       if (list != null) {
         for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
-          dependencies.addAll(create(configurationName, element));
+          dependencies.addAll(ModuleDependencyModel.create(configurationName, element));
         }
       }
     }
@@ -121,20 +114,33 @@ public class DependenciesModel extends GradleDslBlockModel {
 
   @NotNull
   public DependenciesModel addModule(@NotNull String configurationName, @NotNull String path, @Nullable String config) {
+    GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
+    ModuleDependencyModel.createAndAddToList(list, configurationName, path, config);
+    return this;
+  }
+
+  @NotNull
+  private GradleDslElementList getOrCreateGradleDslElementList(@NotNull String configurationName) {
     GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
     if (list == null) {
       list = new GradleDslElementList(myDslElement, configurationName);
       myDslElement.setNewElement(configurationName, list);
     }
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, PROJECT, configurationName);
-    GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, PROJECT);
-    mapArguments.setNewLiteral(PATH, path);
-    if (config != null) {
-      mapArguments.setNewLiteral(CONFIGURATION, config);
+    return list;
+  }
+
+  @NotNull
+  public List<FileTreeDependencyModel> fileTrees() {
+    List<FileTreeDependencyModel> dependencies = Lists.newArrayList();
+    for (String configurationName : myDslElement.getProperties()) {
+      GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+      if (list != null) {
+        for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
+          dependencies.addAll(FileTreeDependencyModel.create(configurationName, element));
+        }
+      }
     }
-    methodCall.addNewArgument(mapArguments);
-    list.addNewElement(methodCall);
-    return this;
+    return dependencies;
   }
 
   @NotNull
