@@ -52,13 +52,6 @@ import java.util.Set;
 
 import static com.android.SdkConstants.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 12, 2009
- * Time: 6:49:18 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
   private static final Key<Map<String, CachedValue<XmlFile>>> DESCRIPTORS_MAP_IN_MODULE = Key.create("ANDROID_DESCRIPTORS_MAP_IN_MODULE");
 

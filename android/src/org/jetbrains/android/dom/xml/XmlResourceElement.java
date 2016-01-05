@@ -19,13 +19,6 @@ package org.jetbrains.android.dom.xml;
 import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.AndroidDomElement;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 11, 2009
- * Time: 7:07:03 PM
- * To change this template use File | Settings | File Templates.
- */
 @DefinesXml
 public interface XmlResourceElement extends AndroidDomElement {
 }

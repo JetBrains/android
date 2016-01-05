@@ -27,13 +27,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 19, 2009
- * Time: 5:49:30 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidManifestUtils {
   private AndroidManifestUtils() {
   }

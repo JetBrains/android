@@ -47,13 +47,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.File;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 6, 2009
- * Time: 7:08:02 PM
- * To change this template use File | Settings | File Templates.
- */
 public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceElementWrapper, PsiNamedElement, PsiElementNavigationItem {
   private final XmlAttributeValue myWrappee;
   private final String myFileName;

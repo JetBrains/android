@@ -29,13 +29,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 21, 2009
- * Time: 3:58:30 PM
- * To change this template use File | Settings | File Templates.
- */
 public class CreateResourceFileActionGroup extends DefaultActionGroup {
   private final CreateResourceFileAction myMajorAction;
 
