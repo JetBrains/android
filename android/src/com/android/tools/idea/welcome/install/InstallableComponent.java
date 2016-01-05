@@ -22,6 +22,7 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOp;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -44,7 +45,7 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   private Boolean myUserSelection; // null means default component enablement is used
   private boolean myIsOptional = true;
   private boolean myIsInstalled = false;
-  protected final FileOp myFileOp;
+  private final FileOp myFileOp;
 
   public InstallableComponent(@NotNull ScopedStateStore stateStore,
                               @NotNull String name,
@@ -77,16 +78,17 @@ public abstract class InstallableComponent extends ComponentTreeNode {
 
   public abstract void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler);
 
-  protected boolean isSelectedByDefault(@Nullable AndroidSdkHandler sdkHandler) {
+  protected boolean isSelectedByDefault(@Nullable @SuppressWarnings("UnusedParameters") AndroidSdkHandler sdkHandler) {
     return true;
   }
 
+  // TODO Rename this to isEnabled
   @Override
   public boolean isOptional() {
     return myIsOptional;
   }
 
-  protected boolean isOptionalForSdkLocation(@Nullable AndroidSdkHandler sdkHandler) {
+  protected boolean isOptionalForSdkLocation(@Nullable @SuppressWarnings("UnusedParameters") AndroidSdkHandler sdkHandler) {
     return true;
   }
 
@@ -105,11 +107,9 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   }
 
   @Override
-  public void updateState(@Nullable AndroidSdkHandler sdkHandler) {
-    boolean sdkDirectoryWritable = sdkHandler == null || sdkHandler.getLocation().canWrite();
-
+  public void updateState(@NotNull AndroidSdkHandler sdkHandler) {
     // If we don't have anything to install, show as unchecked and not editable.
-    boolean nothingToInstall = !sdkDirectoryWritable || getRequiredSdkPackages(null).isEmpty();
+    boolean nothingToInstall = !SdkLocationUtils.isWritable(myFileOp, sdkHandler.getLocation()) || getRequiredSdkPackages(null).isEmpty();
     myIsOptional = !nothingToInstall && isOptionalForSdkLocation(sdkHandler);
 
     boolean isSelected;
