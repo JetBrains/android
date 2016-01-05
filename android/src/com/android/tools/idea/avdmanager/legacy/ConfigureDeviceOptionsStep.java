@@ -18,9 +18,9 @@ package com.android.tools.idea.avdmanager.legacy;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.*;
-import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.*;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdWizardConstants;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
@@ -77,7 +77,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
   private JTextField myDeviceName;
   private JBLabel myHelpAndErrorLabel;
   private HyperlinkLabel myHardwareSkinHelpLabel;
-  private com.android.tools.idea.avdmanager.legacy.SkinChooser myCustomSkinPath;
+  private SkinChooser myCustomSkinPath;
   private ComboBox myDeviceTypeComboBox;
 
   /**

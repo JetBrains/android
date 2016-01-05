@@ -22,7 +22,6 @@ import com.android.repository.io.FileOp;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
@@ -134,24 +133,6 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
       return String.format("Sources for Android SDK, API %1$d, revision %2$s%3$s", version.getApiLevel(), revision.toShortString(),
                            obsolete ? " (Obsolete)" : "");
     }
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A sources package is typically installed in SDK/sources/platform.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  @NotNull
-  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
-    File folder = new File(osSdkRoot, SdkConstants.FD_PKG_SOURCES);
-    folder = new File(folder, "android-" + getPkgDesc().getAndroidVersion().getApiString());    //$NON-NLS-1$
-    return folder;
   }
 
   /**

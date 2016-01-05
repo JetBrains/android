@@ -154,12 +154,10 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     private final RemotePkgInfo myWrapped;
     private RepositorySource mySource;
     private TypeDetails myDetails;
-    private RemotePackage mNewPackageInstance;
 
     LegacyRemotePackage(RemotePkgInfo remote, RepositorySource source) {
       myWrapped = remote;
       mySource = source;
-      mNewPackageInstance = ((CommonFactory)RepoManager.getCommonModule().createLatestFactory()).createRemotePackage();
     }
 
     @Override
@@ -212,10 +210,7 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     @NotNull
     @Override
     public String getPath() {
-      String path = myWrapped.getInstallFolder("", myLocalSdk).getPath();
-      path = path.substring(1);
-      path = path.replace(File.separatorChar, RepoPackage.PATH_SEPARATOR);
-      return path;
+      return LegacyRepoUtils.getLegacyPath(myWrapped.getPkgDesc());
     }
 
     @NotNull

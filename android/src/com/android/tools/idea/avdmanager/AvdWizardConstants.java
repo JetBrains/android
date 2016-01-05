@@ -17,14 +17,14 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.ui.JBFont;
 import org.jetbrains.annotations.NotNull;
@@ -136,8 +136,8 @@ public class AvdWizardConstants {
   public static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
 
   // Tags
-  public static final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");
-  public static final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
+  public static final IdDisplay WEAR_TAG = new com.android.sdklib.repository.descriptors.IdDisplay("android-wear", "Android Wear");
+  public static final IdDisplay TV_TAG = new com.android.sdklib.repository.descriptors.IdDisplay("android-tv", "Android TV");
 
   public static final List<IdDisplay> ALL_TAGS = ImmutableList.of(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG);
 
