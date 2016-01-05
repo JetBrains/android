@@ -56,7 +56,7 @@ public class FrameBufferController extends ImagePanelController {
 
     mySettings.setMaxHeight(MAX_SIZE);
     mySettings.setMaxWidth(MAX_SIZE);
-    mySettings.setWireframeMode(WireframeMode.noWireframe());
+    mySettings.setWireframeMode(WireframeMode.NoWireframe);
 
     initToolbar(getToolbarActions(), false);
   }
@@ -68,12 +68,12 @@ public class FrameBufferController extends ImagePanelController {
     group.add(new FramebufferTypeAction(this, BufferType.Depth, "Depth Buffer", "Display the depth framebuffer",
                                         AndroidIcons.GfxTrace.DepthBuffer));
     group.add(new Separator());
-    group.add(new FramebufferWireframeAction(this, WireframeMode.noWireframe(), "Shaded", "Display the framebuffer with shaded polygons",
+    group.add(new FramebufferWireframeAction(this, WireframeMode.NoWireframe, "Shaded", "Display the framebuffer with shaded polygons",
                                              AndroidIcons.GfxTrace.WireframeNone));
-    group.add(new FramebufferWireframeAction(this, WireframeMode.wireframeOverlay(), "Shaded + Wireframe",
+    group.add(new FramebufferWireframeAction(this, WireframeMode.WireframeOverlay, "Shaded + Wireframe",
                                              "Display the framebuffer with shaded polygons and overlay the wireframe of the last draw call",
                                              AndroidIcons.GfxTrace.WireframeOverlay));
-    group.add(new FramebufferWireframeAction(this, WireframeMode.allWireframe(), "Wireframe", "Display the framebuffer with wireframes",
+    group.add(new FramebufferWireframeAction(this, WireframeMode.AllWireframe, "Wireframe", "Display the framebuffer with wireframes",
                                              AndroidIcons.GfxTrace.WireframeAll));
     group.add(new Separator());
     return group;
