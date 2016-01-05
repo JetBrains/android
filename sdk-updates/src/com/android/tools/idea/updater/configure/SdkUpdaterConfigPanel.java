@@ -41,6 +41,8 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.updateSettings.impl.UpdateSettingsConfigurable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.HyperlinkAdapter;
@@ -171,7 +173,7 @@ public class SdkUpdaterConfigPanel {
           myPlatformComponentsPanel.finishLoading();
           myToolComponentsPanel.finishLoading();
         }
-      });
+      }, ModalityState.any());
     }
   };
 
@@ -387,7 +389,9 @@ public class SdkUpdaterConfigPanel {
     myToolComponentsPanel.startLoading();
 
     // TODO: make progress runner handle invokes?
-    StudioProgressRunner progressRunner = new StudioProgressRunner(false, false, false, "Loading SDK", false, null);
+    Project[] projects = ProjectManager.getInstance().getOpenProjects();
+    StudioProgressRunner progressRunner = new StudioProgressRunner(false, true, false, "Loading SDK", false,
+                                                                   projects.length == 0 ? null : projects[0]);
     getRepoManager().load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater),
                        null, progressRunner, myDownloader, mySettings, false);
   }
