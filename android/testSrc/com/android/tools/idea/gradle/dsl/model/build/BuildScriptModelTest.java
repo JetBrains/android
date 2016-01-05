@@ -20,6 +20,9 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.ExpectedArtifactDependency;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,7 +31,7 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Tests fpr {@link BuildScriptModel}.
+ * Tests for {@link BuildScriptModel}.
  */
 public class BuildScriptModelTest extends GradleFileModelTestCase {
   public void testParseDependencies() throws IOException {
@@ -125,5 +128,22 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     dependencies = buildModel.buildscript().dependencies().artifacts();
     assertThat(dependencies).hasSize(1);
     expected.assertMatches(dependencies.get(0));
+  }
+
+  public void testParseRepositories() throws IOException {
+    String text = "buildscript {\n" +
+                  "  repositories {\n" +
+                  "    jcenter()\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    RepositoriesModel repositoriesModel = getGradleBuildModel().buildscript().repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+    RepositoryModel repositoryModel = repositories.get(0);
+    assertTrue(repositoryModel instanceof JCenterDefaultRepositoryModel);
+    assertEquals("name", "BintrayJCenter2", repositoryModel.name());
+    assertEquals("url", "https://jcenter.bintray.com/", repositoryModel.url());
   }
 }
