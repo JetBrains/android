@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalLLDBPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
 
 /**
@@ -46,14 +43,6 @@ public class RemoteLLDBPkgInfo extends RemotePkgInfo {
   @Override
   public String installId() {
     return mPkgDesc.getInstallId();
-  }
-
-  @NotNull
-  @Override
-  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk sdkManager) {
-    String pathToLLDB = new File(osSdkRoot, SdkConstants.FD_LLDB).getPath();
-    Revision rev = getRevision();
-    return new File(pathToLLDB, new Revision(rev.getMajor(), rev.getMinor()).toString());
   }
 
   @Override

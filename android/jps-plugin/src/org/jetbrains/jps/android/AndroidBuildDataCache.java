@@ -1,7 +1,5 @@
 package org.jetbrains.jps.android;
 
-import com.android.sdklib.repository.local.LocalSdk;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -25,7 +23,6 @@ import java.util.*;
 public class AndroidBuildDataCache {
   private static AndroidBuildDataCache ourInstance;
 
-  private final List<LocalSdk> myLocalSdks = Lists.newArrayList();
   private final Map<JpsModule, MyAndroidDeps> myModule2AndroidDeps = new HashMap<JpsModule, MyAndroidDeps>();
   private final Map<String, List<ResourceEntry>> myParsedValueResourceFiles = new HashMap<String, List<ResourceEntry>>();
 
@@ -130,19 +127,6 @@ public class AndroidBuildDataCache {
         }
       }
     }
-  }
-
-  @NotNull
-  public LocalSdk getSdk(@NotNull File androidSdkHomePath) {
-    for (LocalSdk sdk : myLocalSdks) {
-      if (FileUtil.filesEqual(sdk.getLocation(), androidSdkHomePath)) {
-        return sdk;
-      }
-    }
-
-    LocalSdk newSdk = new LocalSdk(androidSdkHomePath);
-    myLocalSdks.add(0, newSdk);
-    return newSdk;
   }
 
   private abstract static class MyComputedValue<T> {
