@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.dsl.model.build;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildScriptModel extends GradleDslBlockModel {
@@ -35,5 +37,15 @@ public class BuildScriptModel extends GradleDslBlockModel {
       myDslElement.setNewElement(DependenciesDslElement.NAME, dependenciesDslElement);
     }
     return new DependenciesModel(dependenciesDslElement);
+  }
+
+  @NotNull
+  public RepositoriesModel repositories() {
+    RepositoriesDslElement repositoriesDslElement = myDslElement.getProperty(RepositoriesDslElement.NAME, RepositoriesDslElement.class);
+    if (repositoriesDslElement == null) {
+      repositoriesDslElement = new RepositoriesDslElement(myDslElement);
+      myDslElement.setNewElement(RepositoriesDslElement.NAME, repositoriesDslElement);
+    }
+    return new RepositoriesModel(repositoriesDslElement);
   }
 }

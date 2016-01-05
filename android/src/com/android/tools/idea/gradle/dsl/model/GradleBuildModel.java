@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
@@ -31,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -146,6 +148,16 @@ public class GradleBuildModel extends GradleFileModel {
       myGradleDslFile.setNewElement(JavaDslElement.NAME, javaDslElement);
     }
     return new JavaModel(javaDslElement);
+  }
+
+  @NotNull
+  public RepositoriesModel repositories() {
+    RepositoriesDslElement repositoriesDslElement = myGradleDslFile.getProperty(RepositoriesDslElement.NAME, RepositoriesDslElement.class);
+    if (repositoriesDslElement == null) {
+      repositoriesDslElement = new RepositoriesDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(RepositoriesDslElement.NAME, repositoriesDslElement);
+    }
+    return new RepositoriesModel(repositoriesDslElement);
   }
 
   private static class GradleBuildDslFile extends GradleDslFile {

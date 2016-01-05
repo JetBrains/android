@@ -26,6 +26,9 @@ import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -82,7 +85,7 @@ public final class GradleDslParser {
     }
 
     GradleDslExpression expressionElement = getExpressionElement(dslElement, expression, name, expression);
-    if (expressionElement instanceof GradleDslMethodCall) {
+    if (expressionElement instanceof GradleDslMethodCall && ((GradleDslMethodCall)expressionElement).getArguments().size() > 0) {
       dslElement.addParsedElement(name, expressionElement);
       // This element is a method call with arguments. This element may also contain a closure along with it, but as of now we do not have
       // a use case to understand closure associated with a method call with arguments. So, just process the method arguments and return.
@@ -92,6 +95,12 @@ public final class GradleDslParser {
 
     GrClosableBlock[] closureArguments = expression.getClosureArguments();
     if (closureArguments.length == 0) {
+      if (expressionElement instanceof GradleDslMethodCall && ((GradleDslMethodCall)expressionElement).getArguments().isEmpty()) {
+        dslElement.addParsedElement(name, expressionElement);
+        // This element is a pure method call, i.e a method call with no arguments and no closure arguments.
+        // ex: jcenter()
+        return true;
+      }
       return false;
     }
 
@@ -287,6 +296,9 @@ public final class GradleDslParser {
           if (argumentList.getAllArguments().length > 0) {
             return getMethodCall(parentElement, methodCall, referenceName, argumentList);
           }
+          else {
+            return new GradleDslMethodCall(parentElement, methodCall, referenceName);
+          }
         }
       }
     }
@@ -437,6 +449,9 @@ public final class GradleDslParser {
           else if (BuildScriptDslElement.NAME.equals(nestedElementName)) {
             newElement = new BuildScriptDslElement(resultElement);
           }
+          else if (RepositoriesDslElement.NAME.equals(nestedElementName)) {
+            newElement = new RepositoriesDslElement(resultElement);
+          }
           else {
             String projectKey = ProjectPropertiesDslElement.getStandardProjectKey(nestedElementName);
             if (projectKey != null) {
@@ -452,8 +467,26 @@ public final class GradleDslParser {
           if (DependenciesDslElement.NAME.equals(nestedElementName)) {
             newElement = new DependenciesDslElement(resultElement);
           }
+          else if (RepositoriesDslElement.NAME.equals(nestedElementName)) {
+            newElement = new RepositoriesDslElement(resultElement);
+          }
           else {
-            // TODO: Add support to parse repositories section.
+            return null;
+          }
+        }
+        else if (resultElement instanceof RepositoriesDslElement) {
+          if (MavenRepositoryDslElement.MAVEN.equals(nestedElementName) || MavenRepositoryDslElement.JCENTER.equals(nestedElementName)) {
+            newElement = new MavenRepositoryDslElement(resultElement, nestedElementName);
+          }
+          else {
+            return null;
+          }
+        }
+        else if (resultElement instanceof MavenRepositoryDslElement) {
+          if (MavenCredentialsDslElement.NAME.equals(nestedElementName)) {
+            newElement = new MavenCredentialsDslElement(resultElement);
+          }
+          else {
             return null;
           }
         }
