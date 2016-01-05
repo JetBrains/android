@@ -49,7 +49,7 @@ public final class AtomPath extends Path {
   }
 
   public MemoryRangePath memoryAfter(PoolID pool, MemoryRange range) {
-    return new MemoryRangePath().setAfter(this).setPool(pool.value).setAddress(range.getBase()).setSize(range.getSize());
+    return new MemoryRangePath().setAfter(this).setPool(pool.getValue()).setAddress(range.getBase()).setSize(range.getSize());
   }
 
   public FieldPath field(String name) {
