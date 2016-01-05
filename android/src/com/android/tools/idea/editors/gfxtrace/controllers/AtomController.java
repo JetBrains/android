@@ -136,7 +136,7 @@ public class AtomController extends TreeController {
     public static final int PREVIEW_SIZE = JBUI.scale(200);
 
     private static final RenderSettings THUMBNAIL_SETTINGS =
-      new RenderSettings().setMaxWidth(PREVIEW_SIZE).setMaxHeight(PREVIEW_SIZE).setWireframeMode(WireframeMode.noWireframe());
+      new RenderSettings().setMaxWidth(PREVIEW_SIZE).setMaxHeight(PREVIEW_SIZE).setWireframeMode(WireframeMode.NoWireframe);
 
     public final AtomGroup group;
     public final Atom lastLeaf;
@@ -199,7 +199,7 @@ public class AtomController extends TreeController {
         else if (object instanceof Memory) {
           Memory memory = (Memory)object;
           myEditor.activatePath(
-            myAtomsPath.getPath().index(memory.index).memoryAfter(PoolID.applicationPool(), memory.observation.getRange()),
+            myAtomsPath.getPath().index(memory.index).memoryAfter(PoolID.ApplicationPool, memory.observation.getRange()),
             AtomController.this);
         }
       }

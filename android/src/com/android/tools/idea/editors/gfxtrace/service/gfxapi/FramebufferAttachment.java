@@ -17,53 +17,74 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.gfxapi;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
+import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 
 public final class FramebufferAttachment {
-  public static final int Color = 0;
-  public static FramebufferAttachment color() { return new FramebufferAttachment(Color); }
-  public static final int Depth = 1;
-  public static FramebufferAttachment depth() { return new FramebufferAttachment(Depth); }
-  public static final int Stencil = 2;
-  public static FramebufferAttachment stencil() { return new FramebufferAttachment(Stencil); }
+  public static final FramebufferAttachment Color = new FramebufferAttachment(0, "Color");
+  public static final int ColorValue = 0;
+  public static final FramebufferAttachment Depth = new FramebufferAttachment(1, "Depth");
+  public static final int DepthValue = 1;
+  public static final FramebufferAttachment Stencil = new FramebufferAttachment(2, "Stencil");
+  public static final int StencilValue = 2;
 
-  public final int value;
+  private static final ImmutableMap<Integer, FramebufferAttachment> VALUES = ImmutableMap.<Integer, FramebufferAttachment>builder()
+    .put(0, Color)
+    .put(1, Depth)
+    .put(2, Stencil)
+    .build();
 
-  public FramebufferAttachment(int value) {
-    this.value = value;
+  private final int myValue;
+  private final String myName;
+
+  private FramebufferAttachment(int v, String n) {
+    myValue = v;
+    myName = n;
+  }
+
+  public int getValue() {
+    return myValue;
+  }
+
+  public String getName() {
+    return myName;
   }
 
   public void encode(@NotNull Encoder e) throws IOException {
-    e.uint32(value);
+    e.uint32(myValue);
   }
 
   public static FramebufferAttachment decode(@NotNull Decoder d) throws IOException {
-    int value = d.uint32();
-    return new FramebufferAttachment(value);
+    return findOrCreate(d.uint32());
+  }
+
+  public static FramebufferAttachment find(int value) {
+    return VALUES.get(value);
+  }
+
+  public static FramebufferAttachment findOrCreate(int value) {
+    FramebufferAttachment result = VALUES.get(value);
+    return (result == null) ? new FramebufferAttachment(value, null) : result;
   }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || !(o instanceof FramebufferAttachment)) return false;
-    return value == ((FramebufferAttachment)o).value;
+    return myValue == ((FramebufferAttachment)o).myValue;
   }
 
   @Override
   public int hashCode() {
-    return value;
+    return myValue;
   }
 
   @Override
   public String toString() {
-    switch(value) {
-      case Color: return "Color";
-      case Depth: return "Depth";
-      case Stencil: return "Stencil";
-      default: return "FramebufferAttachment(" + value + ")";
-    }
+    return (myName == null) ? "FramebufferAttachment(" + myValue + ")" : myName;
   }
 }

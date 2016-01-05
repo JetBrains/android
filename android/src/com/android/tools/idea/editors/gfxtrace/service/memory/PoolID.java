@@ -17,47 +17,68 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.memory;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
+import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 
 public final class PoolID {
-  public static final int ApplicationPool = 0;
-  public static PoolID applicationPool() { return new PoolID(ApplicationPool); }
+  public static final PoolID ApplicationPool = new PoolID(0, "ApplicationPool");
+  public static final int ApplicationPoolValue = 0;
 
-  public final int value;
+  private static final ImmutableMap<Integer, PoolID> VALUES = ImmutableMap.<Integer, PoolID>builder()
+    .put(0, ApplicationPool)
+    .build();
 
-  public PoolID(int value) {
-    this.value = value;
+  private final int myValue;
+  private final String myName;
+
+  private PoolID(int v, String n) {
+    myValue = v;
+    myName = n;
+  }
+
+  public int getValue() {
+    return myValue;
+  }
+
+  public String getName() {
+    return myName;
   }
 
   public void encode(@NotNull Encoder e) throws IOException {
-    e.uint32(value);
+    e.uint32(myValue);
   }
 
   public static PoolID decode(@NotNull Decoder d) throws IOException {
-    int value = d.uint32();
-    return new PoolID(value);
+    return findOrCreate(d.uint32());
+  }
+
+  public static PoolID find(int value) {
+    return VALUES.get(value);
+  }
+
+  public static PoolID findOrCreate(int value) {
+    PoolID result = VALUES.get(value);
+    return (result == null) ? new PoolID(value, null) : result;
   }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || !(o instanceof PoolID)) return false;
-    return value == ((PoolID)o).value;
+    return myValue == ((PoolID)o).myValue;
   }
 
   @Override
   public int hashCode() {
-    return value;
+    return myValue;
   }
 
   @Override
   public String toString() {
-    switch(value) {
-      case ApplicationPool: return "ApplicationPool";
-      default: return "PoolID(" + value + ")";
-    }
+    return (myName == null) ? "PoolID(" + myValue + ")" : myName;
   }
 }
