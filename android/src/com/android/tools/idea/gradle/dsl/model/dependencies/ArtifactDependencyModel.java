@@ -58,7 +58,7 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
   public abstract String extension();
 
   @NotNull
-  protected static List<ArtifactDependencyModel> create(@NotNull GradleDslElement element) {
+  static List<ArtifactDependencyModel> create(@NotNull GradleDslElement element) {
     List<ArtifactDependencyModel> results = Lists.newArrayList();
     assert element instanceof GradleDslExpression || element instanceof GradleDslExpressionMap;
     if (element instanceof GradleDslExpressionMap) {
@@ -82,6 +82,14 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
       }
     }
     return results;
+  }
+
+  static void createAndAddToList(@NotNull GradleDslElementList list,
+                                 @NotNull String configurationName,
+                                 @NotNull ArtifactDependencySpec dependency) {
+    GradleDslLiteral literal = new GradleDslLiteral(list, configurationName);
+    literal.setValue(dependency.compactNotation());
+    list.addNewElement(literal);
   }
 
   @NotNull
@@ -144,7 +152,7 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
     @NotNull private GradleDslExpression myDslExpression;
     @NotNull private ArtifactDependencySpec mySpec;
 
-    private CompactNotation(@NotNull GradleDslExpression dslExpression, @NotNull ArtifactDependencySpec spec) {
+    CompactNotation(@NotNull GradleDslExpression dslExpression, @NotNull ArtifactDependencySpec spec) {
       myDslExpression = dslExpression;
       mySpec = spec;
     }
@@ -185,8 +193,8 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
       return mySpec.extension;
     }
 
-    @NotNull
     @Override
+    @NotNull
     protected GradleDslElement getDslElement() {
       return myDslExpression;
     }

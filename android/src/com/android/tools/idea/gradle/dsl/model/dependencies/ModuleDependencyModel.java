@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,25 +30,30 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getPathSegments;
 
 public class ModuleDependencyModel extends DependencyModel {
-  public static final String PROJECT = "project";
-  public static final String PATH = "path";
-  public static final String CONFIGURATION = "configuration";
+  private static final Logger LOG = Logger.getInstance(ModuleDependencyModel.class);
+
+  @NonNls private static final String PROJECT_METHOD_NAME = "project";
+  @NonNls private static final String PATH_ATTRIBUTE = "path";
+  @NonNls private static final String CONFIGURATION_ATTRIBUTE = "configuration";
 
   @NotNull private String myConfigurationName;
   @NotNull private GradleDslMethodCall myDslElement;
   @NotNull private GradleDslExpression myPath;
+
   @Nullable private GradleDslExpression myConfiguration;
 
-  ModuleDependencyModel(@NotNull String configurationName, @NotNull GradleDslMethodCall dslElement, @NotNull GradleDslExpression path,
-                        @Nullable GradleDslExpression configuration) {
+  private ModuleDependencyModel(@NotNull String configurationName,
+                                @NotNull GradleDslMethodCall dslElement,
+                                @NotNull GradleDslExpression path,
+                                @Nullable GradleDslExpression configuration) {
     myConfigurationName = configurationName;
     myDslElement = dslElement;
     myPath = path;
     myConfiguration = configuration;
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected GradleDslMethodCall getDslElement() {
     return myDslElement;
   }
@@ -108,14 +115,14 @@ public class ModuleDependencyModel extends DependencyModel {
 
     GradleDslElement parent = myPath.getParent();
     if (parent instanceof GradleDslExpressionMap) {
-      ((GradleDslExpressionMap)parent).setNewLiteral(CONFIGURATION, configuration);
+      ((GradleDslExpressionMap)parent).setNewLiteral(CONFIGURATION_ATTRIBUTE, configuration);
     }
     else {
       String path = path();
-      if (myPath instanceof GradleDslLiteral && path != null) { // TODO: support copying non string literal path values into map form.
-        GradleDslExpressionMap newMapArgument = new GradleDslExpressionMap(myDslElement, PROJECT);
-        newMapArgument.setNewLiteral(PATH, path);
-        newMapArgument.setNewLiteral(CONFIGURATION, configuration);
+      if (myPath instanceof GradleDslLiteral) { // TODO: support copying non string literal path values into map form.
+        GradleDslExpressionMap newMapArgument = new GradleDslExpressionMap(myDslElement, PROJECT_METHOD_NAME);
+        newMapArgument.setNewLiteral(PATH_ATTRIBUTE, path);
+        newMapArgument.setNewLiteral(CONFIGURATION_ATTRIBUTE, configuration);
         myDslElement.remove(myPath);
         myDslElement.addNewArgument(newMapArgument);
       }
@@ -126,32 +133,48 @@ public class ModuleDependencyModel extends DependencyModel {
     if (myConfiguration != null) {
       GradleDslElement parent = myConfiguration.getParent();
       if (parent instanceof GradleDslExpressionMap) {
-        ((GradleDslExpressionMap)parent).removeProperty(CONFIGURATION);
+        ((GradleDslExpressionMap)parent).removeProperty(CONFIGURATION_ATTRIBUTE);
         myConfiguration = null;
       }
     }
   }
 
-
   @NotNull
   protected static List<ModuleDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
     List<ModuleDependencyModel> result = Lists.newArrayList();
-    if (PROJECT.equals(methodCall.getName())) {
+    if (PROJECT_METHOD_NAME.equals(methodCall.getName())) {
       for (GradleDslElement argument : methodCall.getArguments()) {
         if (argument instanceof GradleDslExpression) {
           result.add(new ModuleDependencyModel(configurationName, methodCall, (GradleDslExpression)argument, null));
-        } else if (argument instanceof GradleDslExpressionMap) {
+        }
+        else if (argument instanceof GradleDslExpressionMap) {
           GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
-          GradleDslExpression pathElement = dslMap.getProperty(PATH, GradleDslExpression.class);
+          GradleDslExpression pathElement = dslMap.getProperty(PATH_ATTRIBUTE, GradleDslExpression.class);
           if (pathElement == null) {
             assert methodCall.getPsiElement() != null;
-            throw new IllegalArgumentException("'" + methodCall.getPsiElement().getText() + "' is not valid module dependency.");
+            String msg = String.format("'%1$s' is not a valid module dependency", methodCall.getPsiElement().getText());
+            LOG.warn(msg);
           }
-          GradleDslExpression configuration = dslMap.getProperty(CONFIGURATION, GradleDslExpression.class);
+          GradleDslExpression configuration = dslMap.getProperty(CONFIGURATION_ATTRIBUTE, GradleDslExpression.class);
           result.add(new ModuleDependencyModel(configurationName, methodCall, pathElement, configuration));
         }
       }
     }
     return result;
+  }
+
+  public static void createAndAddToList(@NotNull GradleDslElementList list,
+                                        @NotNull String configurationName,
+                                        @NotNull String path,
+                                        @Nullable String config) {
+    String methodName = PROJECT_METHOD_NAME;
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, methodName, configurationName);
+    GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, methodName);
+    mapArguments.setNewLiteral(PATH_ATTRIBUTE, path);
+    if (config != null) {
+      mapArguments.setNewLiteral(CONFIGURATION_ATTRIBUTE, config);
+    }
+    methodCall.addNewArgument(mapArguments);
+    list.addNewElement(methodCall);
   }
 }
