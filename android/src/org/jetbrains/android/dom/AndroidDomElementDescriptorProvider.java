@@ -46,13 +46,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Map;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Sep 4, 2009
- * Time: 6:04:18 PM
- * To change this template use File | Settings | File Temptes.
- */
 public class AndroidDomElementDescriptorProvider implements XmlElementDescriptorProvider {
   private static final Map<String, Ref<Icon>> ourViewTagName2Icon = new SoftHashMap<String, Ref<Icon>>();
 

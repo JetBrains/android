@@ -40,13 +40,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.ATTR_NAME;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 5, 2009
- * Time: 4:00:59 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
   @Override
   public boolean canFindUsages(@NotNull PsiElement element) {
