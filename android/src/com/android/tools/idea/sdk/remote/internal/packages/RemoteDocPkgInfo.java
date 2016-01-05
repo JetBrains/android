@@ -16,19 +16,16 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 
@@ -127,22 +124,6 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
         .format("Documentation for Android SDK, API %1$d, revision %2$s%3$s", version.getApiLevel(), revision.toShortString(),
                 obsolete ? " (Obsolete)" : "");
     }
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A "doc" package should always be located in SDK/docs.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  @NotNull
-  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
-    return new File(osSdkRoot, SdkConstants.FD_DOCS);
   }
 
   @Override

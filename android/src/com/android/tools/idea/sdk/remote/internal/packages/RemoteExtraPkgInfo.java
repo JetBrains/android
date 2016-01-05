@@ -22,11 +22,9 @@ import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.*;
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
@@ -333,30 +331,6 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
       String.format("%1$s, revision %2$s%3$s", displayName, revision.toShortString(), obsolete ? " (Obsolete)" : "");  //$NON-NLS-2$
 
     return s;
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A "tool" package should always be located in SDK/tools.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder. Must NOT be null.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   *                   Not used in this implementation.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @NotNull
-  @Override
-  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
-    // First find if this extra is already installed. If so, reuse the same directory.
-    for (LocalPkgInfo info : localSdk.getPkgsInfos(PkgType.PKG_EXTRA)) {
-      if (PkgDescExtra.compatibleVendorAndPath((IPkgDescExtra)mPkgDesc, (IPkgDescExtra)info.getDesc())) {
-        return info.getLocalDir();
-      }
-    }
-
-    return getInstallSubFolder(osSdkRoot);
   }
 
   /**

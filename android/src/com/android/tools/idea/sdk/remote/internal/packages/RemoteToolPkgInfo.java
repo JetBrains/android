@@ -21,7 +21,6 @@ import com.android.annotations.Nullable;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
@@ -30,7 +29,6 @@ import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.utils.GrabProcessOutput;
 import com.android.utils.GrabProcessOutput.IProcessOutput;
 import com.android.utils.GrabProcessOutput.Wait;
-import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -131,22 +129,6 @@ public class RemoteToolPkgInfo extends RemotePkgInfo implements IMinPlatformTool
     }
 
     return String.format("Android SDK Tools, revision %1$s%2$s", revision.toShortString(), obsolete ? " (Obsolete)" : "");
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A "tool" package should always be located in SDK/tools.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  @NotNull
-  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
-    return new File(osSdkRoot, SdkConstants.FD_TOOLS);
   }
 
   @Override
