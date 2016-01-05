@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsSer
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.base.Verify;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.components.ServiceManager;
@@ -124,7 +125,7 @@ public class ProjectSyncMessages {
       }
       switch (syncIssue.getType()) {
         case SyncIssue.TYPE_UNRESOLVED_DEPENDENCY:
-          reportUnresolvedDependency(syncIssue.getData(), module, buildFile);
+          reportUnresolvedDependency(Verify.verifyNotNull(syncIssue.getData()), module, buildFile);
           break;
         default:
           String group = UNHANDLED_SYNC_ISSUE_TYPE;
