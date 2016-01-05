@@ -15,26 +15,69 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Represents a repository defined with mavenCentral().
  */
-public class MavenCentralRepositoryModel extends RepositoryModel {
+public class MavenCentralRepositoryModel extends UrlBasedRepositoryModel {
   public static final String MAVEN_CENTRAL = "mavenCentral";
 
-  private static final String NAME = "MavenRepo";
+  private static final String DEFAULT_NAME = "MavenRepo";
   private static final String URL = "https://repo1.maven.org/maven2/";
+
+  private static final String NAME = "name";
+  private static final String ARTIFACT_URLS = "artifactUrls";
+
+  @Nullable
+  private final GradleDslExpressionMap myDslElement;
+
+  public MavenCentralRepositoryModel() {
+    myDslElement = null;
+  }
+
+  public MavenCentralRepositoryModel(@NotNull GradleDslExpressionMap dslElement) {
+    myDslElement = dslElement;
+  }
 
   @NotNull
   @Override
   public String name() {
-    return NAME;
+    if (myDslElement == null) {
+      return DEFAULT_NAME;
+    }
+
+    String name = myDslElement.getProperty(NAME, String.class);
+    return name != null ? name : DEFAULT_NAME;
   }
 
   @NotNull
   @Override
   public String url() {
     return URL;
+  }
+
+  @NotNull
+  public List<String> artifactUrls() {
+    if (myDslElement == null) {
+      return ImmutableList.of();
+    }
+
+    List<String> artifactUrls = myDslElement.getListProperty(ARTIFACT_URLS, String.class);
+    if (artifactUrls != null) {
+      return artifactUrls;
+    }
+
+    String artifactUrl = myDslElement.getProperty(ARTIFACT_URLS, String.class);
+    if (artifactUrl != null) {
+      return ImmutableList.of(artifactUrl);
+    }
+
+    return ImmutableList.of();
   }
 }
