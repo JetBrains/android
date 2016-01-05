@@ -29,7 +29,7 @@ import java.io.IOException;
 public final class MemoryPointer implements BinaryObject {
   @Override
   public String toString() {
-    return "0x" + Long.toHexString(myAddress) + "@" + myPool.value;
+    return "0x" + Long.toHexString(myAddress) + "@" + myPool;
   }
 
   //<<<Start:Java.ClassBody:1>>>
