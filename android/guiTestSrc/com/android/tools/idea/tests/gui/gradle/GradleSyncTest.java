@@ -925,19 +925,12 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testAndroidPluginAndGradleVersionCompatibility() throws IOException {
-    File gradleTwoDotFourHome = getGradleHomeFromSystemProperty("gradle.2.4.home", "2.4");
-    if (gradleTwoDotFourHome == null) {
-      skip("testAndroidPluginAndGradleVersionCompatibility");
-      return;
-    }
-
     myProjectFrame = importMultiModule();
 
     // Set the plugin version to 1.0.0. This version is incompatible with Gradle 2.4.
     // We expect the IDE to warn the user about this incompatibility.
-    myProjectFrame.updateAndroidModelVersion("1.0.0");
-
-    myProjectFrame.useLocalGradleDistribution(gradleTwoDotFourHome).requestProjectSync().waitForGradleProjectSyncToFinish();
+    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidModelVersion("1.0.0").requestProjectSync()
+      .waitForGradleProjectSyncToFinish();
 
     ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.2.0 (or newer)"));
@@ -1237,7 +1230,8 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testModelWithLayoutRenderingIssue() throws IOException {
     myProjectFrame = importMultiModule();
-    myProjectFrame.updateAndroidModelVersion("1.2.0").requestProjectSync().waitForGradleProjectSyncToFinish();
+    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidModelVersion("1.2.0").requestProjectSync()
+      .waitForGradleProjectSyncToFinish();
 
     ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
     syncMessages.findMessage(WARNING, firstLineStartingWith("Using an obsolete version of the Gradle plugin (1.2.0)"));
@@ -1356,7 +1350,7 @@ public class GradleSyncTest extends GuiTestCase {
     final String hyperlinkText = "Fix plugin version and sync project";
 
     myProjectFrame = importMultiModule();
-    myProjectFrame.updateAndroidModelVersion("1.2.0");
+    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidModelVersion("1.2.0");
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     EditorFixture editor = myProjectFrame.getEditor();
