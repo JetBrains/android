@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents a repository defined with jcenter().
  */
-public class JCenterDefaultRepositoryModel extends RepositoryModel {
+public class JCenterDefaultRepositoryModel extends UrlBasedRepositoryModel {
   public static final String JCENTER = "jcenter";
 
   private static final String NAME = "BintrayJCenter2";

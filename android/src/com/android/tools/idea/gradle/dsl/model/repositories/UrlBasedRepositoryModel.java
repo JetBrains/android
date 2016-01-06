@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.dsl.model.repositories;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Base class for all the repository models.
+ * Base class for all the url based repository models like Maven and JCenter.
  */
-public abstract class RepositoryModel {
+public abstract class UrlBasedRepositoryModel extends RepositoryModel {
   @NotNull
-  public abstract String name();
+  public abstract String url();
 }

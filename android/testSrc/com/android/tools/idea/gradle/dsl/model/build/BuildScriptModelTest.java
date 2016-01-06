@@ -143,7 +143,8 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
     assertTrue(repositoryModel instanceof JCenterDefaultRepositoryModel);
-    assertEquals("name", "BintrayJCenter2", repositoryModel.name());
-    assertEquals("url", "https://jcenter.bintray.com/", repositoryModel.url());
+    JCenterDefaultRepositoryModel repository = (JCenterDefaultRepositoryModel)repositoryModel;
+    assertEquals("name", "BintrayJCenter2", repository.name());
+    assertEquals("url", "https://jcenter.bintray.com/", repository.url());
   }
 }
