@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.ext;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -27,10 +28,10 @@ import org.jetbrains.annotations.Nullable;
  * </p>
  */
 public final class ExtDslElement extends GradlePropertiesDslElement {
-  public static final String NAME = "ext";
+  @NonNls public static final String EXT_BLOCK_NAME = "ext";
 
   public ExtDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, NAME);
+    super(parent, null, EXT_BLOCK_NAME);
   }
 
   @Override
