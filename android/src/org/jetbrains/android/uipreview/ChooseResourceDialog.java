@@ -1317,6 +1317,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       super.installDefaults();
       tabInsets = JBUI.insets(8);
       selectedTabPadInsets = JBUI.emptyInsets();
+      contentBorderInsets = JBUI.emptyInsets();
     }
 
     @Override
@@ -1340,33 +1341,28 @@ public class ChooseResourceDialog extends DialogWrapper {
       int w = width - insets.right - insets.left;
       int h = height - insets.top - insets.bottom;
 
-      Graphics2D g2 = (Graphics2D) g;
-      Stroke oldStroke = g2.getStroke();
       int thickness = JBUI.scale(1);
-      if (thickness != 1) {
-        g2.setStroke(new BasicStroke(thickness));
-      }
       g.setColor(OnePixelDivider.BACKGROUND);
 
+      // use fillRect instead of drawLine with thickness as drawLine has bugs on OS X retina
       switch(tabPlacement) {
         case LEFT:
           x += calculateTabAreaWidth(tabPlacement, runCount, maxTabWidth);
-          g.drawLine(x, y, x, y + h - 1);
+          g.fillRect(x - thickness, y, thickness, h);
           break;
         case RIGHT:
           w -= calculateTabAreaWidth(tabPlacement, runCount, maxTabWidth);
-          g.drawLine(x + w - 1, y, x + w - 1, y + h - 1);
+          g.fillRect(x + w, y, thickness, h);
           break;
         case BOTTOM:
           h -= calculateTabAreaHeight(tabPlacement, runCount, maxTabHeight);
-          g.drawLine(x, y + h - 1, x + w - 1, y + h - 1);
+          g.fillRect(x, y + h, w, thickness);
           break;
         case TOP:
         default:
           y += calculateTabAreaHeight(tabPlacement, runCount, maxTabHeight);
-          g.drawLine(x, y, x + w - 1, y);
+          g.fillRect(x, y - thickness, w, thickness);
       }
-      g2.setStroke(oldStroke);
     }
 
     @Override
