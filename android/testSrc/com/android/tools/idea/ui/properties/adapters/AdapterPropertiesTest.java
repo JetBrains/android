@@ -35,7 +35,9 @@ public class AdapterPropertiesTest {
     assertThat(doubleString.get()).isEqualTo("20.0");
 
     doubleString.set("100.5");
+    assertThat(doubleValue.get()).isEqualTo(100.5);
 
+    doubleString.set("not a double");
     assertThat(doubleValue.get()).isEqualTo(100.5);
   }
 
@@ -61,7 +63,9 @@ public class AdapterPropertiesTest {
     assertThat(intString.get()).isEqualTo("1");
 
     intString.set("-99");
+    assertThat(intValue.get()).isEqualTo(-99);
 
+    intString.set("not an int");
     assertThat(intValue.get()).isEqualTo(-99);
   }
 
