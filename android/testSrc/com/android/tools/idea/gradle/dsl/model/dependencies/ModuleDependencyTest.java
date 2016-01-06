@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.List;
 
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
@@ -107,22 +106,14 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
 
     List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
     dependency.setName("newName");
 
     assertTrue(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
@@ -140,22 +131,14 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
 
     List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
     dependency.setName("newName");
 
     assertTrue(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
@@ -174,22 +157,14 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
 
     List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
     dependency.setName("newName");
 
     assertTrue(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
@@ -207,22 +182,14 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
 
     List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
     dependency.setName("helloWorld");
 
     assertTrue(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
@@ -243,7 +210,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
 
     List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
@@ -254,15 +221,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     buildModel.resetState();
 
     assertFalse(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);

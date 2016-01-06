@@ -58,4 +58,88 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals("libs", dependency.dir());
     assertThat(dependency.include()).containsOnly("*.jar");
   }
+
+  public void testParseFileTreeWithDirAndExcludeAttributeList() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile fileTree(dir: 'libs', include: ['*.jar'], exclude: ['*.aar'])\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<FileTreeDependencyModel> dependencies = buildModel.dependencies().fileTrees();
+    assertThat(dependencies).hasSize(1);
+
+    FileTreeDependencyModel dependency = dependencies.get(0);
+    assertEquals("libs", dependency.dir());
+    assertThat(dependency.include()).containsOnly("*.jar");
+    assertThat(dependency.exclude()).containsOnly("*.aar");
+  }
+
+  public void testParseFileTreeWithDirOnly() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile fileTree('libs')\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<FileTreeDependencyModel> dependencies = buildModel.dependencies().fileTrees();
+    assertThat(dependencies).hasSize(1);
+
+    FileTreeDependencyModel dependency = dependencies.get(0);
+    assertEquals("libs", dependency.dir());
+  }
+
+  public void testSetDirWhenIncludeSpecified() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile fileTree(dir: 'libs', include: '*.jar')\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<FileTreeDependencyModel> dependencies = buildModel.dependencies().fileTrees();
+    assertThat(dependencies).hasSize(1);
+
+    FileTreeDependencyModel dependency = dependencies.get(0);
+    assertEquals("libs", dependency.dir());
+
+    dependency.setDir("jars");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    dependencies = buildModel.dependencies().fileTrees();
+    assertThat(dependencies).hasSize(1);
+
+    dependency = dependencies.get(0);
+    assertEquals("jars", dependency.dir());
+  }
+
+  public void testSetDir() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile fileTree('libs')\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<FileTreeDependencyModel> dependencies = buildModel.dependencies().fileTrees();
+    assertThat(dependencies).hasSize(1);
+
+    FileTreeDependencyModel dependency = dependencies.get(0);
+    assertEquals("libs", dependency.dir());
+
+    dependency.setDir("jars");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    dependencies = buildModel.dependencies().fileTrees();
+    assertThat(dependencies).hasSize(1);
+
+    dependency = dependencies.get(0);
+    assertEquals("jars", dependency.dir());
+  }
 }
