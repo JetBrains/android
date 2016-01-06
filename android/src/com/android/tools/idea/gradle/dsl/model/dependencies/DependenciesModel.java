@@ -136,7 +136,7 @@ public class DependenciesModel extends GradleDslBlockModel {
       GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
       if (list != null) {
         for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
-          dependencies.addAll(FileTreeDependencyModel.create(configurationName, element));
+          dependencies.addAll(FileTreeDependencyModel.create(element));
         }
       }
     }

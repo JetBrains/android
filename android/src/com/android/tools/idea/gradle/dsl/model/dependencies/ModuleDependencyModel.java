@@ -154,6 +154,7 @@ public class ModuleDependencyModel extends DependencyModel {
             assert methodCall.getPsiElement() != null;
             String msg = String.format("'%1$s' is not a valid module dependency", methodCall.getPsiElement().getText());
             LOG.warn(msg);
+            continue;
           }
           GradleDslExpression configuration = dslMap.getProperty(CONFIGURATION_ATTRIBUTE, GradleDslExpression.class);
           result.add(new ModuleDependencyModel(configurationName, methodCall, pathElement, configuration));

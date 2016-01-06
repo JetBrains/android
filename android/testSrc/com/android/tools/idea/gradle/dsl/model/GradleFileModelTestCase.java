@@ -36,6 +36,7 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.fest.assertions.Assertions.assertThat;
@@ -129,11 +130,21 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return buildModel;
   }
 
-
   @NotNull
   protected GradleBuildModel getSubModuleGradleBuildModel() {
     GradleBuildModel buildModel = GradleBuildModel.get(mySubModule);
     assertNotNull(buildModel);
     return buildModel;
+  }
+
+  protected void applyChangesAndReparse(@NotNull final GradleBuildModel buildModel) {
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+        buildModel.reparse();
+      }
+    });
+    assertFalse(buildModel.isModified());
   }
 }
