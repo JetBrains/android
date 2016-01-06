@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
@@ -53,18 +54,13 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     String text = "include \":app\", \":lib\"";
 
     writeToSettingsFile(text);
-    final GradleSettingsModel settingsModel = getGradleSettingsModel();
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
 
     settingsModel.addModulePath("lib1");
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib1"), settingsModel.modulePaths());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        settingsModel.applyChanges();
-      }
-    });
+    applyChanges(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib1"), settingsModel.modulePaths());
 
     settingsModel.reparse();
@@ -75,18 +71,13 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     String text = "";
 
     writeToSettingsFile(text);
-    final GradleSettingsModel settingsModel = getGradleSettingsModel();
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":"), settingsModel.modulePaths());
 
     settingsModel.addModulePath("app");
     assertEquals("include", ImmutableList.of(":", ":app"), settingsModel.modulePaths());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        settingsModel.applyChanges();
-      }
-    });
+    applyChanges(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":app"), settingsModel.modulePaths());
 
     settingsModel.reparse();
@@ -113,18 +104,13 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
                   "include \":lib\"";
 
     writeToSettingsFile(text);
-    final GradleSettingsModel settingsModel = getGradleSettingsModel();
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
 
     settingsModel.removeModulePath(":app");
     assertEquals("include", ImmutableList.of(":", ":lib"), settingsModel.modulePaths());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        settingsModel.applyChanges();
-      }
-    });
+    applyChanges(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":lib"), settingsModel.modulePaths());
 
     settingsModel.reparse();
@@ -136,7 +122,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
                   "include \":lib\", \":lib1\"";
 
     writeToSettingsFile(text);
-    final GradleSettingsModel settingsModel = getGradleSettingsModel();
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib1"), settingsModel.modulePaths());
 
     settingsModel.removeModulePath(":app");
@@ -144,12 +130,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     settingsModel.removeModulePath(":lib1");
     assertEquals("include", ImmutableList.of(":"), settingsModel.modulePaths());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        settingsModel.applyChanges();
-      }
-    });
+    applyChanges(settingsModel);
     assertEquals("include", ImmutableList.of(":"), settingsModel.modulePaths());
 
     settingsModel.reparse();
@@ -176,18 +157,13 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
                   "include \":lib\", \":lib:subLib\"";
 
     writeToSettingsFile(text);
-    final GradleSettingsModel settingsModel = getGradleSettingsModel();
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib:subLib"), settingsModel.modulePaths());
 
     settingsModel.replaceModulePath("lib", "lib1");
     assertEquals("include", ImmutableList.of(":", ":app", ":lib1", ":lib:subLib"), settingsModel.modulePaths());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        settingsModel.applyChanges();
-      }
-    });
+    applyChanges(settingsModel);
     assertEquals("include", ImmutableList.of(":", ":app", ":lib1", ":lib:subLib"), settingsModel.modulePaths());
 
     settingsModel.reparse();
@@ -269,5 +245,15 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals(":libs", settingsModel.parentModule("libs:mylibrary"));
     assertEquals(":", settingsModel.parentModule("olibs"));
     assertEquals(":olibs", settingsModel.parentModule(":olibs:mylibrary"));
+  }
+
+  private void applyChanges(@NotNull final GradleSettingsModel settingsModel) {
+    runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        settingsModel.applyChanges();
+      }
+    });
+    assertFalse(settingsModel.isModified());
   }
 }
