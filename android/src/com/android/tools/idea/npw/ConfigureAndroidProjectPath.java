@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.sdk.wizard.legacy.SmwOldApiDirectInstall;
@@ -102,7 +103,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
     }
     else {
       // We need to install a new build tools version
-      state.listPush(WizardConstants.INSTALL_REQUESTS_KEY, PkgDesc.Builder.newBuildTool(minimumRequiredBuildToolVersion).create());
+      state.listPush(WizardConstants.INSTALL_REQUESTS_KEY, DetailsTypes.getBuildToolsPath(minimumRequiredBuildToolVersion));
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, minimumRequiredBuildToolVersion.toString());
     }
 
