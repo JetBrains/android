@@ -17,10 +17,10 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
+import com.android.tools.idea.editors.gfxtrace.widgets.Tree;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
