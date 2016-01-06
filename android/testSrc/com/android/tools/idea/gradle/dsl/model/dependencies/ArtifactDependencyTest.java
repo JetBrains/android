@@ -26,7 +26,6 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.RUNTIME;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
@@ -77,7 +76,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
@@ -91,15 +90,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     hibernate.setVersion("3.0");
 
     assertTrue(buildModel.isModified());
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-        buildModel.reparse();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
@@ -160,22 +151,14 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     ArtifactDependencySpec newDependency = new ArtifactDependencySpec("appcompat-v7", "com.android.support", "22.1.1");
     dependenciesModel.addArtifact(COMPILE, newDependency);
 
     assertTrue(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
@@ -196,7 +179,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
@@ -205,14 +188,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     appCompat.setVersion("1.2.3");
 
     assertTrue(buildModel.isModified());
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
@@ -227,7 +203,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
@@ -236,15 +212,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     guice.setVersion("1.2.3");
 
     assertTrue(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
@@ -323,7 +291,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
@@ -336,15 +304,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     buildModel.resetState();
 
     assertFalse(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
@@ -361,7 +321,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
@@ -371,16 +331,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     dependenciesModel.remove(guava);
 
     assertTrue(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
@@ -401,7 +352,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
@@ -411,16 +362,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     dependenciesModel.remove(springAop);
 
     assertTrue(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
@@ -442,7 +384,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
@@ -452,16 +394,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     dependenciesModel.remove(guava);
 
     assertTrue(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
@@ -483,7 +416,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
@@ -493,16 +426,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     dependenciesModel.remove(guava);
 
     assertTrue(buildModel.isModified());
-
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-
-    assertFalse(buildModel.isModified());
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
