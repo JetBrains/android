@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.SdkConstants;
+import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
-import com.android.sdklib.SdkManager;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
@@ -25,7 +28,6 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
-import com.android.utils.NullLogger;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,8 +69,12 @@ public class FirstRunWizard extends DynamicWizard {
     ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
     myComponentsPath = new InstallComponentsPath(myRemotePackages, myMode, initialSdkLocation, progressStep, true);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
-      boolean sdkExists =
-        initialSdkLocation.isDirectory() && SdkManager.createManager(initialSdkLocation.getAbsolutePath(), new NullLogger()) != null;
+      boolean sdkExists = false;
+      if (initialSdkLocation.isDirectory()) {
+        AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(initialSdkLocation);
+        ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+        sdkExists = ((AndroidSdkHandler)sdkHandler).getLocalPackage(SdkConstants.FD_TOOLS, progress) != null;
+      }
       addPath(new SingleStepPath(new FirstRunWelcomeStep(sdkExists)));
     }
     addPath(myJdkPath);

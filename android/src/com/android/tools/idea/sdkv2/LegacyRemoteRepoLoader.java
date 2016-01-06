@@ -23,7 +23,7 @@ import com.android.repository.impl.meta.CommonFactory;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager.LayoutlibVersion;
+import com.android.sdklib.LayoutlibVersion;
 import com.android.sdklib.internal.androidTarget.OptionalLibraryImpl;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;

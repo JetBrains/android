@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -290,9 +289,9 @@ public class ConfigurationManager implements Disposable {
    */
   private static boolean isLayoutLibSupported(IAndroidTarget target) {
     if (target instanceof com.android.sdklib.internal.androidTarget.PlatformTarget) {
-      SdkManager.LayoutlibVersion layoutlibVersion =
-        ((com.android.sdklib.internal.androidTarget.PlatformTarget)target).getLayoutlibVersion();
-      return layoutlibVersion.getApi() <= Bridge.API_CURRENT;
+      int layoutlibApi =
+        ((com.android.sdklib.internal.androidTarget.PlatformTarget)target).getLayoutlibApi();
+      return layoutlibApi <= Bridge.API_CURRENT;
     }
     if (target instanceof PlatformTarget) {
       int layoutlibVersion = ((PlatformTarget)target).getLayoutlibApi();
