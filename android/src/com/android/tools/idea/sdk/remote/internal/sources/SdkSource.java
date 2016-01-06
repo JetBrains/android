@@ -21,7 +21,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.io.NonClosingInputStream;
 import com.android.io.NonClosingInputStream.CloseBehavior;
-import com.android.sdklib.repository.IDescription;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
@@ -61,7 +60,7 @@ import java.util.regex.Pattern;
  * It may be a full repository or an add-on only repository.
  * A repository describes one or {@link Package}s available for download.
  */
-public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
+public abstract class SdkSource implements Comparable<SdkSource> {
 
   private String mUrl;
 
@@ -285,7 +284,6 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
     return super.toString();
   }
 
-  @Override
   public String getShortDescription() {
 
     if (mUiName != null && mUiName.length() > 0) {
@@ -303,13 +301,6 @@ public abstract class SdkSource implements IDescription, Comparable<SdkSource> {
 
     }
     return mUrl;
-  }
-
-  @Override
-  public String getLongDescription() {
-    // Note: in a normal workflow, mDescription is filled by setDefaultDescription().
-    // However for packages made by unit tests or such, this can be null.
-    return mDescription == null ? "" : mDescription;  //$NON-NLS-1$
   }
 
   /**

@@ -19,7 +19,6 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.Revision.PreviewComparison;
-import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalBuildToolPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
