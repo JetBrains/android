@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.google.common.collect.ImmutableList;
@@ -55,6 +54,17 @@ public class RepositoriesModel extends GradleDslBlockModel {
         }
         else if (MavenRepositoryDslElement.JCENTER.equals(element.getName())) {
           result.add(new JCenterRepositoryModel((MavenRepositoryDslElement)element));
+        }
+      }
+      else if (element instanceof FlatDirRepositoryDslElement) {
+        result.add(new FlatDirRepositoryModel((FlatDirRepositoryDslElement)element));
+      }
+      else if (element instanceof GradleDslExpressionMap) {
+        if (MavenCentralRepositoryModel.MAVEN_CENTRAL.equals(element.getName())) {
+          result.add(new MavenCentralRepositoryModel((GradleDslExpressionMap)element));
+        }
+        else if (FlatDirRepositoryModel.FLAT_DIR_ATTRIBUTE_NAME.equals(element.getName())) {
+          result.add(new FlatDirRepositoryModel((GradlePropertiesDslElement)element));
         }
       }
     }
