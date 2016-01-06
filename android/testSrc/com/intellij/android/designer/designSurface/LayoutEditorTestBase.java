@@ -18,10 +18,7 @@ package com.intellij.android.designer.designSurface;
 import com.google.common.base.Objects;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
-import com.intellij.android.designer.model.RadComponentOperations;
-import com.intellij.android.designer.model.RadModelBuilder;
-import com.intellij.android.designer.model.RadViewComponent;
-import com.intellij.android.designer.model.ViewsMetaManager;
+import com.intellij.android.designer.model.*;
 import com.intellij.designer.componentTree.AttributeWrapper;
 import com.intellij.designer.designSurface.EditOperation;
 import com.intellij.designer.designSurface.OperationContext;
@@ -52,6 +49,16 @@ public abstract class LayoutEditorTestBase extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      // Prevent LeakHunter from flagging this as a memory leak (RadViewLayout.INSTANCE points to the last seen component).
+      RadViewLayout.INSTANCE.setContainer(null);
+    } finally {
+      super.tearDown();
+    }
   }
 
   @Override
