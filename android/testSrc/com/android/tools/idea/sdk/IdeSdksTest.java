@@ -92,7 +92,7 @@ public class IdeSdksTest extends IdeaTestCase {
     assertEquals(sdks.size(), eligibleSdks.size());
   }
 
-  public void testSetAndroiSdkPathUpdatingLocalPropertiesFile() throws IOException {
+  public void testSetAndroidSdkPathUpdatingLocalPropertiesFile() throws IOException {
     LocalProperties localProperties = new LocalProperties(myProject);
     localProperties.setAndroidSdkPath("");
     localProperties.save();

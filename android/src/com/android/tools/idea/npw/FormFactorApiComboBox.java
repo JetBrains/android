@@ -15,32 +15,35 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.repository.Revision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalAddonPkgInfo;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.tools.idea.sdk.SdkLoadedCallback;
-import com.android.tools.idea.sdk.SdkPackages;
-import com.android.tools.idea.sdk.SdkState;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repositoryv2.targets.AndroidTargetManager;
+import com.android.tools.idea.npw.FormFactorUtils.FormFactor;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioProgressRunner;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -53,9 +56,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.util.*;
-import java.util.List;
 
-import static com.android.tools.idea.npw.FormFactorUtils.*;
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
@@ -63,7 +64,6 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 * A labeled combo box of SDK options for a given FormFactor.
 */
 public final class FormFactorApiComboBox extends JComboBox {
-  private static final Logger LOG = Logger.getInstance(FormFactorApiComboBox.class);
 
   // Set of installed targets and versions. TODO: These fields should not be static; that causes
   // the versions to not stay up to date when new versions are installed.  In the constructor
@@ -77,13 +77,14 @@ public final class FormFactorApiComboBox extends JComboBox {
 
   private FormFactor myFormFactor;
 
-  private IPkgDesc myInstallRequest;
+  private RepoPackage myInstallRequest;
   private Key<String> myBuildApiKey;
   private Key<Integer> myBuildApiLevelKey;
   private Key<Integer> myTargetApiLevelKey;
   private Key<String> myTargetApiStringKey;
   private Key<AndroidTargetComboBoxItem> myTargetComboBoxKey;
   private Key<Boolean> myInclusionKey;
+  private RepositoryPackages myRepoPackages;
 
   /**
    * Initializes this component, notably by populating the available values from local, remote, and statically-defined sources.
@@ -109,8 +110,8 @@ public final class FormFactorApiComboBox extends JComboBox {
     myBuildApiLevelKey = FormFactorUtils.getBuildApiLevelKey(formFactor);
     myTargetApiLevelKey = FormFactorUtils.getTargetApiLevelKey(formFactor);
     myTargetApiStringKey = FormFactorUtils.getTargetApiStringKey(formFactor);
-    myTargetComboBoxKey = getTargetComboBoxKey(formFactor);
-    myInclusionKey = getInclusionKey(formFactor);
+    myTargetComboBoxKey = FormFactorUtils.getTargetComboBoxKey(formFactor);
+    myInclusionKey = FormFactorUtils.getInclusionKey(formFactor);
     populateComboBox(formFactor, minSdkLevel);
     if (getItemCount() > 0) {
       if (foundItemsCallback != null) {
@@ -126,7 +127,7 @@ public final class FormFactorApiComboBox extends JComboBox {
    */
   public void registerWith(@NotNull ScopedDataBinder binder) {
     assert myFormFactor != null : "register() called on FormFactorApiComboBox before init()";
-    binder.register(getTargetComboBoxKey(myFormFactor), this, TARGET_COMBO_BINDING);
+    binder.register(FormFactorUtils.getTargetComboBoxKey(myFormFactor), this, TARGET_COMBO_BINDING);
   }
 
   /**
@@ -162,8 +163,8 @@ public final class FormFactorApiComboBox extends JComboBox {
       if (targetItem == null) {
         return;
       }
-      stateStore.put(getMinApiKey(myFormFactor), targetItem.getData().toString());
-      stateStore.put(getMinApiLevelKey(myFormFactor), targetItem.apiLevel);
+      stateStore.put(FormFactorUtils.getMinApiKey(myFormFactor), targetItem.getData().toString());
+      stateStore.put(FormFactorUtils.getMinApiLevelKey(myFormFactor), targetItem.apiLevel);
       IAndroidTarget target = targetItem.target;
       if (target != null && (target.getVersion().isPreview() || !target.isPlatform())) {
         // Make sure we set target and build to the preview version as well
@@ -178,14 +179,14 @@ public final class FormFactorApiComboBox extends JComboBox {
         populateApiLevels(targetApiLevel, ourHighestInstalledApiTarget, stateStore);
       }
       AndroidVersion androidVersion = new AndroidVersion(targetItem.apiLevel, null);
-      IPkgDesc platformDesc = PkgDesc.Builder.newPlatform(androidVersion, new Revision(1), Revision.NOT_SPECIFIED).create();
+      String platformPath = DetailsTypes.getPlatformPath(androidVersion);
 
       // Check to see if this is installed. If not, request that we install it
       if (myInstallRequest != null) {
         // First remove the last request, no need to install more than one platform
-        stateStore.listRemove(INSTALL_REQUESTS_KEY, myInstallRequest);
-        if (myInstallRequest.getType() != PkgType.PKG_PLATFORM) {
-          stateStore.listRemove(INSTALL_REQUESTS_KEY, platformDesc);
+        stateStore.listRemove(INSTALL_REQUESTS_KEY, myInstallRequest.getPath());
+        if (!(myInstallRequest.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType)) {
+          stateStore.listRemove(INSTALL_REQUESTS_KEY, platformPath);
         }
       }
       if (target == null) {
@@ -198,30 +199,33 @@ public final class FormFactorApiComboBox extends JComboBox {
              stateStore.get(myInclusionKey))) {
 
           // The user selected a stable platform minSDK that is higher than any installed SDK. Let us install it.
-          stateStore.listPush(INSTALL_REQUESTS_KEY, platformDesc);
-          myInstallRequest = platformDesc;
+          stateStore.listPush(INSTALL_REQUESTS_KEY, platformPath);
+          myInstallRequest = myRepoPackages.getRemotePackages().get(platformPath);
 
           // The selected minVersion would also be the highest sdkVersion after this install, so specify buildApi again here:
           populateApiLevels(androidVersion.getApiLevel(), null, stateStore);
         }
         if (targetItem.myAddon != null) {
           // The user selected a non stable SDK (a preview version) or a non platform SDK (e.g. for Google Glass). Let us install it:
-          IPkgDesc addonDesc = targetItem.myAddon;
-          stateStore.listPush(INSTALL_REQUESTS_KEY, addonDesc);
+          RepoPackage p = targetItem.myAddon;
+          stateStore.listPush(INSTALL_REQUESTS_KEY, p.getPath());
           // Overwrite request from above, since (earlier in this method) removing an addon will also remove the platform.
-          myInstallRequest = addonDesc;
+          myInstallRequest = p;
 
-          AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-          LocalPkgInfo platform = sdkData.getLocalSdk().getPkgInfo(PkgType.PKG_PLATFORM, androidVersion);
-          if (platform == null) {
-            stateStore.listPush(INSTALL_REQUESTS_KEY, platformDesc);
+          StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+          AndroidTargetManager targetManager = AndroidSdkUtils.tryToChooseSdkHandler().getAndroidTargetManager(
+            progress);
+
+          if (targetManager.getTargetFromHashString(AndroidTargetHash.getPlatformHashString(androidVersion), progress) == null) {
+            stateStore.listPush(INSTALL_REQUESTS_KEY, platformPath);
           }
 
           // The selected minVersion should also be the buildApi:
           populateApiLevels(targetItem.apiLevel, null, stateStore);
         }
       }
-      PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(myFormFactor), targetItem.getData().toString());
+      PropertiesComponent.getInstance()
+        .setValue(FormFactorUtils.getPropertiesComponentMinSdkKey(myFormFactor), targetItem.getData().toString());
 
       // Check Java language level; should be 7 for L; eventually this will be automatically defaulted by the Android Gradle plugin
       // instead: https://code.google.com/p/android/issues/detail?id=76252
@@ -239,7 +243,7 @@ public final class FormFactorApiComboBox extends JComboBox {
           }
         }
       }
-      stateStore.put(getLanguageLevelKey(myFormFactor), javaVersion);
+      stateStore.put(FormFactorUtils.getLanguageLevelKey(myFormFactor), javaVersion);
     }
   }
 
@@ -328,11 +332,11 @@ public final class FormFactorApiComboBox extends JComboBox {
     return list.toArray(new IAndroidTarget[list.size()]);
   }
 
-  public static class AndroidTargetComboBoxItem extends ApiComboBoxItem {
+  public static class AndroidTargetComboBoxItem extends ApiComboBoxItem<String> {
     public int apiLevel = -1;
     public IAndroidTarget target = null;
 
-    public IPkgDesc myAddon = null;
+    public RepoPackage myAddon = null;
 
     public AndroidTargetComboBoxItem(@NotNull String label, int apiLevel) {
       super(Integer.toString(apiLevel), label, 1, 1);
@@ -345,8 +349,8 @@ public final class FormFactorApiComboBox extends JComboBox {
       apiLevel = target.getVersion().getFeatureLevel();
     }
 
-    public AndroidTargetComboBoxItem(IPkgDesc info) {
-      this(info.getListDescription(), info.getAndroidVersion().getApiLevel());
+    public AndroidTargetComboBoxItem(RepoPackage info) {
+      this(info.getDisplayName(), ((DetailsTypes.AddonDetailsType)info.getTypeDetails()).getApiLevel());
       myAddon = info;
     }
 
@@ -425,6 +429,10 @@ public final class FormFactorApiComboBox extends JComboBox {
 
   private void loadRemoteTargets(final int minSdkLevel, final Runnable completedCallback,
                                  final Runnable foundItemsCallback, final Runnable noItemsCallback) {
+    AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    final StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    final AndroidTargetManager targetManager = sdkHandler.getAndroidTargetManager(progress);
+
     final Runnable runCallbacks = new Runnable() {
       @Override
       public void run() {
@@ -444,37 +452,43 @@ public final class FormFactorApiComboBox extends JComboBox {
       }
     };
 
-    SdkLoadedCallback onComplete = new SdkLoadedCallback(true) {
+    RepoManager.RepoLoadedCallback onComplete = new RepoManager.RepoLoadedCallback() {
       @Override
-      public void doRun(@NotNull SdkPackages packages) {
-        List<RemotePkgInfo> packageList = Lists.newArrayList(packages.getNewPkgs());
+      public void doRun(@NotNull RepositoryPackages packages) {
+        List<RepoPackage> packageList = Lists.<RepoPackage>newArrayList(packages.getNewPkgs());
         Collections.sort(packageList);
-        Iterator<RemotePkgInfo> result =
+        Iterator<RepoPackage> result =
           Iterables.filter(packageList, FormFactorUtils.getMinSdkPackageFilter(myFormFactor, minSdkLevel)).iterator();
 
         while (result.hasNext()) {
-          RemotePkgInfo info = result.next();
-          addItem(new AndroidTargetComboBoxItem(info.getPkgDesc()));
+          RepoPackage info = result.next();
+          addItem(new AndroidTargetComboBoxItem(info));
         }
         runCallbacks.run();
       }
     };
 
     // We need to pick up addons that don't have a target created due to the base platform not being installed.
-    SdkLoadedCallback onLocalComplete = new SdkLoadedCallback(true) {
+    RepoManager.RepoLoadedCallback onLocalComplete = new RepoManager.RepoLoadedCallback() {
       @Override
-      public void doRun(@NotNull SdkPackages packages) {
-        List<LocalPkgInfo> packageList = Lists.newArrayList(packages.getLocalPkgInfos());
+      public void doRun(@NotNull RepositoryPackages packages) {
+        List<LocalPackage> packageList = Lists.<LocalPackage>newArrayList(packages.getLocalPackages().values());
         Collections.sort(packageList);
-        Iterable<LocalAddonPkgInfo> addons = Iterables.filter(packageList, LocalAddonPkgInfo.class);
-        Iterable<LocalAddonPkgInfo> result =
-          Iterables.filter(addons, FormFactorUtils.getMinSdkLocalPackageFilter(myFormFactor, minSdkLevel));
+        Iterable<LocalPackage> addons = Iterables.filter(packageList, new Predicate<LocalPackage>() {
+          @Override
+          public boolean apply(LocalPackage input) {
+            return input.getTypeDetails() instanceof DetailsTypes.AddonDetailsType;
+          }
+        });
+        Iterable<LocalPackage> result =
+          Iterables.filter(addons, FormFactorUtils.getMinSdkPackageFilter(myFormFactor, minSdkLevel));
 
-        for (LocalAddonPkgInfo info : result) {
-          if (info.getAndroidTarget() == null) {
-            addItem(new AndroidTargetComboBoxItem(info.getDesc()));
+        for (LocalPackage info : result) {
+          if (targetManager.getTargetFromPackage(info, progress) == null) {
+            addItem(new AndroidTargetComboBoxItem(info));
           }
         }
+        myRepoPackages = packages;
       }
     };
     Runnable onError = new Runnable() {
@@ -489,8 +503,11 @@ public final class FormFactorApiComboBox extends JComboBox {
       }
     };
 
-    SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk())
-      .loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, onLocalComplete, onComplete, onError, true);
+    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Refreshing Targets", true, null);
+    sdkHandler.getSdkManager(progress).load(
+      RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+      ImmutableList.of(onLocalComplete), ImmutableList.of(onComplete), ImmutableList.of(onError),
+      runner, new StudioDownloader(), StudioSettingsController.getInstance(), false);
   }
 
 }
