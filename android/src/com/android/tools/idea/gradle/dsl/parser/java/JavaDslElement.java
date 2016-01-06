@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.java;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
@@ -24,10 +25,10 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
  * Holds the data in addition to the project element, which added by Java plugin
  */
 public class JavaDslElement extends BaseCompileOptionsDslElement {
-  public static final String NAME = "java";
+  @NonNls public static final String JAVA_BLOCK_NAME = "java";
 
   public JavaDslElement(@Nullable GradleDslElement parent) {
-    super(parent, NAME);
+    super(parent, JAVA_BLOCK_NAME);
   }
 
   @Override

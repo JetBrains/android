@@ -17,11 +17,12 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CompileOptionsModel extends BaseCompileOptionsModel {
-  public static String ENCODING = "encoding";
+  @NonNls public static String ENCODING_ATTRIBUTE_NAME = "encoding";
 
   public CompileOptionsModel(@NotNull BaseCompileOptionsDslElement dslElement, boolean useAssignment) {
     super(dslElement, useAssignment);
@@ -29,18 +30,18 @@ public class CompileOptionsModel extends BaseCompileOptionsModel {
 
   @Nullable
   public String encoding() {
-    return myDslElement.getProperty(ENCODING, String.class);
+    return myDslElement.getProperty(ENCODING_ATTRIBUTE_NAME, String.class);
   }
 
   @NotNull
   public CompileOptionsModel setEncoding(@NotNull String encoding) {
-    myDslElement.setNewLiteral(ENCODING, encoding);
+    myDslElement.setNewLiteral(ENCODING_ATTRIBUTE_NAME, encoding);
     return this;
   }
 
   @NotNull
   public CompileOptionsModel removeEncoding() {
-    myDslElement.removeProperty(ENCODING);
+    myDslElement.removeProperty(ENCODING_ATTRIBUTE_NAME);
     return this;
   }
 }

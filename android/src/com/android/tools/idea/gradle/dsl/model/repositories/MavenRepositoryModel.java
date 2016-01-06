@@ -18,45 +18,50 @@ package com.android.tools.idea.gradle.dsl.model.repositories;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement.CREDENTIALS_BLOCK_NAME;
+
 /**
  * Represents a repository defined with maven {}.
  */
 public class MavenRepositoryModel extends UrlBasedRepositoryModel {
-  private static final String URL = "url";
-  private static final String NAME = "name";
-  private static final String ARTIFACT_URLS = "artifactUrls";
+  @NonNls private static final String URL = "url";
+  @NonNls private static final String NAME = "name";
+  @NonNls private static final String ARTIFACT_URLS = "artifactUrls";
 
   @NotNull private final MavenRepositoryDslElement myDslElement;
-  @NotNull private final String myDefaultName;
-  @NotNull private final String myDefaultUrl;
+  @NotNull private final String myDefaultRepoName;
+  @NotNull private final String myDefaultRepoUrl;
 
   public MavenRepositoryModel(@NotNull MavenRepositoryDslElement dslElement) {
     this(dslElement, "maven", "https://repo1.maven.org/maven2/");
   }
 
-  protected MavenRepositoryModel(@NotNull MavenRepositoryDslElement dslElement, @NotNull String defaultName, @NotNull String defaultUrl) {
+  protected MavenRepositoryModel(@NotNull MavenRepositoryDslElement dslElement,
+                                 @NotNull String defaultRepoName,
+                                 @NotNull String defaultRepoUrl) {
     myDslElement = dslElement;
-    myDefaultName = defaultName;
-    myDefaultUrl = defaultUrl;
+    myDefaultRepoName = defaultRepoName;
+    myDefaultRepoUrl = defaultRepoUrl;
   }
 
   @NotNull
   @Override
   public String name() {
     String name = myDslElement.getProperty(NAME, String.class);
-    return name != null ? name : myDefaultName;
+    return name != null ? name : myDefaultRepoName;
   }
 
   @NotNull
   @Override
   public String url() {
     String url = myDslElement.getProperty(URL, String.class);
-    return url != null ? url : myDefaultUrl;
+    return url != null ? url : myDefaultRepoUrl;
   }
 
   @NotNull
@@ -67,7 +72,7 @@ public class MavenRepositoryModel extends UrlBasedRepositoryModel {
 
   @Nullable
   public MavenCredentialsModel credentials() {
-    MavenCredentialsDslElement credentials = myDslElement.getProperty(MavenCredentialsDslElement.NAME, MavenCredentialsDslElement.class);
+    MavenCredentialsDslElement credentials = myDslElement.getProperty(CREDENTIALS_BLOCK_NAME, MavenCredentialsDslElement.class);
     return credentials != null ? new MavenCredentialsModel(credentials) : null;
   }
 }

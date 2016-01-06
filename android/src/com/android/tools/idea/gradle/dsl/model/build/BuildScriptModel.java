@@ -23,6 +23,9 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElem
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
+
 public class BuildScriptModel extends GradleDslBlockModel {
 
   public BuildScriptModel(@NotNull BuildScriptDslElement dslElement) {
@@ -31,20 +34,20 @@ public class BuildScriptModel extends GradleDslBlockModel {
 
   @NotNull
   public DependenciesModel dependencies() {
-    DependenciesDslElement dependenciesDslElement = myDslElement.getProperty(DependenciesDslElement.NAME, DependenciesDslElement.class);
+    DependenciesDslElement dependenciesDslElement = myDslElement.getProperty(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
     if (dependenciesDslElement == null) {
       dependenciesDslElement = new DependenciesDslElement(myDslElement);
-      myDslElement.setNewElement(DependenciesDslElement.NAME, dependenciesDslElement);
+      myDslElement.setNewElement(DEPENDENCIES_BLOCK_NAME, dependenciesDslElement);
     }
     return new DependenciesModel(dependenciesDslElement);
   }
 
   @NotNull
   public RepositoriesModel repositories() {
-    RepositoriesDslElement repositoriesDslElement = myDslElement.getProperty(RepositoriesDslElement.NAME, RepositoriesDslElement.class);
+    RepositoriesDslElement repositoriesDslElement = myDslElement.getProperty(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
     if (repositoriesDslElement == null) {
       repositoriesDslElement = new RepositoriesDslElement(myDslElement);
-      myDslElement.setNewElement(RepositoriesDslElement.NAME, repositoriesDslElement);
+      myDslElement.setNewElement(REPOSITORIES_BLOCK_NAME, repositoriesDslElement);
     }
     return new RepositoriesModel(repositoriesDslElement);
   }

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.repositories;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -25,12 +26,12 @@ import java.util.List;
  * Represents a repository defined with flatDir {dirs "..."} or flatDir dirs : ["..."].
  */
 public class FlatDirRepositoryModel extends RepositoryModel {
-  public static final String FLAT_DIR_ATTRIBUTE_NAME = "flatDir";
+  @NonNls public static final String FLAT_DIR_ATTRIBUTE_NAME = "flatDir";
 
-  private static final String DEFAULT_NAME = "flatDir";
+  @NonNls private static final String DEFAULT_REPO_NAME = "flatDir";
 
-  private static final String NAME_ATTRIBUTE = "name";
-  private static final String DIRS_ATTRIBUTE = "dirs";
+  @NonNls private static final String NAME = "name";
+  @NonNls private static final String DIRS = "dirs";
 
   @NotNull
   private final GradlePropertiesDslElement myDslElement;
@@ -42,18 +43,18 @@ public class FlatDirRepositoryModel extends RepositoryModel {
   @NotNull
   @Override
   public String name() {
-    String name = myDslElement.getProperty(NAME_ATTRIBUTE, String.class);
-    return name != null ? name : DEFAULT_NAME;
+    String name = myDslElement.getProperty(NAME, String.class);
+    return name != null ? name : DEFAULT_REPO_NAME;
   }
 
   @NotNull
   public List<String> dirs() {
-    List<String> dirs = myDslElement.getListProperty(DIRS_ATTRIBUTE, String.class);
+    List<String> dirs = myDslElement.getListProperty(DIRS, String.class);
     if (dirs != null) {
       return dirs;
     }
 
-    String dir = myDslElement.getProperty(DIRS_ATTRIBUTE, String.class);
+    String dir = myDslElement.getProperty(DIRS, String.class);
     if (dir != null) {
       return ImmutableList.of(dir);
     }

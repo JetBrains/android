@@ -23,8 +23,8 @@ import com.intellij.psi.PsiElement;
 
 import java.io.IOException;
 
-import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_FIELD;
-import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_FIELD;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_ATTRIBUTE_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_ATTRIBUTE_NAME;
 
 /**
  * Tests for {@link JavaModel}
@@ -151,9 +151,9 @@ public class JavaModelTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
 
     JavaVersionDslElement targetVersionElement =
-      java.getGradleDslElement().getProperty(TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+      java.getGradleDslElement().getProperty(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     JavaVersionDslElement sourceVersionElement =
-      java.getGradleDslElement().getProperty(SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+      java.getGradleDslElement().getProperty(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     assertNotNull(targetVersionElement);
     assertNotNull(sourceVersionElement);
 
