@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyMo
 import com.android.tools.idea.gradle.structure.configurables.model.ModuleMergedModel.LogicalArtifactDependency;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
@@ -37,27 +38,34 @@ public class ArtifactDependencyMergedModel extends DependencyMergedModel {
   @NotNull private final ArtifactDependencyModel myParsedModel;
   @NotNull private final GradleCoordinate myCoordinate;
 
-  @NotNull
+  @Nullable
   static ArtifactDependencyMergedModel create(@NotNull ModuleMergedModel parent, @NotNull ArtifactDependencyModel parsedModel) {
-    return new ArtifactDependencyMergedModel(parent, Collections.<LogicalArtifactDependency>emptyList(), parsedModel);
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(parsedModel.getSpec().compactNotation());
+    if (coordinate != null) {
+      return new ArtifactDependencyMergedModel(parent, Collections.<LogicalArtifactDependency>emptyList(), coordinate, parsedModel);
+    }
+    return null;
   }
 
-  @NotNull
+  @Nullable
   static ArtifactDependencyMergedModel create(@NotNull ModuleMergedModel parent,
                                               @NotNull Collection<LogicalArtifactDependency> logicalModels,
                                               @NotNull ArtifactDependencyModel parsedModel) {
-    return new ArtifactDependencyMergedModel(parent, logicalModels, parsedModel);
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(parsedModel.getSpec().compactNotation());
+    if (coordinate != null) {
+      return new ArtifactDependencyMergedModel(parent, logicalModels, coordinate, parsedModel);
+    }
+    return null;
   }
 
   private ArtifactDependencyMergedModel(@NotNull ModuleMergedModel parent,
                                         @NotNull Collection<LogicalArtifactDependency> logicalModels,
+                                        @NotNull GradleCoordinate coordinate,
                                         @NotNull ArtifactDependencyModel parsedModel) {
     super(parent, parsedModel.configurationName());
     myLogicalModels = Lists.newArrayList(logicalModels);
+    myCoordinate = coordinate;
     myParsedModel = parsedModel;
-    GradleCoordinate parsed = GradleCoordinate.parseCoordinateString(myParsedModel.getSpec().compactNotation());
-    assert parsed != null;
-    myCoordinate = parsed;
   }
 
   @Override

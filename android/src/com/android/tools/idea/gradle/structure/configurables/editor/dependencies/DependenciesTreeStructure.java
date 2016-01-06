@@ -105,30 +105,59 @@ class DependenciesTreeStructure extends AbstractTreeStructure {
     Dependencies dependencies = artifact.getDependencies();
     for (JavaLibrary library : dependencies.getJavaLibraries()) {
       ArtifactNode child = addIfMatching(node, library, children);
-      addTransitiveDependencies(child, library.getDependencies());
+      if (child != null) {
+        addTransitiveDependencies(child, library.getDependencies());
+      }
     }
     for (AndroidLibrary library : dependencies.getLibraries()) {
       ArtifactNode child = addIfMatching(node, library, children);
-      addTransitiveDependencies(child, library.getLibraryDependencies());
+      if (child != null) {
+        addTransitiveDependencies(child, library.getLibraryDependencies());
+      }
     }
   }
 
-  @NotNull
+  @Nullable
   private ArtifactNode addIfMatching(@NotNull GradleNode node, @NotNull Library library, @NotNull List<GradleNode> children) {
-    ArtifactNode child = new ArtifactNode(library, node, myDependenciesPanel.find(library));
-    children.add(child);
-    return child;
+    ArtifactDependencyMergedModel dependencyModel = myDependenciesPanel.find(library);
+    GradleCoordinate coordinate = getGradleCoordinate(library, dependencyModel);
+    if (coordinate != null) {
+      ArtifactNode child = new ArtifactNode(coordinate, node, dependencyModel);
+      children.add(child);
+      return child;
+    }
+
+    return null;
   }
 
   private void addTransitiveDependencies(@NotNull ArtifactNode node, @NotNull List<? extends Library> dependencies) {
     List<GradleNode> transitiveNodes = Lists.newArrayList();
     for (Library dependency : dependencies) {
-      ArtifactNode child = new ArtifactNode(dependency, node, myDependenciesPanel.find(dependency));
-      transitiveNodes.add(child);
+      ArtifactDependencyMergedModel dependencyModel = myDependenciesPanel.find(dependency);
+      GradleCoordinate coordinate = getGradleCoordinate(dependency, dependencyModel);
+      if (coordinate != null) {
+        ArtifactNode child = new ArtifactNode(coordinate, node, myDependenciesPanel.find(dependency));
+        transitiveNodes.add(child);
+      }
     }
     if (!transitiveNodes.isEmpty()) {
       node.setChildren(transitiveNodes);
     }
+  }
+
+  @Nullable
+  private static GradleCoordinate getGradleCoordinate(@NotNull Library library, @Nullable ArtifactDependencyMergedModel dependencyModel) {
+    GradleCoordinate coordinate = null;
+    if (dependencyModel != null) {
+      coordinate = dependencyModel.getCoordinate();
+    }
+    else {
+      MavenCoordinates coordinates = library.getResolvedCoordinates();
+      if (coordinates != null) {
+        coordinate = convert(coordinates);
+      }
+    }
+    return coordinate;
   }
 
   @Override
@@ -164,12 +193,13 @@ class DependenciesTreeStructure extends AbstractTreeStructure {
     @NotNull final GradleCoordinate coordinate;
     @Nullable final ArtifactDependencyMergedModel dependencyModel;
 
-    ArtifactNode(@NotNull Library library, @Nullable GradleNode parentDescriptor, @Nullable ArtifactDependencyMergedModel dependencyModel) {
+    ArtifactNode(@NotNull GradleCoordinate coordinate,
+                 @Nullable GradleNode parentDescriptor,
+                 @Nullable ArtifactDependencyMergedModel dependencyModel) {
       super(parentDescriptor);
+      this.coordinate = coordinate;
       this.dependencyModel = dependencyModel;
-      MavenCoordinates coordinates = library.getResolvedCoordinates();
-      coordinate = dependencyModel != null ? dependencyModel.getCoordinate() : convert(coordinates);
-      myName = coordinates.getArtifactId() + GRADLE_PATH_SEPARATOR + coordinates.getVersion();
+      myName = coordinate.getArtifactId() + GRADLE_PATH_SEPARATOR + coordinate.getRevision();
       myClosedIcon = dependencyModel != null ? LIBRARY_ICON : AndroidIcons.ProjectStructure.UnknownLibrary;
       setChildren(NO_CHILDREN);
       setAutoExpand(true);
