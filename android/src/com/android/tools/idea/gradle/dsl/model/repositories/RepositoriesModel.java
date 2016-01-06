@@ -26,6 +26,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.model.repositories.FlatDirRepositoryModel.FLAT_DIR_ATTRIBUTE_NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel.JCENTER_METHOD_NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel.MAVEN_CENTRAL_METHOD_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
+
 public class RepositoriesModel extends GradleDslBlockModel {
   public RepositoriesModel(@NotNull RepositoriesDslElement dslElement) {
     super(dslElement);
@@ -33,7 +40,7 @@ public class RepositoriesModel extends GradleDslBlockModel {
 
   @NotNull
   public List<RepositoryModel> repositories() {
-    GradleDslElementList repositoriesElementList = myDslElement.getProperty(RepositoriesDslElement.NAME, GradleDslElementList.class);
+    GradleDslElementList repositoriesElementList = myDslElement.getProperty(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
     if (repositoriesElementList == null) {
       return ImmutableList.of();
     }
@@ -41,18 +48,18 @@ public class RepositoriesModel extends GradleDslBlockModel {
     List<RepositoryModel> result = Lists.newArrayList();
     for (GradleDslElement element : repositoriesElementList.getElements()) {
       if (element instanceof GradleDslMethodCall) {
-        if (MavenCentralRepositoryModel.MAVEN_CENTRAL.equals(element.getName())) {
+        if (MAVEN_CENTRAL_METHOD_NAME.equals(element.getName())) {
           result.add(new MavenCentralRepositoryModel());
         }
-        else if (JCenterDefaultRepositoryModel.JCENTER.equals(element.getName())) {
+        else if (JCENTER_METHOD_NAME.equals(element.getName())) {
           result.add(new JCenterDefaultRepositoryModel());
         }
       }
       else if (element instanceof MavenRepositoryDslElement) {
-        if (MavenRepositoryDslElement.MAVEN.equals(element.getName())) {
+        if (MAVEN_BLOCK_NAME.equals(element.getName())) {
           result.add(new MavenRepositoryModel((MavenRepositoryDslElement)element));
         }
-        else if (MavenRepositoryDslElement.JCENTER.equals(element.getName())) {
+        else if (JCENTER_BLOCK_NAME.equals(element.getName())) {
           result.add(new JCenterRepositoryModel((MavenRepositoryDslElement)element));
         }
       }
@@ -60,10 +67,10 @@ public class RepositoriesModel extends GradleDslBlockModel {
         result.add(new FlatDirRepositoryModel((FlatDirRepositoryDslElement)element));
       }
       else if (element instanceof GradleDslExpressionMap) {
-        if (MavenCentralRepositoryModel.MAVEN_CENTRAL.equals(element.getName())) {
+        if (MAVEN_CENTRAL_METHOD_NAME.equals(element.getName())) {
           result.add(new MavenCentralRepositoryModel((GradleDslExpressionMap)element));
         }
-        else if (FlatDirRepositoryModel.FLAT_DIR_ATTRIBUTE_NAME.equals(element.getName())) {
+        else if (FLAT_DIR_ATTRIBUTE_NAME.equals(element.getName())) {
           result.add(new FlatDirRepositoryModel((GradlePropertiesDslElement)element));
         }
       }

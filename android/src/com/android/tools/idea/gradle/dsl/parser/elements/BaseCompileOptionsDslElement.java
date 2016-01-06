@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,17 +24,17 @@ import org.jetbrains.annotations.Nullable;
  * Base class for representing compileOptions block or others blocks which have sourceCompatibility / targetCompatibility fields.
  */
 public abstract class BaseCompileOptionsDslElement extends GradlePropertiesDslElement {
-  public static String SOURCE_COMPATIBILITY_FIELD = "sourceCompatibility";
-  public static String TARGET_COMPATIBILITY_FIELD = "targetCompatibility";
+  @NonNls public static final String COMPILE_OPTIONS_BLOCK_NAME = "compileOptions";
 
-  public static String NAME = "compileOptions";
+  @NonNls public static final String SOURCE_COMPATIBILITY_ATTRIBUTE_NAME = "sourceCompatibility";
+  @NonNls public static final String TARGET_COMPATIBILITY_ATTRIBUTE_NAME = "targetCompatibility";
 
   protected BaseCompileOptionsDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
   }
 
   public BaseCompileOptionsDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, NAME);
+    super(parent, null, COMPILE_OPTIONS_BLOCK_NAME);
   }
 
   @Override
@@ -43,7 +44,7 @@ public abstract class BaseCompileOptionsDslElement extends GradlePropertiesDslEl
 
   @Override
   public void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if ((SOURCE_COMPATIBILITY_FIELD.equals(property) || TARGET_COMPATIBILITY_FIELD.equals(property)) &&
+    if ((SOURCE_COMPATIBILITY_ATTRIBUTE_NAME.equals(property) || TARGET_COMPATIBILITY_ATTRIBUTE_NAME.equals(property)) &&
         (element instanceof GradleDslLiteral || element instanceof GradleDslReference)) {
 
       JavaVersionDslElement versionDslElement = new JavaVersionDslElement(this, (GradleDslExpression)element, property);

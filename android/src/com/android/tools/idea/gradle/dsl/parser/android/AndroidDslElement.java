@@ -18,13 +18,14 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidDslElement extends GradlePropertiesDslElement {
-  public static final String NAME = "android";
+  @NonNls public static final String ANDROID_BLOCK_NAME = "android";
 
   public AndroidDslElement(@NotNull GradleDslElement parent) {
-    super(parent, null, NAME);
+    super(parent, null, ANDROID_BLOCK_NAME);
   }
 
   @Override

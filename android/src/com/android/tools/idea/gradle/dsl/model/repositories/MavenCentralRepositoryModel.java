@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.repositories;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,13 +27,13 @@ import java.util.List;
  * Represents a repository defined with mavenCentral().
  */
 public class MavenCentralRepositoryModel extends UrlBasedRepositoryModel {
-  public static final String MAVEN_CENTRAL = "mavenCentral";
+  @NonNls public static final String MAVEN_CENTRAL_METHOD_NAME = "mavenCentral";
 
-  private static final String DEFAULT_NAME = "MavenRepo";
-  private static final String URL = "https://repo1.maven.org/maven2/";
+  @NonNls private static final String DEFAULT_REPO_NAME = "MavenRepo";
+  @NonNls private static final String DEFAULT_REPO_URL = "https://repo1.maven.org/maven2/";
 
-  private static final String NAME = "name";
-  private static final String ARTIFACT_URLS = "artifactUrls";
+  @NonNls private static final String NAME = "name";
+  @NonNls private static final String ARTIFACT_URLS = "artifactUrls";
 
   @Nullable
   private final GradleDslExpressionMap myDslElement;
@@ -49,17 +50,17 @@ public class MavenCentralRepositoryModel extends UrlBasedRepositoryModel {
   @Override
   public String name() {
     if (myDslElement == null) {
-      return DEFAULT_NAME;
+      return DEFAULT_REPO_NAME;
     }
 
     String name = myDslElement.getProperty(NAME, String.class);
-    return name != null ? name : DEFAULT_NAME;
+    return name != null ? name : DEFAULT_REPO_NAME;
   }
 
   @NotNull
   @Override
   public String url() {
-    return URL;
+    return DEFAULT_REPO_URL;
   }
 
   @NotNull

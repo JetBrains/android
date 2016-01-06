@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a repository defined with jcenter().
  */
 public class JCenterDefaultRepositoryModel extends UrlBasedRepositoryModel {
-  public static final String JCENTER = "jcenter";
+  @NonNls public static final String JCENTER_METHOD_NAME = "jcenter";
 
-  private static final String NAME = "BintrayJCenter2";
-  private static final String URL = "https://jcenter.bintray.com/";
+  @NonNls private static final String DEFAULT_REPO_NAME = "BintrayJCenter2";
+  @NonNls private static final String DEFAULT_REPO_URL = "https://jcenter.bintray.com/";
 
   @NotNull
   @Override
   public String name() {
-    return NAME;
+    return DEFAULT_REPO_NAME;
   }
 
   @NotNull
   @Override
   public String url() {
-    return URL;
+    return DEFAULT_REPO_URL;
   }
 }

@@ -19,16 +19,17 @@ import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.google.common.collect.Lists;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
 
 public final class ProductFlavorsDslElement extends GradleDslElementMap {
-  public static final String NAME = "productFlavors";
+  @NonNls public static final String PRODUCT_FLAVORS_BLOCK_NAME = "productFlavors";
 
   public ProductFlavorsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, NAME);
+    super(parent, PRODUCT_FLAVORS_BLOCK_NAME);
   }
 
   @Override
