@@ -25,7 +25,6 @@ import java.io.IOException;
 
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_FIELD;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_FIELD;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
  * Tests for {@link JavaModel}
@@ -102,18 +101,12 @@ public class JavaModelTest extends GradleFileModelTestCase {
     String text = "sourceCompatibility = 1.5\n" +
                   "targetCompatibility = 1.5";
     writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
     java.setSourceCompatibility(LanguageLevel.JDK_1_7);
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
     java = buildModel.java();
     assertEquals(LanguageLevel.JDK_1_7, java.sourceCompatibility());
@@ -123,20 +116,14 @@ public class JavaModelTest extends GradleFileModelTestCase {
     String text = "sourceCompatibility = 1.5\n" +
                   "targetCompatibility = 1.5";
     writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
 
     java.setTargetCompatibility(LanguageLevel.JDK_1_7);
     buildModel.resetState();
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
     java = buildModel.java();
     // Because of the reset, it should remain unchanged
@@ -151,7 +138,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
     String text = "sourceCompatibility = 1.5\n" +
                   "dependencies {}\n";
     writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
 
@@ -159,13 +146,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
     java.setTargetCompatibility(LanguageLevel.JDK_1_5);
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
 
@@ -190,16 +171,10 @@ public class JavaModelTest extends GradleFileModelTestCase {
     String text = "";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     buildModel.java().setSourceCompatibility(LanguageLevel.JDK_1_5);
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
     assertEquals(LanguageLevel.JDK_1_5, buildModel.java().sourceCompatibility());
   }
@@ -208,18 +183,12 @@ public class JavaModelTest extends GradleFileModelTestCase {
     String text = "sourceCompatibility = 1.5\n" +
                   "targetCompatibility = 1.5";
     writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
     java.removeSourceCompatibility();
     java.removeTargetCompatibility();
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
     java = buildModel.java();
     assertNull(java.sourceCompatibility());
