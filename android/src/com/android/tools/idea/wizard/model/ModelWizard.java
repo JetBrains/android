@@ -45,6 +45,9 @@ import java.util.Set;
  * <p/>
  * In this way, users of this framework can design steps which handle the UI logic while putting
  * all non-UI business logic in a data model class.
+ *
+ * To avoid memory leaks, you must dispose a wizard when you're done with it (although this may be
+ * done for you by a wrapping class, such as a model wizard dialog).
  */
 public final class ModelWizard implements Disposable {
 
@@ -93,17 +96,6 @@ public final class ModelWizard implements Disposable {
       throw new IllegalStateException("Can't create a wizard with no steps");
     }
 
-    Set<WizardModel> seenModels = Sets.newHashSet();
-    for (ModelWizardStep step : mySteps) {
-      WizardModel model = step.getModel();
-      if (seenModels.contains(model)) {
-        continue;
-      }
-
-      Disposer.register(this, model);
-      seenModels.add(model);
-    }
-
     myCanGoForward.addListener(new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
@@ -115,6 +107,18 @@ public final class ModelWizard implements Disposable {
         }
       }
     });
+
+    Set<WizardModel> seenModels = Sets.newHashSet();
+    for (ModelWizardStep step : mySteps) {
+      Disposer.register(this, step);
+
+      WizardModel model = step.getModel();
+      if (seenModels.contains(model)) {
+        continue;
+      }
+      Disposer.register(this, model);
+      seenModels.add(model);
+    }
 
     start();
   }
@@ -187,7 +191,6 @@ public final class ModelWizard implements Disposable {
   private void addStep(@NotNull ModelWizardStep<?> step) {
     myContentPanel.add(step.getComponent(), Integer.toString(mySteps.size()));
     mySteps.add(step);
-    Disposer.register(this, step);
 
     for (ModelWizardStep subStep : step.createDependentSteps()) {
       myStepOwners.put(subStep, step);
@@ -220,6 +223,8 @@ public final class ModelWizard implements Disposable {
   /**
    * Starts this wizard, after all steps have been added. Once started, the wizard will be pointed
    * at the first step, and navigation can begin via {@link #goForward()} and {@link #goBack()}.
+   *
+   * If there are no steps, this wizard immediately progresses to a finished state.
    */
   private void start() {
     for (ModelWizardStep step : mySteps) {
@@ -234,11 +239,12 @@ public final class ModelWizard implements Disposable {
       }
     }
 
-    if (!atLeastOneVisibleStep) {
-      throw new IllegalStateException("Can't start a wizard with no visible steps");
+    if (atLeastOneVisibleStep) {
+      goForward(); // Proceed to first step
     }
-
-    goForward(); // Proceed to first step
+    else {
+      handleFinished(true);
+    }
   }
 
   /**
