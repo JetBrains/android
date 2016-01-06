@@ -17,6 +17,7 @@ package com.android.tools.idea.fd.actions;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.UpdateMode;
+import com.android.tools.idea.fd.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -25,6 +26,7 @@ import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
@@ -35,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -104,14 +106,6 @@ public class InstantRunWithoutRestart extends AnAction {
                                 @NotNull final AndroidGradleModel model,
                                 @NotNull final AndroidFacet facet,
                                 @NotNull final UpdateMode updateMode) {
-    File arsc = InstantRunManager.findResourceArsc(facet);
-    final long arscBefore = arsc != null ? arsc.lastModified() : 0L;
-
-    // Clean out *old* patch files (e.g. from a previous build such that if you for example
-    // only change a resource, we don't redeploy the same .dex file over and over!
-    // This should be performed by the Gradle plugin; this is a temporary workaround.
-    InstantRunManager.removeOldPatches(model);
-
     final Project project = facet.getModule().getProject();
     final GradleInvoker invoker = GradleInvoker.getInstance(project);
 
@@ -124,7 +118,15 @@ public class InstantRunWithoutRestart extends AnAction {
         invoker.removeAfterGradleInvocationTask(reference.get());
 
         // Build is done: send message to app etc
-        manager.pushChanges(device, model, facet, updateMode, arscBefore);
+
+        InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+        if (buildInfo != null) {
+          try {
+            manager.pushArtifacts(device, facet, updateMode, buildInfo);
+          } catch (IOException e) {
+            Logger.getInstance(InstantRunWithoutRestart.class).warn(e);
+          }
+        }
       }
     };
     reference.set(task);

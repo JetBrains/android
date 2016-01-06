@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.fd;
 
-import com.android.builder.model.*;
+import com.android.annotations.NonNull;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.SourceProvider;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.InstantRunClient;
+import com.android.tools.fd.client.InstantRunClient.FileTransfer;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.runtime.ApplicationPatch;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -29,12 +34,12 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.tasks.DeployApkTask;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
-import com.google.common.io.Files;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.JavaExecutionStack;
 import com.intellij.debugger.engine.SuspendContextImpl;
@@ -97,10 +102,8 @@ public final class InstantRunManager implements ProjectComponent {
   private static final Logger LOG = Logger.getInstance(InstantRunManager.class);
   private static final ILogger ILOGGER = new LogWrapper(LOG);
 
-  /** Local port on the desktop machine that we tunnel to the Android device via */
-  private static final int STUDIO_PORT = 8888;
-
-  private static final String RESOURCE_FILE_NAME = "resources.ap_";
+  /** Local port on the desktop machine via which we tunnel to the Android device */
+  private static final int STUDIO_PORT = 46622; // Note: just a random number, hopefully it is a free/available port on the host
 
   @NotNull private final Project myProject;
   @NotNull private FileChangeListener myFileChangeListener;
@@ -226,51 +229,6 @@ public final class InstantRunManager implements ProjectComponent {
     getInstantRunClient(module).transferLocalIdToDeviceId(device, buildId);
   }
 
-
-
-  /**
-   * Returns true if the app associated with the given module can be dex swapped.
-   * That's the case if the app is already installed, and the build id's match.
-   *
-   * @param module  a module context, normally the main app module (but if it's a library module
-   *                the infrastructure will look for other app modules
-   * @param devices the set of devices to check
-   * @return true if the app can be dex swapped in one or more of the given devices
-   */
-  public static boolean canDexSwap(@NotNull Module module, @SuppressWarnings("UnusedParameters") @NotNull Collection<IDevice> devices) {
-    //noinspection IfStatementWithIdenticalBranches
-    if (!InstantRunSettings.isColdSwapEnabled(module.getProject())) {
-      return false;
-    }
-
-    // TODO: we need to fix 2 things: a) update resources, b) handle no-changes
-    //for (IDevice device : devices) {
-    //  if (buildIdsMatch(device, module)) {
-    //    return true;
-    //  }
-    //}
-
-    return false;
-  }
-
-  /**
-   * Dex swap the app on the given device. Should only be called if {@link #canDexSwap(Module, Collection)} returned true
-   *
-   * @param facet  the app module's facet
-   * @param device the device to install it on
-   * @return true if installation succeeded
-   */
-  public static boolean installDex(@NotNull AndroidFacet facet, @NotNull IDevice device) {
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
-    if (model == null) {
-      return false;
-    }
-
-    File restart = DexFileType.RESTART_DEX.getFile(model);
-    String buildId = StringUtil.notNullize(getLocalBuildId(facet.getModule()));
-    return getInstantRunClient(facet.getModule()).installDex(restart, buildId, device);
-  }
-
   /**
    * Restart the activity on this device, if it's running and is in the foreground
    * @param device the device to apply the change to
@@ -331,14 +289,6 @@ public final class InstantRunManager implements ProjectComponent {
     return version.getApiLevel() >= 15;
   }
 
-  /**
-   * Returns whether an update will result in a cold swap by looking at the results of a gradle build.
-   */
-  public static boolean isColdSwap(@NotNull AndroidGradleModel model) {
-    InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
-    return buildInfo != null && !buildInfo.canHotswap();
-  }
-
   private static long getLastInstalledArscTimestamp(@NotNull IDevice device, @NotNull AndroidFacet facet) {
     String pkgName = getPackageName(facet);
     if (pkgName == null) {
@@ -374,6 +324,21 @@ public final class InstantRunManager implements ProjectComponent {
       return true;
     }
 
+    if (manifestChanged(device, module)) {
+      // Yes, some resources have changed.
+      String message = "Manifest or some resource referenced from the manifest has changed.";
+      LOG.info(message);
+      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns true if the manifest or a resource referenced from the manifest has changed since the last manifest push to the device
+   */
+  private static boolean manifestChanged(@NotNull IDevice device, @NotNull Module module) {
     InstantRunManager manager = get(module.getProject());
     AndroidFacet facet = manager.findAppModule(module);
     if (facet == null) {
@@ -400,10 +365,6 @@ public final class InstantRunManager implements ProjectComponent {
       HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
       HashCode installedHash = cache.getInstalledManifestResourcesHash(device, pkgName);
       if (installedHash != null && !installedHash.equals(currentHash)) {
-        // Yes, some resources have changed.
-        String message = "Some resource referenced from the manifest has changed.";
-        LOG.info(message);
-        UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
         return true;
       }
 
@@ -553,82 +514,134 @@ public final class InstantRunManager implements ProjectComponent {
     }
   }
 
-  /**
-   * Dex file types produced by the build system.
-   */
-  enum DexFileType {
-    RELOAD_DEX {
-      @NotNull
-      @Override
-      File getFile(AndroidGradleModel model) {
-        return model.getSelectedVariant().getMainArtifact().getInstantRun().getReloadDexFile();
-      }
-    },
-    RESTART_DEX {
-      @NotNull
-      @Override
-      File getFile(AndroidGradleModel model) {
-        return model.getSelectedVariant().getMainArtifact().getInstantRun().getRestartDexFile();
-      }
-    };
-
-    /**
-     * Returns the dex file location for this dex file type.
-     * @param model gradle model
-     * @return a file location for a possibly existing file.
-     */
-    @NotNull
-    abstract File getFile(AndroidGradleModel model);
-  }
-
   @NotNull
   private static InstantRunClient getInstantRunClient(@NotNull Module module) {
     String packageName = getPackageName(findAppModule(module, module.getProject()));
     return new InstantRunClient(packageName, STUDIO_PORT, new InstantRunUserFeedback(module), ILOGGER);
   }
 
-  public static void pushChanges(@NotNull final IDevice device, @NotNull final AndroidFacet facet) {
-    InstantRunManager manager = get(facet.getModule().getProject());
-    long deviceArscTimestamp = getLastInstalledArscTimestamp(device, facet);
+  /**
+   * Pushes the artifacts in the given {@link InstantRunBuildInfo} to the given device.
+   * If the app is running, the artifacts are sent directly to the server running as part of the app.
+   * Otherwise, we save it to a file on the device.
+   *
+   * @return true if the method handled app restart; false if the caller needs to
+   * manually starts the app.
+   */
+  public boolean pushArtifacts(@NotNull final IDevice device,
+                               @NotNull final AndroidFacet facet,
+                               @NotNull UpdateMode updateMode,
+                               @NotNull InstantRunBuildInfo buildInfo) throws IOException {
+    displayVerifierStatus(facet, buildInfo);
 
+    long arscBefore = getLastInstalledArscTimestamp(device, facet);
     AndroidGradleModel model = AndroidGradleModel.get(facet);
-    if (model != null) {
-      manager.pushChanges(device, model, facet, UpdateMode.HOT_SWAP, deviceArscTimestamp);
+    if (model == null) {
+      return true;
     }
+
+    List<FileTransfer> files = Lists.newArrayList();
+    InstantRunClient client = getInstantRunClient(facet.getModule());
+
+    updateMode = gatherGradleResourceChanges(model, facet, files, arscBefore, updateMode);
+    boolean updateResource = !files.isEmpty();
+    boolean updateManifest = false;
+    boolean updateCode = false;
+
+    boolean appRunning = isAppRunning(device, facet.getModule());
+
+    List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
+    for (InstantRunArtifact artifact : artifacts) {
+      InstantRunArtifactType type = artifact.type;
+      File file = artifact.file;
+      switch (type) {
+        case MAIN:
+          // Should never be used with this method: APKs should be
+          // pushed by DeployApkTask
+          break;
+        case SPLIT:
+          // Should never be used with this method: APK splits should
+          // be pushed by SplitApkDeployTask
+          assert false : artifact;
+          break;
+        case DEX:
+          updateCode = true;
+          String name = file.getParentFile().getName() + "-" + file.getName();
+          files.add(FileTransfer.createSliceDex(file, name));
+          break;
+        case RESTART_DEX:
+          updateCode = true;
+          files.add(FileTransfer.createRestartDex(file));
+          break;
+        case RELOAD_DEX:
+          updateCode = true;
+          if (appRunning) {
+            files.add(FileTransfer.createHotswapPatch(file));
+          } else {
+            // Gradle created a reload dex, but the app is no longer running.
+            // If it created a restart dex, we can use it; otherwise we're out of luck.
+            boolean haveColdSwapCode = false;
+            for (InstantRunArtifact a : artifacts) {
+              if (a.type == InstantRunArtifactType.DEX
+                  || a.type == InstantRunArtifactType.RESTART_DEX
+                  || a.type == InstantRunArtifactType.SPLIT) {
+                haveColdSwapCode = true;
+                break;
+              }
+            }
+            if (!haveColdSwapCode) {
+              // TODO: We should restart the build here.
+              throw new IOException("Can't apply hotswap patch: app is no longer running");
+            }
+          }
+          break;
+        default:
+          assert false : artifact;
+      }
+    }
+
+    boolean needRestart;
+    String pkgName = getPackageName(facet);
+    String buildId = StringUtil.notNullize(getLocalBuildId(facet.getModule()));
+    if (appRunning) {
+      List<ApplicationPatch> changes = getApplicationPatches(files);
+      Project project = facet.getModule().getProject();
+      boolean restartActivity = InstantRunSettings.isRestartActivity(project);
+      boolean showToast = InstantRunSettings.isShowToastEnabled(project);
+      client.pushPatches(device, buildId, changes, updateMode, restartActivity, showToast);
+
+      // Note that while we update the patch cache with the resource file timestamp here,
+      // we *don't* do that for the manifest file: the resource timestamp is updated because
+      // the resource files will be pushed to the app, but the manifest changes can't be.
+      if (pkgName != null) {
+        refreshDebugger(pkgName);
+      }
+      needRestart = false;
+    }
+    else {
+      // Push to data directory
+      client.pushFiles(files, device, buildId);
+      needRestart = true;
+    }
+
+    if (pkgName != null) {
+      DeployApkTask.cacheInstallationData(device, facet, pkgName, updateManifest, updateCode, updateResource);
+    }
+
+    return needRestart;
   }
 
-  public void pushChanges(@NotNull IDevice device,
-                          @NotNull AndroidGradleModel model,
-                          @NotNull AndroidFacet facet,
-                          @NotNull UpdateMode updateMode,
-                          long arscBefore) {
-    List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(4);
-
-    updateMode = gatherGradleCodeChanges(model, changes, facet, updateMode);
-    updateMode = gatherGradleResourceChanges(model, facet, changes, arscBefore, updateMode);
-
-    InstantRunClient instantRunClient = getInstantRunClient(facet.getModule());
-    Project project = facet.getModule().getProject();
-    String buildId = StringUtil.notNullize(getLocalBuildId(facet.getModule()));
-    instantRunClient.push(device, buildId, changes, updateMode, InstantRunSettings.isRestartActivity(project),
-                          InstantRunSettings.isShowToastEnabled(project));
-
-    String pkgName = getPackageName(facet);
-    if (pkgName == null) {
-      return;
+  @NonNull
+  private static List<ApplicationPatch> getApplicationPatches(List<FileTransfer> files) {
+    List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(files.size());
+    for (FileTransfer file : files) {
+      try {
+        changes.add(file.getPatch());
+      } catch (IOException e) {
+        LOG.warn("Couldn't read file " + file);
+      }
     }
-    File resourceArsc = findResourceArsc(facet);
-    if (resourceArsc != null) {
-      long timestamp = resourceArsc.lastModified();
-      InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
-      patchCache.setInstalledArscTimestamp(device, pkgName, timestamp);
-    }
-
-    // Note that while we update the patch cache with the resource file timestamp here,
-    // we *don't* do that for the manifest file: the resource timestamp is updated because
-    // the resource files will be pushed to the app, but the manifest changes can't be.
-
-    refreshDebugger(pkgName);
+    return changes;
   }
 
   private void refreshDebugger(@NotNull String packageName) {
@@ -684,100 +697,27 @@ public final class InstantRunManager implements ProjectComponent {
 
   @SuppressWarnings({"MethodMayBeStatic", "UnusedParameters"}) // won't be as soon as it really calls Gradle
   @NotNull
-  private static UpdateMode gatherGradleResourceChanges(AndroidGradleModel model,
-                                                 AndroidFacet facet,
-                                                 List<ApplicationPatch> changes,
-                                                 long arscBefore,
-                                                 @NotNull UpdateMode updateMode) {
+  private static UpdateMode gatherGradleResourceChanges(@NotNull AndroidGradleModel model,
+                                                        @NotNull AndroidFacet facet,
+                                                        @NotNull List<FileTransfer> files,
+                                                        long arscBefore,
+                                                        @NotNull UpdateMode updateMode) {
     File arsc = findResourceArsc(facet);
     if (arsc != null && arsc.lastModified() > arscBefore) {
-      String path = RESOURCE_FILE_NAME;
-      try {
-        byte[] bytes = Files.toByteArray(arsc);
-        changes.add(new ApplicationPatch(path, bytes));
-        return updateMode.combine(UpdateMode.WARM_SWAP);
-      }
-      catch (IOException e) {
-        LOG.warn("Couldn't read resource file file " + arsc);
-      }
+      files.add(FileTransfer.createResourceFile(arsc));
+      updateMode = updateMode.combine(UpdateMode.WARM_SWAP);
     }
 
     return updateMode;
   }
 
-  @NotNull
-  private static UpdateMode gatherGradleCodeChanges(AndroidGradleModel model,
-                                                    List<ApplicationPatch> changes,
-                                                    @NotNull AndroidFacet facet,
-                                                    @NotNull UpdateMode updateMode) {
-    try {
-      File incremental = DexFileType.RELOAD_DEX.getFile(model);
-      boolean canReload = incremental.exists();
-      if (canReload) {
-        byte[] bytes = Files.toByteArray(incremental);
-        changes.add(new ApplicationPatch("classes.dex.3", bytes));
-        updateMode = updateMode.combine(UpdateMode.HOT_SWAP);
-      }
-
-      File restart = DexFileType.RESTART_DEX.getFile(model);
-      if (restart.exists()) {
-        byte[] bytes = Files.toByteArray(restart);
-        changes.add(new ApplicationPatch("classes.dex", bytes));
-        if (!canReload) {
-          updateMode = updateMode.combine(UpdateMode.COLD_SWAP);
-        }
-      }
-    }
-    catch (Throwable t) {
-      Logger.getInstance(InstantRunManager.class).error("Couldn't generate dex", t);
-    }
-
-    displayVerifierStatus(model, facet);
-
-    return updateMode;
-  }
-
-  public static void displayVerifierStatus(@NotNull AndroidGradleModel model, @NotNull AndroidFacet facet) {
-    InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
-    if (buildInfo != null && !buildInfo.canHotswap()) {
+  public static void displayVerifierStatus(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
+    if (!buildInfo.canHotswap()) {
       String status = buildInfo.getVerifierStatus();
       // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
       status = StringUtil.capitalizeWords(status.toLowerCase(Locale.US).replace('_', ' '), true);
       postBalloon(MessageType.WARNING, "Couldn't apply changes on the fly: " + status, facet.getModule().getProject());
       UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, status, null);
-    }
-  }
-
-  public static void removeOldPatches(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return;
-    }
-
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
-    if (model != null) {
-      removeOldPatches(model);
-    }
-  }
-
-  public static void removeOldPatches(@NotNull AndroidGradleModel model) {
-    // This method may be called even when instant run isn't eligible
-    if (!isInstantRunSupported(model)) {
-      return;
-    }
-    File restart = DexFileType.RESTART_DEX.getFile(model);
-    if (restart.exists()) {
-      boolean deleted = restart.delete();
-      if (!deleted) {
-        Logger.getInstance(InstantRunManager.class).error("Couldn't delete " + restart);
-      }
-    }
-    File incremental = DexFileType.RELOAD_DEX.getFile(model);
-    if (incremental.exists()) {
-      boolean deleted = incremental.delete();
-      if (!deleted) {
-        Logger.getInstance(InstantRunManager.class).error("Couldn't delete " + incremental);
-      }
     }
   }
 

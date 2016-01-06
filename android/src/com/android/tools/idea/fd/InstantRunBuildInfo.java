@@ -84,8 +84,6 @@ public class InstantRunBuildInfo {
   public List<InstantRunArtifact> getArtifacts() {
     List<InstantRunArtifact> artifacts = Lists.newArrayList();
 
-    assert "23".equals(getApiLevel()) : "TODO: currently we only support retrieving artifacts for API 23";
-
     NodeList children = myRoot.getChildNodes();
     for (int i = 0, n = children.getLength(); i < n; i++) {
       Node child = children.item(i);
