@@ -32,6 +32,7 @@ import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,11 +53,17 @@ import static org.junit.Assert.assertEquals;
 public class GradleTestArtifactSyncTest extends GuiTestCase {
   private static final char VIRTUAL_FILE_PATH_SEPARATOR = '/';
 
-  @Override
+  private boolean myOriginalLoadAllTestArtifactsValue;
+
   @Before
-  public void setUp() throws Exception {
-    super.setUp();
+  public void enableTestArtifacts() throws Exception {
+    myOriginalLoadAllTestArtifactsValue = GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS;
     GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = true;
+  }
+
+  @After
+  public void recoverTestArtifactsSetting() {
+    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
   }
 
   @Test @IdeGuiTest

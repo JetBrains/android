@@ -59,11 +59,14 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   private AndroidProjectStub myAndroidProject;
   private String myRoot;
 
+  private boolean myOriginalLoadAllTestArtifactsValue;
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
     setUpIdeaAndroidProject();
 
+    myOriginalLoadAllTestArtifactsValue = GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS;
     GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = false;
 
     myPatcher = new AndroidJunitPatcher();
@@ -85,6 +88,12 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
         }
       }
     });
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    super.tearDown();
+    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
   }
 
   private List<String> getExampleClasspath() {
