@@ -151,13 +151,17 @@ public class ModuleMergedModel {
         }
         if (!fromGradleModel.isEmpty()) {
           ArtifactDependencyMergedModel model = ArtifactDependencyMergedModel.create(this, fromGradleModel, parsedDependency);
-          myDependencyModels.add(model);
+          if (model != null) {
+            myDependencyModels.add(model);
+          }
           return;
         }
       }
     }
     ArtifactDependencyMergedModel model = ArtifactDependencyMergedModel.create(this, parsedDependency);
-    myDependencyModels.add(model);
+    if (model != null) {
+      myDependencyModels.add(model);
+    }
   }
 
   @NotNull
