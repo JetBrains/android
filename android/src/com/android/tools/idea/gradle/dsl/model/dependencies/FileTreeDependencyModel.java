@@ -29,10 +29,10 @@ import java.util.List;
 public class FileTreeDependencyModel extends DependencyModel {
   private static final Logger LOG = Logger.getInstance(FileTreeDependencyModel.class);
 
-  @NonNls private static final String FILE_TREE_METHOD_NAME = "fileTree";
-  @NonNls private static final String DIR_ATTRIBUTE = "dir";
-  @NonNls private static final String INCLUDE_ATTRIBUTE = "include";
-  @NonNls private static final String EXCLUDE_ATTRIBUTE = "exclude";
+  @NonNls private static final String FILE_TREE = "fileTree";
+  @NonNls private static final String DIR = "dir";
+  @NonNls private static final String INCLUDE = "include";
+  @NonNls private static final String EXCLUDE = "exclude";
 
   @NotNull private final GradleDslMethodCall myDslElement;
   @NotNull private final GradleDslExpression myDir;
@@ -95,7 +95,7 @@ public class FileTreeDependencyModel extends DependencyModel {
 
   public static Collection<? extends FileTreeDependencyModel> create(@NotNull GradleDslMethodCall methodCall) {
     List<FileTreeDependencyModel> result = Lists.newArrayList();
-    if (FILE_TREE_METHOD_NAME.equals(methodCall.getName())) {
+    if (FILE_TREE.equals(methodCall.getName())) {
       List<GradleDslElement> arguments = methodCall.getArguments();
       for (GradleDslElement argument : arguments) {
         if (argument instanceof GradleDslExpression) {
@@ -103,15 +103,15 @@ public class FileTreeDependencyModel extends DependencyModel {
         }
         else if (argument instanceof GradleDslExpressionMap) {
           GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
-          GradleDslExpression dirElement = dslMap.getProperty(DIR_ATTRIBUTE, GradleDslExpression.class);
+          GradleDslExpression dirElement = dslMap.getProperty(DIR, GradleDslExpression.class);
           if (dirElement == null) {
             assert methodCall.getPsiElement() != null;
             String msg = String.format("'%1$s' is not a valid file tree dependency", methodCall.getPsiElement().getText());
             LOG.warn(msg);
             continue;
           }
-          GradleDslElement includeElement = dslMap.getPropertyElement(INCLUDE_ATTRIBUTE);
-          GradleDslElement excludeElement = dslMap.getPropertyElement(EXCLUDE_ATTRIBUTE);
+          GradleDslElement includeElement = dslMap.getPropertyElement(INCLUDE);
+          GradleDslElement excludeElement = dslMap.getPropertyElement(EXCLUDE);
           result.add(new FileTreeDependencyModel(methodCall, dirElement, includeElement, excludeElement));
         }
       }

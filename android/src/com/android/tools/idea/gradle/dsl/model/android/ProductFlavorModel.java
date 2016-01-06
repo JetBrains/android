@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,25 +28,25 @@ import java.util.List;
 import java.util.Map;
 
 public final class ProductFlavorModel extends GradleDslBlockModel {
-  private static final String APPLICATION_ID = "applicationId";
-  private static final String CONSUMER_PROGUARD_FILES = "consumerProguardFiles";
-  private static final String DIMENSION = "dimension";
-  private static final String MANIFEST_PLACEHOLDERS = "manifestPlaceholders";
-  private static final String MAX_SDK_VERSION = "maxSdkVersion";
-  private static final String MIN_SDK_VERSION = "minSdkVersion";
-  private static final String MULTI_DEX_ENABLED = "multiDexEnabled";
-  private static final String PROGUARD_FILES = "proguardFiles";
-  private static final String RES_CONFIGS = "resConfigs";
-  private static final String RES_VALUES = "resValues";
-  private static final String TARGET_SDK_VERSION = "targetSdkVersion";
-  private static final String TEST_APPLICATION_ID = "testApplicationId";
-  private static final String TEST_FUNCTIONAL_TEST = "testFunctionalTest";
-  private static final String TEST_HANDLE_PROFILING = "testHandleProfiling";
-  private static final String TEST_INSTRUMENTATION_RUNNER = "testInstrumentationRunner";
-  private static final String TEST_INSTRUMENTATION_RUNNER_ARGUMENTS = "testInstrumentationRunnerArguments";
-  private static final String USE_JACK = "useJack";
-  private static final String VERSION_CODE = "versionCode";
-  private static final String VERSION_NAME = "versionName";
+  @NonNls private static final String APPLICATION_ID = "applicationId";
+  @NonNls private static final String CONSUMER_PROGUARD_FILES = "consumerProguardFiles";
+  @NonNls private static final String DIMENSION = "dimension";
+  @NonNls private static final String MANIFEST_PLACEHOLDERS = "manifestPlaceholders";
+  @NonNls private static final String MAX_SDK_VERSION = "maxSdkVersion";
+  @NonNls private static final String MIN_SDK_VERSION = "minSdkVersion";
+  @NonNls private static final String MULTI_DEX_ENABLED = "multiDexEnabled";
+  @NonNls private static final String PROGUARD_FILES = "proguardFiles";
+  @NonNls private static final String RES_CONFIGS = "resConfigs";
+  @NonNls private static final String RES_VALUES = "resValues";
+  @NonNls private static final String TARGET_SDK_VERSION = "targetSdkVersion";
+  @NonNls private static final String TEST_APPLICATION_ID = "testApplicationId";
+  @NonNls private static final String TEST_FUNCTIONAL_TEST = "testFunctionalTest";
+  @NonNls private static final String TEST_HANDLE_PROFILING = "testHandleProfiling";
+  @NonNls private static final String TEST_INSTRUMENTATION_RUNNER = "testInstrumentationRunner";
+  @NonNls private static final String TEST_INSTRUMENTATION_RUNNER_ARGUMENTS = "testInstrumentationRunnerArguments";
+  @NonNls private static final String USE_JACK = "useJack";
+  @NonNls private static final String VERSION_CODE = "versionCode";
+  @NonNls private static final String VERSION_NAME = "versionName";
 
   public ProductFlavorModel(@NotNull ProductFlavorDslElement dslElement) {
     super(dslElement);
@@ -519,7 +520,7 @@ public final class ProductFlavorModel extends GradleDslBlockModel {
    * Represents a {@code resValue} statement defined in the product flavor block of the Gradle file.
    */
   public static final class ResValue {
-    @NotNull public static final String NAME = "resValue";
+    @NotNull public static final String RES_VALUE_ATTRIBUTE_NAME = "resValue";
 
     @NotNull private final String myType;
     @NotNull private final String myName;
@@ -571,14 +572,14 @@ public final class ProductFlavorModel extends GradleDslBlockModel {
 
     @NotNull
     private GradleDslExpressionList toLiteralListElement(@NotNull GradleDslElement parent) {
-      GradleDslLiteral typeElement = new GradleDslLiteral(parent, NAME);
+      GradleDslLiteral typeElement = new GradleDslLiteral(parent, RES_VALUE_ATTRIBUTE_NAME);
       typeElement.setValue(myType);
-      GradleDslLiteral nameElement = new GradleDslLiteral(parent, NAME);
+      GradleDslLiteral nameElement = new GradleDslLiteral(parent, RES_VALUE_ATTRIBUTE_NAME);
       nameElement.setValue(myName);
-      GradleDslLiteral valueElement = new GradleDslLiteral(parent, NAME);
+      GradleDslLiteral valueElement = new GradleDslLiteral(parent, RES_VALUE_ATTRIBUTE_NAME);
       valueElement.setValue(myValue);
 
-      GradleDslExpressionList gradleDslExpressionList = new GradleDslExpressionList(parent, NAME);
+      GradleDslExpressionList gradleDslExpressionList = new GradleDslExpressionList(parent, RES_VALUE_ATTRIBUTE_NAME);
       gradleDslExpressionList.addNewExpression(typeElement);
       gradleDslExpressionList.addNewExpression(nameElement);
       gradleDslExpressionList.addNewExpression(valueElement);

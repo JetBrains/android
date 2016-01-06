@@ -21,8 +21,8 @@ import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_FIELD;
-import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_FIELD;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_ATTRIBUTE_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_ATTRIBUTE_NAME;
 
 /**
  * Base compile options model that only have sourceCompatibility / targetCompatibility fields.
@@ -37,35 +37,35 @@ public abstract class BaseCompileOptionsModel extends GradleDslBlockModel {
 
   @Nullable
   public LanguageLevel sourceCompatibility() {
-    JavaVersionDslElement javaVersionElement = myDslElement.getProperty(SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+    JavaVersionDslElement javaVersionElement = myDslElement.getProperty(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     return javaVersionElement == null ? null : javaVersionElement.getVersion();
   }
 
   @NotNull
   public BaseCompileOptionsModel setSourceCompatibility(@NotNull LanguageLevel languageLevel) {
-    return setLanguageLevel(SOURCE_COMPATIBILITY_FIELD, languageLevel);
+    return setLanguageLevel(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, languageLevel);
   }
 
   @NotNull
   public BaseCompileOptionsModel removeSourceCompatibility() {
-    myDslElement.removeProperty(SOURCE_COMPATIBILITY_FIELD);
+    myDslElement.removeProperty(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME);
     return this;
   }
 
   @Nullable
   public LanguageLevel targetCompatibility() {
-    JavaVersionDslElement javaVersionElement = myDslElement.getProperty(TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+    JavaVersionDslElement javaVersionElement = myDslElement.getProperty(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     return javaVersionElement == null ? null : javaVersionElement.getVersion();
   }
 
   @NotNull
   public BaseCompileOptionsModel setTargetCompatibility(@NotNull LanguageLevel languageLevel) {
-    return setLanguageLevel(TARGET_COMPATIBILITY_FIELD, languageLevel);
+    return setLanguageLevel(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, languageLevel);
   }
 
   @NotNull
   public BaseCompileOptionsModel removeTargetCompatibility() {
-    myDslElement.removeProperty(TARGET_COMPATIBILITY_FIELD);
+    myDslElement.removeProperty(TARGET_COMPATIBILITY_ATTRIBUTE_NAME);
     return this;
   }
 

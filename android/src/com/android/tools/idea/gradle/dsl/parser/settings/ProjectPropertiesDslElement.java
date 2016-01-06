@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNewExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,8 +27,8 @@ import java.io.File;
 import java.util.List;
 
 public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
-  private static final String PROJECT_DIR = "projectDir";
-  private static final String BUILD_FILE_NAME = "buildFileName";
+  @NonNls private static final String PROJECT_DIR = "projectDir";
+  @NonNls private static final String BUILD_FILE_NAME = "buildFileName";
 
   public ProjectPropertiesDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
