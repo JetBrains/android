@@ -21,7 +21,10 @@ import com.android.repository.api.*;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.impl.meta.CommonFactory;
 import com.android.repository.impl.meta.TypeDetails;
+import com.android.repository.io.FileOpUtils;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager.LayoutlibVersion;
+import com.android.sdklib.internal.androidTarget.OptionalLibraryImpl;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
@@ -29,6 +32,7 @@ import com.android.sdklib.repositoryv2.LegacyRepoUtils;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.tools.idea.sdk.remote.internal.archives.ArchFilter;
+import com.android.tools.idea.sdk.remote.internal.packages.RemoteAddonPkgInfo;
 import com.android.tools.idea.sdk.remote.internal.packages.RemotePlatformPkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonSource;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoSource;
@@ -169,8 +173,14 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
             layoutlibApi = layoutlibVersion.getApi();
           }
         }
+        List<IAndroidTarget.OptionalLibrary> libs = Lists.newArrayList();
+        if (myWrapped instanceof RemoteAddonPkgInfo) {
+          for (RemoteAddonPkgInfo.Lib wrappedLib : ((RemoteAddonPkgInfo)myWrapped).getLibs()) {
+            libs.add(new OptionalLibraryImpl(wrappedLib.getName(), new File(""), wrappedLib.getDescription(), false));
+          }
+        }
         ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-        myDetails = LegacyRepoUtils.createTypeDetails(myWrapped.getPkgDesc(), layoutlibApi, progress);
+        myDetails = LegacyRepoUtils.createTypeDetails(myWrapped.getPkgDesc(), layoutlibApi, libs, null, progress, FileOpUtils.create());
       }
       return myDetails;
     }

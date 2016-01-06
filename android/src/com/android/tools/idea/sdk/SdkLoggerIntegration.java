@@ -27,7 +27,10 @@ import java.util.regex.Pattern;
 
 /**
  * Utility class for integrating stream-based SDK manager UI with the Android Studio UI.
+ *
+ * @deprecated to be removed once {@link com.android.tools.idea.sdk.wizard.legacy.SmwOldApiDirectInstall} is removed
  */
+@Deprecated
 public abstract class SdkLoggerIntegration implements IReaderLogger {
   // Groups: 1=license-id
   private static Pattern sLicenceText = Pattern.compile("^\\s*License id:\\s*([a-z0-9-]+).*\\s*");
