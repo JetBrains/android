@@ -86,10 +86,8 @@ public class SplitApkDeployTask implements LaunchTask {
     try {
       device.installPackages(apks, true, installOptions, 5, TimeUnit.MINUTES);
 
-      // TODO: we need to combine these tasks across deploy tasks
       InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-
-      DeployApkTask.cacheInstallationData(device, myFacet, pkgName);
+      DeployApkTask.cacheInstallationData(device, myFacet, pkgName, true, true, true);
       return true;
     }
     catch (InstallException e) {
