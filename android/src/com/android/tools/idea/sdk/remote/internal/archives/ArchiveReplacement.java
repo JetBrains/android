@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.sdk.remote.internal.archives;
 
-import com.android.sdklib.repository.IDescription;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 
