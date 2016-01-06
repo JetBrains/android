@@ -16,13 +16,10 @@
 
 package com.android.tools.idea.sdk.remote.internal.sources;
 
-import com.android.sdklib.repository.IDescription;
-
-
 /**
  * The category of a given {@link SdkSource} (which represents a download site).
  */
-public enum SdkSourceCategory implements IDescription {
+public enum SdkSourceCategory {
 
   /**
    * The default canonical and official Android repository.
@@ -68,22 +65,4 @@ public enum SdkSourceCategory implements IDescription {
     return mUiName;
   }
 
-  /**
-   * True if this category must always be displayed by the available package tree, even
-   * if empty.
-   * When false, the category must not be displayed when empty.
-   */
-  public boolean getAlwaysDisplay() {
-    return mAlwaysDisplay;
-  }
-
-  @Override
-  public String getLongDescription() {
-    return getUiName();
-  }
-
-  @Override
-  public String getShortDescription() {
-    return getUiName();
-  }
 }
