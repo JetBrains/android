@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
@@ -86,10 +85,12 @@ public class GradleInvokerOptions {
     // Inject instant run attributes
     // Note that these are specifically not injected for the unit test configurations above
     if (InstantRunSettings.isInstantRunEnabled(project)) {
-      cmdLineArgs.add(getInstantDevProperty(project));
+      boolean incrementalBuild = InstantRunUtils.isIncrementalBuild(env);
+
+      cmdLineArgs.add(getInstantDevProperty(project, incrementalBuild));
       cmdLineArgs.addAll(getDeviceSpecificArguments(getTargetDevices(env)));
 
-      if (InstantRunUtils.isIncrementalBuild(env)) {
+      if (incrementalBuild) {
         Module module = modules[0];
         LOG.info(String.format("Module %1$s can be updated incrementally.", module.getName()));
         AndroidGradleModel model = AndroidGradleModel.get(module);
@@ -107,12 +108,16 @@ public class GradleInvokerOptions {
   }
 
   @NotNull
-  private static String getInstantDevProperty(@NotNull Project project) {
+  private static String getInstantDevProperty(@NotNull Project project, boolean incrementalBuild) {
     StringBuilder sb = new StringBuilder(50);
     sb.append("-Pandroid.optional.compilation=INSTANT_DEV");
 
     FileChangeListener.Changes changes = InstantRunManager.get(project).getChangesAndReset();
-    if (!changes.nonSourceChanges) {
+    if (!incrementalBuild) {
+      // for non-incremental builds (i.e. assembleDebug), gradle wants us to pass an additional parameter RESTART_ONLY
+      sb.append(",RESTART_ONLY");
+    }
+    else if (!changes.nonSourceChanges) {
       if (changes.localResourceChanges) {
         sb.append(",LOCAL_RES_ONLY");
       }

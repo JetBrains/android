@@ -108,6 +108,13 @@ public class InstalledPatchCache implements Disposable {
       // read the value and hash them.
       try {
         String xml = Files.toString(manifest, UTF_8);
+        // Hack: turns out we *sometimes* see the injected bootstrap application,
+        // and sometimes we don't. We Don't want this to be part of the checksum.
+        // This should go away when we do our own merged manifest model (or when
+        // the Gradle plugin's bootstrap application injection no longer handles
+        // it this way.)
+        // TODO: Remove when 2.0-alpha4 or later is fixed to not do this anymore.
+        xml = xml.replace("        android:name=\"com.android.tools.fd.runtime.BootstrapApplication\"\n", "");
         hasher.putString(xml, UTF_8);
         final Document document = XmlUtils.parseDocumentSilently(xml, true);
         if (document != null && document.getDocumentElement() != null) {

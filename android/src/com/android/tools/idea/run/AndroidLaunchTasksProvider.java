@@ -16,11 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.fd.InstantRunBuildInfo;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.fd.InstantRunUtils;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -118,13 +114,26 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           return null;
         }
 
-        AndroidVersion deviceVersion = device.getVersion();
-        if (!deviceVersion.isGreaterOrEqualThan(23)) {
-          launchStatus.terminateLaunch("Currently, cold swap is only supported on API 23 and above.");
-          return null;
-        }
+        List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
+        for (InstantRunArtifact artifact : artifacts) {
+          InstantRunArtifactType type = artifact.type;
+          switch (type) {
 
-        return new SplitApkDeployTask(myFacet, buildInfo);
+            case MAIN:
+              // We don't know if there are splits here too; if so, we should be
+              // using SplitApkDeployTask, but if not, we'll just fall through below
+              // to use DeployApkTask
+              continue;
+            case SPLIT:
+              return new SplitApkDeployTask(myFacet, buildInfo);
+            case RESTART_DEX:
+            case DEX:
+              return new DexDeployTask(myFacet, buildInfo);
+            case RELOAD_DEX:
+            default:
+              assert false;
+          }
+        }
       }
     }
 

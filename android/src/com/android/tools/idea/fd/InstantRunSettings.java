@@ -32,12 +32,6 @@ public class InstantRunSettings {
     return buildConfiguration.SHOW_TOAST;
   }
 
-  /** Is cold swap enabled in the given project */
-  public static boolean isColdSwapEnabled(@NotNull Project project) {
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    return buildConfiguration.COLD_SWAP;
-  }
-
   /** Assuming instant run is enabled, does code patching require an activity restart in the given project? */
   public static boolean isRestartActivity(@NotNull Project project) {
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
