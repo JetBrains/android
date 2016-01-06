@@ -19,8 +19,6 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
 
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-
 public class CompileOptionTest extends GradleFileModelTestCase {
   public void testCompileOptionsBlock() throws Exception {
     String text = "android {\n" +
@@ -93,19 +91,13 @@ public class CompileOptionTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
 
     CompileOptionsModel compileOptions = buildModel.android().compileOptions();
     compileOptions.removeSourceCompatibility();
     compileOptions.removeTargetCompatibility();
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
     compileOptions = buildModel.android().compileOptions();
     assertNull(compileOptions.sourceCompatibility());
     assertNull(compileOptions.targetCompatibility());
@@ -122,18 +114,12 @@ public class CompileOptionTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     CompileOptionsModel compileOptions = buildModel.android().compileOptions();
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
     compileOptions.setSourceCompatibility(LanguageLevel.JDK_1_7);
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
     compileOptions = buildModel.android().compileOptions();
     assertEquals(LanguageLevel.JDK_1_7, compileOptions.sourceCompatibility());
   }
@@ -145,7 +131,7 @@ public class CompileOptionTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     CompileOptionsModel compileOptions = buildModel.android().compileOptions();
     assertNull(compileOptions.sourceCompatibility());
     assertNull(compileOptions.targetCompatibility());
@@ -153,13 +139,7 @@ public class CompileOptionTest extends GradleFileModelTestCase {
     compileOptions.setSourceCompatibility(LanguageLevel.JDK_1_6);
     compileOptions.setTargetCompatibility(LanguageLevel.JDK_1_7);
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
     compileOptions = buildModel.android().compileOptions();
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
     assertEquals(LanguageLevel.JDK_1_7, compileOptions.targetCompatibility());
