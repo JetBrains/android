@@ -22,8 +22,6 @@ import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.UpdatablePackage;
-import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.Density;
@@ -37,7 +35,6 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.IdDisplay;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.run.EmulatorConnectionListener;
 import com.android.tools.idea.run.ExternalToolRunner;
@@ -67,7 +64,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,6 +80,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
+import static com.android.sdklib.repositoryv2.targets.SystemImage.DEFAULT_TAG;
+
 /**
  * A wrapper class for communicating with {@link AvdManager} and exposing helper functions
  * for dealing with {@link AvdInfo} objects inside Android studio.
@@ -95,16 +93,26 @@ public class AvdManagerConnection {
   private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null, FileOpUtils.create());
   private static final int MNC_API_LEVEL_23 = 23;
   private static final int LMP_MR1_API_LEVEL_22 = 22;
-  private static final int MNC_AOSP_MIN_REVISION = 6;
-  private static final int MNC_GAPI_MIN_REVISION = 10;
-  private static final int LMP_AOSP_MIN_REVISION = 2;
-  private static final int LMP_GAPI_MIN_REVISION = 2;
 
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
   public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
   public static final IdDisplay GOOGLE_APIS_TAG = new com.android.sdklib.repository.descriptors.IdDisplay("google_apis", "");
-  public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0");
+  public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
+  public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
+
+  private static final SystemImageUpdateDependency[] SYSTEM_IMAGE_DEPENCENCY_WITH_FIRST_QEMU2 = {
+    new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, DEFAULT_TAG, 2),
+    new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, GOOGLE_APIS_TAG, 2),
+    new SystemImageUpdateDependency(MNC_API_LEVEL_23, DEFAULT_TAG, 6),
+    new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 10),
+  };
+  private static final SystemImageUpdateDependency[] SYSTEM_IMAGE_DEPENCENCY_WITH_25_0_2_RC3 = {
+    new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, DEFAULT_TAG, 4),
+    new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, GOOGLE_APIS_TAG, 4),
+    new SystemImageUpdateDependency(MNC_API_LEVEL_23, DEFAULT_TAG, 8),
+    new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 12),
+  };
 
   private AvdManager myAvdManager;
   private Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
@@ -165,13 +173,28 @@ public class AvdManagerConnection {
     return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR));
   }
 
-  private boolean hasQEMU2Installed() {
+  /**
+   * Return the SystemImageUpdateDependencies for the current emulator
+   * or null if no emulator is installed or if the emulator is not an qemu2 emulator.
+   */
+  @Nullable
+  private SystemImageUpdateDependency[] getSystemImageUpdateDependencies() {
     assert mySdkHandler != null;
     LocalPackage info = mySdkHandler.getSdkManager(REPO_LOG).getPackages().getLocalPackages().get(SdkConstants.FD_TOOLS);
     if (info == null) {
-      return false;
+      return null;
     }
-    return info.getVersion().compareTo(TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0;
+    if (info.getVersion().compareTo(TOOLS_REVISION_25_0_2_RC3) >= 0) {
+      return SYSTEM_IMAGE_DEPENCENCY_WITH_25_0_2_RC3;
+    }
+    if (info.getVersion().compareTo(TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0) {
+      return SYSTEM_IMAGE_DEPENCENCY_WITH_FIRST_QEMU2;
+    }
+    return null;
+  }
+
+  private boolean hasQEMU2Installed() {
+    return getSystemImageUpdateDependencies() != null;
   }
 
   private boolean hasPlatformToolsForQEMU2Installed() {
@@ -199,48 +222,18 @@ public class AvdManagerConnection {
   @NotNull
   public List<String> getSystemImageUpdates() {
     List<String> requested = Lists.newArrayList();
+    SystemImageUpdateDependency[] dependencies = getSystemImageUpdateDependencies();
+    if (dependencies == null) {
+      return requested;
+    }
 
     assert mySdkHandler != null;
-    for (UpdatablePackage p : mySdkHandler.getSdkManager(REPO_LOG).getPackages().getConsolidatedPkgs().values()) {
-      LocalPackage local = p.getLocal();
-      if (local == null) {
-        continue;
-      }
-      TypeDetails details = local.getTypeDetails();
-      if (!(details instanceof DetailsTypes.SysImgDetailsType)) {
-        continue;
-      }
-      DetailsTypes.SysImgDetailsType sysImgDetails = (DetailsTypes.SysImgDetailsType)details;
-
-      Abi abi = Abi.getEnum(sysImgDetails.getAbi());
-      boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
-
-      if (isAvdIntel &&
-          sysImgDetails.getApiLevel() == LMP_MR1_API_LEVEL_22 &&
-          local.getVersion().getMajor() < LMP_AOSP_MIN_REVISION &&
-          SystemImage.DEFAULT_TAG.equals(sysImgDetails.getTag())) {
-        requested.add(local.getPath());
-      }
-
-      if (isAvdIntel &&
-          sysImgDetails.getApiLevel() == MNC_API_LEVEL_23 &&
-          local.getVersion().getMajor() < MNC_AOSP_MIN_REVISION &&
-          SystemImage.DEFAULT_TAG.equals(sysImgDetails.getTag())) {
-        requested.add(local.getPath());
-      }
-      if (isAvdIntel &&
-          sysImgDetails.getApiLevel() == LMP_MR1_API_LEVEL_22 &&
-          GOOGLE_APIS_TAG.equals(sysImgDetails.getTag()) &&
-          local.getVersion().getMajor() < LMP_GAPI_MIN_REVISION &&
-          sysImgDetails.getVendor() != null) {
-        requested.add(local.getPath());
-      }
-      if (isAvdIntel &&
-          sysImgDetails.getApiLevel() == MNC_API_LEVEL_23 &&
-          GOOGLE_APIS_TAG.equals(sysImgDetails.getTag()) &&
-          local.getVersion().getMajor() < MNC_GAPI_MIN_REVISION &&
-          sysImgDetails.getVendor() != null) {
-        requested.add(local.getPath());
+    for (SystemImage systemImage : mySdkHandler.getSystemImageManager(REPO_LOG).getImages()) {
+      for (SystemImageUpdateDependency dependency : dependencies) {
+        if (dependency.updateRequired(systemImage)) {
+          requested.add(systemImage.getPackage().getPath());
+          break;
+        }
       }
     }
     return requested;
@@ -707,31 +700,24 @@ public class AvdManagerConnection {
   }
 
   public static boolean doesSystemImageSupportRanchu(SystemImageDescription description) {
-    return doesSystemImageSupportRanchu(description.getVersion(), description.getTag(), description.getRevision());
-  }
+    AndroidVersion version = description.getVersion();
+    IdDisplay tag = description.getTag();
+    String abiType = description.getAbiType();
+    Revision revision = description.getRevision();
 
-  @Contract("null, _ -> false")
-  private static boolean doesSystemImageSupportRanchu(@Nullable AndroidVersion version,
-                                                      @NotNull IdDisplay tag,
-                                                      @Nullable Revision revision) {
     if (version == null || revision == null) {
       return false;
     }
     int apiLevel = version.getApiLevel();
-    if (apiLevel < LMP_MR1_API_LEVEL_22) {
+    if (apiLevel < 22) {
       return false;
     }
-    else if (apiLevel == LMP_MR1_API_LEVEL_22) {
-      int minRevision = GOOGLE_APIS_TAG.equals(tag) ? LMP_GAPI_MIN_REVISION : LMP_AOSP_MIN_REVISION;
-      return revision.getMajor() >= minRevision;
+    for (SystemImageUpdateDependency dependency : SYSTEM_IMAGE_DEPENCENCY_WITH_FIRST_QEMU2) {
+      if (dependency.updateRequired(abiType, apiLevel, tag, revision)) {
+        return false;
+      }
     }
-    else if (apiLevel == MNC_API_LEVEL_23) {
-      int minRevision = GOOGLE_APIS_TAG.equals(tag) ? MNC_GAPI_MIN_REVISION : MNC_AOSP_MIN_REVISION;
-      return revision.getMajor() >= minRevision;
-    }
-    else {
-      return true;
-    }
+    return true;
   }
 
   public boolean avdExists(String candidate) {
@@ -845,5 +831,31 @@ public class AvdManagerConnection {
     }
     // Maximum memory allocatable to emulator - 32G. Only used if non-Oracle JRE.
     return 32L * Storage.Unit.GiB.getNumberOfBytes();
+  }
+
+  private static class SystemImageUpdateDependency {
+    private final int myApiLevel;
+    private final IdDisplay myTag;
+    private final int myRequiredMajorRevision;
+
+    public SystemImageUpdateDependency(int apiLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
+      myApiLevel = apiLevel;
+      myTag = tag;
+      myRequiredMajorRevision = requiredMajorRevision;
+    }
+
+    public boolean updateRequired(@NotNull SystemImage image) {
+      return updateRequired(image.getAbiType(), image.getAndroidVersion().getApiLevel(), image.getTag(), image.getRevision());
+    }
+
+    public boolean updateRequired(@NotNull String abiType, int apiLevel, @NotNull IdDisplay tag, @NotNull Revision revision) {
+      Abi abi = Abi.getEnum(abiType);
+      boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
+
+      return isAvdIntel &&
+             apiLevel == myApiLevel &&
+             myTag.equals(tag) &&
+             revision.getMajor() < myRequiredMajorRevision;
+    }
   }
 }
