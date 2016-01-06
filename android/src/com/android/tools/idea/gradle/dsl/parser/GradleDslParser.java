@@ -49,6 +49,18 @@ import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement.FLAT_DIR_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement.CREDENTIALS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.psi.util.PsiTreeUtil.*;
 
@@ -446,22 +458,22 @@ public final class GradleDslParser {
       if (element == null) {
         GradlePropertiesDslElement newElement;
         if (resultElement instanceof GradleDslFile || resultElement instanceof SubProjectsDslElement) {
-          if (ExtDslElement.NAME.equals(nestedElementName)) {
+          if (EXT_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new ExtDslElement(resultElement);
           }
-          else if (AndroidDslElement.NAME.equals(nestedElementName)) {
+          else if (ANDROID_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new AndroidDslElement(resultElement);
           }
-          else if (DependenciesDslElement.NAME.equals(nestedElementName)) {
+          else if (DEPENDENCIES_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new DependenciesDslElement(resultElement);
           }
-          else if (SubProjectsDslElement.NAME.equals(nestedElementName)) {
+          else if (SUBPROJECTS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new SubProjectsDslElement(resultElement);
           }
-          else if (BuildScriptDslElement.NAME.equals(nestedElementName)) {
+          else if (BUILDSCRIPT_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new BuildScriptDslElement(resultElement);
           }
-          else if (RepositoriesDslElement.NAME.equals(nestedElementName)) {
+          else if (REPOSITORIES_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new RepositoriesDslElement(resultElement);
           }
           else {
@@ -476,10 +488,10 @@ public final class GradleDslParser {
           }
         }
         else if (resultElement instanceof BuildScriptDslElement) {
-          if (DependenciesDslElement.NAME.equals(nestedElementName)) {
+          if (DEPENDENCIES_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new DependenciesDslElement(resultElement);
           }
-          else if (RepositoriesDslElement.NAME.equals(nestedElementName)) {
+          else if (REPOSITORIES_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new RepositoriesDslElement(resultElement);
           }
           else {
@@ -487,10 +499,10 @@ public final class GradleDslParser {
           }
         }
         else if (resultElement instanceof RepositoriesDslElement) {
-          if (MavenRepositoryDslElement.MAVEN.equals(nestedElementName) || MavenRepositoryDslElement.JCENTER.equals(nestedElementName)) {
+          if (MAVEN_BLOCK_NAME.equals(nestedElementName) || JCENTER_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new MavenRepositoryDslElement(resultElement, nestedElementName);
           }
-          else if (FlatDirRepositoryDslElement.FLAT_DIR_BLOCK_NAME.equals(nestedElementName)) {
+          else if (FLAT_DIR_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new FlatDirRepositoryDslElement(resultElement);
           }
           else {
@@ -498,7 +510,7 @@ public final class GradleDslParser {
           }
         }
         else if (resultElement instanceof MavenRepositoryDslElement) {
-          if (MavenCredentialsDslElement.NAME.equals(nestedElementName)) {
+          if (CREDENTIALS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new MavenCredentialsDslElement(resultElement);
           }
           else {
@@ -509,10 +521,10 @@ public final class GradleDslParser {
           if ("defaultConfig".equals(nestedElementName)) {
             newElement = new ProductFlavorDslElement(resultElement, nestedElementName);
           }
-          else if (ProductFlavorsDslElement.NAME.equals(nestedElementName)) {
+          else if (PRODUCT_FLAVORS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new ProductFlavorsDslElement(resultElement);
           }
-          else if (BaseCompileOptionsDslElement.NAME.equals(nestedElementName)) {
+          else if (COMPILE_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new CompileOptionsDslElement(resultElement);
           }
           else {

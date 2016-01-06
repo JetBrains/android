@@ -29,8 +29,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import java.util.Collection;
 import java.util.Collections;
 
-import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_FIELD;
-import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_FIELD;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_ATTRIBUTE_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_ATTRIBUTE_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.java.LanguageLevelUtil.convertToGradleString;
 import static com.android.tools.idea.gradle.dsl.parser.java.LanguageLevelUtil.parseFromGradleString;
 
@@ -176,11 +176,11 @@ public class JavaVersionDslElement extends GradleDslElement {
     // Also, tries to copy the value from targetCompatibility or sourceCompatibility if possible to keep consistency.
     JavaVersionDslElement anchor = null;
 
-    if (SOURCE_COMPATIBILITY_FIELD.equals(myName)) {
-      anchor = parent.getProperty(TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+    if (SOURCE_COMPATIBILITY_ATTRIBUTE_NAME.equals(myName)) {
+      anchor = parent.getProperty(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     }
-    else if (TARGET_COMPATIBILITY_FIELD.equals(myName)) {
-      anchor = parent.getProperty(SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+    else if (TARGET_COMPATIBILITY_ATTRIBUTE_NAME.equals(myName)) {
+      anchor = parent.getProperty(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     }
 
     PsiElement anchorPsiElement = null;

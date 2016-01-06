@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.dsl.parser.repositories;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
 public class MavenCredentialsDslElement extends GradlePropertiesDslElement {
-  public static final String NAME = "credentials";
+  @NonNls public static final String CREDENTIALS_BLOCK_NAME = "credentials";
 
   public MavenCredentialsDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, NAME);
+    super(parent, null, CREDENTIALS_BLOCK_NAME);
   }
 
   @Override

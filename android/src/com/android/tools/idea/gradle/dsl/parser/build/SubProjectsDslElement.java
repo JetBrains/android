@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.dsl.parser.build;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
 public class SubProjectsDslElement extends GradlePropertiesDslElement {
-  public static final String NAME = "subprojects";
+  @NonNls public static final String SUBPROJECTS_BLOCK_NAME = "subprojects";
 
   public SubProjectsDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, NAME);
+    super(parent, null, SUBPROJECTS_BLOCK_NAME);
   }
 
   @Override
