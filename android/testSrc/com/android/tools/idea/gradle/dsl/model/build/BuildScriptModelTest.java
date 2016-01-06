@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
 import java.io.IOException;
 import java.util.List;
 
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
@@ -56,7 +55,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     String text = "";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     BuildScriptModel buildScriptModel = buildModel.buildscript();
     DependenciesModel dependenciesModel = buildScriptModel.dependencies();
 
@@ -73,12 +72,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     expected.assertMatches(dependencies.get(0));
 
     assertTrue(buildModel.isModified());
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertFalse(buildModel.isModified());
 
     buildModel.reparse();
@@ -100,7 +94,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.buildscript().dependencies();
 
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
@@ -116,12 +110,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     expected.assertMatches(actual);
 
     assertTrue(buildModel.isModified());
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertFalse(buildModel.isModified());
 
     buildModel.reparse();

@@ -20,8 +20,6 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,8 +32,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
@@ -137,14 +133,18 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return buildModel;
   }
 
-  protected void applyChangesAndReparse(@NotNull final GradleBuildModel buildModel) {
+  protected void applyChanges(@NotNull final GradleBuildModel buildModel) {
     runWriteCommandAction(myProject, new Runnable() {
       @Override
       public void run() {
         buildModel.applyChanges();
-        buildModel.reparse();
       }
     });
     assertFalse(buildModel.isModified());
+  }
+
+  protected void applyChangesAndReparse(@NotNull final GradleBuildModel buildModel) {
+    applyChanges(buildModel);
+    buildModel.reparse();
   }
 }
