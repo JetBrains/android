@@ -20,8 +20,13 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Adapter property that wraps a String type which represents a Integer value.
+ *
+ * If a string is passed in that isn't properly formatted, this adapter returns the last known
+ * good value.
  */
 public final class StringToIntAdapterProperty extends AdapterProperty<String, Integer> {
+
+  private int lastGoodValue;
 
   public StringToIntAdapterProperty(@NotNull ObservableProperty<String> wrappedProperty) {
     super(wrappedProperty);
@@ -31,10 +36,11 @@ public final class StringToIntAdapterProperty extends AdapterProperty<String, In
   @Override
   protected Integer convertFromSourceType(@NotNull String value) {
     try {
-      return Integer.parseInt(value);
+      lastGoodValue = Integer.parseInt(value);
+      return lastGoodValue;
     }
     catch (NumberFormatException e) {
-      return 0;
+      return lastGoodValue;
     }
   }
 
