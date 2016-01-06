@@ -20,8 +20,11 @@ import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -66,6 +69,18 @@ public class GfxTracer {
     public int myObserveDrawFrequency = 0;
     // If true then GAPII will pretend the driver does not support precompiled shaders.
     public boolean myDisablePrecompiledShaders = false;
+
+    /**
+     * Returns the default trace {@link Options} given the {@link RunConfiguration} settings.
+     */
+    public static Options fromRunConfiguration(@Nullable RunConfiguration config) {
+      Options options = new Options();
+      if (config != null && config instanceof AndroidRunConfigurationBase) {
+        ProfilerState state = ((AndroidRunConfigurationBase)config).getProfilerState();
+        options.myDisablePrecompiledShaders = state.GAPID_DISABLE_PCS;
+      }
+      return options;
+    }
   }
 
   /**
