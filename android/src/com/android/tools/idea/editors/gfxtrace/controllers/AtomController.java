@@ -572,7 +572,7 @@ public class AtomController extends TreeController {
 
   private void selectDeepestVisibleNode(DefaultMutableTreeNode node, TreePath path, long atomIndex) {
     if (node.isLeaf() || !myTree.isExpanded(path)) {
-      myTree.setSelectionPath(path);
+      myTree.setSelectionPath(path, false);
       myTree.scrollPathToVisible(path);
       return;
     }
