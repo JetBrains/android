@@ -16,14 +16,15 @@
 package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DependenciesDslElement extends GradlePropertiesDslElement {
-  public static String NAME = "dependencies";
+  @NonNls public static final String DEPENDENCIES_BLOCK_NAME = "dependencies";
 
   public DependenciesDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, NAME);
+    super(parent, null, DEPENDENCIES_BLOCK_NAME);
   }
 
   @Override

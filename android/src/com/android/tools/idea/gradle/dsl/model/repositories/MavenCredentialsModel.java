@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MavenCredentialsModel {
-  private static final String USERNAME = "username";
-  private static final String PASSWORD = "password";
+  @NonNls private static final String USERNAME = "username";
+  @NonNls private static final String PASSWORD = "password";
 
   @NotNull private final MavenCredentialsDslElement myDslElement;
 

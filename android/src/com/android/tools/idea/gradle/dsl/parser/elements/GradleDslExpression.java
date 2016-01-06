@@ -26,6 +26,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
 
 import java.io.File;
 
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.getStandardProjectKey;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -129,7 +130,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
         }
         if (element instanceof GradleDslFile) {
           dslFile = (GradleDslFile)element;
-          ExtDslElement extDslElement = dslFile.getProperty(ExtDslElement.NAME, ExtDslElement.class);
+          ExtDslElement extDslElement = dslFile.getProperty(EXT_BLOCK_NAME, ExtDslElement.class);
           if (extDslElement != null) {
             T extPropertyValue = extDslElement.getProperty(referenceText, clazz);
             if (extPropertyValue != null) {
@@ -147,7 +148,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
     }
 
     while (parentDslFile != null) { // Now look in the parent projects ext blocks.
-      ExtDslElement extDslElement = parentDslFile.getProperty(ExtDslElement.NAME, ExtDslElement.class);
+      ExtDslElement extDslElement = parentDslFile.getProperty(EXT_BLOCK_NAME, ExtDslElement.class);
       if (extDslElement != null) {
         T extPropertyValue = extDslElement.getProperty(referenceText, clazz);
         if (extPropertyValue != null) {
