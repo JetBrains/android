@@ -19,7 +19,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.base.Predicate;
@@ -102,6 +101,16 @@ public class DeviceManagerConnection {
     return Lists.newArrayList(ourDeviceManager.getDevices(DeviceManager.ALL_DEVICES));
   }
 
+  /**
+   * @return the device identified by device name and manufacturer or null if not found.
+   */
+  @Nullable
+  public Device getDevice(@NotNull String id, @NotNull String manufacturer) {
+    if (!initIfNecessary()) {
+      return null;
+    }
+    return ourDeviceManager.getDevice(id, manufacturer);
+  }
 
   /**
    * Calculate an ID for a device (optionally from a given ID) which does not clash

@@ -24,7 +24,6 @@ import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
-import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
@@ -43,7 +42,6 @@ import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -78,7 +76,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 
 import static com.android.sdklib.repositoryv2.targets.SystemImage.DEFAULT_TAG;
 
@@ -115,7 +112,6 @@ public class AvdManagerConnection {
   };
 
   private AvdManager myAvdManager;
-  private Map<File, SkinLayoutDefinition> ourSkinLayoutDefinitions = Maps.newHashMap();
   private static Map<File, AvdManagerConnection> ourCache = new WeakHashMap<File, AvdManagerConnection>();
   private static long ourMemorySize = -1;
   private final FileOp myFileOp;
@@ -272,95 +268,6 @@ public class AvdManagerConnection {
       return getAvds(true);
     } else {
       return avdInfos;
-    }
-  }
-
-  /**
-   * @return a Dimension object representing the screen size of the given AVD in pixels or null if
-   * the AVD does not define a resolution.
-   */
-  @Nullable
-  public Dimension getAvdResolution(@NotNull AvdInfo info) {
-    if (!initIfNecessary()) {
-      return null;
-    }
-    Map<String, String> properties = info.getProperties();
-    String skin = properties.get(AvdManager.AVD_INI_SKIN_NAME);
-    if (skin != null) {
-      Matcher m = AvdManager.NUMERIC_SKIN_SIZE.matcher(skin);
-      if (m.matches()) {
-        int size1 = Integer.parseInt(m.group(1));
-        int size2 = Integer.parseInt(m.group(2));
-        return new Dimension(size1, size2);
-      }
-    }
-    skin = properties.get(AvdManager.AVD_INI_SKIN_PATH);
-    if (skin != null) {
-      File skinPath = new File(skin);
-      File skinDir;
-      if (skinPath.isAbsolute()) {
-        skinDir = skinPath;
-      } else {
-        if (mySdkHandler == null) {
-          return null;
-        }
-        skinDir = new File(mySdkHandler.getLocation(), skin);
-      }
-      if (myFileOp.isDirectory(skinDir)) {
-        File layoutFile = new File(skinDir, "layout");
-        if (myFileOp.isFile(layoutFile)) {
-          return getResolutionFromLayoutFile(layoutFile);
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Read the resolution from a layout definition file. See {@link SkinLayoutDefinition} for details on the format
-   * of that file.
-   */
-  @Nullable
-  protected Dimension getResolutionFromLayoutFile(@NotNull File layoutFile) {
-    if (!ourSkinLayoutDefinitions.containsKey(layoutFile)) {
-      ourSkinLayoutDefinitions.put(layoutFile, SkinLayoutDefinition.parseFile(layoutFile, myFileOp));
-    }
-    SkinLayoutDefinition layoutDefinition = ourSkinLayoutDefinitions.get(layoutFile);
-    if (layoutDefinition != null) {
-      String heightString = layoutDefinition.get("parts.device.display.height");
-      String widthString = layoutDefinition.get("parts.device.display.width");
-      if (widthString == null || heightString == null) {
-        return null;
-      }
-      int height = Integer.parseInt(heightString);
-      int width = Integer.parseInt(widthString);
-      return new Dimension(width, height);
-    }
-    return null;
-  }
-
-  /**
-   * @return A string representing the AVD's screen density. One of ["ldpi", "mdpi", "hdpi", "xhdpi", "xxhdpi"]
-   */
-  @Nullable
-  public static Density getAvdDensity(@NotNull AvdInfo info) {
-    Map<String, String> properties = info.getProperties();
-    String densityString = properties.get(AVD_INI_HW_LCD_DENSITY);
-    if (densityString != null) {
-      int density = Integer.parseInt(densityString);
-      Density[] knownDensities = Density.values();
-      // Densities are declared high to low
-      int i = 0;
-      while (density < knownDensities[i].getDpiValue()) {
-        i++;
-      }
-      if (i < knownDensities.length) {
-        return knownDensities[i];
-      } else {
-        return null;
-      }
-    } else {
-      return null;
     }
   }
 
