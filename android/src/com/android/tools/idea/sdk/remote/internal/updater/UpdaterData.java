@@ -21,7 +21,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.repository.ISdkChangeListener;
 import com.android.repository.api.License;
 import com.android.sdklib.util.LineUtil;
 import com.android.tools.idea.sdk.SdkState;
@@ -68,7 +67,6 @@ public class UpdaterData {
    * Instead use {@link #getSources()} so that unit tests can override this as needed.
    */
   private final SdkSources mSources = new SdkSources();
-  private final ArrayList<ISdkChangeListener> mListeners = new ArrayList<ISdkChangeListener>();
   private final ILogger mSdkLog;
   private ITaskFactory mTaskFactory;
 
@@ -109,17 +107,6 @@ public class UpdaterData {
     mTaskFactory = taskFactory;
   }
 
-  public SdkManager getSdkManager() {
-    return mSdkManager;
-  }
-
-  /**
-   * Removes a listener ({@link ISdkChangeListener}) that is notified when the SDK is reloaded.
-   */
-  public void removeListener(ISdkChangeListener listener) {
-    mListeners.remove(listener);
-  }
-
   // -----
 
   /**
@@ -139,8 +126,6 @@ public class UpdaterData {
   @VisibleForTesting(visibility = Visibility.PRIVATE)
   protected void initSdk() {
     setSdkManager(SdkManager.createManager(mOsSdkRoot, mSdkLog));
-    // notify listeners.
-    broadcastOnSdkReload();
   }
 
   @VisibleForTesting(visibility = Visibility.PRIVATE)
@@ -158,9 +143,6 @@ public class UpdaterData {
   public void reloadSdk() {
     // reload SDK
     mSdkManager.reloadSdk(mSdkLog);
-
-    // notify listeners
-    broadcastOnSdkReload();
   }
 
   /**
@@ -221,7 +203,6 @@ public class UpdaterData {
         boolean installedAddon = false;
         boolean installedTools = false;
         boolean installedPlatformTools = false;
-        boolean preInstallHookInvoked = false;
 
         int numInstalled = 0;
         nextArchive:
@@ -250,11 +231,6 @@ public class UpdaterData {
                   continue nextArchive;
                 }
               }
-            }
-
-            if (!preInstallHookInvoked) {
-              preInstallHookInvoked = true;
-              broadcastPreInstallHook();
             }
 
             ArchiveInstaller installer = createArchiveInstaler();
@@ -307,10 +283,6 @@ public class UpdaterData {
             // they abort early
             monitor.incProgress(nextProgress - monitor.getProgress());
           }
-        }
-
-        if (preInstallHookInvoked) {
-          broadcastPostInstallHook();
         }
 
         if (installedAddon || installedPlatformTools) {
@@ -757,72 +729,6 @@ public class UpdaterData {
   private String getLicenseId(License lic) {
     return String.format("%1$s-%2$08x",       //$NON-NLS-1$
                          lic.getId(), lic.getValue().hashCode());
-  }
-
-  /**
-   * Safely invoke all the registered {@link ISdkChangeListener#onSdkReload()}.
-   * This can be called from any thread.
-   */
-  private void broadcastOnSdkReload() {
-    if (mListeners.size() > 0) {
-      runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          for (ISdkChangeListener listener : mListeners) {
-            try {
-              listener.onSdkReload();
-            }
-            catch (Throwable t) {
-              mSdkLog.error(t, null);
-            }
-          }
-        }
-      });
-    }
-  }
-
-  /**
-   * Safely invoke all the registered {@link ISdkChangeListener#preInstallHook()}.
-   * This can be called from any thread.
-   */
-  private void broadcastPreInstallHook() {
-    if (mListeners.size() > 0) {
-      runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          for (ISdkChangeListener listener : mListeners) {
-            try {
-              listener.preInstallHook();
-            }
-            catch (Throwable t) {
-              mSdkLog.error(t, null);
-            }
-          }
-        }
-      });
-    }
-  }
-
-  /**
-   * Safely invoke all the registered {@link ISdkChangeListener#postInstallHook()}.
-   * This can be called from any thread.
-   */
-  private void broadcastPostInstallHook() {
-    if (mListeners.size() > 0) {
-      runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          for (ISdkChangeListener listener : mListeners) {
-            try {
-              listener.postInstallHook();
-            }
-            catch (Throwable t) {
-              mSdkLog.error(t, null);
-            }
-          }
-        }
-      });
-    }
   }
 
   /**
