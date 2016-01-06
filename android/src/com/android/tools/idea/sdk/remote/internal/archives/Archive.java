@@ -32,7 +32,6 @@ import java.util.Properties;
  * which represent the downloadable bits.
  * <p/>
  * Packages are offered by a {@link SdkSource} (a download site).
- * The {@link ArchiveInstaller} takes care of downloading, unpacking and installing an archive.
  */
 public class Archive implements Comparable<Archive> {
 

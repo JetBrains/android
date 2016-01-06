@@ -243,7 +243,7 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
   }
 
   @Nullable
-  public SdkManager.LayoutlibVersion getLayoutLibVersion() {
+  public LayoutlibVersion getLayoutLibVersion() {
     return mLayoutlibVersion.getLayoutlibVersion();
   }
 }

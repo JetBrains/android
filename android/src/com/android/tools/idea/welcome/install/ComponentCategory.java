@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
