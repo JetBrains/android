@@ -30,7 +30,6 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
-import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -118,8 +117,7 @@ public class StateListPicker extends JPanel {
 
     stateComponent.setAlphaVisible(!StringUtil.isEmpty(alphaValue));
 
-    String stateDescription = Joiner.on(", ").join(state.getAttributesNames(true));
-    stateComponent.setNameText(stateDescription);
+    stateComponent.setNameText(state.getDescription());
     stateComponent.setComponentPopupMenu(createAlphaPopupMenu(state, stateComponent));
 
     return stateComponent;
