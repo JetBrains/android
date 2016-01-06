@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class ModelWizardTest {
 
@@ -80,6 +81,8 @@ public class ModelWizardTest {
     assertThat(occupationModel.getTitle()).isEqualTo("Code Monkey");
 
     assertThat(wizard.isFinished()).isTrue();
+
+    Disposer.dispose(wizard);
   }
 
   @Test
@@ -104,6 +107,8 @@ public class ModelWizardTest {
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(AgeStep.class);
     wizard.goBack();
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(NameStep.class);
+
+    Disposer.dispose(wizard);
   }
 
   @Test
@@ -119,6 +124,8 @@ public class ModelWizardTest {
     wizard.cancel();
     assertThat(wizard.isFinished()).isTrue();
     assertThat(model.myIsFinished).isFalse(); // Models are not finished when cancelled
+
+    Disposer.dispose(wizard);
   }
 
   @Test
@@ -144,42 +151,73 @@ public class ModelWizardTest {
     wizard.goForward(); // ExtraStep3
 
     assertThat(finishList).containsExactly(step1.getModel(), step2.getModel(), step3.getModel(), step4.getModel());
+
+    Disposer.dispose(wizard);
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void cantCreateWizardWithoutSteps() throws Exception {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    ModelWizard wizard = wizardBuilder.build();
+    try {
+      wizardBuilder.build();
+      fail();
+    }
+    catch (IllegalStateException expected) {
+    }
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void wizardCantGoForwardAfterFinishing() throws Exception {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
     wizard.goForward();
 
     assertThat(wizard.isFinished()).isTrue();
-    wizard.goForward();
+    try {
+      wizard.goForward();
+      fail();
+    }
+    catch (IllegalStateException expected) {
+    }
+    finally {
+      Disposer.dispose(wizard);
+    }
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void wizardCantGoBackAfterFinishing() throws Exception {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
     wizard.goForward();
 
     assertThat(wizard.isFinished()).isTrue();
-    wizard.goBack();
+    try {
+      wizard.goBack();
+      fail();
+    }
+    catch (IllegalStateException expected) {
+    }
+    finally {
+      Disposer.dispose(wizard);
+    }
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void wizardCantCancelAfterFinishing() throws Exception {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
     wizard.goForward();
 
     assertThat(wizard.isFinished()).isTrue();
-    wizard.cancel();
+    try {
+      wizard.cancel();
+      fail();
+    }
+    catch (IllegalStateException expected) {
+    }
+    finally {
+      Disposer.dispose(wizard);
+    }
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void wizardCantGoBackIfNoPreviousSteps() throws Exception {
     DummyModel model = new DummyModel();
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(model), new DummyStep(model)).build();
@@ -187,7 +225,15 @@ public class ModelWizardTest {
     wizard.goForward();
     wizard.goBack();
 
-    wizard.goBack();
+    try {
+      wizard.goBack();
+      fail();
+    }
+    catch (IllegalStateException expected) {
+    }
+    finally {
+      Disposer.dispose(wizard);
+    }
   }
 
   @Test
@@ -206,9 +252,11 @@ public class ModelWizardTest {
 
     assertThat(wizard.isFinished()).isTrue();
     assertThat(shouldSkipStep.isEntered()).isFalse();
+
+    Disposer.dispose(wizard);
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void wizardCantContinueIfStepPreventsIt() throws Exception {
     DummyModel dummyModel = new DummyModel();
 
@@ -217,10 +265,19 @@ public class ModelWizardTest {
     wizardBuilder.addStep(new DummyStep(dummyModel));
 
     ModelWizard wizard = wizardBuilder.build();
-    wizard.goForward();
+
+    try {
+      wizard.goForward();
+      fail();
+    }
+    catch (IllegalStateException expected) {
+    }
+    finally {
+      Disposer.dispose(wizard);
+    }
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void wizardCantGoBackIfStepPreventsIt() throws Exception {
     DummyModel dummyModel = new DummyModel();
 
@@ -230,7 +287,16 @@ public class ModelWizardTest {
 
     ModelWizard wizard = wizardBuilder.build();
     wizard.goForward();
-    wizard.goBack();
+
+    try {
+      wizard.goBack();
+      fail();
+    }
+    catch (IllegalStateException expected) {
+    }
+    finally {
+      Disposer.dispose(wizard);
+    }
   }
 
   @Test
@@ -246,6 +312,8 @@ public class ModelWizardTest {
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(ParentStep.class);
     wizard.goForward();
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(ChildStep.class);
+
+    Disposer.dispose(wizard);
   }
 
   @Test
@@ -262,10 +330,12 @@ public class ModelWizardTest {
 
     ModelWizard wizard = wizardBuilder.build();
     assertThat(wizard.onLastStep().get()).isTrue();
+
+    Disposer.dispose(wizard);
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void startingAWizardWithNoVisibleStepsThrowsException() throws Exception {
+  @Test
+  public void startingAWizardWithNoVisibleStepsFinishesAutomatically() throws Exception {
     DummyModel model = new DummyModel();
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     // Creates parent, which creates child
@@ -274,6 +344,10 @@ public class ModelWizardTest {
 
     wizardBuilder.addStep(grandparentStep);
     ModelWizard wizard = wizardBuilder.build();
+
+    assertThat(wizard.isFinished()).isTrue();
+
+    Disposer.dispose(wizard);
   }
 
   @Test
@@ -292,6 +366,8 @@ public class ModelWizardTest {
     assertThat(wizard.isFinished()).isTrue();
 
     assertThat(finishList).isEmpty();
+
+    Disposer.dispose(wizard);
   }
 
   @Test
