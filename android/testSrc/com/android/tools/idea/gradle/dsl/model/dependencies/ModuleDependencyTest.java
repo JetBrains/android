@@ -25,6 +25,9 @@ import java.util.List;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.fest.assertions.Assertions.assertThat;
 
+/**
+ * Tests for {@link DependenciesModel} and {@link ModuleDependencyModel}.
+ */
 public class ModuleDependencyTest extends GradleFileModelTestCase {
   public void testParsingWithCompactNotation() throws IOException {
     String text = "dependencies {\n" +
@@ -64,11 +67,11 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertEquals("", actual.name());
   }
 
-  public void /*test*/ParsingWithMapNotation() throws IOException {
+  public void testParsingWithMapNotation() throws IOException {
     String text = "dependencies {\n" +
                   "    compile project(path: ':androidlib1', configuration: 'flavor1Release')\n" +
-                  "    runtime project(path: ':javalib2')\n" +
                   "    compile project(path: ':androidlib2', configuration: 'flavor2Release')\n" +
+                  "    runtime project(path: ':javalib2')\n" +
                   "}";
 
     writeToBuildFile(text);
@@ -86,15 +89,15 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     expected.reset();
 
-    expected.configurationName = "runtime";
-    expected.path = ":javalib2";
+    expected.configurationName = "compile";
+    expected.path = ":androidlib2";
+    expected.configuration = "flavor2Release";
     expected.assertMatches(dependencies.get(1));
 
     expected.reset();
 
-    expected.configurationName = "compile";
-    expected.path = ":androidlib2";
-    expected.configuration = "flavor2Release";
+    expected.configurationName = "runtime";
+    expected.path = ":javalib2";
     expected.assertMatches(dependencies.get(2));
   }
 
