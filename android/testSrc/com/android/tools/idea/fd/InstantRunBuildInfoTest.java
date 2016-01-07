@@ -49,7 +49,7 @@ public class InstantRunBuildInfoTest {
 
     List<InstantRunArtifact> artifacts = info.getArtifacts();
     assertEquals(11, artifacts.size());
-    assertTrue(InstantRunBuildInfo.hasMainApk(artifacts));
+    assertTrue(info.hasMainApk());
   }
 
   @NotNull

@@ -16,6 +16,8 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.fd.InstantRunBuildInfo;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -75,6 +77,15 @@ public class AndroidRunState implements RunProfileState {
     }
     catch (ApkProvisionException e) {
       throw new ExecutionException("Unable to obtain application id");
+    }
+
+    AndroidGradleModel model = AndroidGradleModel.get(myModule);
+    if (model != null) {
+      InstantRunBuildInfo info = InstantRunBuildInfo.get(model);
+      if (info != null && info.getFormat() > 1) {
+        throw new ExecutionException("This version of Android Studio is too old to be used with this version of " +
+                                     "the Android Gradle plugin; disabling Instant Run.");
+      }
     }
 
     LaunchTasksProvider launchTasksProvider = myLaunchTasksProviderFactory.get();
