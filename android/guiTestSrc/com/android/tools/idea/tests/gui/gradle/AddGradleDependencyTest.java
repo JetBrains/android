@@ -63,7 +63,6 @@ public class AddGradleDependencyTest extends GuiTestCase {
     buildModel.requireDependency(dependencyOnLibrary3);
 
     verifyUndo(editor, 1);
-    undoAddImport(editor);
   }
 
   @Test @IdeGuiTest
@@ -89,7 +88,6 @@ public class AddGradleDependencyTest extends GuiTestCase {
     buildModel.requireDependency(dependencyOnLibrary3);
 
     verifyUndo(editor, 1);
-    undoAddImport(editor);
   }
 
   @Test @IdeGuiTest
@@ -117,7 +115,6 @@ public class AddGradleDependencyTest extends GuiTestCase {
     appBuildModel.requireDependency(COMPILE, gson);
 
     verifyUndo(editor, 1);
-    undoAddImport(editor);
   }
 
   @Test @IdeGuiTest
@@ -142,7 +139,6 @@ public class AddGradleDependencyTest extends GuiTestCase {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     verifyUndo(editor, 1);
-    undoAddImport(editor);
   }
 
   @Test @IdeGuiTest
@@ -156,7 +152,6 @@ public class AddGradleDependencyTest extends GuiTestCase {
     moveCaretToClassName(editor, classToImport);
 
     assertIntentionNotIncluded(editor, "Add dependency on module");
-    undoAddImport(editor);
   }
 
   @Test @IdeGuiTest
@@ -170,7 +165,6 @@ public class AddGradleDependencyTest extends GuiTestCase {
     moveCaretToClassName(editor, classToImport);
 
     assertIntentionNotIncluded(editor, "Add dependency on module");
-    undoAddImport(editor);
   }
 
   private void assertIntentionNotIncluded(@NotNull EditorFixture editor, @NotNull String intention) {
@@ -179,7 +173,6 @@ public class AddGradleDependencyTest extends GuiTestCase {
     JListFixture popup = new JListFixture(robot, waitForPopup(robot));
     String[] intentions = popup.contents();
     assertThat(intentions).excludes(intention);
-    robot.pressAndReleaseKey(27);  // [Esc] to dismiss the popup
   }
 
   @Test @IdeGuiTest
@@ -227,7 +220,6 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
     editor.invokeAction(UNDO); // Undo the import statement first
     verifyUndo(editor, 1);
-    undoAddImport(editor);
   }
 
   private static void addImport(@NotNull EditorFixture editor, @NotNull String classFqn) {
@@ -235,13 +227,6 @@ public class AddGradleDependencyTest extends GuiTestCase {
     // Move caret to second line (first line has 'package' declaration).
     editor.moveToLine(1);
     editor.enterText("\n" + importStatement);
-  }
-
-  /** Undoes a call to {@link #addImport}, to avoid file-cache conflicts in later tests. */
-  private static void undoAddImport(EditorFixture editor) {
-    editor.invokeAction(UNDO);
-    editor.invokeAction(UNDO);
-    editor.invokeAction(UNDO);
   }
 
   private static void moveCaretToClassName(@NotNull EditorFixture editor, @NotNull String classFqn) {
