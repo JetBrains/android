@@ -94,7 +94,8 @@ public class InstantRunBuildInfo {
         }
 
         String location = element.getAttribute(ATTR_ARTIFACT_LOCATION);
-        InstantRunArtifactType type = InstantRunArtifactType.valueOf(element.getAttribute(ATTR_ARTIFACT_TYPE));
+        String typeAttribute = element.getAttribute(ATTR_ARTIFACT_TYPE);
+        InstantRunArtifactType type = InstantRunArtifactType.valueOf(typeAttribute);
         artifacts.add(new InstantRunArtifact(type, new File(location)));
       }
     }

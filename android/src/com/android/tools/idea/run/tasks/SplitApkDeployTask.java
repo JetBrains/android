@@ -76,7 +76,9 @@ public class SplitApkDeployTask implements LaunchTask {
 
     List<File> apks = Lists.newArrayListWithExpectedSize(artifacts.size());
     for (InstantRunArtifact artifact : artifacts) {
-      apks.add(artifact.file);
+      if (artifact.type == InstantRunArtifactType.MAIN || artifact.type == InstantRunArtifactType.SPLIT) {
+        apks.add(artifact.file);
+      }
     }
 
     String cmd = getAdbInstallCommand(apks, installOptions);
