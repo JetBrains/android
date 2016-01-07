@@ -189,28 +189,29 @@ public final class InstantRunManager implements ProjectComponent {
    * @return the build id, if found
    */
   @Nullable
-  private static String getLocalBuildId(@NotNull Module module) {
+  private static String getLocalBuildTimestamp(@NotNull Module module) {
     AndroidGradleModel model = getAppModel(module);
     InstantRunBuildInfo buildInfo = model == null ? null : InstantRunBuildInfo.get(model);
-    return buildInfo == null ? null : buildInfo.getBuildId();
+    return buildInfo == null ? null : buildInfo.getTimeStamp();
   }
 
   /**
-   * Checks whether the local and remote build id's match
+   * Checks whether the local and remote build timestamps match.
    *
    * @param device the device to pull the id from
    * @param module a module context, normally the main app module (but if it's a library module
    *               the infrastructure will look for other app modules
-   * @return true if the build id's match. If not, there has been some intermediate build locally (or a clean)
+   * @return true if the build timestamps match. If not, there has been some intermediate build locally (or a clean)
    *              such that Gradle state doesn't match what's on the device
    */
-  public static boolean buildIdsMatch(@NotNull IDevice device, @NotNull Module module) {
-    String localBuildId = getLocalBuildId(module);
-    if (localBuildId == null) {
+  public static boolean buildTimestampsMatch(@NotNull IDevice device, @NotNull Module module) {
+    String localTimestamp = getLocalBuildTimestamp(module);
+    if (StringUtil.isEmpty(localTimestamp)) {
       return false;
     }
-    String deviceBuildId = getInstantRunClient(module).getDeviceBuildId(device);
-    return localBuildId.equals(deviceBuildId);
+
+    String deviceBuildTimestamp = getInstantRunClient(module).getDeviceBuildTimestamp(device);
+    return localTimestamp.equals(deviceBuildTimestamp);
   }
 
   /**
@@ -222,7 +223,9 @@ public final class InstantRunManager implements ProjectComponent {
    *               the infrastructure will look for other app modules
    */
   public static void transferLocalIdToDeviceId(@NotNull IDevice device, @NotNull Module module) {
-    String buildId = StringUtil.notNullize(getLocalBuildId(module));
+    String buildId = getLocalBuildTimestamp(module);
+    assert !StringUtil.isEmpty(buildId) : "Unable to detect build timestamp";
+
     getInstantRunClient(module).transferLocalIdToDeviceId(device, buildId);
   }
 
@@ -543,7 +546,9 @@ public final class InstantRunManager implements ProjectComponent {
 
     boolean needRestart;
     String pkgName = getPackageName(facet);
-    String buildId = StringUtil.notNullize(getLocalBuildId(facet.getModule()));
+    String buildId = getLocalBuildTimestamp(facet.getModule());
+    assert !StringUtil.isEmpty(buildId) : "Unable to detect build timestamp";
+
     if (appRunning) {
       List<ApplicationPatch> changes = getApplicationPatches(files);
       Project project = facet.getModule().getProject();
