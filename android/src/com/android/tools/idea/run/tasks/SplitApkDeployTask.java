@@ -102,7 +102,10 @@ public class SplitApkDeployTask implements LaunchTask {
   private static String getAdbInstallCommand(@NotNull List<File> apks, @NotNull List<String> installOptions) {
     StringBuilder sb = new StringBuilder();
     sb.append("$ adb install-multiple -r ");
-    sb.append(Joiner.on(' ').join(installOptions));
+    if (!installOptions.isEmpty()) {
+      sb.append(Joiner.on(' ').join(installOptions));
+      sb.append(' ');
+    }
 
     for (File f : apks) {
       sb.append(f.getPath());
