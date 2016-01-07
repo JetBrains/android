@@ -40,7 +40,7 @@ public class InstantRunBuildInfoTest {
   @Test
   public void testApiLevel() throws IOException {
     InstantRunBuildInfo info = getBuildInfo("instantrun", "build-info1.xml");
-    assertEquals("23", info.getApiLevel());
+    assertEquals(23, info.getApiLevel());
   }
 
   @Test
