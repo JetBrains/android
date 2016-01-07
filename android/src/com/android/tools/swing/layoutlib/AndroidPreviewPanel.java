@@ -97,7 +97,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
         myPendingInvalidates.set(false);
 
         // We can only inflate views when the project has been indexed
-        myDumbService.runReadActionInSmartMode(myInvalidateRunnable);
+        myDumbService.runWhenSmart(myInvalidateRunnable);
 
         myRunningInvalidates.set(false);
       } while (myPendingInvalidates.get());
