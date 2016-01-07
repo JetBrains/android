@@ -58,6 +58,18 @@ public class InstantRunBuildInfoTest {
     assertTrue(info.hasMainApk());
   }
 
+  @Test
+  public void testSplitApks2() throws IOException {
+    // Ensure that when we get a main APK (but not all the splits) as part of
+    // a build info, we pull in all the slices from the first build too
+    InstantRunBuildInfo info = getBuildInfo("instantrun", "build-info2.xml");
+
+    List<InstantRunArtifact> artifacts = info.getArtifacts();
+    assertEquals(12, artifacts.size());
+    assertTrue(info.hasMainApk());
+    assertTrue(info.hasOneOf(InstantRunArtifactType.SPLIT));
+  }
+
   @NotNull
   private static InstantRunBuildInfo getBuildInfo(@NotNull String... buildInfoPath) throws IOException {
     File buildInfoFile = getBuildInfoFile(buildInfoPath);
