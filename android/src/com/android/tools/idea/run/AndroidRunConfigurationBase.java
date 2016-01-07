@@ -66,6 +66,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 
+  /** Element name used to group the {@link ProfilerState} settings */
+  private static final String PROFILERS_ELEMENT_NAME = "Profilers";
+
   /** The key used to store the selected device target as copyable user data on each execution environment. */
   public static final Key<DeviceFutures> DEVICE_FUTURES_KEY = Key.create("android.device.futures");
 
@@ -79,6 +82,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public boolean SKIP_NOOP_APK_INSTALLATIONS = true; // skip installation if the APK hasn't hasn't changed
   public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
 
+  private final ProfilerState myProfilerState;
   private final List<DeployTargetProvider> myDeployTargetProviders; // all available deploy targets
   private final Map<String, DeployTargetState> myDeployTargetStates;
 
@@ -90,6 +94,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
 
+    myProfilerState = new ProfilerState();
     myDeployTargetProviders = DeployTargetProvider.getProviders();
     myAndroidTests = androidTests;
 
@@ -554,6 +559,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         entry.getValue().readExternal(optionElement);
       }
     }
+
+    Element profilersElement = element.getChild(PROFILERS_ELEMENT_NAME);
+    if (profilersElement != null) {
+      myProfilerState.readExternal(profilersElement);
+    }
   }
 
   @Override
@@ -571,6 +581,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       element.addContent(optionElement);
       entry.getValue().writeExternal(optionElement);
     }
+
+    Element profilersElement = new Element(PROFILERS_ELEMENT_NAME);
+    element.addContent(profilersElement);
+    myProfilerState.writeExternal(profilersElement);
   }
 
   public boolean isNativeLaunch() {
@@ -610,6 +624,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Nullable
   public <T extends AndroidDebuggerState> T getAndroidDebuggerState() {
     return getAndroidDebuggerState(DEBUGGER_TYPE);
+  }
+
+  /**
+   * Returns the current {@link ProfilerState} for this configuration.
+   */
+  public ProfilerState getProfilerState() {
+    return myProfilerState;
   }
 
   private static class MyDoNotPromptOption implements DialogWrapper.DoNotAskOption {

@@ -25,6 +25,9 @@ import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.intellij.concurrency.JobScheduler;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -32,6 +35,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,7 +63,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
 
         @Override
         public void onStartTrace(@NotNull String name) {
-          GfxTracer.Options options = new GfxTracer.Options();
+          GfxTracer.Options options = GfxTracer.Options.fromRunConfiguration(getSelectedRunConfiguration(myView));
           options.myTraceName = name;
           myTracer = GfxTracer.listen(myView.getProject(), device, options, bindListener(dialog));
         }
@@ -141,7 +145,6 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
           }.run();
         }
 
-
         private void rootingFailed() {
           // Failed to restart adb as root.
           // Display message and abort.
@@ -157,18 +160,18 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
         }
 
         private void rootingSucceeded() {
-          showLauncher(owner, device);
+          showLauncher(owner, device, getSelectedRunConfiguration(myView));
         }
       });
     }
 
-    private void showLauncher(final Component owner, final IDevice device) {
+    private void showLauncher(final Component owner, final IDevice device, final RunConfiguration runConfig) {
       DeviceInfo.Provider provider = new DeviceInfo.PkgInfoProvider(device);
       final ActivitySelector selector = new ActivitySelector(provider);
       selector.setListener(new ActivitySelector.Listener() {
         @Override
         public void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity act, String name) {
-          showTraceDialog(selector, device, pkg, act, name);
+          showTraceDialog(selector, device, pkg, act, runConfig, name);
         }
 
         @Override
@@ -186,6 +189,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
                                  final IDevice device,
                                  final DeviceInfo.Package pkg,
                                  final DeviceInfo.Activity act,
+                                 final RunConfiguration runConfig,
                                  String name) {
       final TraceDialog dialog = new TraceDialog();
       dialog.setListener(new TraceDialog.Listener() {
@@ -193,7 +197,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
 
         @Override
         public void onStartTrace(@NotNull String name) {
-          GfxTracer.Options options = new GfxTracer.Options();
+          GfxTracer.Options options = GfxTracer.Options.fromRunConfiguration(runConfig);
           options.myTraceName = name;
           myTracer = GfxTracer.launch(myView.getProject(), device, pkg, act, options, bindListener(dialog));
         }
@@ -249,7 +253,6 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
     }
   }
 
-
   @Override
   public final void update(AnActionEvent e) {
     super.update(e);
@@ -262,6 +265,24 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
       presentation.setEnabled(isEnabled());
       presentation.setText(myText);
     }
+  }
+
+  /**
+   * Returns the currently selected {@link RunConfiguration}, or null if there
+   * is no selected run configuration.
+   * <p>
+   * Note: The GPU tracer UI doesn't belong in the Android Monitor, instead it should be an trace
+   * toggle option in the run configuration settings. Once moved, this method should be deleted.
+   */
+  @Nullable
+  private static RunConfiguration getSelectedRunConfiguration(@NotNull GpuMonitorView view) {
+    Project project = view.getProject();
+    RunManager runMgr = RunManager.getInstance(project);
+    RunnerAndConfigurationSettings selected = runMgr.getSelectedConfiguration();
+    if (selected == null) {
+      return null;
+    }
+    return selected.getConfiguration();
   }
 
   private IDevice getDevice() {
