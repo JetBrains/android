@@ -516,7 +516,7 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   @NotNull
-  private static InstantRunClient getInstantRunClient(@NotNull Module module) {
+  public static InstantRunClient getInstantRunClient(@NotNull Module module) {
     AndroidFacet facet = findAppModule(module, module.getProject());
     assert facet != null : module;
     AndroidGradleModel model = AndroidGradleModel.get(facet);
@@ -574,6 +574,11 @@ public final class InstantRunManager implements ProjectComponent {
           // Should never be used with this method: APK splits should
           // be pushed by SplitApkDeployTask
           assert false : artifact;
+          break;
+        case RESOURCES:
+          updateResource = true;
+          updateMode = updateMode.combine(UpdateMode.WARM_SWAP);
+          files.add(FileTransfer.createResourceFile(file));
           break;
         case DEX:
           updateCode = true;
