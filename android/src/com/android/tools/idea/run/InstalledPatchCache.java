@@ -49,15 +49,6 @@ public class InstalledPatchCache implements Disposable {
     myCache = new DeviceStateCache<PatchState>(this);
   }
 
-  public long getInstalledArscTimestamp(@NotNull IDevice device, @NotNull String pkgName) {
-    PatchState state = getState(device, pkgName, false);
-    return state == null ? 0 : state.resourcesModified;
-  }
-
-  public void setInstalledArscTimestamp(@NotNull IDevice device, @NotNull String pkgName, long timestamp) {
-    getState(device, pkgName, true).resourcesModified = timestamp;
-  }
-
   public long getInstalledManifestTimestamp(@NotNull IDevice device, @NotNull String pkgName) {
     PatchState state = getState(device, pkgName, false);
     return state == null ? 0 : state.manifestModified;
@@ -172,7 +163,6 @@ public class InstalledPatchCache implements Disposable {
   }
 
   private static class PatchState {
-    public long resourcesModified;
     public long manifestModified;
     @Nullable public HashCode manifestResources;
   }

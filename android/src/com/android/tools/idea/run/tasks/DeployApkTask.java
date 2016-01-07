@@ -81,7 +81,7 @@ public class DeployApkTask implements LaunchTask {
         return false;
       }
 
-      cacheInstallationData(device, myFacet, pkgName, true, true, true);
+      cacheManifestInstallationData(device, myFacet, pkgName);
     }
 
     trackInstallation(device);
@@ -89,25 +89,15 @@ public class DeployApkTask implements LaunchTask {
     return true;
   }
 
-  public static void cacheInstallationData(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName,
-                                           boolean updatedManifest, boolean updatedCode, boolean updatedResources) {
+  public static void cacheManifestInstallationData(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
     InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
+    File manifest = InstantRunManager.findMergedManifestFile(facet);
+    long manifestTimeStamp = manifest == null ? 0L : manifest.lastModified();
 
-    if (updatedResources) {
-      File arsc = InstantRunManager.findResourceArsc(facet);
-      long arscTimestamp = arsc == null ? 0 : arsc.lastModified();
-      patchCache.setInstalledArscTimestamp(device, pkgName, arscTimestamp);
-    }
+    patchCache.setInstalledManifestTimestamp(device, pkgName, manifestTimeStamp);
 
-    if (updatedManifest) {
-      File manifest = InstantRunManager.findMergedManifestFile(facet);
-      long manifestTimeStamp = manifest == null ? 0L : manifest.lastModified();
-
-      patchCache.setInstalledManifestTimestamp(device, pkgName, manifestTimeStamp);
-
-      HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
-      patchCache.setInstalledManifestResourcesHash(device, pkgName, currentHash);
-    }
+    HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
+    patchCache.setInstalledManifestResourcesHash(device, pkgName, currentHash);
   }
 
   private static int ourInstallationCount = 0;
