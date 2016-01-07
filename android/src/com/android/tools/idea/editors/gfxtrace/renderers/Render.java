@@ -27,6 +27,8 @@ import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 public final class Render {
   @NotNull private static final Logger LOG = Logger.getInstance(Render.class);
   // object rendering functions
@@ -316,17 +318,30 @@ public final class Render {
     render(value, component, attributes);
   }
 
+  private static Constant pickShortestName(List<Constant> constants) {
+    int len = Integer.MAX_VALUE;
+    Constant shortest = null;
+    for (Constant constant : constants) {
+      int l = constant.getName().length();
+      if (l < len) {
+        len = l;
+        shortest = constant;
+      }
+    }
+    return shortest;
+  }
+
   public static void render(@NotNull Object value,
                             @NotNull Primitive type,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
     ConstantSet constants = ConstantSet.lookup(type);
-    if (constants != null) {
-      for (Constant constant : constants.getEntries()) {
-        if (value.equals(constant.getValue())) {
-          component.append(constant.getName(), attributes);
-          return;
-        }
+    if (constants != null && constants.getEntries().length != 0) {
+      List<Constant> byValue = constants.getByValue(value);
+      // Use an ambiguity threshold of 8. This side steps the most egregious misinterpretations
+      if (byValue != null && byValue.size() != 0 && byValue.size() < 8) {
+        component.append(pickShortestName(byValue).getName(), attributes);
+        return;
       }
     }
 
