@@ -686,24 +686,6 @@ public class ChooseResourceDialog extends DialogWrapper {
     myUseGlobalUndo = useGlobalUndo;
   }
 
-  // TODO can we just use ResourceUrl here instead?
-  @NotNull
-  private ResourceValue getResourceValue(@NotNull ResourceItem item) {
-    VirtualFile file = item.getFile();
-    ResourceGroup group = item.getGroup();
-    if (file != null) {
-      // No need to try and find the resource as we know exacty what its going to be like
-      return new ResourceValue(group.getType(), item.getName(), file.getPath(), group.isFramework());
-    }
-    else {
-      // drawable is a color so we NEED to find its value
-      Configuration config = ThemeEditorUtils.getConfigurationForModule(myModule);
-      ResourceResolver resolver = config.getResourceResolver();
-      assert resolver != null;
-      return resolver.findResValue(item.getResourceUrl(), group.isFramework());
-    }
-  }
-
   @NotNull
   private Icon getIcon(@NotNull ResourceItem item, int size) {
     Icon icon = item.getIcon();
@@ -723,7 +705,8 @@ public class ChooseResourceDialog extends DialogWrapper {
         myRenderTask.setMaxRenderSize(150, 150); // dont make huge images here
       }
 
-      BufferedImage image = myRenderTask.renderDrawable(getResourceValue(item));
+      // TODO can we just use ResourceUrl here instead?
+      BufferedImage image = myRenderTask.renderDrawable(item.getResourceValue());
       if (image != null) {
         icon = new SizedIcon(size, image);
       }
@@ -733,7 +716,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       Configuration config = ThemeEditorUtils.getConfigurationForModule(myModule);
       ResourceResolver resolver = config.getResourceResolver();
       assert resolver != null;
-      Color color = ResourceHelper.resolveColor(resolver, getResourceValue(item), myModule.getProject());
+      Color color = ResourceHelper.resolveColor(resolver, item.getResourceValue(), myModule.getProject());
       if (color != null) { // maybe null for invalid color
         icon = new ColorIcon(size, color);
       }
@@ -1103,6 +1086,15 @@ public class ChooseResourceDialog extends DialogWrapper {
     public String getResourceUrl() {
       return String
         .format("@%s%s/%s", getGroup().getNamespace() == null ? "" : getGroup().getNamespace() + ":", myGroup.getType().getName(), myName);
+    }
+
+    @NotNull
+    public ResourceValue getResourceValue() {
+      if (myFile != null) {
+        // No need to try and find the resource as we know exactly what its going to be like
+        return new ResourceValue(myGroup.getType(), getName(), myFile.getPath(), myGroup.isFramework());
+      }
+      return new ResourceValue(myGroup.getType(), getName(), getResourceUrl(), myGroup.isFramework());
     }
 
     @Override
