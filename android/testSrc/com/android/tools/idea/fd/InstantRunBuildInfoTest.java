@@ -44,6 +44,12 @@ public class InstantRunBuildInfoTest {
   }
 
   @Test
+  public void testFormat() throws IOException {
+    InstantRunBuildInfo info = getBuildInfo("instantrun", "build-info1.xml");
+    assertEquals(1, info.getFormat());
+  }
+
+  @Test
   public void testSplitApks() throws IOException {
     InstantRunBuildInfo info = getBuildInfo("instantrun", "build-info1.xml");
 
