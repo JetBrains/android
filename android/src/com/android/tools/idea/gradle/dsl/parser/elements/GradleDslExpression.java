@@ -17,14 +17,20 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.util.Projects;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 
 import java.io.File;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.getStandardProjectKey;
@@ -64,77 +70,114 @@ public abstract class GradleDslExpression extends GradleDslElement {
    */
   @Nullable
   protected <T> T resolveReference(@NotNull String referenceText, @NotNull Class<T> clazz) {
-    GradleDslFile dslFile = getDslFile();
+    GradleDslElement searchStartElement = this;
+    String searchReferenceText = referenceText;
 
-    if (dslFile != null) {
-      if (referenceText.contains(".")) {
-        int firstDotIndex = referenceText.indexOf(".");
-        String firstSegment = referenceText.substring(0, firstDotIndex).trim();
-        String remainingReferenceText = referenceText.substring(firstDotIndex + 1);
-        if ("project".equals(firstSegment)) {
-          return resolveReference(dslFile, remainingReferenceText, clazz);
-        }
-        if ("parent".equals(firstSegment)) {
-          GradleDslFile parentDslFile = dslFile.getParentModuleDslFile();
-          if (parentDslFile != null) {
-            return resolveReference(parentDslFile, remainingReferenceText, clazz);
-          }
-          return null;
-        }
-        if ("rootProject".equals(firstSegment)) {
-          while (dslFile != null && !filesEqual(dslFile.getDirectoryPath(), virtualToIoFile(dslFile.getProject().getBaseDir()))) {
-            dslFile = dslFile.getParentModuleDslFile();
-          }
-          if (dslFile != null) { // root module dsl File.
-            return resolveReference(dslFile, remainingReferenceText, clazz);
-          }
-          return null;
-        }
-        String standardProjectKey = getStandardProjectKey(firstSegment);
-        if (standardProjectKey != null) { // project(':project:path')
-          String modulePath = standardProjectKey.substring(standardProjectKey.indexOf("'") + 1, standardProjectKey.lastIndexOf("'"));
-          GradleSettingsModel model = GradleSettingsModel.get(dslFile.getProject());
-          if (model == null) {
-            return null;
-          }
-          File moduleDirectory = model.moduleDirectory(modulePath);
-          if (moduleDirectory == null) {
-            return null;
-          }
-          while (dslFile != null && !filesEqual(dslFile.getDirectoryPath(), virtualToIoFile(dslFile.getProject().getBaseDir()))) {
-            dslFile = dslFile.getParentModuleDslFile();
-          }
-          if (dslFile == null) {
-            return null;
-          }
-          GradleDslFile moduleDslFile = findDslFile(dslFile, moduleDirectory); // root module dsl File.
-          if (moduleDslFile == null) {
-            return null;
-          }
-          return resolveReference(moduleDslFile, remainingReferenceText, clazz);
-        }
+    List<String> referenceTextSegments = Splitter.on('.').trimResults().omitEmptyStrings().splitToList(referenceText);
+    int index = 0;
+    int segmentCount = referenceTextSegments.size();
+    for (; index < segmentCount; index++) {
+      GradleDslFile dslFile = resolveProjectReference(searchStartElement, referenceTextSegments.get(index));
+      if (dslFile == null) {
+        break;
+      }
+      searchStartElement = dslFile;
+    }
+
+    GradleDslElement resolvedElement;
+    if (index >= segmentCount) {
+      resolvedElement = searchStartElement;
+    }
+    else {
+      searchReferenceText = Joiner.on('.').join(referenceTextSegments.subList(index, segmentCount));
+      resolvedElement = resolveReference(searchStartElement, searchReferenceText);
+    }
+
+    if (resolvedElement != null) {
+      T result = null;
+      if (clazz.isInstance(resolvedElement)) {
+        result = clazz.cast(resolvedElement);
+      }
+      else if (resolvedElement instanceof GradleDslExpression) {
+        result = ((GradleDslExpression)resolvedElement).getValue(clazz);
+      }
+      if (result != null) {
+        setResolvedVariables(ImmutableList.of(new GradleResolvedVariable(referenceText, result, resolvedElement)));
+        return result;
       }
     }
-    return resolveReference(this, referenceText, clazz);
+
+    GradleDslFile dslFile = searchStartElement.getDslFile();
+    if (clazz.isAssignableFrom(String.class)) {
+      if ("rootDir".equals(searchReferenceText)) { // resolve the rootDir reference to project root directory.
+        return clazz.cast(Projects.getBaseDirPath(dslFile.getProject()).getPath());
+      }
+      if ("projectDir".equals(searchReferenceText)) { // resolve the projectDir reference to module directory.
+        return clazz.cast(dslFile.getDirectoryPath().getPath());
+      }
+      return clazz.cast(referenceText);
+    }
+
+    return null;
   }
 
   @Nullable
-  protected <T> T resolveReference(GradleDslElement startElement, @NotNull String referenceText, @NotNull Class<T> clazz) {
+  private static GradleDslFile resolveProjectReference(GradleDslElement startElement, @NotNull String projectReference) {
+    GradleDslFile dslFile = startElement.getDslFile();
+    if ("project".equals(projectReference)) {
+      return dslFile;
+    }
+
+    if ("parent".equals(projectReference)) {
+      return dslFile.getParentModuleDslFile();
+    }
+
+    if ("rootProject".equals(projectReference)) {
+      while (dslFile != null && !filesEqual(dslFile.getDirectoryPath(), virtualToIoFile(dslFile.getProject().getBaseDir()))) {
+        dslFile = dslFile.getParentModuleDslFile();
+      }
+      return dslFile;
+    }
+
+    String standardProjectKey = getStandardProjectKey(projectReference);
+    if (standardProjectKey != null) { // project(':project:path')
+      String modulePath = standardProjectKey.substring(standardProjectKey.indexOf("'") + 1, standardProjectKey.lastIndexOf("'"));
+      GradleSettingsModel model = GradleSettingsModel.get(dslFile.getProject());
+      if (model == null) {
+        return null;
+      }
+      File moduleDirectory = model.moduleDirectory(modulePath);
+      if (moduleDirectory == null) {
+        return null;
+      }
+      while (dslFile != null && !filesEqual(dslFile.getDirectoryPath(), virtualToIoFile(dslFile.getProject().getBaseDir()))) {
+        dslFile = dslFile.getParentModuleDslFile();
+      }
+      if (dslFile == null) {
+        return null;
+      }
+      return findDslFile(dslFile, moduleDirectory); // root module dsl File.
+    }
+    return null;
+  }
+
+  @Nullable
+  private static GradleDslElement resolveReference(GradleDslElement startElement, @NotNull String referenceText) {
     GradleDslFile dslFile = null;
     GradleDslElement element = startElement;
     while (dslFile == null && element != null) { // First search in the file this element belongs to.
       if (element instanceof GradlePropertiesDslElement) {
-        T propertyValue = ((GradlePropertiesDslElement)element).getProperty(referenceText, clazz);
-        if (propertyValue != null) {
-          return propertyValue;
+        GradleDslElement propertyElement = ((GradlePropertiesDslElement)element).getPropertyElement(referenceText);
+        if (propertyElement != null) {
+          return propertyElement;
         }
         if (element instanceof GradleDslFile) {
           dslFile = (GradleDslFile)element;
           ExtDslElement extDslElement = dslFile.getProperty(EXT_BLOCK_NAME, ExtDslElement.class);
           if (extDslElement != null) {
-            T extPropertyValue = extDslElement.getProperty(referenceText, clazz);
-            if (extPropertyValue != null) {
-              return extPropertyValue;
+            GradleDslElement extPropertyElement = extDslElement.getPropertyElement(referenceText);
+            if (extPropertyElement != null) {
+              return extPropertyElement;
             }
           }
         }
@@ -150,39 +193,16 @@ public abstract class GradleDslExpression extends GradleDslElement {
     while (parentDslFile != null) { // Now look in the parent projects ext blocks.
       ExtDslElement extDslElement = parentDslFile.getProperty(EXT_BLOCK_NAME, ExtDslElement.class);
       if (extDslElement != null) {
-        T extPropertyValue = extDslElement.getProperty(referenceText, clazz);
-        if (extPropertyValue != null) {
-          return extPropertyValue;
+        GradleDslElement extPropertyElement = extDslElement.getPropertyElement(referenceText);
+        if (extPropertyElement != null) {
+          return extPropertyElement;
         }
       }
       parentDslFile = parentDslFile.getParentModuleDslFile();
     }
 
-    if (clazz.isAssignableFrom(String.class)) {
-      if (dslFile != null && "rootDir".equals(referenceText)) { // resolve the rootDir reference to project root directory.
-        return clazz.cast(Projects.getBaseDirPath(dslFile.getProject()).getPath());
-      }
-      if (dslFile != null && "projectDir".equals(referenceText)) { // resolve the projectDir reference to module directory.
-        return clazz.cast(dslFile.getDirectoryPath().getPath());
-      }
-      return clazz.cast(referenceText);
-    }
-
     return null;
   }
-
-  @Nullable
-  private GradleDslFile getDslFile() {
-    GradleDslElement element = this;
-    while (element != null) {
-      if (element instanceof GradleDslFile) {
-        return (GradleDslFile)element;
-      }
-      element = element.getParent();
-    }
-    return null;
-  }
-
 
   @Nullable
   private static GradleDslFile findDslFile(GradleDslFile rootModuleDslFile, File moduleDirectory) {
