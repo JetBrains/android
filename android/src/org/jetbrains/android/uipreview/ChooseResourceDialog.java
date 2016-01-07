@@ -788,8 +788,9 @@ public class ChooseResourceDialog extends DialogWrapper {
         }
       }.installOn(myList);
 
-      JComponent firstComponent = ScrollPaneFactory.createScrollPane(myList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+      JScrollPane firstComponent = ScrollPaneFactory.createScrollPane(myList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
                                                             ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      firstComponent.getVerticalScrollBar().setUnitIncrement(JBUI.scale(16));
       firstComponent.setBorder(null);
       firstComponent.setPreferredSize(JBUI.size(200,600));
 
