@@ -32,10 +32,7 @@ import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.wizard.ConsolidatedProgressStep;
 import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
-import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
-import com.android.tools.idea.wizard.dynamic.DynamicWizard;
-import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
-import com.android.tools.idea.wizard.dynamic.SingleStepPath;
+import com.android.tools.idea.wizard.dynamic.*;
 import com.google.common.collect.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
@@ -180,7 +177,7 @@ public class SdkUpdaterConfigPanel {
   /**
    * Construct a new SdkUpdaterConfigPanel.
    *
-   * @param manager                The {@link RepoManager} from which to get our package information.
+   * @param handler                The AndroidSdkHandler from which to get our package information.
    * @param channelChangedCallback Callback to allow us to notify the channel picker panel if we change the selected channel.
    * @param downloader             {@link Downloader} to download remote site lists and for installing packages. If {@code null} we will
    *                               only show local packages.
@@ -200,7 +197,10 @@ public class SdkUpdaterConfigPanel {
     myLaunchStandaloneLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
-        RunAndroidSdkManagerAction.runSpecificSdkManager(null, IdeSdks.getAndroidSdkPath());
+        File path = IdeSdks.getAndroidSdkPath();
+        assert path != null;
+
+        RunAndroidSdkManagerAction.runSpecificSdkManager(null, path);
       }
     });
     myChannelLink.setHyperlinkText("Preview packages available! ", "Switch", " to Preview Channel to see them");
@@ -230,10 +230,10 @@ public class SdkUpdaterConfigPanel {
               location = new File(sdkPath);
             }
 
+            AndroidStudioWizardPath path =
+              new InstallComponentsPath(getRepoManager().getPackages().getRemotePackages(), FirstRunWizardMode.MISSING_SDK, location,
+                                        progressStep, false);
 
-            InstallComponentsPath path =
-              new InstallComponentsPath(progressStep, FirstRunWizardMode.MISSING_SDK, location,
-                                        getRepoManager().getPackages().getRemotePackages(), false);
             progressStep.setPaths(Lists.newArrayList(path));
             addPath(path);
             addPath(new SingleStepPath(progressStep));
@@ -291,7 +291,7 @@ public class SdkUpdaterConfigPanel {
   /**
    * Sets the standard properties for our {@link TreeTableView}s (platform and tools panels).
    *
-   * @param tt The {@link TreeTableView} for which to set properties.
+   * @param tt       The {@link TreeTableView} for which to set properties.
    * @param renderer The {@link UpdaterTreeNode.Renderer} that renders the table.
    * @param listener {@link ChangeListener} to be notified when a node's state is changed.
    */
@@ -309,7 +309,7 @@ public class SdkUpdaterConfigPanel {
   /**
    * Sets the standard properties for our {@link JTable}s (platform, tools, and sources panels).
    *
-   * @param table The {@link JTable} for which to set properties.
+   * @param table    The {@link JTable} for which to set properties.
    * @param listener {@link ChangeListener} to be notified when a node's state is changed.
    */
   static void setTableProperties(@NotNull final JTable table, @Nullable final ChangeListener listener) {
@@ -324,7 +324,9 @@ public class SdkUpdaterConfigPanel {
       @Override
       public void keyTyped(KeyEvent e) {
         if (e.getKeyChar() == KeyEvent.VK_ENTER || e.getKeyChar() == KeyEvent.VK_SPACE) {
-          List<MultiStateRow> selection = (List<MultiStateRow>)((SelectionProvider)table).getSelection();
+          @SuppressWarnings("unchecked") Iterable<MultiStateRow> selection =
+            (Iterable<MultiStateRow>)((SelectionProvider)table).getSelection();
+
           for (MultiStateRow node : selection) {
             node.cycleState();
             table.repaint();
@@ -390,10 +392,10 @@ public class SdkUpdaterConfigPanel {
 
     // TODO: make progress runner handle invokes?
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
-    StudioProgressRunner progressRunner = new StudioProgressRunner(false, true, false, "Loading SDK", false,
-                                                                   projects.length == 0 ? null : projects[0]);
-    getRepoManager().load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater),
-                       null, progressRunner, myDownloader, mySettings, false);
+    StudioProgressRunner progressRunner =
+      new StudioProgressRunner(false, true, false, "Loading SDK", false, projects.length == 0 ? null : projects[0]);
+    getRepoManager()
+      .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null, progressRunner, myDownloader, mySettings, false);
   }
 
   /**
@@ -412,9 +414,6 @@ public class SdkUpdaterConfigPanel {
     }
   }
 
-  /**
-   * Reads the packages provided by {@link #myRepoManager} and updates our subpanels appropriately.
-   */
   private void loadPackages(RepositoryPackages packages) {
     Multimap<AndroidVersion, UpdatablePackage> platformPackages = TreeMultimap.create();
     Set<UpdatablePackage> buildToolsPackages = Sets.newTreeSet();
@@ -440,6 +439,7 @@ public class SdkUpdaterConfigPanel {
 
   /**
    * Gets the consolidated list of {@link NodeStateHolder}s from our children so they can be applied.
+   *
    * @return
    */
   public Collection<NodeStateHolder> getStates() {
