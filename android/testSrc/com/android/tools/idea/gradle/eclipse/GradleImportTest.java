@@ -363,7 +363,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
   public void testImportWithoutMinSdkVersion() throws Exception {
     // Regression test for importing project which does not explicitly set minSdkVersion
     // and/or targetSdkVersion; this would earlier result in "-1" being written into
-    // build.gradle which fails the build with "> Cannot invoke method minus() on null object"
+    // build.gradle which fails the build with "> Cannot invoke method exclude() on null object"
     File projectDir = createProject("test1", "test.pkg");
 
     // Remove <uses-sdk ...>
