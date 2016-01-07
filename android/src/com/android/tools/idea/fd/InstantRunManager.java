@@ -62,28 +62,20 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.MessageType;
-import com.intellij.openapi.ui.popup.Balloon;
-import com.intellij.openapi.ui.popup.BalloonBuilder;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
-import com.intellij.openapi.wm.WindowManager;
-import com.intellij.ui.awt.RelativePoint;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.frame.XExecutionStack;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
@@ -492,6 +484,10 @@ public final class InstantRunManager implements ProjectComponent {
                                @NotNull InstantRunBuildInfo buildInfo) throws IOException {
     displayVerifierStatus(facet, buildInfo);
 
+    if (!buildInfo.canHotswap()) {
+      updateMode = updateMode.combine(UpdateMode.COLD_SWAP);
+    }
+
     AndroidGradleModel model = AndroidGradleModel.get(facet);
     if (model == null) {
       return true;
@@ -645,31 +641,10 @@ public final class InstantRunManager implements ProjectComponent {
       }
       // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
       status = StringUtil.capitalizeWords(status.toLowerCase(Locale.US).replace('_', ' '), true);
-      postBalloon(MessageType.WARNING, "Couldn't apply changes on the fly: " + status, facet.getModule().getProject());
+      @Language("HTML") String message = "Instant Run couldn't apply changes on the fly: " + status;
+      new InstantRunUserFeedback(facet.getModule()).verifierFailure(message);
       UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, status, null);
     }
-  }
-
-  public static void postBalloon(@NotNull final MessageType type, @NotNull final String message, @NotNull final Project project) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        JFrame frame = WindowManager.getInstance().getFrame(project.isDefault() ? null : project);
-        if (frame != null) {
-          JComponent component = frame.getRootPane();
-          if (component != null) {
-            Rectangle rect = component.getVisibleRect();
-            Point p = new Point(rect.x + rect.width - 10, rect.y + 10);
-            RelativePoint point = new RelativePoint(component, p);
-            BalloonBuilder builder =
-              JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(message, type.getDefaultIcon(), type.getPopupBackground(), null);
-            builder.setShowCallout(false);
-            builder.setCloseButtonEnabled(true);
-            builder.createBalloon().show(point, Balloon.Position.atLeft);
-          }
-        }
-      }
-    });
   }
 
   /**
