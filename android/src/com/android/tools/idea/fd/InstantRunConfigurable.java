@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixBuildToolsVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleVersionInWrapperHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -221,7 +220,7 @@ public class InstantRunConfigurable
       // Also update Gradle wrapper version
       File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
       if (wrapperPropertiesFile != null) {
-        FixGradleVersionInWrapperHyperlink.updateGradleVersion(project, wrapperPropertiesFile, GRADLE_LATEST_VERSION);
+        GradleUtil.updateGradleDistributionUrl(project, wrapperPropertiesFile, GRADLE_LATEST_VERSION);
       }
 
       // Request a sync
