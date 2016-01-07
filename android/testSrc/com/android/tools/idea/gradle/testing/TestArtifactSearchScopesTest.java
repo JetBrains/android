@@ -31,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.android.utils.FileUtils.join;
+import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
@@ -100,9 +102,27 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), hamcrest);
   }
 
+  public void testProjectWithSharedTestFolder() throws Exception {
+    if (!CAN_SYNC_PROJECTS) {
+      System.err.println("TestArtifactSearchScopesTest.testProjectWithSharedTestFolder temporarily disabled");
+      return;
+    }
+
+    loadProject("projects/sharedTestFolder", false);
+    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(myFixture.getModule());
+    assertNotNull(scopes);
+
+    File file = new File(myFixture.getProject().getBasePath(), join("app", "src", "share", "java"));
+
+    assertTrue(scopes.getAndroidTestSourceScope().accept(file));
+    assertTrue(scopes.getUnitTestSourceScope().accept(file));
+    assertFalse(scopes.getAndroidTestExcludeScope().accept(file));
+    assertFalse(scopes.getUnitTestExcludeScope().accept(file));
+  }
+
   @NotNull
   private VirtualFile createFile(@NotNull String relativePath) {
-    File file = new File(myFixture.getProject().getBasePath(), relativePath);
+    File file = new File(myFixture.getProject().getBasePath(), toSystemDependentPath(relativePath));
     FileUtil.createIfDoesntExist(file);
     VirtualFile virtualFile = findFileByIoFile(file, true);
     assertNotNull(virtualFile);
