@@ -57,7 +57,7 @@ public class SplitApkDeployTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    String pkgName = null;
+    String pkgName;
     try {
       pkgName = ApkProviderUtil.computePackageName(myFacet);
     }
@@ -89,7 +89,7 @@ public class SplitApkDeployTask implements LaunchTask {
       device.installPackages(apks, true, installOptions, 5, TimeUnit.MINUTES);
 
       InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-      DeployApkTask.cacheInstallationData(device, myFacet, pkgName, true, true, true);
+      DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
       return true;
     }
     catch (InstallException e) {
