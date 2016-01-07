@@ -22,7 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -40,6 +40,7 @@ import java.util.List;
 public class InstantRunBuildInfo {
   private static final String ATTR_BUILD_ID = "build-id";
   public static final String ATTR_API_LEVEL = "api-level";
+  private static final String ATTR_FORMAT = "format";
 
   private static final String ATTR_VERIFIER_STATUS = "verifier";
 
@@ -54,6 +55,7 @@ public class InstantRunBuildInfo {
   private static final String VALUE_ARTIFACT_TYPE_MAIN = "MAIN";
 
   @NotNull private final Element myRoot;
+  @Nullable private List<InstantRunArtifact> myArtifacts;
 
   public InstantRunBuildInfo(@NotNull Element root) {
     myRoot = root;
@@ -71,8 +73,18 @@ public class InstantRunBuildInfo {
 
   public boolean canHotswap() {
     String verifierStatus = getVerifierStatus();
-    return StringUtil.isEmpty(verifierStatus) // not populated if there were no changes in versions <= 2.0.0-alpha3
-           || VALUE_VERIFIER_STATUS_COMPATIBLE.equals(verifierStatus);
+    if (VALUE_VERIFIER_STATUS_COMPATIBLE.equals(verifierStatus)) {
+      return true;
+    } else if (verifierStatus.isEmpty()) {
+      // build-info.xml doesn't currently specify a verifier status if there is *only* a resource
+      // change!
+      List<InstantRunArtifact> artifacts = getArtifacts();
+      if (artifacts.size() == 1 && artifacts.get(0).type == InstantRunArtifactType.RESOURCES) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   @NotNull
@@ -89,35 +101,48 @@ public class InstantRunBuildInfo {
 
   @NotNull
   public List<InstantRunArtifact> getArtifacts() {
-    List<InstantRunArtifact> artifacts = Lists.newArrayList();
+    if (myArtifacts == null) {
+      List<InstantRunArtifact> artifacts = Lists.newArrayList();
 
-    NodeList children = myRoot.getChildNodes();
-    for (int i = 0, n = children.getLength(); i < n; i++) {
-      Node child = children.item(i);
-      if (child.getNodeType() == Node.ELEMENT_NODE) {
-        Element element = (Element)child;
-        if (!TAG_ARTIFACT.equals(element.getTagName())) {
-          continue;
+      NodeList children = myRoot.getChildNodes();
+      for (int i = 0, n = children.getLength(); i < n; i++) {
+        Node child = children.item(i);
+        if (child.getNodeType() == Node.ELEMENT_NODE) {
+          Element element = (Element)child;
+          if (!TAG_ARTIFACT.equals(element.getTagName())) {
+            continue;
+          }
+
+          String location = element.getAttribute(ATTR_ARTIFACT_LOCATION);
+          String typeAttribute = element.getAttribute(ATTR_ARTIFACT_TYPE);
+          InstantRunArtifactType type = InstantRunArtifactType.valueOf(typeAttribute);
+          artifacts.add(new InstantRunArtifact(type, new File(location)));
         }
-
-        String location = element.getAttribute(ATTR_ARTIFACT_LOCATION);
-        String typeAttribute = element.getAttribute(ATTR_ARTIFACT_TYPE);
-        InstantRunArtifactType type = InstantRunArtifactType.valueOf(typeAttribute);
-        artifacts.add(new InstantRunArtifact(type, new File(location)));
       }
+      myArtifacts = artifacts;
     }
 
-    return artifacts;
+    return myArtifacts;
   }
 
-  public static boolean hasMainApk(@NotNull List<InstantRunArtifact> artifacts) {
-    for (InstantRunArtifact artifact : artifacts) {
-      if (artifact.type == InstantRunArtifactType.MAIN) {
+  /**
+   * Returns true if the given list of artifacts contains at least
+   * one artifact of any of the given types
+   *
+   * @param types the types to look for
+   * @return true if and only if the list of artifacts contains an artifact of any of the given types
+   */
+  public boolean hasOneOf(@NotNull InstantRunArtifactType... types) {
+    for (InstantRunArtifact artifact : getArtifacts()) {
+      if (ArrayUtil.contains(artifact.type, types)) {
         return true;
       }
     }
-
     return false;
+  }
+
+  public boolean hasMainApk() {
+    return hasOneOf(InstantRunArtifactType.MAIN);
   }
 
   @Nullable
@@ -160,5 +185,16 @@ public class InstantRunBuildInfo {
     }
 
     return file;
+  }
+
+  public int getFormat() {
+    String attribute = myRoot.getAttribute(ATTR_FORMAT);
+    if (attribute != null && !attribute.isEmpty()) {
+      try {
+        return Integer.parseInt(attribute);
+      } catch (NumberFormatException ignore) {
+      }
+    }
+    return 0;
   }
 }
