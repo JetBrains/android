@@ -94,7 +94,7 @@ public class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   public boolean processMethodsWithName(@NonNls @NotNull String name,
                                         @NotNull GlobalSearchScope scope,
                                         @NotNull Processor<PsiMethod> processor) {
-    return false;
+    return true;
   }
 
   @NotNull
