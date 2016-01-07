@@ -25,6 +25,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.packaging.PackagingUtils;
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.fd.client.AppState;
 import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.fd.client.InstantRunClient.FileTransfer;
 import com.android.tools.fd.client.UpdateMode;
@@ -101,9 +102,6 @@ public final class InstantRunManager implements ProjectComponent {
   private static final Logger LOG = Logger.getInstance(InstantRunManager.class);
   private static final ILogger ILOGGER = new LogWrapper(LOG);
 
-  /** Local port on the desktop machine via which we tunnel to the Android device */
-  private static final int STUDIO_PORT = 46622; // Note: just a random number, hopefully it is a free/available port on the host
-
   @NotNull private final Project myProject;
   @NotNull private FileChangeListener myFileChangeListener;
 
@@ -177,10 +175,10 @@ public final class InstantRunManager implements ProjectComponent {
    * @param device the device to check
    * @param module a module context, normally the main app module (but if it's a library module
    *               the infrastructure will look for other app modules
-   * @return true if the app is already running and is listening for incremental updates
+   * @return true if the app is already running in foreground and is listening for incremental updates
    */
-  public static boolean isAppRunning(@NotNull IDevice device, @NotNull Module module) {
-    return getInstantRunClient(module).isAppRunning(device);
+  public static boolean isAppInForeground(@NotNull IDevice device, @NotNull Module module) {
+    return getInstantRunClient(module).getAppState(device) == AppState.FOREGROUND;
   }
 
   /**
@@ -472,8 +470,9 @@ public final class InstantRunManager implements ProjectComponent {
   @NotNull
   private static InstantRunClient getInstantRunClient(@NotNull AndroidGradleModel model, @NotNull AndroidFacet facet) {
     String packageName = getPackageName(facet);
+    assert packageName != null : "Unable to obtain package name for " + facet.getModule().getName();
     long token = PackagingUtils.computeApplicationHash(model.getAndroidProject().getBuildFolder());
-    return new InstantRunClient(packageName, STUDIO_PORT, new InstantRunUserFeedback(facet.getModule()), ILOGGER, token);
+    return new InstantRunClient(packageName, new InstantRunUserFeedback(facet.getModule()), ILOGGER, token);
   }
 
   /**
@@ -498,7 +497,7 @@ public final class InstantRunManager implements ProjectComponent {
     List<FileTransfer> files = Lists.newArrayList();
     InstantRunClient client = getInstantRunClient(model, facet);
 
-    boolean appRunning = isAppRunning(device, facet.getModule());
+    boolean appRunning = isAppInForeground(device, facet.getModule());
 
     List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
     for (InstantRunArtifact artifact : artifacts) {
