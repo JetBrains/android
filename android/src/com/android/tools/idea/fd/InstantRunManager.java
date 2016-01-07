@@ -35,7 +35,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.idea.run.*;
-import com.android.tools.idea.run.tasks.DeployApkTask;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
@@ -67,7 +66,6 @@ import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.WindowManager;
@@ -75,7 +73,6 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.frame.XExecutionStack;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -290,15 +287,6 @@ public final class InstantRunManager implements ProjectComponent {
     return version.getApiLevel() >= 15;
   }
 
-  private static long getLastInstalledArscTimestamp(@NotNull IDevice device, @NotNull AndroidFacet facet) {
-    String pkgName = getPackageName(facet);
-    if (pkgName == null) {
-      return 0;
-    }
-
-    return ServiceManager.getService(InstalledPatchCache.class).getInstalledArscTimestamp(device, pkgName);
-  }
-
   /** Returns true if any of the devices in the given list require a full build. */
   public static boolean canBuildIncrementally(@NotNull Collection<IDevice> devices, @NotNull Module module) {
     for (IDevice device : devices) {
@@ -427,22 +415,6 @@ public final class InstantRunManager implements ProjectComponent {
     manager.myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled(project));
   }
 
-  @Nullable
-  private static File findBuildFolder(@NotNull AndroidFacet facet) {
-    String rootPath = AndroidRootUtil.getModuleDirPath(facet.getModule());
-    if (rootPath == null) {
-      return null;
-    }
-    File root = new File(FileUtil.toSystemDependentName(rootPath));
-
-    File build = new File(root, "build");
-    if (build.exists()) {
-      return build;
-    }
-
-    return null;
-  }
-
   /** Looks up the merged manifest file for a given facet */
   @Nullable
   public static File findMergedManifestFile(@NotNull AndroidFacet facet) {
@@ -456,34 +428,6 @@ public final class InstantRunManager implements ProjectComponent {
         if (manifest.exists()) {
           return manifest;
         }
-      }
-    }
-
-    return null;
-  }
-
-  // TODO: Get the intermediates folder from the model itself!
-  @Nullable
-  private static File findIntermediatesFolder(@NotNull AndroidFacet facet) {
-    File build = findBuildFolder(facet);
-    if (build != null) {
-      File intermediates = new File(build, "intermediates");
-      if (intermediates.exists()) {
-        return intermediates;
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  public static File findResourceArsc(@NotNull AndroidFacet facet) {
-    File intermediates = findIntermediatesFolder(facet);
-    if (intermediates != null) {
-      String variantName = getVariantName(facet);
-      File resourceClassFolder = new File(intermediates, "res" + File.separator + "resources-" + variantName + ".ap_");
-      if (resourceClassFolder.exists()) {
-        return resourceClassFolder;
       }
     }
 
@@ -545,7 +489,6 @@ public final class InstantRunManager implements ProjectComponent {
                                @NotNull InstantRunBuildInfo buildInfo) throws IOException {
     displayVerifierStatus(facet, buildInfo);
 
-    long arscBefore = getLastInstalledArscTimestamp(device, facet);
     AndroidGradleModel model = AndroidGradleModel.get(facet);
     if (model == null) {
       return true;
@@ -553,11 +496,6 @@ public final class InstantRunManager implements ProjectComponent {
 
     List<FileTransfer> files = Lists.newArrayList();
     InstantRunClient client = getInstantRunClient(model, facet);
-
-    updateMode = gatherGradleResourceChanges(model, facet, files, arscBefore, updateMode);
-    boolean updateResource = !files.isEmpty();
-    boolean updateManifest = false;
-    boolean updateCode = false;
 
     boolean appRunning = isAppRunning(device, facet.getModule());
 
@@ -576,21 +514,17 @@ public final class InstantRunManager implements ProjectComponent {
           assert false : artifact;
           break;
         case RESOURCES:
-          updateResource = true;
           updateMode = updateMode.combine(UpdateMode.WARM_SWAP);
           files.add(FileTransfer.createResourceFile(file));
           break;
         case DEX:
-          updateCode = true;
           String name = file.getParentFile().getName() + "-" + file.getName();
           files.add(FileTransfer.createSliceDex(file, name));
           break;
         case RESTART_DEX:
-          updateCode = true;
           files.add(FileTransfer.createRestartDex(file));
           break;
         case RELOAD_DEX:
-          updateCode = true;
           if (appRunning) {
             files.add(FileTransfer.createHotswapPatch(file));
           } else {
@@ -638,10 +572,6 @@ public final class InstantRunManager implements ProjectComponent {
       // Push to data directory
       client.pushFiles(files, device, buildId);
       needRestart = true;
-    }
-
-    if (pkgName != null) {
-      DeployApkTask.cacheInstallationData(device, facet, pkgName, updateManifest, updateCode, updateResource);
     }
 
     return needRestart;
@@ -711,22 +641,6 @@ public final class InstantRunManager implements ProjectComponent {
     }
   }
 
-  @SuppressWarnings({"MethodMayBeStatic", "UnusedParameters"}) // won't be as soon as it really calls Gradle
-  @NotNull
-  private static UpdateMode gatherGradleResourceChanges(@NotNull AndroidGradleModel model,
-                                                        @NotNull AndroidFacet facet,
-                                                        @NotNull List<FileTransfer> files,
-                                                        long arscBefore,
-                                                        @NotNull UpdateMode updateMode) {
-    File arsc = findResourceArsc(facet);
-    if (arsc != null && arsc.lastModified() > arscBefore) {
-      files.add(FileTransfer.createResourceFile(arsc));
-      updateMode = updateMode.combine(UpdateMode.WARM_SWAP);
-    }
-
-    return updateMode;
-  }
-
   public static void displayVerifierStatus(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
     if (!buildInfo.canHotswap()) {
       String status = buildInfo.getVerifierStatus();
@@ -735,20 +649,6 @@ public final class InstantRunManager implements ProjectComponent {
       postBalloon(MessageType.WARNING, "Couldn't apply changes on the fly: " + status, facet.getModule().getProject());
       UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, status, null);
     }
-  }
-
-  @NotNull
-  private static String getVariantName(@NotNull AndroidFacet facet) {
-    return getVariantName(AndroidGradleModel.get(facet));
-  }
-
-  @NotNull
-  private static String getVariantName(@Nullable AndroidGradleModel model) {
-    if (model != null) {
-      return model.getSelectedVariant().getName();
-    }
-
-    return "debug";
   }
 
   public static void postBalloon(@NotNull final MessageType type, @NotNull final String message, @NotNull final Project project) {
