@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class InstantRunUtils {
   private static final Key<Boolean> INCREMENTAL_BUILD = Key.create("android.instant.run.incremental");
-  private static final Key<Boolean> HAS_KNOWN_BUILD_ON_DEVICE = Key.create("android.instant.run.known.build.on.device");
   private static final Key<Boolean> APP_RUNNING = Key.create("android.instant.run.app.running");
 
   public static boolean isIncrementalBuild(@NotNull ExecutionEnvironment env) {
@@ -30,14 +29,6 @@ public class InstantRunUtils {
 
   public static void setIncrementalBuild(@NotNull ExecutionEnvironment env, boolean b) {
     env.putCopyableUserData(INCREMENTAL_BUILD, Boolean.TRUE);
-  }
-
-  public static boolean deviceHasKnownBuild(@NotNull ExecutionEnvironment env) {
-    return Boolean.TRUE.equals(env.getCopyableUserData(HAS_KNOWN_BUILD_ON_DEVICE));
-  }
-
-  public static void setDeviceHasKnownBuild(@NotNull ExecutionEnvironment env, boolean en) {
-    env.putCopyableUserData(HAS_KNOWN_BUILD_ON_DEVICE, en);
   }
 
   public static boolean isAppRunning(@NotNull ExecutionEnvironment env) {
