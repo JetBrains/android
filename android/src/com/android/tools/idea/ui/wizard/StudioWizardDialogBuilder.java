@@ -29,7 +29,16 @@ import java.awt.*;
  * Convenience class for building a {@link ModelWizard} styled for Android Studio.
  */
 public final class StudioWizardDialogBuilder {
-  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(1080, 650);
+  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(800, 650);
+
+  /**
+   * The minimum (and initial) size of a dialog should be no bigger than the user's screen (or,
+   * a percentage of the user's screen, to leave a bit of space on the sides). This prevents
+   * developers from specifying a size that looks good on their monitor but won't fit on a low
+   * resolution screen. Worst case, the UI may end up squished for some users, but the
+   * prev/next/cancel buttons will always be visible.
+   */
+  private static final float SCREEN_PERCENT = 0.8f;
 
   @NotNull ModelWizard myWizard;
   @NotNull String myTitle;
@@ -82,7 +91,11 @@ public final class StudioWizardDialogBuilder {
       dialog = new ModelWizardDialog(myWizard, myTitle, customLayout, myProject, myModalityType);
     }
 
-    dialog.setSize(myMinimumSize.width, myMinimumSize.height);
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    Dimension clampedSize = new Dimension(Math.min(myMinimumSize.width, (int)(screenSize.width * SCREEN_PERCENT)),
+                                          Math.min(myMinimumSize.height, (int)(screenSize.height * SCREEN_PERCENT)));
+
+    dialog.setSize(clampedSize.width, clampedSize.height);
     return dialog;
   }
 }
