@@ -20,9 +20,21 @@ package com.android.tools.idea.fd;
  * The names given here match the names expected in the XML file.
  */
 public enum InstantRunArtifactType {
-  MAIN, // main APK
-  SPLIT, // split APK that can be installed on API 23+
-  DEX, // shard dex file that can be deployed on L devices
-  RELOAD_DEX, // hot swappable classes
-  RESTART_DEX; // classes that can be used on Dalvik devices
+  /** Main APK (contains resources) */
+  MAIN,
+
+  /** APK split (that can be installed on API 23+) */
+  SPLIT,
+
+  /** Shard dex file that can be deployed on L devices */
+  DEX,
+
+  /** Hot swappable classes */
+  RELOAD_DEX,
+
+  /** Classes that can be used on Dalvik devices */
+  RESTART_DEX,
+
+  /** Resources and manifest data */
+  RESOURCES
 }
