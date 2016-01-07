@@ -57,6 +57,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Function;
@@ -262,8 +263,7 @@ public final class GradleUtil {
    * in the UI) artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
    */
   @NotNull
-  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant,
-                                                                  @NotNull AndroidGradleModel androidModel) {
+  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant, @NotNull AndroidGradleModel androidModel) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
     libraries.addAll(variant.getMainArtifact().getDependencies().getLibraries());
     BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(variant);
@@ -360,6 +360,35 @@ public final class GradleUtil {
   @NotNull
   public static File getGradleWrapperPropertiesFilePath(@NotNull File projectRootDir) {
     return new File(projectRootDir, GRADLEW_PROPERTIES_PATH);
+  }
+
+  /**
+   * Updates the 'distributionUrl' in the given Gradle wrapper properties file. An unexpected errors that occur while updating the file will
+   * be displayed in an error dialog.
+   *
+   * @param project        the project containing the properties file to update.
+   * @param gradleVersion  the Gradle version to update the property to.
+   * @param propertiesFile the given Gradle wrapper properties file.
+   * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
+   * correct value.
+   */
+  public static boolean updateGradleDistributionUrl(@NotNull Project project, @NotNull File propertiesFile, @NotNull String gradleVersion) {
+    try {
+      boolean updated = updateGradleDistributionUrl(gradleVersion, propertiesFile);
+      if (updated) {
+        VirtualFile virtualFile = findFileByIoFile(propertiesFile, true);
+        if (virtualFile != null) {
+          virtualFile.refresh(false, false);
+        }
+        return true;
+      }
+    }
+    catch (IOException e) {
+      String msg = String.format("Unable to update Gradle wrapper to use Gradle %1$s\n", gradleVersion);
+      msg += e.getMessage();
+      Messages.showErrorDialog(project, msg, "Unexpected Error");
+    }
+    return false;
   }
 
   /**
@@ -476,7 +505,8 @@ public final class GradleUtil {
     Application application = ApplicationManager.getApplication();
     if (application instanceof ApplicationImpl) {
       ((ApplicationImpl)application).restart(true);
-    } else {
+    }
+    else {
       application.restart();
     }
   }
