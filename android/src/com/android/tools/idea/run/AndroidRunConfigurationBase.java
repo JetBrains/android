@@ -19,6 +19,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.fd.InstantRunUserFeedback;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -427,9 +428,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
     else {
       LOG.info("Cannot patch update since a full build is required (typically because the manifest has changed)");
-      InstantRunManager
-        .postBalloon(MessageType.INFO, "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)",
-                     module.getProject());
+      new InstantRunUserFeedback(module).postText(
+        "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)"
+      );
     }
 
     return DeviceFutures.forDevices(devices);
