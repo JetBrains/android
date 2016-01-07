@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -189,12 +190,15 @@ public class InstantRunBuildInfo {
 
   public int getFormat() {
     String attribute = myRoot.getAttribute(ATTR_FORMAT);
-    if (attribute != null && !attribute.isEmpty()) {
-      try {
-        return Integer.parseInt(attribute);
-      } catch (NumberFormatException ignore) {
-      }
+    if (StringUtil.isEmpty(attribute)) {
+      return -1;
     }
-    return 0;
+
+    try {
+      return Integer.parseInt(attribute);
+    }
+    catch (NumberFormatException nfe) {
+      return -1;
+    }
   }
 }

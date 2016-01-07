@@ -82,9 +82,12 @@ public class AndroidRunState implements RunProfileState {
     AndroidGradleModel model = AndroidGradleModel.get(myModule);
     if (model != null) {
       InstantRunBuildInfo info = InstantRunBuildInfo.get(model);
-      if (info != null && info.getFormat() > 1) {
-        throw new ExecutionException("This version of Android Studio is too old to be used with this version of " +
-                                     "the Android Gradle plugin; disabling Instant Run.");
+      if (info != null) {
+        int format = info.getFormat();
+        if (format == -1 || format > 1) {
+          throw new ExecutionException("This version of Android Studio is incompatible with the Gradle Plugin used. " +
+                                       "Try disabling Instant Run.");
+        }
       }
     }
 
