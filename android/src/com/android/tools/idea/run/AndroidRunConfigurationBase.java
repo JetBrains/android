@@ -505,7 +505,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private static boolean isAppRunning(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
     for (IDevice device : usedDevices) {
-      if (!InstantRunManager.isAppRunning(device, module)) {
+      if (!InstantRunManager.isAppInForeground(device, module)) {
         return false;
       }
     }
