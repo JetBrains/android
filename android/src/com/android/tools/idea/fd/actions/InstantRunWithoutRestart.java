@@ -75,7 +75,7 @@ public class InstantRunWithoutRestart extends AnAction {
     List<IDevice> devices = InstantRunManager.findDevices(project);
     InstantRunManager manager = InstantRunManager.get(project);
     for (IDevice device : devices) {
-      if (InstantRunManager.isAppRunning(device, module)) {
+      if (InstantRunManager.isAppInForeground(device, module)) {
         if (InstantRunManager.buildIdsMatch(device, module)) {
           performUpdate(manager, device, getUpdateMode(), module);
         } else {
