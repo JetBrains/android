@@ -16,7 +16,7 @@
 package com.android.tools.idea.fd;
 
 /**
- * {@link InstantRunArtifactType} lists the possible artifacts as specified by the type attribute of aritfact tag in the build-info.xml
+ * {@link InstantRunArtifactType} lists the possible artifacts as specified by the type attribute of artifact tag in the build-info.xml
  * The names given here match the names expected in the XML file.
  */
 public enum InstantRunArtifactType {

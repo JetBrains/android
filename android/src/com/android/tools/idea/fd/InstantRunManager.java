@@ -86,6 +86,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+import static com.android.tools.idea.fd.InstantRunArtifactType.*;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 
 /**
@@ -505,9 +506,9 @@ public final class InstantRunManager implements ProjectComponent {
       File file = artifact.file;
       switch (type) {
         case MAIN:
-          // Should never be used with this method: APKs should be
-          // pushed by DeployApkTask
-          break;
+          // Should only be used here when we're doing a *compatible*
+          // resource swap and also got an APK for split. Ignore here.
+          continue;
         case SPLIT:
           // Should never be used with this method: APK splits should
           // be pushed by SplitApkDeployTask
@@ -529,17 +530,8 @@ public final class InstantRunManager implements ProjectComponent {
             files.add(FileTransfer.createHotswapPatch(file));
           } else {
             // Gradle created a reload dex, but the app is no longer running.
-            // If it created a restart dex, we can use it; otherwise we're out of luck.
-            boolean haveColdSwapCode = false;
-            for (InstantRunArtifact a : artifacts) {
-              if (a.type == InstantRunArtifactType.DEX
-                  || a.type == InstantRunArtifactType.RESTART_DEX
-                  || a.type == InstantRunArtifactType.SPLIT) {
-                haveColdSwapCode = true;
-                break;
-              }
-            }
-            if (!haveColdSwapCode) {
+            // If it created a cold swap artifact, we can use it; otherwise we're out of luck.
+            if (!buildInfo.hasOneOf(DEX, RESTART_DEX, SPLIT)) {
               // TODO: We should restart the build here.
               throw new IOException("Can't apply hotswap patch: app is no longer running");
             }
