@@ -16,8 +16,10 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.InstantRunClient;
-import com.android.tools.idea.fd.*;
+import com.android.tools.idea.fd.InstantRunArtifact;
+import com.android.tools.idea.fd.InstantRunBuildInfo;
+import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -35,6 +37,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import static com.android.tools.idea.fd.InstantRunArtifactType.*;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
@@ -120,33 +124,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           InstantRunManager.getInstantRunClient(myFacet.getModule()).getUserFeedback().noChanges();
           return null;
         }
-        for (InstantRunArtifact artifact : artifacts) {
-          InstantRunArtifactType type = artifact.type;
-          boolean haveResources = false;
-          switch (type) {
-            case MAIN:
-              int apiLevel = buildInfo.getApiLevel();
-              if (apiLevel >= 23) {
-                return new SplitApkDeployTask(myFacet, buildInfo);
-              } else {
-                return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider);
-              }
-            case SPLIT:
-              return new SplitApkDeployTask(myFacet, buildInfo);
-            case RESOURCES:
-              // inconclusive - could be SplitApkDeployTask or DexDeployTask depending on API level
-              haveResources = true;
-              continue;
-            case RESTART_DEX:
-            case DEX:
-              return new DexDeployTask(myFacet, buildInfo);
-            case RELOAD_DEX:
-            default:
-              assert false;
-          }
-          if (haveResources) {
-            return new DexDeployTask(myFacet, buildInfo);
-          }
+
+        if (buildInfo.hasOneOf(SPLIT) || buildInfo.getApiLevel() >= 23 && buildInfo.hasOneOf(MAIN)) {
+          return new SplitApkDeployTask(myFacet, buildInfo);
+        }
+        if (buildInfo.hasOneOf(RESTART_DEX, DEX, RESOURCES)) {
+          return new DexDeployTask(myFacet, buildInfo);
         }
       }
     }
