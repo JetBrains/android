@@ -173,6 +173,11 @@ public class AvdManagerConnection {
     return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR));
   }
 
+  private File getEmulatorCheckBinary() {
+    assert mySdkHandler != null;
+    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR_CHECK));
+  }
+
   /**
    * Return the SystemImageUpdateDependencies for the current emulator
    * or null if no emulator is installed or if the emulator is not an qemu2 emulator.
@@ -593,9 +598,16 @@ public class AvdManagerConnection {
       // TODO: For now just ignore the rest of the checks
       return AccelerationErrorCode.ALREADY_INSTALLED;
     }
+    File checkBinary = getEmulatorCheckBinary();
     GeneralCommandLine commandLine = new GeneralCommandLine();
-    commandLine.setExePath(emulatorBinary.getPath());
-    commandLine.addParameter("-accel-check");
+    if (checkBinary.isFile()) {
+      commandLine.setExePath(checkBinary.getPath());
+      commandLine.addParameter("accel");
+    }
+    else {
+      commandLine.setExePath(emulatorBinary.getPath());
+      commandLine.addParameter("-accel-check");
+    }
     int exitValue;
     try {
       CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
