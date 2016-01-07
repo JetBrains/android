@@ -22,6 +22,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.packaging.PackagingUtils;
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.InstantRunClient;
@@ -516,8 +517,18 @@ public final class InstantRunManager implements ProjectComponent {
 
   @NotNull
   private static InstantRunClient getInstantRunClient(@NotNull Module module) {
-    String packageName = getPackageName(findAppModule(module, module.getProject()));
-    return new InstantRunClient(packageName, STUDIO_PORT, new InstantRunUserFeedback(module), ILOGGER);
+    AndroidFacet facet = findAppModule(module, module.getProject());
+    assert facet != null : module;
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    assert model != null;
+    return getInstantRunClient(model, facet);
+  }
+
+  @NotNull
+  private static InstantRunClient getInstantRunClient(@NotNull AndroidGradleModel model, @NotNull AndroidFacet facet) {
+    String packageName = getPackageName(facet);
+    long token = PackagingUtils.computeApplicationHash(model.getAndroidProject().getBuildFolder());
+    return new InstantRunClient(packageName, STUDIO_PORT, new InstantRunUserFeedback(facet.getModule()), ILOGGER, token);
   }
 
   /**
@@ -541,7 +552,7 @@ public final class InstantRunManager implements ProjectComponent {
     }
 
     List<FileTransfer> files = Lists.newArrayList();
-    InstantRunClient client = getInstantRunClient(facet.getModule());
+    InstantRunClient client = getInstantRunClient(model, facet);
 
     updateMode = gatherGradleResourceChanges(model, facet, files, arscBefore, updateMode);
     boolean updateResource = !files.isEmpty();
