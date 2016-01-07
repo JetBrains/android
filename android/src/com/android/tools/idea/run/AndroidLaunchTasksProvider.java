@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -115,10 +116,14 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
 
         List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
+        if (artifacts.isEmpty()) {
+          InstantRunManager.getInstantRunClient(myFacet.getModule()).getUserFeedback().noChanges();
+          return null;
+        }
         for (InstantRunArtifact artifact : artifacts) {
           InstantRunArtifactType type = artifact.type;
+          boolean haveResources = false;
           switch (type) {
-
             case MAIN:
               // We don't know if there are splits here too; if so, we should be
               // using SplitApkDeployTask, but if not, we'll just fall through below
@@ -126,12 +131,19 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
               continue;
             case SPLIT:
               return new SplitApkDeployTask(myFacet, buildInfo);
+            case RESOURCES:
+              // inconclusive - could be SplitApkDeployTask or DexDeployTask depending on API level
+              haveResources = true;
+              continue;
             case RESTART_DEX:
             case DEX:
               return new DexDeployTask(myFacet, buildInfo);
             case RELOAD_DEX:
             default:
               assert false;
+          }
+          if (haveResources) {
+            return new DexDeployTask(myFacet, buildInfo);
           }
         }
       }
