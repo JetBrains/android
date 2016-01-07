@@ -130,7 +130,7 @@ public class ProjectSyncMessages {
         default:
           String group = UNHANDLED_SYNC_ISSUE_TYPE;
           String text = syncIssue.getMessage();
-          Message.Type severity = syncIssue.getType() == SyncIssue.SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
+          Message.Type severity = syncIssue.getSeverity() == SyncIssue.SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
 
           Message msg;
           if (buildFile != null) {
