@@ -125,10 +125,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           boolean haveResources = false;
           switch (type) {
             case MAIN:
-              // We don't know if there are splits here too; if so, we should be
-              // using SplitApkDeployTask, but if not, we'll just fall through below
-              // to use DeployApkTask
-              continue;
+              int apiLevel = buildInfo.getApiLevel();
+              if (apiLevel >= 23) {
+                return new SplitApkDeployTask(myFacet, buildInfo);
+              } else {
+                return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider);
+              }
             case SPLIT:
               return new SplitApkDeployTask(myFacet, buildInfo);
             case RESOURCES:

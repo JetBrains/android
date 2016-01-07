@@ -76,8 +76,15 @@ public class InstantRunBuildInfo {
   }
 
   @NotNull
-  public String getApiLevel() {
-    return myRoot.getAttribute(ATTR_API_LEVEL);
+  public int getApiLevel() {
+    String attribute = myRoot.getAttribute(ATTR_API_LEVEL);
+    if (attribute != null && !attribute.isEmpty()) {
+      try {
+        return Integer.parseInt(attribute);
+      } catch (NumberFormatException ignore) {
+      }
+    }
+    return -1; // unknown
   }
 
   @NotNull
