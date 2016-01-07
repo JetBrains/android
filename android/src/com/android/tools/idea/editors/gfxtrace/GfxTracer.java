@@ -42,6 +42,8 @@ public class GfxTracer {
   @NotNull private static final String PRELOAD_LIB = "/data/local/tmp/libgapii.so";
   @NotNull private static final int GAPII_PORT = 9286;
   @NotNull private static final String GAPII_ABSTRACT_PORT = "gapii";
+  private static final int GAPII_PROTOCOL_VERSION = 3;
+  private static final int GAPII_FLAG_DISABLE_PRECOMPILED_SHADERS = 0x00000001;
 
   @NotNull private static final Pattern ENFORCING_PATTERN = Pattern.compile("^Enforcing$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
   @NotNull private static final Pattern PERMISSIVE_PATTERN = Pattern.compile("^Permissive$|^Disabled$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
@@ -53,14 +55,17 @@ public class GfxTracer {
 
   private volatile boolean myStopped = false;
 
+
   // Options holds the flags used to control the capture mode.
   public static class Options {
     // The trace file name to output.
     public String myTraceName;
-    // If true, then a framebuffer-observation will be made after every end-of-frame.
+    // If non-zero, then a framebuffer-observation will be made after every N end-of-frames.
     public int myObserveFrameFrequency = 0;
-    // If true, then a framebuffer-observation will be made after every draw call.
+    // If non-zero, then a framebuffer-observation will be made after every N draw calls.
     public int myObserveDrawFrequency = 0;
+    // If true then GAPII will pretend the driver does not support precompiled shaders.
+    public boolean myDisablePrecompiledShaders = false;
   }
 
   /**
@@ -302,30 +307,37 @@ public class GfxTracer {
   }
 
   private static void sendHeader(@NotNull Socket socket, @NotNull Options options) throws IOException {
-    // The GAPII header version 1 is defined as:
+    // The GAPII header version 3 is defined as:
     //
     // struct ConnectionHeader {
     //   uint8_t  mMagic[4];                     // 's', 'p', 'y', '0'
-    //   uint32_t mVersion;                      // 2
-    //   uint32_t  mObserveFrameFrequency;      // non-zero == enabled
-    //   uint32_t  mObserveDrawFrequency; // non-zero == enabled
+    //   uint32_t mVersion;                      // 3
+    //   uint32_t  mObserveFrameFrequency;       // non-zero == enabled
+    //   uint32_t  mObserveDrawFrequency;        // non-zero == enabled
+    //   uint32_t  mFlags;                       // bitfield
     // };
     //
     // All fields are encoded little-endian with no compression, regardless of
     // architecture. All changes must be kept in sync with:
     //   platform/tools/gpu/cc/gapii/connection_header.h
+
+    int flags = 0;
+    if (options.myDisablePrecompiledShaders) {
+      flags |= GAPII_FLAG_DISABLE_PRECOMPILED_SHADERS;
+    }
+
     OutputStream out = socket.getOutputStream();
-    byte[] b = new byte[16];
+    byte[] b = new byte[20];
     // magic
     b[0] = 's';
     b[1] = 'p';
     b[2] = 'y';
     b[3] = '0';
     // version
-    b[4] = 2;
-    b[5] = 0;
-    b[6] = 0;
-    b[7] = 0;
+    b[4] = (byte)(GAPII_PROTOCOL_VERSION >> 0);
+    b[5] = (byte)(GAPII_PROTOCOL_VERSION >> 8);
+    b[6] = (byte)(GAPII_PROTOCOL_VERSION >> 16);
+    b[7] = (byte)(GAPII_PROTOCOL_VERSION >> 24);
     // mObserveFrameFrequency
     b[8] = (byte)(options.myObserveFrameFrequency >> 0);
     b[9] = (byte)(options.myObserveFrameFrequency >> 8);
@@ -336,6 +348,12 @@ public class GfxTracer {
     b[13] = (byte)(options.myObserveDrawFrequency >> 8);
     b[14] = (byte)(options.myObserveDrawFrequency >> 16);
     b[15] = (byte)(options.myObserveDrawFrequency >> 24);
+    // mFlags
+    b[16] = (byte)(flags >> 0);
+    b[17] = (byte)(flags >> 8);
+    b[18] = (byte)(flags >> 16);
+    b[19] = (byte)(flags >> 24);
+
     out.write(b);
     out.flush();
   }
