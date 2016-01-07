@@ -414,13 +414,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // edited manifest changes what the incremental run build has to do.
     GradleInvoker.saveAllFilesSafely();
 
-    boolean buildIdsMatch = buildIdsMatch(module, devices);
-    if (!buildIdsMatch) {
-      LOG.info("Cannot instant run since build ids don't match what is on disk.");
+    boolean buildsMatch = buildTimestampsMatch(module, devices);
+    if (!buildsMatch) {
+      LOG.info("Cannot instant run since build timestamps on the device and on disk are different.");
       return null;
     }
 
-    InstantRunUtils.setDeviceHasKnownBuild(env, true);
     InstantRunUtils.setAppRunning(env, isAppRunning(module, devices));
 
     if (InstantRunManager.canBuildIncrementally(devices, module)) {
@@ -513,9 +512,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return true;
   }
 
-  private static boolean buildIdsMatch(@NotNull Module module, @NotNull Collection<IDevice> devices) {
+  private static boolean buildTimestampsMatch(@NotNull Module module, @NotNull Collection<IDevice> devices) {
     for (IDevice device : devices) {
-      if (!InstantRunManager.buildIdsMatch(device, module)) {
+      if (!InstantRunManager.buildTimestampsMatch(device, module)) {
         return false;
       }
     }

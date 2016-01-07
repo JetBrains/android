@@ -34,7 +34,7 @@ public class InstantRunBuildInfoTest {
   @Test
   public void testBuildId() throws IOException {
     InstantRunBuildInfo info = getBuildInfo("instantrun", "build-info1.xml");
-    assertEquals("1451508349243", info.getBuildId());
+    assertEquals("1451508349243", info.getTimeStamp());
   }
 
   @Test

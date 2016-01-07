@@ -2,7 +2,7 @@
 <instant-run
     api-level="23"
     format="1"
-    build-id="1451508349243" >
+    timestamp="1451508349243" >
 
     <task
         name="javac"
@@ -51,7 +51,7 @@
         location="app/build/outputs/apk/app-debug.apk"
         type="MAIN" />
 
-    <build build-id="1451508349243" >
+    <build timestamp="1451508349243" >
         <artifact
             location="app/build/intermediates/split-apk/debug/dependencies_55eb4309070c4cbdf50e953d07e2911c4f7feb8f.apk"
             type="SPLIT" />
