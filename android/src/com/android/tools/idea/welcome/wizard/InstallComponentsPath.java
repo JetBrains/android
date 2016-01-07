@@ -59,28 +59,29 @@ import java.util.Set;
  * perform component setup.
  */
 public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
-  private final ProgressStep myProgressStep;
-  @NotNull private final FirstRunWizardMode myMode;
-  @NotNull private final ComponentInstaller myComponentInstaller;
-  @NotNull private final File mySdkLocation;
-  private ComponentTreeNode myComponentTree;
   @NotNull private final Map<String, RemotePackage> myRemotePackages;
+  @NotNull private final FirstRunWizardMode myMode;
+  private ComponentTreeNode myComponentTree;
+  private final ProgressStep myProgressStep;
   // This will be different than the actual handler, since this will change as and when we change the path in the UI.
   private AndroidSdkHandler myLocalHandler;
+  @NotNull private ComponentInstaller myComponentInstaller;
+  private final boolean myInstallUpdates;
 
-  public InstallComponentsPath(@NotNull ProgressStep progressStep,
+  public InstallComponentsPath(@NotNull Map<String, RemotePackage> remotePackages,
                                @NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
-                               @NotNull Map<String, RemotePackage> remotePackages,
+                               @NotNull ProgressStep progressStep,
                                boolean installUpdates) {
-    myProgressStep = progressStep;
-    myMode = mode;
-    mySdkLocation = sdkLocation;
     myRemotePackages = remotePackages;
+    myMode = mode;
+    myProgressStep = progressStep;
+
     // Create a new instance for use during installation
-    myLocalHandler = AndroidSdkHandler.getInstance(mySdkLocation);
+    myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
 
     myComponentInstaller = new ComponentInstaller(remotePackages, installUpdates, myLocalHandler);
+    myInstallUpdates = installUpdates;
   }
 
   private ComponentTreeNode createComponentTree(@NotNull FirstRunWizardMode reason,
@@ -217,11 +218,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
   @Override
   protected void init() {
-    boolean createAvd = myMode.shouldCreateAvd();
-    String pathString = mySdkLocation.getAbsolutePath();
-    myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, pathString);
+    File location = myLocalHandler.getLocation();
+    assert location != null;
 
-    myComponentTree = createComponentTree(myMode, myState, createAvd);
+    myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
+
+    myComponentTree = createComponentTree(myMode, myState, myMode.shouldCreateAvd());
     myComponentTree.init(myProgressStep);
 
     addStep(new SdkComponentsStep(myComponentTree, FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, myMode));
@@ -253,6 +255,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         File sdkLocation = new File(sdkPath);
         if (!FileUtil.filesEqual(myLocalHandler.getLocation(), sdkLocation)) {
           myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
+          myComponentInstaller = new ComponentInstaller(myRemotePackages, myInstallUpdates, myLocalHandler);
+
           myComponentTree.updateState(myLocalHandler);
         }
       }
