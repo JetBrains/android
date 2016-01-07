@@ -87,7 +87,7 @@ public class RestartActivityAction extends AnAction {
   public static void restartActivity(@NotNull Module module) {
     Project project = module.getProject();
     for (IDevice device : InstantRunManager.findDevices(project)) {
-      if (InstantRunManager.isAppRunning(device, module)) {
+      if (InstantRunManager.isAppInForeground(device, module)) {
         if (InstantRunSettings.isShowToastEnabled(project)) {
           InstantRunManager.showToast(device, module, "Activity Restarted");
         }
