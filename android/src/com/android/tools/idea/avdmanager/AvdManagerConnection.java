@@ -174,6 +174,11 @@ public class AvdManagerConnection {
     return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR_CHECK));
   }
 
+  private File getEmulatorCheckBinary() {
+    assert mySdkHandler != null;
+    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR_CHECK));
+  }
+
   /**
    * Return the SystemImageUpdateDependencies for the current emulator
    * or null if no emulator is installed or if the emulator is not an qemu2 emulator.
