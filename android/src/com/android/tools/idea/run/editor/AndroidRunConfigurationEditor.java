@@ -84,6 +84,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private final List<DeployTargetProvider> myApplicableDeployTargetProviders;
 
   private AndroidDebuggerPanel myAndroidDebuggerPanel;
+  private final AndroidProfilersPanel myAndroidProfilersPanel;
 
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator, T config) {
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
@@ -135,6 +136,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       myAndroidDebuggerPanel = new AndroidDebuggerPanel(config);
       myTabbedPane.add("Debugger", myAndroidDebuggerPanel.getComponent());
     }
+
+    myAndroidProfilersPanel = new AndroidProfilersPanel(config.getProfilerState());
+    myTabbedPane.add("Profiling", myAndroidProfilersPanel.getComponent());
   }
 
   public void setConfigurationSpecificEditor(ConfigurationSpecificEditor<T> configurationSpecificEditor) {
@@ -176,6 +180,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     if (myAndroidDebuggerPanel != null) {
       myAndroidDebuggerPanel.resetFrom(configuration);
     }
+    myAndroidProfilersPanel.resetFrom(configuration.getProfilerState());
   }
 
   @Override
@@ -198,6 +203,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     if (myAndroidDebuggerPanel != null) {
       myAndroidDebuggerPanel.applyTo(configuration);
     }
+    myAndroidProfilersPanel.applyTo(configuration.getProfilerState());
   }
 
   @Override
