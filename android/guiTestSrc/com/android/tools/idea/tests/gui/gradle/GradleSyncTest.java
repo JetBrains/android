@@ -409,44 +409,6 @@ public class GradleSyncTest extends GuiTestCase {
     rtJarChildren.get(1).requireDirectory("javax");
   }
 
-  @Test @IdeGuiTest
-  @Ignore // Removed minimum plugin version check. It is failing in some projects.
-  public void testUnsupportedPluginVersion() throws IOException {
-    // Open the project without updating the version of the plug-in
-    myProjectFrame = importSimpleApplication();
-
-    final Project project = myProjectFrame.getProject();
-
-    // Use old, unsupported plugin version.
-    File buildFilePath = new File(project.getBasePath(), FN_BUILD_GRADLE);
-    final VirtualFile buildFile = findFileByIoFile(buildFilePath, true);
-    assertNotNull(buildFile);
-    runWriteCommandAction(project, new Runnable() {
-      @Override
-      public void run() {
-        new GradleBuildFile(buildFile, project).setValue(PLUGIN_VERSION, "0.12.+");
-      }
-    });
-
-    // Use old, unsupported Gradle in the wrapper.
-    myProjectFrame.updateGradleWrapperVersion("1.12");
-
-    GradleProjectSettings settings = getGradleProjectSettings(project);
-    assertNotNull(settings);
-    settings.setDistributionType(DEFAULT_WRAPPED);
-
-    myProjectFrame.requestProjectSyncAndExpectFailure();
-
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
-    String errorPrefix = "The minimum supported version of the Android Gradle plugin";
-    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith(errorPrefix));
-
-    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlink("Fix plugin version");
-    hyperlink.click();
-
-    myProjectFrame.waitForGradleProjectSyncToFinish();
-  }
-
   // See https://code.google.com/p/android/issues/detail?id=75060
   @Test @IdeGuiTest
   @Ignore // Works only when executed individually
