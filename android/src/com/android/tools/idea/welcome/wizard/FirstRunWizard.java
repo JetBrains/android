@@ -28,7 +28,6 @@ import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.android.utils.NullLogger;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Map;
@@ -43,7 +42,7 @@ public class FirstRunWizard extends DynamicWizard {
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
 
   @NotNull private final FirstRunWizardMode myMode;
-  @Nullable private final Map<String, RemotePackage> myRemotePackages;
+  @NotNull private final Map<String, RemotePackage> myRemotePackages;
   /**
    * On the first user click on finish button, we show progress step & perform setup.
    * Second attempt will close the wizard.
@@ -66,7 +65,7 @@ public class FirstRunWizard extends DynamicWizard {
   public void init() {
     File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(myMode);
     ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
-    myComponentsPath = new InstallComponentsPath(progressStep, myMode, initialSdkLocation, myRemotePackages, true);
+    myComponentsPath = new InstallComponentsPath(myRemotePackages, myMode, initialSdkLocation, progressStep, true);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       boolean sdkExists =
         initialSdkLocation.isDirectory() && SdkManager.createManager(initialSdkLocation.getAbsolutePath(), new NullLogger()) != null;
