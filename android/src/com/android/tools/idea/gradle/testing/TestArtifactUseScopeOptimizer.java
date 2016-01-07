@@ -38,10 +38,17 @@ public class TestArtifactUseScopeOptimizer extends UseScopeOptimizer {
     if (testScopes == null) {
       return null;
     }
-    if (testScopes.isAndroidTestSource(file)) {
+
+    boolean inAndroidTest = testScopes.isAndroidTestSource(file);
+    boolean inUnitTest = testScopes.isUnitTestSource(file);
+
+    if (inAndroidTest && inUnitTest) {
+      return null;
+    }
+    else if (inAndroidTest) {
       return testScopes.getUnitTestSourceScope();
     }
-    if (testScopes.isUnitTestSource(file)) {
+    if (inUnitTest) {
       return testScopes.getAndroidTestSourceScope();
     }
     return null;
