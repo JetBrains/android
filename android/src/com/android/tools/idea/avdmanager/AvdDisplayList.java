@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.npw.WizardUtils;
@@ -244,13 +246,33 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   /**
-   * Return the resolution of a given AVD as a string of the format [width]x[height] - [density]
+   * @return the device screen size of this AVD
+   */
+  @VisibleForTesting
+  static Dimension getScreenSize(@NotNull AvdInfo info) {
+    DeviceManagerConnection deviceManager = DeviceManagerConnection.getDefaultDeviceManagerConnection();
+    Device device = deviceManager.getDevice(info.getDeviceName(), info.getDeviceManufacturer());
+    if (device == null) {
+      return null;
+    }
+    return device.getScreenSize(device.getDefaultState().getOrientation());
+  }
+
+  /**
+   * @return the resolution of a given AVD as a string of the format [width]x[height] - [density]
    * (e.g. 1200x1920 - xhdpi) or "Unknown Resolution" if the AVD does not define a resolution.
    */
-  protected static String getResolution(AvdInfo info) {
+  @VisibleForTesting
+  static String getResolution(@NotNull AvdInfo info) {
+    DeviceManagerConnection deviceManager = DeviceManagerConnection.getDefaultDeviceManagerConnection();
+    Device device = deviceManager.getDevice(info.getDeviceName(), info.getDeviceManufacturer());
+    Dimension res = null;
+    Density density = null;
+    if (device != null) {
+      res = device.getScreenSize(device.getDefaultState().getOrientation());
+      density = device.getDefaultHardware().getScreen().getPixelDensity();
+    }
     String resolution;
-    Dimension res = AvdManagerConnection.getDefaultAvdManagerConnection().getAvdResolution(info);
-    Density density = AvdManagerConnection.getAvdDensity(info);
     String densityString = density == null ? "Unknown Density" : density.getResourceValue();
     if (res != null) {
       resolution = String.format(Locale.getDefault(), "%1$d \u00D7 %2$d: %3$s", res.width, res.height, densityString);
@@ -310,9 +332,8 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return new Comparator<AvdInfo>() {
           @Override
           public int compare(AvdInfo o1, AvdInfo o2) {
-            AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
-            Dimension d1 = connection.getAvdResolution(o1);
-            Dimension d2 = connection.getAvdResolution(o2);
+            Dimension d1 = getScreenSize(o1);
+            Dimension d2 = getScreenSize(o2);
             if (d1 == d2) {
               return 0;
             } else if (d1 == null) {
