@@ -94,8 +94,10 @@ public class HprofView implements Disposable {
       @Override
       public void update(AnActionEvent e) {
         super.update(e);
-        getTemplatePresentation().setText(StringUtil.capitalize(mySelectionModel.getHeap().getName() + " heap"));
-        e.getPresentation().setText(StringUtil.capitalize(mySelectionModel.getHeap().getName() + " heap"));
+        if (mySnapshot != null) { // Perform a check since the IDE sometimes updates the buttons after the view/snapshot is disposed.
+          getTemplatePresentation().setText(StringUtil.capitalize(mySelectionModel.getHeap().getName() + " heap"));
+          e.getPresentation().setText(StringUtil.capitalize(mySelectionModel.getHeap().getName() + " heap"));
+        }
       }
     });
 
