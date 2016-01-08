@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.assetstudio.icon;
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.npw.assetstudio.assets.ClipartAsset;
+import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.ui.properties.core.ObjectProperty;
 import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
 import org.jetbrains.annotations.NotNull;
@@ -70,7 +70,7 @@ public final class AndroidActionBarIconGenerator extends AndroidIconGenerator {
       actionBarOptions.customThemeColor = myCustomColor.get().getRGB();
     }
 
-    actionBarOptions.sourceIsClipart = (assetType.equals(ClipartAsset.class));
+    actionBarOptions.sourceIsClipart = (assetType.equals(VectorAsset.class));
 
     return actionBarOptions;
   }
