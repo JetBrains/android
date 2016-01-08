@@ -19,6 +19,7 @@ import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.client.UserFeedback;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -26,14 +27,20 @@ import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.Ref;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
 
 public class InstantRunUserFeedback implements UserFeedback {
+  private static final boolean ALLOW_MUTE_VERIFIER_FAILURE = false;
+
   private static boolean ourHideRestartTip;
+  @SuppressWarnings("FieldCanBeLocal")
+  private static boolean ourMuteVerifierMessages;
+
   @NotNull private final Module myModule;
 
   public InstantRunUserFeedback(@NotNull Module module) {
@@ -42,24 +49,22 @@ public class InstantRunUserFeedback implements UserFeedback {
 
   @Override
   public void error(String message) {
-    InstantRunManager.postBalloon(MessageType.ERROR, message, myModule.getProject());
+    postText(NotificationType.ERROR, null, message, null);
   }
 
   @Override
   public void warning(String message) {
-    InstantRunManager.postBalloon(MessageType.WARNING, message, myModule.getProject());
+    postText(NotificationType.WARNING, null, message, null);
   }
 
   @Override
   public void info(String message) {
-    InstantRunManager.postBalloon(MessageType.INFO, message, myModule.getProject());
+    postText(NotificationType.INFORMATION, null, message, null);
   }
 
   @Override
   public void noChanges() {
-    Notification notification =
-      InstantRunManager.NOTIFICATION_GROUP.createNotification("Instant Run:", "No Changes.", NotificationType.INFORMATION, null);
-    notification.notify(myModule.getProject());
+    postText("Instant Run:", "No Changes.");
   }
 
   @Override
@@ -95,12 +100,12 @@ public class InstantRunUserFeedback implements UserFeedback {
               ShowSettingsUtil.getInstance().editConfigurable(myModule.getProject(), configurable);
             }
             else if ("dismiss".equals(action)) {
-              notificationRef.get().hideBalloon();
+              notificationRef.get().expire();
             }
             else if ("dismiss_all".equals(action)) {
               //noinspection AssignmentToStaticFieldFromInstanceMethod
               ourHideRestartTip = true;
-              notificationRef.get().hideBalloon();
+              notificationRef.get().expire();
             }
             else {
               assert false : action;
@@ -113,5 +118,61 @@ public class InstantRunUserFeedback implements UserFeedback {
       notificationRef.set(notification);
       notification.notify(myModule.getProject());
     }
+  }
+
+  public void verifierFailure(@Language("HTML") String htmlMessage) {
+    if (ALLOW_MUTE_VERIFIER_FAILURE) {
+      if (ourMuteVerifierMessages) {
+        return;
+      }
+
+      NotificationListener listener = new NotificationListener() {
+        @Override
+        public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+          if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            assert "mute".equals(event.getDescription()) : event.getDescription();
+            //noinspection AssignmentToStaticFieldFromInstanceMethod
+            ourMuteVerifierMessages = true;
+          }
+        }
+      };
+      postHtml(NotificationType.INFORMATION, null, htmlMessage + "<br/>" +
+                                                   "(<a href=\"mute\">Mute</a>)", listener);
+    } else {
+      postHtml(NotificationType.INFORMATION, "", htmlMessage, null);
+    }
+  }
+
+  public void postText(@NotNull final String message) {
+    postText(NotificationType.INFORMATION, null, message, null);
+  }
+
+  public void postText(@Nullable String title, @NotNull final String message) {
+    postText(NotificationType.INFORMATION, title, message, null);
+  }
+
+  public void postText(@NotNull NotificationType type,
+                       @Nullable String title,
+                       @NotNull final String message,
+                       @Nullable NotificationListener listener) {
+    NotificationGroup group = InstantRunManager.NOTIFICATION_GROUP;
+    if (title == null) {
+      title = "";
+    }
+    Notification notification = group.createNotification(title, message, type, listener);
+    notification.notify(myModule.getProject());
+  }
+
+  public void postHtml(@NotNull NotificationType type,
+                       @Nullable String title,
+                       @Language("HTML") @NotNull final String htmlMessage,
+                       @Nullable NotificationListener listener) {
+    NotificationGroup group = InstantRunManager.NOTIFICATION_GROUP;
+    if (title == null) {
+      title = "";
+    }
+    String message = "<html>" + htmlMessage + "</html>";
+    Notification notification = group.createNotification(title, message, type, listener);
+    notification.notify(myModule.getProject());
   }
 }
