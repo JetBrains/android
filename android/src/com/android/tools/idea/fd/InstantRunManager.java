@@ -95,7 +95,7 @@ import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
  * in the IDE: determining if an app is running with the fast deploy runtime, whether it's up to date, communicating with it, etc.
  */
 public final class InstantRunManager implements ProjectComponent {
-  public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.0.0-alpha4";
+  public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.0.0-alpha5";
   public static final Revision MINIMUM_GRADLE_PLUGIN_VERSION = Revision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
 
