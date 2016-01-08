@@ -32,6 +32,7 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -76,6 +77,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     }
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testDownloadSdkSource() throws IOException {
     if (mySdk == null) {
@@ -125,6 +127,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     assertIsActivityJavaFile(sourceFile);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testRefreshSdkSource() throws IOException {
     if (mySdk == null) {

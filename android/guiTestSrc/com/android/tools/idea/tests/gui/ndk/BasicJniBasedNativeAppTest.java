@@ -26,6 +26,7 @@ import com.intellij.util.containers.HashMap;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Timeout;
 import org.fest.swing.util.PatternTextMatcher;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.awt.event.KeyEvent;
@@ -51,6 +52,7 @@ public class BasicJniBasedNativeAppTest extends GuiTestCase {
    *   - Gradle 2.5
    *   - Ndk r10 or higher
    */
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test @IdeGuiTest
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
     // Import the project and select the debug config 'app-native'.

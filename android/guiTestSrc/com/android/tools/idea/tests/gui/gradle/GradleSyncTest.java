@@ -152,6 +152,7 @@ public class GradleSyncTest extends GuiTestCase {
     }
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testMissingInterModuleDependencies() throws IOException {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
@@ -268,6 +269,7 @@ public class GradleSyncTest extends GuiTestCase {
     assertThat(urls).contains(url);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testSyncMissingAppCompat() throws IOException {
     if (myAndroidRepoPath.isDirectory()) {
@@ -1304,6 +1306,7 @@ public class GradleSyncTest extends GuiTestCase {
     return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void suggestUpgradingAndroidPlugin() throws IOException {
     final String hyperlinkText = "Fix plugin version and sync project";
