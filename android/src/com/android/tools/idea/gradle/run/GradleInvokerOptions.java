@@ -104,8 +104,7 @@ public class GradleInvokerOptions {
     // Note that these are specifically not injected for the unit test configurations above
     if (instantRunBuildOptions != null) {
       boolean incrementalBuild = !instantRunBuildOptions.cleanBuild &&      // e.g. build ids changed
-                                 !instantRunBuildOptions.needsFullBuild &&  // e.g. manifest changed
-                                 instantRunBuildOptions.isAppRunning;
+                                 !instantRunBuildOptions.needsFullBuild;    // e.g. manifest changed
 
       cmdLineArgs.add(getInstantDevProperty(instantRunBuildOptions, incrementalBuild));
       cmdLineArgs.addAll(getDeviceSpecificArguments(instantRunBuildOptions.devices));
@@ -128,12 +127,13 @@ public class GradleInvokerOptions {
     StringBuilder sb = new StringBuilder(50);
     sb.append("-Pandroid.optional.compilation=INSTANT_DEV");
 
-    FileChangeListener.Changes changes = buildOptions.fileChanges;
-    if (!incrementalBuild) {
-      // for non-incremental builds (i.e. assembleDebug), gradle wants us to pass an additional parameter RESTART_ONLY
+    // we need RESTART_ONLY in two scenarios: full builds, and for incremental builds when app is not running
+    if (!incrementalBuild || !buildOptions.isAppRunning) {
       sb.append(",RESTART_ONLY");
     }
-    else if (!changes.nonSourceChanges) {
+
+    FileChangeListener.Changes changes = buildOptions.fileChanges;
+    if (incrementalBuild && !changes.nonSourceChanges) {
       if (changes.localResourceChanges) {
         sb.append(",LOCAL_RES_ONLY");
       }
