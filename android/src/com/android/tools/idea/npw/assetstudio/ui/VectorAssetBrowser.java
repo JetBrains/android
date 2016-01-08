@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
+import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.jetbrains.annotations.NotNull;
@@ -32,61 +34,60 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Panel which wraps a {@link ImageAsset}, allowing the user to browse for an image file to use as
- * an asset.
+ * Text field with browse button which wraps a {@link VectorAsset}, which allows the user to
+ * specify a path to an SVG file.
  */
-public final class ImageAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent<ImageAsset> {
-  private final ImageAsset myImageAsset = new ImageAsset();
+public final class VectorAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent<VectorAsset>, Disposable {
+  private final VectorAsset mySvgAsset = new VectorAsset(VectorAsset.FileType.SVG);
   private final BindingsManager myBindings = new BindingsManager();
-  private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);
 
-  public ImageAssetBrowser() {
+  private final List<ActionListener> myAssetListeners = Lists.newArrayListWithExpectedSize(1);
 
-    addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
+  public VectorAssetBrowser() {
+    addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileDescriptor("svg"));
 
-    final TextProperty imagePathText = new TextProperty(getTextField());
-    myBindings.bind(imagePathText, new Expression<String>(myImageAsset.imagePath()) {
+    final StringProperty svgAbsolutePath = new TextProperty(getTextField());
+    myBindings.bind(svgAbsolutePath, new Expression<String>(mySvgAsset.path()) {
       @NotNull
       @Override
       public String get() {
-        return myImageAsset.imagePath().get().getAbsolutePath();
+        return mySvgAsset.path().get().getAbsolutePath();
       }
     });
 
-    myBindings.bind(myImageAsset.imagePath(), new Expression<File>(imagePathText) {
+    myBindings.bind(mySvgAsset.path(), new Expression<File>(svgAbsolutePath) {
       @NotNull
       @Override
       public File get() {
-        return new File(imagePathText.get());
+        return new File(svgAbsolutePath.get());
       }
     });
 
-    InvalidationListener onImageChanged = new InvalidationListener() {
+    mySvgAsset.path().addListener(new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        ActionEvent e = new ActionEvent(ImageAssetBrowser.this, ActionEvent.ACTION_PERFORMED, null);
-        for (ActionListener listener : myListeners) {
+        ActionEvent e = new ActionEvent(VectorAssetBrowser.this, ActionEvent.ACTION_PERFORMED, null);
+        for (ActionListener listener : myAssetListeners) {
           listener.actionPerformed(e);
         }
       }
-    };
-    myImageAsset.imagePath().addListener(onImageChanged);
+    });
   }
 
   @NotNull
   @Override
-  public ImageAsset getAsset() {
-    return myImageAsset;
+  public VectorAsset getAsset() {
+    return mySvgAsset;
   }
 
   @Override
   public void addAssetListener(@NotNull ActionListener l) {
-    myListeners.add(l);
+    myAssetListeners.add(l);
   }
 
   @Override
   public void dispose() {
     myBindings.releaseAll();
-    myListeners.clear();
+    myAssetListeners.clear();
   }
 }
