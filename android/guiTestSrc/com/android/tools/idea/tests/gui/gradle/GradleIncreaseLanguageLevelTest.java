@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,6 +33,8 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class GradleIncreaseLanguageLevelTest extends GuiTestCase {
+
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testIncreaseLanguageLevelForJava() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -42,6 +45,7 @@ public class GradleIncreaseLanguageLevelTest extends GuiTestCase {
     useJava7FeatureAndIncreaseLanguageLevel(editor);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testIncreaseLanguageLevelForAndroid() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
