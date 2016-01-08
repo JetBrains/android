@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildMode
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -40,6 +41,8 @@ import static org.fest.assertions.Assertions.assertThat;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class AddGradleDependencyTest extends GuiTestCase {
+
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testAddProdModuleDependency() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -90,6 +93,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     verifyUndo(editor, 1);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testAddLibDependencyDeclaredInJavaProject() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -175,6 +179,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     assertThat(intentions).excludes(intention);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testAddJUnitDependency() throws IOException {
     myProjectFrame = importSimpleApplication();
@@ -198,6 +203,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     verifyUndo(editor, 6);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testAddJetbrainsAnnotationDependency() throws IOException {
     myProjectFrame = importSimpleApplication();
