@@ -28,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.setBuildToolsVersion;
+
 public class InstallBuildToolsHyperlink extends NotificationHyperlink {
   @NotNull private final String myVersion;
   @Nullable private final VirtualFile myBuildFile;
@@ -58,7 +60,7 @@ public class InstallBuildToolsHyperlink extends NotificationHyperlink {
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
     if (dialog != null && dialog.showAndGet()) {
       if (myBuildFile != null) {
-        FixBuildToolsVersionHyperlink.fixBuildToolsVersionAndSync(project, myBuildFile, myVersion);
+        setBuildToolsVersion(project, myBuildFile, myVersion, true);
       }
       else {
         GradleProjectImporter.getInstance().requestProjectSync(project, null);
