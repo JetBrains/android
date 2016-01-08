@@ -357,7 +357,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
-    setInstantRunBuildOptions(env, module, deviceFutures);
+    if (InstantRunSettings.isInstantRunEnabled(project) && InstantRunManager.isPatchableApp(module)) {
+      setInstantRunBuildOptions(env, module, deviceFutures);
+    }
 
     // Store the chosen target on the execution environment so before-run tasks can access it.
     env.putCopyableUserData(DEVICE_FUTURES_KEY, deviceFutures);
