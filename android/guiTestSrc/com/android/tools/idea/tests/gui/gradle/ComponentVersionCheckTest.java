@@ -61,7 +61,7 @@ public class ComponentVersionCheckTest extends GuiTestCase {
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
     myProjectFrame = importSimpleApplication();
 
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidModelVersion("1.3.0").requestProjectSync()
+    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
       .waitForGradleProjectSyncToFinish();
 
     ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
@@ -93,7 +93,7 @@ public class ComponentVersionCheckTest extends GuiTestCase {
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
     myProjectFrame = importSimpleApplication();
 
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidModelVersion("1.3.0").requestProjectSync()
+    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
       .waitForGradleProjectSyncToFinish();
 
     ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
