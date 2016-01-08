@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FindDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FindToolWindowFixture;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
@@ -27,6 +28,7 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPO
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class FindInPathTest extends GuiTestCase {
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test @IdeGuiTest
   public void testResultsOnlyInGeneratedCode() throws Exception {
     myProjectFrame = importSimpleApplication();
@@ -43,6 +45,7 @@ public class FindInPathTest extends GuiTestCase {
     selectedContext.findUsagesInGeneratedCodeGroup();
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test @IdeGuiTest
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
     myProjectFrame = importSimpleApplication();
