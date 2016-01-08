@@ -640,6 +640,9 @@ public final class InstantRunManager implements ProjectComponent {
   public static void displayVerifierStatus(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
     if (!buildInfo.canHotswap()) {
       String status = buildInfo.getVerifierStatus();
+      if (status.isEmpty()) {
+        return;
+      }
       // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
       status = StringUtil.capitalizeWords(status.toLowerCase(Locale.US).replace('_', ' '), true);
       postBalloon(MessageType.WARNING, "Couldn't apply changes on the fly: " + status, facet.getModule().getProject());
