@@ -118,6 +118,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
         List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
         if (artifacts.isEmpty()) {
+          // We should update the id on the device even if there were no
+          // artifact changes, since otherwise the next build will mismatch
+          InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
+
           new InstantRunUserFeedback(myFacet.getModule()).noChanges();
           return null;
         }
