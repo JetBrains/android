@@ -20,6 +20,7 @@ import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.fd.InstantRunUserFeedback;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -79,9 +80,9 @@ public class InstantRunWithoutRestart extends AnAction {
         if (InstantRunManager.buildTimestampsMatch(device, module)) {
           performUpdate(manager, device, getUpdateMode(), module);
         } else {
-          InstantRunManager.postBalloon(MessageType.ERROR,
-                                        "Local Gradle build id doesn't match what's installed on the device; full build required",
-                                        project);
+          new InstantRunUserFeedback(module).postText(
+            "Local Gradle build id doesn't match what's installed on the device; full build required"
+          );
         }
         break;
       }
