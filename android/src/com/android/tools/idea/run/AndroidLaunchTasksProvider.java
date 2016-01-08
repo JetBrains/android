@@ -185,7 +185,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @Nullable
   @Override
   public String getSuccessMessage() {
-    if (InstantRunUtils.isIncrementalBuild(myEnv)) {
+    if (!InstantRunUtils.needsFullBuild(myEnv)) { // TODO: this doesn't accurately reflect whether it'll be a hotswap
       // Instant run does its own notification
       return null;
     }

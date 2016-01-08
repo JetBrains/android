@@ -282,7 +282,7 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   /** Returns true if any of the devices in the given list require a full build. */
-  public static boolean canBuildIncrementally(@NotNull Collection<IDevice> devices, @NotNull Module module) {
+  public static boolean needsFullBuild(@NotNull Collection<IDevice> devices, @NotNull Module module) {
     for (IDevice device : devices) {
       if (needsFullBuild(device, module)) {
         return false;
