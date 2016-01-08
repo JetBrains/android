@@ -81,7 +81,6 @@ import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -101,7 +100,6 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
@@ -131,7 +129,6 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.swing.timing.Pause.pause;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.junit.Assert.*;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
@@ -891,7 +888,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     // Set the plugin version to 1.0.0. This version is incompatible with Gradle 2.4.
     // We expect the IDE to warn the user about this incompatibility.
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidModelVersion("1.0.0").requestProjectSync()
+    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.0.0").requestProjectSync()
       .waitForGradleProjectSyncToFinish();
 
     ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
@@ -1192,7 +1189,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testModelWithLayoutRenderingIssue() throws IOException {
     myProjectFrame = importMultiModule();
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidModelVersion("1.2.0").requestProjectSync()
+    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.2.0").requestProjectSync()
       .waitForGradleProjectSyncToFinish();
 
     ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
@@ -1261,7 +1258,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testWithPreReleasePlugin() throws IOException {
     myProjectFrame = importMultiModule();
-    myProjectFrame.updateAndroidModelVersion("1.2.0-beta1").requestProjectSync().waitForGradleProjectSyncToFail();
+    myProjectFrame.updateAndroidGradlePluginVersion("1.2.0-beta1").requestProjectSync().waitForGradleProjectSyncToFail();
 
     ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message =
@@ -1312,7 +1309,7 @@ public class GradleSyncTest extends GuiTestCase {
     final String hyperlinkText = "Fix plugin version and sync project";
 
     myProjectFrame = importMultiModule();
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidModelVersion("1.2.0");
+    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.2.0");
     myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     EditorFixture editor = myProjectFrame.getEditor();
