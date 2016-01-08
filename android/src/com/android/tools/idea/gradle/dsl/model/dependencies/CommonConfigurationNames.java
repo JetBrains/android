@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import org.jetbrains.annotations.NonNls;
+
 /**
  * Common configuration names used in dependencies.
  */
 public final class CommonConfigurationNames {
-  public static final String ANDROID_TEST_COMPILE = "androidTestCompile";
-  public static final String APK = "apk";
-  public static final String COMPILE = "compile";
-  public static final String DEBUG_COMPILE = "debugCompile";
-  public static final String PROVIDED = "provided";
-  public static final String RELEASE_COMPILE = "releaseCompile";
-  public static final String RUNTIME = "runtime";
-  public static final String TEST_COMPILE = "testCompile";
-  public static final String TEST_RUNTIME = "testRuntime";
+  @NonNls public static final String ANDROID_TEST_COMPILE = "androidTestCompile";
+  @NonNls public static final String APK = "apk";
+  @NonNls public static final String CLASSPATH = "classpath";
+  @NonNls public static final String COMPILE = "compile";
+  @NonNls public static final String PROVIDED = "provided";
+  @NonNls public static final String RUNTIME = "runtime";
+  @NonNls public static final String TEST_COMPILE = "testCompile";
 
   private CommonConfigurationNames() {
   }
