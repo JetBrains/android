@@ -29,12 +29,10 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nls;
@@ -205,15 +203,7 @@ public class InstantRunConfigurable
       }
 
       // Also update build files to set build tools version 23.0.2
-      for (Module module : ModuleManager.getInstance(project).getModules()) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null) {
-          VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
-          if (buildFile != null) {
-            GradleUtil.setBuildToolsVersion(project, buildFile, buildToolsVersion, false);
-          }
-        }
-      }
+      GradleUtil.setBuildToolsVersion(project, buildToolsVersion);
 
       // Also update Gradle wrapper version
       File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
