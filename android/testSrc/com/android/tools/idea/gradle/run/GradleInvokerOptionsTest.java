@@ -15,24 +15,47 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.annotations.concurrency.Immutable;
+import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.fd.FileChangeListener;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class GradleInvokerOptionsTest {
   private GradleInvokerOptions.GradleTasksProvider myTasksProvider;
+  private IDevice myDevice;
+  private List<IDevice> myDevices;
+  private GradleInvoker.TestCompileType myTestCompileType;
+
+  private static final List<String> ASSEMBLE_TASKS = ImmutableList.of(":app:assemble");
+  private static final List<String> CLEAN_TASKS = ImmutableList.of("clean", ":app:generateSources");
+  private static final List<String> INCREMENTAL_TASKS = ImmutableList.of("incremental");
 
   @Before
   public void setup() {
-    myTasksProvider = Mockito.mock(GradleInvokerOptions.GradleTasksProvider.class);
+    myTestCompileType = GradleInvoker.TestCompileType.ANDROID_TESTS;
+    myTasksProvider = mock(GradleInvokerOptions.GradleTasksProvider.class);
+
+    when(myTasksProvider.getTasksFor(BuildMode.ASSEMBLE, myTestCompileType)).thenReturn(ASSEMBLE_TASKS);
+    when(myTasksProvider.getCleanAndGenerateSourcesTasks()).thenReturn(CLEAN_TASKS);
+    when(myTasksProvider.getIncrementalDexTasks()).thenReturn(INCREMENTAL_TASKS);
+
+    myDevice = mock(IDevice.class);
+    myDevices = Collections.singletonList(myDevice);
   }
 
   @Test
@@ -46,13 +69,64 @@ public class GradleInvokerOptionsTest {
 
   @Test
   public void testUnitTest() throws Exception {
-    List<String> tasks = Arrays.asList("compileUnitTest");
-    Mockito.when(myTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA)).thenReturn(tasks);
+    List<String> tasks = Collections.singletonList("compileUnitTest");
+    when(myTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA)).thenReturn(tasks);
 
     GradleInvokerOptions options =
       GradleInvokerOptions.create(true, GradleInvoker.TestCompileType.JAVA_TESTS, null, myTasksProvider, null);
 
     assertEquals(tasks, options.tasks);
     assertTrue("Command line arguments aren't set for unit test tasks", options.commandLineArguments.isEmpty());
+  }
+
+  @Test
+  public void testCleanBuild() throws Exception {
+    FileChangeListener.Changes changes = new FileChangeListener.Changes(true, false, false);
+    GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
+      new GradleInvokerOptions.InstantRunBuildOptions(true, false, true, changes, myDevices);
+
+    GradleInvokerOptions options =
+      GradleInvokerOptions.create(false, GradleInvoker.TestCompileType.ANDROID_TESTS, instantRunOptions, myTasksProvider, null);
+
+    assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
+
+    // should have clean + build tasks
+    HashSet<String> expected = Sets.newHashSet(CLEAN_TASKS);
+    expected.addAll(ASSEMBLE_TASKS);
+
+    assertEquals(expected, Sets.newHashSet(options.tasks));
+  }
+
+  @Test
+  public void testFullBuild() throws Exception {
+    FileChangeListener.Changes changes = new FileChangeListener.Changes(true, false, false);
+    GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
+      new GradleInvokerOptions.InstantRunBuildOptions(false, true, true, changes, myDevices);
+
+    GradleInvokerOptions options =
+      GradleInvokerOptions.create(false, myTestCompileType, instantRunOptions, myTasksProvider, null);
+
+    assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
+    assertEquals(ASSEMBLE_TASKS, options.tasks);
+  }
+
+  @Test
+  public void testIncrementalBuild() throws Exception {
+    GradleInvoker.TestCompileType testCompileType = GradleInvoker.TestCompileType.ANDROID_TESTS;
+
+    FileChangeListener.Changes changes = new FileChangeListener.Changes(false, true, false);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(21, null));
+    when(myDevice.getDensity()).thenReturn(640);
+
+    GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, changes, myDevices);
+
+    GradleInvokerOptions options =
+      GradleInvokerOptions.create(false, testCompileType, instantRunOptions, myTasksProvider, null);
+
+    assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,LOCAL_RES_ONLY"));
+    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=21"));
+    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.density=xxxhdpi"));
+    assertEquals(INCREMENTAL_TASKS, options.tasks);
   }
 }
