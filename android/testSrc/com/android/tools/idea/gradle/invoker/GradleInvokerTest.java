@@ -50,6 +50,8 @@ public class GradleInvokerTest extends IdeaTestCase {
   private AndroidFacet myAndroidFacet;
   private GradleInvoker myInvoker;
 
+  private boolean myOriginalLoadAllTestArtifactsValue;
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -84,7 +86,14 @@ public class GradleInvokerTest extends IdeaTestCase {
     myAndroidFacet.getProperties().ASSEMBLE_TASK_NAME = ASSEMBLE;
     myAndroidFacet.getProperties().ASSEMBLE_TEST_TASK_NAME = ASSEMBLE_ANDROID_TEST;
 
+    myOriginalLoadAllTestArtifactsValue = GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS;
     GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = false;
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
+    super.tearDown();
   }
 
   @Override
