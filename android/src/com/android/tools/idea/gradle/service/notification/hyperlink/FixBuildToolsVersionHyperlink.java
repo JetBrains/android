@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.parser.BuildFileKey.BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.gradle.util.GradleUtil.setBuildToolsVersion;
 
 public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
   @NotNull private final VirtualFile myBuildFile;
@@ -36,29 +33,6 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    fixBuildToolsVersionAndSync(project, myBuildFile, myVersion);
-  }
-
-  public static void fixBuildToolsVersion(@NotNull Project project,
-                                          @NotNull VirtualFile buildFile,
-                                          @NotNull final String version,
-                                          boolean requestSync) {
-    final GradleBuildFile gradleBuildFile = new GradleBuildFile(buildFile, project);
-    Object pluginVersion = gradleBuildFile.getValue(BUILD_TOOLS_VERSION);
-    if (pluginVersion != null) {
-      WriteCommandAction.runWriteCommandAction(project, new Runnable() {
-        @Override
-        public void run() {
-          gradleBuildFile.setValue(BUILD_TOOLS_VERSION, version);
-        }
-      });
-      if (requestSync) {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
-      }
-    }
-  }
-
-  static void fixBuildToolsVersionAndSync(@NotNull Project project, @NotNull VirtualFile buildFile, @NotNull final String version) {
-    fixBuildToolsVersion(project, buildFile, version, true);
+    setBuildToolsVersion(project, myBuildFile, myVersion, true);
   }
 }
