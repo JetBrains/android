@@ -357,6 +357,22 @@ public final class InstantRunManager implements ProjectComponent {
     return true;
   }
 
+  public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull Module module) {
+    InstantRunManager manager = get(module.getProject());
+    AndroidFacet facet = manager.findAppModule(module);
+    if (facet == null) {
+      return false;
+    }
+
+    String pkgName = getPackageName(facet);
+    if (pkgName == null) {
+      return true;
+    }
+
+    InstalledPatchCache cache = ServiceManager.getService(InstalledPatchCache.class);
+    return cache.getInstalledManifestTimestamp(device, pkgName) > 0;
+  }
+
   /**
    * Returns the timestamp of the most recently modified manifest file applicable for the given facet
    */

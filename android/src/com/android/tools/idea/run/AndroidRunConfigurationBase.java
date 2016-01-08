@@ -436,7 +436,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     GradleInvoker.saveAllFilesSafely();
     boolean needsFullBuild = InstantRunManager.needsFullBuild(devices, module);
     InstantRunUtils.setNeedsFullBuild(env, needsFullBuild);
-    if (needsFullBuild) {
+    if (needsFullBuild &&
+        InstantRunManager.hasLocalCacheOfDeviceData(Iterables.getOnlyElement(devices), module)) { // don't show this if we decided to build because we don't have a local cache
       LOG.info("Cannot patch update since a full build is required (typically because the manifest has changed)");
       new InstantRunUserFeedback(module).postText(
         "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)"
