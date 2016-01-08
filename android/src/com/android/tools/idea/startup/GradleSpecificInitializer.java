@@ -110,12 +110,16 @@ public class GradleSpecificInitializer implements Runnable {
     // Never applicable in the context of android studio, so just set to invisible.
     pluginAction.getTemplatePresentation().setVisible(false);
 
-    try {
-      // Setup JDK and Android SDK if necessary
-      setupSdks();
-      checkAndroidSdkHome();
-    } catch (Exception e) {
-      LOG.error("Unexpected error while setting up SDKs: ", e);
+    if (AndroidStudioInitializer.isAndroidSdkManagerEnabled()) {
+      try {
+        // Setup JDK and Android SDK if necessary
+        setupSdks();
+        checkAndroidSdkHome();
+      }
+      catch (Exception e) {
+        LOG.error("Unexpected error while setting up SDKs: ", e);
+      }
+      checkAndSetAndroidSdkSources();
     }
 
     registerAppClosing();
@@ -129,8 +133,6 @@ public class GradleSpecificInitializer implements Runnable {
         AndroidCodeStyleSettingsModifier.modify(settings);
       }
     }
-
-    checkAndSetAndroidSdkSources();
   }
 
   /**
