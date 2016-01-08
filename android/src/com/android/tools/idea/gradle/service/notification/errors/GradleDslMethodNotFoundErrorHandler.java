@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service.notification.errors;
 
 import com.android.repository.Revision;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenGradleSettingsHyperlink;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -60,7 +60,7 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
       if (virtualFile != null && FN_BUILD_GRADLE.equals(virtualFile.getName())) {
         NotificationHyperlink gradleSettingsHyperlink = getGradleSettingsHyperlink(project);
         NotificationHyperlink applyGradlePluginHyperlink = getApplyGradlePluginHyperlink(virtualFile, notification);
-        NotificationHyperlink upgradeAndroidPluginHyperlink = new FixGradleModelVersionHyperlink(false);
+        NotificationHyperlink upgradeAndroidPluginHyperlink = new FixAndroidGradlePluginVersionHyperlink(false);
 
         String newMsg = firstLine + "\nPossible causes:<ul>";
         if (!gradleModelIsRecent(project)) {

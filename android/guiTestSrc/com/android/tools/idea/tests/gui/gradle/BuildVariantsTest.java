@@ -129,7 +129,7 @@ public class BuildVariantsTest extends GuiTestCase {
 
   private void doTestGeneratedFolders(@NotNull String pluginVersion, @NotNull String gradleVersion) throws IOException {
     myProjectFrame = importMultiModule();
-    myProjectFrame.updateAndroidModelVersion(pluginVersion);
+    myProjectFrame.updateAndroidGradlePluginVersion(pluginVersion);
     myProjectFrame.updateGradleWrapperVersion(gradleVersion);
 
     // Add generated folders to all kinds of variants.

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.compatibility;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -64,7 +64,7 @@ class AndroidGradlePluginVersionReader implements ComponentVersionReader {
                                                    @Nullable FileLocation location) {
     String version = SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
     if (expectedVersion != null && expectedVersion.contains(version)) {
-      NotificationHyperlink quickFix = new FixGradleModelVersionHyperlink(version, null, false);
+      NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(version, null, false);
       return singletonList(quickFix);
     }
     return emptyList();
