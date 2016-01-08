@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
@@ -67,6 +66,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.SmartHashSet;
 import icons.AndroidIcons;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1289,7 +1289,7 @@ public final class GradleUtil {
       return false;
     }
 
-    final Ref<Boolean> atLeastOneUpdated = new Ref<Boolean>(false);
+    final List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
 
     processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
       @Override
@@ -1299,15 +1299,12 @@ public final class GradleUtil {
           DependenciesModel dependencies = buildModel.buildscript().dependencies();
           for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
             ArtifactDependencySpec spec = dependency.getSpec();
-            if ("com.android.tools.build".equals(spec.group) && "gradle".equals(spec.name) && !pluginVersion.equals(spec.version)) {
-              dependency.setVersion(pluginVersion);
-              atLeastOneUpdated.set(true);
-              runWriteCommandAction(project, new Runnable() {
-                @Override
-                public void run() {
-                  buildModel.applyChanges();
-                }
-              });
+            if ("com.android.tools.build".equals(spec.group) && "gradle".equals(spec.name)) {
+              if (!pluginVersion.equals(spec.version)) {
+                dependency.setVersion(pluginVersion);
+                modelsToUpdate.add(buildModel);
+              }
+              break;
             }
           }
         }
@@ -1315,8 +1312,19 @@ public final class GradleUtil {
       }
     });
 
-    boolean updated = atLeastOneUpdated.get();
-    if (updated && isNotEmpty(gradleVersion)) {
+    boolean updateModels = !modelsToUpdate.isEmpty();
+    if (updateModels) {
+      runWriteCommandAction(project, new Runnable() {
+        @Override
+        public void run() {
+          for (GradleBuildModel buildModel : modelsToUpdate) {
+            buildModel.applyChanges();
+          }
+        }
+      });
+    }
+
+    if (updateModels && isNotEmpty(gradleVersion)) {
       String basePath = project.getBasePath();
       if (basePath != null) {
         File wrapperPropertiesFilePath = getGradleWrapperPropertiesFilePath(new File(basePath));
@@ -1331,7 +1339,7 @@ public final class GradleUtil {
         }
       }
     }
-    return updated;
+    return updateModels;
   }
 
   @Nullable
@@ -1354,22 +1362,32 @@ public final class GradleUtil {
     return null;
   }
 
-  public static void setBuildToolsVersion(@NotNull Project project,
-                                          @NotNull VirtualFile buildFile,
-                                          @NotNull final String version,
-                                          boolean requestSync) {
-    // TODO check that the build file has the 'android' plugin applied.
-    final GradleBuildModel buildModel = parseBuildFile(buildFile, project);
-    AndroidModel android = buildModel.android();
-    android.setBuildToolsVersion(version);
-    runWriteCommandAction(project, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
+  public static void setBuildToolsVersion(@NotNull Project project, @NotNull String version) {
+    final List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
+
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        GradleBuildModel buildModel = GradleBuildModel.get(module);
+        if (buildModel != null) {
+          AndroidModel android = buildModel.android();
+          if (!version.equals(android.buildToolsVersion())) {
+            android.setBuildToolsVersion(version);
+            modelsToUpdate.add(buildModel);
+          }
+        }
       }
-    });
-    if (requestSync) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    }
+
+    if (!modelsToUpdate.isEmpty()) {
+      runWriteCommandAction(project, new Runnable() {
+        @Override
+        public void run() {
+          for (GradleBuildModel buildModel : modelsToUpdate) {
+            buildModel.applyChanges();
+          }
+        }
+      });
     }
   }
 }
