@@ -23,12 +23,14 @@ import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
@@ -1293,7 +1295,7 @@ public final class GradleUtil {
       @Override
       public boolean process(VirtualFile virtualFile) {
         if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-          final GradleBuildModel buildModel = parseBuildFile(virtualFile, project, "unknown");
+          final GradleBuildModel buildModel = parseBuildFile(virtualFile, project);
           DependenciesModel dependencies = buildModel.buildscript().dependencies();
           for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
             ArtifactDependencySpec spec = dependency.getSpec();
@@ -1350,5 +1352,24 @@ public final class GradleUtil {
       }
     }
     return null;
+  }
+
+  public static void setBuildToolsVersion(@NotNull Project project,
+                                          @NotNull VirtualFile buildFile,
+                                          @NotNull final String version,
+                                          boolean requestSync) {
+    // TODO check that the build file has the 'android' plugin applied.
+    final GradleBuildModel buildModel = parseBuildFile(buildFile, project);
+    AndroidModel android = buildModel.android();
+    android.setBuildToolsVersion(version);
+    runWriteCommandAction(project, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
+      }
+    });
+    if (requestSync) {
+      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    }
   }
 }
