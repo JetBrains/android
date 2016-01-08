@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.setBuildToolsVersion;
+import static com.android.tools.idea.gradle.service.notification.hyperlink.FixBuildToolsVersionHyperlink.setBuildToolsVersion;
 
 public class InstallBuildToolsHyperlink extends NotificationHyperlink {
   @NotNull private final String myVersion;
