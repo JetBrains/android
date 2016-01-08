@@ -22,10 +22,13 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
@@ -36,7 +39,6 @@ import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.impl.ApplicationImpl;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.ExtensionPoint;
@@ -50,14 +52,12 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Function;
@@ -88,6 +88,8 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
+import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
@@ -101,6 +103,7 @@ import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.WARNING;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -130,6 +133,7 @@ public final class GradleUtil {
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
+
   private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-([^-]*)-(.*)\\.jar");
   private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
 
@@ -867,7 +871,7 @@ public final class GradleUtil {
       }
     });
     if (range != null) {
-      WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+      runWriteCommandAction(project, new Runnable() {
         @Override
         public void run() {
           buildFileDocument.replaceString(range.getStartOffset(), range.getEndOffset(), versionTask.compute());
@@ -900,72 +904,6 @@ public final class GradleUtil {
       if (type == GroovyTokenTypes.mSTRING_LITERAL) {
         String text = unquoteString(lexer.getTokenText());
         if (text.startsWith(textToSearchPrefix)) {
-          return consumer.fun(Pair.create(text, lexer));
-        }
-      }
-      lexer.advance();
-    }
-    return null;
-  }
-
-  /**
-   * Delegates to the {@link #forPluginDefinition(String, String, Function)} and just returns target plugin's definition string (unquoted).
-   *
-   * @param fileContents target gradle config text
-   * @param pluginName   target plugin's name in a form <code>'group-id:artifact-id:'</code>
-   * @return target plugin's definition string if found (unquoted); <code>null</code> otherwise
-   * @see #forPluginDefinition(String, String, Function)
-   */
-  @Nullable
-  public static String getPluginDefinitionString(@NotNull String fileContents, @NotNull String pluginName) {
-    return forPluginDefinition(fileContents, pluginName, new Function<Pair<String, GroovyLexer>, String>() {
-      @Override
-      public String fun(Pair<String, GroovyLexer> pair) {
-        return pair.getFirst();
-      }
-    });
-  }
-
-  /**
-   * Checks given file contents (assuming that it's build.gradle config) and finds target plugin's definition (given the plugin
-   * name in a form <code>'group-id:artifact-id:'</code>. Supplies given callback with the plugin definition string (unquoted) and
-   * a {@link GroovyLexer} which state points to the plugin definition string (quoted).
-   * <p/>
-   * Example:
-   * <pre>
-   *     buildscript {
-   *       repositories {
-   *         mavenCentral()
-   *       }
-   *       dependencies {
-   *         classpath 'com.google.appengine:gradle-appengine-plugin:1.9.4'
-   *       }
-   *     }
-   * </pre>
-   * Suppose that this method is called for the given build script content and
-   * <code>'com.google.appengine:gradle-appengine-plugin:'</code> as a plugin name argument. Given callback is supplied by a
-   * string <code>'com.google.appengine:gradle-appengine-plugin:1.9.4'</code> (without quotes) and a {@link GroovyLexer} which
-   * {@link GroovyLexer#getTokenStart() points} to the string <code>'com.google.appengine:gradle-appengine-plugin:1.9.4'</code>
-   * (with quotes), i.e. we can get exact text range for the target string in case we need to do something like replacing plugin's
-   * version.
-   *
-   * @param fileContents target gradle config text
-   * @param pluginName   target plugin's name in a form <code>'group-id:artifact-id:'</code>
-   * @param consumer     a callback to be notified for the target plugin's definition string
-   * @param <T>          given callback's return type
-   * @return given callback's call result if target plugin definition is found; <code>null</code> otherwise
-   */
-  @Nullable
-  public static <T> T forPluginDefinition(@NotNull String fileContents,
-                                          @NotNull String pluginName,
-                                          @NotNull Function<Pair<String, GroovyLexer>, T> consumer) {
-    GroovyLexer lexer = new GroovyLexer();
-    lexer.start(fileContents);
-    while (lexer.getTokenType() != null) {
-      IElementType type = lexer.getTokenType();
-      if (type == GroovyTokenTypes.mSTRING_LITERAL) {
-        String text = unquoteString(lexer.getTokenText());
-        if (text.startsWith(pluginName)) {
           return consumer.fun(Pair.create(text, lexer));
         }
       }
@@ -1330,5 +1268,87 @@ public final class GradleUtil {
     File librarySourceDirPath = InternetAttachSourceProvider.getLibrarySourceDir();
     File sourceJar = new File(librarySourceDirPath, sourceFileName);
     return findFileByIoFile(sourceJar, true);
+  }
+
+  /**
+   * Updates the Android Gradle plugin version, and optionally the Gradle version of a given project.
+   *
+   * @param project       the given project.
+   * @param pluginVersion the Android Gradle plugin version to update to.
+   * @param gradleVersion the Gradle version to update to.
+   * @return {@code true} if the update of the plugin version succeeded.
+   */
+  public static boolean updateGradlePluginVersion(@NotNull final Project project,
+                                                  @NotNull final String pluginVersion,
+                                                  @Nullable String gradleVersion) {
+    VirtualFile baseDir = project.getBaseDir();
+    if (baseDir == null) {
+      // Unlikely to happen: this is default project.
+      return false;
+    }
+
+    final Ref<Boolean> atLeastOneUpdated = new Ref<Boolean>(false);
+
+    processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
+      @Override
+      public boolean process(VirtualFile virtualFile) {
+        if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+          final GradleBuildModel buildModel = parseBuildFile(virtualFile, project, "unknown");
+          DependenciesModel dependencies = buildModel.buildscript().dependencies();
+          for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
+            ArtifactDependencySpec spec = dependency.getSpec();
+            if ("com.android.tools.build".equals(spec.group) && "gradle".equals(spec.name) && !pluginVersion.equals(spec.version)) {
+              dependency.setVersion(pluginVersion);
+              atLeastOneUpdated.set(true);
+              runWriteCommandAction(project, new Runnable() {
+                @Override
+                public void run() {
+                  buildModel.applyChanges();
+                }
+              });
+            }
+          }
+        }
+        return true;
+      }
+    });
+
+    boolean updated = atLeastOneUpdated.get();
+    if (updated && isNotEmpty(gradleVersion)) {
+      String basePath = project.getBasePath();
+      if (basePath != null) {
+        File wrapperPropertiesFilePath = getGradleWrapperPropertiesFilePath(new File(basePath));
+        Revision current = getGradleVersionInWrapper(wrapperPropertiesFilePath);
+        if (current != null && !isSupportedGradleVersion(current)) {
+          try {
+            updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFilePath);
+          }
+          catch (IOException e) {
+            LOG.warn("Failed to update Gradle version in wrapper", e);
+          }
+        }
+      }
+    }
+    return updated;
+  }
+
+  @Nullable
+  private static Revision getGradleVersionInWrapper(@NotNull File wrapperPropertiesFilePath) {
+    String version = null;
+    try {
+      version = getGradleWrapperVersion(wrapperPropertiesFilePath);
+    }
+    catch (IOException e) {
+      LOG.warn("Failed to obtain Gradle version in wrapper", e);
+    }
+    if (isNotEmpty(version)) {
+      try {
+        return Revision.parseRevision(version);
+      }
+      catch (NumberFormatException e) {
+        LOG.warn("Failed to parse Gradle version " + version, e);
+      }
+    }
+    return null;
   }
 }

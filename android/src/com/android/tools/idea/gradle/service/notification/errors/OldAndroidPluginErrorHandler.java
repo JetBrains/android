@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.google.common.base.Joiner;
@@ -38,7 +38,7 @@ public class OldAndroidPluginErrorHandler extends AbstractSyncErrorHandler {
     String firstLine = message.get(0);
     if (firstLine.startsWith("Plugin is too old, please update to a more recent version")) {
       List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-      hyperlinks.add(new FixGradleModelVersionHyperlink(false));
+      hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink(false));
       String filePath = notification.getFilePath();
       if (isNotEmpty(filePath)) {
         Integer line = notification.getLine();
