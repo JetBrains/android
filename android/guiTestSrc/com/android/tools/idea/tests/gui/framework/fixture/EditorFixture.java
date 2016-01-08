@@ -55,19 +55,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.swing.FocusManager;
 import javax.swing.*;
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.InputMethodEvent;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextHitInfo;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
-import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -697,6 +695,9 @@ public class EditorFixture {
         });
       }
     }, SHORT_TIMEOUT);
+
+    // TODO: Maybe find a better way to keep Documents in sync with their VirtualFiles.
+    invokeActionViaKeystroke("Synchronize");
 
     return this;
   }
