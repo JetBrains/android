@@ -45,7 +45,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.*;
 import icons.AndroidIcons;
@@ -433,8 +432,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // a no-op) because we need to check whether the manifest file has been edited since an
     // edited manifest changes what the incremental run build has to do.
     GradleInvoker.saveAllFilesSafely();
-    if (InstantRunManager.canBuildIncrementally(devices, module)) {
-      InstantRunUtils.setIncrementalBuild(env, true);
+    if (InstantRunManager.needsFullBuild(devices, module)) {
+      InstantRunUtils.setNeedsFullBuild(env, true);
     }
     else {
       LOG.info("Cannot patch update since a full build is required (typically because the manifest has changed)");
