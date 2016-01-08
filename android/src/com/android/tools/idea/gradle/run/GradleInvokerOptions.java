@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
@@ -40,7 +41,6 @@ import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -69,17 +69,32 @@ public class GradleInvokerOptions {
                                             @NotNull RunConfiguration configuration,
                                             @NotNull ExecutionEnvironment env,
                                             @Nullable String userGoal) {
+    final Module[] modules = getModules(project, context, configuration);
+    if (modules.length == 0) {
+      throw new IllegalStateException("Unable to determine list of modules to build");
+    }
+
+    boolean isUnitTest = MakeBeforeRunTaskProvider.isUnitTestConfiguration(configuration);
+    GradleInvoker.TestCompileType testCompileType = getTestCompileType(configuration);
+
+    InstantRunBuildOptions instantRunBuildOptions = InstantRunBuildOptions.createAndReset(modules[0], env);
+
+    return create(isUnitTest, testCompileType, instantRunBuildOptions, new GradleModuleTasksProvider(modules), userGoal);
+  }
+
+  @VisibleForTesting()
+  static GradleInvokerOptions create(boolean isUnitTestBuild,
+                                     @NotNull GradleInvoker.TestCompileType testCompileType,
+                                     @Nullable InstantRunBuildOptions instantRunBuildOptions,
+                                     @NotNull GradleTasksProvider gradleTasksProvider,
+                                     @Nullable String userGoal) {
     if (!StringUtil.isEmpty(userGoal)) {
       return new GradleInvokerOptions(Collections.singletonList(userGoal), null, Collections.<String>emptyList());
     }
 
-    final Module[] modules = getModules(project, context, configuration);
-    if (MakeBeforeRunTaskProvider.isUnitTestConfiguration(configuration)) {
-      // Make sure all "intermediates/classes" directories are up-to-date.
-      Module[] affectedModules = getAffectedModules(project, modules);
+    if (isUnitTestBuild) {
       BuildMode buildMode = BuildMode.COMPILE_JAVA;
-      List<String> tasks = GradleInvoker.findTasksToExecute(affectedModules, buildMode, GradleInvoker.TestCompileType.JAVA_TESTS);
-      return new GradleInvokerOptions(tasks, buildMode, Collections.<String>emptyList());
+      return new GradleInvokerOptions(gradleTasksProvider.getUnitTestTasks(buildMode), buildMode, Collections.<String>emptyList());
     }
 
     List<String> cmdLineArgs = Lists.newArrayList();
@@ -87,41 +102,33 @@ public class GradleInvokerOptions {
 
     // Inject instant run attributes
     // Note that these are specifically not injected for the unit test configurations above
-    if (InstantRunSettings.isInstantRunEnabled(project)) {
-      boolean cleanBuild = InstantRunUtils.needsCleanBuild(env);
-      boolean incrementalBuild = !cleanBuild && InstantRunUtils.isIncrementalBuild(env);
+    if (instantRunBuildOptions != null) {
+      boolean incrementalBuild = !instantRunBuildOptions.cleanBuild &&      // e.g. build ids changed
+                                 !instantRunBuildOptions.needsFullBuild &&  // e.g. manifest changed
+                                 instantRunBuildOptions.isAppRunning;
 
-      cmdLineArgs.add(getInstantDevProperty(project, incrementalBuild));
-      cmdLineArgs.addAll(getDeviceSpecificArguments(getTargetDevices(env)));
+      cmdLineArgs.add(getInstantDevProperty(instantRunBuildOptions, incrementalBuild));
+      cmdLineArgs.addAll(getDeviceSpecificArguments(instantRunBuildOptions.devices));
 
-      if (cleanBuild) {
-        tasks.add(GradleBuilds.CLEAN_TASK_NAME);
-        tasks.addAll(GradleInvoker.findTasksToExecute(ModuleManager.getInstance(project).getModules(), BuildMode.SOURCE_GEN,
-                                                      GradleInvoker.TestCompileType.NONE));
+      if (instantRunBuildOptions.cleanBuild) {
+        tasks.addAll(gradleTasksProvider.getCleanAndGenerateSourcesTasks());
       }
       else if (incrementalBuild) {
-        Module module = modules[0];
-        LOG.info(String.format("Module %1$s can be updated incrementally.", module.getName()));
-        AndroidGradleModel model = AndroidGradleModel.get(module);
-        assert model != null : "Module selected for fast deploy, but doesn't seem to have the right gradle model";
-        String dexTask = InstantRunManager.getIncrementalDexTask(model, module);
-        return new GradleInvokerOptions(Collections.singletonList(dexTask), null, cmdLineArgs);
+        return new GradleInvokerOptions(gradleTasksProvider.getIncrementalDexTasks(), null, cmdLineArgs);
       }
     }
 
     BuildMode buildMode = BuildMode.ASSEMBLE;
-    GradleInvoker.TestCompileType testCompileType = getTestCompileType(configuration);
-
-    tasks.addAll(GradleInvoker.findTasksToExecute(modules, buildMode, testCompileType));
+    tasks.addAll(gradleTasksProvider.getTasksFor(buildMode, testCompileType));
     return new GradleInvokerOptions(tasks, buildMode, cmdLineArgs);
   }
 
   @NotNull
-  private static String getInstantDevProperty(@NotNull Project project, boolean incrementalBuild) {
+  private static String getInstantDevProperty(@NotNull InstantRunBuildOptions buildOptions, boolean incrementalBuild) {
     StringBuilder sb = new StringBuilder(50);
     sb.append("-Pandroid.optional.compilation=INSTANT_DEV");
 
-    FileChangeListener.Changes changes = InstantRunManager.get(project).getChangesAndReset();
+    FileChangeListener.Changes changes = buildOptions.fileChanges;
     if (!incrementalBuild) {
       // for non-incremental builds (i.e. assembleDebug), gradle wants us to pass an additional parameter RESTART_ONLY
       sb.append(",RESTART_ONLY");
@@ -209,5 +216,102 @@ public class GradleInvokerOptions {
 
     Collection<IDevice> readyDevices = deviceFutures.getIfReady();
     return readyDevices == null ? Collections.<IDevice>emptyList() : readyDevices;
+  }
+
+  static class InstantRunBuildOptions {
+    public final boolean cleanBuild;
+    public final boolean needsFullBuild;
+    public final boolean isAppRunning;
+    @NotNull private final FileChangeListener.Changes fileChanges;
+    @NotNull public final Collection<IDevice> devices;
+
+    InstantRunBuildOptions(boolean cleanBuild,
+                           boolean needsFullBuild,
+                           boolean isAppRunning,
+                           @NotNull FileChangeListener.Changes changes,
+                           @NotNull Collection<IDevice> devices) {
+      this.cleanBuild = cleanBuild;
+      this.needsFullBuild = needsFullBuild;
+      this.isAppRunning = isAppRunning;
+      this.fileChanges = changes;
+      this.devices = devices;
+    }
+
+    @Nullable
+    static InstantRunBuildOptions createAndReset(@NotNull Module module, @NotNull ExecutionEnvironment env) {
+      if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
+        return null;
+      }
+
+      FileChangeListener.Changes changes = InstantRunManager.get(module.getProject()).getChangesAndReset();
+
+      return new InstantRunBuildOptions(InstantRunUtils.needsCleanBuild(env),
+                                        InstantRunUtils.needsFullBuild(env),
+                                        InstantRunUtils.isAppRunning(env),
+                                        changes,
+                                        getTargetDevices(env));
+    }
+  }
+
+  interface GradleTasksProvider {
+    @NotNull
+    List<String> getCleanAndGenerateSourcesTasks();
+
+    @NotNull
+    List<String> getUnitTestTasks(@NotNull BuildMode buildMode);
+
+    @NotNull
+    List<String> getIncrementalDexTasks();
+
+    @NotNull
+    List<String> getTasksFor(@NotNull BuildMode buildMode, @NotNull GradleInvoker.TestCompileType testCompileType);
+  }
+
+  static class GradleModuleTasksProvider implements GradleTasksProvider {
+    private final Module[] myModules;
+
+    GradleModuleTasksProvider(@NotNull Module[] modules) {
+      myModules = modules;
+      if (myModules.length == 0) {
+        throw new IllegalArgumentException("No modules provided");
+      }
+    }
+
+    @NotNull
+    @Override
+    public List<String> getCleanAndGenerateSourcesTasks() {
+      List<String> tasks = Lists.newArrayList();
+
+      tasks.add(GradleBuilds.CLEAN_TASK_NAME);
+      tasks.addAll(GradleInvoker.findTasksToExecute(myModules, BuildMode.SOURCE_GEN, GradleInvoker.TestCompileType.NONE));
+
+      return tasks;
+    }
+
+    @NotNull
+    @Override
+    public List<String> getUnitTestTasks(@NotNull BuildMode buildMode) {
+      // Make sure all "intermediates/classes" directories are up-to-date.
+      Module[] affectedModules = getAffectedModules(myModules[0].getProject(), myModules);
+      return GradleInvoker.findTasksToExecute(affectedModules, buildMode, GradleInvoker.TestCompileType.JAVA_TESTS);
+    }
+
+    @NotNull
+    @Override
+    public List<String> getIncrementalDexTasks() {
+      Module module = myModules[0];
+      AndroidGradleModel model = AndroidGradleModel.get(module);
+      if (model == null) {
+        throw new IllegalStateException("Attempted to obtain incremental dex task for module that does not have a Gradle facet");
+      }
+
+      return Collections.singletonList(InstantRunManager.getIncrementalDexTask(model, module));
+    }
+
+    @NotNull
+    @Override
+    public List<String> getTasksFor(@NotNull BuildMode buildMode, @NotNull GradleInvoker.TestCompileType testCompileType) {
+      return GradleInvoker.findTasksToExecute(myModules, buildMode, testCompileType);
+    }
   }
 }
