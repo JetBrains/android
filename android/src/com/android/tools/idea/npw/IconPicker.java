@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.ide.common.vectordrawable.VdIcon;
+import com.android.tools.idea.npw.assetstudio.ui.IconPickerDialog;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.diagnostic.Logger;
@@ -44,6 +45,8 @@ import java.util.Locale;
 
 /**
  * Generate a dialog to pick one pre-configured material icons in vector format.
+ *
+ * @deprecated Replaced by {@link IconPickerDialog}
  */
 public class IconPicker extends JPanel {
   private static final Logger LOG = Logger.getInstance(IconPicker.class);

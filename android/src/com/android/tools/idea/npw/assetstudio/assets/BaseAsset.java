@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
-import com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.android.tools.idea.ui.properties.core.*;
 import org.jetbrains.annotations.NotNull;
@@ -24,8 +25,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
- * Base class for all asset types supported by {@link AssetStudioAssetGenerator}, which act as
- * input into a system that generates Android resources such as icons.
+ * Base class for all asset types which can be converted into Android icons. See also
+ * {@link AndroidIconGenerator}, which handles the conversion.
  *
  * Asset fields are all {@link ObservableProperty} instances, which allows for assets to be easily
  * bound to and modified by UI widgets.
@@ -71,9 +72,9 @@ public abstract class BaseAsset {
   public final BufferedImage toImage() {
     BufferedImage image = createAsImage(myColor.get());
     if (myTrimmed.get()) {
-      image = AssetStudioAssetGenerator.trim(image);
+      image = AssetStudioUtils.trim(image);
     }
-    image = AssetStudioAssetGenerator.pad(image, myPaddingPercent.get());
+    image = AssetStudioUtils.pad(image, myPaddingPercent.get());
     return image;
   }
 

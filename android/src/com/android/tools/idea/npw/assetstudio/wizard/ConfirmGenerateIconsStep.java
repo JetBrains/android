@@ -204,11 +204,19 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
             int hCurr = image.getHeight(null);
             int wCurr = image.getWidth(null);
 
-            // From hMin <= hCurr <= hMax, interpolate to hMin <= hFinal <= MAX_TREE_ROW_HEIGHT
-            double hCurrPercent = (double)(hCurr - minHeight) / (double)(maxHeight - minHeight);
-            double scaledDeltaH = hCurrPercent * (MAX_TREE_ROW_HEIGHT - minHeight);
-            double hCurrScaled = minHeight + scaledDeltaH;
-            double hScale = hCurrScaled / hCurr;
+            double hScale;
+            if (maxHeight != minHeight) {
+              // From hMin <= hCurr <= hMax, interpolate to hMin <= hFinal <= MAX_TREE_ROW_HEIGHT
+              double hCurrPercent = (double)(hCurr - minHeight) / (double)(maxHeight - minHeight);
+              double scaledDeltaH = hCurrPercent * (MAX_TREE_ROW_HEIGHT - minHeight);
+              double hCurrScaled = minHeight + scaledDeltaH;
+              hScale = hCurrScaled / hCurr;
+            }
+            else {
+              // This happens if there's only one entry in the list and it's larger than
+              // MAX_TREE_ROW_HEIGHT
+              hScale = MAX_TREE_ROW_HEIGHT / (double)hCurr;
+            }
 
             int hFinal = (int)(hCurr * hScale);
             int wFinal = (int)(wCurr * hScale);
