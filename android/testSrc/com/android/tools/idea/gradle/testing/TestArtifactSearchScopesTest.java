@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.testing;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.OrderRootType;
@@ -35,11 +34,10 @@ import static com.android.utils.FileUtils.join;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
+public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase {
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = true;
+  protected boolean loadAllTestArtifacts() {
+    return true;
   }
 
   public void testSrcFolderIncluding() throws Exception {

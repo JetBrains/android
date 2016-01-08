@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.gradle.testing;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 
-public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleTestCase {
+public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleArtifactsTestCase {
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = true;
+  protected boolean loadAllTestArtifacts() {
+    return true;
   }
 
   public void testRemoveAndroidTestClasspath() throws Exception {

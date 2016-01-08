@@ -15,30 +15,24 @@
  */
 package com.android.tools.idea.gradle.testing;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.testing.TestArtifactCustomScopeProvider.AndroidTestsScope;
 import com.android.tools.idea.gradle.testing.TestArtifactCustomScopeProvider.UnitTestsScope;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.scope.packageSet.PackageSetBase;
 
 import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
 
-public class TestArtifactCustomScopeTest extends AndroidGradleTestCase {
-  private boolean oldLoadAllTestArtifactsValue;
+public class TestArtifactCustomScopeTest extends AndroidGradleArtifactsTestCase {
+  @Override
+  protected boolean loadAllTestArtifacts() {
+    return true;
+  }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    oldLoadAllTestArtifactsValue = GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS;
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = true;
     loadProject("guiTests/SimpleApplication", false);
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = oldLoadAllTestArtifactsValue;
-    super.tearDown();
   }
 
   public void testUnitTestFileColor() throws Exception {
