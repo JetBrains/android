@@ -903,9 +903,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture updateAndroidGradlePluginVersion(@NotNull String version) throws IOException {
-    boolean updated = updateGradlePluginVersion(getProject(), version, null);
-    assertTrue("Android Gradle plugin version was not updated", updated);
+  public IdeFrameFixture updateAndroidGradlePluginVersion(@NotNull final String version) throws IOException {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        boolean updated = updateGradlePluginVersion(getProject(), version, null);
+        assertTrue("Android Gradle plugin version was not updated", updated);
+      }
+    });
     return this;
   }
 
