@@ -285,11 +285,11 @@ public final class InstantRunManager implements ProjectComponent {
   public static boolean needsFullBuild(@NotNull Collection<IDevice> devices, @NotNull Module module) {
     for (IDevice device : devices) {
       if (needsFullBuild(device, module)) {
-        return false;
+        return true;
       }
     }
 
-    return true;
+    return false;
   }
 
   /**
