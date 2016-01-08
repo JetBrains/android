@@ -55,13 +55,14 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
 
   // Returns whether the build results indicate that we can perform a hotswap
   private boolean canHotSwap() {
-    if (!InstantRunUtils.isIncrementalBuild(myEnv)) {
+    if (InstantRunUtils.needsFullBuild(myEnv) || !InstantRunUtils.isAppRunning(myEnv)) {
+      // We knew before the build that we couldn't hotswap..
       return false;
     }
 
     AndroidGradleModel model = AndroidGradleModel.get(myFacet);
     InstantRunBuildInfo info = model == null ? null : InstantRunBuildInfo.get(model);
-    return info != null && info.canHotswap() && InstantRunUtils.isAppRunning(myEnv);
+    return info != null && info.canHotswap();
   }
 
 }
