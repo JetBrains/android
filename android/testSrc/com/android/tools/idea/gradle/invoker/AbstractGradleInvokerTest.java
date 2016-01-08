@@ -17,9 +17,8 @@ package com.android.tools.idea.gradle.invoker;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +30,7 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static org.fest.assertions.Assertions.assertThat;
 
-public abstract class AbstractGradleInvokerTest extends AndroidGradleTestCase {
+public abstract class AbstractGradleInvokerTest extends AndroidGradleArtifactsTestCase {
   protected static final String SOURCE_GEN = "generateDebugSources";
   protected static final String ANDROID_TEST_SOURCE_GEN = "generateDebugAndroidTestSources";
   protected static final String COMPILE_JAVA = "compileDebugSources";
@@ -47,10 +46,6 @@ public abstract class AbstractGradleInvokerTest extends AndroidGradleTestCase {
   protected Module myModule;
   protected GradleInvoker myInvoker;
 
-  protected boolean loadAllTestArtifacts() {
-    return false;
-  }
-
   @Override
   protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
     // for this test we don't care for this check
@@ -59,7 +54,6 @@ public abstract class AbstractGradleInvokerTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = loadAllTestArtifacts();
 
     loadProject("guiTests/SimpleApplication", false);
     myModule = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("app");

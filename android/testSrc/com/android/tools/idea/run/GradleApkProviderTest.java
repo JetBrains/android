@@ -16,8 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,7 +32,7 @@ import java.util.*;
  * Tests for {@link GradleApkProvider}.
  */
 @RunWith(Parameterized.class)
-public class GradleApkProviderTest extends AndroidGradleTestCase {
+public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
   @Parameterized.Parameter
   public boolean myLoadAllTestArtifacts;
 
@@ -47,6 +46,11 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
   @Rule public TestName testName = new TestName();
 
   @Override
+  protected boolean loadAllTestArtifacts() {
+    return myLoadAllTestArtifacts;
+  }
+
+  @Override
   public String getName() {
     return testName.getMethodName();
   }
@@ -55,7 +59,6 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myLoadAllTestArtifacts;
   }
 
   @After
