@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
@@ -39,6 +40,7 @@ import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -81,16 +83,23 @@ public class GradleInvokerOptions {
     }
 
     List<String> cmdLineArgs = Lists.newArrayList();
+    List<String> tasks = Lists.newArrayList();
 
     // Inject instant run attributes
     // Note that these are specifically not injected for the unit test configurations above
     if (InstantRunSettings.isInstantRunEnabled(project)) {
-      boolean incrementalBuild = InstantRunUtils.isIncrementalBuild(env);
+      boolean cleanBuild = InstantRunUtils.needsCleanBuild(env);
+      boolean incrementalBuild = !cleanBuild && InstantRunUtils.isIncrementalBuild(env);
 
       cmdLineArgs.add(getInstantDevProperty(project, incrementalBuild));
       cmdLineArgs.addAll(getDeviceSpecificArguments(getTargetDevices(env)));
 
-      if (incrementalBuild) {
+      if (cleanBuild) {
+        tasks.add(GradleBuilds.CLEAN_TASK_NAME);
+        tasks.addAll(GradleInvoker.findTasksToExecute(ModuleManager.getInstance(project).getModules(), BuildMode.SOURCE_GEN,
+                                                      GradleInvoker.TestCompileType.NONE));
+      }
+      else if (incrementalBuild) {
         Module module = modules[0];
         LOG.info(String.format("Module %1$s can be updated incrementally.", module.getName()));
         AndroidGradleModel model = AndroidGradleModel.get(module);
@@ -103,7 +112,7 @@ public class GradleInvokerOptions {
     BuildMode buildMode = BuildMode.ASSEMBLE;
     GradleInvoker.TestCompileType testCompileType = getTestCompileType(configuration);
 
-    List<String> tasks = GradleInvoker.findTasksToExecute(modules, buildMode, testCompileType);
+    tasks.addAll(GradleInvoker.findTasksToExecute(modules, buildMode, testCompileType));
     return new GradleInvokerOptions(tasks, buildMode, cmdLineArgs);
   }
 
