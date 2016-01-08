@@ -432,10 +432,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // a no-op) because we need to check whether the manifest file has been edited since an
     // edited manifest changes what the incremental run build has to do.
     GradleInvoker.saveAllFilesSafely();
-    if (InstantRunManager.needsFullBuild(devices, module)) {
-      InstantRunUtils.setNeedsFullBuild(env, true);
-    }
-    else {
+    boolean needsFullBuild = InstantRunManager.needsFullBuild(devices, module);
+    InstantRunUtils.setNeedsFullBuild(env, needsFullBuild);
+    if (needsFullBuild) {
       LOG.info("Cannot patch update since a full build is required (typically because the manifest has changed)");
       new InstantRunUserFeedback(module).postText(
         "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)"
