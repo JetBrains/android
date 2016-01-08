@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.annotations.concurrency.Immutable;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.FileChangeListener;
@@ -125,6 +124,26 @@ public class GradleInvokerOptionsTest {
       GradleInvokerOptions.create(false, testCompileType, instantRunOptions, myTasksProvider, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,LOCAL_RES_ONLY"));
+    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=21"));
+    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.density=xxxhdpi"));
+    assertEquals(INCREMENTAL_TASKS, options.tasks);
+  }
+
+  @Test
+  public void testIncrementalBuildAppNotRunning() throws Exception {
+    GradleInvoker.TestCompileType testCompileType = GradleInvoker.TestCompileType.ANDROID_TESTS;
+
+    FileChangeListener.Changes changes = new FileChangeListener.Changes(false, false, true);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(21, null));
+    when(myDevice.getDensity()).thenReturn(640);
+
+    GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, changes, myDevices);
+
+    GradleInvokerOptions options =
+      GradleInvokerOptions.create(false, testCompileType, instantRunOptions, myTasksProvider, null);
+
+    assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY,LOCAL_JAVA_ONLY"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=21"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.density=xxxhdpi"));
     assertEquals(INCREMENTAL_TASKS, options.tasks);
