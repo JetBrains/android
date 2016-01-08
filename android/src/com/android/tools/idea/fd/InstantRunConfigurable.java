@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixBuildToolsVersionHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -192,7 +191,7 @@ public class InstantRunConfigurable
     }
 
     // Update plugin version
-    if (FixGradleModelVersionHyperlink.updateGradlePluginVersion(project, pluginVersion, GRADLE_LATEST_VERSION)) {
+    if (GradleUtil.updateGradlePluginVersion(project, pluginVersion, GRADLE_LATEST_VERSION)) {
       // Should be at least 23.0.2
       String buildToolsVersion = "23.0.2";
       AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
