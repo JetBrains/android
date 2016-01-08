@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixBuildToolsVersionHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -211,7 +210,7 @@ public class InstantRunConfigurable
         if (facet != null) {
           VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
           if (buildFile != null) {
-            FixBuildToolsVersionHyperlink.fixBuildToolsVersion(project, buildFile, buildToolsVersion, false);
+            GradleUtil.setBuildToolsVersion(project, buildFile, buildToolsVersion, false);
           }
         }
       }
