@@ -29,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Action to invoke the Vector Asset Studio. This will allow the user to generate icons using SVGs.
@@ -78,5 +80,16 @@ public final class NewVectorAssetAction extends AndroidAssetStudioAction {
   @Override
   protected Dimension getWizardSize() {
     return new Dimension(700, 500);
+  }
+
+  @Nullable
+  @Override
+  protected URL getHelpUrl() {
+    try {
+      return new URL("http://developer.android.com/tools/help/vector-asset-studio.html");
+    }
+    catch (MalformedURLException e) {
+      return null; // Shouldn't happen
+    }
   }
 }

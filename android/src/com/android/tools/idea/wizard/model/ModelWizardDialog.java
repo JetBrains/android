@@ -21,6 +21,7 @@ import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
 import com.android.tools.idea.ui.properties.swing.EnabledProperty;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -34,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.net.URL;
 
 import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
 
@@ -53,28 +55,32 @@ public final class ModelWizardDialog extends DialogWrapper {
   private ListenerManager myListeners = new ListenerManager();
 
   @Nullable private CustomLayout myCustomLayout;
+  @Nullable private URL myHelpUrl;
 
   public ModelWizardDialog(@NotNull ModelWizard wizard,
                            @NotNull String title,
                            @Nullable CustomLayout customLayout,
                            @Nullable Project project,
+                           @Nullable URL helpUrl,
                            @NotNull IdeModalityType modalityType) {
     super(project, true, modalityType);
-    init(wizard, title, customLayout);
+    init(wizard, title, customLayout, helpUrl);
   }
 
   public ModelWizardDialog(@NotNull ModelWizard wizard,
                            @NotNull String title,
                            @NotNull Component parent,
-                           @Nullable CustomLayout customLayout) {
+                           @Nullable CustomLayout customLayout,
+                           @Nullable URL helpUrl) {
     super(parent, true);
-    init(wizard, title, customLayout);
+    init(wizard, title, customLayout, helpUrl);
   }
 
-  private void init(@NotNull ModelWizard wizard, @NotNull String title, @Nullable CustomLayout customLayout) {
+  private void init(@NotNull ModelWizard wizard, @NotNull String title, @Nullable CustomLayout customLayout, @Nullable URL helpUrl) {
     Disposer.register(getDisposable(), wizard);
     myWizard = wizard;
     myCustomLayout = customLayout;
+    myHelpUrl = helpUrl;
     setTitle(title);
 
     init();
@@ -91,11 +97,6 @@ public final class ModelWizardDialog extends DialogWrapper {
     myListeners.releaseAll();
   }
 
-  /**
-   * {@inheritDoc}
-   * <p/>
-   * As a side effect, this starts the wizard.
-   */
   @Override
   public void show() {
     // TODO: Why is this necessary? Why is DialogWrapper ignoring setSize unless I do this?
@@ -123,6 +124,13 @@ public final class ModelWizardDialog extends DialogWrapper {
     return centerPanel;
   }
 
+  @Override
+  protected void doHelpAction() {
+    // This should never be called unless myHelpUrl is non-null (see createActions)
+    assert myHelpUrl != null;
+    BrowserUtil.browse(myHelpUrl);
+  }
+
   @NotNull
   @Override
   protected Action[] createActions() {
@@ -130,7 +138,7 @@ public final class ModelWizardDialog extends DialogWrapper {
     PreviousAction prevAction = new PreviousAction();
     FinishAction finishAction = new FinishAction();
 
-    if (getHelpId() == null) {
+    if (myHelpUrl == null) {
       if (SystemInfo.isMac) {
         return new Action[]{getCancelAction(), prevAction, nextAction, finishAction};
       }
