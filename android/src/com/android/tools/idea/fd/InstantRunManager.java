@@ -206,6 +206,12 @@ public final class InstantRunManager implements ProjectComponent {
     return localTimestamp.equals(deviceBuildTimestamp);
   }
 
+  public static boolean apiLevelsMatch(@NotNull IDevice device, @NotNull Module module) {
+    AndroidGradleModel model = getAppModel(module);
+    InstantRunBuildInfo buildInfo = model == null ? null : InstantRunBuildInfo.get(model);
+    return buildInfo != null && buildInfo.getApiLevel() == device.getVersion().getApiLevel();
+  }
+
   /**
    * Called after a build &amp; successful push to device: updates the build id on the device to whatever the
    * build id was assigned by Gradle.
