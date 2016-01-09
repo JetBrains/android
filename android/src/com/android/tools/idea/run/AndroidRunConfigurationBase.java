@@ -419,8 +419,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     Collection<IDevice> devices = deviceFutures.getIfReady();
 
     boolean buildsMatch = devices != null && buildTimestampsMatch(module, devices);
-    if (!buildsMatch) {
-      LOG.info("Performing a clean build since build timestamps on the device and on disk are different.");
+    if (!buildsMatch || !apiLevelsMatch(module, devices)) {
+      String cause = buildsMatch ? "API levels" : "build timestamps";
+      LOG.info("Performing a clean build since " + cause + " don't match across the device and local state");
       InstantRunUtils.setNeedsCleanBuild(env, true);
       return;
     }
@@ -523,6 +524,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private static boolean buildTimestampsMatch(@NotNull Module module, @NotNull Collection<IDevice> devices) {
     for (IDevice device : devices) {
       if (!InstantRunManager.buildTimestampsMatch(device, module)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private static boolean apiLevelsMatch(@NotNull Module module, @NotNull Collection<IDevice> devices) {
+    for (IDevice device : devices) {
+      if (!InstantRunManager.apiLevelsMatch(Iterables.getOnlyElement(devices), module)) {
         return false;
       }
     }
