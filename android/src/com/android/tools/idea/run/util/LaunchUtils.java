@@ -18,7 +18,6 @@ package com.android.tools.idea.run.util;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.execution.ExecutionManager;
