@@ -91,7 +91,7 @@ public final class InstantRunManager implements ProjectComponent {
   public static final Revision MINIMUM_GRADLE_PLUGIN_VERSION = Revision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
 
-  private static final Logger LOG = Logger.getInstance(InstantRunManager.class);
+  public static final Logger LOG = Logger.getInstance("#InstantRun");
   private static final ILogger ILOGGER = new LogWrapper(LOG);
 
   @NotNull private final Project myProject;
@@ -511,9 +511,7 @@ public final class InstantRunManager implements ProjectComponent {
     }
 
     AndroidGradleModel model = AndroidGradleModel.get(facet);
-    if (model == null) {
-      return true;
-    }
+    assert model != null : "Instant Run push artifacts called without a Gradle model";
 
     List<FileTransfer> files = Lists.newArrayList();
     InstantRunClient client = getInstantRunClient(model, facet);
@@ -588,7 +586,21 @@ public final class InstantRunManager implements ProjectComponent {
       needRestart = true;
     }
 
+    logFilesPushed(files, needRestart);
     return needRestart;
+  }
+
+  private static void logFilesPushed(@NotNull List<FileTransfer> files, boolean needRestart) {
+    StringBuilder sb = new StringBuilder("Pushing files: ");
+    if (needRestart) {
+      sb.append("[needs restart]");
+    }
+
+    for (FileTransfer ft : files) {
+      sb.append(String.format("\n  %1$s as %2$s\n", ft.source.getName(), ft.name));
+    }
+
+    LOG.info(sb.toString());
   }
 
   @NonNull
@@ -661,10 +673,13 @@ public final class InstantRunManager implements ProjectComponent {
       if (status.isEmpty()) {
         return;
       }
+
       // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
       status = StringUtil.capitalizeWords(status.toLowerCase(Locale.US).replace('_', ' '), true);
       @Language("HTML") String message = "Instant Run couldn't apply changes on the fly: " + status;
       new InstantRunUserFeedback(facet.getModule()).verifierFailure(message);
+
+      LOG.info("Instant run verifier failure: " + status);
       UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, status, null);
     }
   }
@@ -678,7 +693,7 @@ public final class InstantRunManager implements ProjectComponent {
    *
    * @param project the project that was just synced or attempted built
    */
-  public static void checkForObsoletePreviewGradlePlugins(Project project) {
+  public static void warnOnObsoletePreviewGradlePlugin(Project project) {
     if (!InstantRunSettings.isInstantRunEnabled(project)) {
       return;
     }

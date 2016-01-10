@@ -60,7 +60,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @NotNull
   @Override
-  public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus) {
+  public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
     final List<LaunchTask> launchTasks = Lists.newArrayList();
 
     if (myLaunchOptions.isClearLogcatBeforeStart()) {
@@ -69,7 +69,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
     launchTasks.add(new DismissKeyguardTask());
 
-    LaunchTask deployTask = getDeployTask(device, launchStatus);
+    LaunchTask deployTask = getDeployTask(device, launchStatus, consolePrinter);
     if (deployTask != null) {
       launchTasks.add(deployTask);
     }
@@ -99,7 +99,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   }
 
   @Nullable
-  private LaunchTask getDeployTask(@NotNull IDevice device, @NotNull LaunchStatus launchStatus) {
+  private LaunchTask getDeployTask(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
     if (!myLaunchOptions.isDeploy()) {
       return null;
     }
@@ -116,26 +116,38 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           return null;
         }
 
+        String pkgName;
+        try {
+          pkgName = ApkProviderUtil.computePackageName(myFacet);
+        }
+        catch (ApkProvisionException e) {
+          launchStatus.terminateLaunch("Unable to determine application id for module " + myFacet.getModule().getName());
+          return null;
+        }
+
         List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
         if (artifacts.isEmpty()) {
           // We should update the id on the device even if there were no
           // artifact changes, since otherwise the next build will mismatch
           InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-
-          new InstantRunUserFeedback(myFacet.getModule()).noChanges();
+          consolePrinter.stdout("No local changes, not deploying APK");
+          InstantRunManager.LOG.info("List of artifacts is empty, no deployment necessary.");
           return null;
         }
 
         if (buildInfo.hasOneOf(SPLIT) || buildInfo.getApiLevel() >= 23 && buildInfo.hasOneOf(MAIN)) {
-          return new SplitApkDeployTask(myFacet, buildInfo);
+          InstantRunManager.LOG.info("Using split APK deploy task");
+          return new SplitApkDeployTask(pkgName, myFacet, buildInfo);
         }
         if (buildInfo.hasOneOf(RESTART_DEX, DEX, RESOURCES)) {
-          return new DexDeployTask(myFacet, buildInfo);
+          InstantRunManager.LOG.info("Using Dex Deploy task");
+          return new DexDeployTask(pkgName, myFacet, buildInfo);
         }
       }
     }
 
     // regular APK deploy flow
+    InstantRunManager.LOG.info("Using legacy/main APK deploy task");
     return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider);
   }
 
