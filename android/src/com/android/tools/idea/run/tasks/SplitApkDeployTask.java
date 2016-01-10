@@ -21,13 +21,10 @@ import com.android.tools.idea.fd.InstantRunArtifact;
 import com.android.tools.idea.fd.InstantRunArtifactType;
 import com.android.tools.idea.fd.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.run.ApkProviderUtil;
-import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,10 +33,12 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class SplitApkDeployTask implements LaunchTask {
+  @NotNull private final String myPkgName;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final InstantRunBuildInfo myBuildInfo;
 
-  public SplitApkDeployTask(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
+  public SplitApkDeployTask(@NotNull String pkgName, @NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
+    myPkgName = pkgName;
     myFacet = facet;
     myBuildInfo = buildInfo;
   }
@@ -57,21 +56,12 @@ public class SplitApkDeployTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    String pkgName;
-    try {
-      pkgName = ApkProviderUtil.computePackageName(myFacet);
-    }
-    catch (ApkProvisionException e) {
-      launchStatus.terminateLaunch("Unable to determine application id for module " + myFacet.getModule().getName());
-      return false;
-    }
-
     List<InstantRunArtifact> artifacts = myBuildInfo.getArtifacts();
 
     List<String> installOptions = Lists.newArrayList(); // TODO: should we pass in pm install options?
     if (!myBuildInfo.hasMainApk()) {
       installOptions.add("-p"); // partial install
-      installOptions.add(pkgName);
+      installOptions.add(myPkgName);
     }
 
     List<File> apks = Lists.newArrayListWithExpectedSize(artifacts.size());
@@ -83,13 +73,13 @@ public class SplitApkDeployTask implements LaunchTask {
 
     String cmd = getAdbInstallCommand(apks, installOptions);
     printer.stdout(cmd);
-    Logger.getInstance(SplitApkDeployTask.class).info(cmd);
+    InstantRunManager.LOG.info(cmd);
 
     try {
       device.installPackages(apks, true, installOptions, 5, TimeUnit.MINUTES);
 
       InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-      DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
+      DeployApkTask.cacheManifestInstallationData(device, myFacet, myPkgName);
       return true;
     }
     catch (InstallException e) {

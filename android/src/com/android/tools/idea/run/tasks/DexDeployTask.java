@@ -19,8 +19,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.run.ApkProviderUtil;
-import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.editor.DefaultActivityLaunch;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -35,10 +33,12 @@ import java.io.IOException;
  * push one or more shards containing updated classes.
  */
 public class DexDeployTask implements LaunchTask {
+  @NotNull private final String myPkgName;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final InstantRunBuildInfo myBuildInfo;
 
-  public DexDeployTask(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
+  public DexDeployTask(@NotNull String pkgName, @NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
+    myPkgName = pkgName;
     myFacet = facet;
     myBuildInfo = buildInfo;
   }
@@ -56,15 +56,6 @@ public class DexDeployTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-      String pkgName;
-      try {
-        pkgName = ApkProviderUtil.computePackageName(myFacet);
-      }
-      catch (ApkProvisionException e) {
-        launchStatus.terminateLaunch("Unable to determine application id for module " + myFacet.getModule().getName());
-        return false;
-      }
-
       try {
         InstantRunManager manager = InstantRunManager.get(myFacet.getModule().getProject());
         boolean restart = manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, myBuildInfo);
@@ -75,7 +66,7 @@ public class DexDeployTask implements LaunchTask {
           // Trigger an activity start/restart.
           // TODO: Clean this up such that the DeployTask just specifies whether an activity
           // launch is required afterwards.
-          LaunchTask launchTask = DefaultActivityLaunch.INSTANCE.createState().getLaunchTask(pkgName, myFacet, false, "");
+          LaunchTask launchTask = DefaultActivityLaunch.INSTANCE.createState().getLaunchTask(myPkgName, myFacet, false, "");
           launchTask.perform(device, launchStatus, printer);
         }
 
