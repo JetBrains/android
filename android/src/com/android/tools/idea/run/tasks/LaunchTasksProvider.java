@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +25,7 @@ import java.util.List;
 
 public interface LaunchTasksProvider {
   @NotNull
-  List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus);
+  List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter);
 
   @Nullable
   DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus);
