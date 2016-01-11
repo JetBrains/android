@@ -19,7 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -106,7 +106,7 @@ public class DevicePickerListModelTest {
   @NotNull
   private static AvdInfo createMockAvd(@NotNull String avdName) {
     Map<String, String> properties = Maps.newHashMap();
-    return new AvdInfo(avdName, new File("ini"), "folder", "target", null, new IdDisplay("id+" + avdName, "display+" + avdName), "x86",
+    return new AvdInfo(avdName, new File("ini"), "folder", "target", null, IdDisplay.create("id+" + avdName, "display+" + avdName), "x86",
                        properties);
   }
 }

@@ -69,7 +69,7 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
       tagDisp = LocalSysImgPkgInfo.tagIdToDisplay(tagId);
     }
     assert tagId != null;
-    IdDisplay tag = new com.android.sdklib.repository.descriptors.IdDisplay(tagId, tagDisp);
+    IdDisplay tag = IdDisplay.create(tagId, tagDisp);
 
 
     Node addonNode = RemotePackageParserUtils.findChildElement(packageNode, SdkSysImgConstants.NODE_ADD_ON);
@@ -89,7 +89,7 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
       assert vendorId.length() > 0;
       assert vendorDisp.length() > 0;
 
-      vendor = new com.android.sdklib.repository.descriptors.IdDisplay(vendorId, vendorDisp);
+      vendor = IdDisplay.create(vendorId, vendorDisp);
 
       descBuilder = PkgDesc.Builder.newAddonSysImg(version, vendor, tag, abi, getRevision());
     }
