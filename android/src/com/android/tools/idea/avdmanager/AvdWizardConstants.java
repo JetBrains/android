@@ -136,8 +136,8 @@ public class AvdWizardConstants {
   public static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
 
   // Tags
-  public static final IdDisplay WEAR_TAG = new com.android.sdklib.repository.descriptors.IdDisplay("android-wear", "Android Wear");
-  public static final IdDisplay TV_TAG = new com.android.sdklib.repository.descriptors.IdDisplay("android-tv", "Android TV");
+  public static final IdDisplay WEAR_TAG = IdDisplay.create("android-wear", "Android Wear");
+  public static final IdDisplay TV_TAG = IdDisplay.create("android-tv", "Android TV");
 
   public static final List<IdDisplay> ALL_TAGS = ImmutableList.of(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG);
 

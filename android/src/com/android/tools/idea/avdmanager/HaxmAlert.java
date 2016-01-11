@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
@@ -44,7 +44,7 @@ public class HaxmAlert extends JPanel {
   private SystemImageDescription myImageDescription;
   private AccelerationErrorCode myAccelerationErrorCode;
 
-  private static final IdDisplay GOOGLE_APIS_TAG = new IdDisplay("google_apis", "");
+  private static final IdDisplay GOOGLE_APIS_TAG = IdDisplay.create("google_apis", "");
 
   public HaxmAlert() {
     myErrorInstructionsLink = new HyperlinkLabel();
