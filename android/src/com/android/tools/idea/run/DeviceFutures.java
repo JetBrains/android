@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /** A collection of devices (some of them may still be starting up) for use in a device-oriented run configuration launch. */
@@ -45,7 +46,7 @@ public final class DeviceFutures {
   }
 
   @NotNull
-  public static DeviceFutures forDevices(Iterable<IDevice> devices) {
+  public static DeviceFutures forDevices(@NotNull Iterable<IDevice> devices) {
     ImmutableList.Builder<ListenableFuture<IDevice>> futures = ImmutableList.builder();
     for (IDevice device : devices) {
       futures.add(Futures.immediateFuture(device));
@@ -61,7 +62,7 @@ public final class DeviceFutures {
 
   /** @return the target devices, if all are now ready. Otherwise, null. */
   @Nullable
-  public Collection<IDevice> getIfReady() {
+  public List<IDevice> getIfReady() {
     for (ListenableFuture<IDevice> deviceFuture : myDeviceFutures) {
       if (!deviceFuture.isDone() || deviceFuture.isCancelled()) {
         return null;

@@ -57,7 +57,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   // Returns whether the build results indicate that we can perform a hotswap
   private boolean canHotSwap() {
     if (InstantRunUtils.needsFullBuild(myEnv) || !InstantRunUtils.isAppRunning(myEnv)) {
-      // We knew before the build that we couldn't hotswap..
+      // We knew before the build that we couldn't hot swap..
       return false;
     }
 
