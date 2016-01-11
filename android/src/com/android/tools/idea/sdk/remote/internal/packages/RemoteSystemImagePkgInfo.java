@@ -38,7 +38,7 @@ import java.util.Properties;
 /**
  * Represents a system-image XML node in an SDK repository.
  */
-public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidVersionProvider {
+public class RemoteSystemImagePkgInfo extends RemotePkgInfo {
 
   /**
    * Creates a new system-image package from the attributes and elements of the given XML node.
@@ -145,7 +145,6 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
    * A system-image has the same {@link AndroidVersion} as the platform it depends on.
    */
   @NotNull
-  @Override
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
   }
