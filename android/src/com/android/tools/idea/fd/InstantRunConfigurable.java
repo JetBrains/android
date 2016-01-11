@@ -17,11 +17,13 @@ package com.android.tools.idea.fd;
 
 import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -191,14 +193,12 @@ public class InstantRunConfigurable
     if (GradleUtil.updateGradlePluginVersion(project, pluginVersion, GRADLE_LATEST_VERSION)) {
       // Should be at least 23.0.2
       String buildToolsVersion = "23.0.2";
-      AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
-      if (sdk != null) {
-        BuildToolInfo latestBuildTool = sdk.getLatestBuildTool();
-        if (latestBuildTool != null) {
-          Revision revision = latestBuildTool.getRevision();
-          if (revision.compareTo(Revision.parseRevision(buildToolsVersion)) > 0) {
-            buildToolsVersion = revision.toShortString();
-          }
+      AndroidSdkHandler sdk = AndroidSdkUtils.tryToChooseSdkHandler();
+      BuildToolInfo latestBuildTool = sdk.getLatestBuildTool(new StudioLoggerProgressIndicator(InstantRunConfigurable.class));
+      if (latestBuildTool != null) {
+        Revision revision = latestBuildTool.getRevision();
+        if (revision.compareTo(Revision.parseRevision(buildToolsVersion)) > 0) {
+          buildToolsVersion = revision.toShortString();
         }
       }
 

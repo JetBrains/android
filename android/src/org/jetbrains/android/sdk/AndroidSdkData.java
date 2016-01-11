@@ -20,9 +20,6 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalPlatformPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
@@ -38,13 +35,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
-import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.tools.idea.sdk.IdeSdks.isValidAndroidSdkPath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
@@ -60,7 +54,6 @@ public class AndroidSdkData {
   private final DeviceManager myDeviceManager;
 
   private final int myPlatformToolsRevision;
-  private final int mySdkToolsRevision;
 
   private static final ConcurrentMap<String/* sdk path */, SoftReference<AndroidSdkData>> ourCache = Maps.newConcurrentMap();
   private AndroidSdkHandler mySdkHandler;
@@ -133,7 +126,6 @@ public class AndroidSdkData {
     File location = getLocation();
     String locationPath = location.getPath();
     myPlatformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
-    mySdkToolsRevision = parsePackageRevision(locationPath, FD_TOOLS);
     myDeviceManager = DeviceManager.createInstance(location, new MessageBuildingSdkLog());
   }
 
@@ -154,7 +146,7 @@ public class AndroidSdkData {
 
   @Nullable
   public BuildToolInfo getLatestBuildTool() {
-    return myLocalSdk.getLatestBuildTool();
+    return mySdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()));
   }
 
   @NotNull
