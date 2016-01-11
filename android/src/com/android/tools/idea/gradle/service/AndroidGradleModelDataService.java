@@ -22,10 +22,9 @@ import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -255,12 +254,9 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     if (isOneDotThreeOrLater(project)) {
       return;
     }
-    GradleBuildFile buildFile = GradleBuildFile.get(module);
-    if (buildFile != null) {
-      Object value = buildFile.getValue(BuildFileKey.BUILD_TOOLS_VERSION);
-      if ("23.0.0 rc1".equals(value)) {
-        moduleNames.add(module.getName());
-      }
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    if (buildModel != null && "23.0.0 rc1".equals(buildModel.android().buildToolsVersion())) {
+      moduleNames.add(module.getName());
     }
   }
 
