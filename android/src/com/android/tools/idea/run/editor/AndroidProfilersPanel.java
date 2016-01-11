@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
-
 import javax.swing.*;
 
 /**

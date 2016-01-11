@@ -87,21 +87,19 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     consolePrinter.stdout("\n" + dateFormat.format(new Date()) + ": Launching " + myConfigName);
 
     for (ListenableFuture<IDevice> deviceFuture : myDeviceFutures) {
-      indicator.setText2("Waiting for target device to come online");
+      indicator.setText("Waiting for target device to come online");
       IDevice device = waitForDevice(deviceFuture, indicator, launchStatus);
       if (device == null) {
         return;
       }
 
-      indicator.setText("Launching on " + device.getName());
-
-      List<LaunchTask> launchTasks = myLaunchTasksProvider.getTasks(device, launchStatus);
+      List<LaunchTask> launchTasks = myLaunchTasksProvider.getTasks(device, launchStatus, consolePrinter);
       int totalDuration = myDeviceFutures.size() * getTotalDuration(launchTasks, debugSessionTask);
       int elapsed = 0;
 
       for (LaunchTask task : launchTasks) {
         // perform each task
-        indicator.setText2(task.getDescription());
+        indicator.setText(task.getDescription());
         if (!task.perform(device, launchStatus, consolePrinter)) {
           myError = "Error " + task.getDescription();
           launchStatus.terminateLaunch("Error during launch");
