@@ -19,10 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.api.ProgressIndicator;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.UserCredentials;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Stack;
 
 /**
  * {@link ITaskMonitor} implementation that wraps a {@link ProgressIndicator}, for interacting with legacy code.
@@ -89,11 +86,6 @@ public class TaskMonitorProgressIndicatorAdapter implements ITaskMonitor {
   }
 
   @Override
-  public boolean isCancelRequested() {
-    return myProgressIndicator.isCanceled();
-  }
-
-  @Override
   public ITaskMonitor createSubMonitor(final int tickCount) {
     final ITaskMonitor parent = this;
 
@@ -104,16 +96,6 @@ public class TaskMonitorProgressIndicatorAdapter implements ITaskMonitor {
         parent.incProgress((int)((float)delta * (float)tickCount / (float)myProgressMax));
       }
     };
-  }
-
-  @Override
-  public boolean displayPrompt(String title, String message) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public UserCredentials displayLoginCredentialsPrompt(String title, String message) {
-    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -32,7 +32,7 @@ import java.util.Properties;
 /**
  * Represents a platform XML node in an SDK repository.
  */
-public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAndroidVersionProvider {
+public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo {
 
   /**
    * The version, a string, for platform packages.
@@ -105,7 +105,6 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
   /**
    * Returns the package version, for platform, add-on and doc packages.
    */
-  @Override
   @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();

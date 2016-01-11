@@ -37,7 +37,7 @@ import java.util.*;
 /**
  * Represents an add-on XML node in an SDK repository.
  */
-public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersionProvider {
+public class RemoteAddonPkgInfo extends RemotePkgInfo {
 
   /**
    * The helper handling the layoutlib version.
@@ -235,7 +235,6 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
    * <p/>
    * An add-on has the same {@link AndroidVersion} as the platform it depends on.
    */
-  @Override
   @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();

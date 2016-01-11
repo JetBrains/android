@@ -40,7 +40,7 @@ import java.util.Properties;
 /**
  * Represents a sample XML node in an SDK repository.
  */
-public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndroidVersionProvider, IMinApiLevelDependency {
+public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IMinApiLevelDependency {
 
   /**
    * The minimal API level required by this extra package, if > 0,
@@ -106,7 +106,6 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
   /**
    * Returns the matching platform version.
    */
-  @Override
   @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
