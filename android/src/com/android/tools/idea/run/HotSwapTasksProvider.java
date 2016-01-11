@@ -37,7 +37,7 @@ public class HotSwapTasksProvider implements LaunchTasksProvider {
 
   @NotNull
   @Override
-  public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus) {
+  public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
     return Collections.<LaunchTask>singletonList(new HotSwapTask(myFacet));
   }
 

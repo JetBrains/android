@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.Client;
-import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
