@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class InstantRunSettings {
-  /** Is instant run enabled in the given project */
+  /**
+   * Returns whether instant run is enabled in the given project.
+   * Note: Even if instant run is enabled for the project, instant run related information should not be accessed
+   * unless {@link InstantRunManager#isPatchableApp(AndroidGradleModel)} returns true.
+   */
   public static boolean isInstantRunEnabled(@NotNull Project project) {
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     return buildConfiguration.INSTANT_RUN;

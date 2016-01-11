@@ -19,10 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
-import com.google.common.util.concurrent.Uninterruptibles;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.TimeUnit;
 
 public class DismissKeyguardTask implements LaunchTask {
   @NotNull
@@ -39,7 +36,6 @@ public class DismissKeyguardTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     LaunchUtils.initiateDismissKeyguard(device);
-    Uninterruptibles.sleepUninterruptibly(3, TimeUnit.SECONDS);
     return true;
   }
 }

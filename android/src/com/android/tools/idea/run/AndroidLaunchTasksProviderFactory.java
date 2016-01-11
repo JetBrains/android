@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.fd.InstantRunBuildInfo;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
@@ -62,7 +63,18 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
 
     AndroidGradleModel model = AndroidGradleModel.get(myFacet);
     InstantRunBuildInfo info = model == null ? null : InstantRunBuildInfo.get(model);
-    return info != null && info.canHotswap();
+    boolean canHotswap = info != null && info.canHotswap();
+
+    if (!canHotswap) {
+      if (info == null) {
+        InstantRunManager.LOG.info("No build-info.xml file");
+      }
+      else {
+        InstantRunManager.LOG.info("Cannot swap according to build-info.xml");
+      }
+    }
+
+    return canHotswap;
   }
 
 }
