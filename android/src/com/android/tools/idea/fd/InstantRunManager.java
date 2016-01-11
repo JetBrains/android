@@ -33,7 +33,6 @@ import com.android.tools.fd.runtime.ApplicationPatch;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
@@ -95,7 +94,7 @@ public final class InstantRunManager implements ProjectComponent {
   private static final ILogger ILOGGER = new LogWrapper(LOG);
 
   @NotNull private final Project myProject;
-  @NotNull private FileChangeListener myFileChangeListener;
+  @NotNull private final FileChangeListener myFileChangeListener;
 
   /** Don't call directly: this is a project component instantiated by the IDE; use {@link #get(Project)} instead! */
   @SuppressWarnings("WeakerAccess") // Called by infrastructure
@@ -137,7 +136,7 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   @NotNull
-  public static List<IDevice> getConnectedDevices(@NotNull ProcessHandler processHandler) {
+  private static List<IDevice> getConnectedDevices(@NotNull ProcessHandler processHandler) {
     if (processHandler.isProcessTerminated() || processHandler.isProcessTerminating()) {
       return Collections.emptyList();
     }
@@ -287,24 +286,13 @@ public final class InstantRunManager implements ProjectComponent {
     return version.getApiLevel() >= 15;
   }
 
-  /** Returns true if any of the devices in the given list require a full build. */
-  public static boolean needsFullBuild(@NotNull Collection<IDevice> devices, @NotNull Module module) {
-    for (IDevice device : devices) {
-      if (needsFullBuild(device, module)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   /**
    * Returns true if a full build is required for the app. Currently, this is the
    * case if something in the manifest has changed (at the moment, we're only looking
    * at manifest file edits, not diffing the contents or disregarding "irrelevant"
    * edits such as whitespace or comments.
    */
-  private static boolean needsFullBuild(@NotNull IDevice device, @NotNull Module module) {
+  public static boolean needsFullBuild(@NotNull IDevice device, @NotNull Module module) {
     AndroidVersion deviceVersion = device.getVersion();
     if (!isInstantRunCapableDeviceVersion(deviceVersion)) {
       String message = "Device with API level " + deviceVersion + " not capable of instant run.";
@@ -328,8 +316,7 @@ public final class InstantRunManager implements ProjectComponent {
    * Returns true if the manifest or a resource referenced from the manifest has changed since the last manifest push to the device
    */
   private static boolean manifestChanged(@NotNull IDevice device, @NotNull Module module) {
-    InstantRunManager manager = get(module.getProject());
-    AndroidFacet facet = manager.findAppModule(module);
+    AndroidFacet facet = findAppModule(module, module.getProject());
     if (facet == null) {
       return false;
     }
@@ -364,8 +351,7 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull Module module) {
-    InstantRunManager manager = get(module.getProject());
-    AndroidFacet facet = manager.findAppModule(module);
+    AndroidFacet facet = findAppModule(module, module.getProject());
     if (facet == null) {
       return false;
     }
@@ -467,7 +453,7 @@ public final class InstantRunManager implements ProjectComponent {
     try {
       Revision modelVersion = Revision.parseRevision(version);
 
-      // Supported in version 1.6 of the Gradle plugin and up
+      // Supported in version 2.0.0-alpha5 of the Gradle plugin and up
       return modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
     } catch (NumberFormatException e) {
       Logger.getInstance(InstantRunManager.class).warn("Failed to parse '" + version + "'", e);
@@ -476,7 +462,7 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   @NotNull
-  public static InstantRunClient getInstantRunClient(@NotNull Module module) {
+  private static InstantRunClient getInstantRunClient(@NotNull Module module) {
     AndroidFacet facet = findAppModule(module, module.getProject());
     assert facet != null : module;
     AndroidGradleModel model = AndroidGradleModel.get(facet);
@@ -549,7 +535,7 @@ public final class InstantRunManager implements ProjectComponent {
             // If it created a cold swap artifact, we can use it; otherwise we're out of luck.
             if (!buildInfo.hasOneOf(DEX, RESTART_DEX, SPLIT)) {
               // TODO: We should restart the build here.
-              throw new IOException("Can't apply hotswap patch: app is no longer running");
+              throw new IOException("Can't apply hot swap patch: app is no longer running");
             }
           }
           break;
@@ -591,12 +577,20 @@ public final class InstantRunManager implements ProjectComponent {
   private static void logFilesPushed(@NotNull List<FileTransfer> files, boolean needRestart) {
     StringBuilder sb = new StringBuilder("Pushing files: ");
     if (needRestart) {
-      sb.append("[needs restart]");
+      sb.append("(needs restart) ");
     }
 
-    for (FileTransfer ft : files) {
-      sb.append(String.format("\n  %1$s as %2$s\n", ft.source.getName(), ft.name));
+    sb.append('[');
+    String separator = "";
+    for (int i = 0; i < files.size(); i++) {
+      sb.append(separator);
+      sb.append(files.get(i).source.getName());
+      sb.append(" as ");
+      sb.append(files.get(i).name);
+
+      separator = ", ";
     }
+    sb.append(']');
 
     LOG.info(sb.toString());
   }
@@ -665,7 +659,7 @@ public final class InstantRunManager implements ProjectComponent {
     }
   }
 
-  public static void displayVerifierStatus(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
+  private static void displayVerifierStatus(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
     if (!buildInfo.canHotswap()) {
       String status = buildInfo.getVerifierStatus();
       if (status.isEmpty()) {
@@ -764,28 +758,20 @@ public final class InstantRunManager implements ProjectComponent {
 
   @Nullable
   private static String getPackageName(@Nullable AndroidFacet facet) {
-    if (facet != null) {
-      try {
-        return ApkProviderUtil.computePackageName(facet);
-      }
-      catch (ApkProvisionException e) {
-        AndroidModuleInfo info = AndroidModuleInfo.get(facet);
-        if (info.getPackage() != null) {
-          return info.getPackage();
-        }
-      }
+    if (facet == null) {
+      return null;
     }
 
-    return null;
+    try {
+      return ApkProviderUtil.computePackageName(facet);
+    }
+    catch (ApkProvisionException e) {
+      return null;
+    }
   }
 
   @Nullable
-  public AndroidFacet findAppModule(@Nullable Module module) {
-    return findAppModule(module, myProject);
-  }
-
-  @Nullable
-  private static AndroidFacet findAppModule(@Nullable Module module, @NotNull Project project) {
+  public static AndroidFacet findAppModule(@Nullable Module module, @NotNull Project project) {
     if (module != null) {
       assert module.getProject() == project;
       AndroidFacet facet = AndroidFacet.getInstance(module);

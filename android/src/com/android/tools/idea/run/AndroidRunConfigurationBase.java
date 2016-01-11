@@ -377,26 +377,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     ApkProvider apkProvider = getApkProvider(facet);
     LaunchTasksProviderFactory providerFactory = new AndroidLaunchTasksProviderFactory(this, env, facet, apkProvider, launchOptions);
-    return new AndroidRunState(env, getName(), module, apkProvider, getConsoleProvider(), deviceFutures.get(), providerFactory, processHandler);
+    return new AndroidRunState(env, getName(), module, apkProvider, getConsoleProvider(), deviceFutures.get(), providerFactory,
+                               processHandler);
   }
 
   @Nullable
   private static DeviceFutures getFastDeployDevices(@NotNull Executor executor,
                                                     @NotNull AndroidFacet facet,
                                                     @NotNull AndroidSessionInfo info) {
-    if (!info.getExecutorId().equals(executor.getId())) {
-      String msg = String.format("Cannot instant run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
-                                 executor.getId());
-      InstantRunManager.LOG.info(msg);
-      return null;
-    }
-
-    Collection<IDevice> devices = info.getDevices();
-    if (devices == null) {
-      InstantRunManager.LOG.info("Cannot instant run since we could not locate the devices from the existing launch session");
-      return null;
-    }
-
     Module module = facet.getModule();
     if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
       InstantRunManager.LOG.info("Instant run not enabled in settings");
@@ -409,18 +397,34 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
+    if (!info.getExecutorId().equals(executor.getId())) {
+      String msg = String.format("Cannot instant run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
+                                 executor.getId());
+      InstantRunManager.LOG.info(msg);
+      return null;
+    }
+
+    List<IDevice> devices = info.getDevices();
+    if (devices == null || devices.isEmpty()) {
+      InstantRunManager.LOG.info("Cannot instant run since we could not locate the devices from the existing launch session");
+      return null;
+    }
+
+    assert devices.size() == 1 : "Instant run is only supported on a single device, but previous launch was on " + devices.size();
+
     return DeviceFutures.forDevices(devices);
   }
 
   private static void setInstantRunBuildOptions(@NotNull ExecutionEnvironment env,
                                                 @NotNull Module module,
                                                 @NotNull DeviceFutures deviceFutures) {
-    Collection<IDevice> devices = deviceFutures.getIfReady();
+    List<IDevice> devices = deviceFutures.getIfReady();
+    IDevice device = devices == null ? null : devices.get(0);
 
-    boolean buildsMatch = devices != null && buildTimestampsMatch(module, devices);
-    if (!buildsMatch || !apiLevelsMatch(module, devices)) {
+    boolean buildsMatch = device != null && InstantRunManager.buildTimestampsMatch(device, module);
+    if (!buildsMatch || !InstantRunManager.apiLevelsMatch(device, module)) {
       String cause = buildsMatch ? "API levels" : "build timestamps";
-      LOG.info("Performing a clean build since " + cause + " don't match across the device and local state");
+      InstantRunManager.LOG.info("Performing a clean build since " + cause + " don't match across the device and local state");
       InstantRunUtils.setNeedsCleanBuild(env, true);
       return;
     }
@@ -436,7 +440,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // a no-op) because we need to check whether the manifest file has been edited since an
     // edited manifest changes what the incremental run build has to do.
     GradleInvoker.saveAllFilesSafely();
-    boolean needsFullBuild = InstantRunManager.needsFullBuild(devices, module);
+    boolean needsFullBuild = InstantRunManager.needsFullBuild(device, module);
     InstantRunUtils.setNeedsFullBuild(env, needsFullBuild);
     if (needsFullBuild &&
         InstantRunManager.hasLocalCacheOfDeviceData(Iterables.getOnlyElement(devices), module)) { // don't show this if we decided to build because we don't have a local cache
@@ -517,26 +521,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private static boolean isAppRunning(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
     for (IDevice device : usedDevices) {
       if (!InstantRunManager.isAppInForeground(device, module)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  private static boolean buildTimestampsMatch(@NotNull Module module, @NotNull Collection<IDevice> devices) {
-    for (IDevice device : devices) {
-      if (!InstantRunManager.buildTimestampsMatch(device, module)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  private static boolean apiLevelsMatch(@NotNull Module module, @NotNull Collection<IDevice> devices) {
-    for (IDevice device : devices) {
-      if (!InstantRunManager.apiLevelsMatch(Iterables.getOnlyElement(devices), module)) {
         return false;
       }
     }

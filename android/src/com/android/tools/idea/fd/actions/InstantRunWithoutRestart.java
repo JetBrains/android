@@ -67,7 +67,7 @@ public class InstantRunWithoutRestart extends AnAction {
     perform(module);
   }
 
-  private void perform(Module module) {
+  private void perform(@NotNull Module module) {
     Project project = module.getProject();
     if (!InstantRunSettings.isInstantRunEnabled(project) || !InstantRunManager.isPatchableApp(module)) {
       return;
@@ -77,7 +77,7 @@ public class InstantRunWithoutRestart extends AnAction {
     for (IDevice device : devices) {
       if (InstantRunManager.isAppInForeground(device, module)) {
         if (InstantRunManager.buildTimestampsMatch(device, module)) {
-          performUpdate(manager, device, getUpdateMode(), module);
+          performUpdate(manager, device, getUpdateMode(), module, project);
         } else {
           new InstantRunUserFeedback(module).postText(
             "Local Gradle build id doesn't match what's installed on the device; full build required"
@@ -91,8 +91,9 @@ public class InstantRunWithoutRestart extends AnAction {
   private static void performUpdate(@NotNull InstantRunManager manager,
                                     @NotNull IDevice device,
                                     @NotNull UpdateMode updateMode,
-                                    @Nullable Module module) {
-    AndroidFacet facet = manager.findAppModule(module);
+                                    @Nullable Module module,
+                                    @NotNull Project project) {
+    AndroidFacet facet = InstantRunManager.findAppModule(module, project);
     if (facet != null) {
       AndroidGradleModel model = AndroidGradleModel.get(facet);
       if (model != null) {
