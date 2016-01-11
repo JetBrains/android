@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -97,8 +98,12 @@ public enum BuildFileKey {
   STORE_FILE("storeFile", FILE),
   STORE_PASSWORD("storePassword", STRING),
 
-  // Android block
+  // Android blockx
   DEFAULT_CONFIG("android/defaultConfig", CLOSURE),
+  @Deprecated
+  /**
+   * @deprecated Use {@link AndroidModel#buildToolsVersion()} or {@link AndroidModel#setBuildToolsVersion(String)}
+   */
   BUILD_TOOLS_VERSION("android/buildToolsVersion", STRING),
   COMPILE_SDK_VERSION("android/compileSdkVersion", INTEGER_OR_STRING),
   IGNORE_ASSETS_PATTERN("android/aaptOptions/ignoreAssetsPattern", STRING),
