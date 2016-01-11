@@ -38,7 +38,7 @@ import java.util.Properties;
 /**
  * Represents a source XML node in an SDK repository.
  */
-public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersionProvider {
+public class RemoteSourcePkgInfo extends RemotePkgInfo {
 
   /**
    * Creates a new source package from the attributes and elements of the given XML node.
@@ -82,7 +82,6 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
   /**
    * Returns the android version of this package.
    */
-  @Override
   @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();

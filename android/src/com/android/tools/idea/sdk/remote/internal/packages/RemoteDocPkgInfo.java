@@ -32,7 +32,7 @@ import java.util.Properties;
 /**
  * Represents a doc XML node in an SDK repository.
  */
-public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionProvider {
+public class RemoteDocPkgInfo extends RemotePkgInfo {
 
   /**
    * Creates a new doc package from the attributes and elements of the given XML node.
@@ -78,7 +78,6 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
    * Returns the version, for platform, add-on and doc packages.
    * Can be 0 if this is a local package of unknown api-level.
    */
-  @Override
   @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
