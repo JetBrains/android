@@ -16,6 +16,7 @@ import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
 import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
@@ -56,10 +57,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 import static org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry.CUSTOM_ERROR;
@@ -418,6 +416,37 @@ public class IntellijLintClient extends LintClient implements Disposable {
     return new File(dir, Project.DIRECTORY_STORE_FOLDER).exists();
   }
 
+  private static List<Issue> ourReportedCustomIssues;
+
+  private static void recordCustomIssue(@NonNull Issue issue) {
+    if (ourReportedCustomIssues == null) {
+      ourReportedCustomIssues = Lists.newArrayList();
+    } else if (ourReportedCustomIssues.contains(issue)) {
+      return;
+    }
+    ourReportedCustomIssues.add(issue);
+  }
+
+  @Nullable
+  public static Issue findCustomIssue(@NonNull String errorMessage) {
+    if (ourReportedCustomIssues != null) {
+      // We stash the original id into the error message such that we can
+      // find it later
+      int begin = errorMessage.lastIndexOf('[');
+      int end = errorMessage.lastIndexOf(']');
+      if (begin < end && begin != -1) {
+        String id = errorMessage.substring(begin + 1, end);
+        for (Issue issue : ourReportedCustomIssues) {
+          if (id.equals(issue.getId())) {
+            return issue;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   /**
    * A lint client used for in-editor single file lint analysis (e.g. background checking while user is editing.)
    * <p>
@@ -456,6 +485,10 @@ public class IntellijLintClient extends LintClient implements Disposable {
         final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
 
         if (context.getDriver().isCustomIssue(issue)) {
+          // Record original issue id in the message (such that we can find
+          // it later, in #findCustomIssue)
+          message += " [" + issue.getId() + "]";
+          recordCustomIssue(issue);
           issue = Severity.WARNING.compareTo(severity) <= 0 ? CUSTOM_WARNING : CUSTOM_ERROR;
         }
 
@@ -636,6 +669,10 @@ public class IntellijLintClient extends LintClient implements Disposable {
 
       if (inScope) {
         if (context.getDriver().isCustomIssue(issue)) {
+          // Record original issue id in the message (such that we can find
+          // it later, in #findCustomIssue)
+          message += " [" + issue.getId() + "]";
+          recordCustomIssue(issue);
           issue = Severity.WARNING.compareTo(severity) <= 0 ? CUSTOM_WARNING : CUSTOM_ERROR;
         }
 
