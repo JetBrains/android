@@ -212,7 +212,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   }
 
   @NotNull
-  public Collection<IDevice> getDevices() {
+  public List<IDevice> getDevices() {
     List<IDevice> devices = Lists.newArrayListWithExpectedSize(myClients.size());
     for (Client client : myClients) {
       devices.add(client.getDevice());

@@ -176,7 +176,7 @@ public class GradleInvokerOptions {
   private static final String PROPERTY_BUILD_DENSITY = "android.injected.build.density";
 
   @NotNull
-  private static List<String> getDeviceSpecificArguments(@NotNull Collection<IDevice> devices) {
+  private static List<String> getDeviceSpecificArguments(@NotNull List<IDevice> devices) {
     if (devices.isEmpty()) {
       return Collections.emptyList();
     }
@@ -184,37 +184,27 @@ public class GradleInvokerOptions {
     List<String> properties = new ArrayList<String>(2);
 
     // Find the minimum value of the build API level and pass it to Gradle as a property
-    AndroidVersion min = null;
-    for (IDevice device : devices) {
-      AndroidVersion version = device.getVersion();
-      if (version != AndroidVersion.DEFAULT && (min == null || version.getFeatureLevel() < min.getFeatureLevel())) {
-        min = version;
-      }
-    }
-    if (min != null) {
-      properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, min.getApiString()));
-    }
+    IDevice device = devices.get(0); // Instant Run only supports launching to a single device
+    AndroidVersion min = device.getVersion();
+    properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, min.getApiString()));
 
     // If we are building for only one device, pass the density.
-    if (devices.size() == 1) {
-      int densityInteger = Iterables.getOnlyElement(devices).getDensity();
-      Density density = Density.getEnum(densityInteger);
-      if (density != null) {
-        properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
-      }
+    Density density = Density.getEnum(device.getDensity());
+    if (density != null) {
+      properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
     }
 
     return properties;
   }
 
   @NotNull
-  private static Collection<IDevice> getTargetDevices(@NotNull ExecutionEnvironment env) {
+  private static List<IDevice> getTargetDevices(@NotNull ExecutionEnvironment env) {
     DeviceFutures deviceFutures = env.getCopyableUserData(AndroidRunConfigurationBase.DEVICE_FUTURES_KEY);
     if (deviceFutures == null) {
       return Collections.emptyList();
     }
 
-    Collection<IDevice> readyDevices = deviceFutures.getIfReady();
+    List<IDevice> readyDevices = deviceFutures.getIfReady();
     return readyDevices == null ? Collections.<IDevice>emptyList() : readyDevices;
   }
 
@@ -223,13 +213,13 @@ public class GradleInvokerOptions {
     public final boolean needsFullBuild;
     public final boolean isAppRunning;
     @NotNull private final FileChangeListener.Changes fileChanges;
-    @NotNull public final Collection<IDevice> devices;
+    @NotNull public final List<IDevice> devices;
 
     InstantRunBuildOptions(boolean cleanBuild,
                            boolean needsFullBuild,
                            boolean isAppRunning,
                            @NotNull FileChangeListener.Changes changes,
-                           @NotNull Collection<IDevice> devices) {
+                           @NotNull List<IDevice> devices) {
       this.cleanBuild = cleanBuild;
       this.needsFullBuild = needsFullBuild;
       this.isAppRunning = isAppRunning;
