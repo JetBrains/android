@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +34,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 import java.util.Collection;
+import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
@@ -80,6 +83,7 @@ public final class GradleDslLiteral extends GradleDslExpression {
         literalText = unquoteString(literalText);
       }
 
+      List<GradleResolvedVariable> resolvedVariables = Lists.newArrayList();
       GrStringInjection[] injections = ((GrString)myExpression).getInjections();
       for (GrStringInjection injection : injections) {
         String variableName = null;
@@ -97,15 +101,17 @@ public final class GradleDslLiteral extends GradleDslExpression {
         }
 
         if (!isEmpty(variableName)) {
-          GradleDslExpression resolvedLiteral = resolveReference(variableName, GradleDslExpression.class);
-          if (resolvedLiteral != null) {
-            Object resolvedValue = resolvedLiteral.getValue();
+          GradleDslExpression resolvedExpression = resolveReference(variableName, GradleDslExpression.class);
+          if (resolvedExpression != null) {
+            Object resolvedValue = resolvedExpression.getValue();
             if (resolvedValue != null) {
+              resolvedVariables.add(new GradleResolvedVariable(variableName, resolvedValue, resolvedExpression));
               literalText = literalText.replace(injection.getText(), resolvedValue.toString());
             }
           }
         }
       }
+      setResolvedVariables(resolvedVariables);
       return literalText;
     }
     return null;
