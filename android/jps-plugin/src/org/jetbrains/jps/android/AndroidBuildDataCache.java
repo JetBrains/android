@@ -1,9 +1,7 @@
 package org.jetbrains.jps.android;
 
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;

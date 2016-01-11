@@ -16,10 +16,7 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.repository.api.RemotePackage;
-import com.android.sdklib.SdkManager;
-import com.android.tools.idea.sdk.LogWrapper;
 import com.android.tools.idea.npw.ImportUIUtil;
-import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
@@ -28,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
