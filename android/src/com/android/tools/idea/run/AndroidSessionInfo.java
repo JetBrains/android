@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 public class AndroidSessionInfo {
   public static final Key<AndroidSessionInfo> KEY = new Key<AndroidSessionInfo>("KEY");
@@ -64,7 +65,7 @@ public class AndroidSessionInfo {
   }
 
   @Nullable
-  public Collection<IDevice> getDevices() {
+  public List<IDevice> getDevices() {
     if (myProcessHandler instanceof AndroidProcessHandler) {
       return ((AndroidProcessHandler)myProcessHandler).getDevices();
     }
