@@ -239,7 +239,7 @@ public class GradleInvokerOptions {
 
     @Nullable
     static InstantRunBuildOptions createAndReset(@NotNull Module module, @NotNull ExecutionEnvironment env) {
-      if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
+      if (!InstantRunSettings.isInstantRunEnabled(module.getProject()) || !InstantRunManager.isPatchableApp(module)) {
         return null;
       }
 
