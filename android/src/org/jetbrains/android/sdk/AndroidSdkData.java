@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.sdk;
 
+import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
@@ -24,6 +25,7 @@ import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalPlatformPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -35,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -156,23 +159,29 @@ public class AndroidSdkData {
 
   @NotNull
   public IAndroidTarget[] getTargets() {
-    return myLocalSdk.getTargets();
+    Collection<IAndroidTarget> targets = getTargetCollection();
+    return targets.toArray(new IAndroidTarget[targets.size()]);
+  }
+
+  @NotNull
+  private Collection<IAndroidTarget> getTargetCollection() {
+    ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    return mySdkHandler.getAndroidTargetManager(progress).getTargets(false, progress);
   }
 
   @NotNull
   public IAndroidTarget[] getTargets(boolean includeAddOns) {
-    if (includeAddOns) {
-      return myLocalSdk.getTargets();
-    }
-    List<IAndroidTarget> result = Lists.newArrayList();
-    LocalPkgInfo[] pkgsInfos = myLocalSdk.getPkgsInfos(EnumSet.of(PkgType.PKG_PLATFORM));
-    for (LocalPkgInfo info : pkgsInfos) {
-      if (info instanceof LocalPlatformPkgInfo) {
-        IAndroidTarget target = ((LocalPlatformPkgInfo) info).getAndroidTarget();
-        if (target != null) {
+    Collection<IAndroidTarget> targets = getTargetCollection();
+    Collection<IAndroidTarget> result = Lists.newArrayList();
+    if (!includeAddOns) {
+      for (IAndroidTarget target : targets) {
+        if (target.isPlatform()) {
           result.add(target);
         }
       }
+    }
+    else {
+      result.addAll(targets);
     }
     return result.toArray(new IAndroidTarget[result.size()]);
   }
@@ -201,7 +210,8 @@ public class AndroidSdkData {
 
   @Nullable
   public IAndroidTarget findTargetByHashString(@NotNull String hashString) {
-    return myLocalSdk.getTargetFromHashString(hashString);
+    ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    return mySdkHandler.getAndroidTargetManager(progress).getTargetFromHashString(hashString, progress);
   }
 
   public int getPlatformToolsRevision() {
