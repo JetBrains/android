@@ -36,6 +36,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -102,7 +103,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       }
     });
 
-    myClientCombo.setRenderer(new ClientCellRenderer("No Debuggable Processes"));
+    myClientCombo.setRenderer(new ClientCellRenderer("No Debuggable Applications"));
     Dimension size = myClientCombo.getMinimumSize();
     myClientCombo.setMinimumSize(new Dimension(250, size.height));
   }
@@ -243,7 +244,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
     IDevice device = (IDevice)myDeviceCombo.getSelectedItem();
     Client selected = (Client)myClientCombo.getSelectedItem();
-    Client toSelect = null;
+    Client toSelect = selected;
     boolean update = true;
     myClientCombo.removeAllItems();
     if (device != null) {
@@ -261,11 +262,8 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       // closed. At this point we have our old handle to it but it's not in the client list
       // reported by the phone anymore. We still want to keep it in the list though, so the user
       // can look over any final error messages / profiling states.
-      // However, we might get here because our device changed, so discard selected clients that
-      // come from another device
-      boolean selectedClientDied = selected != null && selected.getDevice() == device && !clients.contains(selected);
+      boolean selectedClientDied = selected != null && !clients.contains(selected);
       if (selectedClientDied) {
-        toSelect = selected;
         clients.add(selected);
       }
       Collections.sort(clients, new ClientCellRenderer.ClientComparator());
