@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.repository.api.RemotePackage;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.ui.wizard.StudioWizardLayout;
@@ -80,8 +81,8 @@ public class WizardConstants {
     createKey(ATTR_DEPENDENCIES_LIST, WIZARD, (Class<List<String>>)(Class)String.class);
   public static final Key<String> GRADLE_PLUGIN_VERSION_KEY = createKey(ATTR_GRADLE_PLUGIN_VERSION, WIZARD, String.class);
   public static final Key<String> GRADLE_VERSION_KEY = createKey(ATTR_GRADLE_VERSION, WIZARD, String.class);
-  @SuppressWarnings("unchecked") public static final Key<List<IPkgDesc>> INSTALL_REQUESTS_KEY =
-    createKey("packagesToInstall", WIZARD, (Class<List<IPkgDesc>>)(Class)List.class);
+  @SuppressWarnings("unchecked") public static final Key<List<String>> INSTALL_REQUESTS_KEY =
+    createKey("packagesToInstall", WIZARD, (Class<List<String>>)(Class)List.class);
   public static final Key<Boolean> IS_GRADLE_PROJECT_KEY = createKey(ATTR_IS_GRADLE, WIZARD, Boolean.class);
   public static final Key<Boolean> IS_NEW_PROJECT_KEY = createKey(ATTR_IS_NEW_PROJECT, WIZARD, Boolean.class);
   public static final Key<String> KEY_SDK_INSTALL_LOCATION = createKey("download.sdk.location", WIZARD, String.class);
