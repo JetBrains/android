@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.GradleValue;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,5 +37,27 @@ public final class ExtModel extends GradleDslBlockModel {
 
   public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
     return myDslElement.getProperty(property, clazz);
+  }
+
+  /**
+   * Returns the property value along with variable resolution history.
+   *
+   * Note: WIP. Please do not use.
+   */
+  public <T> GradleValue<T> getPropertyWithResolutionHistory(@NotNull String property, @NotNull Class<T> clazz) {
+    GradleDslElement propertyElement = myDslElement.getPropertyElement(property);
+    if (propertyElement != null) {
+      T resultValue = null;
+      if (clazz.isInstance(propertyElement)) {
+        resultValue = clazz.cast(propertyElement);
+      }
+      else if (propertyElement instanceof GradleDslExpression) {
+        resultValue = ((GradleDslExpression)propertyElement).getValue(clazz);
+      }
+      if (resultValue != null) {
+        return new GradleValue<T>(resultValue, propertyElement);
+      }
+    }
+    return null;
   }
 }
