@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -506,7 +507,7 @@ public class ResourceNotificationManager implements ProjectComponent {
           // Just added attribute value
           String text = child.getText();
           // See if this is an attribute that takes a resource!
-          if (text.startsWith(PREFIX_RESOURCE_REF) && !text.startsWith(PREFIX_BINDING_EXPR)) {
+          if (text.startsWith(PREFIX_RESOURCE_REF) && !DataBindingUtil.isBindingExpression(text)) {
             if (text.equals(PREFIX_RESOURCE_REF) || text.equals(ANDROID_PREFIX)) {
               // Using code completion to insert resource reference; not yet done
               return;
@@ -574,7 +575,7 @@ public class ResourceNotificationManager implements ProjectComponent {
           String newText = child.getText();
           String prevText = event.getOldChild().getText();
           // See if user is working on an incomplete URL, and is still not complete, e.g. typing in @string/foo manually
-          if (newText.startsWith(PREFIX_RESOURCE_REF) && !newText.startsWith(PREFIX_BINDING_EXPR)) {
+          if (newText.startsWith(PREFIX_RESOURCE_REF) && !DataBindingUtil.isBindingExpression(newText)) {
             ResourceUrl prevUrl = ResourceUrl.parse(prevText);
             ResourceUrl newUrl = ResourceUrl.parse(newText);
             if (prevUrl != null && prevUrl.name.isEmpty()) {

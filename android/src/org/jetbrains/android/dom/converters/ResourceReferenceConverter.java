@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -393,7 +394,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @Override
   public ResourceValue fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) return null;
-    if (s.startsWith(PREFIX_BINDING_EXPR)) return ResourceValue.INVALID;
+    if (DataBindingUtil.isBindingExpression(s)) return ResourceValue.INVALID;
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, true);
     final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
