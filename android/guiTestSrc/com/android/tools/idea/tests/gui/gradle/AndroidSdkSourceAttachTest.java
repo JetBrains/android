@@ -127,7 +127,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     assertIsActivityJavaFile(sourceFile);
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
+//  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testRefreshSdkSource() throws IOException {
     if (mySdk == null) {
@@ -143,7 +143,6 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
       return;
     }
 
-    clearLocalPkgInfo(mySdk);
     SdkModificator sdkModificator = mySdk.getSdkModificator();
     sdkModificator.removeRoots(OrderRootType.SOURCES);
     sdkModificator.commitChanges();

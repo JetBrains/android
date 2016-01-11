@@ -20,7 +20,6 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
@@ -50,7 +49,6 @@ import static org.jetbrains.android.util.AndroidCommonUtils.parsePackageRevision
 public class AndroidSdkData {
   private final Map<IAndroidTarget, SoftReference<AndroidTargetData>> myTargetDataByTarget = Maps.newHashMap();
 
-  private final LocalSdk myLocalSdk;
   private final DeviceManager myDeviceManager;
 
   private final int myPlatformToolsRevision;
@@ -121,7 +119,6 @@ public class AndroidSdkData {
   }
 
   private AndroidSdkData(@NotNull File localSdk) {
-    myLocalSdk = new LocalSdk(localSdk);
     mySdkHandler = AndroidSdkHandler.getInstance(localSdk);
     File location = getLocation();
     String locationPath = location.getPath();
@@ -221,11 +218,6 @@ public class AndroidSdkData {
   @Override
   public int hashCode() {
     return fileHashCode(getLocation());
-  }
-
-  @NotNull
-  public LocalSdk getLocalSdk() {
-    return myLocalSdk;
   }
 
   @NotNull
