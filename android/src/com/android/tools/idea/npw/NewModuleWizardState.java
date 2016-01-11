@@ -17,6 +17,8 @@
 package com.android.tools.idea.npw;
 
 import com.android.sdklib.BuildToolInfo;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -32,6 +34,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
@@ -151,16 +154,17 @@ public class NewModuleWizardState extends TemplateWizardState {
   }
 
   public void putSdkDependentParams() {
-    final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    BuildToolInfo buildTool = sdkData != null ? sdkData.getLatestBuildTool() : null;
+    final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()));
     if (buildTool != null) {
       // If buildTool is null, the template will use buildApi instead, which might be good enough.
       put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     }
 
-    if (sdkData != null) {
+    File location = sdkHandler.getLocation();
+    if (location != null) {
       // Gradle expects a platform-neutral path
-      put(ATTR_SDK_DIR, FileUtil.toSystemIndependentName(sdkData.getPath()));
+      put(ATTR_SDK_DIR, FileUtil.toSystemIndependentName(location.getPath()));
     }
   }
 
