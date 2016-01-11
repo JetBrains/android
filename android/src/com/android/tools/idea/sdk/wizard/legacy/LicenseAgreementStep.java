@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.sdk.wizard.legacy;
 
-import com.android.repository.api.License;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.repository.api.*;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.wizard.AndroidSdkLicenseTemporaryData;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -30,7 +34,6 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.treeStructure.Tree;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,6 +60,7 @@ import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY
  * @deprecated Replaced by {@link com.android.tools.idea.sdk.wizard.LicenseAgreementStep}
  */
 public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
+  private final AndroidSdkHandler mySdkHandler;
   private JTextPane myLicenseTextField;
   private Tree myChangeTree;
   private JRadioButton myDeclineRadioButton;
@@ -98,13 +102,8 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
 
     setBodyComponent(mainPanel);
 
-    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (data != null) {
-      mySdkRoot = data.getLocalSdk().getLocation();
-    }
-    else {
-      mySdkRoot = null;
-    }
+    mySdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    mySdkRoot = mySdkHandler.getLocation();
   }
 
   @Override
@@ -249,18 +248,26 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   }
 
   private List<Change> createChangesList() {
+    ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, new StudioDownloader(),
+                                                         StudioSettingsController.getInstance());
+    Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     List<Change> toReturn = Lists.newArrayList();
-    List requestedPackageNames = myState.get(INSTALL_REQUESTS_KEY);
-    if (requestedPackageNames != null) {
-      for (Object o : requestedPackageNames) {
-        IPkgDesc desc = (IPkgDesc)o;
-        License license = desc.getLicense();
-        if (license == null) { // Android SDK license
-          license = AndroidSdkLicenseTemporaryData.getLicense(desc.getAndroidVersion() != null && desc.getAndroidVersion().isPreview());
+    List<String> requestedPackages = myState.get(INSTALL_REQUESTS_KEY);
+
+    if (requestedPackages != null) {
+      for (String path : requestedPackages) {
+        RemotePackage p = remotePackages.get(path);
+        License license = p.getLicense();
+        if (license == null) {
+            license = AndroidSdkLicenseTemporaryData.getLicense(
+              p.getTypeDetails() instanceof DetailsTypes.ApiDetailsType &&
+              DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)p.getTypeDetails()).isPreview());
         }
         myLicenses.add(license);
         if (!license.checkAccepted(mySdkRoot)) {
-          toReturn.add(new Change(ChangeType.INSTALL, (IPkgDesc)o, license));
+          toReturn.add(new Change(ChangeType.INSTALL, p, license));
         }
       }
     }
@@ -313,27 +320,23 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   }
 
   protected static class Change {
-    public ChangeType type;
-    public IPkgDesc packageDescription;
+    public ChangeType myType;
+    public RepoPackage myPackage;
     public License license;
 
-    public Change(@NotNull ChangeType type, @NotNull IPkgDesc packageDescription, @NotNull License license) {
-      this.type = type;
-      this.packageDescription = packageDescription;
+    public Change(@NotNull ChangeType type, @NotNull RepoPackage packageDescription, @NotNull License license) {
+      this.myType = type;
+      this.myPackage = packageDescription;
       this.license = license;
     }
 
     @Override
     public String toString() {
-      if (packageDescription.getListDescription() != null) {
-        return packageDescription.getListDescription();
-      } else {
-        return "INCORRECT PACKAGE DESCRIPTION";
-      }
+      return myPackage.getDisplayName();
     }
 
     public Icon getIcon() {
-      switch (type) {
+      switch (myType) {
         case INSTALL:
           return AllIcons.Actions.Download;
         case UPDATE:

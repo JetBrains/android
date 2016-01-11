@@ -15,15 +15,24 @@
  */
 package com.android.tools.idea.sdk.wizard.legacy;
 
+import com.android.annotations.NonNull;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.installer.BasicInstaller;
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.tools.idea.sdk.*;
-import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.LoggerProgressIndicatorWrapper;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.SdkLoggerIntegration;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
+import com.android.tools.idea.sdkv2.*;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -36,17 +45,15 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.TimeoutUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
@@ -64,7 +71,6 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
   private JLabel myErrorLabel;
   private JPanel myContentPanel;
   private boolean myInstallFinished;
-  private Boolean myBackgroundSuccess = null;
 
   public SmwOldApiDirectInstall(@NotNull Disposable disposable) {
     super(disposable);
@@ -95,10 +101,8 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
 
   private void startSdkInstallUsingNonSwtOldApi() {
     // Get the SDK instance.
-    final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    SdkState sdkState = sdkData == null ? null : SdkState.getInstance(sdkData);
-
-    if (sdkState == null) {
+    final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    if (sdkHandler.getLocation() == null) {
       myErrorLabel.setText("Error: can't get SDK instance.");
       myErrorLabel.setForeground(JBColor.RED);
       return;
@@ -111,58 +115,43 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       return;
     }
 
-    myLabelSdkPath.setText(sdkData.getLocation().getPath());
+    myLabelSdkPath.setText(sdkHandler.getLocation().getPath());
 
     final CustomLogger logger = new CustomLogger();
 
-    SdkLoadedCallback onSdkAvailable = new SdkLoadedCallback(true) {
+    RepoManager.RepoLoadedCallback onComplete = new RepoManager.RepoLoadedCallback() {
       @Override
-      public void doRun(@NotNull SdkPackages packages) {
-        // Since this is only run on complete (not on local complete) it's ok that we're not using the passed-in packages
-
-        // TODO: since the local SDK has been parsed, this is now a good time
-        // to filter requestedPackages to remove current installed packages.
-        // That's because on Windows trying to update some of the packages in-place
-        // *will* fail (e.g. typically the android platform or the tools) as the
-        // folder is most likely locked.
-        // As mentioned in InstallTask below, the shortcut we're taking here will
-        // install all the requested packages, even if already installed, which is
-        // useless so that's another incentive to remove already installed packages
-        // from the requested list.
-
-        final ArrayList<String> requestedPackages = Lists.newArrayList();
-        List requestedChanges = myState.get(INSTALL_REQUESTS_KEY);
-        if (requestedChanges == null) {
-          // This should never occur
-          myInstallFinished = true;
-          invokeUpdate(null);
-          return;
-        }
-
-        for (Object object : requestedChanges) {
-          try {
-            IPkgDesc packageDesc = (IPkgDesc)object;
-            if (packageDesc != null) {
-              // TODO use localSdk to filter list and remove already installed items
-              requestedPackages.add(packageDesc.getInstallId());
+      public void doRun(@NonNull final RepositoryPackages packages) {
+        UIUtil.invokeLaterIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            List<String> requestedChanges = myState.get(INSTALL_REQUESTS_KEY);
+            if (requestedChanges == null) {
+              // This should never occur
+              assert false : "Shouldn't be in installer with no requests";
+              myInstallFinished = true;
+              invokeUpdate(null);
+              return;
             }
-          } catch (ClassCastException e) {
-            LOG.error(e);
-          }
-        }
 
-        InstallTask task = new InstallTask(sdkData, requestedPackages, logger);
-        BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
-        logger.setIndicator(indicator);
-        ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
+            Map<String, RemotePackage> remotes = packages.getRemotePackages();
+            List<RemotePackage> requestedPackages = Lists.newArrayList();
+            for (String path : requestedChanges) {
+              requestedPackages.add(remotes.get(path));
+            }
+            InstallTask task = new InstallTask(sdkHandler, requestedPackages, logger);
+            BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
+            logger.setIndicator(indicator);
+            ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
+          }
+        });
       }
     };
 
-    // loadAsync checks if the timeout expired and/or loads the SDK if it's not loaded yet.
-    // If needed, it does a backgroundable Task to load the SDK and then calls onSdkAvailable.
-    // Otherwise it returns false, in which case we call onSdkAvailable ourselves.
-    logger.info("Loading SDK information...\n");
-    sdkState.loadAsync(1000 * 3600 * 24, false, null, onSdkAvailable, null, false);  // TODO(jbakermalone): display something on error?
+    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Updating SDK", false, null);
+    sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()))
+      .load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), null, runner, new StudioDownloader(),
+            StudioSettingsController.getInstance(), false);
   }
 
   @NotNull
@@ -189,75 +178,51 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
   }
 
   private class InstallTask extends Task.Backgroundable {
-    @NotNull private final AndroidSdkData mySdkData;
-    @NotNull private final ArrayList<String> myRequestedPackages;
+    @NotNull private final AndroidSdkHandler mySdkHandler;
+    @NotNull private final List<RemotePackage> myRequestedPackages;
     @NotNull private final ILogger myLogger;
 
-    private InstallTask(@NotNull AndroidSdkData sdkData,
-                        @NotNull ArrayList<String> requestedPackages,
+    private InstallTask(@NotNull AndroidSdkHandler sdkHandler,
+                        @NotNull List<RemotePackage> requestedPackages,
                         @NotNull ILogger logger) {
       super(null /*project*/,
             "Installing Android SDK",
             false /*canBeCancelled*/,
             PerformInBackgroundOption.ALWAYS_BACKGROUND);
-      mySdkData = sdkData;
+      mySdkHandler = sdkHandler;
       myRequestedPackages = requestedPackages;
       myLogger = logger;
     }
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
-      // This runs in a background task and isn't interrupted.
-
-      // Perform the install by using the command-line interface and dumping the output into the logger.
-      // The command-line API is a bit archaic and has some drastic limitations, one of them being that
-      // it blindly re-install stuff even if already present IIRC.
-
-      SdkManager sdkManager = SdkManager.createManager(mySdkData.getLocalSdk());
-      SdkUpdaterNoWindow upd = new SdkUpdaterNoWindow(
-        mySdkData.getLocation().getPath(),
-        sdkManager,
-        myLogger,
-        false,  // force -- The reply to any question asked by the update process.
-               //          Currently this will be yes/no for ability to replace modified samples, restart ADB, restart on locked win folder.
-        null,  // proxyPort -- An optional HTTP/HTTPS proxy port. Can be null. -- Can we get it from Studio?
-        null); // proxyHost -- An optional HTTP/HTTPS proxy host. Can be null. -- Can we get it from Studio?
-
-      upd.updateAll(myRequestedPackages,
-                    true,   // all
-                    false,  // dryMode
-                    null,   // acceptLicense
-                    true);  // includeDependencies
-
-      while (myBackgroundSuccess == null) {
-        TimeoutUtil.sleep(100);
+      com.android.repository.api.ProgressIndicator repoProgress = new LoggerProgressIndicatorWrapper(myLogger);
+      BasicInstaller installer = new BasicInstaller();
+      final RepoManager sdkManager = mySdkHandler.getSdkManager(repoProgress);
+      for (RemotePackage p : myRequestedPackages) {
+        installer.install(p, new StudioDownloader(indicator), StudioSettingsController.getInstance(), repoProgress,
+                          sdkManager, FileOpUtils.create());
       }
+      sdkManager.loadSynchronously(0, repoProgress, null, null);
+      myState.remove(INSTALL_REQUESTS_KEY);
 
       UIUtil.invokeLaterIfNeeded(new Runnable() {
         @Override
         public void run() {
           myProgressBar.setValue(100);
           myLabelProgress1.setText("");
-          if (!myBackgroundSuccess) {
-            myLabelProgress2.setText("<html>Install Failed. Please check your network connection and try again. " +
-                                     "You may continue with creating your project, but it will not compile correctly " +
-                                     "without the missing components.</html>");
-            myLabelProgress2.setForeground(JBColor.RED);
-            myProgressBar.setEnabled(false);
-          } else {
-            myLabelProgress2.setText("Done");
-            List requestedChanges = myState.get(INSTALL_REQUESTS_KEY);
-            checkForUpgrades(requestedChanges);
-            myState.remove(INSTALL_REQUESTS_KEY);
-          }
+          myLabelProgress2.setText("Done");
+          List requestedChanges = myState.get(INSTALL_REQUESTS_KEY);
+          checkForUpgrades(requestedChanges);
+          myState.remove(INSTALL_REQUESTS_KEY);
           myInstallFinished = true;
           invokeUpdate(null);
 
-          VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(mySdkData.getLocation());
+          VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(mySdkHandler.getLocation());
           if (sdkDir != null) {
             sdkDir.refresh(true, true);
           }
-          mySdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
+          sdkManager.markInvalid();
         }
       });
     }
@@ -311,14 +276,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       if (current == null) {
         current = "";
       }
-      mySdkManagerOutput.setText(current + string);
-      if (string.contains("Nothing was installed") ||
-          string.contains("Failed") ||
-          string.contains("The package filter removed all packages")) {
-        myBackgroundSuccess = false;
-      } else if (string.contains("Done") && !string.contains("othing")) {
-        myBackgroundSuccess = true;
-      }
+      mySdkManagerOutput.setText(current + "\n" + string);
     }
   }
 }
