@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -176,7 +177,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   protected boolean supportMultipleDevices() {
-    return true;
+    // instant run can only work with a single device (a single API level to be precise, but we simplify that to be a single device)
+    return !InstantRunSettings.isInstantRunEnabled(getProject());
   }
 
   @Nullable
