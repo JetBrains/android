@@ -19,9 +19,12 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.descriptors.*;
+import com.android.sdklib.repository.descriptors.IPkgDescExtra;
+import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgDescExtra;
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
@@ -112,7 +115,7 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
       // The vendor-display name can be empty, in which case we use the vendor-id.
       vname = vid;
     }
-    IdDisplay vendor = new IdDisplay(vid.trim(), vname.trim());
+    IdDisplay vendor = IdDisplay.create(vid.trim(), vname.trim());
 
     if (name.length() == 0) {
       // If name is missing, use the <path> attribute as done in an addon-3 schema.
