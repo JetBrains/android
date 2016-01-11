@@ -59,8 +59,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.updateNotification;
@@ -78,7 +76,6 @@ import static com.intellij.util.ArrayUtil.toStringArray;
  */
 public class ProjectSyncMessages {
   private static final NotificationSource NOTIFICATION_SOURCE = PROJECT_SYNC;
-  private static final Pattern UNSUPPORTED_GRADLE_VERSION_PATTERN = Pattern.compile("Gradle version (.*) is required.*?");
 
   @NotNull private final Project myProject;
   @NotNull private final ExternalSystemNotificationManager myNotificationManager;
@@ -157,9 +154,8 @@ public class ProjectSyncMessages {
 
   @NotNull
   private static List<NotificationHyperlink> getHyperlinks(@NotNull Project project, @NotNull String message) {
-    Matcher matcher = UNSUPPORTED_GRADLE_VERSION_PATTERN.matcher(message);
-    if (matcher.matches()) {
-      String version = matcher.group(1);
+    String version = UnsupportedGradleVersionErrorHandler.getSupportedGradleVersion(message);
+    if (isNotEmpty(version)) {
       return UnsupportedGradleVersionErrorHandler.getQuickFixHyperlinks(project, version);
     }
     return Collections.emptyList();
