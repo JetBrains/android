@@ -20,10 +20,10 @@ import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalAddonPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
@@ -174,7 +174,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
     mLayoutlibVersion = new LayoutlibVersionMixin(packageNode);
 
     PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder
-      .newAddon(androidVersion, getRevision(), new IdDisplay(vendorId, vendorDisp), new IdDisplay(nameId, nameDisp));
+      .newAddon(androidVersion, getRevision(), IdDisplay.create(vendorId, vendorDisp), IdDisplay.create(nameId, nameDisp));
     pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), nameDisp, androidVersion, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
     pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, nameDisp, isObsolete()));

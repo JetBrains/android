@@ -51,10 +51,10 @@ public class LegacyRemoteTest extends AndroidTestCase {
     progress.assertNoErrorsOrWarnings();
     
     mgr.registerSourceProvider(
-      new ConstantSourceProvider("http://www.example.com/testRepo", "Repo", ImmutableList.of(handler.getRepositoryModule(progress),
+      new ConstantSourceProvider("http://www.example.com/testRepo", "Repo", ImmutableList.of(AndroidSdkHandler.getRepositoryModule(),
                                                                                              RepoManager.getGenericModule())));
     mgr.registerSourceProvider(
-      new ConstantSourceProvider("http://www.example.com/testRepo2", "Repo2", ImmutableList.of(handler.getRepositoryModule(progress),
+      new ConstantSourceProvider("http://www.example.com/testRepo2", "Repo2", ImmutableList.of(AndroidSdkHandler.getRepositoryModule(),
                                                                                                RepoManager.getGenericModule())));
     progress.assertNoErrorsOrWarnings();
 

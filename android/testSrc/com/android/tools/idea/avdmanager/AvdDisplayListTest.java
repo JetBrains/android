@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Maps;
 
@@ -34,7 +34,7 @@ public class AvdDisplayListTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", "target", null, new IdDisplay("mockId", "mockDisplay"), "x86", myPropertiesMap);
+      new AvdInfo("name", new File("ini"), "folder", "target", null, IdDisplay.create("mockId", "mockDisplay"), "x86", myPropertiesMap);
   }
 
   public void testGetResolution() throws Exception {
