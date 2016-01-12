@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class EmulatorTargetChooser {
@@ -82,8 +83,9 @@ public class EmulatorTargetChooser {
       return null;
     }
 
-    return DeviceFutures.forFuture(
-      AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(myFacet.getModule().getProject(), avdInfo));
+    LaunchableAndroidDevice androidDevice = new LaunchableAndroidDevice(avdInfo);
+    androidDevice.launch(myFacet.getModule().getProject()); // LAUNCH EMULATOR
+    return new DeviceFutures(Collections.<AndroidDevice>singletonList(androidDevice));
   }
 
   @Nullable
@@ -95,7 +97,7 @@ public class EmulatorTargetChooser {
       return avds[0].getName();
     }
     final Project project = myFacet.getModule().getProject();
-    AvdManager manager = null;
+    AvdManager manager;
     try {
       manager = myFacet.getAvdManager(new AvdManagerLog() {
         @Override
