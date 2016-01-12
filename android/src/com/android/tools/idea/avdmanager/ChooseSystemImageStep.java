@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Objects;
@@ -47,6 +47,7 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
 
   public ChooseSystemImageStep(@Nullable Project project, @Nullable Disposable parentDisposable) {
     super(parentDisposable);
+    myProject = project;
     setBodyComponent(myPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), createStepBody());
 
@@ -68,9 +69,6 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
     }
     String deviceTagId = device.getTagId();
     IdDisplay inputTag = image.getTag();
-    if (inputTag == null) {
-      return true;
-    }
 
     // Unknown/generic device?
     if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {

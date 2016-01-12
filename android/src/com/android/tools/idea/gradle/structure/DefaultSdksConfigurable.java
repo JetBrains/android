@@ -16,13 +16,19 @@
 
 package com.android.tools.idea.gradle.structure;
 
-import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
-import com.android.tools.idea.sdk.*;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioProgressRunner;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -53,6 +59,7 @@ import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +77,6 @@ import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static com.android.tools.idea.sdk.SdkState.DEFAULT_EXPIRATION_PERIOD_MS;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -133,23 +139,28 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
     final CardLayout layout = (CardLayout)myNdkDownloadPanel.getLayout();
     layout.show(myNdkDownloadPanel, "loading");
 
-    final SdkState sdkState = SdkState.getInstance(tryToChooseAndroidSdk());
-    sdkState.loadAsync(DEFAULT_EXPIRATION_PERIOD_MS, false, null, new SdkLoadedCallback(true) {
+    ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
+    RepoManager repoManager = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(logger);
+    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading Remote SDK", true, project);
+    RepoManager.RepoLoadedCallback onComplete = new RepoManager.RepoLoadedCallback() {
       @Override
-      public void doRun(@NotNull SdkPackages packages) {
-        if (!sdkState.getPackages().getRemotePkgInfos().get(PkgType.PKG_NDK).isEmpty()) {
+      public void doRun(@NotNull RepositoryPackages packages) {
+        if (packages.getRemotePackages().get(FD_NDK) != null) {
           layout.show(myNdkDownloadPanel, "link");
         }
         else {
           myNdkDownloadPanel.setVisible(false);
         }
       }
-    }, new DispatchRunnable() {
+    };
+    Runnable onError = new Runnable() {
       @Override
-      public void doRun() {
+      public void run() {
         myNdkDownloadPanel.setVisible(false);
       }
-    }, false);
+    };
+    repoManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), runner,
+                     new StudioDownloader(), StudioSettingsController.getInstance(), false);
 
     FocusListener historyUpdater = new FocusAdapter() {
       @Override

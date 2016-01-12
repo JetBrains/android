@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.repository.Revision;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -782,12 +786,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   public static boolean isJdk7Supported(@Nullable AndroidSdkData sdkData) {
     if (sdkData != null) {
-      LocalPkgInfo info = sdkData.getLocalSdk().getPkgInfo(PkgType.PKG_PLATFORM_TOOLS);
-      IPkgDesc d = info == null ? null : info.getDesc();
-      if (d != null) {
-        Revision fullRevision = d.getRevision();
-        assert fullRevision != null;
-        if (fullRevision.getMajor() >= 19) {
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class);
+      LocalPackage info = sdkData.getSdkHandler().getLocalPackage(SdkConstants.FD_PLATFORM_TOOLS, progress);
+      if (info != null) {
+        Revision revision = info.getVersion();
+        if (revision.getMajor() >= 19) {
           JavaSdk jdk = JavaSdk.getInstance();
           Sdk sdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdk);
           if (sdk != null) {

@@ -17,9 +17,9 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.resources.Navigation;
-import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.ui.TooltipLabel;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;

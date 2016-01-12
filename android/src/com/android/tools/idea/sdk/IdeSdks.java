@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.SdkConstants;
+import com.android.repository.api.LocalPackage;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -96,15 +100,9 @@ public final class IdeSdks {
 
   @Nullable
   public static File getAndroidNdkPath() {
-    AndroidSdkData data = tryToChooseAndroidSdk();
-    if (data == null) {
-      return null;
-    }
-    LocalPkgInfo[] ndk = data.getLocalSdk().getPkgsInfos(PkgType.PKG_NDK);
-    if (ndk.length == 0) {
-      return null;
-    }
-    return ndk[0].getLocalDir();
+    AndroidSdkHandler sdkHandler = tryToChooseSdkHandler();
+    LocalPackage ndk = sdkHandler.getLocalPackage(SdkConstants.FD_NDK, new StudioLoggerProgressIndicator(IdeSdks.class));
+    return ndk == null ? null : ndk.getLocation();
   }
 
   @Nullable

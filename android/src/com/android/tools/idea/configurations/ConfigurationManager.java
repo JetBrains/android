@@ -288,11 +288,6 @@ public class ConfigurationManager implements Disposable {
    * Returns if the LayoutLib API (not to be confused with Platform API) level is supported.
    */
   private static boolean isLayoutLibSupported(IAndroidTarget target) {
-    if (target instanceof com.android.sdklib.internal.androidTarget.PlatformTarget) {
-      int layoutlibApi =
-        ((com.android.sdklib.internal.androidTarget.PlatformTarget)target).getLayoutlibApi();
-      return layoutlibApi <= Bridge.API_CURRENT;
-    }
     if (target instanceof PlatformTarget) {
       int layoutlibVersion = ((PlatformTarget)target).getLayoutlibApi();
       return layoutlibVersion <= Bridge.API_CURRENT;

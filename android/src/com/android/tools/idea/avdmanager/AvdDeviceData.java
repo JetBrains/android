@@ -20,7 +20,7 @@ import com.android.resources.Keyboard;
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.*;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.double_.DoubleExpression;
