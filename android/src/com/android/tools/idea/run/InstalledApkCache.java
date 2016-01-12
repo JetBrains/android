@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
@@ -29,36 +30,44 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class InstalledApkCache implements Disposable {
-  private final DeviceStateCache<InstallState> myCache;
+  private final DeviceStateCache<CacheData> myCache;
 
   /** Diagnostic output set by {@link #getLastUpdateTime(com.android.ddmlib.IDevice, String)} */
   private String myDiagnosticOutput;
 
   public InstalledApkCache() {
-    myCache = new DeviceStateCache<InstallState>(this);
+    myCache = new DeviceStateCache<CacheData>(this);
   }
 
   @Override
   public void dispose() {
   }
 
-  public boolean isInstalled(@NotNull IDevice device, @NotNull File apk, @NotNull String pkgName) throws IOException {
-    InstallState state = myCache.get(device, pkgName);
+  public boolean isInstalled(
+      @NotNull IDevice device,
+      @NotNull File apk,
+      @NotNull String pkgName,
+      @Nullable Integer userId) throws IOException {
+    CacheData state = myCache.get(device, pkgName);
     if (state == null) {
       return false;
     }
 
-    String lastUpdateTime = getLastUpdateTime(device, pkgName);
-    return lastUpdateTime != null && lastUpdateTime.equals(state.lastUpdateTime) && state.hash.equals(hash(apk));
+    InstallState currentState = getInstallState(device, pkgName);
+    return currentState != null &&
+           state.installState.lastUpdateTime.equals(currentState.lastUpdateTime) &&
+           state.hash.equals(hash(apk)) &&
+           (userId == null || currentState.users.contains(userId));
   }
 
   public void setInstalled(@NotNull IDevice device, @NotNull File apk, @NotNull String pkgName) throws IOException {
-    String lastUpdateTime = getLastUpdateTime(device, pkgName);
-    if (lastUpdateTime == null) {
+    InstallState installState = getInstallState(device, pkgName);
+    if (installState == null) {
       // set installed should be called only after the package has been installed
       // If this error happens, look at the output of "dumpsys package <name>", and see why the parser did not identify the install state.
       String msg = String.format("Unexpected error: package manager reports that package %1$s has not been installed: %2$s", pkgName,
@@ -71,7 +80,7 @@ public class InstalledApkCache implements Disposable {
       return;
     }
 
-    myCache.put(device, pkgName, new InstallState(hash(apk), lastUpdateTime));
+    myCache.put(device, pkgName, new CacheData(installState, hash(apk)));
   }
 
   @NotNull
@@ -85,12 +94,12 @@ public class InstalledApkCache implements Disposable {
   }
 
   /**
-   * Returns the lastUpdateTime field from dumpsys package's output from the given device for the given package.
-   * A null return value indicates that the package was not found, and an empty string indicates that the package was installed, but the
-   * last update time could not be determined.
+   * Returns the lastUpdateTime and set of installed users from dumpsys package's output from the given device for the given package.
+   * A null return value indicates that the package was not found.
    */
   @Nullable
-  public String getLastUpdateTime(@NotNull IDevice device, @NotNull String pkgName) {
+  @VisibleForTesting
+  InstallState getInstallState(@NotNull IDevice device, @NotNull String pkgName) {
     boolean deviceHasPackage = false;
     myDiagnosticOutput = null;
 
@@ -126,14 +135,24 @@ public class InstalledApkCache implements Disposable {
       return null;
     }
 
+    String lastUpdateTime = "";
+    Set<Integer> users = Sets.newHashSet();
     for (String line : lines) {
       line = line.trim();
       if (line.startsWith("lastUpdateTime")) {
-        return line;
+        lastUpdateTime = line;
+      }
+      if (line.startsWith("User ") && line.contains("installed=true")) {
+        int endIndex = line.indexOf(":");
+        try {
+          users.add(Integer.parseInt(line.substring("User ".length(), endIndex)));
+        } catch (NumberFormatException e) {
+          // ignore and move on to next line
+        }
       }
     }
 
-    return "";
+    return new InstallState(lastUpdateTime, users);
   }
 
   protected String executeShellCommand(@NotNull IDevice device, @NotNull String cmd, long timeout, @NotNull TimeUnit timeUnit)
@@ -145,13 +164,24 @@ public class InstalledApkCache implements Disposable {
     return receiver.getOutput();
   }
 
-  private static class InstallState {
-    @NotNull public final HashCode hash;
-    @Nullable public final String lastUpdateTime;
+  @VisibleForTesting
+  public static class InstallState {
+    @NotNull public final String lastUpdateTime;
+    @NotNull public final Set<Integer> users;
 
-    public InstallState(@NotNull HashCode hash, @Nullable String lastUpdateTime) {
-      this.hash = hash;
+    public InstallState(@NotNull String lastUpdateTime, @NotNull Set<Integer> users) {
       this.lastUpdateTime = lastUpdateTime;
+      this.users = users;
+    }
+  }
+
+  private static class CacheData {
+    @NotNull private final InstallState installState;
+    @NotNull private final HashCode hash;
+
+    private CacheData(@NotNull InstallState installState, @NotNull HashCode hash) {
+      this.installState = installState;
+      this.hash = hash;
     }
   }
 }
