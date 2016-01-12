@@ -332,6 +332,9 @@ public class StateListPicker extends JPanel {
       myComponent.getResourceComponent().setCompletionStrings(completionStrings);
     }
 
+    /**
+     * @see AlphaActionListener#documentChanged(DocumentEvent)
+     */
     @Override
     public void documentChanged(DocumentEvent e) {
       myState.setValue(myComponent.getResourceValue());
@@ -402,6 +405,9 @@ public class StateListPicker extends JPanel {
       myComponent.getAlphaComponent().setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, DIMENSIONS_ONLY));
     }
 
+    /**
+     * @see ValueActionListener#documentChanged(DocumentEvent)
+     */
     @Override
     public void documentChanged(DocumentEvent e) {
       myState.setAlpha(myComponent.getAlphaValue());
