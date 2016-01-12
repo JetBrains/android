@@ -53,11 +53,23 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintCustomErrorInspection() {
       super("Error from Custom Lint Check", IntellijLintIssueRegistry.CUSTOM_ERROR);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return ShowCustomIssueExplanationFix.getFixes(startElement, message);
+    }
   }
 
   public static class AndroidLintCustomWarningInspection extends AndroidLintInspectionBase {
     public AndroidLintCustomWarningInspection() {
       super("Warning from Custom Lint Check", IntellijLintIssueRegistry.CUSTOM_WARNING);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return ShowCustomIssueExplanationFix.getFixes(startElement, message);
     }
   }
 
