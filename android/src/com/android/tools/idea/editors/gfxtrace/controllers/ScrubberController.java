@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
@@ -27,8 +26,8 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +37,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class ScrubberController extends ImageCellController<ScrubberController.Data> {
   private static final Dimension PREVIEW_SIZE = JBUI.size(192, 192);
@@ -77,10 +77,12 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
       return;
     }
     final ServiceClient client = myEditor.getClient();
-    ListenableFuture<ImageInfoPath> imagePathF = client.getFramebufferColor(devicePath, cell.atomPath, myRenderSettings);
-    Futures.addCallback(imagePathF, new LoadingCallback<ImageInfoPath>(LOG, cell) {
+    Rpc.listen(client.getFramebufferColor(devicePath, cell.atomPath, myRenderSettings), EdtExecutor.INSTANCE,
+               LOG, new Rpc.Callback<ImageInfoPath>() {
       @Override
-      public void onSuccess(@Nullable final ImageInfoPath imagePath) {
+      public void onFinish(Rpc.Result<ImageInfoPath> result) throws RpcException, ExecutionException {
+        // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
+        ImageInfoPath imagePath = result.get();
         loadCellImage(cell, client, imagePath, onLoad);
       }
     });
@@ -139,12 +141,14 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
     final AtomsPath atomsPath = myAtomsPath.getPath();
     if (updateIcons && atomsPath != null) {
-      Futures.addCallback(myEditor.getClient().get(atomsPath), new LoadingCallback<AtomList>(LOG) {
+      Rpc.listen(myEditor.getClient().get(atomsPath), EdtExecutor.INSTANCE, LOG, new Rpc.Callback<AtomList>() {
         @Override
-        public void onSuccess(@Nullable final AtomList atoms) {
+        public void onFinish(Rpc.Result<AtomList> result) throws RpcException, ExecutionException {
+          // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
+          AtomList atoms = result.get();
           myList.setData(prepareData(atomsPath, atoms));
         }
-      }, EdtExecutor.INSTANCE);
+      });
     }
   }
 }

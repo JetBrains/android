@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.widgets;
 
-import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
+import com.android.tools.rpclib.futures.SingleInFlight;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -29,7 +29,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Displays a list of loadable cells.
  */
 public abstract class CellWidget<T extends CellWidget.Data, C extends JComponent> extends JPanel {
-  public static class Data implements LoadingCallback.LoadingDone {
+  public static class Data {
+    public final SingleInFlight controller = new SingleInFlight(new SingleInFlight.Listener() {
+      @Override
+      public void onIdleToWorking() {
+        startLoading();
+      }
+
+      @Override
+      public void onWorkingToIdle() {
+        stopLoading();
+      }
+    });
+
     protected LoadingState loadingState = LoadingState.NOT_LOADED;
 
     public boolean isSelected = false;
@@ -50,7 +62,6 @@ public abstract class CellWidget<T extends CellWidget.Data, C extends JComponent
       loadingState = LoadingState.LOADING;
     }
 
-    @Override
     public void stopLoading() {
       loadingState = LoadingState.LOADED;
     }
