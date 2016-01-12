@@ -220,12 +220,13 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     }
 
     // NOTE: WE ARE LAUNCHING EMULATORS HERE
-    List<ListenableFuture<IDevice>> futures = Lists.newArrayList();
     for (AndroidDevice device : devices) {
-      futures.add(device.launch(myFacet.getModule().getProject()));
+      if (!device.isRunning()) {
+        device.launch(myFacet.getModule().getProject());
+      }
     }
 
-    return DeviceFutures.forFutures(futures);
+    return new DeviceFutures(devices);
   }
 
   @NotNull

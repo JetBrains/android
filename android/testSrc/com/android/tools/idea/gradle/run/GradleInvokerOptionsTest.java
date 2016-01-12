@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.FileChangeListener;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.run.AndroidDevice;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.junit.Before;
@@ -36,8 +37,8 @@ import static org.mockito.Mockito.when;
 
 public class GradleInvokerOptionsTest {
   private GradleInvokerOptions.GradleTasksProvider myTasksProvider;
-  private IDevice myDevice;
-  private List<IDevice> myDevices;
+  private AndroidDevice myDevice;
+  private List<AndroidDevice> myDevices;
   private GradleInvoker.TestCompileType myTestCompileType;
 
   private static final List<String> ASSEMBLE_TASKS = ImmutableList.of(":app:assemble");
@@ -53,7 +54,7 @@ public class GradleInvokerOptionsTest {
     when(myTasksProvider.getCleanAndGenerateSourcesTasks()).thenReturn(CLEAN_TASKS);
     when(myTasksProvider.getIncrementalDexTasks()).thenReturn(INCREMENTAL_TASKS);
 
-    myDevice = mock(IDevice.class);
+    myDevice = mock(AndroidDevice.class);
     myDevices = Collections.singletonList(myDevice);
   }
 
