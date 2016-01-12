@@ -56,6 +56,8 @@ public class SplitApkDeployTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    InstantRunManager.displayVerifierStatus(myFacet, myBuildInfo);
+
     List<InstantRunArtifact> artifacts = myBuildInfo.getArtifacts();
 
     List<String> installOptions = Lists.newArrayList(); // TODO: should we pass in pm install options?
