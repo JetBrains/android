@@ -249,6 +249,10 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     return myHex;
   }
 
+  public void setColor(@NotNull Color color) {
+    setColor(color, null);
+  }
+
   private void setColor(Color color, Object src) {
     colorChanged(color, src);
     myColorSelectionPanel.setColor(color, src);
