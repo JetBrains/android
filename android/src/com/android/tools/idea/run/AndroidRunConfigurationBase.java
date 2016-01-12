@@ -358,6 +358,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
+    setInstantRunBuildOptions(env, module, deviceFutures);
+
     // Store the chosen target on the execution environment so before-run tasks can access it.
     env.putCopyableUserData(DEVICE_FUTURES_KEY, deviceFutures);
 
@@ -409,20 +411,28 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
+    return DeviceFutures.forDevices(devices);
+  }
+
+  private static void setInstantRunBuildOptions(@NotNull ExecutionEnvironment env,
+                                                @NotNull Module module,
+                                                @NotNull DeviceFutures deviceFutures) {
+    Collection<IDevice> devices = deviceFutures.getIfReady();
+
+    boolean buildsMatch = devices != null && buildTimestampsMatch(module, devices);
+    if (!buildsMatch) {
+      LOG.info("Performing a clean build since build timestamps on the device and on disk are different.");
+      InstantRunUtils.setNeedsCleanBuild(env, true);
+      return;
+    }
+
+    InstantRunUtils.setAppRunning(env, isAppRunning(module, devices));
+
     // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
     // we need to save the files a bit earlier than that here (turning the Gradle file save into
     // a no-op) because we need to check whether the manifest file has been edited since an
     // edited manifest changes what the incremental run build has to do.
     GradleInvoker.saveAllFilesSafely();
-
-    boolean buildsMatch = buildTimestampsMatch(module, devices);
-    if (!buildsMatch) {
-      LOG.info("Cannot instant run since build timestamps on the device and on disk are different.");
-      return null;
-    }
-
-    InstantRunUtils.setAppRunning(env, isAppRunning(module, devices));
-
     if (InstantRunManager.canBuildIncrementally(devices, module)) {
       InstantRunUtils.setIncrementalBuild(env, true);
     }
@@ -432,8 +442,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)"
       );
     }
-
-    return DeviceFutures.forDevices(devices);
   }
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {

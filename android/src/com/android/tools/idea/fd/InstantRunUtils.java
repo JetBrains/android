@@ -17,9 +17,11 @@ package com.android.tools.idea.fd;
 
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.util.Key;
+import org.gradle.api.tasks.Exec;
 import org.jetbrains.annotations.NotNull;
 
 public class InstantRunUtils {
+  private static final Key<Boolean> CLEAN_BUILD = Key.create("android.instant.run.clean");
   private static final Key<Boolean> INCREMENTAL_BUILD = Key.create("android.instant.run.incremental");
   private static final Key<Boolean> APP_RUNNING = Key.create("android.instant.run.app.running");
 
@@ -27,8 +29,16 @@ public class InstantRunUtils {
     return Boolean.TRUE.equals(env.getCopyableUserData(INCREMENTAL_BUILD));
   }
 
-  public static void setIncrementalBuild(@NotNull ExecutionEnvironment env, boolean b) {
-    env.putCopyableUserData(INCREMENTAL_BUILD, Boolean.TRUE);
+  public static void setIncrementalBuild(@NotNull ExecutionEnvironment env, boolean en) {
+    env.putCopyableUserData(INCREMENTAL_BUILD, en);
+  }
+
+  public static boolean needsCleanBuild(@NotNull ExecutionEnvironment env) {
+    return Boolean.TRUE.equals(env.getCopyableUserData(CLEAN_BUILD));
+  }
+
+  public static void setNeedsCleanBuild(@NotNull ExecutionEnvironment env, boolean en) {
+    env.putCopyableUserData(CLEAN_BUILD, en);
   }
 
   public static boolean isAppRunning(@NotNull ExecutionEnvironment env) {
