@@ -20,11 +20,13 @@ package com.android.tools.idea.editors.gfxtrace.service;
 import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.rpclib.any.Box;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.Info;
 import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.rpclib.schema.Message;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.idea.editors.gfxtrace.service.path.TimingInfoPath;
 import com.android.tools.rpclib.rpccore.Broadcaster;
 import java.io.InputStream;
@@ -50,6 +52,10 @@ public final class ServiceClientRPC extends ServiceClient {
     return myExecutorService.submit(new GetCallable(p));
   }
   @Override
+  public ListenableFuture<Info[]> getAvailableStringTables() {
+    return myExecutorService.submit(new GetAvailableStringTablesCallable());
+  }
+  @Override
   public ListenableFuture<CapturePath[]> getCaptures() {
     return myExecutorService.submit(new GetCapturesCallable());
   }
@@ -72,6 +78,10 @@ public final class ServiceClientRPC extends ServiceClient {
   @Override
   public ListenableFuture<Message> getSchema() {
     return myExecutorService.submit(new GetSchemaCallable());
+  }
+  @Override
+  public ListenableFuture<StringTable> getStringTable(Info info) {
+    return myExecutorService.submit(new GetStringTableCallable(info));
   }
   @Override
   public ListenableFuture<TimingInfoPath> getTimingInfo(DevicePath device, CapturePath capture, TimingFlags flags) {
@@ -121,6 +131,24 @@ public final class ServiceClientRPC extends ServiceClient {
     public Object call() throws Exception {
       try {
         ResultGet result = (ResultGet)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        e.initCause(myStack);
+        throw e;
+      }
+    }
+  }
+  private class GetAvailableStringTablesCallable implements Callable<Info[]> {
+    private final CallGetAvailableStringTables myCall;
+    private final Exception myStack = new StackException();
+
+    private GetAvailableStringTablesCallable() {
+      myCall = new CallGetAvailableStringTables();
+    }
+    @Override
+    public Info[] call() throws Exception {
+      try {
+        ResultGetAvailableStringTables result = (ResultGetAvailableStringTables)myBroadcaster.Send(myCall);
         return result.getValue();
       } catch (Exception e) {
         e.initCause(myStack);
@@ -234,6 +262,25 @@ public final class ServiceClientRPC extends ServiceClient {
     public Message call() throws Exception {
       try {
         ResultGetSchema result = (ResultGetSchema)myBroadcaster.Send(myCall);
+        return result.getValue();
+      } catch (Exception e) {
+        e.initCause(myStack);
+        throw e;
+      }
+    }
+  }
+  private class GetStringTableCallable implements Callable<StringTable> {
+    private final CallGetStringTable myCall;
+    private final Exception myStack = new StackException();
+
+    private GetStringTableCallable(Info info) {
+      myCall = new CallGetStringTable();
+      myCall.setInfo(info);
+    }
+    @Override
+    public StringTable call() throws Exception {
+      try {
+        ResultGetStringTable result = (ResultGetStringTable)myBroadcaster.Send(myCall);
         return result.getValue();
       } catch (Exception e) {
         e.initCause(myStack);
