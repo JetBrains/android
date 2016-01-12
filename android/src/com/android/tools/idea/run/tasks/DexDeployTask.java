@@ -57,6 +57,8 @@ public class DexDeployTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
       try {
+        InstantRunManager.displayVerifierStatus(myFacet, myBuildInfo);
+
         InstantRunManager manager = InstantRunManager.get(myFacet.getModule().getProject());
         boolean restart = manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, myBuildInfo);
         // Note that the above method will update the build id on the device

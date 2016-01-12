@@ -55,6 +55,7 @@ public class HotSwapTask implements LaunchTask {
     assert model != null;
     InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
     if (buildInfo != null) {
+      InstantRunManager.displayVerifierStatus(myFacet, buildInfo);
       try {
         manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, buildInfo);
         // Note that the above method will update the build id on the device

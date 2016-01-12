@@ -504,8 +504,6 @@ public final class InstantRunManager implements ProjectComponent {
                                @NotNull final AndroidFacet facet,
                                @NotNull UpdateMode updateMode,
                                @NotNull InstantRunBuildInfo buildInfo) throws IOException {
-    displayVerifierStatus(facet, buildInfo);
-
     if (!buildInfo.canHotswap()) {
       updateMode = updateMode.combine(UpdateMode.COLD_SWAP);
     }
