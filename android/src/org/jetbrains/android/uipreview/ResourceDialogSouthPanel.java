@@ -38,7 +38,7 @@ public class ResourceDialogSouthPanel {
   public ResourceDialogSouthPanel() {
     Color backgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
     myResourceNameMessage.setBackground(backgroundColor == null ? JBColor.YELLOW : backgroundColor);
-    myExpertDecorator = new HideableDecorator(myExpertPlaceholder, "Location", true) {
+    myExpertDecorator = new HideableDecorator(myExpertPlaceholder, "Device Configuration", true) {
       private void pack() {
         // Hack to not shrink the window too small when we close or open the advanced panel.
         SwingUtilities.invokeLater(new Runnable() {
@@ -64,9 +64,13 @@ public class ResourceDialogSouthPanel {
     myExpertDecorator.setContentComponent(myExpertPanel);
   }
 
-  void setExpertPanel(Component comp) {
+  public void setExpertPanel(Component comp) {
     myExpertPanel.removeAll();
     myExpertPanel.add(comp);
+  }
+
+  public void showExpertPanel(boolean show) {
+    myExpertPlaceholder.setVisible(show);
   }
 
   public JPanel getFullPanel() {
