@@ -111,6 +111,15 @@ public class GradleProjectImporterTest extends IdeaTestCase {
   public void testImportNewlyCreatedProject() throws Exception {
     MyGradleSyncListener callback = new MyGradleSyncListener();
     myImporter.importNewlyCreatedProject(myProjectName, myProjectRootDir, callback, null, null);
+
+    // Flush event queue now and execute any remaining post-init activities, before checking model state.
+    UIUtil.dispatchAllInvocationEvents();
+
+    // Verify that module was created.
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    Module[] modules = moduleManager.getModules();
+    assertEquals(1, modules.length);
+    assertEquals(myModule.getName(), modules[0].getName());
   }
 
   public void testIsCacheMissingModelsWhenCacheHasAndroidModel() {
@@ -197,12 +206,6 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       // Verify that '.idea' directory was created.
       File ideaProjectDir = new File(myProjectRootDir, Project.DIRECTORY_STORE_FOLDER);
       assertTrue(ideaProjectDir.isDirectory());
-
-      // Verify that module was created.
-      ModuleManager moduleManager = ModuleManager.getInstance(project);
-      Module[] modules = moduleManager.getModules();
-      assertEquals(1, modules.length);
-      assertEquals(myModule.getName(), modules[0].getName());
     }
 
     @Override
