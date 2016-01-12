@@ -79,7 +79,7 @@ public final class Resources implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","Resources","","");
+  private static final Entity ENTITY = new Entity("service", "Resources", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

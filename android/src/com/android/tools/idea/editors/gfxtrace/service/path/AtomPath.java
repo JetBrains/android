@@ -86,7 +86,7 @@ public final class AtomPath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","Atom","","");
+  private static final Entity ENTITY = new Entity("path", "Atom", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

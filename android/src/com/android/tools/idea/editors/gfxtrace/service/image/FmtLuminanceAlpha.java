@@ -38,7 +38,7 @@ final public class FmtLuminanceAlpha extends Format {  @Override
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtLuminanceAlpha","","");
+  private static final Entity ENTITY = new Entity("image", "fmtLuminanceAlpha", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

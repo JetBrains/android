@@ -74,7 +74,7 @@ public final class CapturePath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","Capture","","");
+  private static final Entity ENTITY = new Entity("path", "Capture", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

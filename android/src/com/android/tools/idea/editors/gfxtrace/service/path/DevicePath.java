@@ -54,7 +54,7 @@ public final class DevicePath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","Device","","");
+  private static final Entity ENTITY = new Entity("path", "Device", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

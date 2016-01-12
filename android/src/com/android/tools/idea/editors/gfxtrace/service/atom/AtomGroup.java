@@ -86,7 +86,7 @@ public final class AtomGroup implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("atom","Group","","");
+  private static final Entity ENTITY = new Entity("atom", "Group", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

@@ -71,7 +71,7 @@ public final class ResourcePath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","Resource","","");
+  private static final Entity ENTITY = new Entity("path", "Resource", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
