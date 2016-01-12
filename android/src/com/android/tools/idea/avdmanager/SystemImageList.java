@@ -15,20 +15,26 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repositoryv2.targets.AndroidTargetManager;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
-import com.android.tools.idea.sdk.SdkLoadedCallback;
-import com.android.tools.idea.sdk.SdkPackages;
-import com.android.tools.idea.sdk.SdkState;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioProgressRunner;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
@@ -76,13 +82,14 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   private final JButton myInstallLatestVersionButton = new JButton("Install Latest Version...");
   private final Project myProject;
   private final JPanel myRemoteStatusPanel = new JPanel(new CardLayout());
-  private final SdkState mySdkState;
+  private final AndroidSdkHandler mySdkHandler;
   private TableView<SystemImageDescription> myTable = new TableView<SystemImageDescription>();
   private ListTableModel<SystemImageDescription> myModel = new ListTableModel<SystemImageDescription>();
   private Set<SystemImageSelectionListener> myListeners = Sets.newHashSet();
   private Predicate<SystemImageDescription> myFilter;
   private static final String ERROR_KEY = "error";
   private static final String LOADING_KEY = "loading";
+  private static final ProgressIndicator LOGGER = new StudioLoggerProgressIndicator(SystemImageList.class);
 
   private static final Map<Abi, Integer> DEFAULT_ABI_SORT_ORDER = new ContainerUtil.ImmutableMapBuilder<Abi, Integer>()
     .put(Abi.MIPS64, 0)
@@ -104,7 +111,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
   public SystemImageList(@Nullable Project project) {
     myProject = project;
-    mySdkState = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
+    mySdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
     myModel.setColumnInfos(ourColumnInfos);
     myModel.setSortable(true);
     myTable.setModelAndUpdateColumns(myModel);
@@ -231,9 +238,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     myRemoteStatusPanel.setVisible(true);
     myRefreshButton.setEnabled(false);
     final List<SystemImageDescription> items = Lists.newArrayList();
-    SdkLoadedCallback localComplete = new SdkLoadedCallback(true) {
+    RepoManager.RepoLoadedCallback localComplete = new RepoManager.RepoLoadedCallback() {
       @Override
-      public void doRun(@NotNull SdkPackages packages) {
+      public void doRun(@NotNull RepositoryPackages packages) {
         // getLocalImages() doesn't use SdkPackages, so it's ok that we're not using what's passed in.
         items.addAll(getLocalImages());
         // Update list in the UI immediately with the locally available system images
@@ -243,9 +250,9 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         }
       }
     };
-    SdkLoadedCallback remoteComplete = new SdkLoadedCallback(true) {
+    RepoManager.RepoLoadedCallback remoteComplete = new RepoManager.RepoLoadedCallback() {
       @Override
-      public void doRun(@NotNull SdkPackages packages) {
+      public void doRun(@NotNull RepositoryPackages packages) {
         List<SystemImageDescription> remotes = getRemoteImages(packages);
         if (remotes != null) {
           items.addAll(remotes);
@@ -274,23 +281,24 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       }
     };
 
-    mySdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false,
-                         localComplete, remoteComplete, error, forceRefresh);
+    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading Images", true, myProject);
+    mySdkHandler.getSdkManager(LOGGER)
+      .load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, ImmutableList.of(localComplete), ImmutableList.of(remoteComplete),
+            ImmutableList.of(error), runner, new StudioDownloader(), StudioSettingsController.getInstance(), false);
   }
 
   @Nullable
-  private List<SystemImageDescription> getRemoteImages(@NotNull SdkPackages packages) {
+  private List<SystemImageDescription> getRemoteImages(@NotNull RepositoryPackages packages) {
     List<SystemImageDescription> items = Lists.newArrayList();
-    Set<RemotePkgInfo> infos = packages.getNewPkgs();
+    Set<RemotePackage> infos = packages.getNewPkgs();
 
     if (infos.isEmpty()) {
       return null;
     }
     else {
-      for (RemotePkgInfo info : infos) {
-        if (SystemImageDescription.hasSystemImage(info.getPkgDesc())) {
-          IAndroidTarget target = findTarget(info);
-          SystemImageDescription image = new SystemImageDescription(info.getPkgDesc(), target);
+      for (RemotePackage info : infos) {
+        if (SystemImageDescription.hasSystemImage(info)) {
+          SystemImageDescription image = new SystemImageDescription(info, null);
           if (myFilter == null || myFilter.apply(image)) {
             items.add(image);
           }
@@ -300,31 +308,15 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     return items;
   }
 
-  private IAndroidTarget findTarget(RemotePkgInfo info) {
-    AndroidSdkData data = mySdkState.getSdkData();
-    assert data != null; // we shouldn't be able to get here without local data being set
-    IAndroidTarget[] targets = data.getLocalSdk().getTargets();
-    for (IAndroidTarget target : targets) {
-      IdDisplay imageVendor = info.getPkgDesc().getVendor();
-      if ((imageVendor == null && target.isPlatform() || imageVendor != null && imageVendor.getId().equals(target.getVendor())) &&
-          info.getPkgDesc().getAndroidVersion().equals(target.getVersion())) {
-        return target;
-      }
-    }
-    return null;
-  }
-
   public void refreshLocalImagesSynchronously() {
     myModel.setItems(getLocalImages());
   }
 
   private List<SystemImageDescription> getLocalImages() {
+    AndroidTargetManager targetManager = mySdkHandler.getAndroidTargetManager(LOGGER);
     List<SystemImageDescription> items = Lists.newArrayList();
 
-    AndroidSdkData data = mySdkState.getSdkData();
-    assert data != null; // we shouldn't be able to get here without local data being set
-
-    for (IAndroidTarget target : data.getLocalSdk().getTargets(true)) {
+    for (IAndroidTarget target : targetManager.getTargets(true, LOGGER)) {
       ISystemImage[] systemImages = target.getSystemImages();
       if (systemImages != null) {
         for (ISystemImage image : systemImages) {
@@ -619,11 +611,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     }
 
     private void downloadImage(SystemImageDescription image) {
-      IPkgDesc request = image.getRemotePackage();
-      List<String> requestedPackages = Lists
-        .newArrayList(DetailsTypes.getSysImgPath(request.getVendor(), request.getAndroidVersion(), request.getTag(), request.getPath()));
-      ModelWizardDialog dialog =
-        SdkQuickfixUtils.createDialogForPaths(SystemImageList.this, requestedPackages);
+      List<String> requestedPackages = Lists.newArrayList(image.getRemotePackage().getPath());
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(SystemImageList.this, requestedPackages);
       if (dialog != null) {
         dialog.show();
         refreshImages(true);

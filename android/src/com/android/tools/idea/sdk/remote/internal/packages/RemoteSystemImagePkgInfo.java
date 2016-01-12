@@ -16,17 +16,14 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
 import com.android.annotations.Nullable;
-import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersionHelper;
-import com.android.sdklib.SystemImage;
 import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repository.local.LocalSysImgPkgInfo;
+import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
@@ -34,7 +31,6 @@ import com.android.tools.idea.sdk.remote.internal.sources.SdkSysImgConstants;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -42,7 +38,7 @@ import java.util.Properties;
 /**
  * Represents a system-image XML node in an SDK repository.
  */
-public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidVersionProvider {
+public class RemoteSystemImagePkgInfo extends RemotePkgInfo {
 
   /**
    * Creates a new system-image package from the attributes and elements of the given XML node.
@@ -73,7 +69,7 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
       tagDisp = LocalSysImgPkgInfo.tagIdToDisplay(tagId);
     }
     assert tagId != null;
-    IdDisplay tag = new IdDisplay(tagId, tagDisp);
+    IdDisplay tag = IdDisplay.create(tagId, tagDisp);
 
 
     Node addonNode = RemotePackageParserUtils.findChildElement(packageNode, SdkSysImgConstants.NODE_ADD_ON);
@@ -93,7 +89,7 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
       assert vendorId.length() > 0;
       assert vendorDisp.length() > 0;
 
-      vendor = new IdDisplay(vendorId, vendorDisp);
+      vendor = IdDisplay.create(vendorId, vendorDisp);
 
       descBuilder = PkgDesc.Builder.newAddonSysImg(version, vendor, tag, abi, getRevision());
     }
@@ -149,7 +145,6 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
    * A system-image has the same {@link AndroidVersion} as the platform it depends on.
    */
   @NotNull
-  @Override
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
   }
@@ -200,39 +195,4 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo implements IAndroidV
 
   }
 
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A system-image package is typically installed in SDK/systems/platform/tag/abi.
-   * The name needs to be sanitized to be acceptable as a directory name.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  @NotNull
-  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
-    File folder = new File(osSdkRoot, SdkConstants.FD_SYSTEM_IMAGES);
-    folder = new File(folder, AndroidTargetHash.getPlatformHashString(getAndroidVersion()));
-
-    // Computes a folder directory using the sanitized tag & abi strings.
-    String tag = getTag().getId();
-    tag = tag.toLowerCase(Locale.US);
-    tag = tag.replaceAll("[^a-z0-9_-]+", "_");      //$NON-NLS-1$ //$NON-NLS-2$
-    tag = tag.replaceAll("_+", "_");                //$NON-NLS-1$ //$NON-NLS-2$
-    tag = tag.replaceAll("-+", "-");                //$NON-NLS-1$ //$NON-NLS-2$
-
-    folder = new File(folder, tag);
-
-    String abi = this.getAbi();
-    abi = abi.toLowerCase(Locale.US);
-    abi = abi.replaceAll("[^a-z0-9_-]+", "_");      //$NON-NLS-1$ //$NON-NLS-2$
-    abi = abi.replaceAll("_+", "_");                //$NON-NLS-1$ //$NON-NLS-2$
-    abi = abi.replaceAll("-+", "-");                //$NON-NLS-1$ //$NON-NLS-2$
-
-    folder = new File(folder, abi);
-    return folder;
-  }
 }

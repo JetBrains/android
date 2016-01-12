@@ -27,7 +27,6 @@ import com.android.repository.io.FileOp;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.packages.RemotePackageParserUtils;
@@ -35,7 +34,6 @@ import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.google.common.base.Objects;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -391,56 +389,6 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
     return getPkgDesc().getDescriptionShort();
   }
 
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * Some types of packages install in a fix location, for example docs and tools.
-   * In this case the returned folder may already exist with a different archive installed
-   * at the desired location. <br/>
-   * For other packages types, such as add-on or platform, the folder name is only partially
-   * relevant to determine the content and thus a real check will be done to provide an
-   * existing or new folder depending on the current content of the SDK.
-   * <p/>
-   * Note that the installer *will* create all directories returned here just before
-   * installation so this method must not attempt to create them.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @NotNull
-  public abstract File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk);
-
-
-  /**
-   * Hook called right before an archive is installed. The archive has already
-   * been downloaded successfully and will be installed in the directory specified by
-   * <var>installFolder</var> when this call returns.
-   * <p/>
-   * The hook lets the package decide if installation of this specific archive should
-   * be continue. The installer will still install the remaining packages if possible.
-   * <p/>
-   * The base implementation always return true.
-   * <p/>
-   * Note that the installer *will* create all directories specified by
-   * {@link #getInstallFolder} just before installation, so they must not be
-   * created here. This is also called before the previous install dir is removed
-   * so the previous content is still there during upgrade.
-   *
-   * @param archive       The archive that will be installed
-   * @param monitor       The {@link ITaskMonitor} to display errors.
-   * @param osSdkRoot     The OS path of the SDK root folder.
-   * @param installFolder The folder where the archive will be installed. Note that this
-   *                      is <em>not</em> the folder where the archive was temporary
-   *                      unzipped. The installFolder, if it exists, contains the old
-   *                      archive that will soon be replaced by the new one.
-   * @return True if installing this archive shall continue, false if it should be skipped.
-   */
-  public boolean preInstallHook(Archive archive, ITaskMonitor monitor, String osSdkRoot, File installFolder) {
-    // Nothing to do in base class.
-    return true;
-  }
 
   /**
    * Hook called right after a file has been unzipped (during an install).
