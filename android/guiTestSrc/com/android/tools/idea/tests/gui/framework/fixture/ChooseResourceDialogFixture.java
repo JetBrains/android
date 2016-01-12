@@ -22,9 +22,8 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.text.StringUtil;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
-import org.fest.swing.fixture.JTabbedPaneFixture;
+import org.fest.swing.core.matcher.JButtonMatcher;
+import org.fest.swing.fixture.*;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.android.uipreview.ColorPicker;
 import org.jetbrains.annotations.NotNull;
@@ -86,10 +85,19 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public JListFixture getList(@NotNull String appNamespaceLabel) {
-    return new JListFixture(robot(), appNamespaceLabel);
+    return new JListFixture(robot(), (JList)robot().finder().findByName(target(), appNamespaceLabel));
   }
 
   public void clickOK() {
     findAndClickOkButton(this);
+  }
+
+  @NotNull
+  public JPopupMenuFixture clickNewResource() {
+    JButtonFixture button = new JButtonFixture(robot(), robot().finder().find(target(), JButtonMatcher.withText("New Resource").andShowing()));
+    button.click();
+    JPopupMenu contextMenu = robot().findActivePopupMenu();
+    assert contextMenu != null;
+    return new JPopupMenuFixture(robot(), contextMenu);
   }
 }

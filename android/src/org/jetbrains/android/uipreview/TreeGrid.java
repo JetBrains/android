@@ -34,7 +34,7 @@ import java.util.*;
 /**
  * A list/grid of items that are split into sections.
  * A AbstractTreeStructure is used to create the gridlist.
- * the children of the root are the sections, and there leaves are the items.
+ * the children of the root are the sections, and their leaves are the items.
  */
 public class TreeGrid extends Box {
 
@@ -149,7 +149,7 @@ public class TreeGrid extends Box {
   }
 
   public void setSelectedElement(@Nullable Object selectedElement) {
-    for (JList list : myLists) {
+    for (final JList list : myLists) {
       if (selectedElement == null) {
         list.clearSelection();
       }
@@ -157,6 +157,14 @@ public class TreeGrid extends Box {
         for (int i = 0; i < list.getModel().getSize(); i++) {
           if (list.getModel().getElementAt(i) == selectedElement) {
             list.setSelectedIndex(i);
+            final int index = i;
+            // we do this in invokeLater to make sure things like expandAll() have had their effect.
+            SwingUtilities.invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                list.ensureIndexIsVisible(index);
+              }
+            });
             return;
           }
         }
