@@ -490,8 +490,6 @@ public final class InstantRunManager implements ProjectComponent {
                                @NotNull final AndroidFacet facet,
                                @NotNull UpdateMode updateMode,
                                @NotNull InstantRunBuildInfo buildInfo) throws IOException {
-    displayVerifierStatus(facet, buildInfo);
-
     if (!buildInfo.canHotswap()) {
       updateMode = updateMode.combine(UpdateMode.COLD_SWAP);
     }
@@ -661,7 +659,7 @@ public final class InstantRunManager implements ProjectComponent {
     }
   }
 
-  private static void displayVerifierStatus(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
+  public static void displayVerifierStatus(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
     if (!buildInfo.canHotswap()) {
       String status = buildInfo.getVerifierStatus();
       if (status.isEmpty()) {
