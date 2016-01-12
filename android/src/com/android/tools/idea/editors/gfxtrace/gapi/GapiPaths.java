@@ -51,6 +51,7 @@ public final class GapiPaths {
   @NotNull private static final String HOST_ARCH;
   @NotNull private static final String GAPIS_EXECUTABLE_NAME;
   @NotNull private static final String GAPIR_EXECUTABLE_NAME;
+  @NotNull private static final String STRINGS_DIR_NAME = "strings";
   @NotNull private static final String GAPII_LIBRARY_NAME;
   @NotNull private static final String PKG_INFO_NAME = "pkginfo.apk";
   @NotNull private static final String EXE_EXTENSION;
@@ -82,6 +83,7 @@ public final class GapiPaths {
   private static File myBaseDir;
   private static File myGapisPath;
   private static File myGapirPath;
+  private static File myStringsPath;
   private static File myPkgInfoPath;
 
   public static boolean isValid() {
@@ -105,6 +107,12 @@ public final class GapiPaths {
   public static File gapir() {
     findTools();
     return myGapirPath;
+  }
+
+  @NotNull
+  public static File strings() {
+    findTools();
+    return myStringsPath;
   }
 
   @NotNull
@@ -170,6 +178,7 @@ public final class GapiPaths {
     myGapisPath = findPath(HOST_OS, HOST_ARCH, GAPIS_EXECUTABLE_NAME);
     myGapirPath = findPath(HOST_OS, HOST_ARCH, GAPIR_EXECUTABLE_NAME);
     myPkgInfoPath = findPath(OS_ANDROID, null, PKG_INFO_NAME);
+    myStringsPath = new File(myBaseDir, STRINGS_DIR_NAME);
     return myGapisPath.exists();
   }
 
