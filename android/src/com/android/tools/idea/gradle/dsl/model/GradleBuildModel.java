@@ -65,6 +65,11 @@ public class GradleBuildModel extends GradleFileModel {
   }
 
   @NotNull
+  public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
+    return parseBuildFile(file, project, "<Unknown>");
+  }
+
+  @NotNull
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     GradleBuildDslFile buildDslFile = new GradleBuildDslFile(file, project, moduleName);
     populateWithParentModuleSubProjectsProperties(buildDslFile);
