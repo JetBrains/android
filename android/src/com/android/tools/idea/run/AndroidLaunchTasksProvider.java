@@ -185,6 +185,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @Nullable
   @Override
   public String getSuccessMessage() {
+    if (InstantRunUtils.isIncrementalBuild(myEnv)) {
+      // Instant run does its own notification
+      return null;
+    }
     return "Launched";
   }
 }
