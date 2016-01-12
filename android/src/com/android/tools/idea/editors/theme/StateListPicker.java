@@ -313,6 +313,17 @@ public class StateListPicker extends JPanel {
     myIsBackgroundStateList = isBackgroundStateList;
   }
 
+  /**
+   * @return the type of statelist, can be {@link ResourceType#COLOR} or {@link ResourceType#DRAWABLE}
+   */
+  @NotNull
+  public ResourceType getType() {
+    final ResourceFolderType resFolderType = myStateList.getType();
+    final ResourceType resType = ResourceType.getEnum(resFolderType.getName());
+    assert resType != null;
+    return resType;
+  }
+
   class ValueActionListener implements ActionListener, DocumentListener {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
