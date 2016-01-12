@@ -17,8 +17,14 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.idea.editors.gfxtrace.JBLoadingPanelWrapper;
+import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
+import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
+import com.android.tools.rpclib.futures.SingleInFlight;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
 import com.android.tools.rpclib.schema.Map;
@@ -26,11 +32,10 @@ import com.android.tools.rpclib.schema.Type;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.IntArrayList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -42,6 +47,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class StateController extends TreeController {
   public static JComponent createUI(GfxTraceEditor editor) {
@@ -54,6 +60,7 @@ public class StateController extends TreeController {
 
   private final PathStore<StatePath> myStatePath = new PathStore<StatePath>();
   private final StateTreeModel model = new StateTreeModel(new Node(ROOT_TYPE, null));
+  private final SingleInFlight myStateRequestController = new SingleInFlight(new JBLoadingPanelWrapper(myLoadingPanel));
   private Object[] lastSelection = NO_SELECTION;
 
   private StateController(@NotNull GfxTraceEditor editor) {
@@ -68,16 +75,19 @@ public class StateController extends TreeController {
     boolean updateState = myStatePath.updateIfNotNull(AtomPath.stateAfter(event.findAtomPath()));
 
     if (updateState && myStatePath.getPath() != null) {
-      Futures.addCallback(myEditor.getClient().get(myStatePath.getPath()), new LoadingCallback<Object>(LOG, myLoadingPanel) {
+      ListenableFuture future = myEditor.getClient().get(myStatePath.getPath());
+      Rpc.listen(future, EdtExecutor.INSTANCE, LOG, myStateRequestController, new Rpc.Callback() {
         @Override
-        public void onSuccess(@Nullable final Object state) {
+        public void onFinish(Rpc.Result result) throws RpcException, ExecutionException {
+          // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
+          Object state = result.get();
           model.setRoot(convert(new TypedValue(null, "state"), new TypedValue(null, state)));
           if (lastSelection.length > 0) {
             select(lastSelection);
             lastSelection = NO_SELECTION;
           }
         }
-      }, EdtExecutor.INSTANCE);
+      });
     }
 
     if (event.findStatePath() != null) {

@@ -26,7 +26,6 @@ import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
 import icons.AndroidIcons;

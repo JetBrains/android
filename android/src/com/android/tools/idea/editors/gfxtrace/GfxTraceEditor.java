@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
+import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisConnection;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisProcess;
@@ -23,6 +24,8 @@ import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.ConstantSet;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Message;
@@ -35,7 +38,6 @@ import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -59,7 +61,7 @@ import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -126,9 +128,10 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
         // Prefetch the schema
         final ListenableFuture<Message> schemaF = myClient.getSchema();
-        Futures.addCallback(schemaF, new LoadingCallback<Message>(LOG) {
+        Rpc.listen(schemaF, myExecutor, LOG, new Rpc.Callback<Message>() {
           @Override
-          public void onSuccess(@Nullable final Message schema) {
+          public void onFinish(Rpc.Result<Message> result) throws RpcException, ExecutionException {
+            Message schema = result.get();
             LOG.info("Schema with " + schema.entities.length + " classes, " + schema.constants.length + " constant sets");
             int atoms = 0;
             for (Entity type : schema.entities) {
@@ -167,10 +170,20 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           }
 
           // When both steps are complete, activate the capture path
-          Futures.addCallback(Futures.allAsList(schemaF, captureF), new FutureCallback<List<BinaryObject>>() {
+          final ListenableFuture<List<BinaryObject>> allF = Futures.allAsList(schemaF, captureF);
+          Rpc.listen(allF, myExecutor, LOG, new Rpc.Callback<List<BinaryObject>>() {
             @Override
-            public void onSuccess(@Nullable final List<BinaryObject> all) {
-              CapturePath path = (CapturePath)all.get(1);
+            public void onFinish(Rpc.Result<List<BinaryObject>> result) throws RpcException, ExecutionException {
+              CapturePath path = null;
+              try {
+                path = (CapturePath)result.get().get(1);
+              }
+              catch (Exception e) {
+                LOG.error("Trace fail load failure", e);
+                setLoadingErrorTextOnEdt("Error reading gfxtrace file");
+                return;
+              }
+
               LOG.info("Capture uploaded");
               if (path != null) {
                 activatePath(path, GfxTraceEditor.this);
@@ -187,12 +200,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
                 }
               });
             }
-
-            @Override
-            public void onFailure(Throwable t) {
-              LOG.error("Trace fail load failure", t);
-              setLoadingErrorTextOnEdt("Error reading gfxtrace file");
-            }
           });
         }
         catch (IOException e) {
@@ -204,13 +211,14 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   }
 
   public void loadReplayDevice() {
-    Futures.addCallback(getClient().getDevices(), new LoadingCallback<DevicePath[]>(LOG) {
+    Rpc.listen(getClient().getDevices(), myExecutor, LOG, new Rpc.Callback<DevicePath[]>() {
       @Override
-      public void onSuccess(@Nullable DevicePath[] devices) {
+      public void onFinish(Rpc.Result<DevicePath[]> result) throws RpcException, ExecutionException {
+        DevicePath[] devices = result.get();
         if (devices != null && devices.length >= 1) {
           activatePath(devices[0], GfxTraceEditor.this);
-        }
-        else {
+        } else {
+          // Retry...
           JobScheduler.getScheduler().schedule(new Runnable() {
             @Override
             public void run() {
