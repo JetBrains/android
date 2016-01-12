@@ -38,6 +38,8 @@ public interface AndroidDevice {
   @NotNull
   AndroidVersion getVersion();
 
+  int getDensity();
+
   /** Returns a unique serial number */
   @NotNull
   String getSerial();
@@ -55,4 +57,11 @@ public interface AndroidDevice {
   /** Returns the {@link IDevice} corresponding to this device, launching it if necessary. */
   @NotNull
   ListenableFuture<IDevice> launch(@NotNull Project project);
+
+  /**
+   * Returns the {@link IDevice} corresponding to this device if it is running or has been launched.
+   * Throws {@link IllegalStateException} if the device is not running and hasn't been launched.
+   */
+  @NotNull
+  ListenableFuture<IDevice> getLaunchedDevice();
 }
