@@ -89,7 +89,7 @@ public final class MemoryRangePath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","MemoryRange","","");
+  private static final Entity ENTITY = new Entity("path", "MemoryRange", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

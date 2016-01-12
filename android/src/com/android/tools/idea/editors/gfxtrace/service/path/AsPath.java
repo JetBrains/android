@@ -70,7 +70,7 @@ public final class AsPath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","As","","");
+  private static final Entity ENTITY = new Entity("path", "As", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

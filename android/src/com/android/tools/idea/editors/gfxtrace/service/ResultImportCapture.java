@@ -45,7 +45,7 @@ final class ResultImportCapture implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","resultImportCapture","","");
+  private static final Entity ENTITY = new Entity("service", "resultImportCapture", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
