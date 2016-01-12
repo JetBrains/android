@@ -201,6 +201,30 @@ public final class InstantRunManager implements ProjectComponent {
       return false;
     }
 
+    if (InstantRunClient.USE_BUILD_ID_TEMP_FILE) {
+      // If the build id is saved in /data/local/tmp, then the build id isn't cleaned when the package is uninstalled.
+      // So we first check that the app is still installed. Note: this doesn't yet guarantee that you have uninstalled and then
+      // re-installed a different apk with the same package name..
+      // https://code.google.com/p/android/issues/detail?id=198715
+
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      assert facet != null : "Instant Run requires a Gradle model";
+      String pkgName;
+      try {
+        pkgName = ApkProviderUtil.computePackageName(facet);
+      }
+      catch (ApkProvisionException e) {
+        throw new RuntimeException(e); // should not happen for Gradle projects..
+      }
+
+      // check whether the package is installed on the device: we do this by checking the last install time from dumpsys pm,
+      // but we could potentially simplify this to just checking whether the package folder exists
+      if (ServiceManager.getService(InstalledApkCache.class).getLastUpdateTime(device, pkgName) == null) {
+        LOG.info("Package " + pkgName + " was not detected on the device.");
+        return false;
+      }
+    }
+
     String deviceBuildTimestamp = getInstantRunClient(module).getDeviceBuildTimestamp(device);
     return localTimestamp.equals(deviceBuildTimestamp);
   }
