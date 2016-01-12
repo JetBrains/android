@@ -49,7 +49,7 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
   @Nullable
   public abstract String version();
 
-  public abstract void setVersion(@NotNull String name);
+  public abstract void setVersion(@NotNull String version);
 
   @Nullable
   public abstract String classifier();
@@ -126,8 +126,8 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
     }
 
     @Override
-    public void setVersion(@NotNull String name) {
-      myDslElement.setNewLiteral("version", name);
+    public void setVersion(@NotNull String version) {
+      myDslElement.setNewLiteral("version", version);
     }
 
     @Override

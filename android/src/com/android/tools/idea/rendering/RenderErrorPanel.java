@@ -26,7 +26,7 @@ import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Throwables;
@@ -637,8 +637,9 @@ public class RenderErrorPanel extends JPanel {
             Runnable runnable = new Runnable() {
               @Override
               public void run() {
-                FixGradleModelVersionHyperlink quickFix = new FixGradleModelVersionHyperlink(GRADLE_PLUGIN_RECOMMENDED_VERSION,
-                                                                                             null, false);
+                FixAndroidGradlePluginVersionHyperlink
+                  quickFix = new FixAndroidGradlePluginVersionHyperlink(GRADLE_PLUGIN_RECOMMENDED_VERSION,
+                                                                        null, false);
                 quickFix.executeIfClicked(module.getProject(),
                                           new HyperlinkEvent(this, HyperlinkEvent.EventType.ACTIVATED, null, quickFix.getUrl()));
               }

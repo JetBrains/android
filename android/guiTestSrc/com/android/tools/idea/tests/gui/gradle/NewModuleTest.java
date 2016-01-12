@@ -43,7 +43,7 @@ public class NewModuleTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testNewModuleOldGradle() throws Exception {
     myProjectFrame = importSimpleApplication();
-    myProjectFrame.updateAndroidModelVersion("1.0.0");
+    myProjectFrame.updateAndroidGradlePluginVersion("1.0.0");
 
     myProjectFrame.requestProjectSync();
     myProjectFrame.waitForGradleProjectSyncToFinish();

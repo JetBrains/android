@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -299,7 +299,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
   private static void addLayoutRenderingIssueMessage(String modelVersion, @NotNull Project project) {
     // See https://code.google.com/p/android/issues/detail?id=170841
-    NotificationHyperlink quickFix = new FixGradleModelVersionHyperlink(false);
+    NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(false);
     NotificationHyperlink openDocHyperlink =
       new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info...");
     String[] text =
