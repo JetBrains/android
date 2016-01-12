@@ -80,6 +80,11 @@ public class ConnectedAndroidDevice implements AndroidDevice {
     return myDevice.getVersion();
   }
 
+  @Override
+  public int getDensity() {
+    return myDevice.getDensity();
+  }
+
   @NotNull
   @Override
   public String getSerial() {
@@ -146,6 +151,12 @@ public class ConnectedAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public ListenableFuture<IDevice> launch(@NotNull Project project) {
+    return getLaunchedDevice();
+  }
+
+  @NotNull
+  @Override
+  public ListenableFuture<IDevice> getLaunchedDevice() {
     return Futures.immediateFuture(myDevice);
   }
 
