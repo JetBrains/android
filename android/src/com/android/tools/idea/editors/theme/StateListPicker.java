@@ -30,7 +30,6 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
-import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ImmutableMap;
@@ -49,7 +48,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.AndroidDomElement;
@@ -100,8 +98,6 @@ public class StateListPicker extends JPanel {
 
     for (final ResourceHelper.StateListState state : myStateList.getStates()) {
       final StateComponent stateComponent = createStateComponent(state);
-      stateComponent.addValueActionListener(new ValueActionListener(state, stateComponent));
-      stateComponent.addAlphaActionListener(new AlphaActionListener(state, stateComponent));
       add(stateComponent);
     }
   }
@@ -113,7 +109,12 @@ public class StateListPicker extends JPanel {
 
     String stateValue = state.getValue();
     String alphaValue = state.getAlpha();
-    updateComponent(stateComponent, stateValue, alphaValue);
+
+    stateComponent.addValueActionListener(new ValueActionListener(state, stateComponent));
+    stateComponent.addAlphaActionListener(new AlphaActionListener(state, stateComponent));
+
+    stateComponent.setValueText(stateValue);
+    stateComponent.setAlphaValue(alphaValue);
 
     stateComponent.setAlphaVisible(!StringUtil.isEmpty(alphaValue));
 
@@ -129,18 +130,19 @@ public class StateListPicker extends JPanel {
     JBPopupMenu popupMenu = new JBPopupMenu();
     final JMenuItem deleteAlpha = new JMenuItem("Delete alpha");
     popupMenu.add(deleteAlpha);
-    deleteAlpha.setVisible(state.getAlpha() != null);
+    deleteAlpha.setVisible(!StringUtil.isEmpty(state.getAlpha()));
 
     final JMenuItem createAlpha = new JMenuItem("Create alpha");
     popupMenu.add(createAlpha);
-    createAlpha.setVisible(state.getAlpha() == null);
+    createAlpha.setVisible(StringUtil.isEmpty(state.getAlpha()));
 
     deleteAlpha.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         stateComponent.getAlphaComponent().setVisible(false);
+        stateComponent.setAlphaValue(null);
         state.setAlpha(null);
-        updateComponent(stateComponent, state.getValue(), state.getAlpha());
+        updateIcon(stateComponent);
         deleteAlpha.setVisible(false);
         createAlpha.setVisible(true);
       }
@@ -154,7 +156,7 @@ public class StateListPicker extends JPanel {
           return;
         }
         listener.actionPerformed(new ActionEvent(stateComponent.getAlphaComponent(), ActionEvent.ACTION_PERFORMED, null));
-        if (state.getAlpha() != null) {
+        if (!StringUtil.isEmpty(state.getAlpha())) {
           stateComponent.getAlphaComponent().setVisible(true);
           createAlpha.setVisible(false);
           deleteAlpha.setVisible(true);
@@ -333,8 +335,15 @@ public class StateListPicker extends JPanel {
     @Override
     public void documentChanged(DocumentEvent e) {
       myState.setValue(myComponent.getResourceValue());
-      updateComponent(myComponent, myComponent.getResourceValue(), myComponent.getAlphaValue());
-      myComponent.repaint();
+      // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
+      // To prevent a potential deadlock, we call updateIcon in another thread.
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          updateIcon(myComponent);
+          myComponent.repaint();
+        }
+      });
     }
 
     @Override
@@ -366,12 +375,9 @@ public class StateListPicker extends JPanel {
       dialog.show();
 
       if (dialog.isOK()) {
-        myState.setValue(dialog.getResourceName());
-        AndroidFacet facet = AndroidFacet.getInstance(myModule);
-        if (facet != null) {
-          facet.refreshResources();
-        }
-        updateComponent(myComponent, myState.getValue(), myState.getAlpha());
+        String resourceName = dialog.getResourceName();
+        myState.setValue(resourceName);
+        myComponent.setValueText(resourceName);
 
         // If a resource was overridden, it may affect several states of the state list.
         // Thus we need to repaint all components.
@@ -399,8 +405,15 @@ public class StateListPicker extends JPanel {
     @Override
     public void documentChanged(DocumentEvent e) {
       myState.setAlpha(myComponent.getAlphaValue());
-      updateComponent(myComponent, myComponent.getResourceValue(), myComponent.getAlphaValue());
-      myComponent.repaint();
+      // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
+      // To prevent a potential deadlock, we call updateIcon in another thread.
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          updateIcon(myComponent);
+          myComponent.repaint();
+        }
+      });
     }
 
     @Override
@@ -419,11 +432,9 @@ public class StateListPicker extends JPanel {
       dialog.show();
 
       if (dialog.isOK()) {
-        myState.setAlpha(dialog.getResourceName());
-        AndroidFacet facet = AndroidFacet.getInstance(myModule);
-        assert facet != null;
-        facet.refreshResources();
-        updateComponent(myComponent, myState.getValue(), myState.getAlpha());
+        String resourceName = dialog.getResourceName();
+        myState.setAlpha(resourceName);
+        myComponent.setAlphaValue(resourceName);
 
         // If a resource was overridden, it may affect several states of the state list.
         // Thus we need to repaint all components.
@@ -432,17 +443,13 @@ public class StateListPicker extends JPanel {
     }
   }
 
-  private void updateComponent(@NotNull StateComponent component, @NotNull String resourceName, @Nullable String alphaValue) {
-    if (!Objects.equal(resourceName, component.getResourceValue())) {
-      component.setValueText(resourceName);
-    }
-    if (!Objects.equal(alphaValue, component.getAlphaValue())) {
-      component.setAlphaValue(alphaValue);
-    }
+  private void updateIcon(@NotNull StateComponent component) {
     component.showAlphaError(false);
 
     ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
     assert resourceResolver != null;
+
+    String resourceName = component.getResourceValue();
 
     ResourceValue resValue = resourceResolver.findResValue(resourceName, false);
     resValue = resourceResolver.resolveResValue(resValue);
@@ -473,6 +480,8 @@ public class StateListPicker extends JPanel {
       }
       component.showStack(colors.size() > 1);
 
+      String alphaValue = component.getAlphaValue();
+
       if (!StringUtil.isEmpty(alphaValue)) {
         try {
           float alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resourceResolver, alphaValue));
@@ -493,7 +502,7 @@ public class StateListPicker extends JPanel {
 
   private void repaintAllComponents() {
     for (StateComponent component : myStateComponents) {
-      updateComponent(component, component.getResourceValue(), component.getAlphaValue());
+      updateIcon(component);
       component.repaint();
     }
   }
