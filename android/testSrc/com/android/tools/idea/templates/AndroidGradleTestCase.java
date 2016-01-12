@@ -37,6 +37,7 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
@@ -444,10 +445,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     assertTrue(gradlew.exists());
     File pwd = base.getAbsoluteFile();
     // TODO: Add in --no-daemon, anything to suppress total time?
-    String[] args = new String[2 + extraArgs.length];
-    args[0] = gradlew.getPath();
-    args[1] = "assembleDebug";
-    System.arraycopy(extraArgs, 0, args, 2, extraArgs.length);
+    List<String> args = Lists.newArrayList();
+    args.add(gradlew.getPath());
+    args.add("assembleDebug");
+    Collections.addAll(args, extraArgs);
+    GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(args);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
