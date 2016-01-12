@@ -1,8 +1,9 @@
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
+import com.android.repository.api.ProgressIndicatorAdapter;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
@@ -387,7 +388,7 @@ public class AndroidJpsUtil {
   }
 
   @Nullable
-  public static Pair<IAndroidTarget, LocalSdk> getAndroidTarget(@NotNull JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk,
+  public static Pair<IAndroidTarget, AndroidSdkHandler> getAndroidTarget(@NotNull JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk,
                                                                   @Nullable CompileContext context,
                                                                   String builderName) {
     JpsAndroidSdkProperties sdkProperties = sdk.getSdkProperties().getData();
@@ -400,9 +401,10 @@ public class AndroidJpsUtil {
       return null;
     }
 
-    final LocalSdk localSdk = AndroidBuildDataCache.getInstance().getSdk(new File(sdk.getHomePath()));
+    final AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(new File(sdk.getHomePath()));
 
-    final IAndroidTarget target = localSdk.getTargetFromHashString(targetHashString);
+    RepoLogger log = new RepoLogger();
+    final IAndroidTarget target = sdkHandler.getAndroidTargetManager(log).getTargetFromHashString(targetHashString, log);
     if (target == null) {
       if (context != null) {
         context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR,
@@ -411,7 +413,7 @@ public class AndroidJpsUtil {
       }
       return null;
     }
-    return Pair.create(target, localSdk);
+    return Pair.create(target, sdkHandler);
   }
 
   @Nullable
@@ -475,7 +477,7 @@ public class AndroidJpsUtil {
       return null;
     }
 
-    final Pair<IAndroidTarget, LocalSdk> pair = getAndroidTarget(sdk, context, builderName);
+    final Pair<IAndroidTarget, AndroidSdkHandler> pair = getAndroidTarget(sdk, context, builderName);
     if (pair == null) {
       if (context != null) {
         context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR,
@@ -1024,6 +1026,39 @@ public class AndroidJpsUtil {
     }
     finally {
       inputStream.close();
+    }
+  }
+
+  public static class RepoLogger extends ProgressIndicatorAdapter {
+    private final Logger myLogger;
+
+    public RepoLogger() {
+      myLogger = Logger.getInstance(AndroidJpsUtil.class);
+    }
+
+    @Override
+    public void logWarning(@NotNull String s) {
+      myLogger.warn(s);
+    }
+
+    @Override
+    public void logWarning(@NotNull String s, @Nullable Throwable e) {
+      myLogger.warn(s, e);
+    }
+
+    @Override
+    public void logError(@NotNull String s) {
+      myLogger.error(s);
+    }
+
+    @Override
+    public void logError(@NotNull String s, @Nullable Throwable e) {
+      myLogger.error(s, e);
+    }
+
+    @Override
+    public void logInfo(@NotNull String s) {
+      myLogger.info(s);
     }
   }
 }

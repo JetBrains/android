@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
 
 /**
@@ -46,9 +43,4 @@ public class RemoteNdkPkgInfo extends RemotePkgInfo {
     return mPkgDesc.getInstallId();
   }
 
-  @NotNull
-  @Override
-  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
-    return new File(osSdkRoot, SdkConstants.FD_NDK);
-  }
 }

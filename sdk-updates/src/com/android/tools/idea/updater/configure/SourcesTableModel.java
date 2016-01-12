@@ -260,7 +260,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   private void createSource(@NotNull String url, @Nullable String uiName) {
     RepositorySourceProvider userSourceProvider = getUserSourceProvider();
     RepositorySource newSource = new SimpleRepositorySource(url, uiName, true, ImmutableList
-      .of(myHandler.getAddonModule(myLogger), myHandler.getSysImgModule(myLogger)), userSourceProvider);
+      .of(AndroidSdkHandler.getAddonModule(), AndroidSdkHandler.getSysImgModule()), userSourceProvider);
     userSourceProvider.addSource(newSource);
     refreshUi();
   }

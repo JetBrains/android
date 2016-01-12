@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
+import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
@@ -56,6 +60,7 @@ public final class GapiPaths {
   @NotNull private static final String EXE_EXTENSION;
   @NotNull private static final String SDK_VENDOR = "android";
   @NotNull private static final String SDK_PATH = "gapid";
+  @NotNull private static final String SDK_PACKAGE_PATH = "extras;android;gapid";
   @NotNull private static final String OS_ANDROID = "android";
 
   static {
@@ -157,11 +162,10 @@ public final class GapiPaths {
   }
 
   public static File getSdkPath() {
-    final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkData == null) { return null; }
-    final LocalExtraPkgInfo info = sdkData.getLocalSdk().getExtra(SDK_VENDOR, SDK_PATH);
+    AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
+    LocalPackage info = handler.getLocalPackage(SDK_PACKAGE_PATH, new StudioLoggerProgressIndicator(GapiPaths.class));
     if (info == null) { return null; }
-    return info.getLocalDir();
+    return info.getLocation();
   }
 
   private static boolean checkForTools(File dir) {
