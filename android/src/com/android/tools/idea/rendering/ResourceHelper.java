@@ -593,7 +593,7 @@ public class ResourceHelper {
       if (value == null) {
         continue;
       }
-      if (SdkConstants.ATTR_COLOR.equals(name) || SdkConstants.ATTR_DRAWABLE.equals(name)) {
+      if (ATTR_COLOR.equals(name) || ATTR_DRAWABLE.equals(name)) {
         ResourceUrl url = ResourceUrl.parse(value, isFramework);
         stateValue = url != null ? url.toString() : value;
       }
@@ -954,7 +954,7 @@ public class ResourceHelper {
       myValue = value;
     }
 
-    public void setAlpha(String alpha) {
+    public void setAlpha(@Nullable String alpha) {
       myAlpha = alpha;
     }
 
