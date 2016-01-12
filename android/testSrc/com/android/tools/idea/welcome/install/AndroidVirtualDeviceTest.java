@@ -20,7 +20,6 @@ import com.android.repository.api.Dependency;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
-import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
@@ -110,12 +109,11 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     recordGoogleApisSysImg23(fop);
     fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), "nexus_5"));
 
-    FakeProgressIndicator progress = new FakeProgressIndicator();
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), fop);
 
     final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, fop);
     FakePackage remotePlatform = new FakePackage("platforms;android-23", new Revision(1), ImmutableList.<Dependency>of());
-    RepoFactory factory = (RepoFactory)sdkHandler.getRepositoryModule(progress).createLatestFactory();
+    RepoFactory factory = (RepoFactory)AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
     platformDetailsType.setApiLevel(23);

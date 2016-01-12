@@ -93,7 +93,7 @@ public class AvdManagerConnection {
 
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
   public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
-  public static final IdDisplay GOOGLE_APIS_TAG = new com.android.sdklib.repository.descriptors.IdDisplay("google_apis", "");
+  public static final IdDisplay GOOGLE_APIS_TAG = IdDisplay.create("google_apis", "");
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");

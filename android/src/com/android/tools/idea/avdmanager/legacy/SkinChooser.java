@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.avdmanager.legacy;
 
-import com.android.sdklib.IAndroidTarget;
+import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.targets.SystemImageManager;
 import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
-import com.android.tools.idea.avdmanager.SystemImageDescription;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -31,7 +31,6 @@ import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ComboboxWithBrowseButton;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,6 +52,8 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.NO_SKIN;
  */
 public class SkinChooser extends ComboboxWithBrowseButton implements ItemListener, ItemSelectable {
   private List<ItemListener> myListeners = Lists.newArrayList();
+
+  private static final ProgressIndicator LOGGER = new StudioLoggerProgressIndicator(SkinChooser.class);
 
   public SkinChooser(@Nullable Project project) {
     setItems(getSkins());
@@ -107,19 +108,13 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
         result.add(skinFile);
       }
     }
-    AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    LocalSdk mySdk = androidSdkData.getLocalSdk();
-    List<IAndroidTarget> targets = Lists.newArrayList(mySdk.getTargets());
-    for (IAndroidTarget target : targets) {
-      ISystemImage[] systemImages = target.getSystemImages();
-      if (systemImages != null) {
-        for (ISystemImage image : systemImages) {
-          SystemImageDescription desc = new SystemImageDescription(target, image);
-          for (File skin : desc.getSkins()) {
-            if (skin.exists()) {
-              result.add(skin);
-            }
-          }
+
+    SystemImageManager systemImageManager = AndroidSdkUtils.tryToChooseSdkHandler().getSystemImageManager(LOGGER);
+
+    for (ISystemImage image : systemImageManager.getImages()) {
+      for (File skin : image.getSkins()) {
+        if (skin.exists()) {
+          result.add(skin);
         }
       }
     }

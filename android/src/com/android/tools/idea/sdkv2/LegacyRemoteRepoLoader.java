@@ -24,11 +24,10 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.LayoutlibVersion;
-import com.android.sdklib.internal.androidTarget.OptionalLibraryImpl;
 import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.LegacyRepoUtils;
+import com.android.sdklib.repositoryv2.targets.OptionalLibraryImpl;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.android.tools.idea.sdk.remote.internal.archives.ArchFilter;
@@ -53,11 +52,6 @@ import java.util.List;
  */
 public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
   /**
-   * Reference to the {@link AndroidSdkHandler} that's using this loader.
-   */
-  private final AndroidSdkHandler HANDLER = AndroidSdkHandler.getInstance(null);
-
-  /**
    * Caching downloader used by {@link SdkSource}s.
    */
   private DownloadCache myDownloadCache;
@@ -68,11 +62,6 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
   private SettingsController mySettingsController;
 
   /**
-   * Needed by the old system for determining the install path of packages.
-   */
-  private LocalSdk myLocalSdk;
-
-  /**
    * Create a new loader.
    *
    * @param settingsController For download-related settings.
@@ -80,7 +69,6 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
    */
   public LegacyRemoteRepoLoader(@NotNull SettingsController settingsController) {
     mySettingsController = settingsController;
-    myLocalSdk = new LocalSdk();
   }
 
   /**
@@ -113,13 +101,13 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     RemotePkgInfo[] packages = null;
     for (SchemaModule module : source.getPermittedModules()) {
       legacySource = null;
-      if (module.equals(HANDLER.getRepositoryModule(progress))) {
+      if (module.equals(AndroidSdkHandler.getRepositoryModule())) {
         legacySource = new SdkRepoSource(source.getUrl(), "Legacy Repo Source");
       }
-      else if (module.equals(HANDLER.getAddonModule(progress))) {
+      else if (module.equals(AndroidSdkHandler.getAddonModule())) {
         legacySource = new SdkAddonSource(source.getUrl(), "Legacy Addon Source");
       }
-      else if (module.equals(HANDLER.getSysImgModule(progress))) {
+      else if (module.equals(AndroidSdkHandler.getSysImgModule())) {
         legacySource = new SdkSysImgSource(source.getUrl(), "Legacy System Image Source");
       }
       if (legacySource != null) {
@@ -154,16 +142,14 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     private final RemotePkgInfo myWrapped;
     private RepositorySource mySource;
     private TypeDetails myDetails;
-    private RemotePackage mNewPackageInstance;
 
     LegacyRemotePackage(RemotePkgInfo remote, RepositorySource source) {
       myWrapped = remote;
       mySource = source;
-      mNewPackageInstance = ((CommonFactory)RepoManager.getCommonModule().createLatestFactory()).createRemotePackage();
     }
 
     @Override
-    @Nullable
+    @NotNull
     public TypeDetails getTypeDetails() {
       if (myDetails == null) {
         int layoutlibApi = 0;
@@ -212,16 +198,13 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     @NotNull
     @Override
     public String getPath() {
-      String path = myWrapped.getInstallFolder("", myLocalSdk).getPath();
-      path = path.substring(1);
-      path = path.replace(File.separatorChar, RepoPackage.PATH_SEPARATOR);
-      return path;
+      return LegacyRepoUtils.getLegacyPath(myWrapped.getPkgDesc());
     }
 
     @NotNull
     @Override
     public CommonFactory createFactory() {
-      return (CommonFactory)HANDLER.getCommonModule(new StudioLoggerProgressIndicator(getClass())).createLatestFactory();
+      return (CommonFactory)AndroidSdkHandler.getCommonModule().createLatestFactory();
     }
 
     @Override

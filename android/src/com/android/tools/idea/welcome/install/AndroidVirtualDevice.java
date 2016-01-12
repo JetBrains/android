@@ -28,8 +28,8 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
@@ -65,8 +65,8 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 public class AndroidVirtualDevice extends InstallableComponent {
   public static final Logger LOG = Logger.getInstance(AndroidVirtualDevice.class);
   private static final String ID_DEVICE_NEXUS_5 = "Nexus 5";
-  private static final IdDisplay ID_ADDON_GOOGLE_API_IMG = new IdDisplay("google_apis", "Google APIs");
-  private static final IdDisplay ID_VENDOR_GOOGLE = new IdDisplay("google", "Google Inc.");
+  private static final IdDisplay ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis", "Google APIs");
+  private static final IdDisplay ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google Inc.");
   private static final Storage DEFAULT_RAM_SIZE = new Storage(1536, Storage.Unit.MiB);
   private static final Storage DEFAULT_HEAP_SIZE = new Storage(64, Storage.Unit.MiB);
 

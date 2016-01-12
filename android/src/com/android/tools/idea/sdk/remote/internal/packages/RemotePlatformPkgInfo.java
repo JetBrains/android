@@ -16,26 +16,23 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.sdklib.*;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 
 /**
  * Represents a platform XML node in an SDK repository.
  */
-public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAndroidVersionProvider {
+public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo {
 
   /**
    * The version, a string, for platform packages.
@@ -108,7 +105,6 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
   /**
    * Returns the package version, for platform, add-on and doc packages.
    */
-  @Override
   @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
@@ -170,35 +166,6 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
     }
 
     return s;
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A platform package is typically installed in SDK/platforms/android-"version".
-   * However if we can find a different directory under SDK/platform that already
-   * has this platform version installed, we'll use that one.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  @NotNull
-  public File getInstallFolder(@NotNull String osSdkRoot, @NotNull LocalSdk localSdk) {
-
-    // First find if this platform is already installed. If so, reuse the same directory.
-    for (IAndroidTarget target : localSdk.getTargets()) {
-      if (target.isPlatform() && target.getVersion().equals(getAndroidVersion())) {
-        return new File(target.getLocation());
-      }
-    }
-
-    File platforms = new File(osSdkRoot, SdkConstants.FD_PLATFORMS);
-    File folder = new File(platforms, String.format("android-%s", getAndroidVersion().getApiString())); //$NON-NLS-1$
-
-    return folder;
   }
 
   @Override

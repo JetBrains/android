@@ -21,9 +21,9 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.avdmanager.AccelerationErrorCode;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.ElevatedCommandLine;
@@ -67,7 +67,7 @@ public final class Haxm extends InstallableComponent {
   // In UI we cannot use longs, so we need to pick a unit other then byte
   public static final Storage.Unit UI_UNITS = Storage.Unit.MiB;
   public static final Logger LOG = Logger.getInstance(Haxm.class);
-  public static final IdDisplay ID_INTEL = new IdDisplay("intel", "");
+  public static final IdDisplay ID_INTEL = IdDisplay.create("intel", "");
   public static final String COMPONENT_PATH = "Hardware_Accelerated_Execution_Manager";
   public static final String REPO_PACKAGE_PATH = "extras;intel;" + COMPONENT_PATH;
   public static final String RUNNING_INTEL_HAXM_INSTALLER_MESSAGE = "Running Intel® HAXM installer";
