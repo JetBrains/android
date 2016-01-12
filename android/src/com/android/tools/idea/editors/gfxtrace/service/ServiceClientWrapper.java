@@ -20,11 +20,13 @@ package com.android.tools.idea.editors.gfxtrace.service;
 import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.rpclib.any.Box;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.Info;
 import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.rpclib.schema.Message;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.idea.editors.gfxtrace.service.path.TimingInfoPath;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -40,6 +42,10 @@ public class ServiceClientWrapper extends ServiceClient {
   @Override
   public ListenableFuture<Object> get(Path p) {
     return myClient.get(p);
+  }
+  @Override
+  public ListenableFuture<Info[]> getAvailableStringTables() {
+    return myClient.getAvailableStringTables();
   }
   @Override
   public ListenableFuture<CapturePath[]> getCaptures() {
@@ -64,6 +70,10 @@ public class ServiceClientWrapper extends ServiceClient {
   @Override
   public ListenableFuture<Message> getSchema() {
     return myClient.getSchema();
+  }
+  @Override
+  public ListenableFuture<StringTable> getStringTable(Info info) {
+    return myClient.getStringTable(info);
   }
   @Override
   public ListenableFuture<TimingInfoPath> getTimingInfo(DevicePath device, CapturePath capture, TimingFlags flags) {
