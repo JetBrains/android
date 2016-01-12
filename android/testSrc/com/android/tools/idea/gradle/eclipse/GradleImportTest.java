@@ -5,6 +5,7 @@ import com.android.annotations.Nullable;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.Pair;
@@ -3640,8 +3641,11 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
       return;
     }
     File pwd = base.getAbsoluteFile();
-
-    GeneralCommandLine cmdLine = new GeneralCommandLine(new String[]{gradlew.getPath(), "assembleDebug"}).withWorkDirectory(pwd);
+    List<String> args = Lists.newArrayList();
+    args.add(gradlew.getPath());
+    args.add("assembleDebug");
+    GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(args);
+    GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
     int timeoutInMilliseconds = 5 * 60 * 1000;
