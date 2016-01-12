@@ -102,7 +102,7 @@ public final class CubemapLevel implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("gfxapi","CubemapLevel","","");
+  private static final Entity ENTITY = new Entity("gfxapi", "CubemapLevel", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

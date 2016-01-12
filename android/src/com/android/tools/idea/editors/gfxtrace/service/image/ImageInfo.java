@@ -80,7 +80,7 @@ public final class ImageInfo implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","Info","","");
+  private static final Entity ENTITY = new Entity("image", "Info", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

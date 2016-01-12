@@ -131,7 +131,7 @@ public final class AtomMetadata implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("atom","Metadata","","");
+  private static final Entity ENTITY = new Entity("atom", "Metadata", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

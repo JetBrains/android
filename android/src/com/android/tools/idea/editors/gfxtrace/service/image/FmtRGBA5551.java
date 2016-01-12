@@ -40,7 +40,7 @@ final class FmtRGBA5551 extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtRGBA5551","","");
+  private static final Entity ENTITY = new Entity("image", "fmtRGBA5551", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

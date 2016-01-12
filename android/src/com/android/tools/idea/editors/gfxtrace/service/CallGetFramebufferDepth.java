@@ -56,7 +56,7 @@ final class CallGetFramebufferDepth implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","callGetFramebufferDepth","","");
+  private static final Entity ENTITY = new Entity("service", "callGetFramebufferDepth", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
