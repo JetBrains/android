@@ -683,7 +683,7 @@ public final class InstantRunManager implements ProjectComponent {
     }
   }
 
-  private static void displayVerifierStatus(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
+  public static void displayVerifierStatus(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
     if (!buildInfo.canHotswap()) {
       String status = buildInfo.getVerifierStatus();
       if (status.isEmpty()) {
