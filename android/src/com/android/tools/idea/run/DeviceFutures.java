@@ -29,51 +29,54 @@ import java.util.concurrent.ExecutionException;
 /** A collection of devices (some of them may still be starting up) for use in a device-oriented run configuration launch. */
 public final class DeviceFutures {
   @NotNull
-  private final Collection<ListenableFuture<IDevice>> myDeviceFutures;
+  private final List<AndroidDevice> myDevices;
 
-  private DeviceFutures(@NotNull Collection<ListenableFuture<IDevice>> deviceFutures) {
-    myDeviceFutures = deviceFutures;
+  public DeviceFutures(@NotNull List<AndroidDevice> devices) {
+    myDevices = devices;
   }
 
+  /** @return the device futures which resolve when each device is ready. */
   @NotNull
-  public static DeviceFutures forFuture(@NotNull ListenableFuture<IDevice> deviceFuture) {
-    return forFutures(ImmutableList.of(deviceFuture));
-  }
-
-  @NotNull
-  public static DeviceFutures forFutures(@NotNull Collection<ListenableFuture<IDevice>> deviceFutures) {
-    return new DeviceFutures(deviceFutures);
-  }
-
-  @NotNull
-  public static DeviceFutures forDevices(@NotNull Iterable<IDevice> devices) {
+  public List<ListenableFuture<IDevice>> get() {
     ImmutableList.Builder<ListenableFuture<IDevice>> futures = ImmutableList.builder();
-    for (IDevice device : devices) {
-      futures.add(Futures.immediateFuture(device));
-    }
-    return new DeviceFutures(futures.build());
-  }
 
-  /** @return the device futures, which resolve when each device is ready. */
-  @NotNull
-  public Collection<ListenableFuture<IDevice>> get() {
-    return myDeviceFutures;
+    for (AndroidDevice device : myDevices) {
+      futures.add(device.getLaunchedDevice());
+    }
+
+    return futures.build();
   }
 
   /** @return the target devices, if all are now ready. Otherwise, null. */
   @Nullable
   public List<IDevice> getIfReady() {
-    for (ListenableFuture<IDevice> deviceFuture : myDeviceFutures) {
+    List<ListenableFuture<IDevice>> devices = get();
+
+    for (ListenableFuture<IDevice> deviceFuture : devices) {
       if (!deviceFuture.isDone() || deviceFuture.isCancelled()) {
         return null;
       }
     }
 
     try {
-      return Futures.get(Futures.allAsList(myDeviceFutures), ExecutionException.class);
+      return Futures.get(Futures.allAsList(devices), ExecutionException.class);
     } catch (Exception e) {
       // This can happen if the process behind the future threw an exception.
       return null;
     }
+  }
+
+  @NotNull
+  public List<AndroidDevice> getDevices() {
+    return myDevices;
+  }
+
+  @NotNull
+  public static DeviceFutures forDevices(@NotNull Iterable<IDevice> devices) {
+    ImmutableList.Builder<AndroidDevice> futures = ImmutableList.builder();
+    for (IDevice device : devices) {
+      futures.add(new ConnectedAndroidDevice(device, null));
+    }
+    return new DeviceFutures(futures.build());
   }
 }
