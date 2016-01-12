@@ -40,7 +40,7 @@ final class FmtETC2RGBA8EAC extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtETC2_RGBA8_EAC","","");
+  private static final Entity ENTITY = new Entity("image", "fmtETC2_RGBA8_EAC", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

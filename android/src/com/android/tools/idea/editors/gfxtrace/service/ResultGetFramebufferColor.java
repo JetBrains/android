@@ -45,7 +45,7 @@ final class ResultGetFramebufferColor implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","resultGetFramebufferColor","","");
+  private static final Entity ENTITY = new Entity("service", "resultGetFramebufferColor", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

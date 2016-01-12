@@ -34,7 +34,7 @@ final class CallGetDevices implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","callGetDevices","","");
+  private static final Entity ENTITY = new Entity("service", "callGetDevices", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

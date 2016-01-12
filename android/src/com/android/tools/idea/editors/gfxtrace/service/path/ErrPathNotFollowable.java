@@ -46,7 +46,7 @@ public final class ErrPathNotFollowable extends RpcException implements BinaryOb
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","ErrNotFollowable","","");
+  private static final Entity ENTITY = new Entity("path", "ErrNotFollowable", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

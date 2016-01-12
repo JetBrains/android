@@ -54,7 +54,7 @@ public final class Observations implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("atom","Observations","","");
+  private static final Entity ENTITY = new Entity("atom", "Observations", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

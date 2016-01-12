@@ -34,7 +34,7 @@ final public class FmtATCRGBAMD extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtATC_RGB_AMD","","");
+  private static final Entity ENTITY = new Entity("image", "fmtATC_RGB_AMD", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

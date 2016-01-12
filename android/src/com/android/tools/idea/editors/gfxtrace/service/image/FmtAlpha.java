@@ -39,7 +39,7 @@ final public class FmtAlpha extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtAlpha","","");
+  private static final Entity ENTITY = new Entity("image", "fmtAlpha", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
