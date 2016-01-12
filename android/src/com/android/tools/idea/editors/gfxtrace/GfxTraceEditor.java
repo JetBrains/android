@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisConnection;
+import com.android.tools.idea.editors.gfxtrace.gapi.GapisFeatures;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisProcess;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.editors.gfxtrace.service.*;
@@ -73,6 +74,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
 
   private static final int FETCH_SCHEMA_TIMEOUT_MS = 3000;
+  private static final int FETCH_FEATURES_TIMEOUT_MS = 3000;
   private static final int FETCH_REPLAY_DEVICE_TIMEOUT_MS = 3000;
   private static final int FETCH_REPLAY_DEVICE_RETRY_DELAY_MS = 3000;
   private static final int FETCH_REPLAY_DEVICE_MAX_RETRIES = 30;
@@ -129,10 +131,15 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           return;
         }
 
+        GapisFeatures features = myGapisConnection.getFeatures();
+
         String status = "";
         try {
           status = "fetch schema";
           fetchSchema();
+
+          status = "fetch feature list";
+          fetchFeatures(features);
 
           status = "fetch replay device list";
           fetchReplayDevice();
@@ -175,6 +182,15 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     for (ConstantSet set : schema.constants) {
       ConstantSet.register(set);
     }
+  }
+
+  /**
+   * Requests and blocks for the features list from the server.
+   */
+  private void fetchFeatures(GapisFeatures features) throws ExecutionException, RpcException, TimeoutException {
+    String[] list = Rpc.get(myClient.getFeatures(), FETCH_FEATURES_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    features.setFeatureList(list);
+    LOG.info("GAPIS features: " + list.toString());
   }
 
   /**
