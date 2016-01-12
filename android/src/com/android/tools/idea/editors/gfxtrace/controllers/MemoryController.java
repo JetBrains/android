@@ -19,6 +19,8 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.MemoryRangePath;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -59,6 +61,7 @@ import java.awt.event.*;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class MemoryController extends Controller {
   @NotNull private static final Logger LOG = Logger.getInstance(MemoryController.class);
@@ -126,18 +129,18 @@ public class MemoryController extends Controller {
         update();
       }
       else {
-        Futures.addCallback(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), new FutureCallback<byte[]>() {
+        Rpc.listen(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), EdtExecutor.INSTANCE, LOG,
+                   new Rpc.Callback<byte[]>() {
           @Override
-          public void onSuccess(byte[] data) {
-            myMemoryData = new ImmediateMemoryDataModel(memoryPath.getAddress(), data);
-            update();
+          public void onFinish(Rpc.Result<byte[]> result) throws RpcException, ExecutionException {
+            // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
+            byte[] data = result.get();
+            if (data != null) {
+              myMemoryData = new ImmediateMemoryDataModel(memoryPath.getAddress(), data);
+              update();
+            }
           }
-
-          @Override
-          public void onFailure(Throwable t) {
-            LOG.error("Failed to load memory " + memoryPath, t);
-          }
-        }, EdtExecutor.INSTANCE);
+        });
       }
     } else {
       myScrollPane.setViewportView(myEmptyPanel);

@@ -27,6 +27,7 @@ public final class Factory {
     AtomPath.register();
     BlobPath.register();
     DevicePath.register();
+    ErrPathNotFollowable.register();
     FieldPath.register();
     HierarchyPath.register();
     ImageInfoPath.register();
