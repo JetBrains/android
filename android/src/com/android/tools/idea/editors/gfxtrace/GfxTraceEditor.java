@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisConnection;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisProcess;
@@ -23,7 +22,6 @@ import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.ConstantSet;
@@ -32,7 +30,6 @@ import com.android.tools.rpclib.schema.Message;
 import com.android.tools.rpclib.schema.Entity;
 import com.google.common.util.concurrent.*;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
-import com.intellij.concurrency.JobScheduler;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.Disposable;
@@ -64,6 +61,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String LOADING_CAPTURE = "Loading capture...";
@@ -72,8 +70,15 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String SELECT_TEXTURE = "Select a texture";
   @NotNull public static final String NO_TEXTURES = "No textures have been created by this point";
 
-
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
+
+  private static final int FETCH_SCHEMA_TIMEOUT_MS = 3000;
+  private static final int FETCH_REPLAY_DEVICE_TIMEOUT_MS = 3000;
+  private static final int FETCH_REPLAY_DEVICE_RETRY_DELAY_MS = 3000;
+  private static final int FETCH_REPLAY_DEVICE_MAX_RETRIES = 30;
+  private static final int FETCH_TRACE_TIMEOUT_MS = 30000;
+
+  @NotNull private static final String ERR_INIT_GAPIS_CONNECTION = "Error communicating with the graphics server";
 
   @NotNull private final Project myProject;
   @NotNull private TraceLoadingDecorator myLoadingDecorator;
@@ -124,110 +129,101 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           return;
         }
 
-        loadReplayDevice();
-
-        // Prefetch the schema
-        final ListenableFuture<Message> schemaF = myClient.getSchema();
-        Rpc.listen(schemaF, myExecutor, LOG, new Rpc.Callback<Message>() {
-          @Override
-          public void onFinish(Rpc.Result<Message> result) throws RpcException, ExecutionException {
-            Message schema = result.get();
-            LOG.info("Schema with " + schema.entities.length + " classes, " + schema.constants.length + " constant sets");
-            int atoms = 0;
-            for (Entity type : schema.entities) {
-              // Find the atom metadata, if present
-              if (AtomMetadata.find(type) != null) {
-                atoms++;
-              }
-              Dynamic.register(type);
-            }
-            LOG.info("Schema with " + atoms + " atoms");
-            for (ConstantSet set : schema.constants) {
-              ConstantSet.register(set);
-            }
-          }
-        });
-
+        String status = "";
         try {
-          final ListenableFuture<CapturePath> captureF;
-          if (file.getFileSystem().getProtocol().equals(StandardFileSystems.FILE_PROTOCOL)) {
-            LOG.info("Load gfxtrace in " + file.getPresentableName());
-            if (file.getLength() == 0) {
-              setLoadingErrorTextOnEdt("Empty trace file");
-              return;
-            }
-            captureF = myClient.loadCapture(file.getCanonicalPath());
-          }
-          else {
-            // Upload the trace file
-            byte[] data = file.contentsToByteArray();
-            LOG.info("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
-            if (data.length == 0) {
-              setLoadingErrorTextOnEdt("Empty trace file");
-              return;
-            }
-            captureF = myClient.importCapture(file.getPresentableName(), data);
-          }
+          status = "fetch schema";
+          fetchSchema();
 
-          // When both steps are complete, activate the capture path
-          final ListenableFuture<List<BinaryObject>> allF = Futures.allAsList(schemaF, captureF);
-          Rpc.listen(allF, myExecutor, LOG, new Rpc.Callback<List<BinaryObject>>() {
+          status = "fetch replay device list";
+          fetchReplayDevice();
+
+          status = "load trace";
+          fetchTrace(file);
+
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
-            public void onFinish(Rpc.Result<List<BinaryObject>> result) throws RpcException, ExecutionException {
-              CapturePath path = null;
-              try {
-                path = (CapturePath)result.get().get(1);
-              }
-              catch (Exception e) {
-                LOG.error("Trace fail load failure", e);
-                setLoadingErrorTextOnEdt("Error reading gfxtrace file");
-                return;
-              }
-
-              LOG.info("Capture uploaded");
-              if (path != null) {
-                activatePath(path, GfxTraceEditor.this);
-              }
-              else {
-                LOG.error("Invalid capture file " + file.getPresentableName());
-              }
-
-              ApplicationManager.getApplication().invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                  myView.add(mainUi, BorderLayout.CENTER);
-                  myLoadingDecorator.stopLoading();
-                }
-              });
+            public void run() {
+              myView.add(mainUi, BorderLayout.CENTER);
+              myLoadingDecorator.stopLoading();
             }
           });
         }
-        catch (IOException e) {
-          setLoadingErrorTextOnEdt("Error reading gfxtrace file");
+        catch (Exception e) {
+          LOG.error("Failed to " + status, e);
+          setLoadingErrorTextOnEdt(ERR_INIT_GAPIS_CONNECTION);
           return;
         }
       }
     });
   }
 
-  public void loadReplayDevice() {
-    Rpc.listen(getClient().getDevices(), myExecutor, LOG, new Rpc.Callback<DevicePath[]>() {
-      @Override
-      public void onFinish(Rpc.Result<DevicePath[]> result) throws RpcException, ExecutionException {
-        DevicePath[] devices = result.get();
-        if (devices != null && devices.length >= 1) {
-          activatePath(devices[0], GfxTraceEditor.this);
-        } else {
-          // Retry...
-          JobScheduler.getScheduler().schedule(new Runnable() {
-            @Override
-            public void run() {
-              loadReplayDevice();
-            }
-          }, 500, TimeUnit.MILLISECONDS);
-        }
+  /**
+   * Requests and blocks for the schema from the server.
+   */
+  private void fetchSchema() throws ExecutionException, RpcException, TimeoutException {
+    Message schema = Rpc.get(myClient.getSchema(), FETCH_SCHEMA_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    LOG.info("Schema with " + schema.entities.length + " classes, " + schema.constants.length + " constant sets");
+    int atoms = 0;
+    for (Entity type : schema.entities) {
+      // Find the atom metadata, if present
+      if (AtomMetadata.find(type) != null) {
+        atoms++;
       }
-    });
+      Dynamic.register(type);
+    }
+    LOG.info("Schema with " + atoms + " atoms");
+    for (ConstantSet set : schema.constants) {
+      ConstantSet.register(set);
+    }
+  }
+
+  /**
+   * Requests and blocks for the schema from the server.
+   */
+  private void fetchReplayDevice() throws ExecutionException, RpcException, TimeoutException {
+    for (int i = 0; i < FETCH_REPLAY_DEVICE_MAX_RETRIES; i++) {
+      DevicePath[] devices = Rpc.get(getClient().getDevices(), FETCH_REPLAY_DEVICE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      if (devices != null && devices.length >= 1) {
+        activatePath(devices[0], GfxTraceEditor.this);
+        return;
+      }
+      try {
+        Thread.sleep(FETCH_REPLAY_DEVICE_RETRY_DELAY_MS);
+      }
+      catch (InterruptedException e) {
+      }
+    }
+    throw new RuntimeException("Couldn't find replay device");
+  }
+
+  /**
+   * Uploads or requests the capture path from the server and then activates the path.
+   */
+  private void fetchTrace(VirtualFile file) throws ExecutionException, RpcException, TimeoutException, IOException {
+    final ListenableFuture<CapturePath> captureF;
+    if (file.getFileSystem().getProtocol().equals(StandardFileSystems.FILE_PROTOCOL)) {
+      LOG.info("Load gfxtrace in " + file.getPresentableName());
+      if (file.getLength() == 0) {
+        throw new RuntimeException("Empty trace file");
+      }
+      captureF = myClient.loadCapture(file.getCanonicalPath());
+    }
+    else {
+      // Upload the trace file
+      byte[] data = file.contentsToByteArray();
+      LOG.info("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
+      if (data.length == 0) {
+        throw new RuntimeException("Empty trace file");
+      }
+      captureF = myClient.importCapture(file.getPresentableName(), data);
+    }
+
+    CapturePath path = Rpc.get(captureF, FETCH_TRACE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    if (path == null) {
+      throw new RuntimeException("Invalid capture file " + file.getPresentableName());
+    }
+
+    activatePath(path, GfxTraceEditor.this);
   }
 
   @NotNull
