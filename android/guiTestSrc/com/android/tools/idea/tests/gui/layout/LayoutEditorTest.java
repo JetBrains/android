@@ -187,12 +187,9 @@ public class LayoutEditorTest extends GuiTestCase {
                                 "        TextView - @string/hello_world\n", false);
   }
 
+  @Ignore("http://b.android.com/173576")
   @Test @IdeGuiTest
   public void testIdManipulation() throws Exception {
-    if (true) {
-      System.out.println("Skipping testIdManipulation until http://b.android.com/173576 is fixed\n");
-      return;
-    }
     // Checks that when we insert new widgets, we assign appropriate id's (they should
     // be unique in the application), and also check that when we copy/paste a component
     // hierarchy, we reassign id's to keep them unique and also update all references within
