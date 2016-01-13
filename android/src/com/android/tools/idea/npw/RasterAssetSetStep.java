@@ -20,7 +20,6 @@ import com.android.SdkConstants;
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
-import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep;
 import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -58,9 +57,6 @@ import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
 
 /**
  * {@linkplain RasterAssetSetStep} is a wizard page that lets the user create a variety of density-scaled assets.
- *
- * TODO: When wizard migration is complete, remove IMAGES_CLIPART_BIG files. We use material icons now.
- * @deprecated Replaced by {@link NewImageAssetStep}
  */
 public class RasterAssetSetStep extends CommonAssetSetStep {
   private static final Logger LOG = Logger.getInstance(RasterAssetSetStep.class);
