@@ -24,8 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.SdkConstants.PREFIX_BINDING_EXPR;
-
 /**
  * A snapshot of an attribute value pulled from PSI. Used in conjunction with {@link TagSnapshot}.
  */
@@ -53,7 +51,7 @@ public class AttributeSnapshot {
     String namespace = psiAttribute.getNamespace();
     String prefix = psiAttribute.getNamespacePrefix();
     String value = psiAttribute.getValue();
-    if (value != null && value.startsWith(PREFIX_BINDING_EXPR)) {
+    if (value != null && DataBindingUtil.isBindingExpression(value)) {
       // if this is a binding expression, get the default value.
       value = DataBindingUtil.getBindingExprDefault(psiAttribute);
       if (value == null) {

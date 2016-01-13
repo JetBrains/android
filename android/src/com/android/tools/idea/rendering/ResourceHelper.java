@@ -724,7 +724,7 @@ public class ResourceHelper {
 
     int depth = 0;
     while (value != null && depth < MAX_RESOURCE_INDIRECTION) {
-      if (value.startsWith(PREFIX_BINDING_EXPR)) {
+      if (DataBindingUtil.isBindingExpression(value)) {
         value = DataBindingUtil.getBindingExprDefault(value);
         if (value == null) {
           return null;
