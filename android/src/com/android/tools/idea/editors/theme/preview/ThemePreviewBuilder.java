@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.theme.preview;
 
 import com.android.SdkConstants;
 import com.google.common.base.*;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
