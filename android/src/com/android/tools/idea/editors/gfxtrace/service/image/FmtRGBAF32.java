@@ -39,7 +39,7 @@ final class FmtRGBAF32 extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtRGBAF32","","");
+  private static final Entity ENTITY = new Entity("image", "fmtRGBAF32", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

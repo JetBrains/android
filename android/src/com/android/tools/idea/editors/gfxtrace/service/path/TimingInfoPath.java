@@ -54,7 +54,7 @@ public final class TimingInfoPath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","TimingInfo","","");
+  private static final Entity ENTITY = new Entity("path", "TimingInfo", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

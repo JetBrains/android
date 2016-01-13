@@ -62,7 +62,7 @@ public final class MemoryPointer implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("memory","Pointer","","");
+  private static final Entity ENTITY = new Entity("memory", "Pointer", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
