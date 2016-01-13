@@ -61,6 +61,13 @@ public final class GapisProcess extends ChildProcess {
     myPortF = start();
   }
 
+  /**
+   * Returns the version of the GAPIS instance.
+   */
+  public int getVersion() {
+    return myVersion;
+  }
+
   @Override
   protected boolean prepare(ProcessBuilder pb) {
     if (!GapiPaths.isValid()) {
@@ -69,7 +76,7 @@ public final class GapisProcess extends ChildProcess {
     }
 
     if (myVersion == -1) {
-      myVersion = getVersion();
+      myVersion = fetchVersion();
       LOG.info("GAPIS is version " + myVersion);
     }
 
@@ -181,7 +188,7 @@ public final class GapisProcess extends ChildProcess {
    *
    * @return the GAPIS version code.
    */
-  private int getVersion() {
+  private int fetchVersion() {
     final ProcessBuilder pb = new ProcessBuilder();
     pb.directory(GapiPaths.base());
     pb.command(GapiPaths.gapis().getAbsolutePath(), "--version");

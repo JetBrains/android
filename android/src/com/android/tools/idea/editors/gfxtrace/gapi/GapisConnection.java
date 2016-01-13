@@ -45,7 +45,11 @@ public class GapisConnection implements Closeable {
     if (!isConnected()) {
       throw new IOException("Not connected");
     }
-    return new ServiceClientRPC(executor, myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
+    return new ServiceClientRPC(executor,
+                                myServerSocket.getInputStream(),
+                                myServerSocket.getOutputStream(),
+                                1024,
+                                myParent.getVersion());
   }
 
   @Override
