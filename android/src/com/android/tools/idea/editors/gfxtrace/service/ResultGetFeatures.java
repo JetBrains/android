@@ -49,7 +49,7 @@ final class ResultGetFeatures implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","resultGetFeatures","","");
+  private static final Entity ENTITY = new Entity("service", "resultGetFeatures", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

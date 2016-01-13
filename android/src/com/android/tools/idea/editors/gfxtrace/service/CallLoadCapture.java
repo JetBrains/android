@@ -49,7 +49,7 @@ final class CallLoadCapture implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","callLoadCapture","","");
+  private static final Entity ENTITY = new Entity("service", "callLoadCapture", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

@@ -34,7 +34,7 @@ final class CallGetCaptures implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","callGetCaptures","","");
+  private static final Entity ENTITY = new Entity("service", "callGetCaptures", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
