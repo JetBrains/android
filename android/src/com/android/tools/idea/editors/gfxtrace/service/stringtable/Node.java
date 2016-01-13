@@ -17,6 +17,8 @@ package com.android.tools.idea.editors.gfxtrace.service.stringtable;
 
 import com.android.tools.rpclib.binary.BinaryObject;
 
+import java.util.Map;
+
 /**
  * Node is the abstract base class for all string table tree nodes.
  */
@@ -35,4 +37,9 @@ public abstract class Node implements BinaryObject {
   public BinaryObject unwrap() {
     return this;
   }
+
+  /**
+   * Returns the node as a string without any rich-formatting.
+   */
+  public abstract String getString(Map<String, BinaryObject> arguments);
 }
