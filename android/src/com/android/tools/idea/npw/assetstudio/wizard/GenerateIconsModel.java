@@ -25,15 +25,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A base-class {@link WizardModel} which generates Android icons into the user's project.
- * This parent class is responsible for collecting all the source information needed for previewing
- * icons, and child classes must implement the final logic which generates the final Android icon
- * assets to disk.
+ * A {@link WizardModel} which generates Android icons into the user's project.
  *
  * A wizard that owns this model is expected to call
  * {@link #setIconGenerator(AndroidIconGenerator)} at some point before finishing.
  */
-public abstract class GenerateIconsModel extends WizardModel {
+public final class GenerateIconsModel extends WizardModel {
   @NotNull private AndroidFacet myAndroidFacet;
   @Nullable private AndroidIconGenerator myIconGenerator;
   @NotNull private AndroidProjectPaths myPaths;
@@ -49,25 +46,25 @@ public abstract class GenerateIconsModel extends WizardModel {
   }
 
   @NotNull
-  public final AndroidFacet getFacet() {
+  public AndroidFacet getFacet() {
     return myAndroidFacet;
   }
 
-  public final void setPaths(@NotNull AndroidProjectPaths paths) {
+  public void setPaths(@NotNull AndroidProjectPaths paths) {
     myPaths = paths;
   }
 
   @Nullable
-  public final AndroidIconGenerator getIconGenerator() {
+  public AndroidIconGenerator getIconGenerator() {
     return myIconGenerator;
   }
 
-  public final void setIconGenerator(@NotNull AndroidIconGenerator iconGenerator) {
+  public void setIconGenerator(@NotNull AndroidIconGenerator iconGenerator) {
     myIconGenerator = iconGenerator;
   }
 
   @Override
-  protected final void handleFinished() {
+  protected void handleFinished() {
     if (myIconGenerator == null) {
       getLog().error("GenerateIconsModel did not collect expected information and will not complete. Please report this error.");
       return;
@@ -76,13 +73,8 @@ public abstract class GenerateIconsModel extends WizardModel {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        generateIntoPath(myPaths, myIconGenerator);
+        myIconGenerator.generateIntoPath(myPaths);
       }
     });
   }
-
-  /**
-   * Serialize the icons into files on disk. This method will be called within a WriteAction.
-   */
-  protected abstract void generateIntoPath(@NotNull AndroidProjectPaths paths, @NotNull AndroidIconGenerator iconGenerator);
 }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.npw.assetstudio.wizard.GenerateImageIconsModel;
+import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel;
 import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -45,7 +45,7 @@ public class NewImageAssetAction extends AndroidAssetStudioAction {
   @Override
   protected void showWizardAndCreateAsset(@NotNull AndroidFacet facet, @Nullable VirtualFile targetFile) {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new NewImageAssetStep(new GenerateImageIconsModel(facet)));
+    wizardBuilder.addStep(new NewImageAssetStep(new GenerateIconsModel(facet)));
 
     // TODO: Move some of this logic up to AndroidAssetStudioAction when NewVectorAsset wizard is
     // migrated.
