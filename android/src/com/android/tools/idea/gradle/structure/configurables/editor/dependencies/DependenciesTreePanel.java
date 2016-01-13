@@ -71,7 +71,10 @@ class DependenciesTreePanel extends JPanel {
             select(selected.coordinate);
           }
           else {
-            dependenciesPanel.select(dependency);
+            boolean dependencySelected = dependenciesPanel.select(dependency);
+            if (!dependencySelected) {
+              select(dependency);
+            }
           }
         }
       }
