@@ -20,8 +20,6 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,9 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.npw.FormFactorApiComboBox.AndroidTargetComboBoxItem;
@@ -44,92 +39,13 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * Utility methods for dealing with Form Factors in Wizards.
+ *
+ * TODO: After wizard migration, much of this class may go away (as a lot of it is specific to
+ * dynamic wizard). Consider folding remaining methods into {@link FormFactor} at that time.
  */
 public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_MODULE_NAME = "projectName";
-
-  /** TODO: Turn into an enum and combine with {@link DeviceMenuAction.FormFactor} */
-  public static class FormFactor implements Comparable<FormFactor> {
-    public static final FormFactor MOBILE = new FormFactor("Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15, Lists
-      .newArrayList("20", "google_gdk", "google_apis", "google_tv_addon", "Glass", "Google APIs"), null, 0, null);
-    // TODO: in the future instead of whitelisting maybe we could determine this by availability of system images.
-    public static final FormFactor WEAR = new FormFactor("Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 21,
-                                                         Lists.newArrayList("google_apis"), Lists.newArrayList("20", "21", "22"), 1, null);
-    public static final FormFactor TV = new FormFactor("TV", DeviceMenuAction.FormFactor.TV, "TV", 21,
-                                                       Lists.newArrayList("20", "google_apis", "google_gdk"), null, 2, null);
-    public static final FormFactor CAR = new FormFactor("Car", DeviceMenuAction.FormFactor.CAR, "Android Auto", 21,
-            null, null, 3, MOBILE);
-
-    public static final FormFactor GLASS = new FormFactor("Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19,
-                                                          null, Lists.newArrayList("Glass", "google_gdk"), 4, null);
-
-    private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
-        .put(MOBILE.id, MOBILE)
-        .put(WEAR.id, WEAR)
-        .put(TV.id, TV)
-        .put(CAR.id, CAR)
-        .put(GLASS.id, GLASS).build();
-
-    public final String id;
-    @Nullable private String myDisplayName;
-    public final int defaultApi;
-    @NotNull private final List<String> myApiBlacklist;
-    @NotNull private final List<String> myApiWhitelist;
-    @NotNull private final DeviceMenuAction.FormFactor myEnumValue;
-    private final int relativeOrder;
-    @Nullable public final FormFactor baseFormFactor;
-
-    FormFactor(@NotNull String id, @NotNull DeviceMenuAction.FormFactor enumValue, @Nullable String displayName,
-               int defaultApi, @Nullable List<String> apiBlacklist, @Nullable List<String> apiWhitelist,
-               int relativeOrder, @Nullable FormFactor baseFormFactor) {
-      this.id = id;
-      myEnumValue = enumValue;
-      myDisplayName = displayName;
-      this.defaultApi = defaultApi;
-      this.relativeOrder = relativeOrder;
-      myApiBlacklist = apiBlacklist != null ? apiBlacklist : Collections.<String>emptyList();
-      myApiWhitelist = apiWhitelist != null ? apiWhitelist : Collections.<String>emptyList();
-      this.baseFormFactor = baseFormFactor;
-    }
-
-    @Nullable
-    public static FormFactor get(@NotNull String id) {
-      if (myFormFactors.containsKey(id)) {
-        return myFormFactors.get(id);
-      }
-      return new FormFactor(id, DeviceMenuAction.FormFactor.MOBILE, id, 1, null, null, myFormFactors.size(), null);
-    }
-
-    @NotNull
-    public DeviceMenuAction.FormFactor getEnumValue() {
-      return myEnumValue;
-    }
-
-    @Override
-    public String toString() {
-      return myDisplayName == null ? id : myDisplayName;
-    }
-
-    @NotNull
-    public Icon getIcon() {
-      return myEnumValue.getIcon64();
-    }
-
-    public static Iterator<FormFactor> iterator() {
-      return myFormFactors.values().iterator();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return obj != null && obj instanceof FormFactor && ((FormFactor) obj).id.equals(id);
-    }
-
-    @Override
-    public int compareTo(FormFactor formFactor) {
-      return relativeOrder - formFactor.relativeOrder;
-    }
-  }
 
   @NotNull
   public static Key<AndroidTargetComboBoxItem> getTargetComboBoxKey(@NotNull FormFactor formFactor) {
@@ -247,10 +163,10 @@ public class FormFactorUtils {
   }
 
   private static boolean doFilter(@NotNull FormFactor formFactor, int minSdkLevel, @Nullable String inputName, int targetSdkLevel) {
-    if (!formFactor.myApiWhitelist.isEmpty()) {
+    if (!formFactor.getApiWhitelist().isEmpty()) {
       // If a whitelist is present, only allow things on the whitelist
       boolean found = false;
-      for (String filterItem : formFactor.myApiWhitelist) {
+      for (String filterItem : formFactor.getApiWhitelist()) {
         if (matches(filterItem, inputName, targetSdkLevel)) {
           found = true;
           break;
@@ -262,7 +178,7 @@ public class FormFactorUtils {
     }
 
     // Now check the blacklist
-    for (String filterItem : formFactor.myApiBlacklist) {
+    for (String filterItem : formFactor.getApiBlacklist()) {
       if (matches(filterItem, inputName, targetSdkLevel)) {
         return false;
       }

@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.npw.FormFactorUtils.FormFactor;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.WizardConstants;
