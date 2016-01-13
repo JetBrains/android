@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.sdkv2;
 
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Wizard that downloads, configures, and installs HAXM.
  */
-class HaxmWizard extends DynamicWizard {
+public class HaxmWizard extends DynamicWizard {
 
   public HaxmWizard() {
     super(null, null, "HAXM");
