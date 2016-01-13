@@ -24,6 +24,7 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioSdkUtil;
 import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
@@ -225,7 +226,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       final List<RemotePackage> failures = Lists.newArrayList();
       try {
         for (RemotePackage remote : myRequestedPackages) {
-          PackageInstaller installer = AndroidSdkHandler.findBestInstaller(remote);
+          PackageInstaller installer = StudioSdkUtil.findBestInstaller(remote);
           myCustomLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
           boolean success = false;
           try {
