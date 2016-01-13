@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.ui.ProportionalLayout;
 import com.android.tools.idea.ui.properties.BindingsManager;
@@ -35,7 +36,7 @@ import java.util.List;
  * Panel which wraps a {@link TextAsset}, allowing the user to enter text value and choose a font
  * from a pulldown.
  */
-public final class TextAssetEditor extends JPanel implements AssetComponent<TextAsset> {
+public final class TextAssetEditor extends JPanel implements AssetComponent {
   private final TextAsset myTextAsset = new TextAsset();
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);
@@ -85,7 +86,7 @@ public final class TextAssetEditor extends JPanel implements AssetComponent<Text
 
   @NotNull
   @Override
-  public TextAsset getAsset() {
+  public BaseAsset getAsset() {
     return myTextAsset;
   }
 
