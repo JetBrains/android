@@ -92,6 +92,10 @@ public class ImagePanel extends JPanel {
     myImage.addToolbarActions(group, enableVerticalFlip);
   }
 
+  public void clearImage() {
+    myImage.clearImage();
+  }
+
   public StatusText getEmptyText() {
     return myImage.getEmptyText();
   }
@@ -221,6 +225,12 @@ public class ImagePanel extends JPanel {
 
     public StatusText getEmptyText() {
       return emptyText;
+    }
+
+    public void clearImage() {
+      this.image = EMPTY_IMAGE;
+      revalidate();
+      repaint();
     }
 
     public void setImage(BufferedImage image) {

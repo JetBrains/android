@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingDecoratorWrapper;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImagePanel;
 import com.android.tools.rpclib.futures.SingleInFlight;
@@ -71,6 +72,7 @@ public abstract class ImagePanelController extends Controller {
   }
 
   protected void setEmptyText(String text) {
+    myImagePanel.clearImage();
     myImagePanel.getEmptyText().setText(text);
   }
 
@@ -84,9 +86,11 @@ public abstract class ImagePanelController extends Controller {
                new Rpc.Callback<FetchedImage>() {
       @Override
       public void onFinish(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
-        // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
-        FetchedImage fetchedImage = result.get();
-        myImagePanel.setImage(fetchedImage.image);
+        try {
+          myImagePanel.setImage(result.get().image);
+        } catch (ErrDataUnavailable e) {
+          setEmptyText(e.getMessage());
+        }
       }
     });
   }

@@ -21,12 +21,18 @@ public final class Factory {
   public static void register() {
     //<<<Start:Java.FactoryBody:2>>>
     Block.register();
+    Bold.register();
+    Code.register();
+    Heading.register();
     Info.register();
+    Italic.register();
     LineBreak.register();
     Link.register();
+    List.register();
     Parameter.register();
     StringTable.register();
     Text.register();
+    Underlined.register();
     Whitespace.register();
     //<<<End:Java.FactoryBody:2>>>
   }
