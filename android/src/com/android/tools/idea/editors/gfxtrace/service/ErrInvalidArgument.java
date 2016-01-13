@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service;
 
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.rpclib.rpccore.RpcException;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,6 +58,12 @@ public final class ErrInvalidArgument extends RpcException implements BinaryObje
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
+
+  @Override
+  public String getMessage() {
+    return myReason.getString();
+  }
+
   public enum Klass implements BinaryClass {
     //<<<Start:Java.KlassBody:2>>>
     INSTANCE;
