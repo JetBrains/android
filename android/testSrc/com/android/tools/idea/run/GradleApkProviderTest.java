@@ -69,11 +69,6 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
 
   @Test
   public void testGetPackageName() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("GradleApkProviderTest.testGetPackageName temporarily disabled");
-      return;
-    }
-
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, false);
     // See testData/Projects/runConfig/activity/build.gradle
@@ -84,11 +79,6 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
 
   @Test
   public void testGetApks() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("GradleApkProviderTest.testGetApks temporarily disabled");
-      return;
-    }
-
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, false);
     IDevice device = Mockito.mock(IDevice.class);
@@ -102,11 +92,6 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
 
   @Test
   public void testGetPackageNameForTest() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("GradleApkProviderTest.testGetPackageNameForTest temporarily disabled");
-      return;
-    }
-
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, true);
     // See testData/Projects/runConfig/activity/build.gradle
@@ -117,11 +102,6 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
 
   @Test
   public void testGetApksForTest() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("GradleApkProviderTest.testGetApksForTest temporarily disabled");
-      return;
-    }
-
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, true);
     IDevice device = Mockito.mock(IDevice.class);

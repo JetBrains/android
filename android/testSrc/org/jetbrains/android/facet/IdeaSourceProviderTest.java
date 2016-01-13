@@ -36,8 +36,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
-import static org.junit.Assume.assumeTrue;
-
 /**
  * Test for utility functions provided by IdeaSourceProvider
  *
@@ -56,8 +54,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     super.setUp();
 
     myOriginalLoadAllTestArtifactsValue = GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS;
-
-    assumeTrue(CAN_SYNC_PROJECTS);
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);

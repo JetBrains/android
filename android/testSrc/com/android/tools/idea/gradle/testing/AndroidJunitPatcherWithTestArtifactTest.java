@@ -28,11 +28,6 @@ public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleArtifa
   }
 
   public void testRemoveAndroidTestClasspath() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("AndroidJunitPatcherWithTestArtifactTest.test temporarily disabled");
-      return;
-    }
-
     loadProject("projects/sync/multiproject", false);
     JUnitPatcher myPatcher = new AndroidJunitPatcher();
 

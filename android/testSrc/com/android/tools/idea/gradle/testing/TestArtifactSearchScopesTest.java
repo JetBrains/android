@@ -41,10 +41,6 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
   }
 
   public void testSrcFolderIncluding() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("TestArtifactSearchScopesTest.testSrcFolderIncluding temporarily disabled");
-      return;
-    }
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     VirtualFile unitTestSource = createFile("module1/src/test/java/Test.java");
@@ -58,10 +54,6 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
   }
 
   public void testModulesExcluding() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("TestArtifactSearchScopesTest.testModulesExcluding temporarily disabled");
-      return;
-    }
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     VirtualFile module3JavaRoot = createFile("module3/src/main/java/Main.java");
@@ -75,11 +67,6 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
   }
 
   public void testLibrariesExcluding() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("TestArtifactSearchScopesTest.testLibrariesExcluding temporarily disabled");
-      return;
-    }
-
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
 
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
@@ -101,11 +88,6 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
   }
 
   public void testProjectWithSharedTestFolder() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("TestArtifactSearchScopesTest.testProjectWithSharedTestFolder temporarily disabled");
-      return;
-    }
-
     loadProject("projects/sharedTestFolder", false);
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(myFixture.getModule());
     assertNotNull(scopes);
