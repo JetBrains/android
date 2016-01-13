@@ -48,6 +48,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.event.HyperlinkEvent;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LaunchUtils {
   /** Returns whether the given application can be debugged on the given device. */
@@ -195,5 +197,16 @@ public class LaunchUtils {
         }
       });
     }
+  }
+
+  private static final Pattern idKeyPattern = Pattern.compile("--user\\s+([0-9]+)");
+
+  @Nullable
+  public static Integer getUserIdFromFlags(@Nullable String flags) {
+    if (flags == null) {
+      return null;
+    }
+    Matcher m = idKeyPattern.matcher(flags);
+    return m.find() ? Integer.parseInt(m.group(1)) : null;
   }
 }
