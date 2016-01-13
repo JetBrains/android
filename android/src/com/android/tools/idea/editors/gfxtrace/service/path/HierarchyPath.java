@@ -54,7 +54,7 @@ public final class HierarchyPath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","Hierarchy","","");
+  private static final Entity ENTITY = new Entity("path", "Hierarchy", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

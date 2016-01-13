@@ -59,7 +59,7 @@ public final class MemoryRange implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("memory","Range","","");
+  private static final Entity ENTITY = new Entity("memory", "Range", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

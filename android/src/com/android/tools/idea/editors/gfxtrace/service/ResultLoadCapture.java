@@ -50,7 +50,7 @@ final class ResultLoadCapture implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","resultLoadCapture","","");
+  private static final Entity ENTITY = new Entity("service", "resultLoadCapture", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

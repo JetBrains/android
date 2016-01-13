@@ -53,7 +53,7 @@ public final class Texture2D implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("gfxapi","Texture2D","","");
+  private static final Entity ENTITY = new Entity("gfxapi", "Texture2D", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
