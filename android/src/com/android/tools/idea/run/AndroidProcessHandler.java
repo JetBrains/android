@@ -71,9 +71,11 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
 
     Client client = device.getClient(myApplicationId);
     if (client != null) {
-      myClients.add(client);
-      notifyTextAvailable("Connected to process " + client.getClientData().getPid() + " on device " + device.getName() + "\n",
-                          ProcessOutputTypes.STDOUT);
+      boolean added = myClients.add(client);
+      if (added) {
+        notifyTextAvailable("Connected to process " + client.getClientData().getPid() + " on device " + device.getName() + "\n",
+                            ProcessOutputTypes.STDOUT);
+      }
     } else {
       notifyTextAvailable("Client not ready yet..", ProcessOutputTypes.STDOUT);
     }
