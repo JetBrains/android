@@ -25,10 +25,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class GapisProcess extends ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(GapisProcess.class);
@@ -38,10 +41,14 @@ public final class GapisProcess extends ChildProcess {
 
   private static final int SERVER_LAUNCH_TIMEOUT_MS = 10000;
   private static final String SERVER_HOST = "localhost";
+  private static final Pattern SERVER_POLL_VERSION_PATTERN = Pattern.compile("^GAPIS version (\\d+)$", 0);
+  private static final int SERVER_POLL_VERSION_TIMEOUT_MS = 1000;
+  private static final int SERVER_DEFAULT_VERSION = 1;
 
   private final Set<GapisConnection> myConnections = Sets.newIdentityHashSet();
   private final GapirProcess myGapir;
   private final SettableFuture<Integer> myPortF;
+  private int myVersion = -1;
 
   static {
     Factory.register();
@@ -59,7 +66,22 @@ public final class GapisProcess extends ChildProcess {
       LOG.warn("Could not find gapis, but needed to start the server.");
       return false;
     }
-    pb.command(GapiPaths.gapis().getAbsolutePath(), "-logs", PathManager.getLogPath(), "--gapir", Integer.toString(myGapir.getPort()));
+
+    if (myVersion == -1) {
+      myVersion = getVersion();
+      LOG.info("GAPIS is version " + myVersion);
+    }
+
+    ArrayList<String> args = new ArrayList<String>(8);
+    args.add(GapiPaths.gapis().getAbsolutePath());
+
+    args.add("-logs");
+    args.add(PathManager.getLogPath());
+
+    args.add("--gapir");
+    args.add(Integer.toString(myGapir.getPort()));
+
+    pb.command(args);
     return true;
   }
 
@@ -143,4 +165,67 @@ public final class GapisProcess extends ChildProcess {
     }
   }
 
+  /**
+   * Run GAPIS using the --version command line flag to enquire about the server's version.
+   * This call is blocking and should not be made on the main UI thread.
+   * <p>
+   * Note earlier versions of GAPIS did not support this flag, and any non-version response will
+   * assume to be GAPIS version {@link #SERVER_DEFAULT_VERSION}.
+   *
+   * @return the GAPIS version code.
+   */
+  private int getVersion() {
+    final ProcessBuilder pb = new ProcessBuilder();
+    pb.directory(GapiPaths.base());
+    pb.command(GapiPaths.gapis().getAbsolutePath(), "--version");
+    pb.redirectErrorStream(true);
+
+    Process process = null;
+    // Use the base directory as the working directory for the server.
+    try {
+      // This will throw IOException if the executable is not found.
+      LOG.info("Probing GAPIS version");
+      process = pb.start();
+    }
+    catch (IOException e) {
+      LOG.warn(e);
+      return SERVER_DEFAULT_VERSION;
+    }
+
+    final SettableFuture<Integer> versionF = SettableFuture.create();
+
+    OutputHandler stdout = new OutputHandler(process.getInputStream(), false) {
+      private boolean seenVersion = false;
+
+      @Override
+      protected void processLine(String line) {
+        super.processLine(line);
+        if (!seenVersion) {
+          Matcher matcher = SERVER_POLL_VERSION_PATTERN.matcher(line);
+          if (matcher.matches()) {
+            int version = Integer.parseInt(matcher.group(1));
+            seenVersion = true;
+            versionF.set(version);
+          }
+        }
+      }
+    };
+
+    try {
+      return versionF.get(SERVER_POLL_VERSION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    }
+    catch (ExecutionException e) {
+      return SERVER_DEFAULT_VERSION;
+    }
+    catch (TimeoutException e) {
+      return SERVER_DEFAULT_VERSION;
+    }
+    catch (InterruptedException e) {
+      return SERVER_DEFAULT_VERSION;
+    }
+    finally {
+      process.destroy();
+      stdout.close();
+    }
+  }
 }

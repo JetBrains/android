@@ -110,7 +110,7 @@ public abstract class ChildProcess {
     myServerThread.interrupt();
   }
 
-  private class OutputHandler extends Thread implements Closeable {
+  protected class OutputHandler extends Thread implements Closeable {
     private final BufferedReader reader;
     private final boolean warn;
 
