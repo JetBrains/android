@@ -31,6 +31,7 @@ import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Ignore;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -56,27 +57,23 @@ public class DeviceArtPainterTest extends TestCase {
     generateCropData();
   }
 
+  @Ignore("This is handy for quickly checking rendering results when tweaking the code to assemble composite images."
+          + "Make sure you also turn off the thumbnail cache first! (Return  null from DeviceArtPainter#getCachedImage).")
   public void testRendering() throws Exception {
-    // This test is disabled but code is preserved here; this is handy for quickly checking rendering results
-    // when tweaking the code to assemble composite images. (Make sure you also turn off the thumbnail cache first! (Return
-    // null from DeviceArtPainter#getCachedImage).
-    //noinspection ConstantConditions
-    if (false) {
-      DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
-      for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
-        if ("wear_round".equals(spec.getId())) {
-          FrameData frameData = new DeviceData(null, spec).getFrameData(ScreenOrientation.LANDSCAPE, 320);
-          BufferedImage image = frameData.getImage(true);
-          @SuppressWarnings("SSBasedInspection")
-          File file = File.createTempFile("test-rendering", "png");
-          if (file.exists()) {
-            boolean deleted = file.delete();
-            assertTrue(deleted);
-          }
-          ImageIO.write(image, "PNG", file);
-          if (file.exists() && SystemInfo.isMac) {
-            Runtime.getRuntime().exec("/usr/bin/open " + file.getPath());
-          }
+    DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+    for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
+      if ("wear_round".equals(spec.getId())) {
+        FrameData frameData = new DeviceData(null, spec).getFrameData(ScreenOrientation.LANDSCAPE, 320);
+        BufferedImage image = frameData.getImage(true);
+        @SuppressWarnings("SSBasedInspection")
+        File file = File.createTempFile("test-rendering", "png");
+        if (file.exists()) {
+          boolean deleted = file.delete();
+          assertTrue(deleted);
+        }
+        ImageIO.write(image, "PNG", file);
+        if (file.exists() && SystemInfo.isMac) {
+          Runtime.getRuntime().exec("/usr/bin/open " + file.getPath());
         }
       }
     }
@@ -250,14 +247,9 @@ public class DeviceArtPainterTest extends TestCase {
     return null;
   }
 
+  @Ignore("This test no longer applies; it was used to convert assets with a lot of padding into more tightly cropped screenshots."
+    + "We're preserving the code since for future device releases we might get new artwork which includes padding.")
   public void testCropData() throws Exception {
-    //noinspection ConstantConditions
-    if (true) {
-      // This test no longer applies; it was used to convert assets with a lot of padding into more tightly cropped
-      // screenshots. We're preserving the code since for future device releases we might get new artwork which includes
-      // padding.
-      return;
-    }
 
     // Apply crop
     DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
