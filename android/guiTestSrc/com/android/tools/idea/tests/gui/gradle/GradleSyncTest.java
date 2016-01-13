@@ -582,7 +582,7 @@ public class GradleSyncTest extends GuiTestCase {
     File unsupportedGradleHome = getUnsupportedGradleHome();
     File gradleHomePath = getGradleHomePath();
     if (unsupportedGradleHome == null || gradleHomePath == null) {
-      skip("testUpdateGradleVersionWithLocalDistribution");
+      System.out.println("Skipping test 'testUpdateGradleVersionWithLocalDistribution'");
       return;
     }
 
@@ -603,7 +603,7 @@ public class GradleSyncTest extends GuiTestCase {
   public void testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
     File unsupportedGradleHome = getUnsupportedGradleHome();
     if (unsupportedGradleHome == null) {
-      skip("testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle");
+      System.out.println("Skipping test 'testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle'");
       return;
     }
 
@@ -973,7 +973,7 @@ public class GradleSyncTest extends GuiTestCase {
   public void testUserDefinedLibraryAttachments() throws IOException {
     File javadocJarPath = getFilePathProperty("guava.javadoc.jar.path", "the path of the Javadoc jar file for Guava", false);
     if (javadocJarPath == null) {
-      skip("testUserDefinedLibraryAttachments");
+      System.out.println("Skipping test 'testUserDefinedLibraryAttachments'");
       return;
     }
 
@@ -1109,7 +1109,7 @@ public class GradleSyncTest extends GuiTestCase {
   public void testSdkSwitch() throws IOException {
     File secondSdkPath = getFilePathProperty("second.android.sdk.path", "the path of a secondary Android SDK", true);
     if (secondSdkPath == null) {
-      skip("testSdkSwitch");
+      System.out.println("Skipping test 'testSdkSwitch'");
       return;
     }
 
