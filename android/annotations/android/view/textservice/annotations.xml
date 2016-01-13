@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.view.textservice.SpellCheckerSubtype java.lang.String getLocale()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+
