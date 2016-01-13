@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding;
 
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.InjectedLanguagePlaces;
 import com.intellij.psi.LanguageInjector;
@@ -37,7 +38,7 @@ public class DbLanguageInjector implements LanguageInjector {
       return;
     }
     String valueText = ((XmlAttributeValue)host).getValue();
-    if (valueText.length() <= PREFIX_BINDING_EXPR.length() || !valueText.startsWith(PREFIX_BINDING_EXPR)) {
+    if (!DataBindingUtil.isBindingExpression(valueText)) {
       return;
     }
 
@@ -58,6 +59,10 @@ public class DbLanguageInjector implements LanguageInjector {
       } else {
         endIndex = unescapedValue.length();
       }
+    }
+    if (endIndex == startIndex) {
+      // No expression found.
+      return;
     }
     injectionPlacesRegistrar.addPlace(DbLanguage.INSTANCE, TextRange.from(startIndex, endIndex-startIndex), null, null);
   }
