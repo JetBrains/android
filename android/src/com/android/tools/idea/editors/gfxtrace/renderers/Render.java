@@ -300,8 +300,13 @@ public final class Render {
                             @NotNull Slice type,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
-    assert (value instanceof Object[]);
-    render((Object[])value, type.getValueType(), component, attributes);
+    if (value instanceof Object[]) {
+      render((Object[])value, type.getValueType(), component, attributes);
+    } else if (value instanceof byte[]) {
+      render((byte[])value, type.getValueType(), component, attributes);
+    } else {
+      assert (false);
+    }
   }
 
   public static void render(@NotNull Object value,
@@ -393,6 +398,23 @@ public final class Render {
   private static final int MAX_DISPLAY = 3;
 
   public static void render(@NotNull Object[] array,
+                            @NotNull Type valueType,
+                            @NotNull SimpleColoredComponent component,
+                            @NotNull SimpleTextAttributes attributes) {
+    int count = Math.min(array.length, MAX_DISPLAY);
+    component.append("[", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    for (int index = 0; index < count; ++index) {
+      if (index > 0) {
+        component.append(",", SimpleTextAttributes.GRAY_ATTRIBUTES);
+      }
+      render(array[index], valueType, component, attributes);
+    }
+    if (count < array.length) {
+      component.append("...", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    }
+  }
+
+  public static void render(@NotNull byte[] array,
                             @NotNull Type valueType,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
