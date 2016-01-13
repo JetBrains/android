@@ -2,6 +2,7 @@ package org.jetbrains.android.dom;
 
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.utils.Pair;
 import com.intellij.lang.Language;
@@ -503,7 +504,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       }
     }
 
-    if ((value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) && !value.startsWith(PREFIX_BINDING_EXPR)) {
+    if ((value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) && !DataBindingUtil.isBindingExpression(value)) {
       return new MyResourceElement(element, value);
     }
 
