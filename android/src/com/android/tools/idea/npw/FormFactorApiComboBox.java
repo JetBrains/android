@@ -26,7 +26,6 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.sdklib.repositoryv2.targets.AndroidTargetManager;
-import com.android.tools.idea.npw.FormFactorUtils.FormFactor;
 import com.android.tools.idea.sdkv2.StudioDownloader;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdkv2.StudioProgressRunner;
@@ -75,7 +74,7 @@ public final class FormFactorApiComboBox extends JComboBox {
   private static final List<AndroidTargetComboBoxItem> ourTargets = Lists.newArrayList();
   private static IAndroidTarget ourHighestInstalledApiTarget;
 
-  private FormFactor myFormFactor;
+  private FormFactorUtils.FormFactor myFormFactor;
 
   private RepoPackage myInstallRequest;
   private Key<String> myBuildApiKey;
@@ -95,7 +94,7 @@ public final class FormFactorApiComboBox extends JComboBox {
    * @param foundItemsCallback A Runnable that will be run once we've determined that there are available items to show.
    * @param noItemsCallback A Runnable that will be run when we've finished looking for items without finding any.
    */
-  public void init(@NotNull FormFactor formFactor, int minSdkLevel, @Nullable Runnable completedCallback,
+  public void init(@NotNull FormFactorUtils.FormFactor formFactor, int minSdkLevel, @Nullable Runnable completedCallback,
                    @Nullable Runnable foundItemsCallback, @Nullable Runnable noItemsCallback) {
     myFormFactor = formFactor;
 
