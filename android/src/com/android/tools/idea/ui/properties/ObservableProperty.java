@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.ui.properties;
 
+import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.expressions.bool.IsEqualToExpression;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A property represents a value which can both be set and queried, a concept which is
@@ -30,32 +28,6 @@ import java.util.List;
  * support modifying the actual value of this property.
  */
 public abstract class ObservableProperty<T> extends AbstractObservableValue<T> implements SettableValue<T> {
-  /**
-   * Uses reflection to get all {@code ObservableProperty} instances in an Object instance.
-   * This method is useful if you want to listen to all properties on a target object, for example calling an refresh method.
-   * @return A {@link List<ObservableProperty>} containing all {@link ObservableProperty} found in the object.
-   * If none are found an empty list is returned.
-   */
-  @NotNull
-  public static List<ObservableProperty<?>> getAll(Object object) {
-    ArrayList<ObservableProperty<?>> properties = new ArrayList<ObservableProperty<?>>();
-    for (Field field : object.getClass().getDeclaredFields()) {
-      if (ObservableProperty.class.isAssignableFrom(field.getType())) {
-        try {
-          // We change the access level of this field to avoid getting an IllegalAccessException
-          boolean isFieldPrivate = !field.isAccessible();
-          field.setAccessible(true);
-          properties.add((ObservableProperty)field.get(object));
-          if(isFieldPrivate){
-            field.setAccessible(false);
-          }
-        }
-        catch (IllegalAccessException ignored) {
-        }
-      }
-    }
-    return properties;
-  }
 
   @Override
   public final void set(@NotNull T value) {
@@ -80,6 +52,7 @@ public abstract class ObservableProperty<T> extends AbstractObservableValue<T> i
    * Implemented by child classes to handle setting the value of this property.
    */
   protected abstract void setDirectly(@NotNull T value);
+
   protected boolean areValuesEqual(@NotNull T value1, @NotNull T value2) {
     return Objects.equal(value1, value2);
   }

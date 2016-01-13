@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.wizard;
 
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.util.ui.JBUI;
@@ -51,13 +50,6 @@ public final class StudioWizardDialogBuilder {
   public StudioWizardDialogBuilder(@NotNull ModelWizard wizard, @NotNull String title) {
     myWizard = wizard;
     myTitle = title;
-  }
-
-  /**
-   * Convenience construction for wizards that only have a single step in them.
-   */
-  public StudioWizardDialogBuilder(@NotNull ModelWizardStep step, @NotNull String title) {
-    this(new ModelWizard.Builder(step).build(), title);
   }
 
   /**
