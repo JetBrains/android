@@ -16,8 +16,11 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.Nullable;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
@@ -39,6 +42,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.util.List;
+import java.util.Random;
 
 public class LombokPsiConverterTest extends AndroidTestCase {
   /**
@@ -73,6 +77,8 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   public void testPsiToLombokConversion3() {
     // This code is formatted a bit strangely; this is done such that it matches how the
     // code is printed *back* by Lombok's AST pretty printer, so we can diff the two.
+    //noinspection FieldMayBeStatic,UnusedAssignment,ConstantConditions,OctalInteger,MismatchedReadAndWriteOfArray,SpellCheckingInspection,MethodMayBeStatic,SynchronizeOnThis,UnnecessaryContinue
+    @Language("JAVA")
     String testClass =
       "package p1.p2;\n" +
       "\n" +
@@ -243,6 +249,8 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testPsiToLombokConversion4() {
+    //noinspection MethodMayBeStatic
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -308,6 +316,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testPsiToLombokConversion5() {
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -319,6 +328,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testPsiToLombokConversion6() {
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "import java.util.HashMap;\n" +
@@ -332,6 +342,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testPsiToLombokConversion7() {
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "import java.util.HashMap;\n" +
@@ -363,6 +374,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   //}
 
   public void testPsiToLombokConversion9() {
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -378,6 +390,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
 
   public void testPsiToLombokConversion10() {
     // Checks that annotations on variable declarations are preserved
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -402,6 +415,8 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void test() {
+    //noinspection MethodMayBeStatic,ForLoopReplaceableByWhile,ConstantConditions,InfiniteLoopStatement
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -423,6 +438,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
 
   public void testPsiToLombokConversion11() {
     // Test Polyadic Expression
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -441,6 +457,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   public void testPsiNullValue() {
     // From the IO scheduling app:
     //  String SESSIONS_SNIPPET = "snippet(" + Tables.SESSIONS_SEARCH + ",'{','}','\u2026')";
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -454,6 +471,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testEmptyR() {
+    @Language("JAVA")
     String testClass =
       "/*___Generated_by_IDEA___*/\n" +
       "\n" +
@@ -467,6 +485,8 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void test57783() {
+    //noinspection UnusedAssignment
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -485,6 +505,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testSuper() {
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -498,6 +519,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testPrivateEnum2() {
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -520,6 +542,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testPrivateEnum() {
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -546,6 +569,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testInterface() {
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "public interface R11 {\n" +
@@ -556,6 +580,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testAnnotation() {
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -580,6 +605,8 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testClassLiterals() {
+    //noinspection IfStatementWithIdenticalBranches,StatementWithEmptyBody
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -599,6 +626,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
 
   public void testClassDeclarationInBlockStatement() {
     // Regression test for issue 161534
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -617,6 +645,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
   }
 
   public void testJava7() {
+    @Language("JAVA")
     String testClass =
       "package test.pkg;\n" +
       "\n" +
@@ -785,6 +814,34 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     expectedNode.accept(new SourcePrinter(formatter));
     String master = formatter.finish();
     assertEquals(master, actual);
+
+    // Check for resilience to error nodes being present in the AST
+    Project project = psiFile.getProject();
+    final PsiDocumentManager manager = PsiDocumentManager.getInstance(project);
+    final Document document = manager.getDocument(psiFile);
+    assertNotNull(document);
+    final Random random = new Random(0L); // fixed seed for test reproducibility
+    for (int i = 0; i < 500; i++) {
+      WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+        @Override
+        public void run() {
+          int pos = random.nextInt(document.getTextLength() - 1);
+          char ch = (char)(random.nextInt(64) + 32);
+          double operation = random.nextDouble();
+          if (operation < 0.33) {
+            document.insertString(pos, Character.toString(ch));
+          } else if (operation < 0.67) {
+            document.replaceString(pos, pos + 1, Character.toString(ch));
+          } else {
+            document.deleteString(pos, pos + 1);
+          }
+          manager.commitDocument(document);
+        }
+      });
+
+      node = LombokPsiConverter.convert(psiJavaFile);
+      assertNotNull(psiJavaFile.getText(), node);
+    }
   }
 
   @Nullable
