@@ -42,7 +42,7 @@ public class ChooseGradleHomeDialogTest extends GuiTestCase {
   public void testValidationWithInvalidMinimumGradleVersion() {
     File unsupportedGradleHome = getUnsupportedGradleHome();
     if (unsupportedGradleHome == null) {
-      skip("testValidationWithInvalidMinimumGradleVersion");
+      System.out.println("Skipping test 'testValidationWithInvalidMinimumGradleVersion'");
       return;
     }
 
@@ -57,7 +57,7 @@ public class ChooseGradleHomeDialogTest extends GuiTestCase {
   public void testValidateWithValidMinimumGradleVersion() {
     File gradleHomePath = getGradleHomePath();
     if (gradleHomePath == null) {
-      skip("testValidateWithValidMinimumGradleVersion");
+      System.out.println("Skipping test 'testValidateWithValidMinimumGradleVersion'");
       return;
     }
 
