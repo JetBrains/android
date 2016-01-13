@@ -25,6 +25,11 @@ import com.android.tools.rpclib.schema.*;
 import java.io.IOException;
 
 public final class Link extends Node implements BinaryObject {
+  @Override
+  public String getString(java.util.Map<String, BinaryObject> arguments) {
+    return myBody.getString(arguments);
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Node myBody;
   private Node myTarget;

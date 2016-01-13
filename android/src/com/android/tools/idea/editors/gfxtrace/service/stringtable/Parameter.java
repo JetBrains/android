@@ -25,6 +25,18 @@ import com.android.tools.rpclib.schema.*;
 import java.io.IOException;
 
 public final class Parameter extends Node implements BinaryObject {
+  @Override
+  public String getString(java.util.Map<String, BinaryObject> arguments) {
+    Object argument = arguments.get(myKey);
+    if (argument == null) {
+      return "<" + myKey + ">";
+    }
+    if (myFormatter != null) {
+      return myFormatter.getString(argument);
+    }
+    return argument.toString();
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Formatter myFormatter;
   private String myKey;

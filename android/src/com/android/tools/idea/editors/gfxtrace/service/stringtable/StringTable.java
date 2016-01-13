@@ -24,12 +24,31 @@ import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class StringTable implements BinaryObject {
-  private static StringTable sCurrent = null;
+  private static AtomicReference<StringTable> sCurrent = new AtomicReference<StringTable>();
 
-  public synchronized void setCurrent() {
-      sCurrent = this;
+  /**
+   * Changes the current string table to this instance.
+   */
+  public void setCurrent() {
+    sCurrent.set(this);
+  }
+
+  /**
+   * Returns the current string table.
+   */
+  public static synchronized StringTable getCurrent() {
+    return sCurrent.get();
+  }
+
+  /**
+   * Returns the entry with the specified identifier, or null if the table does not contain
+   * an entry with specified identifier.
+   */
+  public Node get(String id) {
+    return myEntries.get(id);
   }
 
   //<<<Start:Java.ClassBody:1>>>
