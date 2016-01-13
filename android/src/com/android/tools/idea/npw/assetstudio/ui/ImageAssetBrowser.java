@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
@@ -35,7 +36,7 @@ import java.util.List;
  * Panel which wraps a {@link ImageAsset}, allowing the user to browse for an image file to use as
  * an asset.
  */
-public final class ImageAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent<ImageAsset> {
+public final class ImageAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent {
   private final ImageAsset myImageAsset = new ImageAsset();
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myListeners = Lists.newArrayListWithExpectedSize(1);
@@ -75,7 +76,7 @@ public final class ImageAssetBrowser extends TextFieldWithBrowseButton implement
 
   @NotNull
   @Override
-  public ImageAsset getAsset() {
+  public BaseAsset getAsset() {
     return myImageAsset;
   }
 
