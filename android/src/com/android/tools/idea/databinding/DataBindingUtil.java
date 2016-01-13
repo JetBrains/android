@@ -344,6 +344,10 @@ public class DataBindingUtil {
     return def;
   }
 
+  public static boolean isBindingExpression(@NotNull String string) {
+    return string.startsWith(SdkConstants.PREFIX_BINDING_EXPR);
+  }
+
   /**
    * The light class that represents the generated data binding code for a layout file.
    */
