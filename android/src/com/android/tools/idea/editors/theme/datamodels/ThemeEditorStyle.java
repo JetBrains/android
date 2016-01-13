@@ -201,6 +201,10 @@ public class ThemeEditorStyle {
     for (final ResourceItem styleItem : getStyleResourceItems()) {
       if (configuration.equals(styleItem.getConfiguration())) {
         StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue(false);
+        if (style == null) {
+          // style might be null if the value fails to parse
+          continue;
+        }
         return style.getValues();
       }
     }

@@ -87,6 +87,7 @@ public class ParentThemesListModel extends AbstractListModel implements MutableC
 
   @Override
   public void removeElement(Object obj) {
+    //noinspection SuspiciousMethodCalls
     int index = myRecentParentThemeList.indexOf(obj);
     if (index != -1) {
       removeElementAt(index);
