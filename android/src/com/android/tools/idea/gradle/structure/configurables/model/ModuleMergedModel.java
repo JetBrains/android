@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
-import com.google.common.base.Objects;
 import com.google.common.collect.*;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -79,17 +78,17 @@ public class ModuleMergedModel {
   }
 
   private void populate() {
-    LogicalArtifactDependencies logicalDependencies = new LogicalArtifactDependencies();
+    GradleArtifactDependencies artifactDependencies = new GradleArtifactDependencies();
     for (Variant variant : androidProject.getVariants()) {
       BaseArtifact mainArtifact = variant.getMainArtifact();
-      collectArtifactDependencies(variant, mainArtifact, logicalDependencies);
+      collectArtifactDependencies(variant, mainArtifact, artifactDependencies);
 
       for (BaseArtifact artifact : variant.getExtraAndroidArtifacts()) {
-        collectArtifactDependencies(variant, artifact, logicalDependencies);
+        collectArtifactDependencies(variant, artifact, artifactDependencies);
       }
 
       for (BaseArtifact artifact : variant.getExtraJavaArtifacts()) {
-        collectArtifactDependencies(variant, artifact, logicalDependencies);
+        collectArtifactDependencies(variant, artifact, artifactDependencies);
       }
     }
 
@@ -97,36 +96,35 @@ public class ModuleMergedModel {
     if (dependenciesModel != null) {
       for (DependencyModel dependencyModel : dependenciesModel.all()) {
         if (dependencyModel instanceof ArtifactDependencyModel) {
-          addDependency((ArtifactDependencyModel)dependencyModel, logicalDependencies);
+          addDependency((ArtifactDependencyModel)dependencyModel, artifactDependencies);
         }
       }
     }
 
-    // TODO: decide whether we should display dependencies that are in the Gradle model but not in the build.gradle file.
-    //Set<LogicalArtifactDependency> unused = logicalDependencies.getNotFound();
-    //if (!unused.isEmpty()) {
-    //  for (LogicalArtifactDependency dependency : unused) {
-    //    ArtifactDependencyMergedModel model = ArtifactDependencyMergedModel.create(this, dependency);
-    //    myDependencyModels.add(model);
-    //  }
-    //}
+    Set<GradleArtifactDependency> notFoundInBuildFile = artifactDependencies.getNotFoundInBuildFile();
+    if (!notFoundInBuildFile.isEmpty()) {
+      for (GradleArtifactDependency dependency : notFoundInBuildFile) {
+        ArtifactDependencyMergedModel model = ArtifactDependencyMergedModel.create(this, dependency);
+        myDependencyModels.add(model);
+      }
+    }
   }
 
   private static void collectArtifactDependencies(@NotNull Variant variant,
                                                   @NotNull BaseArtifact artifact,
-                                                  @NotNull LogicalArtifactDependencies logicalDependencies) {
+                                                  @NotNull GradleArtifactDependencies artifactDependencies) {
     String scopeName = getScopeName(artifact);
     if (isEmpty(scopeName)) {
       return;
     }
     Dependencies dependencies = artifact.getDependencies();
     for (AndroidLibrary library : dependencies.getLibraries()) {
-      LogicalArtifactDependency dependency = LogicalArtifactDependency.create(library);
-      logicalDependencies.add(variant, scopeName, dependency);
+      GradleArtifactDependency dependency = GradleArtifactDependency.create(library);
+      artifactDependencies.add(variant, scopeName, dependency);
     }
     for (JavaLibrary library : dependencies.getJavaLibraries()) {
-      LogicalArtifactDependency dependency = LogicalArtifactDependency.create(library);
-      logicalDependencies.add(variant, scopeName, dependency);
+      GradleArtifactDependency dependency = GradleArtifactDependency.create(library);
+      artifactDependencies.add(variant, scopeName, dependency);
     }
   }
 
@@ -135,18 +133,18 @@ public class ModuleMergedModel {
     return ARTIFACT_TO_SCOPE_MAP.get(artifact.getName());
   }
 
-  private void addDependency(@NotNull ArtifactDependencyModel parsedDependency, @NotNull LogicalArtifactDependencies logicalDependencies) {
+  private void addDependency(@NotNull ArtifactDependencyModel parsedDependency, @NotNull GradleArtifactDependencies artifactDependencies) {
     GradleCoordinate parsedCoordinate = parseCoordinateString(parsedDependency.getSpec().compactNotation());
     if (parsedCoordinate != null) {
       String configurationName = parsedDependency.configurationName();
-      Collection<LogicalArtifactDependency> dependenciesInConfiguration = logicalDependencies.getByConfigurationName(configurationName);
+      Collection<GradleArtifactDependency> dependenciesInConfiguration = artifactDependencies.getByConfigurationName(configurationName);
       if (!dependenciesInConfiguration.isEmpty()) {
-        List<LogicalArtifactDependency> fromGradleModel = Lists.newArrayList();
-        for (LogicalArtifactDependency dependency : dependenciesInConfiguration) {
+        List<GradleArtifactDependency> fromGradleModel = Lists.newArrayList();
+        for (GradleArtifactDependency dependency : dependenciesInConfiguration) {
           GradleCoordinate logicalCoordinate = dependency.coordinate;
           if (areEqual(logicalCoordinate, parsedCoordinate)) {
             fromGradleModel.add(dependency);
-            logicalDependencies.markAsFound(dependency);
+            artifactDependencies.markAsFoundInBuildFile(dependency);
           }
         }
         if (!fromGradleModel.isEmpty()) {
@@ -187,17 +185,28 @@ public class ModuleMergedModel {
     return myDependencyModels;
   }
 
+  @NotNull
+  public List<DependencyMergedModel> getEditableDependencies() {
+    List<DependencyMergedModel> dependencies = Lists.newArrayList();
+    for (DependencyMergedModel model : myDependencyModels) {
+      if (model.isEditable()) {
+        dependencies.add(model);
+      }
+    }
+    return dependencies;
+  }
+
   /**
    * Collection of artifact dependencies obtained from the Gradle model.
    */
-  private static class LogicalArtifactDependencies {
-    @NotNull private final Multimap<String, LogicalArtifactDependency> myDependenciesByScope = LinkedHashMultimap.create();
-    @NotNull private final Map<String, LogicalArtifactDependency> myDependenciesByCoordinate = Maps.newHashMap();
-    @NotNull private final Set<LogicalArtifactDependency> myDependencies = Sets.newHashSet(myDependenciesByCoordinate.values());
+  private static class GradleArtifactDependencies {
+    @NotNull private final Multimap<String, GradleArtifactDependency> myDependenciesByScope = LinkedHashMultimap.create();
+    @NotNull private final Map<String, GradleArtifactDependency> myDependenciesByCoordinate = Maps.newHashMap();
+    @NotNull private final Set<GradleArtifactDependency> myDependencies = Sets.newHashSet(myDependenciesByCoordinate.values());
 
-    void add(@NotNull Variant variant, @NotNull String scopeName, @Nullable LogicalArtifactDependency dependency) {
+    void add(@NotNull Variant variant, @NotNull String scopeName, @Nullable GradleArtifactDependency dependency) {
       if (dependency != null) {
-        LogicalArtifactDependency existing = myDependenciesByCoordinate.get(dependency.toString());
+        GradleArtifactDependency existing = myDependenciesByCoordinate.get(dependency.toString());
         if (existing != null) {
           dependency = existing;
         }
@@ -217,69 +226,21 @@ public class ModuleMergedModel {
     }
 
     @NotNull
-    Collection<LogicalArtifactDependency> getByConfigurationName(String configurationName) {
+    Collection<GradleArtifactDependency> getByConfigurationName(String configurationName) {
       return myDependenciesByScope.get(configurationName);
     }
 
     /**
      * Indicates that the given dependency (obtained from the Gradle model) has been found in the build.gradle file.
      */
-    void markAsFound(LogicalArtifactDependency dependency) {
+    void markAsFoundInBuildFile(GradleArtifactDependency dependency) {
       myDependencies.remove(dependency);
     }
 
     @NotNull
-    Set<LogicalArtifactDependency> getNotFound() {
+    Set<GradleArtifactDependency> getNotFoundInBuildFile() {
       return myDependencies;
     }
   }
 
-  /**
-   * An artifact dependency obtained from the Gradle model.
-   */
-  static class LogicalArtifactDependency {
-    @NotNull final GradleCoordinate coordinate;
-    @NotNull final Library dependency;
-    @NotNull final List<Variant> containers = Lists.newArrayList();
-
-    @Nullable
-    static LogicalArtifactDependency create(@NotNull Library dependency) {
-      MavenCoordinates resolved = dependency.getResolvedCoordinates();
-      if (resolved != null) {
-        return new LogicalArtifactDependency(Coordinates.convert(resolved), dependency);
-      }
-      return null;
-    }
-
-    LogicalArtifactDependency(@NotNull GradleCoordinate coordinate, @NotNull Library dependency) {
-      this.coordinate = coordinate;
-      this.dependency = dependency;
-    }
-
-    void addContainer(@NotNull Variant container) {
-      containers.add(container);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      LogicalArtifactDependency that = (LogicalArtifactDependency)o;
-      return Objects.equal(coordinate.toString(), that.coordinate.toString());
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(coordinate.toString());
-    }
-
-    @Override
-    public String toString() {
-      return coordinate.toString();
-    }
-  }
 }
