@@ -23,6 +23,7 @@ import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.run.util.LaunchUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -103,7 +104,8 @@ public class ApkInstaller {
     }
 
     try {
-      if (!myInstalledApkCache.isInstalled(device, localFile, packageName)) {
+      Integer userId = LaunchUtils.getUserIdFromFlags(myLaunchOptions.getPmInstallOptions());
+      if (!myInstalledApkCache.isInstalled(device, localFile, packageName, userId)) {
         return true;
       }
     } catch (IOException e) {
