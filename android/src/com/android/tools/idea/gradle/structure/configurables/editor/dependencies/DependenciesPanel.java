@@ -44,7 +44,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -83,7 +82,7 @@ class DependenciesPanel extends JPanel {
 
     // First thing, populate the "Dependencies" table.
     DependenciesTableModel tableModel = new DependenciesTableModel();
-    List<DependencyMergedModel> dependencies = model.getDependencies();
+    List<DependencyMergedModel> dependencies = model.getEditableDependencies();
     tableModel.setItems(dependencies);
     myDependencyTable = new TableView<DependencyMergedModel>(tableModel);
     if (!dependencies.isEmpty()) {
@@ -277,8 +276,14 @@ class DependenciesPanel extends JPanel {
     return null;
   }
 
-  void select(@NotNull DependencyMergedModel dependency) {
-    myDependencyTable.setSelection(Collections.singleton(dependency));
+  boolean select(@NotNull DependencyMergedModel dependency) {
+    myDependencyTable.clearSelection();
+    int index = myDependencyTable.getListTableModel().indexOf(dependency);
+    if (index < 0) {
+      return false;
+    }
+    myDependencyTable.addSelection(dependency);
+    return true;
   }
 
   private class DependenciesTableModel extends ListTableModel<DependencyMergedModel> {
