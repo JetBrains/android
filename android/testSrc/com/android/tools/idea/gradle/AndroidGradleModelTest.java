@@ -68,11 +68,6 @@ public class AndroidGradleModelTest extends AndroidGradleTestCase {
   }
 
   public void testReadWriteObject() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("IdeaAndroidProjectDataSerializationTest.testReadWriteObject temporarily disabled");
-      return;
-    }
-
     loadProject("projects/projectWithAppandLib");
 
     AndroidGradleModel androidModel = AndroidGradleModel.get(myAndroidFacet);

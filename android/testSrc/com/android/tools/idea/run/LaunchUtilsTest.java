@@ -20,32 +20,17 @@ import com.android.tools.idea.templates.AndroidGradleTestCase;
 
 public class LaunchUtilsTest extends AndroidGradleTestCase {
   public void testActivity() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("LaunchUtilsTest.testActivity temporarily disabled");
-      return;
-    }
-
     loadProject("projects/runConfig/activity");
     assertFalse(LaunchUtils.isWatchFaceApp(myAndroidFacet));
     assertFalse(LaunchUtils.isWatchFeatureRequired(myAndroidFacet));
   }
 
   public void testActivityAlias() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("LaunchUtilsTest.testActivityAlias temporarily disabled");
-      return;
-    }
-
     loadProject("projects/runConfig/alias");
     assertFalse(LaunchUtils.isWatchFaceApp(myAndroidFacet));
   }
 
   public void testWatchFaceService() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("LaunchUtilsTest.testWatchFaceService temporarily disabled");
-      return;
-    }
-
     loadProject("projects/runConfig/watchface");
     assertTrue(LaunchUtils.isWatchFaceApp(myAndroidFacet));
     assertTrue(LaunchUtils.isWatchFeatureRequired(myAndroidFacet));
