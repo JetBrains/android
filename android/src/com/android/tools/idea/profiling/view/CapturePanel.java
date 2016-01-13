@@ -81,7 +81,7 @@ public class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
 
       myProgressIndicator = new InlineProgressIndicator(true, taskInfo) {
         @Override
-        protected void queueRunningUpdate(Runnable update) {
+        protected void queueRunningUpdate(@NotNull Runnable update) {
           ApplicationManager.getApplication().invokeLater(update);
         }
       };
