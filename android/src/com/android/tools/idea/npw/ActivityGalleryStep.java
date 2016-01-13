@@ -49,14 +49,14 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   @SuppressWarnings("unchecked")
   public static final Key<TemplateEntry[]> KEY_TEMPLATES =
     ScopedStateStore.createKey("template.list", ScopedStateStore.Scope.STEP, TemplateEntry[].class);
-  private final FormFactorUtils.FormFactor myFormFactor;
+  private final FormFactor myFormFactor;
   private final Key<TemplateEntry> myCurrentSelectionKey;
   private final boolean myShowSkipEntry;
   private final Module myModule;
   private boolean myAppThemeExists;
   private ASGallery<Optional<TemplateEntry>> myGallery;
 
-  public ActivityGalleryStep(@NotNull FormFactorUtils.FormFactor formFactor, boolean showSkipEntry,
+  public ActivityGalleryStep(@NotNull FormFactor formFactor, boolean showSkipEntry,
                              @NotNull Key<TemplateEntry> currentSelectionKey, @Nullable Module module, @NotNull Disposable disposable) {
     super(disposable);
     myFormFactor = formFactor;

@@ -98,7 +98,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
    * Can be null if this is used for non-android libs.
    * TODO: Use for icon
    */
-  @Nullable private final FormFactorUtils.FormFactor myFormFactor;
+  @Nullable private final FormFactor myFormFactor;
   private final SourceProvider[] mySourceProviders;
   private JLabel myTemplateIcon;
   private JPanel myTemplateParameters;
@@ -122,7 +122,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
    * @param presetParameters some parameter values may be predefined outside of this step.
    *                         User will not be allowed to change their values.
    */
-  public TemplateParameterStep2(@Nullable FormFactorUtils.FormFactor formFactor, Map<String, Object> presetParameters,
+  public TemplateParameterStep2(@Nullable FormFactor formFactor, Map<String, Object> presetParameters,
                                 @Nullable Disposable disposable, @NotNull Key<String> packageNameKey,
                                 SourceProvider[] sourceProviders, String stepTitle) {
     super(disposable);

@@ -43,10 +43,10 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
 
     // Special case for Android Wear and Android Auto: These tend not to be activities; allow
     // you to create a module with for example just a watch face
-    if (FormFactorUtils.FormFactor.WEAR.id.equals(formFactor)) {
+    if (FormFactor.WEAR.id.equals(formFactor)) {
       templates.addAll(Arrays.asList(getTemplateList(formFactor, "Wear", excluded)));
     }
-    if (FormFactorUtils.FormFactor.CAR.id.equals(formFactor)) {
+    if (FormFactor.CAR.id.equals(formFactor)) {
       templates.addAll(Arrays.asList(getTemplateList(formFactor, "Android Auto", excluded)));
     }
 
