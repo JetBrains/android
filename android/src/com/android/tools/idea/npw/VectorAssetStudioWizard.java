@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.npw.assetstudio.wizard.NewVectorAssetStep;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
@@ -41,8 +40,6 @@ import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
 
 /**
  * Wizard that allows the user to create vector assets.
- *
- * @deprecated Replaced by {@link NewVectorAssetStep}
  */
 public class VectorAssetStudioWizard extends TemplateWizard implements TemplateWizardStep.UpdateListener {
   protected Module myModule;
