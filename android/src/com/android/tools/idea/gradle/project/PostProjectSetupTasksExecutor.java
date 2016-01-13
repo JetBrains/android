@@ -451,7 +451,7 @@ public class PostProjectSetupTasksExecutor {
     }
   }
 
-  static boolean needsUpdate(@NotNull String actual, @NotNull String latest) {
+  public static boolean needsUpdate(@NotNull String actual, @NotNull String latest) {
     if (actual.equals(latest)) {
       return false;
     }

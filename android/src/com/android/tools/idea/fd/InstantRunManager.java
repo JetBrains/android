@@ -31,6 +31,7 @@ import com.android.tools.fd.client.InstantRunClient.FileTransfer;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.runtime.ApplicationPatch;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.rendering.LogWrapper;
@@ -86,7 +87,7 @@ import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
  * in the IDE: determining if an app is running with the fast deploy runtime, whether it's up to date, communicating with it, etc.
  */
 public final class InstantRunManager implements ProjectComponent {
-  public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.0.0-alpha5";
+  public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.0.0-alpha6";
   public static final Revision MINIMUM_GRADLE_PLUGIN_VERSION = Revision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
 
@@ -296,13 +297,20 @@ public final class InstantRunManager implements ProjectComponent {
     }
 
     String version = model.getAndroidProject().getModelVersion();
-    try {
-      // Sigh, would be nice to have integer versions to avoid having to do this here
-      Revision revision = Revision.parseRevision(version);
 
-      // Supported in version 1.6 of the Gradle plugin and up
-      return revision.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
-    } catch (NumberFormatException ignore) {
+    /**
+     * {@link Revision} doesn't support comparing across -alpha and -beta minor versions, so we use
+     * {@link PostProjectSetupTasksExecutor#needsUpdate}.
+     */
+    if (PostProjectSetupTasksExecutor.needsUpdate(version, MINIMUM_GRADLE_PLUGIN_VERSION_STRING)) {
+      LOG.info("Instant run is not supported by current version: " + version + ", requires: " + MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+      return false;
+    }
+
+    try {
+      return model.getSelectedVariant().getMainArtifact().getInstantRun().isSupportedByArtifact();
+    } catch (Exception e) {
+      LOG.info("Instant Run not supported by current variant: " + version);
       return false;
     }
   }
