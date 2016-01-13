@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.net.URL;
 
 /**
  * Convenience class for building a {@link ModelWizard} styled for Android Studio.
@@ -46,7 +45,6 @@ public final class StudioWizardDialogBuilder {
   @NotNull String myTitle;
   @Nullable Component myParent;
   @Nullable Project myProject;
-  @Nullable URL myHelpUrl;
   @NotNull DialogWrapper.IdeModalityType myModalityType = DialogWrapper.IdeModalityType.IDE;
   @NotNull Dimension myMinimumSize = DEFAULT_MIN_SIZE;
 
@@ -72,13 +70,6 @@ public final class StudioWizardDialogBuilder {
     myParent = parent;
   }
 
-  /**
-   * Set the target project that this dialog is associated with.
-   *
-   * If {@code null}, this call will be ignored, although it is allowed as an argument to work well
-   * with {@code Nullable} APIs.
-   */
-  @NotNull
   public StudioWizardDialogBuilder setProject(@Nullable Project project) {
     if (project != null) {
       myProject = project;
@@ -86,13 +77,6 @@ public final class StudioWizardDialogBuilder {
     return this;
   }
 
-  /**
-   * Override the modality type of this dialog.
-   *
-   * If {@code null}, this call will be ignored, although it is allowed as an argument to work well
-   * with {@code Nullable} APIs.
-   */
-  @NotNull
   public StudioWizardDialogBuilder setModalityType(@Nullable DialogWrapper.IdeModalityType modalityType) {
     if (modalityType != null) {
       myModalityType = modalityType;
@@ -100,43 +84,19 @@ public final class StudioWizardDialogBuilder {
     return this;
   }
 
-  /**
-   * Override the minimum size of this dialog.
-   *
-   * If {@code null}, this call will be ignored, although it is allowed as an argument to work well
-   * with {@code Nullable} APIs.
-   */
-  @NotNull
-  public StudioWizardDialogBuilder setMinimumSize(@Nullable Dimension minimumSize) {
-    if (minimumSize != null) {
-      myMinimumSize = minimumSize;
-    }
+  public StudioWizardDialogBuilder setMinimumSize(@NotNull Dimension minimumSize) {
+    myMinimumSize = minimumSize;
     return this;
   }
 
-  /**
-   * Set a help link that the dialog's help button should browse to.
-   *
-   * If {@code null}, this call will be ignored, although it is allowed as an argument to work well
-   * with {@code Nullable} APIs.
-   */
-  @NotNull
-  public StudioWizardDialogBuilder setHelpUrl(@Nullable URL helpUrl) {
-    if (helpUrl != null) {
-      myHelpUrl = helpUrl;
-    }
-    return this;
-  }
-
-  @NotNull
   public ModelWizardDialog build() {
     StudioWizardLayout customLayout = new StudioWizardLayout();
     ModelWizardDialog dialog;
     if (myParent != null) {
-      dialog = new ModelWizardDialog(myWizard, myTitle, myParent, customLayout, myHelpUrl);
+      dialog = new ModelWizardDialog(myWizard, myTitle, myParent, customLayout);
     }
     else {
-      dialog = new ModelWizardDialog(myWizard, myTitle, customLayout, myProject, myHelpUrl, myModalityType);
+      dialog = new ModelWizardDialog(myWizard, myTitle, customLayout, myProject, myModalityType);
     }
 
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();

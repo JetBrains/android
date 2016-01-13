@@ -29,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.net.URL;
 
 /**
  * Action to invoke one of the Asset Studio wizards.
@@ -83,7 +82,7 @@ public abstract class AndroidAssetStudioAction extends AnAction {
     ModelWizard wizard = createWizard(facet);
     if (wizard != null) {
       StudioWizardDialogBuilder dialogBuilder = new StudioWizardDialogBuilder(wizard, "Asset Studio");
-      dialogBuilder.setProject(facet.getModule().getProject()).setMinimumSize(getWizardSize()).setHelpUrl(getHelpUrl());
+      dialogBuilder.setProject(facet.getModule().getProject()).setMinimumSize(getWizardSize());
       dialogBuilder.build().show();
     }
   }
@@ -98,9 +97,4 @@ public abstract class AndroidAssetStudioAction extends AnAction {
 
   @NotNull
   protected abstract Dimension getWizardSize();
-
-  @Nullable
-  protected URL getHelpUrl() {
-    return null;
-  }
 }
