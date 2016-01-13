@@ -23,6 +23,8 @@ import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.Info;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.ConstantSet;
@@ -75,6 +77,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   private static final int FETCH_SCHEMA_TIMEOUT_MS = 3000;
   private static final int FETCH_FEATURES_TIMEOUT_MS = 3000;
+  private static final int FETCH_STRING_TABLE_TIMEOUT_MS = 3000;
   private static final int FETCH_REPLAY_DEVICE_TIMEOUT_MS = 3000;
   private static final int FETCH_REPLAY_DEVICE_RETRY_DELAY_MS = 3000;
   private static final int FETCH_REPLAY_DEVICE_MAX_RETRIES = 30;
@@ -141,6 +144,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           status = "fetch feature list";
           fetchFeatures(features);
 
+          if (features.hasRpcStringTables()) {
+            status = "fetch string table";
+            fetchStringTable();
+          }
+
           status = "fetch replay device list";
           fetchReplayDevice();
 
@@ -191,6 +199,20 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     String[] list = Rpc.get(myClient.getFeatures(), FETCH_FEATURES_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     features.setFeatureList(list);
     LOG.info("GAPIS features: " + list.toString());
+  }
+
+  /**
+   * Requests, blocks, and then makes current the string table from the server.
+   */
+  private void fetchStringTable() throws ExecutionException, RpcException, TimeoutException {
+    Info[] infos = Rpc.get(myClient.getAvailableStringTables(), FETCH_STRING_TABLE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    if (infos.length == 0) {
+      LOG.warn("No string tables available");
+      return;
+    }
+    Info info = infos[0];
+    StringTable table = Rpc.get(myClient.getStringTable(info), FETCH_STRING_TABLE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    table.setCurrent();
   }
 
   /**
