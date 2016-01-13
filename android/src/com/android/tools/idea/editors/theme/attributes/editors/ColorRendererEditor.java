@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Class that implements a {@link javax.swing.JTable} renderer and editor for color attributes.
@@ -73,7 +74,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   protected ResourceType[] getAllowedResourceTypes() {
     AttributeDefinition attrDefinition = ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), myItem.getSelectedValue());
 
-    String attributeName = myItem.getName().toLowerCase();
+    String attributeName = myItem.getName().toLowerCase(Locale.ENGLISH);
     if (attributeName.contains("color") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference)) {
       return COLORS_ONLY;
     }

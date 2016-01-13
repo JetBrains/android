@@ -29,8 +29,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeResolver;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.google.common.collect.*;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
