@@ -203,8 +203,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
           break;
         }
         default:
-          fail("Unexpected type");
-          return;
+          throw new AssertionError("Unexpected type");
       }
 
       PsiElement element = null;
