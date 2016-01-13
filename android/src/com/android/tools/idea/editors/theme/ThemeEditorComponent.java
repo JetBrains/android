@@ -252,7 +252,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     ParentRendererEditor.ThemeParentChangedListener themeParentChangedListener = new ParentRendererEditor.ThemeParentChangedListener() {
       /** Stores all the {@link ItemResourceValue} items of a theme
        *  so that it can be restored to its original state after having been modified */
-      private List<ItemResourceValue> myOriginalItems = Lists.newArrayList();
+      private final List<ItemResourceValue> myOriginalItems = Lists.newArrayList();
       private String myModifiedParent;
 
       /**

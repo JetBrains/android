@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 
 public class RestrictedEnum implements RestrictedQualifier {
@@ -31,6 +32,7 @@ public class RestrictedEnum implements RestrictedQualifier {
   private final EnumSet<? extends ResourceEnum> myPossibleValues;
 
   public RestrictedEnum(@NotNull Class<? extends ResourceEnum> enumClass) {
+    //noinspection unchecked
     myPossibleValues = EnumSet.copyOf((Collection)Arrays.asList(enumClass.getEnumConstants()));
     myEnumClass = enumClass;
   }
@@ -44,7 +46,8 @@ public class RestrictedEnum implements RestrictedQualifier {
   public void setRestrictions(@Nullable ResourceQualifier compatible, @NotNull Collection<ResourceQualifier> incompatibles) {
     if (compatible != null) {
       myPossibleValues.clear();
-      myPossibleValues.addAll((Collection)Arrays.asList(getValue(compatible)));
+      //noinspection unchecked
+      myPossibleValues.addAll((Collection)Collections.singletonList(getValue(compatible)));
     } else {
       for (ResourceQualifier qualifier : incompatibles) {
         myPossibleValues.remove(getValue(qualifier));

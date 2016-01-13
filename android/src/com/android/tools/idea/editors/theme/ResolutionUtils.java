@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.SdkConstants;
+
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
@@ -41,9 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
-import static com.android.SdkConstants.TAG_STYLE;
+import static com.android.SdkConstants.*;
 
 /**
  * Utility methods for style resolution.
@@ -105,7 +103,7 @@ public class ResolutionUtils {
    */
   @NotNull
   public static String getQualifiedStyleName(@NotNull StyleResourceValue style) {
-    return (style.isFramework() ? SdkConstants.PREFIX_ANDROID : "") + style.getName();
+    return (style.isFramework() ? PREFIX_ANDROID : "") + style.getName();
   }
 
   /**
@@ -113,7 +111,7 @@ public class ResolutionUtils {
    */
   @NotNull
   public static String getQualifiedItemName(@NotNull ItemResourceValue item) {
-    return (item.isFrameworkAttr() ? SdkConstants.PREFIX_ANDROID : "") + item.getName();
+    return (item.isFrameworkAttr() ? PREFIX_ANDROID : "") + item.getName();
   }
 
   /**
@@ -130,13 +128,13 @@ public class ResolutionUtils {
 
   @Nullable
   private static StyleResourceValue getStyleResourceValue(@NotNull ResourceResolver resolver, @NotNull String qualifiedStyleName) {
-    assert !qualifiedStyleName.startsWith(SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX);
-    assert !qualifiedStyleName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX);
+    assert !qualifiedStyleName.startsWith(ANDROID_STYLE_RESOURCE_PREFIX);
+    assert !qualifiedStyleName.startsWith(STYLE_RESOURCE_PREFIX);
     String styleName;
     boolean isFrameworkStyle;
 
-    if (qualifiedStyleName.startsWith(SdkConstants.PREFIX_ANDROID)) {
-      styleName = qualifiedStyleName.substring(SdkConstants.PREFIX_ANDROID.length());
+    if (qualifiedStyleName.startsWith(PREFIX_ANDROID)) {
+      styleName = qualifiedStyleName.substring(PREFIX_ANDROID.length());
       isFrameworkStyle = true;
     } else {
       styleName = qualifiedStyleName;
@@ -209,11 +207,11 @@ public class ResolutionUtils {
     ResourceUrl resUrl = ResourceUrl.parse(name);
     if (resUrl == null) {
       // It is an attribute
-      if (!name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
+      if (!name.startsWith(ANDROID_NS_NAME_PREFIX)) {
         // not an android attribute
         return -1;
       }
-      return apiLookup.getFieldVersion("android/R$attr", name.substring(SdkConstants.ANDROID_NS_NAME_PREFIX_LEN));
+      return apiLookup.getFieldVersion("android/R$attr", name.substring(ANDROID_NS_NAME_PREFIX_LEN));
     } else {
       if (!resUrl.framework) {
         // not an android value
@@ -229,11 +227,11 @@ public class ResolutionUtils {
     if (parentName == null) {
       return null;
     }
-    if (parentName.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+    if (parentName.startsWith(PREFIX_RESOURCE_REF)) {
       parentName = getQualifiedNameFromResourceUrl(parentName);
     }
-    if (style.isFramework() && !parentName.startsWith(SdkConstants.PREFIX_ANDROID)) {
-      parentName = SdkConstants.PREFIX_ANDROID + parentName;
+    if (style.isFramework() && !parentName.startsWith(PREFIX_ANDROID)) {
+      parentName = PREFIX_ANDROID + parentName;
     }
     return parentName;
   }

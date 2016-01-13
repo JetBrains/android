@@ -22,7 +22,7 @@
             </constraints>
             <properties>
               <labelFor value="92523"/>
-              <text value="New style name:"/>
+              <text value="&amp;New style name:"/>
             </properties>
           </component>
           <component id="92523" class="javax.swing.JTextField" binding="myStyleNameTextField" default-binding="true">
@@ -39,7 +39,7 @@
             </constraints>
             <properties>
               <labelFor value="da33c"/>
-              <text value="Parent style name:"/>
+              <text value="&amp;Parent style name:"/>
             </properties>
           </component>
           <component id="da33c" class="javax.swing.JComboBox" binding="myParentStyleComboBox">
