@@ -41,7 +41,7 @@ final class FmtATCRGBAINTERPOLATEDALPHAAMD extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtATC_RGBA_INTERPOLATED_ALPHA_AMD","","");
+  private static final Entity ENTITY = new Entity("image", "fmtATC_RGBA_INTERPOLATED_ALPHA_AMD", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

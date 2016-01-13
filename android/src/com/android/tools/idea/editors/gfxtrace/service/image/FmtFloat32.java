@@ -39,7 +39,7 @@ final public class FmtFloat32 extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtFloat32","","");
+  private static final Entity ENTITY = new Entity("image", "fmtFloat32", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
