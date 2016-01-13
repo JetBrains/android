@@ -239,8 +239,7 @@
   </item>
   <item name="android.graphics.Canvas void drawLines(float[], android.graphics.Paint) 0">
     <annotation name="android.support.annotation.Size">
-      <val name="min" val="4" />
-      <val name="multiple" val="2" />
+      <val name="multiple" val="4" />
     </annotation>
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -249,9 +248,12 @@
   </item>
   <item name="android.graphics.Canvas void drawLines(float[], int, int, android.graphics.Paint) 0">
     <annotation name="android.support.annotation.Size">
-      <val name="min" val="4" />
-      <val name="multiple" val="2" />
+      <val name="multiple" val="4" />
     </annotation>
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Canvas void drawLines(float[], int, int, android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.Canvas void drawOval(android.graphics.RectF, android.graphics.Paint) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -538,8 +540,14 @@
   <item name="android.graphics.Paint int getColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.graphics.Paint java.util.Locale getTextLocale()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.Paint void setColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.Paint void setTextLocale(java.util.Locale) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.PorterDuffColorFilter PorterDuffColorFilter(int, android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.ColorInt" />
