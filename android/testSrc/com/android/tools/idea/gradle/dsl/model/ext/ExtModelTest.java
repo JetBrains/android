@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.GradleValue;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
@@ -25,7 +24,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Tests for {@link ExtModel}.
@@ -343,74 +341,5 @@ public class ExtModelTest extends GradleFileModelTestCase {
     ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "test"),
                  defaultConfig.testInstrumentationRunnerArguments());
-  }
-
-  public void testResolveMultiLevelExtPropertyWithHistory() throws IOException {
-    String text = "ext.FIRST = 123\n" +
-                  "ext.SECOND = FIRST\n" +
-                  "ext.THIRD = SECOND";
-
-    writeToBuildFile(text);
-
-    GradleBuildModel buildModel = getGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
-
-    GradleValue<Integer> third = extModel.getPropertyWithResolutionHistory("THIRD", Integer.class);
-    assertNotNull(third);
-    assertEquals(123, third.getValue().intValue());
-    assertEquals(myBuildFile.getPath(), third.getFile().getPath());
-    assertEquals("ext.THIRD", third.getPropertyName());
-    assertEquals("ext.THIRD = SECOND", third.getDslText());
-    Map<String, GradleValue<Object>> thirdResolvedVariables = third.getResolvedVariables();
-    assertEquals(1, thirdResolvedVariables.size());
-
-    GradleValue<Object> second = thirdResolvedVariables.get("SECOND");
-    assertNotNull(second);
-    assertEquals("123", second.getValue().toString());
-    assertEquals(myBuildFile.getPath(), second.getFile().getPath());
-    assertEquals("ext.SECOND", second.getPropertyName());
-    assertEquals("ext.SECOND = FIRST", second.getDslText());
-    Map<String, GradleValue<Object>> secondResolvedVariables = second.getResolvedVariables();
-    assertEquals(1, secondResolvedVariables.size());
-
-    GradleValue<Object> first = secondResolvedVariables.get("FIRST");
-    assertNotNull(first);
-    assertEquals("123", first.getValue().toString());
-    assertEquals(myBuildFile.getPath(), first.getFile().getPath());
-    assertEquals("ext.FIRST", first.getPropertyName());
-    assertEquals("ext.FIRST = 123", first.getDslText());
-    assertEquals(0, first.getResolvedVariables().size());
-  }
-
-  public void testResolveMultiModuleExtPropertyWithHistory() throws IOException {
-    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
-    String mainModuleText = "ext.FIRST = 123";
-
-    String subModuleText = "ext.SECOND = FIRST";
-
-    writeToSettingsFile(settingsText);
-    writeToBuildFile(mainModuleText);
-    writeToSubModuleBuildFile(subModuleText);
-
-    GradleBuildModel buildModel = getSubModuleGradleBuildModel();
-    ExtModel extModel = buildModel.ext();
-
-    GradleValue<Integer> second = extModel.getPropertyWithResolutionHistory("SECOND", Integer.class);
-    assertNotNull(second);
-    assertEquals("123", second.getValue().toString());
-    assertEquals(mySubModuleBuildFile.getPath(), second.getFile().getPath());
-    assertEquals("ext.SECOND", second.getPropertyName());
-    assertEquals("ext.SECOND = FIRST", second.getDslText());
-    Map<String, GradleValue<Object>> secondResolvedVariables = second.getResolvedVariables();
-    assertEquals(1, secondResolvedVariables.size());
-
-    GradleValue<Object> first = secondResolvedVariables.get("FIRST");
-    assertNotNull(first);
-    assertEquals("123", first.getValue().toString());
-    assertEquals(myBuildFile.getPath(), first.getFile().getPath());
-    assertEquals("ext.FIRST", first.getPropertyName());
-    assertEquals("ext.FIRST = 123", first.getDslText());
-    assertEquals(0, first.getResolvedVariables().size());
   }
 }

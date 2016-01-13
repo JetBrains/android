@@ -15,28 +15,25 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
-import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.intellij.ide.IdeView;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-
 /**
- * Action to invoke one of the Asset Studio wizards.
+ * Action to invoke the Asset Studio.
  *
  * This action is visible anywhere within a module that has an Android facet.
  */
 public abstract class AndroidAssetStudioAction extends AnAction {
-
   protected AndroidAssetStudioAction(@Nullable String text, @Nullable String description) {
     super(text, description, AndroidIcons.Android);
   }
@@ -79,22 +76,31 @@ public abstract class AndroidAssetStudioAction extends AnAction {
       return;
     }
 
-    ModelWizard wizard = createWizard(facet);
-    if (wizard != null) {
-      StudioWizardDialogBuilder dialogBuilder = new StudioWizardDialogBuilder(wizard, "Asset Studio");
-      dialogBuilder.setProject(facet.getModule().getProject()).setMinimumSize(getWizardSize());
-      dialogBuilder.build().show();
+    // If you're invoking the Asset Studio by right clicking in the Android Project view on a drawable or
+    // mipmap folder for example, the IDE will ask you to pick a specific folder from one of the many
+    // actual folders packed into the single resource directory.
+    //
+    // However, in this case we don't need those folders; we just want the corresponding source set, so
+    // asking the user to choose between "drawable-mdpi" and "drawable-hdpi" isn't helpful.
+    final PsiDirectory dir;
+    AbstractProjectViewPane pane = ProjectView.getInstance(module.getProject()).getCurrentProjectViewPane();
+    if (pane instanceof AndroidProjectViewPane) {
+      PsiDirectory[] directories = view.getDirectories();
+      if (directories.length == 0) {
+        return;
+      }
+      dir = directories[0];
     }
+    else {
+      dir = view.getOrChooseDirectory();
+    }
+    if (dir == null) {
+      return;
+    }
+
+    VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+    showWizardAndCreateAsset(facet, targetFile);
   }
 
-  /**
-   * Create a wizard to show or {@code null} if the showing of a wizard should be aborted. If a
-   * child class aborts showing the wizard, it should still give some visual indication, such as
-   * an error dialog.
-   */
-  @Nullable
-  protected abstract ModelWizard createWizard(@NotNull AndroidFacet facet);
-
-  @NotNull
-  protected abstract Dimension getWizardSize();
+  protected abstract void showWizardAndCreateAsset(@NotNull AndroidFacet facet, @Nullable VirtualFile targetFile);
 }

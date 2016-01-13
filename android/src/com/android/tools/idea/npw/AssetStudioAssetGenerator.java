@@ -24,7 +24,6 @@ import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.Density;
-import com.android.tools.idea.npw.assetstudio.AssetStudioGraphicGeneratorContext;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
@@ -53,7 +52,7 @@ import java.util.concurrent.ExecutionException;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 /**
- * @deprecated Replaced by {@link AssetStudioGraphicGeneratorContext}
+ * @deprecated Replaced by {@link com.android.tools.idea.npw.assetstudio.AssetStudioAssetGenerator}
  */
 public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   public static final String ATTR_TEXT = "text";
