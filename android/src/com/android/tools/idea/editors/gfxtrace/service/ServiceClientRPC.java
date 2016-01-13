@@ -39,9 +39,9 @@ public final class ServiceClientRPC extends ServiceClient {
   private final Broadcaster myBroadcaster;
   private final ListeningExecutorService myExecutorService;
 
-  public ServiceClientRPC(ListeningExecutorService executorService, InputStream in, OutputStream out, int mtu) {
+  public ServiceClientRPC(ListeningExecutorService executorService, InputStream in, OutputStream out, int mtu, int version) {
     myExecutorService = executorService;
-    myBroadcaster = new Broadcaster(in, out, mtu, myExecutorService);
+    myBroadcaster = new Broadcaster(in, out, mtu, myExecutorService, version);
   }
   @Override
   public ListenableFuture<Path> follow(Path p) {
