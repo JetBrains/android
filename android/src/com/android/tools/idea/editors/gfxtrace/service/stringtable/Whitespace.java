@@ -25,6 +25,11 @@ import com.android.tools.rpclib.schema.*;
 import java.io.IOException;
 
 public final class Whitespace extends Node implements BinaryObject {
+  @Override
+  public String getString(java.util.Map<String, BinaryObject> arguments) {
+    return " ";
+  }
+
   //<<<Start:Java.ClassBody:1>>>
 
   // Constructs a default-initialized {@link Whitespace}.
