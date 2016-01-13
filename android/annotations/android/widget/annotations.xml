@@ -132,6 +132,9 @@
   <item name="android.widget.CheckedTextView android.graphics.PorterDuff.Mode getCheckMarkTintMode()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.widget.CheckedTextView void setCheckMarkDrawable(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.CheckedTextView void setCheckMarkDrawable(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
@@ -311,6 +314,12 @@
   <item name="android.widget.PopupMenu void inflate(int) 0">
     <annotation name="android.support.annotation.MenuRes" />
   </item>
+  <item name="android.widget.PopupWindow int getMaxAvailableHeight(android.view.View) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.widget.PopupWindow int getMaxAvailableHeight(android.view.View, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.widget.ProgressBar android.content.res.ColorStateList getIndeterminateTintList()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -416,11 +425,20 @@
   <item name="android.widget.Switch void setTrackTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.widget.TabWidget void setDividerDrawable(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.TabWidget void setDividerDrawable(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
+  <item name="android.widget.TabWidget void setLeftStripDrawable(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.TabWidget void setLeftStripDrawable(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.widget.TabWidget void setRightStripDrawable(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.TabWidget void setRightStripDrawable(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
@@ -464,6 +482,9 @@
   </item>
   <item name="android.widget.TextView java.lang.String getFontFeatureSettings()">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.TextView java.util.Locale getTextLocale()">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.widget.TextView void setBreakStrategy(int) 0">
     <annotation name="android.support.annotation.IntDef">
@@ -585,6 +606,9 @@
   </item>
   <item name="android.widget.TextView void setTextColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.widget.TextView void setTextLocale(java.util.Locale) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.widget.ThemedSpinnerAdapter android.content.res.Resources.Theme getDropDownViewTheme()">
     <annotation name="android.support.annotation.Nullable" />

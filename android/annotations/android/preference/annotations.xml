@@ -102,6 +102,9 @@
   <item name="android.preference.PreferenceFragment void onCreate(android.os.Bundle) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.preference.PreferenceFragment void onViewCreated(android.view.View, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.preference.PreferenceManager void setDefaultValues(android.content.Context, int, boolean) 1">
     <annotation name="android.support.annotation.XmlRes" />
   </item>

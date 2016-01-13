@@ -59,6 +59,21 @@
   <item name="android.graphics.drawable.BitmapDrawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.graphics.drawable.ClipDrawable void applyTheme(android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.ClipDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.ClipDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.ClipDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.ClipDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.graphics.drawable.ColorDrawable ColorDrawable(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -84,8 +99,32 @@
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
   </item>
+  <item name="android.graphics.drawable.Drawable void applyTheme(android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.Drawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.Drawable void setColorFilter(android.graphics.ColorFilter) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -104,6 +143,24 @@
   </item>
   <item name="android.graphics.drawable.Drawable void setTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable.ConstantState android.graphics.drawable.Drawable newDrawable()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable.ConstantState android.graphics.drawable.Drawable newDrawable(android.content.res.Resources)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable.ConstantState android.graphics.drawable.Drawable newDrawable(android.content.res.Resources) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable.ConstantState android.graphics.drawable.Drawable newDrawable(android.content.res.Resources, android.content.res.Resources.Theme)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable.ConstantState android.graphics.drawable.Drawable newDrawable(android.content.res.Resources, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable.ConstantState android.graphics.drawable.Drawable newDrawable(android.content.res.Resources, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.DrawableContainer boolean onLayoutDirectionChanged(int) 0">
     <annotation name="android.support.annotation.IntDef">
@@ -133,6 +190,9 @@
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
   </item>
+  <item name="android.graphics.drawable.DrawableWrapper void applyTheme(android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.DrawableWrapper void draw(android.graphics.Canvas) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -141,6 +201,18 @@
   </item>
   <item name="android.graphics.drawable.DrawableWrapper void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableWrapper void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableWrapper void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableWrapper void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableWrapper void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.DrawableWrapper void onBoundsChange(android.graphics.Rect) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -160,11 +232,29 @@
   <item name="android.graphics.drawable.GradientDrawable GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation, int[]) 1">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.graphics.drawable.GradientDrawable void applyTheme(android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.graphics.drawable.GradientDrawable void setColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.graphics.drawable.GradientDrawable void setColors(int[]) 0">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable void setCornerRadii(float[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.GradientDrawable void setStroke(int, int) 1">
     <annotation name="android.support.annotation.ColorInt" />
@@ -181,8 +271,29 @@
   <item name="android.graphics.drawable.Icon android.graphics.drawable.Icon setTint(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.graphics.drawable.InsetDrawable InsetDrawable(android.graphics.drawable.Drawable, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.InsetDrawable InsetDrawable(android.graphics.drawable.Drawable, int, int, int, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.InsetDrawable void applyTheme(android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.InsetDrawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.InsetDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.InsetDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.InsetDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.InsetDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.LayerDrawable LayerDrawable(android.graphics.drawable.Drawable[]) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -192,8 +303,23 @@
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
   </item>
+  <item name="android.graphics.drawable.LayerDrawable void applyTheme(android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.LayerDrawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.LayerDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.LayerDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.LayerDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.LayerDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.LevelListDrawable void setConstantState(android.graphics.drawable.DrawableContainer.DrawableContainerState) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -210,14 +336,71 @@
   <item name="android.graphics.drawable.RippleDrawable RippleDrawable(android.content.res.ColorStateList, android.graphics.drawable.Drawable, android.graphics.drawable.Drawable) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.graphics.drawable.RippleDrawable void applyTheme(android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.RippleDrawable void draw(android.graphics.Canvas) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.drawable.RippleDrawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.graphics.drawable.RippleDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.RippleDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.RippleDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.RippleDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.RotateDrawable void applyTheme(android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.RotateDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.RotateDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.RotateDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.RotateDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.ScaleDrawable void applyTheme(android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.ScaleDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.ScaleDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.ScaleDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.ScaleDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.graphics.drawable.StateListDrawable void setConstantState(android.graphics.drawable.DrawableContainer.DrawableContainerState) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.VectorDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.VectorDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.VectorDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.VectorDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
 </root>
 
