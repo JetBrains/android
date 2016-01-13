@@ -496,10 +496,6 @@ public final class GuiTests {
     return waitUntilFound(robot, null, matcher);
   }
 
-  public static void skip(@NotNull String testName) {
-    System.out.println("Skipping test '" + testName + "'");
-  }
-
   /** Waits for a first component which passes the given matcher under the given root to become visible. */
   @NotNull
   public static <T extends Component> T waitUntilFound(@NotNull final Robot robot,
