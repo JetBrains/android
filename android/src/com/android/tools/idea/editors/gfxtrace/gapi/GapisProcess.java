@@ -22,6 +22,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -80,6 +81,12 @@ public final class GapisProcess extends ChildProcess {
 
     args.add("--gapir");
     args.add(Integer.toString(myGapir.getPort()));
+
+    File strings = GapiPaths.strings();
+    if (myVersion > 1 && strings.exists()) {
+      args.add("--strings");
+      args.add(strings.getAbsolutePath());
+    }
 
     pb.command(args);
     return true;
