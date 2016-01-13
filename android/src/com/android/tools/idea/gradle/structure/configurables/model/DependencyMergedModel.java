@@ -16,25 +16,29 @@
 package com.android.tools.idea.gradle.structure.configurables.model;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 public abstract class DependencyMergedModel {
   @NotNull final ModuleMergedModel parent;
-  @NotNull final String configurationName;
 
-  DependencyMergedModel(@NotNull ModuleMergedModel parent, @NotNull String configurationName) {
+  @Nullable final String configurationName;
+
+  DependencyMergedModel(@NotNull ModuleMergedModel parent, @Nullable String configurationName) {
     this.parent = parent;
     this.configurationName = configurationName;
   }
 
-  @NotNull
+  @Nullable
   public String getConfigurationName() {
     return configurationName;
   }
 
   @NotNull
   public abstract Icon getIcon();
+
+  public abstract boolean isEditable();
 
   public abstract boolean isInAndroidProject();
 }

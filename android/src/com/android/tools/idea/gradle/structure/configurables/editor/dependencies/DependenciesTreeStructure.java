@@ -35,6 +35,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.structure.configurables.model.Coordinates.convert;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
@@ -119,7 +120,15 @@ class DependenciesTreeStructure extends AbstractTreeStructure {
 
   @Nullable
   private ArtifactNode addIfMatching(@NotNull GradleNode node, @NotNull Library library, @NotNull List<GradleNode> children) {
+    if (library instanceof AndroidLibrary) {
+      AndroidLibrary androidLibrary = (AndroidLibrary)library;
+      if (isNotEmpty(androidLibrary.getProject())) {
+        return null;
+      }
+    }
+
     ArtifactDependencyMergedModel dependencyModel = myDependenciesPanel.find(library);
+
     GradleCoordinate coordinate = getGradleCoordinate(library, dependencyModel);
     if (coordinate != null) {
       ArtifactNode child = new ArtifactNode(coordinate, node, dependencyModel);
