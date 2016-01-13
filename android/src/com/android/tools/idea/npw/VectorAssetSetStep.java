@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.resources.Density;
-import com.android.tools.idea.npw.assetstudio.wizard.NewVectorAssetStep;
 import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.swing.util.FormScalingUtil;
@@ -50,8 +49,6 @@ import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
 
 /**
  * Similar to RasterAssetSetStep, this is particular for vector drawable generation.
- *
- * @deprecated Replaced by {@link NewVectorAssetStep}
  */
 public class VectorAssetSetStep extends CommonAssetSetStep {
   private static final Logger LOG = Logger.getInstance(VectorAssetSetStep.class);

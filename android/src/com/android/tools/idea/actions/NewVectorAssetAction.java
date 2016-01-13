@@ -15,25 +15,22 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.npw.assetstudio.wizard.GenerateVectorIconModel;
-import com.android.tools.idea.npw.assetstudio.wizard.NewVectorAssetStep;
-import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.npw.VectorAssetStudioWizard;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-
 /**
  * Action to invoke the Vector Asset Studio. This will allow the user to generate icons using SVGs.
  */
-public final class NewVectorAssetAction extends AndroidAssetStudioAction {
+public class NewVectorAssetAction extends AndroidAssetStudioAction {
 
   private static final String ERROR_TITLE = "Newer Android Plugin for Gradle Required";
   private static final String ERROR_MESSAGE =
@@ -51,9 +48,10 @@ public final class NewVectorAssetAction extends AndroidAssetStudioAction {
     super("Vector Asset", "Open Vector Asset Studio to create an image asset");
   }
 
-  @Nullable
   @Override
-  protected ModelWizard createWizard(@NotNull AndroidFacet facet) {
+  protected void showWizardAndCreateAsset(@NotNull AndroidFacet facet, @Nullable VirtualFile targetFile) {
+    // If min SDK is less than 21 and the Android plugin for Gradle version is less than 1.4,
+    // then we want to show error message that vector assets won't be supported.
     Module module = facet.getModule();
     Project project = module.getProject();
     AndroidGradleModel androidModel = AndroidGradleModel.get(module);
@@ -65,18 +63,13 @@ public final class NewVectorAssetAction extends AndroidAssetStudioAction {
       if (revision.compareTo(VECTOR_ASSET_GENERATION_REVISION, Revision.PreviewComparison.IGNORE) < 0
           && (minSdkVersion == null || minSdkVersion.getApiLevel() < VECTOR_DRAWABLE_API_LEVEL)) {
         Messages.showErrorDialog(project, ERROR_MESSAGE, ERROR_TITLE);
-        return null;
+        return;
       }
     }
-
-    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new NewVectorAssetStep(new GenerateVectorIconModel(facet)));
-    return wizardBuilder.build();
-  }
-
-  @NotNull
-  @Override
-  protected Dimension getWizardSize() {
-    return new Dimension(700, 500);
+    VectorAssetStudioWizard dialog = new VectorAssetStudioWizard(project, module, targetFile);
+    if (!dialog.showAndGet()) {
+      return;
+    }
+    dialog.createAssets();
   }
 }
