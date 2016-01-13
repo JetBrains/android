@@ -19,7 +19,8 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
+import com.android.tools.idea.npw.assetstudio.assets.ClipartAsset;
+import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidActionBarIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
@@ -59,13 +60,6 @@ import java.util.Map;
  * {@link AndroidIconType}.
  */
 public final class ConfigureIconPanel extends JPanel implements Disposable {
-
-  /**
-   * Source material icons are provided in a vector graphics format, but their default resolution
-   * is very low (24x24). Since we plan to render them to much larger icons, we will up the detail
-   * a fair bit.
-   */
-  private static final Dimension CLIPART_RESOLUTION = new Dimension(256, 256);
 
   @NotNull private final List<ActionListener> myAssetListeners = Lists.newArrayListWithExpectedSize(1);
 
@@ -137,7 +131,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
   private JPanel myClipartAssetRowPanel;
   private JPanel myTextAssetRowPanel;
   private ImageAssetBrowser myImageAssetBrowser;
-  private VectorIconButton myClipartAssetButton;
+  private ClipartAssetButton myClipartAssetButton;
   private TextAssetEditor myTextAssetEditor;
 
   private ObservableProperty<Color> myForegroundColor;
@@ -190,10 +184,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
 
     // Default the active asset type to "clipart", it's the most visually appealing and easy to
     // play around with.
-    VectorAsset clipartAsset = myClipartAssetButton.getAsset();
-    clipartAsset.outputWidth().set(CLIPART_RESOLUTION.width);
-    clipartAsset.outputHeight().set(CLIPART_RESOLUTION.height);
-    myActiveAsset = new ObjectValueProperty<BaseAsset>(clipartAsset);
+    myActiveAsset = new ObjectValueProperty<BaseAsset>(myClipartAssetButton.getAsset());
     myClipartRadioButton.setSelected(true);
 
     initializeListenersAndBindings();
@@ -279,8 +270,8 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
       @NotNull
       @Override
       public Boolean get() {
-        BaseAsset asset = myActiveAsset.get();
-        return myClipartAssetButton.getAsset() == asset || myTextAssetEditor.getAsset() == asset;
+        BaseAsset baseAsset = myActiveAsset.get();
+        return baseAsset instanceof TextAsset || baseAsset instanceof ClipartAsset;
       }
     };
     ObservableBool supportsEffects = new BooleanExpression(myShape) {
