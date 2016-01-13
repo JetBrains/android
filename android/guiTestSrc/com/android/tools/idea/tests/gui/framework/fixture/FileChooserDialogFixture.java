@@ -69,7 +69,6 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
 
   @NotNull
   public FileChooserDialogFixture select(@NotNull final VirtualFile file) {
-    sleepWithTimeBomb();
     final FileSystemTreeImpl fileSystemTree = field("myFileSystemTree").ofType(FileSystemTreeImpl.class)
                                                                        .in(getDialogWrapper())
                                                                        .get();
@@ -95,14 +94,6 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
     }, SHORT_TIMEOUT);
 
     return this;
-  }
-
-  private void sleepWithTimeBomb() {
-    assert System.currentTimeMillis() < 1452600000000L;  // 2016-01-12 12:00
-    try {
-      Thread.sleep(5000);
-    }
-    catch (InterruptedException e) {}
   }
 
   @NotNull
