@@ -35,4 +35,9 @@ public abstract class Formatter implements BinaryObject {
   public BinaryObject unwrap() {
     return this;
   }
+
+  /**
+   * Returns the value formatted to a non-rich string.
+   */
+  public abstract String getString(Object value);
 }

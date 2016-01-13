@@ -23,8 +23,18 @@ import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
+import java.util.Map;
 
 public final class Block extends Node implements BinaryObject {
+  @Override
+  public String getString(Map<String, BinaryObject> arguments) {
+    StringBuilder sb = new StringBuilder();
+    for (Node n : myChildren) {
+      sb.append(n.getString(arguments));
+    }
+    return sb.toString();
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Node[] myChildren;
 
