@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -37,52 +34,23 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Provide Gradle specific abstraction over a {@link GroovyPsiElement}.
  */
 public abstract class GradleDslElement {
-  @NotNull protected final String myName;
-
   @Nullable protected GradleDslElement myParent;
 
-  @NotNull private final String myQualifiedName;
-  @NotNull private final GradleDslFile myDslFile;
+  @NotNull protected final String myName;
 
   @Nullable private GroovyPsiElement myPsiElement;
-  @NotNull private List<GradleResolvedVariable> myResolvedVariables = ImmutableList.of();
 
   private volatile boolean myModified;
 
-  /**
-   * Creates an in stance of a {@link GradleDslElement}
-   *
-   * @param parent the parent {@link GradleDslElement} of this element. The parent element should always be a not-null value except if this
-   *               element is the root element, i.e a {@link GradleDslFile}.
-   * @param psiElement the {@link GroovyPsiElement} of this dsl element.
-   * @param name the name of this element.
-   */
   protected GradleDslElement(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement psiElement, @NotNull String name) {
-    assert parent != null || this instanceof GradleDslFile;
-
     myParent = parent;
     myPsiElement = psiElement;
     myName = name;
-
-    if (parent == null || parent instanceof GradleDslFile) {
-      myQualifiedName = name;
-    }
-    else {
-      myQualifiedName = parent.myQualifiedName + "." + name;
-    }
-
-    if (parent == null) {
-      myDslFile = (GradleDslFile)this;
-    }
-    else {
-      myDslFile = parent.myDslFile;
-    }
   }
 
   @NotNull
@@ -102,25 +70,6 @@ public abstract class GradleDslElement {
 
   public void setPsiElement(@Nullable GroovyPsiElement psiElement) {
     myPsiElement = psiElement;
-  }
-
-  @NotNull
-  public String getQualifiedName() {
-    return myQualifiedName;
-  }
-
-  @NotNull
-  public GradleDslFile getDslFile() {
-    return myDslFile;
-  }
-
-  @NotNull
-  public List<GradleResolvedVariable> getResolvedVariables() {
-    return myResolvedVariables;
-  }
-
-  public void setResolvedVariables(@NotNull List<GradleResolvedVariable> resolvedVariables) {
-    myResolvedVariables = ImmutableList.copyOf(resolvedVariables);
   }
 
   /**

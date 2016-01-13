@@ -20,14 +20,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Adapter property that wraps a String type which represents a Double value.
-
- * If a string is passed in that isn't properly formatted, this adapter returns the last known
- * good value.
  */
 public final class StringToDoubleAdapterProperty extends AdapterProperty<String, Double> {
-
-  private double lastGoodValue;
-
   @NotNull private final String myFormatString;
 
   /**
@@ -46,11 +40,10 @@ public final class StringToDoubleAdapterProperty extends AdapterProperty<String,
   @Override
   protected Double convertFromSourceType(@NotNull String value) {
     try {
-      lastGoodValue = Double.parseDouble(value);
-      return lastGoodValue;
+      return Double.parseDouble(value);
     }
     catch (NumberFormatException e) {
-      return lastGoodValue;
+      return 0.0;
     }
   }
 
