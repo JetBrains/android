@@ -17,6 +17,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.msg;
 
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.Node;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.intellij.util.containers.hash.LinkedHashMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,6 +69,21 @@ public final class Msg implements BinaryObject {
   }
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
+
+  /**
+   * Returns the message as a string without any rich-formatting.
+   */
+  public String getString() {
+    StringTable stringTable = StringTable.getCurrent();
+    if (stringTable != null) {
+      Node node = stringTable.get(myIdentifier);
+      if (node != null) {
+        return node.getString(myArguments);
+      }
+    }
+    return myIdentifier;
+  }
+
   public enum Klass implements BinaryClass {
     //<<<Start:Java.KlassBody:2>>>
     INSTANCE;

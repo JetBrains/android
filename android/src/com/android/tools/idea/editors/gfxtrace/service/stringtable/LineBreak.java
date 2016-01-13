@@ -25,6 +25,11 @@ import com.android.tools.rpclib.schema.*;
 import java.io.IOException;
 
 public final class LineBreak extends Node implements BinaryObject {
+  @Override
+  public String getString(java.util.Map<String, BinaryObject> arguments) {
+    return "\n";
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private int myLines;
 
