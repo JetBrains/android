@@ -25,6 +25,11 @@ import com.android.tools.rpclib.schema.*;
 import java.io.IOException;
 
 public final class Text extends Node implements BinaryObject {
+  @Override
+  public String getString(java.util.Map<String, BinaryObject> arguments) {
+    return myText;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private String myText;
 
