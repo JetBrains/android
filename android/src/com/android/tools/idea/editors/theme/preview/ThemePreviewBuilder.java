@@ -34,10 +34,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.SdkConstants.*;
@@ -268,7 +266,7 @@ public class ThemePreviewBuilder {
 
     public SearchFilter(@NotNull String searchTerm, boolean caseSensitive) {
       myCaseSensitive = caseSensitive;
-      mySearchTerm = caseSensitive ? searchTerm : searchTerm.toLowerCase();
+      mySearchTerm = caseSensitive ? searchTerm : searchTerm.toLowerCase(Locale.ENGLISH);
     }
 
     public SearchFilter(@NotNull String searchTerm) {
@@ -292,7 +290,7 @@ public class ThemePreviewBuilder {
 
       return myCaseSensitive
              ? searchString.toString().contains(mySearchTerm)
-             : searchString.toString().toLowerCase().contains(mySearchTerm);
+             : searchString.toString().toLowerCase(Locale.ENGLISH).contains(mySearchTerm);
     }
   }
 

@@ -177,7 +177,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
       .add(selectedItem)
       .addAll(notSelectedItems)
       .build();
-    component.setVariantsModel(new CollectionComboBoxModel(variantList, selectedItem));
+    component.setVariantsModel(new CollectionComboBoxModel<VariantsComboItem>(variantList, selectedItem));
   }
 
   protected abstract void updateComponent(@NotNull ThemeEditorContext context,
