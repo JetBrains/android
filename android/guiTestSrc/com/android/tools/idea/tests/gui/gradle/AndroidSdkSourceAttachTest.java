@@ -39,7 +39,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.skip;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.rename;
@@ -82,7 +81,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
   public void testDownloadSdkSource() throws IOException {
     if (mySdk == null) {
       printPlatformNotFound();
-      skip("testDownloadSdkSource");
+      System.out.println("Skipping test 'testDownloadSdkSource'");
       return;
     }
 
@@ -132,14 +131,14 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
   public void testRefreshSdkSource() throws IOException {
     if (mySdk == null) {
       printPlatformNotFound();
-      skip("testRefreshSdkSource");
+      System.out.println("Skipping test 'testRefreshSdkSource'");
       return;
     }
 
     if (!mySdkSourcePath.isDirectory()) {
       // Skip test if Sdk source is not installed.
       System.out.println("Android Sdk Source for '" + mySdk.getName() + "' must be installed before running 'testRefreshSdkSource'");
-      skip("testRefreshSdkSource");
+      System.out.println("Skipping test 'testRefreshSdkSource'");
       return;
     }
 
