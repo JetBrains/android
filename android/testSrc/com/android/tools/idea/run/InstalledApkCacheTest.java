@@ -24,6 +24,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,18 +79,18 @@ public class InstalledApkCacheTest extends TestCase {
   }
 
   public void testCacheHit() throws Exception {
-    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName));
+    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName, null));
     myService.setInstalled(myDevice1, myFile, myPkgName);
-    assertTrue(myService.isInstalled(myDevice1, myFile, myPkgName));
+    assertTrue(myService.isInstalled(myDevice1, myFile, myPkgName, null));
   }
 
   public void testUploadModifiedApk() throws Exception {
-    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName));
+    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName, null));
     myService.setInstalled(myDevice1, myFile, myPkgName);
-    assertTrue(myService.isInstalled(myDevice1, myFile, myPkgName));
+    assertTrue(myService.isInstalled(myDevice1, myFile, myPkgName, null));
 
     FileUtil.writeToFile(myFile, "changed!");
-    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName));
+    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName, null));
   }
 
   public void testUploadApkAfterDisconnect() throws Exception {
@@ -97,23 +98,39 @@ public class InstalledApkCacheTest extends TestCase {
     myService.setInstalled(myDevice2, myFile, myPkgName);
 
     myService.deviceDisconnected(myDevice2);
-    assertTrue(myService.isInstalled(myDevice1, myFile, myPkgName));
-    assertFalse(myService.isInstalled(myDevice2, myFile, myPkgName));
+    assertTrue(myService.isInstalled(myDevice1, myFile, myPkgName, null));
+    assertFalse(myService.isInstalled(myDevice2, myFile, myPkgName, null));
 
     myService.setInstalled(myDevice2, myFile, myPkgName);
     myService.deviceDisconnected(myDevice1);
 
-    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName));
-    assertTrue(myService.isInstalled(myDevice2, myFile, myPkgName));
+    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName, null));
+    assertTrue(myService.isInstalled(myDevice2, myFile, myPkgName, null));
   }
 
   public void testUninstallFromCommandLine() throws Exception {
-    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName));
+    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName, null));
     myService.setInstalled(myDevice1, myFile, myPkgName);
-    assertTrue(myService.isInstalled(myDevice1, myFile, myPkgName));
+    assertTrue(myService.isInstalled(myDevice1, myFile, myPkgName, null));
 
     myDumpSysOutput = "";
-    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName));
+    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName, null));
+  }
+
+  public void testPerUserInstall() throws Exception {
+    myDumpSysOutput = "Packages:\n" +
+                      "  Package [com.foo.bar] (423123d0):\n" +
+                      "    User 0: installed=true\n" +
+                      "    lastUpdateTime=2014-09-29 11:58:19\n" +
+                      "    signatures=PackageSignatures{420cf360 [42139088]}\n" +
+                      "    User 10: installed=true\n" +
+                      "    lastUpdateTime=2014-09-29 11:58:19\n" +
+                      "    signatures=PackageSignatures{420cf360 [42139088]}\n";
+    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName, null));
+    myService.setInstalled(myDevice1, myFile, myPkgName);
+    assertTrue(myService.isInstalled(myDevice1, myFile, myPkgName, 0));
+    assertTrue(myService.isInstalled(myDevice1, myFile, myPkgName, 10));
+    assertFalse(myService.isInstalled(myDevice1, myFile, myPkgName, 1));
   }
 
   public void testDumpsysParser() {
@@ -122,8 +139,14 @@ public class InstalledApkCacheTest extends TestCase {
                     "    userId=10096 gids=[3003, 1028, 1015]\n" +
                     "    lastUpdateTime=2014-09-29 11:58:19\n" +
                     "    signatures=PackageSignatures{420cf360 [42139088]}\n";
-    assertEquals("lastUpdateTime=2014-09-29 11:58:19", myService.getLastUpdateTime(myDevice1, "com.foo.bar"));
-    assertNull(myService.getLastUpdateTime(myDevice1, "com.foo"));
-    assertNull(myService.getLastUpdateTime(myDevice1, "xyz"));
+    assertEquals("lastUpdateTime=2014-09-29 11:58:19", getLastUpdateTime(myDevice1, "com.foo.bar"));
+    assertNull(getLastUpdateTime(myDevice1, "com.foo"));
+    assertNull(getLastUpdateTime(myDevice1, "xyz"));
+  }
+
+  @Nullable
+  private String getLastUpdateTime(IDevice device, String pkgName) {
+    InstalledApkCache.InstallState state = myService.getInstallState(device, pkgName);
+    return state == null ? null : state.lastUpdateTime;
   }
 }

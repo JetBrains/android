@@ -217,9 +217,9 @@ public final class InstantRunManager implements ProjectComponent {
         throw new RuntimeException(e); // should not happen for Gradle projects..
       }
 
-      // check whether the package is installed on the device: we do this by checking the last install time from dumpsys pm,
+      // check whether the package is installed on the device: we do this by checking the package manager for whether the app exists,
       // but we could potentially simplify this to just checking whether the package folder exists
-      if (ServiceManager.getService(InstalledApkCache.class).getLastUpdateTime(device, pkgName) == null) {
+      if (ServiceManager.getService(InstalledApkCache.class).getInstallState(device, pkgName) == null) {
         LOG.info("Package " + pkgName + " was not detected on the device.");
         return false;
       }
