@@ -198,7 +198,7 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
     @NotNull
     @Override
     public String getPath() {
-      return LegacyRepoUtils.getLegacyPath(myWrapped.getPkgDesc());
+      return LegacyRepoUtils.getLegacyPath(myWrapped.getPkgDesc(), null);
     }
 
     @NotNull
