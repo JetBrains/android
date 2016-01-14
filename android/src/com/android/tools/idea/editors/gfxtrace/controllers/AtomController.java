@@ -17,14 +17,18 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.JBLoadingPanelWrapper;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
-import com.android.tools.idea.editors.gfxtrace.service.atom.*;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
+import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
@@ -61,6 +65,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -604,14 +609,18 @@ public class AtomController extends TreeController {
       myTree.getEmptyText().setText("");
       ListenableFuture<AtomList> atomF = myEditor.getClient().get(myAtomsPath.getPath());
       ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(myAtomsPath.getPath().getCapture().hierarchy());
-      Rpc.listen(Futures.allAsList(atomF, hierarchyF), EdtExecutor.INSTANCE, LOG, myAtomRequestController,
-                 new Rpc.Callback<java.util.List<BinaryObject>>() {
+      Rpc.listen(
+          Futures.allAsList(atomF, hierarchyF), LOG, myAtomRequestController, new UiCallback<List<BinaryObject>, DefaultMutableTreeNode>() {
         @Override
-        public void onFinish(Rpc.Result<java.util.List<BinaryObject>> result) throws RpcException, ExecutionException {
-          // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
-          java.util.List<BinaryObject> all = result.get();
+        protected DefaultMutableTreeNode onRpcThread(Rpc.Result<List<BinaryObject>> result) throws RpcException, ExecutionException {
+          List<BinaryObject> all = result.get();
           DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
           ((AtomGroup)all.get(1)).addChildren(root, (AtomList)all.get(0));
+          return root;
+        }
+
+        @Override
+        protected void onUiThread(DefaultMutableTreeNode root) {
           setRoot(root);
         }
       });
