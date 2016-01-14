@@ -30,8 +30,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-
 public class HotSwapTask implements LaunchTask {
   private final AndroidFacet myFacet;
   private final ExecutionEnvironment myEnv;
@@ -80,7 +78,7 @@ public class HotSwapTask implements LaunchTask {
         }
       });
 
-      return false;
+      return true; // not an error condition since we've already terminated and restarted the launch
     }
 
     return true;
