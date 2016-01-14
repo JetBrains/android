@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
@@ -77,8 +78,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
       return;
     }
     final ServiceClient client = myEditor.getClient();
-    Rpc.listen(client.getFramebufferColor(devicePath, cell.atomPath, myRenderSettings), EdtExecutor.INSTANCE,
-               LOG, new Rpc.Callback<ImageInfoPath>() {
+    Rpc.listen(client.getFramebufferColor(devicePath, cell.atomPath, myRenderSettings), LOG, new Rpc.Callback<ImageInfoPath>() {
       @Override
       public void onFinish(Rpc.Result<ImageInfoPath> result) throws RpcException, ExecutionException {
         // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
@@ -141,12 +141,15 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
     final AtomsPath atomsPath = myAtomsPath.getPath();
     if (updateIcons && atomsPath != null) {
-      Rpc.listen(myEditor.getClient().get(atomsPath), EdtExecutor.INSTANCE, LOG, new Rpc.Callback<AtomList>() {
+      Rpc.listen(myEditor.getClient().get(atomsPath), LOG, new UiCallback<AtomList, List<Data>>() {
         @Override
-        public void onFinish(Rpc.Result<AtomList> result) throws RpcException, ExecutionException {
-          // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
-          AtomList atoms = result.get();
-          myList.setData(prepareData(atomsPath, atoms));
+        protected List<Data> onRpcThread(Rpc.Result<AtomList> result) throws RpcException, ExecutionException {
+          return prepareData(atomsPath, result.get());
+        }
+
+        @Override
+        protected void onUiThread(List<Data> result) {
+          myList.setData(result);
         }
       });
     }

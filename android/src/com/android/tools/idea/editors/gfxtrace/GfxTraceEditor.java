@@ -127,7 +127,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
         }
 
         try {
-          myClient = new ServiceClientCache(myGapisConnection.createServiceClient(myExecutor));
+          myClient = new ServiceClientCache(myGapisConnection.createServiceClient(myExecutor), myExecutor);
         }
         catch (IOException e) {
           setLoadingErrorTextOnEdt("Unable to talk to server");
