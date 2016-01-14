@@ -105,12 +105,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
    */
   @NonNls private static final String GRADLE_WRAPPER_EXECUTABLE_NAME = isWindows ? FN_GRADLE_WRAPPER_WIN : FN_GRADLE_WRAPPER_UNIX;
 
-  /**
-   * Flag to control whether gradle projects can be synced in tests. This was
-   * disabled earlier since it resulted in _LastInSuiteTest.testProjectLeak
-   */
-  protected static final boolean CAN_SYNC_PROJECTS = true;
-
   private static AndroidSdkData ourPreviousSdkData;
 
   protected AndroidFacet myAndroidFacet;
@@ -134,9 +128,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   public void setUp() throws Exception {
     super.setUp();
 
-    if (CAN_SYNC_PROJECTS) {
-      GradleProjectImporter.ourSkipSetupFromTest = true;
-    }
+    GradleProjectImporter.ourSkipSetupFromTest = true;
 
     if (createDefaultProject()) {
       final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
@@ -178,15 +170,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     try {
       if (myFixture != null) {
         try {
-          if (CAN_SYNC_PROJECTS) {
-            Project project = myFixture.getProject();
-            // Since we don't really open the project, but we manually register listeners in the gradle importer
-            // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
-            // that here, otherwise the testsuite will leak
-            if (requiresAndroidModel(project)) {
-              AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(project);
-              projectComponent.projectClosed();
-            }
+          Project project = myFixture.getProject();
+          // Since we don't really open the project, but we manually register listeners in the gradle importer
+          // by explicitly calling AndroidGradleProjectComponent#configureGradleProject, we need to counteract
+          // that here, otherwise the testsuite will leak
+          if (requiresAndroidModel(project)) {
+            AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(project);
+            projectComponent.projectClosed();
           }
         }
         finally {
@@ -195,9 +185,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         }
       }
 
-      if (CAN_SYNC_PROJECTS) {
-        GradleProjectImporter.ourSkipSetupFromTest = false;
-      }
+      GradleProjectImporter.ourSkipSetupFromTest = false;
 
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();

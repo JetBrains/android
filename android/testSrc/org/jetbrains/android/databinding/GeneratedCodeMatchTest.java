@@ -21,7 +21,6 @@ import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.util.containers.ContainerUtil;
@@ -32,7 +31,6 @@ import org.jetbrains.asm4.ClassVisitor;
 import org.jetbrains.asm4.FieldVisitor;
 import org.jetbrains.asm4.MethodVisitor;
 import org.jetbrains.org.objectweb.asm.Opcodes;
-import org.junit.Before;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,10 +72,6 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
   }
 
   public void testGeneratedCodeMatch() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("AndroidGradleProjectDataTest.testEndToEnd temporarily disabled");
-      return;
-    }
     File projectFolder = virtualToIoFile(myFixture.getProject().getBaseDir());
     createGradlePropertiesFile(projectFolder);
     loadProject("projects/projectWithDataBinding");
