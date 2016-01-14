@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.google.common.base.Objects;
 import com.google.common.collect.*;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +41,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 import static com.intellij.icons.AllIcons.Nodes.Module;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * Represents a merged view of the project model obtained from Gradle and the model obtained by parsing a module's build.gradle file.
@@ -79,16 +82,18 @@ public class ModuleMergedModel {
 
   private void populate() {
     GradleArtifactDependencies artifactDependencies = new GradleArtifactDependencies();
+    GradleModuleDependencies moduleDependencies = new GradleModuleDependencies();
+
     for (Variant variant : androidProject.getVariants()) {
       BaseArtifact mainArtifact = variant.getMainArtifact();
-      collectArtifactDependencies(variant, mainArtifact, artifactDependencies);
+      collectDependencies(variant, mainArtifact, artifactDependencies, moduleDependencies);
 
       for (BaseArtifact artifact : variant.getExtraAndroidArtifacts()) {
-        collectArtifactDependencies(variant, artifact, artifactDependencies);
+        collectDependencies(variant, artifact, artifactDependencies, moduleDependencies);
       }
 
       for (BaseArtifact artifact : variant.getExtraJavaArtifacts()) {
-        collectArtifactDependencies(variant, artifact, artifactDependencies);
+        collectDependencies(variant, artifact, artifactDependencies, moduleDependencies);
       }
     }
 
@@ -97,6 +102,9 @@ public class ModuleMergedModel {
       for (DependencyModel dependencyModel : dependenciesModel.all()) {
         if (dependencyModel instanceof ArtifactDependencyModel) {
           addDependency((ArtifactDependencyModel)dependencyModel, artifactDependencies);
+        }
+        else if (dependencyModel instanceof ModuleDependencyModel) {
+          addDependency((ModuleDependencyModel)dependencyModel, moduleDependencies);
         }
       }
     }
@@ -110,21 +118,32 @@ public class ModuleMergedModel {
     }
   }
 
-  private static void collectArtifactDependencies(@NotNull Variant variant,
-                                                  @NotNull BaseArtifact artifact,
-                                                  @NotNull GradleArtifactDependencies artifactDependencies) {
+  private void collectDependencies(@NotNull Variant variant,
+                                   @NotNull BaseArtifact artifact,
+                                   @NotNull GradleArtifactDependencies artifactDependencies,
+                                   @NotNull GradleModuleDependencies moduleDependencies) {
     String scopeName = getScopeName(artifact);
     if (isEmpty(scopeName)) {
       return;
     }
     Dependencies dependencies = artifact.getDependencies();
     for (AndroidLibrary library : dependencies.getLibraries()) {
-      GradleArtifactDependency dependency = GradleArtifactDependency.create(library);
-      artifactDependencies.add(variant, scopeName, dependency);
+      GradleArtifactDependency artifactDependency = GradleArtifactDependency.create(library);
+      if (artifactDependency != null) {
+        artifactDependencies.add(variant, scopeName, artifactDependency);
+      }
+      else {
+        GradleModuleDependency moduleDependency = GradleModuleDependency.create(library, module.getProject());
+        if (moduleDependency != null) {
+          moduleDependencies.add(variant, scopeName, moduleDependency);
+        }
+      }
     }
     for (JavaLibrary library : dependencies.getJavaLibraries()) {
-      GradleArtifactDependency dependency = GradleArtifactDependency.create(library);
-      artifactDependencies.add(variant, scopeName, dependency);
+      GradleArtifactDependency artifactDependency = GradleArtifactDependency.create(library);
+      if (artifactDependency != null) {
+        artifactDependencies.add(variant, scopeName, artifactDependency);
+      }
     }
   }
 
@@ -162,6 +181,30 @@ public class ModuleMergedModel {
     }
   }
 
+  private void addDependency(@NotNull ModuleDependencyModel parsedDependency, @NotNull GradleModuleDependencies moduleDependencies) {
+    String parsedPath = parsedDependency.path();
+    if (isNotEmpty(parsedPath)) {
+      String configurationName = parsedDependency.configurationName();
+      Collection<GradleModuleDependency> dependenciesInConfiguration = moduleDependencies.getByConfigurationName(configurationName);
+      if (!dependenciesInConfiguration.isEmpty()) {
+        List<GradleModuleDependency> fromGradleModel = Lists.newArrayList();
+        for (GradleModuleDependency dependency : dependenciesInConfiguration) {
+          String logicalPath = dependency.gradlePath;
+          if (Objects.equal(logicalPath, parsedPath)) {
+            fromGradleModel.add(dependency);
+            moduleDependencies.markAsFoundInBuildFile(dependency);
+          }
+        }
+        if (!fromGradleModel.isEmpty()) {
+          ModuleDependencyMergedModel model = ModuleDependencyMergedModel.create(this, fromGradleModel, parsedDependency);
+          if (model != null) {
+            myDependencyModels.add(model);
+          }
+        }
+      }
+    }
+  }
+
   @NotNull
   public String getModuleName() {
     return module.getName();
@@ -189,7 +232,7 @@ public class ModuleMergedModel {
   public List<DependencyMergedModel> getEditableDependencies() {
     List<DependencyMergedModel> dependencies = Lists.newArrayList();
     for (DependencyMergedModel model : myDependencyModels) {
-      if (model.isEditable()) {
+      if (model.isInBuildFile()) {
         dependencies.add(model);
       }
     }
@@ -204,25 +247,23 @@ public class ModuleMergedModel {
     @NotNull private final Map<String, GradleArtifactDependency> myDependenciesByCoordinate = Maps.newHashMap();
     @NotNull private final Set<GradleArtifactDependency> myDependencies = Sets.newHashSet(myDependenciesByCoordinate.values());
 
-    void add(@NotNull Variant variant, @NotNull String scopeName, @Nullable GradleArtifactDependency dependency) {
-      if (dependency != null) {
-        GradleArtifactDependency existing = myDependenciesByCoordinate.get(dependency.toString());
-        if (existing != null) {
-          dependency = existing;
-        }
-        else {
-          myDependenciesByCoordinate.put(dependency.toString(), dependency);
-        }
-        dependency.addContainer(variant);
-        myDependenciesByScope.put(scopeName, dependency);
-        scopeName = capitalize(scopeName);
-        for (String flavor : variant.getProductFlavors()) {
-          String flavorScope = flavor + scopeName;
-          myDependenciesByScope.put(flavorScope, dependency);
-        }
-        myDependenciesByScope.put(variant.getBuildType() + scopeName, dependency);
-        myDependencies.add(dependency);
+    void add(@NotNull Variant variant, @NotNull String scopeName, @NotNull GradleArtifactDependency dependency) {
+      GradleArtifactDependency existing = myDependenciesByCoordinate.get(dependency.toString());
+      if (existing != null) {
+        dependency = existing;
       }
+      else {
+        myDependenciesByCoordinate.put(dependency.toString(), dependency);
+      }
+      dependency.addContainer(variant);
+      myDependenciesByScope.put(scopeName, dependency);
+      scopeName = capitalize(scopeName);
+      for (String flavor : variant.getProductFlavors()) {
+        String flavorScope = flavor + scopeName;
+        myDependenciesByScope.put(flavorScope, dependency);
+      }
+      myDependenciesByScope.put(variant.getBuildType() + scopeName, dependency);
+      myDependencies.add(dependency);
     }
 
     @NotNull
@@ -243,4 +284,38 @@ public class ModuleMergedModel {
     }
   }
 
+  private static class GradleModuleDependencies {
+    @NotNull private final Multimap<String, GradleModuleDependency> myDependenciesByScope = LinkedHashMultimap.create();
+    @NotNull private final Map<String, GradleModuleDependency> myDependenciesByGradlePath = Maps.newHashMap();
+    @NotNull private final Set<GradleModuleDependency> myDependencies = Sets.newHashSet(myDependenciesByGradlePath.values());
+
+    void add(@NotNull Variant variant, @NotNull String scopeName, @NotNull GradleModuleDependency dependency) {
+      GradleModuleDependency existing = myDependenciesByGradlePath.get(dependency.toString());
+      if (existing != null) {
+        dependency = existing;
+      }
+      else {
+        myDependenciesByGradlePath.put(dependency.toString(), dependency);
+      }
+      dependency.addContainer(variant);
+      myDependenciesByScope.put(scopeName, dependency);
+      scopeName = capitalize(scopeName);
+      for (String flavor : variant.getProductFlavors()) {
+        String flavorScope = flavor + scopeName;
+        myDependenciesByScope.put(flavorScope, dependency);
+      }
+      myDependenciesByScope.put(variant.getBuildType() + scopeName, dependency);
+      myDependencies.add(dependency);
+
+    }
+
+    @NotNull
+    Collection<GradleModuleDependency> getByConfigurationName(@NotNull  String configurationName) {
+      return myDependenciesByScope.get(configurationName);
+    }
+
+    void markAsFoundInBuildFile(@NotNull GradleModuleDependency dependency) {
+      myDependencies.remove(dependency);
+    }
+  }
 }

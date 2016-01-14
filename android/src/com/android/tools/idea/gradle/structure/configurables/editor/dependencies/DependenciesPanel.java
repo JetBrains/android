@@ -159,14 +159,13 @@ class DependenciesPanel extends JPanel {
   }
 
   void selectInTreeView() {
+    myDependenciesTreePanel.clearSelection();
     Collection<DependencyMergedModel> selection = myDependencyTable.getSelection();
     if (selection.size() == 1) {
       DependencyMergedModel dependency = getFirstItem(selection);
       assert dependency != null;
       myDependenciesTreePanel.select(dependency);
-      return;
     }
-    myDependenciesTreePanel.clearSelection();
   }
 
   private void updateCurrentEditor() {
@@ -264,13 +263,10 @@ class DependenciesPanel extends JPanel {
   }
 
   @Nullable
-  ArtifactDependencyMergedModel find(@NotNull Library library) {
+  DependencyMergedModel find(@NotNull Library library) {
     for (DependencyMergedModel dependency : myModel.getDependencies()) {
-      if (dependency instanceof ArtifactDependencyMergedModel) {
-        ArtifactDependencyMergedModel artifactDependency = (ArtifactDependencyMergedModel)dependency;
-        if (artifactDependency.matches(library)) {
-          return artifactDependency;
-        }
+      if (dependency.matches(library)) {
+        return dependency;
       }
     }
     return null;

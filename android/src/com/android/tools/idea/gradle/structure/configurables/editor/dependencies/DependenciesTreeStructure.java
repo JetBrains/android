@@ -21,7 +21,10 @@ import com.android.tools.idea.gradle.structure.configurables.editor.treeview.Con
 import com.android.tools.idea.gradle.structure.configurables.editor.treeview.GradleNode;
 import com.android.tools.idea.gradle.structure.configurables.editor.treeview.VariantNode;
 import com.android.tools.idea.gradle.structure.configurables.model.ArtifactDependencyMergedModel;
+import com.android.tools.idea.gradle.structure.configurables.model.ModuleDependencyMergedModel;
+import com.android.tools.idea.gradle.structure.configurables.model.DependencyMergedModel;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import icons.AndroidIcons;
@@ -105,35 +108,41 @@ class DependenciesTreeStructure extends AbstractTreeStructure {
   private void collectDependencies(@NotNull VariantNode node, @NotNull BaseArtifact artifact, @NotNull List<GradleNode> children) {
     Dependencies dependencies = artifact.getDependencies();
     for (JavaLibrary library : dependencies.getJavaLibraries()) {
-      ArtifactNode child = addIfMatching(node, library, children);
-      if (child != null) {
-        addTransitiveDependencies(child, library.getDependencies());
+      DependencyNode child = addIfMatching(node, library, children);
+      if (child instanceof ArtifactNode) {
+        addTransitiveDependencies((ArtifactNode)child, library.getDependencies());
       }
     }
     for (AndroidLibrary library : dependencies.getLibraries()) {
-      ArtifactNode child = addIfMatching(node, library, children);
-      if (child != null) {
-        addTransitiveDependencies(child, library.getLibraryDependencies());
+      DependencyNode child = addIfMatching(node, library, children);
+      if (child instanceof ArtifactNode) {
+        addTransitiveDependencies((ArtifactNode)child, library.getLibraryDependencies());
       }
     }
   }
 
   @Nullable
-  private ArtifactNode addIfMatching(@NotNull GradleNode node, @NotNull Library library, @NotNull List<GradleNode> children) {
+  private DependencyNode addIfMatching(@NotNull GradleNode node, @NotNull Library library, @NotNull List<GradleNode> children) {
+    DependencyMergedModel dependencyModel = myDependenciesPanel.find(library);
+
     if (library instanceof AndroidLibrary) {
       AndroidLibrary androidLibrary = (AndroidLibrary)library;
-      if (isNotEmpty(androidLibrary.getProject())) {
-        return null;
+      String gradlePath = androidLibrary.getProject();
+      if (dependencyModel instanceof ModuleDependencyMergedModel && isNotEmpty(gradlePath)) {
+        ModuleNode child = new ModuleNode(gradlePath, node, (ModuleDependencyMergedModel)dependencyModel);
+        children.add(child);
+        return child;
       }
     }
 
-    ArtifactDependencyMergedModel dependencyModel = myDependenciesPanel.find(library);
-
-    GradleCoordinate coordinate = getGradleCoordinate(library, dependencyModel);
-    if (coordinate != null) {
-      ArtifactNode child = new ArtifactNode(coordinate, node, dependencyModel);
-      children.add(child);
-      return child;
+    if (dependencyModel instanceof ArtifactDependencyMergedModel) {
+      ArtifactDependencyMergedModel artifactDependencyModel = (ArtifactDependencyMergedModel)dependencyModel;
+      GradleCoordinate coordinate = getGradleCoordinate(library, artifactDependencyModel);
+      if (coordinate != null) {
+        ArtifactNode child = new ArtifactNode(coordinate, node, artifactDependencyModel);
+        children.add(child);
+        return child;
+      }
     }
 
     return null;
@@ -142,11 +151,14 @@ class DependenciesTreeStructure extends AbstractTreeStructure {
   private void addTransitiveDependencies(@NotNull ArtifactNode node, @NotNull List<? extends Library> dependencies) {
     List<GradleNode> transitiveNodes = Lists.newArrayList();
     for (Library dependency : dependencies) {
-      ArtifactDependencyMergedModel dependencyModel = myDependenciesPanel.find(dependency);
-      GradleCoordinate coordinate = getGradleCoordinate(dependency, dependencyModel);
-      if (coordinate != null) {
-        ArtifactNode child = new ArtifactNode(coordinate, node, myDependenciesPanel.find(dependency));
-        transitiveNodes.add(child);
+      DependencyMergedModel dependencyModel = myDependenciesPanel.find(dependency);
+      if (dependencyModel instanceof ArtifactDependencyMergedModel) {
+        ArtifactDependencyMergedModel artifactDependencyModel = (ArtifactDependencyMergedModel)dependencyModel;
+        GradleCoordinate coordinate = getGradleCoordinate(dependency, artifactDependencyModel);
+        if (coordinate != null) {
+          ArtifactNode child = new ArtifactNode(coordinate, node, artifactDependencyModel);
+          transitiveNodes.add(child);
+        }
       }
     }
     if (!transitiveNodes.isEmpty()) {
@@ -198,20 +210,51 @@ class DependenciesTreeStructure extends AbstractTreeStructure {
     return false;
   }
 
-  static class ArtifactNode extends GradleNode {
+  static class ArtifactNode extends DependencyNode {
     @NotNull final GradleCoordinate coordinate;
-    @Nullable final ArtifactDependencyMergedModel dependencyModel;
 
     ArtifactNode(@NotNull GradleCoordinate coordinate,
                  @Nullable GradleNode parentDescriptor,
                  @Nullable ArtifactDependencyMergedModel dependencyModel) {
-      super(parentDescriptor);
+      super(parentDescriptor, dependencyModel);
       this.coordinate = coordinate;
-      this.dependencyModel = dependencyModel;
       myName = coordinate.getArtifactId() + GRADLE_PATH_SEPARATOR + coordinate.getRevision();
-      myClosedIcon = dependencyModel != null ? LIBRARY_ICON : AndroidIcons.ProjectStructure.UnknownLibrary;
+      if (dependencyModel != null) {
+        myClosedIcon = LIBRARY_ICON;
+      }
+    }
+  }
+
+  static class ModuleNode extends DependencyNode {
+    @NotNull private final String myGradlePath;
+
+    ModuleNode(@NotNull String gradlePath, @Nullable GradleNode parentDescriptor, @Nullable ModuleDependencyMergedModel dependencyModel) {
+      super(parentDescriptor, dependencyModel);
+      myGradlePath = gradlePath;
+      if (dependencyModel != null) {
+        myName = dependencyModel.toString();
+      }
+      else {
+        myName = gradlePath;
+      }
+      myClosedIcon = AllIcons.Nodes.Module;
+    }
+
+    @NotNull
+    String getGradlePath() {
+      return myGradlePath;
+    }
+  }
+
+  static class DependencyNode extends GradleNode {
+    @Nullable final DependencyMergedModel dependencyModel;
+
+    protected DependencyNode(@Nullable GradleNode parentDescriptor, @Nullable DependencyMergedModel dependencyModel) {
+      super(parentDescriptor);
+      this.dependencyModel = dependencyModel;
       setChildren(NO_CHILDREN);
       setAutoExpand(true);
+      myClosedIcon = AndroidIcons.ProjectStructure.UnknownLibrary;
     }
 
     boolean isInBuildFile() {

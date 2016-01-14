@@ -92,6 +92,7 @@ public class ArtifactDependencyMergedModel extends DependencyMergedModel {
     return !myGradleArtifactDependencies.isEmpty();
   }
 
+  @Override
   public boolean matches(@NotNull Library library) {
     for (GradleArtifactDependency dependency : myGradleArtifactDependencies) {
       if (dependency.dependency == library) {
@@ -112,7 +113,7 @@ public class ArtifactDependencyMergedModel extends DependencyMergedModel {
   }
 
   @Override
-  public boolean isEditable() {
+  public boolean isInBuildFile() {
     return myParsedModel != null;
   }
 
