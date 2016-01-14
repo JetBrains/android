@@ -18,8 +18,12 @@ package com.android.tools.idea.run.editor;
 import com.android.ddmlib.Client;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.impl.DebuggerSession;
+import com.intellij.debugger.ui.breakpoints.JavaFieldBreakpointType;
+import com.intellij.debugger.ui.breakpoints.JavaLineBreakpointType;
+import com.intellij.debugger.ui.breakpoints.JavaMethodBreakpointType;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -35,6 +39,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.NotNullFunction;
+import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,10 +49,22 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-public class AndroidJavaDebugger implements AndroidDebugger<AndroidDebuggerState> {
-
+public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebuggerState> {
   public static final String ID = "Java";
   private static final String RUN_CONFIGURATION_NAME_PATTERN = "Android Debugger (%s)";
+
+  // This set of breakpoints is by no means is fully complete because
+  // it stands for validation purposes which improves user's experience.
+  public static final Set<Class<? extends XBreakpointType<?, ?>>> JAVA_BREAKPOINT_TYPES =
+    ImmutableSet.<Class<? extends XBreakpointType<?, ?>>>of(
+      JavaLineBreakpointType.class,
+      JavaMethodBreakpointType.class,
+      JavaFieldBreakpointType.class
+  );
+
+  public AndroidJavaDebugger() {
+    super(JAVA_BREAKPOINT_TYPES);
+  }
 
   @NotNull
   @Override
@@ -80,7 +97,7 @@ public class AndroidJavaDebugger implements AndroidDebugger<AndroidDebuggerState
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull AndroidDebuggerState state,
                                                    @NotNull String runConfigTypeId) {
-    return new ConnectJavaDebuggerTask(env.getProject(), applicationIds);
+    return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject());
   }
 
   @Override
