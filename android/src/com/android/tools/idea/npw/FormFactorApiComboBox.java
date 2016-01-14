@@ -74,7 +74,7 @@ public final class FormFactorApiComboBox extends JComboBox {
   private static final List<AndroidTargetComboBoxItem> ourTargets = Lists.newArrayList();
   private static IAndroidTarget ourHighestInstalledApiTarget;
 
-  private FormFactorUtils.FormFactor myFormFactor;
+  private FormFactor myFormFactor;
 
   private RepoPackage myInstallRequest;
   private Key<String> myBuildApiKey;
@@ -94,7 +94,7 @@ public final class FormFactorApiComboBox extends JComboBox {
    * @param foundItemsCallback A Runnable that will be run once we've determined that there are available items to show.
    * @param noItemsCallback A Runnable that will be run when we've finished looking for items without finding any.
    */
-  public void init(@NotNull FormFactorUtils.FormFactor formFactor, int minSdkLevel, @Nullable Runnable completedCallback,
+  public void init(@NotNull FormFactor formFactor, int minSdkLevel, @Nullable Runnable completedCallback,
                    @Nullable Runnable foundItemsCallback, @Nullable Runnable noItemsCallback) {
     myFormFactor = formFactor;
 
@@ -250,7 +250,7 @@ public final class FormFactorApiComboBox extends JComboBox {
     ScopedDataBinder.setSelectedItem(this, item);
   }
 
-  private void populateComboBox(@NotNull FormFactorUtils.FormFactor formFactor, int minSdk) {
+  private void populateComboBox(@NotNull FormFactor formFactor, int minSdk) {
     for (AndroidTargetComboBoxItem target :
       Iterables.filter(ourTargets, FormFactorUtils.getMinSdkComboBoxFilter(formFactor, minSdk))) {
       if (target.apiLevel >= minSdk || (target.target != null && target.target.getVersion().isPreview())) {

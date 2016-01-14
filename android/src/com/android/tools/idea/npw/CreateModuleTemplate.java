@@ -33,7 +33,7 @@ public class CreateModuleTemplate extends AbstractModuleTemplate {
   @Nullable private final TemplateMetadata templateMetadata;
 
   public CreateModuleTemplate(@Nullable TemplateMetadata metadata,
-                              @Nullable FormFactorUtils.FormFactor formFactor,
+                              @Nullable FormFactor formFactor,
                               @NotNull String name,
                               @NotNull Icon icon) {
     super(name, metadata != null ? metadata.getDescription() : null, formFactor, icon);
