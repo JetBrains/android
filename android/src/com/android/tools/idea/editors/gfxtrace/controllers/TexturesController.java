@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
@@ -112,34 +113,31 @@ public class TexturesController extends ImagePanelController {
     }
 
     private void loadCellMetadata(final Data cell) {
-      Rpc.listen(myEditor.getClient().get(cell.path), EdtExecutor.INSTANCE, LOG,
-                 cell.extraController, new Rpc.Callback() {
-      @Override
-      public void onFinish(Rpc.Result result) throws RpcException, ExecutionException {
-        Object resource = result.get();
-        final String displayLabel;
-        if (resource instanceof Texture2D) {
-          Texture2D texture = (Texture2D)resource;
-          displayLabel = getTextureDisplayLabel(cell, texture.getLevels()[0], texture.getLevels().length);
-        }
-        else if (resource instanceof Cubemap) {
-          final Cubemap texture = (Cubemap)resource;
-          displayLabel = getTextureDisplayLabel(cell, texture.getLevels()[0].getNegativeZ(), texture.getLevels().length);
-        }
-        else {
-          displayLabel = null;
+      Rpc.listen(myEditor.getClient().get(cell.path), LOG, cell.extraController, new UiCallback<Object, String>() {
+        @Override
+        protected String onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
+          Object resource = result.get();
+          if (resource instanceof Texture2D) {
+            Texture2D texture = (Texture2D)resource;
+            return getTextureDisplayLabel(cell, texture.getLevels()[0], texture.getLevels().length);
+          }
+          else if (resource instanceof Cubemap) {
+            final Cubemap texture = (Cubemap)resource;
+            return getTextureDisplayLabel(cell, texture.getLevels()[0].getNegativeZ(), texture.getLevels().length);
+          }
+          else {
+            return null;
+          }
         }
 
-        if (displayLabel != null) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              cell.extraLabel = displayLabel;
-              myList.repaint();
-            }
-          });
+        @Override
+        protected void onUiThread(String result) {
+          if (result != null) {
+            cell.extraLabel = result;
+            myList.repaint();
+          }
         }
-      }});
+      });
     }
 
     static String getTextureDisplayLabel(Data cell, ImageInfo base, int mipmapLevels) {
@@ -179,12 +177,15 @@ public class TexturesController extends ImagePanelController {
     @Override
     public void notifyPath(PathEvent event) {
       if (myResourcesPath.updateIfNotNull(CapturePath.resources(event.findCapturePath()))) {
-        Rpc.listen(myEditor.getClient().get(myResourcesPath.getPath()), EdtExecutor.INSTANCE, LOG,
-                   new Rpc.Callback<Resources>() {
+        Rpc.listen(myEditor.getClient().get(myResourcesPath.getPath()), LOG, new UiCallback<Resources, Resources>() {
           @Override
-          public void onFinish(Rpc.Result<Resources> result) throws RpcException, ExecutionException {
-            // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
-            myResources = result.get();
+          protected Resources onRpcThread(Rpc.Result<Resources> result) throws RpcException, ExecutionException {
+            return result.get();
+          }
+
+          @Override
+          protected void onUiThread(Resources result) {
+            myResources = result;
             update(true);
           }
         });

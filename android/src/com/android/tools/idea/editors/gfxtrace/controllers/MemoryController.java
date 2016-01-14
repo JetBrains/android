@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.MemoryRangePath;
 import com.android.tools.rpclib.rpccore.Rpc;
@@ -129,16 +130,17 @@ public class MemoryController extends Controller {
         update();
       }
       else {
-        Rpc.listen(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), EdtExecutor.INSTANCE, LOG,
-                   new Rpc.Callback<byte[]>() {
+        Rpc.listen(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), LOG, new UiCallback<byte[], MemoryDataModel>() {
           @Override
-          public void onFinish(Rpc.Result<byte[]> result) throws RpcException, ExecutionException {
-            // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
+          protected MemoryDataModel onRpcThread(Rpc.Result<byte[]> result) throws RpcException, ExecutionException {
             byte[] data = result.get();
-            if (data != null) {
-              myMemoryData = new ImmediateMemoryDataModel(memoryPath.getAddress(), data);
-              update();
-            }
+            return (data == null) ? null : new ImmediateMemoryDataModel(memoryPath.getAddress(), data);
+          }
+
+          @Override
+          protected void onUiThread(MemoryDataModel result) {
+            myMemoryData = result;
+            update();
           }
         });
       }
