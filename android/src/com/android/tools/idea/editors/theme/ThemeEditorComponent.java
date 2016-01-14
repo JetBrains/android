@@ -31,16 +31,11 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNotificationManager;
 import com.android.tools.idea.rendering.ResourceNotificationManager.ResourceChangeListener;
-import com.android.tools.idea.ui.SearchField;
 import com.google.common.collect.*;
 import com.intellij.find.FindManager;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -53,16 +48,14 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.ui.*;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.plaf.PanelUI;
 import javax.swing.table.DefaultTableModel;
@@ -74,11 +67,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
 
 public class ThemeEditorComponent extends Splitter implements Disposable {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
@@ -146,7 +134,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
   // Subcomponents
   private final ThemeEditorContext myThemeEditorContext;
-  private final AndroidThemePreviewPanel myPreviewPanel;
+  private final ThemePreviewComponent myPreviewComponent;
 
   private final StyleAttributesFilter myAttributesFilter;
   private TableRowSorter<AttributesTableModel> myAttributesSorter;
@@ -167,14 +155,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
   private MutableCollectionComboBoxModel<Module> myModuleComboModel;
 
-  /** Next pending search. The {@link ScheduledFuture} allows us to cancel the next search before it runs. */
-  private ScheduledFuture<?> myScheduledSearch;
-
-  private final ScheduledExecutorService mySearchUpdateScheduler;
   private String myPreviewThemeName;
-  private final JPanel myToolbar;
-  private final JComponent myActionToolbarComponent;
-  private final SearchTextField myTextField;
 
   public interface GoToListener {
     void goTo(@NotNull EditedStyleItem value);
@@ -217,9 +198,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       }
     });
 
-    myPreviewPanel = new AndroidThemePreviewPanel(myThemeEditorContext, PREVIEW_BACKGROUND);
-    Disposer.register(this, myPreviewPanel);
-    myPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+    myPreviewComponent = new ThemePreviewComponent(myThemeEditorContext);
+    Disposer.register(this, myPreviewComponent);
 
     GoToListener goToListener = new GoToListener() {
       @Override
@@ -317,7 +297,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         }
       }
     };
-    myAttributesTable.customizeTable(myThemeEditorContext, myPreviewPanel, themeParentChangedListener);
+    myAttributesTable.customizeTable(myThemeEditorContext, myPreviewComponent.getPreviewPanel(), themeParentChangedListener);
     myAttributesTable.setGoToListener(goToListener);
 
     updateUiParameters();
@@ -400,53 +380,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       }
     });
 
-    // Adds the Device selection button
-    DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new OrientationMenuAction(myPreviewPanel, false));
-    group.add(new DeviceMenuAction(myPreviewPanel, false));
-    group.add(new TargetMenuAction(myPreviewPanel, true, false));
-    group.add(new LocaleMenuAction(myPreviewPanel, false));
-
-    ActionManager actionManager = ActionManager.getInstance();
-    ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
-    actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
-
-    myToolbar = new JPanel(null);
-    myToolbar.setLayout(new BoxLayout(myToolbar, BoxLayout.X_AXIS));
-    myToolbar.setBorder(JBUI.Borders.empty(7, 14, 7, 14));
-
-    myActionToolbarComponent = actionToolbar.getComponent();
-    myToolbar.add(myActionToolbarComponent);
-
-    myTextField = new SearchField(true);
-    // Avoid search box stretching more than 1 line.
-    myTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, myTextField.getPreferredSize().height));
-
-    mySearchUpdateScheduler = Executors.newSingleThreadScheduledExecutor(ConcurrencyUtil.newNamedThreadFactory("Theme Editor Searcher"));
-    myTextField.addDocumentListener(new DocumentAdapter() {
-      @Override
-      protected void textChanged(DocumentEvent e) {
-        if (myScheduledSearch != null) {
-          myScheduledSearch.cancel(false);
-        }
-
-        myScheduledSearch = mySearchUpdateScheduler.schedule(new Runnable() {
-          @Override
-          public void run() {
-            myPreviewPanel.setSearchTerm(myTextField.getText());
-          }
-        }, 300, TimeUnit.MILLISECONDS);
-      }
-    });
-    myToolbar.add(myTextField);
-
-    final JPanel previewPanel = new JPanel(new BorderLayout());
-    previewPanel.add(myPreviewPanel, BorderLayout.CENTER);
-    previewPanel.add(myToolbar, BorderLayout.NORTH);
-
-    setPreviewBackground(PREVIEW_BACKGROUND);
-
-    setFirstComponent(previewPanel);
+    setFirstComponent(myPreviewComponent);
     setSecondComponent(myPanel.getRightPanel());
     setShowDividerControls(false);
     setProportion(0.67f);
@@ -478,21 +412,6 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     // Set an initial state in case that the editor didn't have a previously saved state
     // TODO: Try to be smarter about this and get the ThemeEditor to set a default state where there is no previous state
     reload(null);
-  }
-
-  public void setPreviewBackground(@NotNull final Color bg) {
-    myToolbar.setBackground(bg);
-    myActionToolbarComponent.setBackground(bg);
-
-    myTextField.setBackground(bg);
-    // If the text field has icons outside of the search field, their background needs to be set correctly
-    for (Component component : myTextField.getComponents()) {
-      if (component instanceof JLabel) {
-        component.setBackground(bg);
-      }
-    }
-
-    myPreviewPanel.setBackground(bg);
   }
 
   @NotNull
@@ -909,17 +828,18 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     myPanel.setSubstyleName(mySubStyleName);
     myPanel.getBackButton().setVisible(mySubStyleName != null);
 
+    AndroidThemePreviewPanel previewPanel = myPreviewComponent.getPreviewPanel();
     if (selectedTheme == null) {
       if (myThemeName != null) {
-        myPreviewPanel.setErrorMessage("The theme " + myThemeName + " cannot be rendered in the current configuration");
+        previewPanel.setErrorMessage("The theme " + myThemeName + " cannot be rendered in the current configuration");
       } else {
-        myPreviewPanel.setErrorMessage("No theme selected");
+        previewPanel.setErrorMessage("No theme selected");
       }
       myAttributesTable.setModel(EMPTY_TABLE_MODEL);
       return;
     }
 
-    myPreviewPanel.setErrorMessage(null);
+    previewPanel.setErrorMessage(null);
 
     myPanel.setShowThemeNotUsedWarning(false);
     if (selectedTheme.isProjectStyle()) {
@@ -1016,30 +936,11 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
     ResourceResolver resourceResolver = myThemeEditorContext.getResourceResolver();
     assert resourceResolver != null;
-    setPreviewBackground(getGoodContrastPreviewBackground(selectedTheme, resourceResolver));
+    myPreviewComponent.setPreviewBackground(ThemeEditorUtils.getGoodContrastPreviewBackground(selectedTheme, resourceResolver));
 
-    myPreviewPanel.invalidateGraphicsRenderer();
-    myPreviewPanel.revalidate();
+    myPreviewComponent.reloadPreviewContents();
     myAttributesTable.repaint();
     myPanel.getThemeCombo().repaint();
-  }
-
-  /**
-   * Returns the color that should be used for the background of the preview panel depending on the background color
-   * of the theme being displayed, so as to always keep some contrast between the two.
-   */
-  public static JBColor getGoodContrastPreviewBackground(@NotNull ConfiguredThemeEditorStyle theme, @NotNull ResourceResolver resourceResolver) {
-    ItemResourceValue themeColorBackgroundItem = ThemeEditorUtils.resolveItemFromParents(theme, "colorBackground", true);
-    String colorBackgroundValue = resourceResolver.resolveResValue(themeColorBackgroundItem).getValue();
-    Color colorBackground = ResourceHelper.parseColor(colorBackgroundValue);
-    if (colorBackground != null) {
-      float backgroundDistance = MaterialColorUtils.colorDistance(colorBackground, PREVIEW_BACKGROUND);
-      if (backgroundDistance < COLOR_DISTANCE_THRESHOLD &&
-          backgroundDistance < MaterialColorUtils.colorDistance(colorBackground, ALT_PREVIEW_BACKGROUND)) {
-        return ALT_PREVIEW_BACKGROUND;
-      }
-    }
-    return PREVIEW_BACKGROUND;
   }
 
   /**
@@ -1062,10 +963,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
       ResourceResolver resourceResolver = myThemeEditorContext.getResourceResolver();
       assert resourceResolver != null;
-      setPreviewBackground(getGoodContrastPreviewBackground(previewTheme, resourceResolver));
+      myPreviewComponent.setPreviewBackground(ThemeEditorUtils.getGoodContrastPreviewBackground(previewTheme, resourceResolver));
 
-      myPreviewPanel.invalidateGraphicsRenderer();
-      myPreviewPanel.revalidate();
+      myPreviewComponent.reloadPreviewContents();
     }
   }
 
@@ -1077,10 +977,6 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     if (mySwingWorker != null) {
       mySwingWorker.cancel(true);
     }
-    if (myScheduledSearch != null) {
-      myScheduledSearch.cancel(false);
-    }
-    mySearchUpdateScheduler.shutdownNow();
     super.dispose();
   }
 

@@ -44,6 +44,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -480,12 +481,28 @@ public class Configuration implements Disposable, ModificationTracker {
           if (resources != null && myFile != null) {
             ResourceFolderType folderType = ResourceHelper.getFolderType(myFile);
             if (folderType != null) {
-              List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
-              if (!types.isEmpty()) {
-                ResourceType type = types.get(0);
-                List<VirtualFile> matches = resources.getMatchingFiles(myFile, type, currentConfig);
-                if (matches.contains(myFile)) {
-                  return device;
+              if (ResourceFolderType.VALUES.equals(folderType)) {
+                // If it's a file in the values folder, ResourceRepository.getMatchingFiles won't work.
+                // We get instead all the available folders and check that there is one compatible.
+                LocalResourceManager resourceManager = LocalResourceManager.getInstance(module);
+                if (resourceManager != null) {
+                  for (PsiFile resourceFile : resourceManager.findResourceFiles("values")) {
+                    if (myFile.equals(resourceFile.getVirtualFile()) && resourceFile.getParent() != null) {
+                      FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(resourceFile.getParent().getName());
+                      if (currentConfig.isMatchFor(folderConfiguration)) {
+                        return device;
+                      }
+                    }
+                  }
+                }
+              } else {
+                List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
+                if (!types.isEmpty()) {
+                  ResourceType type = types.get(0);
+                  List<VirtualFile> matches = resources.getMatchingFiles(myFile, type, currentConfig);
+                  if (matches.contains(myFile)) {
+                    return device;
+                  }
                 }
               }
             } else if ("Kotlin".equals(myFile.getFileType().getName())) {
