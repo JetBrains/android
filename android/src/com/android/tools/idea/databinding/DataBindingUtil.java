@@ -345,7 +345,7 @@ public class DataBindingUtil {
   }
 
   public static boolean isBindingExpression(@NotNull String string) {
-    return string.startsWith(SdkConstants.PREFIX_BINDING_EXPR);
+    return string.startsWith(SdkConstants.PREFIX_BINDING_EXPR) || string.startsWith(SdkConstants.PREFIX_TWOWAY_BINDING_EXPR);
   }
 
   /**

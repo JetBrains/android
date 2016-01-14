@@ -30,6 +30,7 @@ import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.PREFIX_BINDING_EXPR;
+import static com.android.SdkConstants.PREFIX_TWOWAY_BINDING_EXPR;
 
 public class DbLanguageInjector implements LanguageInjector {
   @Override
@@ -42,6 +43,8 @@ public class DbLanguageInjector implements LanguageInjector {
       return;
     }
 
+    String prefix = valueText.startsWith(PREFIX_TWOWAY_BINDING_EXPR) ? PREFIX_TWOWAY_BINDING_EXPR : PREFIX_BINDING_EXPR;
+
     PsiElement parent = host.getParent();
     if (!(parent instanceof XmlAttribute)) return;
     GenericAttributeValue element = DomManager.getDomManager(host.getProject()).getDomElement((XmlAttribute)parent);
@@ -49,7 +52,7 @@ public class DbLanguageInjector implements LanguageInjector {
 
     // Parser only parses the expression, not the prefix '@{' or the suffix '}'. Extract the start/end index of the expression.
     String unescapedValue = host.getText();
-    int startIndex = unescapedValue.indexOf(PREFIX_BINDING_EXPR.charAt(0)) + PREFIX_BINDING_EXPR.length();
+    int startIndex = unescapedValue.indexOf(prefix.charAt(0)) + prefix.length();
     int endIndex;
     if (valueText.endsWith("}")) {
       endIndex = unescapedValue.lastIndexOf('}');
