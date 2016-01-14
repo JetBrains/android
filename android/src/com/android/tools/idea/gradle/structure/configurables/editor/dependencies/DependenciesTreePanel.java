@@ -17,8 +17,11 @@ package com.android.tools.idea.gradle.structure.configurables.editor.dependencie
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.structure.configurables.editor.dependencies.DependenciesTreeStructure.ArtifactNode;
+import com.android.tools.idea.gradle.structure.configurables.editor.dependencies.DependenciesTreeStructure.DependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.editor.dependencies.DependenciesTreeStructure.ModuleNode;
 import com.android.tools.idea.gradle.structure.configurables.model.ArtifactDependencyMergedModel;
 import com.android.tools.idea.gradle.structure.configurables.model.DependencyMergedModel;
+import com.android.tools.idea.gradle.structure.configurables.model.ModuleDependencyMergedModel;
 import com.android.tools.idea.structure.dialog.HeaderPanel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.ActionCallback;
@@ -62,13 +65,16 @@ class DependenciesTreePanel extends JPanel {
           myProgrammaticSelection = false;
           return;
         }
-        Set<ArtifactNode> selection = myTreeBuilder.getSelectedElements(ArtifactNode.class);
+        Set<DependencyNode> selection = myTreeBuilder.getSelectedElements(DependencyNode.class);
         if (selection.size() == 1) {
-          ArtifactNode selected = getFirstItem(selection);
+          DependencyNode selected = getFirstItem(selection);
           assert selected != null;
-          ArtifactDependencyMergedModel dependency = selected.dependencyModel;
+
+          DependencyMergedModel dependency = selected.dependencyModel;
           if (dependency == null) {
-            select(selected.coordinate);
+            if (selected instanceof ArtifactNode) {
+              selectArtifact(((ArtifactNode)selected).coordinate);
+            }
           }
           else {
             boolean dependencySelected = dependenciesPanel.select(dependency);
@@ -101,11 +107,15 @@ class DependenciesTreePanel extends JPanel {
   void select(@NotNull DependencyMergedModel dependency) {
     if (dependency instanceof ArtifactDependencyMergedModel) {
       ArtifactDependencyMergedModel artifactDependency = (ArtifactDependencyMergedModel)dependency;
-      select(artifactDependency.getCoordinate());
+      selectArtifact(artifactDependency.getCoordinate());
+    }
+    else if (dependency instanceof ModuleDependencyMergedModel) {
+      ModuleDependencyMergedModel moduleDependency = (ModuleDependencyMergedModel)dependency;
+      selectModule(moduleDependency.getGradlePath());
     }
   }
 
-  private void select(@NotNull GradleCoordinate coordinate) {
+  private void selectArtifact(@NotNull GradleCoordinate coordinate) {
     DefaultMutableTreeNode rootNode = myTreeBuilder.getRootNode();
     if (rootNode != null) {
       List<TreePath> selectionPaths = Lists.newArrayList();
@@ -115,11 +125,29 @@ class DependenciesTreePanel extends JPanel {
         DefaultMutableTreeNode variantNode = (DefaultMutableTreeNode)rootNode.getChildAt(i);
         collectMatchingDependencies(coordinate, variantNode, selectionPaths);
       }
-      if (!selectionPaths.isEmpty()) {
-        clearSelection();
-        myProgrammaticSelection = true;
-        myTree.setSelectionPaths(selectionPaths.toArray(new TreePath[selectionPaths.size()]));
+      updateProgrammaticSelection(selectionPaths);
+    }
+  }
+
+  private void selectModule(@NotNull String gradlePath) {
+    DefaultMutableTreeNode rootNode = myTreeBuilder.getRootNode();
+    if (rootNode != null) {
+      List<TreePath> selectionPaths = Lists.newArrayList();
+
+      int variantCount = rootNode.getChildCount();
+      for (int i = 0; i < variantCount; i++) {
+        DefaultMutableTreeNode variantNode = (DefaultMutableTreeNode)rootNode.getChildAt(i);
+        collectMatchingDependencies(gradlePath, variantNode, selectionPaths);
       }
+      updateProgrammaticSelection(selectionPaths);
+    }
+  }
+
+  private void updateProgrammaticSelection(@NotNull List<TreePath> selectionPaths) {
+    if (!selectionPaths.isEmpty()) {
+      clearSelection();
+      myProgrammaticSelection = true;
+      myTree.setSelectionPaths(selectionPaths.toArray(new TreePath[selectionPaths.size()]));
     }
   }
 
@@ -138,6 +166,24 @@ class DependenciesTreePanel extends JPanel {
           selectionPaths.add(path);
         }
         collectMatchingDependencies(coordinate, dependencyNode, selectionPaths);
+      }
+    }
+  }
+
+  private static void collectMatchingDependencies(@NotNull String gradlePath,
+                                                  @NotNull DefaultMutableTreeNode parentNode,
+                                                  @NotNull List<TreePath> selectionPaths) {
+    int dependencyCount = parentNode.getChildCount();
+
+    for (int i = 0; i < dependencyCount; i++) {
+      DefaultMutableTreeNode dependencyNode = (DefaultMutableTreeNode)parentNode.getChildAt(i);
+      Object userObject = dependencyNode.getUserObject();
+      if (userObject instanceof ModuleNode) {
+        ModuleNode moduleNode = (ModuleNode)userObject;
+        if (gradlePath.equals(moduleNode.getGradlePath())) {
+          TreePath path = new TreePath(dependencyNode.getPath());
+          selectionPaths.add(path);
+        }
       }
     }
   }

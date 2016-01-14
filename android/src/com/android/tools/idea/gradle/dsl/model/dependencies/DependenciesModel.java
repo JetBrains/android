@@ -43,6 +43,10 @@ public class DependenciesModel extends GradleDslBlockModel {
       if (list != null) {
         for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
           dependencies.addAll(ArtifactDependencyModel.create(element));
+          if (element instanceof GradleDslMethodCall) {
+            GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
+            dependencies.addAll(ModuleDependencyModel.create(configurationName, methodCall));
+          }
         }
       }
     }
