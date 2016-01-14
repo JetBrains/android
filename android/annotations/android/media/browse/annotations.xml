@@ -54,9 +54,6 @@
   <item name="android.media.browse.MediaBrowser.SubscriptionCallback void onChildrenLoaded(java.lang.String, java.util.List&lt;android.media.browse.MediaBrowser.MediaItem&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.media.browse.MediaBrowser.SubscriptionCallback void onChildrenLoaded(java.lang.String, java.util.List&lt;android.media.browse.MediaBrowser.MediaItem&gt;) 1">
-    <annotation name="android.support.annotation.NonNull" />
-  </item>
   <item name="android.media.browse.MediaBrowser.SubscriptionCallback void onError(java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>

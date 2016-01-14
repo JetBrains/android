@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.inputmethodservice.InputMethodService boolean onEvaluateInputViewShown()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.inputmethodservice.InputMethodService void showStatusIcon(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>

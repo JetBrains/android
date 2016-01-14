@@ -82,14 +82,19 @@
     </annotation>
   </item>
   <item name="android.accounts.AccountManager android.accounts.Account[] getAccounts()">
+    <annotation name="android.support.annotation.NonNull" />
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.GET_ACCOUNTS&quot;" />
     </annotation>
   </item>
   <item name="android.accounts.AccountManager android.accounts.Account[] getAccountsByType(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.GET_ACCOUNTS&quot;" />
     </annotation>
+  </item>
+  <item name="android.accounts.AccountManager android.accounts.Account[] getAccountsByTypeForPackage(java.lang.String, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accounts.AccountManager boolean addAccountExplicitly(android.accounts.Account, java.lang.String, android.os.Bundle)">
     <annotation name="android.support.annotation.RequiresPermission">

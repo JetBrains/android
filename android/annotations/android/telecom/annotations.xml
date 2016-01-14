@@ -12,5 +12,140 @@
   <item name="android.telecom.RemoteConnection.Callback void onExtrasChanged(android.telecom.RemoteConnection, android.os.Bundle) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.telecom.TelecomManager android.net.Uri getAdnUriForPhoneAccount(android.telecom.PhoneAccountHandle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.MODIFY_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager android.telecom.PhoneAccountHandle getDefaultOutgoingPhoneAccount(java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager boolean handleMmi(java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.MODIFY_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager boolean handleMmi(java.lang.String, android.telecom.PhoneAccountHandle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.MODIFY_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager boolean isInCall()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager boolean isVoiceMailNumber(android.telecom.PhoneAccountHandle, java.lang.String)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager java.lang.String getLine1Number(android.telecom.PhoneAccountHandle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager java.lang.String getVoiceMailNumber(android.telecom.PhoneAccountHandle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager java.util.List&lt;android.telecom.PhoneAccountHandle&gt; getCallCapablePhoneAccounts()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager void cancelMissedCallsNotification()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.MODIFY_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager void placeCall(android.net.Uri, android.os.Bundle)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.CALL_PHONE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager void showInCallScreen(boolean)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager void silenceRinger()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.MODIFY_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile VideoProfile(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile VideoProfile(int, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile VideoProfile(int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.QUALITY_HIGH, android.telecom.VideoProfile.QUALITY_MEDIUM, android.telecom.VideoProfile.QUALITY_LOW, android.telecom.VideoProfile.QUALITY_DEFAULT}" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile boolean isAudioOnly(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile boolean isBidirectional(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile boolean isPaused(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile boolean isReceptionEnabled(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile boolean isTransmissionEnabled(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile boolean isVideo(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile int getQuality()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.QUALITY_HIGH, android.telecom.VideoProfile.QUALITY_MEDIUM, android.telecom.VideoProfile.QUALITY_LOW, android.telecom.VideoProfile.QUALITY_DEFAULT}" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile int getVideoState()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.VideoProfile java.lang.String videoStateToString(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
 </root>
 
