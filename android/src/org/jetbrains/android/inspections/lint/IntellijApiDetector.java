@@ -572,7 +572,7 @@ public class IntellijApiDetector extends ApiDetector {
       }
       String classTypeInternal = IntellijLintUtils.getInternalName(classType);
       String interfaceTypeInternal = IntellijLintUtils.getInternalName(interfaceType);
-      if (classTypeInternal == null || interfaceTypeInternal == null) {
+      if (classTypeInternal == null || interfaceTypeInternal == null || "java/lang/Object".equals(interfaceTypeInternal)) {
         return; // Couldn't resolve type
       }
 
