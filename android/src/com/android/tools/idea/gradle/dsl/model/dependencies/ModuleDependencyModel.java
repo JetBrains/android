@@ -42,6 +42,46 @@ public class ModuleDependencyModel extends DependencyModel {
 
   @Nullable private GradleDslExpression myConfiguration;
 
+  @NotNull
+  protected static List<ModuleDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
+    List<ModuleDependencyModel> result = Lists.newArrayList();
+    if (PROJECT.equals(methodCall.getName())) {
+      for (GradleDslElement argument : methodCall.getArguments()) {
+        if (argument instanceof GradleDslExpression) {
+          result.add(new ModuleDependencyModel(configurationName, methodCall, (GradleDslExpression)argument, null));
+        }
+        else if (argument instanceof GradleDslExpressionMap) {
+          GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
+          GradleDslExpression pathElement = dslMap.getProperty(PATH, GradleDslExpression.class);
+          if (pathElement == null) {
+            assert methodCall.getPsiElement() != null;
+            String msg = String.format("'%1$s' is not a valid module dependency", methodCall.getPsiElement().getText());
+            LOG.warn(msg);
+            continue;
+          }
+          GradleDslExpression configuration = dslMap.getProperty(CONFIGURATION, GradleDslExpression.class);
+          result.add(new ModuleDependencyModel(configurationName, methodCall, pathElement, configuration));
+        }
+      }
+    }
+    return result;
+  }
+
+  public static void createAndAddToList(@NotNull GradleDslElementList list,
+                                        @NotNull String configurationName,
+                                        @NotNull String path,
+                                        @Nullable String config) {
+    String methodName = PROJECT;
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, methodName, configurationName);
+    GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, methodName);
+    mapArguments.setNewLiteral(PATH, path);
+    if (config != null) {
+      mapArguments.setNewLiteral(CONFIGURATION, config);
+    }
+    methodCall.addNewArgument(mapArguments);
+    list.addNewElement(methodCall);
+  }
+
   private ModuleDependencyModel(@NotNull String configurationName,
                                 @NotNull GradleDslMethodCall dslElement,
                                 @NotNull GradleDslExpression path,
@@ -137,45 +177,5 @@ public class ModuleDependencyModel extends DependencyModel {
         myConfiguration = null;
       }
     }
-  }
-
-  @NotNull
-  protected static List<ModuleDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
-    List<ModuleDependencyModel> result = Lists.newArrayList();
-    if (PROJECT.equals(methodCall.getName())) {
-      for (GradleDslElement argument : methodCall.getArguments()) {
-        if (argument instanceof GradleDslExpression) {
-          result.add(new ModuleDependencyModel(configurationName, methodCall, (GradleDslExpression)argument, null));
-        }
-        else if (argument instanceof GradleDslExpressionMap) {
-          GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
-          GradleDslExpression pathElement = dslMap.getProperty(PATH, GradleDslExpression.class);
-          if (pathElement == null) {
-            assert methodCall.getPsiElement() != null;
-            String msg = String.format("'%1$s' is not a valid module dependency", methodCall.getPsiElement().getText());
-            LOG.warn(msg);
-            continue;
-          }
-          GradleDslExpression configuration = dslMap.getProperty(CONFIGURATION, GradleDslExpression.class);
-          result.add(new ModuleDependencyModel(configurationName, methodCall, pathElement, configuration));
-        }
-      }
-    }
-    return result;
-  }
-
-  public static void createAndAddToList(@NotNull GradleDslElementList list,
-                                        @NotNull String configurationName,
-                                        @NotNull String path,
-                                        @Nullable String config) {
-    String methodName = PROJECT;
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, methodName, configurationName);
-    GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, methodName);
-    mapArguments.setNewLiteral(PATH, path);
-    if (config != null) {
-      mapArguments.setNewLiteral(CONFIGURATION, config);
-    }
-    methodCall.addNewArgument(mapArguments);
-    list.addNewElement(methodCall);
   }
 }
