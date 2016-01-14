@@ -21,6 +21,7 @@ import com.android.tools.idea.run.tasks.HotSwapTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,16 +30,18 @@ import java.util.Collections;
 import java.util.List;
 
 public class HotSwapTasksProvider implements LaunchTasksProvider {
+  private final ExecutionEnvironment myEnv;
   private final AndroidFacet myFacet;
 
-  public HotSwapTasksProvider(@NotNull AndroidFacet facet) {
+  public HotSwapTasksProvider(@NotNull ExecutionEnvironment env, @NotNull AndroidFacet facet) {
+    myEnv = env;
     myFacet = facet;
   }
 
   @NotNull
   @Override
   public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
-    return Collections.<LaunchTask>singletonList(new HotSwapTask(myFacet));
+    return Collections.<LaunchTask>singletonList(new HotSwapTask(myEnv, myFacet));
   }
 
   @Nullable

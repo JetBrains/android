@@ -320,8 +320,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     DeviceFutures deviceFutures = null;
     AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
 
-    // Attempt to figure out if we should fast deploy to a set of devices
-    if (info != null) {
+    IDevice rerunDevice = InstantRunUtils.getRestartDevice(env);
+    if (rerunDevice != null) { // first check if this is a session that has been restarted with some info pre-filled in the env
+      deviceFutures = DeviceFutures.forDevices(Collections.singletonList(rerunDevice));
+    }
+    else if (info != null) { // if there is an existing previous session, then see if we can detect devices to fast deploy to
       deviceFutures = getFastDeployDevices(executor, facet, info);
     }
 
