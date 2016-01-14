@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.fest.swing.core.Robot;
@@ -183,10 +182,6 @@ public class AddGradleDependencyTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testAddJUnitDependency() throws IOException {
     myProjectFrame = importSimpleApplication();
-    BuildVariantsToolWindowFixture buildVariants = myProjectFrame.getBuildVariantsWindow();
-    buildVariants.activate();
-    buildVariants.selectUnitTests();
-
     EditorFixture editor = myProjectFrame.getEditor().open("app/src/test/java/google/simpleapplication/UnitTest.java");
 
     editor.waitForCodeAnalysisHighlightCount(ERROR, 6);

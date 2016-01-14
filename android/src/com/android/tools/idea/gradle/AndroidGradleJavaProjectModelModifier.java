@@ -25,16 +25,20 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySp
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -76,12 +80,13 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @Nullable
   @Override
   public Promise<Void> addModuleDependency(@NotNull Module from, @NotNull Module to, @NotNull DependencyScope scope) {
+    VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(from.getProject()).getCurrentFile();
     String gradlePath = getGradlePath(to);
     final GradleBuildModel buildModel = GradleBuildModel.get(from);
 
     if (buildModel != null && gradlePath != null) {
       DependenciesModel dependencies = buildModel.dependencies();
-      String configurationName = getConfigurationName(from, scope);
+      String configurationName = getConfigurationName(from, scope, openedFile);
       dependencies.addModule(configurationName, gradlePath, null);
 
       new WriteCommandAction(myProject, "Add Gradle Module Dependency") {
@@ -128,13 +133,20 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   private Promise<Void> addExternalLibraryDependency(@NotNull Collection<Module> modules,
                                                      @NotNull ArtifactDependencySpec dependencySpec,
                                                      @NotNull DependencyScope scope) {
+    Module firstModule = Iterables.getFirst(modules, null);
+    if (firstModule == null) {
+      return null;
+    }
+
+    VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(firstModule.getProject()).getCurrentFile();
+
     final List<GradleBuildModel> buildModelsToUpdate = Lists.newArrayList();
     for (Module module : modules) {
       GradleBuildModel buildModel = GradleBuildModel.get(module);
       if (buildModel == null) {
         return null;
       }
-      String configurationName = getConfigurationName(module, scope);
+      String configurationName = getConfigurationName(module, scope, openedFile);
       DependenciesModel dependencies = buildModel.dependencies();
       dependencies.addArtifact(configurationName, dependencySpec);
       buildModelsToUpdate.add(buildModel);
@@ -192,16 +204,29 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @NotNull
-  static String getConfigurationName(@NotNull Module module, DependencyScope scope) {
+  private static String getConfigurationName(@NotNull Module module, @NotNull  DependencyScope scope, @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null) {
-        AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
-        if (androidModel != null && ARTIFACT_ANDROID_TEST.equals(androidModel.getSelectedTestArtifactName())) {
-          return ANDROID_TEST_COMPILE;
+      if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+        TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+
+        if (testScopes != null && openedFile != null) {
+          if (testScopes.isAndroidTestSource(openedFile)) {
+            return ANDROID_TEST_COMPILE;
+          } else {
+            return TEST_COMPILE;
+          }
         }
+        return COMPILE;
+      } else {
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null) {
+          AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
+          if (androidModel != null && ARTIFACT_ANDROID_TEST.equals(androidModel.getSelectedTestArtifactName())) {
+            return ANDROID_TEST_COMPILE;
+          }
+        }
+        return TEST_COMPILE;
       }
-      return TEST_COMPILE;
     }
     return COMPILE;
   }
