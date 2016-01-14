@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 public class HotSwapTask implements LaunchTask {
   private final AndroidFacet myFacet;
   private final ExecutionEnvironment myEnv;
+  private boolean myNeedsActivityLaunch;
 
   public HotSwapTask(@NotNull ExecutionEnvironment env, @NotNull AndroidFacet facet) {
     myEnv = env;
@@ -63,7 +64,7 @@ public class HotSwapTask implements LaunchTask {
 
     InstantRunManager.displayVerifierStatus(myFacet, buildInfo);
     try {
-      manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, buildInfo);
+      myNeedsActivityLaunch = manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, buildInfo);
       // Note that the above method will update the build id on the device
       // and the InstalledPatchCache, so we don't have to do it again.
     }
@@ -82,5 +83,9 @@ public class HotSwapTask implements LaunchTask {
     }
 
     return true;
+  }
+
+  public boolean needsActivityLaunch() {
+    return myNeedsActivityLaunch;
   }
 }
