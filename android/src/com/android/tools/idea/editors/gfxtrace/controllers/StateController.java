@@ -17,6 +17,9 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.JBLoadingPanelWrapper;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
@@ -76,16 +79,30 @@ public class StateController extends TreeController {
 
     if (updateState && myStatePath.getPath() != null) {
       ListenableFuture future = myEditor.getClient().get(myStatePath.getPath());
-      Rpc.listen(future, EdtExecutor.INSTANCE, LOG, myStateRequestController, new Rpc.Callback() {
+      Rpc.listen(future, LOG, myStateRequestController, new UiErrorCallback<Object, Node, String>() {
         @Override
-        public void onFinish(Rpc.Result result) throws RpcException, ExecutionException {
-          // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
-          Object state = result.get();
-          model.setRoot(convert(new TypedValue(null, "state"), new TypedValue(null, state)));
+        protected ResultOrError<Node, String> onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
+          try {
+            return success(convert(new TypedValue(null, "state"), new TypedValue(null, result.get())));
+          }
+          catch (ErrDataUnavailable e) {
+            return error(e.getMessage());
+          }
+        }
+
+        @Override
+        protected void onUiThreadSuccess(Node root) {
+          model.setRoot(root);
           if (lastSelection.length > 0) {
             select(lastSelection);
             lastSelection = NO_SELECTION;
           }
+        }
+
+        @Override
+        protected void onUiThreadError(String error) {
+          myTree.getEmptyText().setText(error);
+          setModel(null);
         }
       });
     }
