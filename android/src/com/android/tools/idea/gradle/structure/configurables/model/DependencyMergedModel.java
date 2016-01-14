@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.model;
 
+import com.android.builder.model.Library;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +39,9 @@ public abstract class DependencyMergedModel {
   @NotNull
   public abstract Icon getIcon();
 
-  public abstract boolean isEditable();
+  public abstract boolean isInBuildFile();
+
+  public abstract boolean matches(@NotNull Library library);
 
   public abstract boolean isInAndroidProject();
 }

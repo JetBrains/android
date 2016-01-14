@@ -52,7 +52,7 @@ class GradleArtifactDependency {
     return null;
   }
 
-  GradleArtifactDependency(@NotNull GradleCoordinate coordinate, @NotNull Library dependency) {
+  private GradleArtifactDependency(@NotNull GradleCoordinate coordinate, @NotNull Library dependency) {
     this.coordinate = coordinate;
     this.dependency = dependency;
   }
