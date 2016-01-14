@@ -25,11 +25,6 @@ import java.util.Set;
 
 public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testManifestOnly() throws Exception {
-    //noinspection ConstantConditions
-    if (!CAN_SYNC_PROJECTS ) {
-      System.err.println("AndroidModuleInfoTest.testManifestOnly temporarily disabled");
-      return;
-    }
     loadProject("projects/moduleInfo/manifestOnly");
     assertNotNull(myAndroidFacet);
     assertEquals(7, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
@@ -39,11 +34,6 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testGradleOnly() throws Exception {
-    //noinspection ConstantConditions
-    if (!CAN_SYNC_PROJECTS ) {
-      System.err.println("AndroidModuleInfoTest.testGradleOnly temporarily disabled");
-      return;
-    }
     loadProject("projects/moduleInfo/gradleOnly");
     assertNotNull(myAndroidFacet);
     assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
@@ -52,11 +42,6 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testBoth() throws Exception {
-    //noinspection ConstantConditions
-    if (!CAN_SYNC_PROJECTS ) {
-      System.err.println("AndroidModuleInfoTest.testBoth temporarily disabled");
-      return;
-    }
     loadProject("projects/moduleInfo/both");
     assertNotNull(myAndroidFacet);
     assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
@@ -65,11 +50,6 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testFlavors() throws Exception {
-    //noinspection ConstantConditions
-    if (!CAN_SYNC_PROJECTS ) {
-      System.err.println("AndroidModuleInfoTest.testFlavors temporarily disabled");
-      return;
-    }
     loadProject("projects/moduleInfo/flavors");
     assertNotNull(myAndroidFacet);
 
@@ -79,11 +59,6 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testMerge() throws Exception {
-    //noinspection ConstantConditions
-    if (!CAN_SYNC_PROJECTS ) {
-      System.err.println("AndroidModuleInfoTest.testMerge temporarily disabled");
-      return;
-    }
     loadProject("projects/moduleInfo/merge");
     assertNotNull(myAndroidFacet);
 

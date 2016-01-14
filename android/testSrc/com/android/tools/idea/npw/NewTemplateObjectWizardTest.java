@@ -40,7 +40,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.*;
 
 /**
@@ -57,7 +56,6 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    assumeTrue(CAN_SYNC_PROJECTS);
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);

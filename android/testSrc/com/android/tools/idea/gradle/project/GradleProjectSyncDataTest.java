@@ -24,10 +24,6 @@ import java.util.Map;
 
 public class GradleProjectSyncDataTest extends AndroidGradleTestCase {
   public void testEndToEnd() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("AndroidGradleProjectDataTest.testEndToEnd temporarily disabled");
-      return;
-    }
     loadProject("projects/projectWithAppandLib");
 
     Project project = myAndroidFacet.getModule().getProject();
