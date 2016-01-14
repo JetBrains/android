@@ -144,7 +144,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
         if (buildInfo.hasOneOf(RESTART_DEX, DEX, RESOURCES)) {
           InstantRunManager.LOG.info("Using Dex Deploy task");
-          return new DexDeployTask(pkgName, myFacet, buildInfo);
+          return new DexDeployTask(myFacet, buildInfo);
         }
       }
     }
