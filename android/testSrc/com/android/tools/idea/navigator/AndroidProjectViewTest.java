@@ -54,11 +54,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   private AndroidProjectViewPane myPane;
 
   public void testProjectView() throws Exception {
-    if (IS_PRESUBMIT_RUNNER) {
-      System.err.println("AndroidProjectViewTest.testProjectView temporarily disabled");
-      return;
-    }
-
     loadProject("projects/navigator/packageview/simple");
 
     myPane = createPane();
@@ -157,11 +152,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
   // Test that selecting a res group node causes the correct PSI Elements to be selected
   public void testSelection() throws Exception {
-    if (IS_PRESUBMIT_RUNNER) {
-      System.err.println("AndroidProjectViewTest.testSelection temporarily disabled");
-      return;
-    }
-
     loadProject("projects/navigator/packageview/simple");
 
     myPane = createPane();
@@ -182,11 +172,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
   // Test that the virtualFileArray for resource nodes actually contains the files for this node.
    public void testVirtualFileArrayForResNode() throws Exception {
-    if (IS_PRESUBMIT_RUNNER) {
-      System.err.println("AndroidProjectViewTest.testSelection temporarily disabled");
-      return;
-    }
-
     loadProject("projects/navigator/packageview/simple");
 
     myPane = createPane();
@@ -226,11 +211,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testCommonRoots() throws Exception {
-    if (IS_PRESUBMIT_RUNNER) {
-      System.err.println("AndroidProjectViewTest.testCommonRoots temporarily disabled");
-      return;
-    }
-
     loadProject("projects/navigator/packageview/commonroots");
 
     myPane = createPane();
@@ -267,11 +247,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testFailedImport() throws Exception {
-    if (IS_PRESUBMIT_RUNNER) {
-      System.err.println("AndroidProjectViewTest.testFailedImport temporarily disabled");
-      return;
-    }
-
     loadProject("projects/navigator/invalid", false, new GradleSyncListener.Adapter() {
       @Override
       public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
