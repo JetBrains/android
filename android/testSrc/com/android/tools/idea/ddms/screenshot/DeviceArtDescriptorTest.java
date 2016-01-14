@@ -99,16 +99,13 @@ public class DeviceArtDescriptorTest extends TestCase {
   public void test2() throws FileNotFoundException {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
     for (DeviceArtDescriptor spec : specs) {
-      if (!"wear_round".equals(spec.getId())) {
-        continue;
+      if ("wear_round".equals(spec.getId())) {
+        verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
+        verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.PORTRAIT));
+        verifyFileExists(spec.getMask(ScreenOrientation.PORTRAIT));
+        verifyFileExists(spec.getMask(ScreenOrientation.LANDSCAPE));
+        return;  // pass: found wear_round spec
       }
-
-      verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
-      verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.PORTRAIT));
-      verifyFileExists(spec.getMask(ScreenOrientation.PORTRAIT));
-      verifyFileExists(spec.getMask(ScreenOrientation.LANDSCAPE));
-
-      return;
     }
     fail("Did not find wear_round spec");
   }

@@ -92,8 +92,7 @@ public class DomPullParserTest extends AndroidTestCase {
           break;
         }
         default:
-          fail("Unexpected type");
-          return;
+          throw new AssertionError("Unexpected type");
       }
 
       Element element = null;
