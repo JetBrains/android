@@ -73,4 +73,8 @@ public abstract class TreeController extends Controller {
     myLoadingPanel.stopLoading();
     myLoadingPanel.revalidate();
   }
+
+  public TreeModel getModel() {
+    return myTree.getModel();
+  }
 }
