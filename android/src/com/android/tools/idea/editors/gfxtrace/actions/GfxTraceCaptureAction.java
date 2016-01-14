@@ -56,7 +56,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
     }
 
     @Override
-    void start(@NotNull final Component owner, @NotNull final IDevice device) {
+    void start(@NotNull final Container window, @NotNull final IDevice device) {
       final TraceDialog dialog = new TraceDialog();
       dialog.setListener(new TraceDialog.Listener() {
         private GfxTracer myTracer = null;
@@ -81,7 +81,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
       });
       CaptureService service = CaptureService.getInstance(myView.getProject());
       String name = service.getSuggestedName(myView.getDeviceContext().getSelectedClient());
-      dialog.setLocationRelativeTo(owner);
+      dialog.setLocationRelativeTo(window);
       dialog.setDefaultName(name);
       dialog.setVisible(true);
       setActiveForm(dialog);
@@ -100,7 +100,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
     }
 
     @Override
-    void start(@NotNull final Component owner, @NotNull final IDevice device) {
+    void start(@NotNull final Container window, @NotNull final IDevice device) {
       ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
         private static final int ROOT_QUERY_TIMEOUT = 3000;
         private static final int ROOT_QUERY_INTERVAL = 250;
@@ -160,7 +160,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
         }
 
         private void rootingSucceeded() {
-          showLauncher(owner, device, getSelectedRunConfiguration(myView));
+          showLauncher(window, device, getSelectedRunConfiguration(myView));
         }
       });
     }
@@ -248,7 +248,8 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
         myActiveForm.setVisible(true); // Bring-to-front
       }
       else {
-        start(this.myView.getPanel().getTopLevelAncestor(), device);
+        Container window = ((JComponent)(e.getInputEvent().getSource())).getTopLevelAncestor();
+        start(window, device);
       }
     }
   }
@@ -374,5 +375,5 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
     };
   }
 
-  abstract void start(@NotNull Component button, @NotNull IDevice device);
+  abstract void start(@NotNull Container window, @NotNull IDevice device);
 }
