@@ -35,11 +35,6 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 public class AndroidGeneratedSourcesFilterTest extends AndroidGradleTestCase {
 
   public void test() throws Exception {
-    if (!CAN_SYNC_PROJECTS) {
-      System.err.println("AndroidGeneratedSourcesFilterTest.test temporarily disabled");
-      return;
-    }
-
     loadProject("projects/sync/multiproject", true);
     AndroidGeneratedSourcesFilter filter = new AndroidGeneratedSourcesFilter();
 
