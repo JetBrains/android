@@ -23,7 +23,6 @@ import com.android.sdklib.IAndroidTarget.OptionalLibrary;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.logcat.AdbErrors;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -83,7 +82,6 @@ import static com.android.tools.idea.sdk.Jdks.chooseOrCreateJavaSdk;
 import static com.android.tools.idea.sdk.Jdks.createJdk;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
-import static com.google.common.base.Joiner.on;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.setModuleSdk;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -950,11 +948,7 @@ public final class AndroidSdkUtils {
       }
       catch (ExecutionException e) {
         // timed out waiting for bridge, ask the user what to do
-        String adbErrors = on('\n').join(AdbErrors.getErrors());
         String message = "ADB not responding. If you'd like to retry, then please manually kill \"" + FN_ADB + "\" and click 'Restart'";
-        if (!adbErrors.isEmpty()) {
-          message += "\nErrors from ADB:\n" + adbErrors;
-        }
         retry = Messages.showYesNoDialog(project, message, CommonBundle.getErrorTitle(), "&Restart", "&Cancel", Messages.getErrorIcon()) ==
                 Messages.YES;
       }
