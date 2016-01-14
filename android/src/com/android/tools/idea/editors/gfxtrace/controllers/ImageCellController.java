@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.concurrent.ExecutionException;
 
 public abstract class ImageCellController<T extends ImageCellList.Data> extends Controller
@@ -80,13 +82,15 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
   }
 
   protected void loadCellImage(final T cell, final ServiceClient client, final Path imagePath, final Runnable onLoad) {
-    Rpc.listen(FetchedImage.load(client, imagePath), EdtExecutor.INSTANCE, LOG, cell.controller,
-               new Rpc.Callback<FetchedImage>() {
+    Rpc.listen(FetchedImage.load(client, imagePath), LOG, cell.controller, new UiCallback<FetchedImage, BufferedImage>() {
       @Override
-      public void onFinish(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
-        // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
-        FetchedImage fetchedImage = result.get();
-        cell.icon = new ImageIcon(fetchedImage.image);
+      protected BufferedImage onRpcThread(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
+        return result.get().image;
+      }
+
+      @Override
+      protected void onUiThread(BufferedImage image) {
+        cell.icon = new ImageIcon(image);
         onLoad.run();
         myList.repaint();
       }
