@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.printservice.PrintDocument android.os.ParcelFileDescriptor getData()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.printservice.PrintDocument android.print.PrintDocumentInfo getInfo()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrintJob android.print.PrintJobId getId()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob android.print.PrintJobInfo getInfo()">
+    <annotation name="android.support.annotation.MainThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrintJob android.printservice.PrintDocument getDocument()">
+    <annotation name="android.support.annotation.MainThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrintJob boolean block(java.lang.String)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean block(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.printservice.PrintJob boolean cancel()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean complete()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean fail(java.lang.String)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean fail(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.printservice.PrintJob boolean hasAdvancedOption(java.lang.String)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean isBlocked()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean isCancelled()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean isCompleted()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean isFailed()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean isQueued()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean isStarted()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean setTag(java.lang.String)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob boolean setTag(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrintJob boolean start()">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob int getAdvancedIntOption(java.lang.String)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob java.lang.String getAdvancedStringOption(java.lang.String)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob java.lang.String getTag()">
+    <annotation name="android.support.annotation.MainThread" />
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.printservice.PrintService android.printservice.PrinterDiscoverySession onCreatePrinterDiscoverySession()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.printservice.PrinterDiscoverySession java.util.List&lt;android.print.PrinterId&gt; getTrackedPrinters()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrinterDiscoverySession java.util.List&lt;android.print.PrinterInfo&gt; getPrinters()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrinterDiscoverySession void addPrinters(java.util.List&lt;android.print.PrinterInfo&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrinterDiscoverySession void onStartPrinterDiscovery(java.util.List&lt;android.print.PrinterId&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrinterDiscoverySession void onStartPrinterStateTracking(android.print.PrinterId) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrinterDiscoverySession void onStopPrinterStateTracking(android.print.PrinterId) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrinterDiscoverySession void onValidatePrinters(java.util.List&lt;android.print.PrinterId&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrinterDiscoverySession void removePrinters(java.util.List&lt;android.print.PrinterId&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

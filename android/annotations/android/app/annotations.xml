@@ -405,6 +405,24 @@
   <item name="android.app.Application void onTrimMemory(int)">
     <annotation name="android.support.annotation.CallSuper" />
   </item>
+  <item name="android.app.DatePickerDialog DatePickerDialog(android.content.Context, android.app.DatePickerDialog.OnDateSetListener, int, int, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.DatePickerDialog DatePickerDialog(android.content.Context, android.app.DatePickerDialog.OnDateSetListener, int, int, int) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.DatePickerDialog DatePickerDialog(android.content.Context, int, android.app.DatePickerDialog.OnDateSetListener, int, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.DatePickerDialog DatePickerDialog(android.content.Context, int, android.app.DatePickerDialog.OnDateSetListener, int, int, int) 1">
+    <annotation name="android.support.annotation.StyleRes" />
+  </item>
+  <item name="android.app.DatePickerDialog DatePickerDialog(android.content.Context, int, android.app.DatePickerDialog.OnDateSetListener, int, int, int) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.DatePickerDialog android.widget.DatePicker getDatePicker()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.app.Dialog Dialog(android.content.Context) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -503,6 +521,53 @@
   </item>
   <item name="android.app.FragmentHostCallback void onRequestPermissionsFromFragment(android.app.Fragment, java.lang.String[], int) 1">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction add(int, android.app.Fragment) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction add(int, android.app.Fragment, java.lang.String) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction addToBackStack(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction replace(int, android.app.Fragment) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction replace(int, android.app.Fragment, java.lang.String) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction setBreadCrumbShortTitle(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction setBreadCrumbTitle(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction setCustomAnimations(int, int) 0">
+    <annotation name="android.support.annotation.AnimatorRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction setCustomAnimations(int, int) 1">
+    <annotation name="android.support.annotation.AnimatorRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction setCustomAnimations(int, int, int, int) 0">
+    <annotation name="android.support.annotation.AnimatorRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction setCustomAnimations(int, int, int, int) 1">
+    <annotation name="android.support.annotation.AnimatorRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction setCustomAnimations(int, int, int, int) 2">
+    <annotation name="android.support.annotation.AnimatorRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction setCustomAnimations(int, int, int, int) 3">
+    <annotation name="android.support.annotation.AnimatorRes" />
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction setTransition(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.FragmentTransaction.TRANSIT_NONE, android.app.FragmentTransaction.TRANSIT_FRAGMENT_OPEN, android.app.FragmentTransaction.TRANSIT_FRAGMENT_CLOSE, android.app.FragmentTransaction.TRANSIT_FRAGMENT_FADE}" />
+    </annotation>
+  </item>
+  <item name="android.app.FragmentTransaction android.app.FragmentTransaction setTransitionStyle(int) 0">
+    <annotation name="android.support.annotation.StyleRes" />
   </item>
   <item name="android.app.IntentService void onHandleIntent(android.content.Intent)">
     <annotation name="android.support.annotation.WorkerThread" />
