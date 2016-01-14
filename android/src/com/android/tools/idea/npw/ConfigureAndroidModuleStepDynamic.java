@@ -48,9 +48,9 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   private JPanel myPanel;
   private JTextField myAppName;
   private LabelWithEditLink myPackageName;
-  private final @Nullable FormFactorUtils.FormFactor myFormFactor;
+  private final @Nullable FormFactor myFormFactor;
 
-  public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable, @Nullable FormFactorUtils.FormFactor formFactor) {
+  public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable, @Nullable FormFactor formFactor) {
     super(TITLE, null, parentDisposable);
     setBodyComponent(myPanel);
     myFormFactor = formFactor;

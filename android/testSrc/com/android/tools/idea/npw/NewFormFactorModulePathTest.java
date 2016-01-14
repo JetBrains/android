@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.npw.FormFactorUtils;
-import com.android.tools.idea.npw.NewFormFactorModulePath;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
 import java.util.Collections;
 
-import static com.android.tools.idea.npw.FormFactorUtils.FormFactor.MOBILE;
+import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;

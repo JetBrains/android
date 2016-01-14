@@ -95,13 +95,13 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
     super.init();
     ImmutableList.Builder<ModuleTemplate> deviceTemplates = ImmutableList.builder();
     ImmutableList.Builder<ModuleTemplate> extrasTemplates = ImmutableList.builder();
-    Set<FormFactorUtils.FormFactor> formFactorSet = Sets.newHashSet();
+    Set<FormFactor> formFactorSet = Sets.newHashSet();
     // Android device templates are shown first, with less important templates following
     for (ModuleTemplateProvider provider : myModuleTypesProviders) {
       for (ModuleTemplate moduleTemplate : provider.getModuleTemplates()) {
-        FormFactorUtils.FormFactor formFactor = moduleTemplate.getFormFactor();
+        FormFactor formFactor = moduleTemplate.getFormFactor();
         if (formFactor != null) {
-          if (formFactor != FormFactorUtils.FormFactor.CAR) {
+          if (formFactor != FormFactor.CAR) {
             // Auto is not a standalone module (but rather a modification to a mobile module):
             deviceTemplates.add(moduleTemplate);
             formFactorSet.add(formFactor);
@@ -113,7 +113,7 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
       }
     }
 
-    for (final FormFactorUtils.FormFactor formFactor : formFactorSet) {
+    for (final FormFactor formFactor : formFactorSet) {
       registerValueDeriver(FormFactorUtils.getInclusionKey(formFactor), new ValueDeriver<Boolean>() {
         @Nullable
         @Override

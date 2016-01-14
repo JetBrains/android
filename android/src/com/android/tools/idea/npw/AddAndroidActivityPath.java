@@ -111,9 +111,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     myTargetFolder = targetFolder != null && !targetFolder.isDirectory() ? targetFolder.getParent() : targetFolder;
   }
 
-  private static FormFactorUtils.FormFactor getFormFactor(@Nullable VirtualFile targetFolder) {
+  private static FormFactor getFormFactor(@Nullable VirtualFile targetFolder) {
     // TODO There should be some way for this wizard to figure out form factor from a target or from a template
-    return FormFactorUtils.FormFactor.MOBILE;
+    return FormFactor.MOBILE;
   }
 
   /**
@@ -330,7 +330,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     myState.put(KEY_OPEN_EDITORS, true);
 
     if (myTemplate == null) {
-      FormFactorUtils.FormFactor formFactor = getFormFactor(myTargetFolder);
+      FormFactor formFactor = getFormFactor(myTargetFolder);
       myState.put(FormFactorUtils.getMinApiLevelKey(formFactor), minSdkVersion.getApiLevel());
       myState.put(FormFactorUtils.getBuildApiLevelKey(formFactor), moduleInfo.getTargetSdkVersion().getApiLevel());
 
