@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.print.PageRange PageRange(int, int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PageRange PageRange(int, int) 1">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PageRange int getEnd()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PageRange int getStart()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes android.print.PrintAttributes.Margins getMinMargins()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrintAttributes android.print.PrintAttributes.MediaSize getMediaSize()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrintAttributes android.print.PrintAttributes.Resolution getResolution()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrintAttributes int getColorMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintAttributes.COLOR_MODE_MONOCHROME, android.print.PrintAttributes.COLOR_MODE_COLOR}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes int getDuplexMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintAttributes.DUPLEX_MODE_NONE, android.print.PrintAttributes.DUPLEX_MODE_LONG_EDGE, android.print.PrintAttributes.DUPLEX_MODE_SHORT_EDGE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Builder android.print.PrintAttributes build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Builder android.print.PrintAttributes.Builder setColorMode(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Builder android.print.PrintAttributes.Builder setColorMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintAttributes.COLOR_MODE_MONOCHROME, android.print.PrintAttributes.COLOR_MODE_COLOR}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Builder android.print.PrintAttributes.Builder setDuplexMode(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Builder android.print.PrintAttributes.Builder setDuplexMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintAttributes.DUPLEX_MODE_NONE, android.print.PrintAttributes.DUPLEX_MODE_LONG_EDGE, android.print.PrintAttributes.DUPLEX_MODE_SHORT_EDGE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Builder android.print.PrintAttributes.Builder setMediaSize(android.print.PrintAttributes.MediaSize)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Builder android.print.PrintAttributes.Builder setMediaSize(android.print.PrintAttributes.MediaSize) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Builder android.print.PrintAttributes.Builder setMinMargins(android.print.PrintAttributes.Margins)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Builder android.print.PrintAttributes.Builder setMinMargins(android.print.PrintAttributes.Margins) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Builder android.print.PrintAttributes.Builder setResolution(android.print.PrintAttributes.Resolution)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Builder android.print.PrintAttributes.Builder setResolution(android.print.PrintAttributes.Resolution) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Margins Margins(int, int, int, int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Margins Margins(int, int, int, int) 1">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Margins Margins(int, int, int, int) 2">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Margins Margins(int, int, int, int) 3">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Margins int getBottomMils()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Margins int getLeftMils()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Margins int getRightMils()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Margins int getTopMils()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.MediaSize MediaSize(java.lang.String, java.lang.String, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.MediaSize MediaSize(java.lang.String, java.lang.String, int, int) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.MediaSize MediaSize(java.lang.String, java.lang.String, int, int) 2">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.MediaSize MediaSize(java.lang.String, java.lang.String, int, int) 3">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.MediaSize android.print.PrintAttributes.MediaSize asLandscape()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.MediaSize android.print.PrintAttributes.MediaSize asPortrait()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.MediaSize int getHeightMils()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.MediaSize int getWidthMils()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.MediaSize java.lang.String getId()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.MediaSize java.lang.String getLabel(android.content.pm.PackageManager)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.MediaSize java.lang.String getLabel(android.content.pm.PackageManager) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Resolution Resolution(java.lang.String, java.lang.String, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Resolution Resolution(java.lang.String, java.lang.String, int, int) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Resolution Resolution(java.lang.String, java.lang.String, int, int) 2">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Resolution Resolution(java.lang.String, java.lang.String, int, int) 3">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Resolution int getHorizontalDpi()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Resolution int getVerticalDpi()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintAttributes.Resolution java.lang.String getId()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintAttributes.Resolution java.lang.String getLabel()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintDocumentInfo int getContentType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintDocumentInfo.CONTENT_TYPE_UNKNOWN, android.print.PrintDocumentInfo.CONTENT_TYPE_DOCUMENT, android.print.PrintDocumentInfo.CONTENT_TYPE_PHOTO}" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintDocumentInfo int getPageCount()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintDocumentInfo java.lang.String getName()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintDocumentInfo long getDataSize()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintDocumentInfo.Builder Builder(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintDocumentInfo.Builder android.print.PrintDocumentInfo build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintDocumentInfo.Builder android.print.PrintDocumentInfo.Builder setContentType(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintDocumentInfo.Builder android.print.PrintDocumentInfo.Builder setContentType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintDocumentInfo.CONTENT_TYPE_UNKNOWN, android.print.PrintDocumentInfo.CONTENT_TYPE_DOCUMENT, android.print.PrintDocumentInfo.CONTENT_TYPE_PHOTO}" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintDocumentInfo.Builder android.print.PrintDocumentInfo.Builder setPageCount(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintDocumentInfo.Builder android.print.PrintDocumentInfo.Builder setPageCount(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintJob android.print.PrintJobId getId()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintJob android.print.PrintJobInfo getInfo()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrintJobInfo android.print.PageRange[] getPages()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrintJobInfo android.print.PrintAttributes getAttributes()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintJobInfo android.print.PrintJobId getId()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintJobInfo android.print.PrinterId getPrinterId()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrintJobInfo int getCopies()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintJobInfo int getState()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintJobInfo.STATE_CREATED, android.print.PrintJobInfo.STATE_QUEUED, android.print.PrintJobInfo.STATE_STARTED, android.print.PrintJobInfo.STATE_BLOCKED, android.print.PrintJobInfo.STATE_COMPLETED, android.print.PrintJobInfo.STATE_FAILED, android.print.PrintJobInfo.STATE_CANCELED}" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintJobInfo java.lang.String getLabel()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintJobInfo.Builder Builder(android.print.PrintJobInfo) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrintJobInfo.Builder android.print.PrintJobInfo build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintJobInfo.Builder void putAdvancedOption(java.lang.String, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintJobInfo.Builder void putAdvancedOption(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintJobInfo.Builder void putAdvancedOption(java.lang.String, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrintJobInfo.Builder void setAttributes(android.print.PrintAttributes) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintJobInfo.Builder void setCopies(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="1" />
+    </annotation>
+  </item>
+  <item name="android.print.PrintJobInfo.Builder void setPages(android.print.PageRange[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintManager android.print.PrintJob print(java.lang.String, android.print.PrintDocumentAdapter, android.print.PrintAttributes)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintManager android.print.PrintJob print(java.lang.String, android.print.PrintDocumentAdapter, android.print.PrintAttributes) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintManager android.print.PrintJob print(java.lang.String, android.print.PrintDocumentAdapter, android.print.PrintAttributes) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrintManager android.print.PrintJob print(java.lang.String, android.print.PrintDocumentAdapter, android.print.PrintAttributes) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrintManager java.util.List&lt;android.print.PrintJob&gt; getPrintJobs()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo android.print.PrintAttributes getDefaults()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo android.print.PrintAttributes.Margins getMinMargins()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo int getColorModes()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintAttributes.COLOR_MODE_MONOCHROME, android.print.PrintAttributes.COLOR_MODE_COLOR}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo int getDuplexModes()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintAttributes.DUPLEX_MODE_NONE, android.print.PrintAttributes.DUPLEX_MODE_LONG_EDGE, android.print.PrintAttributes.DUPLEX_MODE_SHORT_EDGE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo java.util.List&lt;android.print.PrintAttributes.MediaSize&gt; getMediaSizes()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo java.util.List&lt;android.print.PrintAttributes.Resolution&gt; getResolutions()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder Builder(android.print.PrinterId) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder addMediaSize(android.print.PrintAttributes.MediaSize, boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder addMediaSize(android.print.PrintAttributes.MediaSize, boolean) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder addResolution(android.print.PrintAttributes.Resolution, boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder addResolution(android.print.PrintAttributes.Resolution, boolean) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder setColorModes(int, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder setColorModes(int, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintAttributes.COLOR_MODE_MONOCHROME, android.print.PrintAttributes.COLOR_MODE_COLOR}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder setColorModes(int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintAttributes.COLOR_MODE_MONOCHROME, android.print.PrintAttributes.COLOR_MODE_COLOR}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder setDuplexModes(int, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder setDuplexModes(int, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintAttributes.DUPLEX_MODE_NONE, android.print.PrintAttributes.DUPLEX_MODE_LONG_EDGE, android.print.PrintAttributes.DUPLEX_MODE_SHORT_EDGE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder setDuplexModes(int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrintAttributes.DUPLEX_MODE_NONE, android.print.PrintAttributes.DUPLEX_MODE_LONG_EDGE, android.print.PrintAttributes.DUPLEX_MODE_SHORT_EDGE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder setMinMargins(android.print.PrintAttributes.Margins)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterCapabilitiesInfo.Builder android.print.PrinterCapabilitiesInfo.Builder setMinMargins(android.print.PrintAttributes.Margins) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterId java.lang.String getLocalId()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo android.print.PrinterCapabilitiesInfo getCapabilities()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrinterInfo android.print.PrinterId getId()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo int getStatus()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrinterInfo.STATUS_IDLE, android.print.PrinterInfo.STATUS_BUSY, android.print.PrinterInfo.STATUS_UNAVAILABLE}" />
+    </annotation>
+  </item>
+  <item name="android.print.PrinterInfo java.lang.String getDescription()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrinterInfo java.lang.String getName()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder Builder(android.print.PrinterId, java.lang.String, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder Builder(android.print.PrinterId, java.lang.String, int) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder Builder(android.print.PrinterId, java.lang.String, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrinterInfo.STATUS_IDLE, android.print.PrinterInfo.STATUS_BUSY, android.print.PrinterInfo.STATUS_UNAVAILABLE}" />
+    </annotation>
+  </item>
+  <item name="android.print.PrinterInfo.Builder Builder(android.print.PrinterInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder android.print.PrinterInfo build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder android.print.PrinterInfo.Builder setCapabilities(android.print.PrinterCapabilitiesInfo)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder android.print.PrinterInfo.Builder setCapabilities(android.print.PrinterCapabilitiesInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder android.print.PrinterInfo.Builder setDescription(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder android.print.PrinterInfo.Builder setDescription(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder android.print.PrinterInfo.Builder setName(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder android.print.PrinterInfo.Builder setName(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder android.print.PrinterInfo.Builder setStatus(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.PrinterInfo.Builder android.print.PrinterInfo.Builder setStatus(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.print.PrinterInfo.STATUS_IDLE, android.print.PrinterInfo.STATUS_BUSY, android.print.PrinterInfo.STATUS_UNAVAILABLE}" />
+    </annotation>
+  </item>
+</root>
+
