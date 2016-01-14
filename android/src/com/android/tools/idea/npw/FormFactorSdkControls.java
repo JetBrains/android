@@ -35,7 +35,7 @@ import java.awt.*;
 import java.util.Locale;
 import java.util.Set;
 
-import static com.android.tools.idea.npw.FormFactorUtils.FormFactor.MOBILE;
+import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.android.tools.idea.npw.FormFactorUtils.getMinApiLevelKey;
 import static com.android.tools.idea.npw.FormFactorUtils.getTargetComboBoxKey;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
@@ -48,7 +48,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 final class FormFactorSdkControls {
   private JBLabel myLabel;
   private FormFactorApiComboBox myMinSdkCombobox;
-  private final FormFactorUtils.FormFactor myFormFactor;
+  private final FormFactor myFormFactor;
   private final int myMinApi;
   private static final ScopedStateStore.Key<String> API_FEEDBACK_KEY = createKey("API Feedback", STEP, String.class);
   private JBLabel myHelpMeChooseLabel2;
@@ -74,7 +74,7 @@ final class FormFactorSdkControls {
    * @param disposable The parent Disposable for this component.
    * @param binder The ScopedDataBinder we will use to register our components.
    */
-  public FormFactorSdkControls(FormFactorUtils.FormFactor formFactor, int minApi, Disposable disposable,
+  public FormFactorSdkControls(FormFactor formFactor, int minApi, Disposable disposable,
                                ScopedDataBinder binder) {
     myFormFactor = formFactor;
     myMinApi = minApi;

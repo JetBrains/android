@@ -48,7 +48,7 @@ public interface ModuleTemplate {
    * represent an Android device module.
    */
   @Nullable
-  FormFactorUtils.FormFactor getFormFactor();
+  FormFactor getFormFactor();
 
   /**
    * It can be useful to update the Wizard's state upon confirmation of selecting a module.

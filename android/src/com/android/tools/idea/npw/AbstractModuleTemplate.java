@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.npw.FormFactorUtils;
-import com.android.tools.idea.npw.ModuleTemplate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,11 +27,11 @@ public abstract class AbstractModuleTemplate implements ModuleTemplate {
   private final Icon myIcon;
   private final String myName;
   private final String myDescription;
-  private final FormFactorUtils.FormFactor myFormFactor;
+  private final FormFactor myFormFactor;
 
   public AbstractModuleTemplate(@NotNull String name,
                                 @Nullable String description,
-                                @Nullable FormFactorUtils.FormFactor formFactor,
+                                @Nullable FormFactor formFactor,
                                 @Nullable Icon icon) {
     myIcon = icon;
     myName = name;
@@ -61,7 +59,7 @@ public abstract class AbstractModuleTemplate implements ModuleTemplate {
 
   @Nullable
   @Override
-  public final FormFactorUtils.FormFactor getFormFactor() {
+  public final FormFactor getFormFactor() {
     return myFormFactor;
   }
 }

@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.npw.FormFactorUtils;
+import com.android.tools.idea.npw.FormFactor;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
@@ -32,7 +32,6 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -150,15 +149,15 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         break;
       }
     }
-    for (Device d : myDeviceCategoryMap.get(FormFactorUtils.FormFactor.WEAR.toString())) {
+    for (Device d : myDeviceCategoryMap.get(FormFactor.WEAR.toString())) {
       if (d.getDisplayName().equals(DEFAULT_WEAR)) {
-        myDefaultCategoryDeviceMap.put(FormFactorUtils.FormFactor.WEAR.toString(), d);
+        myDefaultCategoryDeviceMap.put(FormFactor.WEAR.toString(), d);
         break;
       }
     }
-    for (Device d : myDeviceCategoryMap.get(FormFactorUtils.FormFactor.TV.toString())) {
+    for (Device d : myDeviceCategoryMap.get(FormFactor.TV.toString())) {
       if (d.getDisplayName().equals(DEFAULT_TV)) {
-        myDefaultCategoryDeviceMap.put(FormFactorUtils.FormFactor.TV.toString(), d);
+        myDefaultCategoryDeviceMap.put(FormFactor.TV.toString(), d);
         break;
       }
     }
@@ -291,9 +290,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
    */
   private static String getCategory(@NotNull Device d) {
     if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
-      return FormFactorUtils.FormFactor.TV.toString();
+      return FormFactor.TV.toString();
     } else if (HardwareConfigHelper.isWear(d)) {
-      return FormFactorUtils.FormFactor.WEAR.toString();
+      return FormFactor.WEAR.toString();
     } else if (isTablet(d)) {
       return TABLET_TYPE;
     } else if (isPhone(d)) {
