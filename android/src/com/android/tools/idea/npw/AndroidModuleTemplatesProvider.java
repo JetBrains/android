@@ -45,8 +45,8 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
    */
   @NotNull
   private static Collection<ModuleTemplate> getModuleTemplates(@NotNull TemplateMetadata metadata,
-                                                               @NotNull FormFactorUtils.FormFactor formFactor) {
-    if (formFactor.equals(FormFactorUtils.FormFactor.MOBILE)) {
+                                                               @NotNull FormFactor formFactor) {
+    if (formFactor.equals(FormFactor.MOBILE)) {
       CreateModuleTemplate androidApplication =
         new CreateModuleTemplate(metadata, formFactor, "Phone & Tablet Module", AndroidIcons.ModuleTemplates.Mobile);
       androidApplication.setCustomValue(WizardConstants.IS_LIBRARY_KEY, false);
@@ -90,7 +90,7 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
         continue;
       }
       if (metadata.getFormFactor() != null) {
-        final FormFactorUtils.FormFactor formFactor = FormFactorUtils.FormFactor.get(metadata.getFormFactor());
+        final FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
         if (formFactor == null) {
           continue;
         }
@@ -101,8 +101,8 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
     Collections.sort(moduleTemplates, new Comparator<ModuleTemplate>() {
       @Override
       public int compare(ModuleTemplate t1, ModuleTemplate t2) {
-        FormFactorUtils.FormFactor f1 = t1.getFormFactor();
-        FormFactorUtils.FormFactor f2 = t2.getFormFactor();
+        FormFactor f1 = t1.getFormFactor();
+        FormFactor f2 = t2.getFormFactor();
         assert f1 != null : t1; // because of null check before we added ot moduleTemplates list
         assert f2 != null : t2;
         return f1.compareTo(f2);

@@ -69,7 +69,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final String RELATIVE_SRC_ROOT = FileUtil.join(TemplateWizard.MAIN_FLAVOR_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
   private static final String RELATIVE_TEST_ROOT = FileUtil.join(TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
 
-  private FormFactorUtils.FormFactor myFormFactor;
+  private FormFactor myFormFactor;
   private File myTemplateFile;
   private Disposable myDisposable;
   private final Key<Boolean> myIsIncludedKey;
@@ -87,7 +87,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       if (metadata == null || metadata.getFormFactor() == null) {
         continue;
       }
-      FormFactorUtils.FormFactor formFactor = FormFactorUtils.FormFactor.get(metadata.getFormFactor());
+      FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
       if (formFactor == null) {
         continue;
       }
@@ -103,7 +103,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     return toReturn;
   }
 
-  public NewFormFactorModulePath(@NotNull FormFactorUtils.FormFactor formFactor,
+  public NewFormFactorModulePath(@NotNull FormFactor formFactor,
                                  @NotNull File templateFile,
                                  @NotNull Disposable disposable) {
     myFormFactor = formFactor;
