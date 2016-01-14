@@ -54,10 +54,4 @@ public class HotSwapTasksProvider implements LaunchTasksProvider {
   public boolean createsNewProcess() {
     return false;
   }
-
-  @Nullable
-  @Override
-  public String getSuccessMessage() {
-    return null; // returning null here allows us to not override the notification shown by InstantRunUserFeedback
-  }
 }

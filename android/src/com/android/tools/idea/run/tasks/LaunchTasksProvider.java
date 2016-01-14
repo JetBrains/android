@@ -31,7 +31,4 @@ public interface LaunchTasksProvider {
   DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus);
 
   boolean createsNewProcess();
-
-  @Nullable
-  String getSuccessMessage();
 }
