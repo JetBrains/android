@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunPushFailedException;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.editor.DefaultActivityLaunch;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -27,11 +28,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-/**
- * Pushes a set of patches to a Lollipop device. The
- * classes in the app are sharded, and this task will
- * push one or more shards containing updated classes.
- */
 public class DexDeployTask implements LaunchTask {
   @NotNull private final String myPkgName;
   @NotNull private final AndroidFacet myFacet;
@@ -74,7 +70,7 @@ public class DexDeployTask implements LaunchTask {
 
         return true;
       }
-      catch (IOException e) {
+      catch (InstantRunPushFailedException e) {
         launchStatus.terminateLaunch("Error installing cold swap patches: " + e);
         return false;
       }

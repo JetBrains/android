@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.ddmlib.IDevice;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class InstantRunUtils {
   private static final Key<Boolean> CLEAN_BUILD = Key.create("android.instant.run.clean");
   private static final Key<Boolean> FULL_BUILD = Key.create("android.instant.run.full.build");
   private static final Key<Boolean> APP_RUNNING = Key.create("android.instant.run.app.running");
+  private static final Key<IDevice> RESTART_ON_DEVICE = Key.create("android.instant.run.restart.device");
 
   public static boolean needsFullBuild(@NotNull ExecutionEnvironment env) {
     return Boolean.TRUE.equals(env.getCopyableUserData(FULL_BUILD));
@@ -46,5 +49,17 @@ public class InstantRunUtils {
 
   public static void setAppRunning(@NotNull ExecutionEnvironment env, boolean en) {
     env.putCopyableUserData(APP_RUNNING, en);
+  }
+
+  /** Changes user data on the given {@link ExecutionEnvironment} to indicate that the build should be rerun targeting the given device. */
+  public static void setRestartSession(@NotNull ExecutionEnvironment env, @NotNull IDevice device) {
+    setNeedsFullBuild(env, true);
+    setAppRunning(env, false);
+    env.putCopyableUserData(RESTART_ON_DEVICE, device);
+  }
+
+  @Nullable
+  public static IDevice getRestartDevice(@NotNull ExecutionEnvironment env) {
+    return env.getCopyableUserData(RESTART_ON_DEVICE);
   }
 }
