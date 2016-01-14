@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.Client;
 import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
@@ -37,11 +38,11 @@ import java.util.Set;
 import static com.intellij.execution.process.ProcessOutputTypes.STDERR;
 
 public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
-  private final Project myProject;
 
-  public ConnectJavaDebuggerTask(@NotNull Project project, @NotNull Set<String> applicationIds) {
-    super(applicationIds);
-    myProject = project;
+  public ConnectJavaDebuggerTask(@NotNull Set<String> applicationIds,
+                                 @NotNull AndroidDebugger debugger,
+                                 @NotNull Project project) {
+    super(applicationIds, debugger, project);
   }
 
   @Override

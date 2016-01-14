@@ -21,6 +21,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,6 +53,9 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   boolean supportsProject(@NotNull Project project);
 
   void attachToClient(@NotNull Project project, @NotNull Client client);
+
+  @NotNull
+  Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes();
 
   class Renderer extends ColoredListCellRenderer<AndroidDebugger> {
     @Override
