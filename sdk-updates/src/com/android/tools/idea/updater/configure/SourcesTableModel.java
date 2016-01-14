@@ -296,6 +296,10 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
    */
   public void reset() {
     if (!isSourcesModified()) {
+      // We don't have any changes, but if we haven't initialized at all, do it now.
+      if (myInitialItems == null) {
+        refreshUi();
+      }
       return;
     }
     // Force refresh so the file is reloaded.
