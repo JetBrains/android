@@ -62,7 +62,7 @@ public class StateController extends TreeController {
   @NotNull private static final Object[] NO_SELECTION = new Object[0];
 
   private final PathStore<StatePath> myStatePath = new PathStore<StatePath>();
-  private final StateTreeModel model = new StateTreeModel(new Node(ROOT_TYPE, null));
+  private final StateTreeModel myModel = new StateTreeModel(new Node(ROOT_TYPE, null));
   private final SingleInFlight myStateRequestController = new SingleInFlight(new JBLoadingPanelWrapper(myLoadingPanel));
   private Object[] lastSelection = NO_SELECTION;
 
@@ -70,7 +70,7 @@ public class StateController extends TreeController {
     super(editor, GfxTraceEditor.SELECT_ATOM);
     myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU State"));
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-    setModel(model);
+    setModel(myModel);
   }
 
   @Override
@@ -92,7 +92,11 @@ public class StateController extends TreeController {
 
         @Override
         protected void onUiThreadSuccess(Node root) {
-          model.setRoot(root);
+          if (getModel() != myModel) {
+            setModel(myModel);
+          }
+
+          myModel.setRoot(root);
           if (lastSelection.length > 0) {
             select(lastSelection);
             lastSelection = NO_SELECTION;
@@ -102,14 +106,14 @@ public class StateController extends TreeController {
         @Override
         protected void onUiThreadError(String error) {
           myTree.getEmptyText().setText(error);
-          setModel(null);
+          clear();
         }
       });
     }
 
     if (event.findStatePath() != null) {
       Object[] selection = getStatePath(event.path);
-      if (((Node)myTree.getModel().getRoot()).isLeaf()) {
+      if (getModel() == null || ((Node)myModel.getRoot()).isLeaf()) {
         lastSelection = selection;
       }
       else {
@@ -137,7 +141,7 @@ public class StateController extends TreeController {
   }
 
   private void select(Object[] nodePath) {
-    Node node = (Node)myTree.getModel().getRoot();
+    Node node = (Node)myModel.getRoot();
     TreePath treePath = new TreePath(node);
     for (int i = 0; i < nodePath.length && !node.isLeaf(); i++) {
       node = node.findChild(nodePath[i]);
