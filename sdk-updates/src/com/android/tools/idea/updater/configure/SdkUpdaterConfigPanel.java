@@ -21,13 +21,11 @@ import com.android.repository.api.RepoManager.RepoLoadedCallback;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.ValidationResult;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdkv2.StudioProgressRunner;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.ui.ApplicationUtils;
@@ -139,11 +137,6 @@ public class SdkUpdaterConfigPanel {
   private JBTabbedPane myTabPane;
 
   /**
-   * {@link AndroidSdkHandler} that we use to get the repo manager etc.
-   */
-  private final AndroidSdkHandler mySdkHandler;
-
-  /**
    * {@link Downloader} for fetching remote source lists and packages.
    */
   private final Downloader myDownloader;
@@ -152,6 +145,11 @@ public class SdkUpdaterConfigPanel {
    * Settings for the downloader.
    */
   private final SettingsController mySettings;
+
+  /**
+   * Reference to the {@link Configurable} that created us, for retrieving sdk state.
+   */
+  private final SdkUpdaterConfigurable myConfigurable;
 
   /**
    * {@link RepoLoadedCallback} that runs when we've finished reloading our local packages.
@@ -194,16 +192,16 @@ public class SdkUpdaterConfigPanel {
    *                               only show local packages.
    * @param settings               {@link SettingsController} for e.g. proxy settings.
    */
-  public SdkUpdaterConfigPanel(@NotNull final AndroidSdkHandler handler,
-                               @NotNull final Runnable channelChangedCallback,
+  public SdkUpdaterConfigPanel(@NotNull final Runnable channelChangedCallback,
                                @Nullable Downloader downloader,
-                               @Nullable SettingsController settings) {
+                               @Nullable SettingsController settings,
+                               @NotNull SdkUpdaterConfigurable configurable) {
     UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_SDK_MANAGER_LOADED, null, null);
+    myConfigurable = configurable;
+    myUpdateSitesPanel.setConfigurable(configurable);
     myDownloader = downloader;
     mySettings = settings;
 
-    mySdkHandler = handler;
-    myUpdateSitesPanel.setSdkManager(handler);
     myLaunchStandaloneLink.setHyperlinkText("Launch Standalone SDK Manager");
     myLaunchStandaloneLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
@@ -243,8 +241,8 @@ public class SdkUpdaterConfigPanel {
             }
 
             InstallComponentsPath path =
-              new InstallComponentsPath(getRepoManager().getPackages().getRemotePackages(), FirstRunWizardMode.MISSING_SDK, location,
-                                        progressStep, false);
+              new InstallComponentsPath(myConfigurable.getRepoManager().getPackages().getRemotePackages(), FirstRunWizardMode.MISSING_SDK,
+                                        location, progressStep, false);
 
             progressStep.setInstallComponentsPath(path);
 
@@ -433,10 +431,6 @@ public class SdkUpdaterConfigPanel {
     }
   }
 
-  private RepoManager getRepoManager() {
-    return mySdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
-  }
-
   /**
    * Revalidates and refreshes our packages. Notifies platform and tools components of the start and end, so they can update their UIs.
    */
@@ -450,15 +444,16 @@ public class SdkUpdaterConfigPanel {
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
     StudioProgressRunner progressRunner =
       new StudioProgressRunner(false, true, false, "Loading SDK", false, projects.length == 0 ? null : projects[0]);
-    getRepoManager()
-      .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null, progressRunner, myDownloader, mySettings, false);
+    myConfigurable.getRepoManager()
+      .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
+            progressRunner, myDownloader, mySettings, false);
   }
 
   /**
    * Validates {@link #mySdkLocation} and shows appropriate errors in the UI if needed.
    */
   private void validate() {
-    File sdkLocation = getRepoManager().getLocalPath();
+    File sdkLocation = myConfigurable.getRepoManager().getLocalPath();
     String sdkLocationPath = sdkLocation == null ? null : sdkLocation.getAbsolutePath();
 
     ValidationResult result =

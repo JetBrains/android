@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.annotations.NonNull;
-import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.RepositorySourceProvider;
 import com.android.repository.api.SimpleRepositorySource;
@@ -59,11 +57,6 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   private Set<RepositorySource> myInitialItems;
 
   /**
-   * {@link AndroidSdkHandler} that we use to get our needed factories and source providers.
-   */
-  private AndroidSdkHandler myHandler;
-
-  /**
    * Callback to run when sources have changed, so other panels can update accordingly.
    */
   private Runnable myRefreshCallback;
@@ -82,6 +75,11 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
    * Logger for repository actions.
    */
   private static final com.android.repository.api.ProgressIndicator myLogger = new StudioLoggerProgressIndicator(SourcesTableModel.class);
+
+  /**
+   * Reference to the {@link Configurable} that created us, for retrieving sdk state.
+   */
+  private SdkUpdaterConfigurable myConfigurable;
 
   SourcesTableModel(@NotNull Runnable startLoading, @NotNull Runnable finishLoading) {
     super();
@@ -172,11 +170,11 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   }
 
   /**
-   * Sets the {@link RepoManager} to use. Note that this must be a separate method since the model may be created in
+   * Sets the {@link SdkUpdaterConfigurable} that we're part of. Note that this must be a separate method since the model may be created in
    * initializeUiComponents(), which runs before the constructor and thus before the manager might be available to pass in.
    */
-  public void setSdkHandler(AndroidSdkHandler handler) {
-    myHandler = handler;
+  public void setConfigurable(SdkUpdaterConfigurable configurable) {
+    myConfigurable = configurable;
   }
 
   /**
@@ -190,7 +188,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
       public void run() {
         final ArrayList<Row> items = Lists.newArrayList();
         final Set<RepositorySource> initial = Sets.newHashSet();
-        for (RepositorySource source : myHandler.getSdkManager(myLogger)
+        for (RepositorySource source : myConfigurable.getRepoManager()
           .getSources(new StudioDownloader(), StudioSettingsController.getInstance(), myLogger, false)) {
           items.add(new Row(source));
           initial.add(source);
@@ -249,6 +247,8 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   @NotNull
   private EditSourceDialog showEditDialog(@Nullable RepositorySource source) {
     RepositorySourceProvider userSourceProvider = getUserSourceProvider();
+    // we know it won't be null since otherwise we shouldn't have been editable
+    assert userSourceProvider != null;
     EditSourceDialog input = new EditSourceDialog(userSourceProvider, source);
     input.show();
     return input;
@@ -259,6 +259,8 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
    */
   private void createSource(@NotNull String url, @Nullable String uiName) {
     RepositorySourceProvider userSourceProvider = getUserSourceProvider();
+    // we know it won't be null since otherwise we shouldn't have been editable
+    assert userSourceProvider != null;
     RepositorySource newSource = new SimpleRepositorySource(url, uiName, true, ImmutableList
       .of(AndroidSdkHandler.getAddonModule(), AndroidSdkHandler.getSysImgModule()), userSourceProvider);
     userSourceProvider.addSource(newSource);
@@ -271,6 +273,8 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   @Override
   public void removeRow(int idx) {
     RepositorySourceProvider userSourceProvider = getUserSourceProvider();
+    // we know it won't be null since otherwise we shouldn't have been editable
+    assert userSourceProvider != null;
     userSourceProvider.removeSource(getRowValue(idx).mySource);
     refreshUi();
   }
@@ -303,7 +307,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
       return;
     }
     // Force refresh so the file is reloaded.
-    myHandler.getSdkManager(myLogger)
+    myConfigurable.getRepoManager()
       .getSources(new StudioDownloader(), StudioSettingsController.getInstance(), myLogger, true);
     myInitialItems = null;
     refreshUi();
@@ -337,21 +341,19 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   public void save(@NotNull ProgressIndicator progress) {
     if (isSourcesModified()) {
       RepositorySourceProvider userSourceProvider = getUserSourceProvider();
-
+      // we know it won't be null since otherwise we shouldn't have been editable
+      assert userSourceProvider != null;
       userSourceProvider.save(new RepoProgressIndicatorAdapter(progress));
       reset();
     }
   }
 
   /**
-   * Gets the editable {@link RepositorySourceProvider}. Should only be called if you know it won't be null.
+   * Gets the editable {@link RepositorySourceProvider}.
    */
-  @NotNull
+  @Nullable
   private RepositorySourceProvider getUserSourceProvider() {
-    RepositorySourceProvider userSourceProvider = myHandler.getUserSourceProvider(myLogger);
-    // The edit/add button should have been disabled if such were the case
-    assert userSourceProvider != null;
-    return userSourceProvider;
+    return myConfigurable.getSdkHandler().getUserSourceProvider(myLogger);
   }
 
   /**
@@ -363,7 +365,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   }
 
   public boolean isEditable() {
-    return myHandler.getUserSourceProvider(myLogger) != null;
+    return getUserSourceProvider() != null;
   }
 
   /**
