@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.tasks;
+package com.android.tools.idea.fd;
 
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public interface LaunchTasksProvider {
-  @NotNull
-  List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter);
-
-  @Nullable
-  DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus);
-
-  boolean createsNewProcess();
+public class InstantRunPushFailedException extends Exception {
+  public InstantRunPushFailedException(@NotNull String s) {
+    super(s);
+  }
 }

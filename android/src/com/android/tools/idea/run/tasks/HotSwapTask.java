@@ -19,18 +19,24 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunPushFailedException;
+import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-
 public class HotSwapTask implements LaunchTask {
   private final AndroidFacet myFacet;
+  private final ExecutionEnvironment myEnv;
+  private boolean myNeedsActivityLaunch;
 
-  public HotSwapTask(@NotNull AndroidFacet facet) {
+  public HotSwapTask(@NotNull ExecutionEnvironment env, @NotNull AndroidFacet facet) {
+    myEnv = env;
     myFacet = facet;
   }
 
@@ -46,7 +52,7 @@ public class HotSwapTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+  public boolean perform(@NotNull final IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     printer.stdout("Hotswapping changes...");
 
     InstantRunManager manager = InstantRunManager.get(myFacet.getModule().getProject());
@@ -54,17 +60,32 @@ public class HotSwapTask implements LaunchTask {
     AndroidGradleModel model = AndroidGradleModel.get(myFacet);
     assert model != null;
     InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
-    if (buildInfo != null) {
-      InstantRunManager.displayVerifierStatus(myFacet, buildInfo);
-      try {
-        manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, buildInfo);
-        // Note that the above method will update the build id on the device
-        // and the InstalledPatchCache, so we don't have to do it again.
-      } catch (IOException e) {
-        launchStatus.terminateLaunch("Error installing hot swap patches: " + e);
-      }
+    assert buildInfo != null;
+
+    InstantRunManager.displayVerifierStatus(myFacet, buildInfo);
+    try {
+      myNeedsActivityLaunch = manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, buildInfo);
+      // Note that the above method will update the build id on the device
+      // and the InstalledPatchCache, so we don't have to do it again.
+    }
+    catch (InstantRunPushFailedException e) {
+      launchStatus.terminateLaunch("Restarting launch, Error installing hot swap patches: " + e);
+
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          InstantRunUtils.setRestartSession(myEnv, device);
+          ExecutionUtil.restart(myEnv);
+        }
+      });
+
+      return true; // not an error condition since we've already terminated and restarted the launch
     }
 
     return true;
+  }
+
+  public boolean needsActivityLaunch() {
+    return myNeedsActivityLaunch;
   }
 }
