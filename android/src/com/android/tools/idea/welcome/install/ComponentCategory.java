@@ -21,7 +21,6 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,7 +65,7 @@ public class ComponentCategory extends ComponentTreeNode {
   }
 
   @Override
-  public void updateState(@Nullable AndroidSdkHandler sdkHandler) {
+  public void updateState(@NotNull AndroidSdkHandler sdkHandler) {
     for (ComponentTreeNode component : myComponents) {
       component.updateState(sdkHandler);
     }

@@ -16,11 +16,13 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.android.repository.api.RemotePackage;
+import com.android.repository.impl.meta.Archive;
+import com.android.repository.io.FileOpUtils;
+import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.UIUtil;
@@ -71,9 +73,16 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     sortedPackagesList.addAll(remotePackages);
     StringBuilder table = new StringBuilder("<table>");
     for (RemotePackage remotePkgInfo : sortedPackagesList) {
+      Archive archive = remotePkgInfo.getArchive();
+      assert archive != null;
+
       // Adds some whitespace between name and size columns
-      table.append("<tr><td>").append(remotePkgInfo.getDisplayName()).append("</td><td>&nbsp;&nbsp;</td><td>")
-        .append(WelcomeUIUtils.getSizeLabel(remotePkgInfo.getArchive().getComplete().getSize())).append("</td></tr>");
+      table
+        .append("<tr><td>")
+        .append(remotePkgInfo.getDisplayName())
+        .append("</td><td>&nbsp;&nbsp;</td><td>")
+        .append(WelcomeUIUtils.getSizeLabel(archive.getComplete().getSize()))
+        .append("</td></tr>");
     }
     table.append("</table>");
     return table.toString();
@@ -83,7 +92,10 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     long downloadSize = 0;
     for (RemotePackage remotePackage : remotePackages) {
       // TODO: patches?
-      downloadSize += remotePackage.getArchive().getComplete().getSize();
+      Archive archive = remotePackage.getArchive();
+      assert archive != null;
+
+      downloadSize += archive.getComplete().getSize();
     }
     return new Section("Total Download Size", downloadSize == 0 ? "" : WelcomeUIUtils.getSizeLabel(downloadSize));
   }
@@ -116,8 +128,11 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
   }
 
   private Section getSdkFolderSection() {
-    File sdkDirectory = getSdkDirectory();
-    String text = sdkDirectory.canWrite() ? sdkDirectory.getAbsolutePath() : sdkDirectory.getAbsolutePath() + " (read-only)";
+    File location = getSdkDirectory();
+
+    String text = SdkLocationUtils.isWritable(FileOpUtils.create(), location)
+                  ? location.getAbsolutePath()
+                  : location.getAbsolutePath() + " (read-only)";
 
     return new Section("SDK Folder", text);
   }
@@ -155,16 +170,6 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     public Section(@NotNull String title, @Nullable String text) {
       myTitle = title;
       myText = StringUtil.notNullize(text);
-    }
-
-    @NotNull
-    public String getTitle() {
-      return myTitle;
-    }
-
-    @NotNull
-    public String getText() {
-      return myText;
     }
 
     public boolean isEmpty() {
