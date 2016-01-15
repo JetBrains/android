@@ -18,7 +18,6 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.util.Map;
@@ -36,11 +35,4 @@ public class RemoteNdkPkgInfo extends RemotePkgInfo {
       .setLicense(getLicense())
       .create();
   }
-
-  @NotNull
-  @Override
-  public String installId() {
-    return mPkgDesc.getInstallId();
-  }
-
 }
