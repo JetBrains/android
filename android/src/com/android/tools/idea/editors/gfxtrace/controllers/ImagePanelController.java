@@ -18,6 +18,8 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.LoadingDecoratorWrapper;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImagePanel;
@@ -39,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.concurrent.ExecutionException;
 
 public abstract class ImagePanelController extends Controller {
@@ -82,15 +85,25 @@ public abstract class ImagePanelController extends Controller {
       return;
     }
 
-    Rpc.listen(imageFuture, EdtExecutor.INSTANCE, LOG, myImageRequestController,
-               new Rpc.Callback<FetchedImage>() {
+    Rpc.listen(imageFuture, LOG, myImageRequestController, new UiErrorCallback<FetchedImage, BufferedImage, String>() {
       @Override
-      public void onFinish(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
+      protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
         try {
-          myImagePanel.setImage(result.get().image);
-        } catch (ErrDataUnavailable e) {
-          setEmptyText(e.getMessage());
+          return success(result.get().image);
         }
+        catch (ErrDataUnavailable e) {
+          return error(e.getMessage());
+        }
+      }
+
+      @Override
+      protected void onUiThreadSuccess(BufferedImage result) {
+        myImagePanel.setImage(result);
+      }
+
+      @Override
+      protected void onUiThreadError(String error) {
+        setEmptyText(error);
       }
     });
   }
