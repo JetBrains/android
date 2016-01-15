@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Locale;
 
 /**
  * Static utility methods used by the New Project/New Module wizards
@@ -41,7 +42,7 @@ import java.io.File;
  */
 public class WizardUtils {
   private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(WizardConstants.INVALID_FILENAME_CHARS);
-  public static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
+  private static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
 
   /**
    * Remove spaces, switch to lower case, and remove any invalid characters. If the resulting name
@@ -49,7 +50,7 @@ public class WizardUtils {
    */
   @NotNull
   public static String computeModuleName(@NotNull String appName, @Nullable Project project) {
-    String moduleName = appName.toLowerCase().replaceAll(WizardConstants.INVALID_FILENAME_CHARS, "");
+    String moduleName = appName.toLowerCase(Locale.US).replaceAll(WizardConstants.INVALID_FILENAME_CHARS, "");
     moduleName = moduleName.replaceAll("\\s", "");
 
     if (!isUniqueModuleName(moduleName, project)) {
@@ -83,7 +84,7 @@ public class WizardUtils {
    * @return true if the given module name is unique inside the given project. Returns true if the given
    * project is null.
    */
-  public static boolean isUniqueModuleName(@NotNull String moduleName, @Nullable Project project) {
+  private static boolean isUniqueModuleName(@NotNull String moduleName, @Nullable Project project) {
     if (project == null) {
       return true;
     }
@@ -107,7 +108,7 @@ public class WizardUtils {
    * @return the children, or empty if it has no children, is not a directory,
    * etc.
    *
-   * @deprecated Use {@link com.android.tools.idea.ui.wizard.WizardUtils#listFiles(File)} instead.
+   * @deprecated
    * TODO: Post wizard migration: delete
    */
   @NotNull
@@ -144,7 +145,6 @@ public class WizardUtils {
       PROJECT_LOC_IS_FILE("There must not already be a file at the %1$s."),
       NON_EMPTY_DIR("A non-empty directory already exists at the specified %1$s. Existing files may be overwritten. Proceed with caution."),
       PROJECT_IS_FILE_SYSTEM_ROOT("The %1$s can not be at the filesystem root"),
-      IS_UNDER_ANDROID_STUDIO_ROOT("Path points to a location within Android Studio installation directory"),
       PARENT_NOT_DIR("The %1$s's parent directory must be a directory, not a plain file"),
       INSIDE_ANDROID_STUDIO("The %1$s is inside %2$s install location"),
       PATH_TOO_LONG("The %1$s is too long");
@@ -251,7 +251,7 @@ public class WizardUtils {
         char illegalChar = filename.charAt(ILLEGAL_CHARACTER_MATCHER.indexIn(filename));
         return ValidationResult.error(ValidationResult.Message.ILLEGAL_CHARACTER, fieldName, illegalChar, filename);
       }
-      if (WizardConstants.INVALID_WINDOWS_FILENAMES.contains(filename.toLowerCase())) {
+      if (WizardConstants.INVALID_WINDOWS_FILENAMES.contains(filename.toLowerCase(Locale.US))) {
         return ValidationResult.error(ValidationResult.Message.ILLEGAL_FILENAME, fieldName, filename);
       }
       if (CharMatcher.WHITESPACE.matchesAnyOf(filename)) {
@@ -273,7 +273,8 @@ public class WizardUtils {
           parent != null &&
           parent.exists() &&
           !parent.canWrite()) {
-        return ValidationResult.pathNotWritable(writableCheckMode, fieldName, parent);
+        // TODO Passing NOT_WRITABLE_IS_ERROR here is a hack. Stop depending on this code and use PathValidator.
+        return ValidationResult.pathNotWritable(WritableCheckMode.NOT_WRITABLE_IS_ERROR, fieldName, parent);
       }
 
       testFile = parent;
