@@ -16,7 +16,10 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.fd.*;
+import com.android.tools.idea.fd.InstantRunArtifact;
+import com.android.tools.idea.fd.InstantRunBuildInfo;
+import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -141,7 +144,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
         if (buildInfo.hasOneOf(RESTART_DEX, DEX, RESOURCES)) {
           InstantRunManager.LOG.info("Using Dex Deploy task");
-          return new DexDeployTask(pkgName, myFacet, buildInfo);
+          return new DexDeployTask(myFacet, buildInfo);
         }
       }
     }
@@ -192,15 +195,5 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @Override
   public boolean createsNewProcess() {
     return true;
-  }
-
-  @Nullable
-  @Override
-  public String getSuccessMessage() {
-    if (!InstantRunUtils.needsFullBuild(myEnv)) { // TODO: this doesn't accurately reflect whether it'll be a hotswap
-      // Instant run does its own notification
-      return null;
-    }
-    return "Launched";
   }
 }
