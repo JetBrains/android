@@ -904,7 +904,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   }
 
   private List<JComponent> getSkinComponents() {
-    return ImmutableList.of(mySkinComboBox, mySkinDefinitionLabel, myHardwareSkinHelpLabel);
+    return ImmutableList.<JComponent>of(mySkinComboBox, mySkinDefinitionLabel, myHardwareSkinHelpLabel);
   }
 
   private List<JComponent> getMemoryAndStorageComponents() {
