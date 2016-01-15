@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
@@ -81,9 +82,9 @@ public abstract class AndroidLogcatView implements Disposable {
 
   /**
    * A filter which represents the current app, which is updated every time the app pulldown is
-   * changed.
+   * changed. Will be null if no app is selected.
    */
-  @NotNull
+  @Nullable
   private AndroidLogcatFilter mySelectedAppFilter;
 
   /**
@@ -194,30 +195,29 @@ public abstract class AndroidLogcatView implements Disposable {
 
           @Override
           public void clientSelected(@Nullable final Client c) {
-            boolean reselect = myFilterComboBoxModel.getSelectedItem() == mySelectedAppFilter;
-            PersistentAndroidLogFilters.FilterData filterData;
-            if (c != null) {
-              filterData = PersistentAndroidLogFilters.getInstance(myProject).createFilterForClient(c.getClientData());
-            }
-            else {
-              filterData = new PersistentAndroidLogFilters.FilterData();
-            }
-            // Replace mySelectedAppFilter
-            int index = myFilterComboBoxModel.getIndexOf(mySelectedAppFilter);
-            if (index >= 0) {
-              myFilterComboBoxModel.removeElementAt(index);
-              mySelectedAppFilter = AndroidLogcatFilter.compile(filterData, SELECTED_APP_FILTER);
-              myFilterComboBoxModel.insertElementAt(mySelectedAppFilter, index);
-            }
-            if (reselect) {
-              myFilterComboBoxModel.setSelectedItem(mySelectedAppFilter);
+            AndroidLogcatFilter selected = (AndroidLogcatFilter)myFilterComboBoxModel.getSelectedItem();
+            updateDefaultFilters(c != null ? c.getClientData() : null);
+
+            // Attempt to preserve selection as best we can. Often we don't have to do anything,
+            // but it's possible an old filter was replaced with an updated version - so, new
+            // instance, but the same name.
+            if (selected != null && myFilterComboBoxModel.getSelectedItem() != selected) {
+              String selectedName = selected.getName();
+              for (int i = 0; i < myFilterComboBoxModel.getSize(); i++) {
+                Object element = myFilterComboBoxModel.getElementAt(i);
+                if (element instanceof AndroidLogcatFilter) {
+                  if (((AndroidLogcatFilter)element).getName().equals(selectedName)) {
+                    myFilterComboBoxModel.setSelectedItem(element);
+                    break;
+                  }
+                }
+              }
             }
           }
         };
       deviceContext.addListener(deviceSelectionListener, this);
     }
 
-    mySelectedAppFilter = AndroidLogcatFilter.compile(new PersistentAndroidLogFilters.FilterData(), SELECTED_APP_FILTER);
     myNoFilter = AndroidLogcatFilter.compile(new PersistentAndroidLogFilters.FilterData(), NO_FILTERS);
 
     JComponent consoleComponent = myLogConsole.getComponent();
@@ -242,12 +242,19 @@ public abstract class AndroidLogcatView implements Disposable {
     final JPanel panel = new JPanel();
     final ComboBox editFiltersCombo = new ComboBox();
     myFilterComboBoxModel = new DefaultComboBoxModel();
-    editFiltersCombo.setModel(myFilterComboBoxModel);
+    myFilterComboBoxModel.addElement(myNoFilter);
+    myFilterComboBoxModel.addElement(EDIT_FILTER_CONFIGURATION);
+
+    updateDefaultFilters(null);
+
     String def = AndroidLogcatPreferences.getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
     if (StringUtil.isEmpty(def)) {
       def = myDeviceContext != null ? SELECTED_APP_FILTER : NO_FILTERS;
     }
-    updateFilterCombobox(def);
+    updateUserFilters(def);
+
+    editFiltersCombo.setModel(myFilterComboBoxModel);
+
     applySelectedFilter();
     // note: the listener is added after the initial call to populate the combo
     // boxes in the above call to updateConfiguredFilters
@@ -274,7 +281,7 @@ public abstract class AndroidLogcatView implements Disposable {
             dialog.setTitle(AndroidBundle.message("android.logcat.new.filter.dialog.title"));
             if (dialog.showAndGet()) {
               final PersistentAndroidLogFilters.FilterData filterData = dialog.getActiveFilter();
-              updateFilterCombobox(filterData != null ? filterData.getName() : null);
+              updateUserFilters(filterData != null ? filterData.getName() : null);
             }
             else {
               editFiltersCombo.setSelectedItem(myLastSelected);
@@ -364,18 +371,49 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  private void updateFilterCombobox(String select) {
-    final List<PersistentAndroidLogFilters.FilterData> filters = PersistentAndroidLogFilters.getInstance(myProject).getFilters();
-
-    myFilterComboBoxModel.removeAllElements();
-    if (myDeviceContext != null) {
-      myFilterComboBoxModel.addElement(mySelectedAppFilter);
+  /**
+   * Update the list of filters which are provided by default (selected app and filters provided
+   * by plugins). These show up in the top half of the filter pulldown.
+   */
+  private void updateDefaultFilters(@Nullable ClientData client) {
+    int noFilterIndex = myFilterComboBoxModel.getIndexOf(myNoFilter);
+    for (int i = 0; i < noFilterIndex; i++) {
+      myFilterComboBoxModel.removeElementAt(0);
     }
-    myFilterComboBoxModel.addElement(myNoFilter);
-    myFilterComboBoxModel.addElement(EDIT_FILTER_CONFIGURATION);
 
+    int insertIndex = 0;
+
+    mySelectedAppFilter = null;
+    if (client != null) {
+      PersistentAndroidLogFilters.FilterData filterData = PersistentAndroidLogFilters.getInstance(myProject).createFilterForClient(client);
+      mySelectedAppFilter = AndroidLogcatFilter.compile(filterData, SELECTED_APP_FILTER);
+      myFilterComboBoxModel.insertElementAt(mySelectedAppFilter, insertIndex++);
+    }
+
+    for (LogcatFilterProvider filterProvider : LogcatFilterProvider.EP_NAME.getExtensions()) {
+      AndroidLogcatFilter filter = filterProvider.getFilter(client);
+      myFilterComboBoxModel.insertElementAt(filter, insertIndex++);
+    }
+  }
+
+
+  /**
+   * Update the list of filters which have been created by the user. These show up in the bottom
+   * half of the filter pulldown.
+   */
+  private void updateUserFilters(String select) {
+
+    assert myFilterComboBoxModel.getIndexOf(EDIT_FILTER_CONFIGURATION) >= 0;
+
+    int userFiltersStartIndex = myFilterComboBoxModel.getIndexOf(EDIT_FILTER_CONFIGURATION) + 1;
+    while (myFilterComboBoxModel.getSize() > userFiltersStartIndex) {
+      myFilterComboBoxModel.removeElementAt(userFiltersStartIndex);
+    }
+
+    final List<PersistentAndroidLogFilters.FilterData> filters = PersistentAndroidLogFilters.getInstance(myProject).getFilters();
     for (PersistentAndroidLogFilters.FilterData filter : filters) {
       final String name = filter.getName();
+      assert name != null; // The UI that creates filters should ensure a name was created
 
       AndroidLogcatFilter compiled = AndroidLogcatFilter.compile(filter, name);
       myFilterComboBoxModel.addElement(compiled);
