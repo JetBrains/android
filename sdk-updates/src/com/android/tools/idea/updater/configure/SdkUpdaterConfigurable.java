@@ -62,7 +62,6 @@ import java.util.Set;
  */
 public class SdkUpdaterConfigurable implements SearchableConfigurable {
   private SdkUpdaterConfigPanel myPanel;
-  private AndroidSdkHandler mySdkHandler;
   private Channel myCurrentChannel;
   private Runnable myChannelChangedCallback;
 
@@ -106,9 +105,8 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         }
       }
     };
-    mySdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
     myPanel =
-      new SdkUpdaterConfigPanel(mySdkHandler, myChannelChangedCallback, new StudioDownloader(), StudioSettingsController.getInstance());
+      new SdkUpdaterConfigPanel(myChannelChangedCallback, new StudioDownloader(), StudioSettingsController.getInstance(), this);
     JComponent component = myPanel.getComponent();
     component.addAncestorListener(new AncestorListenerAdapter() {
       @Override
@@ -120,8 +118,17 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     return myPanel.getComponent();
   }
 
-  private RepoManager getRepoManager() {
-    return mySdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+  /**
+   * Gets the {@link AndroidSdkHandler} to use. Note that the instance can change if the local sdk path is edited, and so should not be
+   * cached.
+   */
+  AndroidSdkHandler getSdkHandler() {
+    // Right now just get it statically. In the future we could cache and listen for updates.
+    return AndroidSdkUtils.tryToChooseSdkHandler();
+  }
+
+  RepoManager getRepoManager() {
+    return getSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
   }
 
   @Override
@@ -181,7 +188,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       message.beginList();
       Multimap<RemotePackage, RemotePackage> dependencies = HashMultimap.create();
       com.android.repository.api.ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-      RepositoryPackages packages = mySdkHandler.getSdkManager(progress).getPackages();
+      RepositoryPackages packages = getRepoManager().getPackages();
       for (RemotePackage item : requestedPackages.keySet()) {
         List<RemotePackage> packageDependencies = InstallerUtil.computeRequiredPackages(ImmutableList.of(item), packages, progress);
         if (packageDependencies == null) {
