@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.repository.api.RepositorySource;
 import com.android.repository.api.SettingsController;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
 import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -34,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 /**
- * Panel that shows the current {@link SdkSources}.
+ * Panel that shows the current {@link RepositorySource}s.
  */
 public class UpdateSitesPanel {
   private JPanel myRootPanel;
@@ -145,14 +144,8 @@ public class UpdateSitesPanel {
     myForceHttp.setSelected(ourSettingsController.getForceHttp());
   }
 
-  public void setSdkManager(@NotNull final AndroidSdkHandler handler) {
-    // TODO: should run async
-    ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
-      @Override
-      public void run() {
-        mySourcesTableModel.setSdkHandler(handler);
-      }
-    }, "Loading Source List", false, null, myRootPanel);
+  public void setConfigurable(@NotNull SdkUpdaterConfigurable configurable) {
+    mySourcesTableModel.setConfigurable(configurable);
   }
 
   public void save() {
