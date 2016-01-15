@@ -170,6 +170,6 @@ public class GradleInvokerOptionsTest {
     GradleInvokerOptions options =
       GradleInvokerOptions.create(false, GradleInvoker.TestCompileType.ANDROID_TESTS, instantRunOptions, myTasksProvider, null);
 
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=23"));
+    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=24"));
   }
 }

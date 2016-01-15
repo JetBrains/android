@@ -187,7 +187,7 @@ public class GradleInvokerOptions {
     // Find the minimum value of the build API level and pass it to Gradle as a property
     AndroidDevice device = devices.get(0); // Instant Run only supports launching to a single device
     AndroidVersion version = device.getVersion();
-    properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, Integer.toString(version.getApiLevel())));
+    properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, Integer.toString(version.getFeatureLevel())));
 
     // If we are building for only one device, pass the density.
     Density density = Density.getEnum(device.getDensity());
