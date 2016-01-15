@@ -242,6 +242,10 @@
     <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.debugger.InstantRunPositionManagerFactory"/>
     <debuggerExtension implementation="com.android.tools.idea.fd.debugger.InstantRunDebuggerExtension"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
+    <applicationService serviceInterface="com.android.tools.idea.rendering.ResourceFolderRepositoryFileCache"
+                        serviceImplementation="com.android.tools.idea.rendering.ResourceFolderRepositoryFileCacheImpl"/>
+    <postStartupActivity implementation="com.android.tools.idea.rendering.ResourceFolderRepositoryFileCacheImpl$MaintenanceActivity"/>
+    <cachesInvalidator implementation="com.android.tools.idea.rendering.ResourceFolderRepositoryFileCacheImpl$CacheInvalidator"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleNotificationExtension"/>
     <buildProcess.parametersProvider implementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildProcessParametersProvider"/>
