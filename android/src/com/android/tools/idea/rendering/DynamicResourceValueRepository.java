@@ -26,14 +26,17 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Resource repository which merges in dynamically registered resource items from the model
@@ -158,5 +161,11 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   @Override
   public void buildVariantsConfigChanged() {
     notifyGradleSynced();
+  }
+
+  @NotNull
+  @Override
+  protected Set<VirtualFile> computeResourceDirs() {
+    return ImmutableSet.of();
   }
 }

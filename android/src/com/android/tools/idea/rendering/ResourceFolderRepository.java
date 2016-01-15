@@ -1258,8 +1258,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   rescan(psiFile, folderType);
                 }
               } else if (parent instanceof XmlAttributeValue) {
-                assert parent.getParent() instanceof XmlAttribute : parent;
-                XmlAttribute attribute = (XmlAttribute)parent.getParent();
+                PsiElement grandParent = parent.getParent();
+                if (grandParent instanceof XmlProcessingInstruction) {
+                  // Don't care about edits in the processing instructions, e.g. editing the encoding attribute in
+                  // <?xml version="1.0" encoding="utf-8"?>
+                  return;
+                }
+                assert grandParent instanceof XmlAttribute : parent;
+                XmlAttribute attribute = (XmlAttribute)grandParent;
                 if (ATTR_ID.equals(attribute.getLocalName()) &&
                     ANDROID_URI.equals(attribute.getNamespace())) {
                   // for each id attribute!
@@ -1828,5 +1834,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @Override
   public String toString() {
     return getClass().getSimpleName() + " for " + myResourceDir + ": @" + Integer.toHexString(System.identityHashCode(this));
+  }
+
+  @NotNull
+  @Override
+  protected Set<VirtualFile> computeResourceDirs() {
+    return Sets.newHashSet(myResourceDir);
   }
 }
