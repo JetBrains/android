@@ -150,6 +150,9 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
   protected long myGeneration;
 
+  private final Object RESOURCE_DIRS_LOCK = new Object();
+  @Nullable private Set<VirtualFile> myResourceDirs;
+
   protected LocalResourceRepository(@NotNull String displayName) {
     super(false);
     myDisplayName = displayName;
@@ -411,5 +414,29 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
    */
   public void sync() {
     ApplicationManager.getApplication().assertIsDispatchThread();
+  }
+
+  @NotNull
+  public final Set<VirtualFile> getResourceDirs() {
+    synchronized (RESOURCE_DIRS_LOCK) {
+      if (myResourceDirs != null) {
+        return myResourceDirs;
+      }
+      myResourceDirs = computeResourceDirs();
+      return myResourceDirs;
+    }
+  }
+
+  @NotNull protected abstract Set<VirtualFile> computeResourceDirs();
+
+  public final void invalidateResourceDirs() {
+    synchronized (RESOURCE_DIRS_LOCK) {
+      myResourceDirs = null;
+    }
+    if (myParents != null) {
+      for (LocalResourceRepository parent : myParents) {
+        parent.invalidateResourceDirs();
+      }
+    }
   }
 }

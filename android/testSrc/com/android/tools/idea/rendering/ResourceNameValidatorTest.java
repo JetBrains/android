@@ -20,16 +20,18 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Maps;
-import org.jetbrains.android.AndroidTestCase;
 
 @SuppressWarnings("javadoc")
 public class ResourceNameValidatorTest extends AndroidTestCase {
@@ -108,6 +110,12 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
       @Override
       protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
         return map.get(type);
+      }
+
+      @NotNull
+      @Override
+      protected Set<VirtualFile> computeResourceDirs() {
+        return ImmutableSet.of();
       }
     };
     ResourceNameValidator validator = ResourceNameValidator.create(false, resources, ResourceType.ID);

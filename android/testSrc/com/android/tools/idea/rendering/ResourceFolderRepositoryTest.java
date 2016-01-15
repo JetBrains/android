@@ -2405,8 +2405,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
   }
 
-  public void testEditXmlProcessingInstructionAttr() throws Exception {
-    // Test editing an attribute in the XML prologue
+  public void testEditXmlProcessingInstructionAttrInValues() throws Exception {
+    // Test editing an attribute in the XML prologue of a values file.
     VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -2416,6 +2416,38 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name2"));
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
 
+
+    final long generation = resources.getModificationCount();
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        String string = "utf-8";
+        final int offset = document.getText().indexOf(string);
+        assertTrue(offset != -1);
+        document.insertString(offset, "t");
+        documentManager.commitDocument(document);
+      }
+    });
+
+    // Edits in XML processing instructions have no effect on the resource repository
+    assertEquals(generation, resources.getModificationCount());
+    assertFalse(resources.isScanPending(psiFile1));
+    UIUtil.dispatchAllInvocationEvents();
+  }
+
+  public void testEditXmlProcessingInstructionAttrInLayout() throws Exception {
+    // Test editing an attribute in the XML prologue of a layout file with IDs.
+    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout"));
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
 
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
