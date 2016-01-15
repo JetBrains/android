@@ -169,7 +169,7 @@ public class InstantRunConfigurable
 
     boolean enabled = isGradle && isCurrentPlugin;
 
-    myInstantRunCheckBox.setEnabled(enabled);
+    myInstantRunCheckBox.setEnabled(isGradle); // allow turning off instant run even if the plugin is not the latest
     myRestartActivityCheckBox.setEnabled(enabled);
     myShowToastCheckBox.setEnabled(enabled);
   }
