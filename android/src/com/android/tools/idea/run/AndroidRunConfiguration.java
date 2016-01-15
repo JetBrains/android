@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.*;
@@ -26,6 +27,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.filters.TextConsoleBuilder;
@@ -35,6 +37,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -178,7 +181,17 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Override
   protected boolean supportMultipleDevices() {
     // instant run can only work with a single device (a single API level to be precise, but we simplify that to be a single device)
-    return !InstantRunSettings.isInstantRunEnabled(getProject());
+    if (InstantRunSettings.isInstantRunEnabled(getProject())) {
+      JavaRunConfigurationModule configModule = getConfigurationModule();
+      if (configModule != null) {
+        Module module = configModule.getModule();
+        if (module != null && InstantRunManager.isPatchableApp(module)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   @Nullable
