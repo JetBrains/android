@@ -73,7 +73,7 @@ public class StudioDownloader implements Downloader {
     // TODO: caching
     String suffix = url.getPath();
     suffix = suffix.substring(suffix.lastIndexOf("/") + 1);
-    File tempFile = FileUtil.createTempFile("StudioDownloader", suffix);
+    File tempFile = FileUtil.createTempFile("StudioDownloader", suffix, true);
     tempFile.deleteOnExit();
     com.intellij.openapi.progress.ProgressIndicator studioProgress = myStudioProgressIndicator;
     if (studioProgress == null) {
