@@ -77,7 +77,7 @@ public class StateListPicker extends JPanel {
 
   private final Module myModule;
   private final Configuration myConfiguration;
-  private ResourceHelper.StateList myStateList;
+  private @Nullable ResourceHelper.StateList myStateList;
   private List<StateComponent> myStateComponents;
   private final @NotNull RenderTask myRenderTask;
 
@@ -86,7 +86,7 @@ public class StateListPicker extends JPanel {
    *  and descriptions to use in case there is a problem. */
   private @NotNull ImmutableMap<String, Color> myContrastColorsWithDescription = ImmutableMap.of();
 
-  public StateListPicker(@NotNull ResourceHelper.StateList stateList,
+  public StateListPicker(@Nullable ResourceHelper.StateList stateList,
                          @NotNull Module module,
                          @NotNull Configuration configuration) {
 
@@ -94,17 +94,23 @@ public class StateListPicker extends JPanel {
     myConfiguration = configuration;
     myRenderTask = DrawableRendererEditor.configureRenderTask(module, configuration);
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    setStateList(stateList);
+    if (stateList != null) {
+      setStateList(stateList);
+    }
   }
 
   public void setStateList(@NotNull ResourceHelper.StateList stateList) {
     myStateList = stateList;
     myStateComponents = Lists.newArrayListWithCapacity(myStateList.getStates().size());
     removeAll();
+    if (myStateList.getStates().isEmpty()) {
+      add(new JLabel("Empty " + myStateList.getType() + " StateList"));
+    }
     for (final ResourceHelper.StateListState state : myStateList.getStates()) {
       final StateComponent stateComponent = createStateComponent(state);
       add(stateComponent);
     }
+    revalidate();
     repaint();
   }
 
@@ -191,7 +197,8 @@ public class StateListPicker extends JPanel {
     final List<AndroidDomElement> selectors = Lists.newArrayListWithCapacity(files.size());
 
     Class<? extends AndroidDomElement> selectorClass;
-    if (myStateList.getType() == ResourceFolderType.COLOR) {
+    assert myStateList != null;
+    if (myStateList.getFolderType() == ResourceFolderType.COLOR) {
       selectorClass = ColorSelector.class;
     }
     else {
@@ -319,15 +326,9 @@ public class StateListPicker extends JPanel {
     myIsBackgroundStateList = isBackgroundStateList;
   }
 
-  /**
-   * @return the type of statelist, can be {@link ResourceType#COLOR} or {@link ResourceType#DRAWABLE}
-   */
-  @NotNull
-  public ResourceType getType() {
-    final ResourceFolderType resFolderType = myStateList.getType();
-    final ResourceType resType = ResourceType.getEnum(resFolderType.getName());
-    assert resType != null;
-    return resType;
+  @Nullable
+  public ResourceHelper.StateList getStateList() {
+    return myStateList;
   }
 
   class ValueActionListener implements ActionListener, DocumentListener {
@@ -343,7 +344,8 @@ public class StateListPicker extends JPanel {
     public void beforeDocumentChange(DocumentEvent e) {
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
       assert facet != null;
-      List<String> completionStrings = ResourceHelper.getCompletionFromTypes(facet, myStateList.getType() == ResourceFolderType.COLOR
+      assert myStateList != null;
+      List<String> completionStrings = ResourceHelper.getCompletionFromTypes(facet, myStateList.getFolderType() == ResourceFolderType.COLOR
                                                                                     ? GraphicalResourceRendererEditor.COLORS_ONLY
                                                                                     : GraphicalResourceRendererEditor.DRAWABLES_ONLY);
       myComponent.getResourceComponent().setCompletionStrings(completionStrings);
@@ -376,7 +378,8 @@ public class StateListPicker extends JPanel {
       String nameSuggestion = attributeValueUrl != null ? attributeValueUrl.name : attributeValue;
 
       ResourceType[] allowedTypes;
-      if (myStateList.getType() == ResourceFolderType.COLOR) {
+      assert myStateList != null;
+      if (myStateList.getFolderType() == ResourceFolderType.COLOR) {
         allowedTypes = GraphicalResourceRendererEditor.COLORS_ONLY;
       }
       else {
