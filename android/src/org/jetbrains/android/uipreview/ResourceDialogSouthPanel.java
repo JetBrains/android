@@ -38,10 +38,10 @@ public class ResourceDialogSouthPanel {
   private JPanel myFullPanel;
   private JPanel myExpertPlaceholder;
   private JPanel myExpertPanel;
-  private JComboBox myVariant;
+  private JComboBox myVariantComboBox;
   private HideableDecorator myExpertDecorator;
 
-  private List<ResourceItem> myVariants;
+  private @NotNull List<ResourceItem> myVariants = Collections.emptyList();
 
   public ResourceDialogSouthPanel() {
     Color backgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
@@ -98,7 +98,7 @@ public class ResourceDialogSouthPanel {
   }
 
   public void addVariantActionListener(@NotNull ActionListener al) {
-    myVariant.addActionListener(al);
+    myVariantComboBox.addActionListener(al);
   }
 
   public void setVariant(@NotNull List<ResourceItem> resources, @Nullable ResourceItem defaultValue) {
@@ -124,19 +124,24 @@ public class ResourceDialogSouthPanel {
       }
 
       model.setSelectedItem(defaultSelection);
-      myVariants = resources;
-      myVariant.setModel(model);
+      myVariantComboBox.setModel(model);
     }
-
-    myVariant.setVisible(resources.size() > 1);
+    myVariants = resources;
+    myVariantComboBox.setVisible(resources.size() > 1);
   }
 
   @NotNull
   public ResourceItem getSelectedVariant() {
-    return myVariants.get(myVariant.getSelectedIndex());
+    return myVariants.size() > 1 ? myVariants.get(myVariantComboBox.getSelectedIndex()) : myVariants.get(0);
   }
 
-  public void setSelectedVariant(@Nullable ResourceItem selectedVariant) {
-    myVariant.setSelectedIndex(myVariants.indexOf(selectedVariant));
+  public void setSelectedVariant(@NotNull ResourceItem selectedVariant) {
+    if (myVariants.size() == 1) {
+      assert myVariants.get(0) == selectedVariant;
+    }
+    else {
+      ComboBoxModel model = myVariantComboBox.getModel();
+      model.setSelectedItem(model.getElementAt(myVariants.indexOf(selectedVariant)));
+    }
   }
 }
