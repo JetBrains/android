@@ -48,7 +48,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   @Override
   public LaunchTasksProvider get() {
     if (canHotSwap()) {
-      return new HotSwapTasksProvider(myFacet);
+      return new HotSwapTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
     }
 
     return new AndroidLaunchTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
