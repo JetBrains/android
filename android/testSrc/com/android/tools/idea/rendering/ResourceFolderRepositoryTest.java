@@ -62,6 +62,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT_WITH_DATA_BINDING = "resourceRepository/layout_with_data_binding.xml";
   private static final String VALUES1 = "resourceRepository/values.xml";
   private static final String VALUES_EMPTY = "resourceRepository/empty.xml";
+  private static final String VALUES_WITH_DUPES = "resourceRepository/values_with_duplicates.xml";
+  private static final String VALUES_WITH_BAD_NAME = "resourceRepository/values_with_bad_name.xml";
   private static final String XLIFF = "resourceRepository/xliff.xml";
   private static final String STRINGS = "resourceRepository/strings.xml";
   private static final String DRAWABLE = "resourceRepository/logo.png";
@@ -2539,6 +2541,108 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     //noinspection ConstantConditions
     assertEquals("My Application 574",
                  resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+  }
+
+  public void testLoadDuplicatedValues() throws Exception {
+    resetScanCounter();
+
+    // Test loading up a file that already illegally had duplicates.
+    VirtualFile file1 = myFixture.copyFileToProject(VALUES_WITH_DUPES, "res/values/values.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertFalse(resources.hasResourceItem(ResourceType.STRING, "dupe_name"));
+    //noinspection ConstantConditions
+    assertEquals("Animations Demo",
+                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+
+    long generation = resources.getModificationCount();
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    // Try editting one of the duplicated string contents, and check that
+    // the copies are not tied together.
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      @Override
+      public void run() {
+        String origString = "<string name=\"app_name\">Animations Demo</string>";
+        String newString = "<string name=\"dupe_name\">Duplicate Demo</string>";
+        int offset = document.getText().indexOf(origString);
+        document.replaceString(offset, offset + origString.length(), newString);
+        documentManager.commitDocument(document);
+      }
+    });
+    assertFalse(resources.isScanPending(psiFile1));
+    assertTrue(generation < resources.getModificationCount());
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "dupe_name"));
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    //noinspection ConstantConditions
+    assertEquals("Duplicate Demo",
+                 resources.getResourceItem(ResourceType.STRING, "dupe_name").get(0).getResourceValue(false).getValue());
+    //noinspection ConstantConditions
+    assertEquals("Animations Demo",
+                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+
+    // Try editting something else, like the ID item.
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
+    assertFalse(resources.hasResourceItem(ResourceType.ID, "action_prev"));
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      @Override
+      public void run() {
+        String origString = "<item type=\"id\" name=\"action_next\" />";
+        String newString = "<item type=\"id\" name=\"action_prev\" />";
+        int offset = document.getText().indexOf(origString);
+        document.replaceString(offset, offset + origString.length(), newString);
+        documentManager.commitDocument(document);
+      }
+    });
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_prev"));
+
+    ensureIncremental();
+  }
+
+  public void testLoadValuesWithBadName() throws Exception {
+    resetScanCounter();
+
+    // If a file had bad value names, test that it can still be parsed.
+    VirtualFile file1 = myFixture.copyFileToProject(VALUES_WITH_BAD_NAME, "res/values/values.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app*name"));
+    //noinspection ConstantConditions
+    assertEquals("Animations Demo",
+                 resources.getResourceItem(ResourceType.STRING, "app*name").get(0).getResourceValue(false).getValue());
+
+    long generation = resources.getModificationCount();
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      @Override
+      public void run() {
+        String origString = "<string name=\"app*name\">Animations Demo</string>";
+        String newString = "<string name=\"app_name\">Fixed Animations Demo</string>";
+        int offset = document.getText().indexOf(origString);
+        document.replaceString(offset, offset + origString.length(), newString);
+        documentManager.commitDocument(document);
+      }
+    });
+    assertFalse(resources.isScanPending(psiFile1));
+    assertTrue(generation < resources.getModificationCount());
+    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app*name"));
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    //noinspection ConstantConditions
+    assertEquals("Fixed Animations Demo",
+                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+
+    ensureIncremental();
   }
 
   public void testIdScanFromLayout() throws Exception {
