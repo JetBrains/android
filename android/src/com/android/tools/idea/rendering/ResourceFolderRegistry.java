@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ResourceFolderRegistry {
@@ -63,5 +66,24 @@ public class ResourceFolderRegistry {
     }
 
     return repository;
+  }
+
+  /**
+   * Grabs resource directories from the given facets and pairs the directory with an arbitrary
+   * AndroidFacet which happens to depend on the directory.
+   *
+   * @param facets set of facets which may have resource directories
+   */
+  @NotNull
+  static Map<VirtualFile, AndroidFacet> getResourceDirectoriesForFacets(@NotNull List<AndroidFacet> facets) {
+    Map<VirtualFile, AndroidFacet> resDirectories = Maps.newHashMap();
+    for (AndroidFacet facet : facets) {
+      for (VirtualFile resourceDir : facet.getAllResourceDirectories()) {
+        if (!resDirectories.containsKey(resourceDir)) {
+          resDirectories.put(resourceDir, facet);
+        }
+      }
+    }
+    return resDirectories;
   }
 }
