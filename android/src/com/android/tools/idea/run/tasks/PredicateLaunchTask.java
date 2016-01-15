@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,37 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+public class PredicateLaunchTask implements LaunchTask {
+  public interface Predicate {
+    boolean isSuccess();
+  }
 
-public interface LaunchTasksProvider {
+  private final LaunchTask myTask;
+  private final Predicate myPredicate;
+
+  public PredicateLaunchTask(@NotNull LaunchTask task, @NotNull Predicate predicate) {
+    myTask = task;
+    myPredicate = predicate;
+  }
+
   @NotNull
-  List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter);
+  @Override
+  public String getDescription() {
+    return myTask.getDescription();
+  }
 
-  @Nullable
-  DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus);
+  @Override
+  public int getDuration() {
+    return myTask.getDuration();
+  }
 
-  boolean createsNewProcess();
+  @Override
+  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    if (myPredicate.isSuccess()) {
+      myTask.perform(device, launchStatus, printer);
+    }
+
+    return true;
+  }
 }
