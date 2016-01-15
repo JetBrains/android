@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -25,12 +26,12 @@ import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
@@ -39,8 +40,6 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
-import org.jetbrains.android.resourceManagers.FileResourceProcessor;
-import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
@@ -177,9 +176,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         addResourceReferenceValues(facet, prefix, type, resourcePackage, result, explicitResourceType);
       }
       else {
-        final Set<String> filteringSet = SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage)
-                                         ? null
-                                         : getResourceTypesInCurrentModule(facet);
+        final Set<ResourceType> filteringSet = SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage)
+                                               ? null
+                                               : getResourceTypesInCurrentModule(facet);
 
         for (ResourceType resourceType : ResourceType.values()) {
           final String type = resourceType.getName();
@@ -188,7 +187,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
             addResourceReferenceValues(facet, prefix, type, resourcePackage, result, true);
           }
           else if (recommendedTypes.contains(type) &&
-                   (filteringSet == null || filteringSet.contains(type))) {
+                   (filteringSet == null || filteringSet.contains(resourceType))) {
             result.add(ResourceValue.literal(typePrefix));
           }
         }
@@ -233,23 +232,19 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @NotNull
-  public static Set<String> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
-    final Set<String> result = new HashSet<String>();
-    final LocalResourceManager manager = facet.getLocalResourceManager();
-
-    manager.processFileResources(null, new FileResourceProcessor() {
-      @Override
-      public boolean process(@NotNull VirtualFile resFile, @NotNull String resName, @NotNull String resFolderType) {
-        if (ResourceType.getEnum(resFolderType) != null) {
-          result.add(resFolderType);
+  public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
+    Set<ResourceType> result = ContainerUtil.newHashSet();
+    AppResourceRepository resourceRepository = facet.getAppResources(true);
+    for (ResourceType type : ResourceType.values()) {
+      if (resourceRepository.hasResourcesOfType(type)) {
+        if (type == ResourceType.DECLARE_STYLEABLE) {
+          // The ResourceRepository maps tend to hold DECLARE_STYLEABLE, but not STYLEABLE. However, these types are
+          // used for R inner classes, and declare-styleable isn't a valid inner class name, so convert to styleable.
+          result.add(ResourceType.STYLEABLE);
+        } else {
+          result.add(type);
         }
-        return true;
       }
-    });
-
-    result.addAll(manager.getValueResourceTypes());
-    if (manager.getIds(true).size() > 0) {
-      result.add(ResourceType.ID.getName());
     }
     return result;
   }
