@@ -23,25 +23,16 @@ import com.android.repository.Revision;
 import com.android.repository.api.License;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.CommonFactory;
-import com.android.repository.io.FileOp;
-import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.packages.RemotePackageParserUtils;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import com.google.common.base.Objects;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.w3c.dom.Node;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Properties;
 
 
 /**
@@ -115,19 +106,6 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
     return mPkgDesc;
   }
 
-  /**
-   * Returns the size (in bytes) of all the archives that make up this package.
-   */
-  public long getDownloadSize() {
-    long size = 0;
-    for (Archive archive : mArchives) {
-      if (archive.isCompatible()) {
-        size += archive.getSize();
-      }
-    }
-    return size;
-  }
-
   //---- Ordering ----
 
   /**
@@ -149,39 +127,6 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
     int result = 1;
     result = prime * result + ((mPkgDesc == null) ? 0 : mPkgDesc.hashCode());
     return result;
-  }
-
-  /**
-   * Save the properties of the current packages in the given {@link Properties} object.
-   * These properties will later be give the constructor that takes a {@link Properties} object.
-   */
-  public void saveProperties(@NonNull Properties props) {
-    if (mLicense != null) {
-      String license = mLicense.getValue();
-      if (license != null && license.length() > 0) {
-        props.setProperty(PkgProps.PKG_LICENSE, license);
-      }
-      String licenseRef = mLicense.getId();
-      if (licenseRef != null && licenseRef.length() > 0) {
-        props.setProperty(PkgProps.PKG_LICENSE_REF, licenseRef);
-      }
-    }
-    if (mListDisplay != null && mListDisplay.length() > 0) {
-      props.setProperty(PkgProps.PKG_LIST_DISPLAY, mListDisplay);
-    }
-    if (mDescription != null && mDescription.length() > 0) {
-      props.setProperty(PkgProps.PKG_DESC, mDescription);
-    }
-    if (mDescUrl != null && mDescUrl.length() > 0) {
-      props.setProperty(PkgProps.PKG_DESC_URL, mDescUrl);
-    }
-    if (mObsolete != null) {
-      props.setProperty(PkgProps.PKG_OBSOLETE, mObsolete);
-    }
-    if (mSource != null) {
-      props.setProperty(PkgProps.PKG_SOURCE_URL, mSource.getUrl());
-    }
-    props.setProperty(PkgProps.PKG_REVISION, mRevision.toString());
   }
 
   /**
@@ -240,14 +185,6 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
                             RemotePackageParserUtils.getXmlString(archiveNode, SdkRepoConstants.NODE_CHECKSUM));
 
     return a;
-  }
-
-  /**
-   * Returns the source that created (and owns) this package. Can be null.
-   */
-  @Nullable
-  public SdkSource getParentSource() {
-    return mSource;
   }
 
   /**
@@ -322,48 +259,6 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
   }
 
   /**
-   * @return true if any of the archives in this package are compatible with the current
-   * architecture.
-   */
-  public boolean hasCompatibleArchive() {
-    for (Archive archive : mArchives) {
-      if (archive.isCompatible()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Returns a short, reasonably unique string identifier that can be used
-   * to identify this package when installing from the command-line interface.
-   * {@code 'android list sdk'} will show these IDs and then in turn they can
-   * be provided to {@code 'android update sdk --no-ui --filter'} to select
-   * some specific packages.
-   * <p/>
-   * The identifiers must have the following properties: <br/>
-   * - They must contain only simple alphanumeric characters. <br/>
-   * - Commas, whitespace and any special character that could be obviously problematic
-   * to a shell interface should be avoided (so dash/underscore are OK, but things
-   * like colon, pipe or dollar should be avoided.) <br/>
-   * - The name must be consistent across calls and reasonably unique for the package
-   * type. Collisions can occur but should be rare. <br/>
-   * - Different package types should have a clearly different name pattern. <br/>
-   * - The revision number should not be included, as this would prevent updates
-   * from being automated (which is the whole point.) <br/>
-   * - It must remain reasonably human readable. <br/>
-   * - If no such id can exist (for example for a local package that cannot be installed)
-   * then an empty string should be returned. Don't return null.
-   * <p/>
-   * Important: This is <em>not</em> a strong unique identifier for the package.
-   * If you need a strong unique identifier, you should use {@link #comparisonKey()}
-   * and the {@link Comparable} interface.
-   */
-  @NonNull
-  // TODO: in each case this should be obtainable from the PkgDesc, so this shouldn't be needed.
-  public abstract String installId();
-
-  /**
    * Returns the short description of the source, if not null.
    * Otherwise returns the default Object toString result.
    * <p/>
@@ -387,49 +282,6 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
   @NonNull
   public final String getShortDescription() {
     return getPkgDesc().getDescriptionShort();
-  }
-
-
-  /**
-   * Hook called right after a file has been unzipped (during an install).
-   * <p/>
-   * The base class implementation makes sure to properly adjust set executable
-   * permission on Linux and MacOS system if the zip entry was marked as +x.
-   *
-   * @param archive      The archive that is being installed.
-   * @param monitor      The {@link ITaskMonitor} to display errors.
-   * @param fileOp       The {@link FileOp} used by the archive installer.
-   * @param unzippedFile The file that has just been unzipped in the install temp directory.
-   * @param zipEntry     The {@link ZipArchiveEntry} that has just been unzipped.
-   */
-  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, FileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
-
-    // if needed set the permissions.
-    if (sUsingUnixPerm && fileOp.isFile(unzippedFile)) {
-      // get the mode and test if it contains the executable bit
-      int mode = zipEntry.getUnixMode();
-      if ((mode & 0111) != 0) {
-        try {
-          fileOp.setExecutablePermission(unzippedFile);
-        }
-        catch (IOException ignore) {
-        }
-      }
-    }
-
-  }
-
-  /**
-   * Hook called right after an archive has been installed.
-   *
-   * @param archive       The archive that has been installed.
-   * @param monitor       The {@link ITaskMonitor} to display errors.
-   * @param installFolder The folder where the archive was successfully installed.
-   *                      Null if the installation failed, in case the archive needs to
-   *                      do some cleanup after <code>preInstallHook</code>.
-   */
-  public void postInstallHook(Archive archive, ITaskMonitor monitor, File installFolder) {
-    // Nothing to do in base class.
   }
 
   @Override
@@ -456,59 +308,5 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
       return false;
     }
     return getPkgDesc().equals(other.getPkgDesc());
-  }
-
-  /**
-   * Returns whether the give package represents the same item as the current package.
-   * <p/>
-   * Two packages are considered the same if they represent the same thing, except for the
-   * revision number.
-   *
-   * @param pkg the package to compare.
-   * @return true if the item as equivalent.
-   */
-  public UpdateInfo canUpdate(LocalPkgInfo localPkg) {
-    if (localPkg == null) {
-      return UpdateInfo.INCOMPATIBLE;
-    }
-
-    // check they are the same item, ignoring the preview bit.
-    if (!sameItemAs(localPkg, Revision.PreviewComparison.IGNORE)) {
-      return UpdateInfo.INCOMPATIBLE;
-    }
-
-    // a preview cannot update a non-preview
-    // TODO(jbakermalone): review this logic
-    if (getRevision().isPreview() && !localPkg.getDesc().getRevision().isPreview()) {
-      return UpdateInfo.INCOMPATIBLE;
-    }
-
-    // check revision number
-    if (localPkg.getDesc().getRevision().compareTo(this.getRevision()) < 0) {
-      return UpdateInfo.UPDATE;
-    }
-
-    // not an upgrade but not incompatible either.
-    return UpdateInfo.NOT_UPDATE;
-  }
-
-  /**
-   * Returns whether the give package represents the same item as the current package.
-   * <p/>
-   * Two packages are considered the same if they represent the same thing, except for the
-   * revision number.
-   *
-   * @param pkg the package to compare.
-   * @return true if the item as equivalent.
-   */
-  protected boolean sameItemAs(LocalPkgInfo pkg, Revision.PreviewComparison comparePreview) {
-    IPkgDesc desc = getPkgDesc();
-    IPkgDesc other = pkg.getDesc();
-    return Objects.equal(desc.getPath(), other.getPath()) &&
-           Objects.equal(desc.getTag(), other.getTag()) &&
-           Objects.equal(desc.getAndroidVersion(), other.getAndroidVersion()) &&
-           Objects.equal(desc.getVendor(), other.getVendor()) &&
-           (comparePreview == Revision.PreviewComparison.IGNORE ||
-            desc.getRevision().isPreview() == other.getRevision().isPreview());
   }
 }

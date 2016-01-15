@@ -18,21 +18,19 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.AndroidVersionHelper;
-import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalAddonPkgInfo;
-import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Represents an add-on XML node in an SDK repository.
@@ -185,23 +183,6 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo {
   }
 
   /**
-   * Save the properties of the current packages in the given {@link Properties} object.
-   * These properties will later be given to a constructor that takes a {@link Properties} object.
-   */
-  @Override
-  public void saveProperties(Properties props) {
-    super.saveProperties(props);
-
-    AndroidVersionHelper.saveProperties(getAndroidVersion(), props);
-    mLayoutlibVersion.saveProperties(props);
-
-    props.setProperty(PkgProps.ADDON_NAME_ID, getPkgDesc().getName().getId());
-    props.setProperty(PkgProps.ADDON_NAME_DISPLAY, getPkgDesc().getName().getDisplay());
-    props.setProperty(PkgProps.ADDON_VENDOR_ID, getPkgDesc().getVendor().getId());
-    props.setProperty(PkgProps.ADDON_VENDOR_DISPLAY, getPkgDesc().getVendor().getDisplay());
-  }
-
-  /**
    * Parses a <libs> element.
    */
   private Lib[] parseLibs(Node libsNode) {
@@ -231,33 +212,11 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo {
   }
 
   /**
-   * Returns the version of the platform dependency of this package.
-   * <p/>
-   * An add-on has the same {@link AndroidVersion} as the platform it depends on.
-   */
-  @NotNull
-  public AndroidVersion getAndroidVersion() {
-    return getPkgDesc().getAndroidVersion();
-  }
-
-  /**
    * Returns the libs defined in this add-on. Can be an empty array but not null.
    */
   @NotNull
   public Lib[] getLibs() {
     return mLibs;
-  }
-
-  /**
-   * Returns a string identifier to install this package from the command line.
-   * For add-ons, we use "addon-vendor-name-N" where N is the base platform API.
-   * <p/>
-   * {@inheritDoc}
-   */
-  @NotNull
-  @Override
-  public String installId() {
-    return encodeAddonName(getPkgDesc().getName().getId(), getPkgDesc().getVendor().getId(), getAndroidVersion());
   }
 
   /**
@@ -288,35 +247,6 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo {
                          obsolete ? " (Obsolete)" : "");
   }
 
-  private static String encodeAddonName(String nameId, String vendorId, AndroidVersion version) {
-    String name = String.format("addon-%s-%s-%s",     //$NON-NLS-1$
-                                nameId, vendorId, version.getApiString());
-    name = name.toLowerCase(Locale.US);
-    name = name.replaceAll("[^a-z0-9_-]+", "_");      //$NON-NLS-1$ //$NON-NLS-2$
-    name = name.replaceAll("_+", "_");                //$NON-NLS-1$ //$NON-NLS-2$
-    return name;
-  }
-
-  @Override
-  public boolean sameItemAs(LocalPkgInfo pkg, Revision.PreviewComparison previewComparison) {
-    if (pkg instanceof LocalAddonPkgInfo) {
-      LocalAddonPkgInfo localPkg = (LocalAddonPkgInfo)pkg;
-
-      String nameId = getPkgDesc().getName().getId();
-
-      // check they are the same add-on.
-      if (Objects.equal(nameId, localPkg.getDesc().getName()) &&
-          getAndroidVersion().equals(localPkg.getDesc().getAndroidVersion())) {
-        // Check the vendor-id field.
-        if (getPkgDesc().getVendor().equals(localPkg.getDesc().getVendor())) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -326,7 +256,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo {
     String name = getPkgDesc().getName().getDisplay();
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result = prime * result + (getPkgDesc().hasVendor() ? 0 : getPkgDesc().getVendor().hashCode());
-    result = prime * result + getAndroidVersion().hashCode();
+    result = prime * result + getPkgDesc().getAndroidVersion().hashCode();
     return result;
   }
 

@@ -16,26 +16,19 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.descriptors.IPkgDescExtra;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDescExtra;
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
-import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Represents a extra XML node in an SDK repository.
@@ -164,40 +157,6 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
   }
 
   /**
-   * Save the properties of the current packages in the given {@link Properties} object.
-   * These properties will later be give the constructor that takes a {@link Properties} object.
-   */
-  @Override
-  public void saveProperties(Properties props) {
-    super.saveProperties(props);
-    mMinToolsMixin.saveProperties(props);
-
-    props.setProperty(PkgProps.EXTRA_PATH, mPath);
-    props.setProperty(PkgProps.EXTRA_NAME_DISPLAY, mDisplayName);
-    props.setProperty(PkgProps.EXTRA_VENDOR_DISPLAY, getPkgDesc().getVendor().getDisplay());
-    props.setProperty(PkgProps.EXTRA_VENDOR_ID, getPkgDesc().getVendor().getId());
-
-    if (getMinApiLevel() != MIN_API_LEVEL_NOT_SPECIFIED) {
-      props.setProperty(PkgProps.EXTRA_MIN_API_LEVEL, Integer.toString(getMinApiLevel()));
-    }
-
-    if (mProjectFiles.length > 0) {
-      StringBuilder sb = new StringBuilder();
-      for (int i = 0; i < mProjectFiles.length; i++) {
-        if (i > 0) {
-          sb.append(File.pathSeparatorChar);
-        }
-        sb.append(mProjectFiles[i]);
-      }
-      props.setProperty(PkgProps.EXTRA_PROJECT_FILES, sb.toString());
-    }
-
-    if (mOldPaths != null && mOldPaths.length() > 0) {
-      props.setProperty(PkgProps.EXTRA_OLD_PATHS, mOldPaths);
-    }
-  }
-
-  /**
    * The minimal revision of the tools package required by this extra package, if > 0,
    * or {@link #MIN_TOOLS_REV_NOT_SPECIFIED} if there is no such requirement.
    */
@@ -213,24 +172,6 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
   @Override
   public int getMinApiLevel() {
     return mMinApiLevel;
-  }
-
-  /**
-   * The project-files listed by this extra package.
-   * The array can be empty but not null.
-   * <p/>
-   * IMPORTANT: directory separators are NOT translated and may not match
-   * the {@link File#separatorChar} of the current platform. It's up to the
-   * user to adequately interpret the paths.
-   * Similarly, no guarantee is made on the validity of the paths.
-   * Users are expected to apply all usual sanity checks such as removing
-   * "./" and "../" and making sure these paths don't reference files outside
-   * of the installed archive.
-   *
-   * @since sdk-repository-4.xsd or sdk-addon-2.xsd
-   */
-  public String[] getProjectFiles() {
-    return mProjectFiles;
   }
 
   /**
@@ -297,18 +238,6 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
   }
 
   /**
-   * Returns a string identifier to install this package from the command line.
-   * For extras, we use "extra-vendor-path".
-   * <p/>
-   * {@inheritDoc}
-   */
-  @Override
-  public String installId() {
-    return String.format("extra-%1$s-%2$s",     //$NON-NLS-1$
-                         getPkgDesc().getVendor().getId(), getPath());
-  }
-
-  /**
    * Returns a description of this package that is suitable for a list display.
    * <p/>
    */
@@ -334,31 +263,6 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
       String.format("%1$s, revision %2$s%3$s", displayName, revision.toShortString(), obsolete ? " (Obsolete)" : "");  //$NON-NLS-2$
 
     return s;
-  }
-
-  /**
-   * Computes the "sub-folder" install path, relative to the given SDK root.
-   * For an extra package, this is generally ".../extra/vendor-id/path".
-   *
-   * @param osSdkRoot The OS path of the SDK root folder if known.
-   *                  This CAN be null, in which case the path will start at /extra.
-   * @return Either /extra/vendor/path or sdk-root/extra/vendor-id/path.
-   */
-  private File getInstallSubFolder(@Nullable String osSdkRoot) {
-    // The /extras dir at the root of the SDK
-    File path = new File(osSdkRoot, SdkConstants.FD_EXTRAS);
-
-    String vendor = getPkgDesc().getVendor().getId();
-    if (vendor != null && vendor.length() > 0) {
-      path = new File(path, vendor);
-    }
-
-    String name = getPath();
-    if (name != null && name.length() > 0) {
-      path = new File(path, name);
-    }
-
-    return path;
   }
 
   // ---
@@ -400,16 +304,5 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
       return false;
     }
     return mMinToolsMixin.equals(obj);
-  }
-
-  @Override
-  public boolean sameItemAs(LocalPkgInfo pkg, Revision.PreviewComparison previewComparison) {
-    // Extra packages are similar if they have the same path and vendor
-    if (pkg instanceof LocalExtraPkgInfo) {
-      LocalExtraPkgInfo ep = (LocalExtraPkgInfo)pkg;
-      return PkgDescExtra.compatibleVendorAndPath((IPkgDescExtra)mPkgDesc, (IPkgDescExtra)ep.getDesc());
-    }
-
-    return false;
   }
 }

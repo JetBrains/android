@@ -17,8 +17,8 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.repository.Revision;
-import com.android.sdklib.*;
-import com.android.sdklib.repository.PkgProps;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.LayoutlibVersion;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Represents a platform XML node in an SDK repository.
@@ -77,48 +76,6 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo {
     pkgDescBuilder.setLicense(getLicense());
 
     mPkgDesc = pkgDescBuilder.create();
-  }
-
-  /**
-   * Save the properties of the current packages in the given {@link Properties} object.
-   * These properties will later be given to a constructor that takes a {@link Properties} object.
-   */
-  @Override
-  public void saveProperties(Properties props) {
-    super.saveProperties(props);
-
-    AndroidVersionHelper.saveProperties(getAndroidVersion(), props);
-    mLayoutlibVersion.saveProperties(props);
-
-    if (mVersionName != null) {
-      props.setProperty(PkgProps.PLATFORM_VERSION, mVersionName);
-    }
-  }
-
-  /**
-   * Returns the version, a string, for platform packages.
-   */
-  public String getVersionName() {
-    return mVersionName;
-  }
-
-  /**
-   * Returns the package version, for platform, add-on and doc packages.
-   */
-  @NotNull
-  public AndroidVersion getAndroidVersion() {
-    return getPkgDesc().getAndroidVersion();
-  }
-
-  /**
-   * Returns a string identifier to install this package from the command line.
-   * For platforms, we use "android-N" where N is the API or the preview codename.
-   * <p/>
-   * {@inheritDoc}
-   */
-  @Override
-  public String installId() {
-    return AndroidTargetHash.getPlatformHashString(getAndroidVersion());
   }
 
   /**
