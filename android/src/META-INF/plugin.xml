@@ -929,6 +929,8 @@
     <extensionPoint qualifiedName="com.android.ide.moduleStructureConfigurableContributor"
                     interface="com.android.tools.idea.structure.dialog.ModuleStructureConfigurableContributor"/>
     <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.run.editor.AndroidDebugger" />
+    <extensionPoint qualifiedName="com.android.logcat.filterProvider"
+                    interface="com.android.tools.idea.logcat.LogcatFilterProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">

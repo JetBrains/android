@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 /**
  * A filter which can reject lines of logcat output based on user configured patterns.
  */
-final class AndroidLogcatFilter {
+public final class AndroidLogcatFilter {
   @NotNull private final String myName;
   @Nullable private final Pattern myMessagePattern;
   @Nullable private final Pattern myTagPattern;
@@ -32,12 +32,21 @@ final class AndroidLogcatFilter {
   @Nullable private final String myPid;
   @Nullable private final Log.LogLevel myLogLevel;
 
-  private AndroidLogcatFilter(@NotNull String name,
-                              @Nullable Pattern messagePattern,
-                              @Nullable Pattern tagPattern,
-                              @Nullable Pattern pkgNamePattern,
-                              @Nullable String pid,
-                              @Nullable Log.LogLevel logLevel) {
+  public AndroidLogcatFilter(@NotNull String name,
+                             @Nullable Pattern messagePattern,
+                             @Nullable Pattern tagPattern,
+                             @Nullable Pattern pkgNamePattern,
+                             @Nullable Integer pid,
+                             @Nullable Log.LogLevel logLevel) {
+    this(name, messagePattern, tagPattern, pkgNamePattern, pid != null ? pid.toString() : null, logLevel);
+  }
+
+  public AndroidLogcatFilter(@NotNull String name,
+                             @Nullable Pattern messagePattern,
+                             @Nullable Pattern tagPattern,
+                             @Nullable Pattern pkgNamePattern,
+                             @Nullable String pid,
+                             @Nullable Log.LogLevel logLevel) {
     myName = name;
     myMessagePattern = messagePattern;
     myTagPattern = tagPattern;
