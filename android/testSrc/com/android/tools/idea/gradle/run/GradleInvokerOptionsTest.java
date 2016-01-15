@@ -59,7 +59,7 @@ public class GradleInvokerOptionsTest {
   }
 
   @Test
-  public void testUserGoal() throws Exception {
+  public void userGoalsHaveNoInstantRunOptions() throws Exception {
     GradleInvokerOptions options =
       GradleInvokerOptions.create(true, GradleInvoker.TestCompileType.JAVA_TESTS, null, myTasksProvider, "foo");
 
@@ -68,7 +68,7 @@ public class GradleInvokerOptionsTest {
   }
 
   @Test
-  public void testUnitTest() throws Exception {
+  public void unitTestsHaveNoInstantRunOptions() throws Exception {
     List<String> tasks = Collections.singletonList("compileUnitTest");
     when(myTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA)).thenReturn(tasks);
 
@@ -80,7 +80,7 @@ public class GradleInvokerOptionsTest {
   }
 
   @Test
-  public void testCleanBuild() throws Exception {
+  public void cleanBuild() throws Exception {
     FileChangeListener.Changes changes = new FileChangeListener.Changes(true, false, false);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(20, null));
     when(myDevice.getDensity()).thenReturn(640);
@@ -102,7 +102,7 @@ public class GradleInvokerOptionsTest {
   }
 
   @Test
-  public void testFullBuild() throws Exception {
+  public void fullBuild() throws Exception {
     FileChangeListener.Changes changes = new FileChangeListener.Changes(true, false, false);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(20, null));
     when(myDevice.getDensity()).thenReturn(640);
@@ -119,7 +119,7 @@ public class GradleInvokerOptionsTest {
   }
 
   @Test
-  public void testIncrementalBuild() throws Exception {
+  public void incrementalBuild() throws Exception {
     GradleInvoker.TestCompileType testCompileType = GradleInvoker.TestCompileType.ANDROID_TESTS;
 
     FileChangeListener.Changes changes = new FileChangeListener.Changes(false, true, false);
@@ -139,7 +139,7 @@ public class GradleInvokerOptionsTest {
   }
 
   @Test
-  public void testIncrementalBuildAppNotRunning() throws Exception {
+  public void incrementalBuildAppNotRunning() throws Exception {
     GradleInvoker.TestCompileType testCompileType = GradleInvoker.TestCompileType.ANDROID_TESTS;
 
     FileChangeListener.Changes changes = new FileChangeListener.Changes(false, false, true);
@@ -156,5 +156,20 @@ public class GradleInvokerOptionsTest {
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=21"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.density=xxxhdpi"));
     assertEquals(INCREMENTAL_TASKS, options.tasks);
+  }
+
+  @Test
+  public void previewPlatformOptions() throws Exception {
+    FileChangeListener.Changes changes = new FileChangeListener.Changes(false, true, false);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, "N"));
+    when(myDevice.getDensity()).thenReturn(640);
+
+    GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, changes, myDevices);
+
+    GradleInvokerOptions options =
+      GradleInvokerOptions.create(false, GradleInvoker.TestCompileType.ANDROID_TESTS, instantRunOptions, myTasksProvider, null);
+
+    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=23"));
   }
 }
