@@ -17,10 +17,7 @@ package com.android.tools.idea.fd.actions;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.UpdateMode;
-import com.android.tools.idea.fd.InstantRunBuildInfo;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.fd.InstantRunUserFeedback;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -124,7 +121,7 @@ public class InstantRunWithoutRestart extends AnAction {
         if (buildInfo != null) {
           try {
             manager.pushArtifacts(device, facet, updateMode, buildInfo);
-          } catch (IOException e) {
+          } catch (InstantRunPushFailedException e) {
             Logger.getInstance(InstantRunWithoutRestart.class).warn(e);
           }
         }

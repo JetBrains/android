@@ -198,6 +198,7 @@ public final class InstantRunManager implements ProjectComponent {
   public static boolean buildTimestampsMatch(@NotNull IDevice device, @NotNull Module module) {
     String localTimestamp = getLocalBuildTimestamp(module);
     if (StringUtil.isEmpty(localTimestamp)) {
+      LOG.info("Local build timestamp is empty!");
       return false;
     }
 
@@ -226,6 +227,7 @@ public final class InstantRunManager implements ProjectComponent {
     }
 
     String deviceBuildTimestamp = getInstantRunClient(module).getDeviceBuildTimestamp(device);
+    LOG.info(String.format("Build timestamps: Local: %1$s, Device: %2$s", localTimestamp, deviceBuildTimestamp));
     return localTimestamp.equals(deviceBuildTimestamp);
   }
 
@@ -513,7 +515,7 @@ public final class InstantRunManager implements ProjectComponent {
   public boolean pushArtifacts(@NotNull final IDevice device,
                                @NotNull final AndroidFacet facet,
                                @NotNull UpdateMode updateMode,
-                               @NotNull InstantRunBuildInfo buildInfo) throws IOException {
+                               @NotNull InstantRunBuildInfo buildInfo) throws InstantRunPushFailedException {
     if (!buildInfo.canHotswap()) {
       updateMode = updateMode.combine(UpdateMode.COLD_SWAP);
     }
@@ -558,8 +560,7 @@ public final class InstantRunManager implements ProjectComponent {
             // Gradle created a reload dex, but the app is no longer running.
             // If it created a cold swap artifact, we can use it; otherwise we're out of luck.
             if (!buildInfo.hasOneOf(DEX, RESTART_DEX, SPLIT)) {
-              // TODO: We should restart the build here.
-              throw new IOException("Can't apply hot swap patch: app is no longer running");
+              throw new InstantRunPushFailedException("Can't apply hot swap patch: app is no longer running");
             }
           }
           break;
