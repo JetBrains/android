@@ -21,6 +21,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -273,5 +274,15 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   @VisibleForTesting
   int getChildCount() {
     return myChildren.size();
+  }
+
+  @NotNull
+  @Override
+  protected Set<VirtualFile> computeResourceDirs() {
+    Set<VirtualFile> result = Sets.newHashSet();
+    for (LocalResourceRepository resourceRepository : myChildren) {
+      result.addAll(resourceRepository.computeResourceDirs());
+    }
+    return result;
   }
 }
