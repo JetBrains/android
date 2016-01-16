@@ -98,7 +98,7 @@ public class MethodInvoker extends Statement {
     Class<?> guiTestsType = Class.forName(GuiTests.class.getCanonicalName(), true, classLoader);
     Method method = method("failIfIdeHasFatalErrors").in(guiTestsType).target();
     try {
-      method.invoke(method);
+      method.invoke(null);
     }
     catch (InvocationTargetException e) {
       Throwable cause = e.getCause();
