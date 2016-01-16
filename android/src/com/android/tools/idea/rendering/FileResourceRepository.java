@@ -25,6 +25,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -172,7 +173,7 @@ public class FileResourceRepository extends LocalResourceRepository {
   @NotNull
   @Override
   protected Set<VirtualFile> computeResourceDirs() {
-    VirtualFile virtualFile = VfsUtil.findFileByIoFile(myFile, true);
+    VirtualFile virtualFile = VfsUtil.findFileByIoFile(myFile, !ApplicationManager.getApplication().isReadAccessAllowed());
     if (virtualFile == null) {
       return ImmutableSet.of();
     }
