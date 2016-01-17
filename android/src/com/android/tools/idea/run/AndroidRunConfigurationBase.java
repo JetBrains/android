@@ -318,7 +318,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     DeviceFutures deviceFutures = null;
-    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
+    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, executor, getUniqueID());
 
     IDevice rerunDevice = InstantRunUtils.getRestartDevice(env);
     if (rerunDevice != null) { // first check if this is a session that has been restarted with some info pre-filled in the env
@@ -381,7 +381,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     ProcessHandler processHandler = info == null ? null : info.getProcessHandler();
 
     ApkProvider apkProvider = getApkProvider(facet);
-    LaunchTasksProviderFactory providerFactory = new AndroidLaunchTasksProviderFactory(this, env, facet, apkProvider, launchOptions);
+    LaunchTasksProviderFactory providerFactory =
+      new AndroidLaunchTasksProviderFactory(this, env, facet, apkProvider, launchOptions, processHandler);
     return new AndroidRunState(env, getName(), module, apkProvider, getConsoleProvider(), deviceFutures.get(), providerFactory,
                                processHandler);
   }
