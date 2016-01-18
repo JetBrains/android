@@ -15,17 +15,22 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.ide.common.res2.ResourceItem;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.Color;
 import java.awt.Component;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.*;
+import javax.swing.*;
 
 public class ResourceDialogSouthPanel {
   private JTextField myResourceNameField;
@@ -33,7 +38,10 @@ public class ResourceDialogSouthPanel {
   private JPanel myFullPanel;
   private JPanel myExpertPlaceholder;
   private JPanel myExpertPanel;
+  private JComboBox myVariant;
   private HideableDecorator myExpertDecorator;
+
+  private List<ResourceItem> myVariants;
 
   public ResourceDialogSouthPanel() {
     Color backgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
@@ -87,5 +95,48 @@ public class ResourceDialogSouthPanel {
 
   public void setOn(boolean on) {
     myExpertDecorator.setOn(on);
+  }
+
+  public void addVariantActionListener(@NotNull ActionListener al) {
+    myVariant.addActionListener(al);
+  }
+
+  public void setVariant(@NotNull List<ResourceItem> resources, @Nullable ResourceItem defaultValue) {
+    if (resources.size() > 1) {
+      resources = Lists.newArrayList(resources);
+      Collections.sort(resources, new Comparator<ResourceItem>() {
+        @Override
+        public int compare(ResourceItem element1, ResourceItem element2) {
+          File directory1 = element1.getFile().getParentFile();
+          File directory2 = element2.getFile().getParentFile();
+          return directory1.getName().compareTo(directory2.getName());
+        }
+      });
+
+      DefaultComboBoxModel model = new DefaultComboBoxModel();
+      String defaultSelection = null;
+      for (ResourceItem resource : resources) {
+        String name = resource.getFile().getParentFile().getName();
+        model.addElement(name);
+        if (defaultSelection == null && resource == defaultValue) {
+          defaultSelection = name;
+        }
+      }
+
+      model.setSelectedItem(defaultSelection);
+      myVariants = resources;
+      myVariant.setModel(model);
+    }
+
+    myVariant.setVisible(resources.size() > 1);
+  }
+
+  @NotNull
+  public ResourceItem getSelectedVariant() {
+    return myVariants.get(myVariant.getSelectedIndex());
+  }
+
+  public void setSelectedVariant(@Nullable ResourceItem selectedVariant) {
+    myVariant.setSelectedIndex(myVariants.indexOf(selectedVariant));
   }
 }
