@@ -29,7 +29,6 @@ import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -147,11 +146,11 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   }
 
   @Override
-  public void deviceConnected(IDevice device) {
+  public void deviceConnected(@NotNull IDevice device) {
   }
 
   @Override
-  public void deviceDisconnected(IDevice device) {
+  public void deviceDisconnected(@NotNull IDevice device) {
     if (device == null) {
       return;
     }
@@ -172,7 +171,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   }
 
   @Override
-  public void deviceChanged(IDevice device, int changeMask) {
+  public void deviceChanged(@NotNull IDevice device, int changeMask) {
     if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != IDevice.CHANGE_CLIENT_LIST) {
       return;
     }
@@ -192,7 +191,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   }
 
   @Override
-  public void clientChanged(Client client, int changeMask) {
+  public void clientChanged(@NotNull Client client, int changeMask) {
     if ((changeMask & Client.CHANGE_NAME) != Client.CHANGE_NAME) {
       return;
     }
@@ -215,12 +214,12 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
 
   @NotNull
   public List<IDevice> getDevices() {
-    List<IDevice> devices = Lists.newArrayListWithExpectedSize(myClients.size());
+    Set<IDevice> devices = Sets.newHashSet();
     for (Client client : myClients) {
       devices.add(client.getDevice());
     }
 
-    return devices;
+    return Lists.newArrayList(devices);
   }
 
   @Nullable
