@@ -272,8 +272,10 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
             if (resValue != null && resValue.getResourceType() == ResourceType.COLOR && !resValue.getValue().endsWith(".xml")) {
               // resValue ending in ".xml" signifies a color state list, in which case we do not want to resolve it further
               // resolveColor applied to a state list would pick only one color, while the preview will deal with it correctly
-              resolvedResource =
-                ResourceHelper.colorToString(ResourceHelper.resolveColor(resourceResolver, resValue, project));
+              Color color = ResourceHelper.resolveColor(resourceResolver, resValue, project);
+              if (color != null) { // color may be null if the user has entered a color that points to an invalid color, (user error)
+                resolvedResource = ResourceHelper.colorToString(color);
+              }
             }
             myItem.getSelectedValue().setValue(resolvedResource);
           }
