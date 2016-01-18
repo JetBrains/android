@@ -11,7 +11,7 @@ public class Class {
     public void reflect(int x) {
         try {
             thrower();
-        } catch (<error descr="Multi-catch with these reflection exceptions requires API level 19 (current min is 1) because they get compiled to the common but new super type `ReflectiveOperationException`. As a workaround either create individual catch statements, or catch `Exception`.">ClassNotFoundException | NoSuchMethodException | IllegalAccessException ignore</error>) {
+        } catch (<error descr="Multi-catch with these reflection exceptions requires API level 19 (current min is 1) because they get compiled to the common but new super type `ReflectiveOperationException`. As a workaround either create individual catch statements, or catch `Exception`.">ClassNotFoundException | NoSuchMethodException | IllegalAccessException</error> ignore) {
             ignore.printStackTrace();
         }
     }
