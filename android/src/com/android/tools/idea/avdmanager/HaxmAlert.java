@@ -45,6 +45,7 @@ public class HaxmAlert extends JPanel {
   private AccelerationErrorCode myAccelerationErrorCode;
 
   private static final IdDisplay GOOGLE_APIS_TAG = IdDisplay.create("google_apis", "");
+  private static final IdDisplay GOOGLE_APIS_X86_TAG = IdDisplay.create("google_apis_x86", "");
 
   public HaxmAlert() {
     myErrorInstructionsLink = new HyperlinkLabel();
@@ -131,7 +132,8 @@ public class HaxmAlert extends JPanel {
       warningTextBuilder.append("Consider using an x86 system image on a x86 host for better emulation performance.<br>");
     }
 
-    if (!GOOGLE_APIS_TAG.equals(myImageDescription.getTag())) {
+    if (!GOOGLE_APIS_TAG.equals(myImageDescription.getTag()) &&
+        !GOOGLE_APIS_X86_TAG.equals(myImageDescription.getTag()) ) {
       if (warningTextBuilder.length() > 0) {
         warningTextBuilder.append("<br>");
       }
