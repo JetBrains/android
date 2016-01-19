@@ -30,7 +30,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.run.AndroidDebugRunner;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
