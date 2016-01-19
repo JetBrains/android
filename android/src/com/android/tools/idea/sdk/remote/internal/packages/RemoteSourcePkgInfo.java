@@ -16,24 +16,16 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.repository.io.FileOp;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Represents a source XML node in an SDK repository.
@@ -70,32 +62,11 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo {
   }
 
   /**
-   * Save the properties of the current packages in the given {@link Properties} object.
-   * These properties will later be given to a constructor that takes a {@link Properties} object.
-   */
-  @Override
-  public void saveProperties(Properties props) {
-    super.saveProperties(props);
-    AndroidVersionHelper.saveProperties(getPkgDesc().getAndroidVersion(), props);
-  }
-
-  /**
    * Returns the android version of this package.
    */
   @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
-  }
-
-  /**
-   * Returns a string identifier to install this package from the command line.
-   * For sources, we use "source-N" where N is the API or the preview codename.
-   * <p/>
-   * {@inheritDoc}
-   */
-  @Override
-  public String installId() {
-    return "source-" + getPkgDesc().getAndroidVersion().getApiString();    //$NON-NLS-1$
   }
 
   /**
@@ -131,19 +102,6 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo {
     else {
       return String.format("Sources for Android SDK, API %1$d, revision %2$s%3$s", version.getApiLevel(), revision.toShortString(),
                            obsolete ? " (Obsolete)" : "");
-    }
-  }
-
-  /**
-   * Set all the files from a source package as read-only
-   * so that users don't end up modifying sources by mistake in Eclipse.
-   */
-  @Override
-  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, FileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
-    super.postUnzipFileHook(archive, monitor, fileOp, unzippedFile, zipEntry);
-
-    if (fileOp.isFile(unzippedFile) && !SdkConstants.FN_SOURCE_PROP.equals(unzippedFile.getName())) {
-      fileOp.setReadOnly(unzippedFile);
     }
   }
 
