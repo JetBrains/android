@@ -42,14 +42,6 @@ public class RepoConstants {
    */
   public static final String NODE_DESC_URL = "desc-url";                 //$NON-NLS-1$
   /**
-   * The optional release note for all packages.
-   */
-  public static final String NODE_RELEASE_NOTE = "release-note";             //$NON-NLS-1$
-  /**
-   * The optional release note URL for all packages.
-   */
-  public static final String NODE_RELEASE_URL = "release-url";              //$NON-NLS-1$
-  /**
    * The optional obsolete qualifier for all packages.
    */
   public static final String NODE_OBSOLETE = "obsolete";                 //$NON-NLS-1$
