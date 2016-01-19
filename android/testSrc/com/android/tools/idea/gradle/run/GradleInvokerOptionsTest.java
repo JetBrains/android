@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.FileChangeListener;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -39,7 +38,6 @@ public class GradleInvokerOptionsTest {
   private GradleInvokerOptions.GradleTasksProvider myTasksProvider;
   private AndroidDevice myDevice;
   private List<AndroidDevice> myDevices;
-  private GradleInvoker.TestCompileType myTestCompileType;
 
   private static final List<String> ASSEMBLE_TASKS = ImmutableList.of(":app:assemble");
   private static final List<String> CLEAN_TASKS = ImmutableList.of("clean", ":app:generateSources");
@@ -47,10 +45,9 @@ public class GradleInvokerOptionsTest {
 
   @Before
   public void setup() {
-    myTestCompileType = GradleInvoker.TestCompileType.ANDROID_TESTS;
     myTasksProvider = mock(GradleInvokerOptions.GradleTasksProvider.class);
 
-    when(myTasksProvider.getTasksFor(BuildMode.ASSEMBLE, myTestCompileType)).thenReturn(ASSEMBLE_TASKS);
+    when(myTasksProvider.getTasksFor(BuildMode.ASSEMBLE, GradleInvoker.TestCompileType.NONE)).thenReturn(ASSEMBLE_TASKS);
     when(myTasksProvider.getCleanAndGenerateSourcesTasks()).thenReturn(CLEAN_TASKS);
     when(myTasksProvider.getIncrementalDexTasks()).thenReturn(INCREMENTAL_TASKS);
 
@@ -61,7 +58,7 @@ public class GradleInvokerOptionsTest {
   @Test
   public void userGoalsHaveNoInstantRunOptions() throws Exception {
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(true, GradleInvoker.TestCompileType.JAVA_TESTS, null, myTasksProvider, "foo");
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, null, myTasksProvider, "foo");
 
     assertEquals(options.tasks, Collections.singletonList("foo"));
     assertTrue("Command line arguments aren't set for user goals", options.commandLineArguments.isEmpty());
@@ -73,7 +70,7 @@ public class GradleInvokerOptionsTest {
     when(myTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA)).thenReturn(tasks);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(true, GradleInvoker.TestCompileType.JAVA_TESTS, null, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.JAVA_TESTS, null, myTasksProvider, null);
 
     assertEquals(tasks, options.tasks);
     assertTrue("Command line arguments aren't set for unit test tasks", options.commandLineArguments.isEmpty());
@@ -89,7 +86,7 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(true, false, true, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(false, GradleInvoker.TestCompileType.ANDROID_TESTS, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=20"));
@@ -111,7 +108,7 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(false, true, true, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(false, myTestCompileType, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=20"));
@@ -120,8 +117,6 @@ public class GradleInvokerOptionsTest {
 
   @Test
   public void incrementalBuild() throws Exception {
-    GradleInvoker.TestCompileType testCompileType = GradleInvoker.TestCompileType.ANDROID_TESTS;
-
     FileChangeListener.Changes changes = new FileChangeListener.Changes(false, true, false);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(21, null));
     when(myDevice.getDensity()).thenReturn(640);
@@ -130,7 +125,7 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(false, testCompileType, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,LOCAL_RES_ONLY"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=21"));
@@ -140,8 +135,6 @@ public class GradleInvokerOptionsTest {
 
   @Test
   public void incrementalBuildAppNotRunning() throws Exception {
-    GradleInvoker.TestCompileType testCompileType = GradleInvoker.TestCompileType.ANDROID_TESTS;
-
     FileChangeListener.Changes changes = new FileChangeListener.Changes(false, false, true);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(21, null));
     when(myDevice.getDensity()).thenReturn(640);
@@ -150,7 +143,7 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(false, testCompileType, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY,LOCAL_JAVA_ONLY"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=21"));
@@ -168,7 +161,7 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(false, GradleInvoker.TestCompileType.ANDROID_TESTS, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=24"));
   }

@@ -37,11 +37,18 @@ public class DeployApkTask implements LaunchTask {
   private final AndroidFacet myFacet;
   private final ApkProvider myApkProvider;
   private final LaunchOptions myLaunchOptions;
+  private final boolean myInstantRunAware;
 
   public DeployApkTask(@NotNull AndroidFacet facet, @NotNull LaunchOptions launchOptions, @NotNull ApkProvider apkProvider) {
+    this(facet, launchOptions, apkProvider, false);
+  }
+
+  public DeployApkTask(@NotNull AndroidFacet facet, @NotNull LaunchOptions launchOptions, @NotNull ApkProvider apkProvider,
+                       boolean instantRunAware) {
     myFacet = facet;
     myLaunchOptions = launchOptions;
     myApkProvider = apkProvider;
+    myInstantRunAware = instantRunAware;
   }
 
   @NotNull
@@ -65,6 +72,14 @@ public class DeployApkTask implements LaunchTask {
       printer.stderr(e.getMessage());
       LOG.warn(e);
       return false;
+    }
+
+    if (myInstantRunAware) {
+      try {
+        InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
+      } catch (Exception e) {
+        printer.stderr(e.toString());
+      }
     }
 
     ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);

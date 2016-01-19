@@ -75,17 +75,15 @@ public class GradleInvokerOptions {
       throw new IllegalStateException("Unable to determine list of modules to build");
     }
 
-    boolean isUnitTest = MakeBeforeRunTaskProvider.isUnitTestConfiguration(configuration);
     GradleInvoker.TestCompileType testCompileType = getTestCompileType(configuration);
 
     InstantRunBuildOptions instantRunBuildOptions = InstantRunBuildOptions.createAndReset(modules[0], env);
 
-    return create(isUnitTest, testCompileType, instantRunBuildOptions, new GradleModuleTasksProvider(modules), userGoal);
+    return create(testCompileType, instantRunBuildOptions, new GradleModuleTasksProvider(modules), userGoal);
   }
 
   @VisibleForTesting()
-  static GradleInvokerOptions create(boolean isUnitTestBuild,
-                                     @NotNull GradleInvoker.TestCompileType testCompileType,
+  static GradleInvokerOptions create(@NotNull GradleInvoker.TestCompileType testCompileType,
                                      @Nullable InstantRunBuildOptions instantRunBuildOptions,
                                      @NotNull GradleTasksProvider gradleTasksProvider,
                                      @Nullable String userGoal) {
@@ -93,7 +91,7 @@ public class GradleInvokerOptions {
       return new GradleInvokerOptions(Collections.singletonList(userGoal), null, Collections.<String>emptyList());
     }
 
-    if (isUnitTestBuild) {
+    if (testCompileType == GradleInvoker.TestCompileType.JAVA_TESTS) {
       BuildMode buildMode = BuildMode.COMPILE_JAVA;
       return new GradleInvokerOptions(gradleTasksProvider.getUnitTestTasks(buildMode), buildMode, Collections.<String>emptyList());
     }
@@ -102,8 +100,8 @@ public class GradleInvokerOptions {
     List<String> tasks = Lists.newArrayList();
 
     // Inject instant run attributes
-    // Note that these are specifically not injected for the unit test configurations above
-    if (instantRunBuildOptions != null) {
+    // Note that these are specifically not injected for the unit or instrumentation tests
+    if (testCompileType == GradleInvoker.TestCompileType.NONE && instantRunBuildOptions != null) {
       boolean incrementalBuild = !instantRunBuildOptions.cleanBuild &&      // e.g. build ids changed
                                  !instantRunBuildOptions.needsFullBuild;    // e.g. manifest changed
 
