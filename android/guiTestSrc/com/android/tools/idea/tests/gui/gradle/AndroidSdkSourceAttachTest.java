@@ -50,6 +50,7 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 import static org.fest.swing.timing.Pause.pause;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
@@ -79,11 +80,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testDownloadSdkSource() throws IOException {
-    if (mySdk == null) {
-      printPlatformNotFound();
-      System.out.println("Skipping test 'testDownloadSdkSource'");
-      return;
-    }
+    assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk == null);
 
     if (mySdkSourcePath.isDirectory()) {
       delete(mySdkSourceTmpPath);
@@ -129,18 +126,9 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test @IdeGuiTest
   public void testRefreshSdkSource() throws IOException {
-    if (mySdk == null) {
-      printPlatformNotFound();
-      System.out.println("Skipping test 'testRefreshSdkSource'");
-      return;
-    }
-
-    if (!mySdkSourcePath.isDirectory()) {
-      // Skip test if Sdk source is not installed.
-      System.out.println("Android Sdk Source for '" + mySdk.getName() + "' must be installed before running 'testRefreshSdkSource'");
-      System.out.println("Skipping test 'testRefreshSdkSource'");
-      return;
-    }
+    assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk == null);
+    assumeTrue("Android Sdk Source for '" + mySdk.getName() + "' must be installed before running 'testRefreshSdkSource'",
+               mySdkSourcePath.isDirectory());
 
     SdkModificator sdkModificator = mySdk.getSdkModificator();
     sdkModificator.removeRoots(OrderRootType.SOURCES);
@@ -167,10 +155,6 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     VirtualFile sourceFile = editor.getCurrentFile();
     assertNotNull(sourceFile);
     assertIsActivityJavaFile(sourceFile);
-  }
-
-  private static void printPlatformNotFound() {
-    System.out.println("SDK with platform '" + ANDROID_PLATFORM + "' not found");
   }
 
   private static void assertIsActivityJavaFile(@NotNull VirtualFile sourceFile) {

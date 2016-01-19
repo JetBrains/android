@@ -29,19 +29,14 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPO
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class GradleBuildTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testBuildWithInvalidJavaHome() throws IOException {
-    String jdkPathPropertyName = "jdk.path";
-
-    String jdkPathValue = System.getProperty(jdkPathPropertyName);
-    if (isEmpty(jdkPathValue)) {
-      String msg = String.format("Test '%1$s' skipped. It requires the system property '%2$s'.", getTestName(), jdkPathPropertyName);
-      System.out.println(msg);
-      return;
-    }
+    String jdkPathValue = System.getProperty("jdk.path");
+    assumeTrue("jdk.path system property missing", !isEmpty(jdkPathValue));
 
     File jdkPath = new File(jdkPathValue);
 

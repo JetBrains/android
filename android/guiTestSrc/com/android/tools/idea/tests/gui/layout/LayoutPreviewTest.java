@@ -42,6 +42,7 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.LAYOUT;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static junit.framework.Assert.*;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * Unit test for the layout preview window
@@ -412,10 +413,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     assertNotNull(modelVersion);
     Revision version = Revision.parseRevision(modelVersion);
     assertNotNull("Could not parse version " + modelVersion, version);
-    if (version.getMajor() == 0 && version.getMinor() < 14) {
-      // This test tests behavior that starts working in 0.14.+
-      return;
-    }
+    assumeTrue("This test tests behavior that starts working in 0.14.+", version.getMajor() != 0 || version.getMinor() >= 14);
 
     EditorFixture editor = myProjectFrame.getEditor();
     String layoutFilePath = "app/src/main/res/layout/dynamic_layout.xml";
