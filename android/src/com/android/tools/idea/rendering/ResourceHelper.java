@@ -617,7 +617,7 @@ public class ResourceHelper {
    */
   @SuppressWarnings("UseJBColor")
   @Nullable
-  public static Color parseColor(String s) {
+  public static Color parseColor(@Nullable String s) {
     s = StringUtil.trim(s);
     if (StringUtil.isEmpty(s)) {
       return null;
@@ -657,15 +657,14 @@ public class ResourceHelper {
    * Converts a color to hex-string representation, including alpha channel.
    * If alpha is FF then the output is #RRGGBB with no alpha component.
    */
-  public static String colorToString(Color color) {
+  @NotNull
+  public static String colorToString(@NotNull Color color) {
     long longColor = (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
     if (color.getAlpha() != 0xFF) {
       longColor |= (long)color.getAlpha() << 24;
       return String.format("#%08x", longColor);
     }
-    else {
-      return String.format("#%06x", longColor);
-    }
+    return String.format("#%06x", longColor);
   }
 
   private static long extend(long nibble) {

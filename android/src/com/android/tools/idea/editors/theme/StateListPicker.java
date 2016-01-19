@@ -77,8 +77,8 @@ public class StateListPicker extends JPanel {
 
   private final Module myModule;
   private final Configuration myConfiguration;
-  private final ResourceHelper.StateList myStateList;
-  private final List<StateComponent> myStateComponents;
+  private ResourceHelper.StateList myStateList;
+  private List<StateComponent> myStateComponents;
   private final @NotNull RenderTask myRenderTask;
 
   private boolean myIsBackgroundStateList;
@@ -89,17 +89,23 @@ public class StateListPicker extends JPanel {
   public StateListPicker(@NotNull ResourceHelper.StateList stateList,
                          @NotNull Module module,
                          @NotNull Configuration configuration) {
-    myStateList = stateList;
+
     myModule = module;
     myConfiguration = configuration;
-    myStateComponents = Lists.newArrayListWithCapacity(stateList.getStates().size());
     myRenderTask = DrawableRendererEditor.configureRenderTask(module, configuration);
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    setStateList(stateList);
+  }
 
+  public void setStateList(@NotNull ResourceHelper.StateList stateList) {
+    myStateList = stateList;
+    myStateComponents = Lists.newArrayListWithCapacity(myStateList.getStates().size());
+    removeAll();
     for (final ResourceHelper.StateListState state : myStateList.getStates()) {
       final StateComponent stateComponent = createStateComponent(state);
       add(stateComponent);
     }
+    repaint();
   }
 
   @NotNull
@@ -377,9 +383,14 @@ public class StateListPicker extends JPanel {
         allowedTypes = GraphicalResourceRendererEditor.DRAWABLES_ONLY;
       }
 
+      ChooseResourceDialog.ResourceNameVisibility resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.FORCE;
+      if (nameSuggestion.startsWith("#")) {
+        nameSuggestion = null;
+        resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.SHOW;
+      }
+
       final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myModule, myConfiguration, allowedTypes, attributeValue, isFrameworkValue,
-                                 ChooseResourceDialog.ResourceNameVisibility.FORCE, nameSuggestion);
+        new ChooseResourceDialog(myModule, allowedTypes, attributeValue, isFrameworkValue, resourceNameVisibility, nameSuggestion);
 
       if (!myContrastColorsWithDescription.isEmpty()) {
         dialog

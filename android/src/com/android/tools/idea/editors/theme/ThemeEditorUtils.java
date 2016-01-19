@@ -642,11 +642,6 @@ public class ThemeEditorUtils {
                                                        @NotNull ThemeEditorContext context,
                                                        ResourceType[] allowedTypes) {
     Module module = context.getModuleForResources();
-    final Configuration configuration = getConfigurationForModule(module);
-
-    ResourceResolver resourceResolver = configuration.getResourceResolver();
-    assert resourceResolver != null;
-
     ItemResourceValue itemSelectedValue = item.getSelectedValue();
 
     String value = itemSelectedValue.getValue();
@@ -659,8 +654,13 @@ public class ThemeEditorUtils {
     }
     nameSuggestion = getDefaultResourceName(context, nameSuggestion);
 
-    ChooseResourceDialog dialog = new ChooseResourceDialog(module, configuration, allowedTypes, value, isFrameworkValue,
-                                                           ChooseResourceDialog.ResourceNameVisibility.FORCE, nameSuggestion);
+    ChooseResourceDialog.ResourceNameVisibility resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.FORCE;
+    if (nameSuggestion.startsWith("#")) {
+      nameSuggestion = null;
+      resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.SHOW;
+    }
+
+    ChooseResourceDialog dialog = new ChooseResourceDialog(module, allowedTypes, value, isFrameworkValue, resourceNameVisibility, nameSuggestion);
     dialog.setUseGlobalUndo(true);
 
     return dialog;
