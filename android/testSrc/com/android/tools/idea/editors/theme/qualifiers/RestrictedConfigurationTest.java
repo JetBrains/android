@@ -51,7 +51,7 @@ public class RestrictedConfigurationTest extends AndroidTestCase {
       allConfigurations.add(ConfiguredElement.create(incompatible, ""));
     }
 
-    List<Configurable> matches = restrictedConfiguration.findMatchingConfigurables(allConfigurations);
+    List<ConfiguredElement<String>> matches = restrictedConfiguration.findMatchingConfigurables(allConfigurations);
     assertEquals(1, matches.size());
     assertEquals(compatible, matches.get(0).getConfiguration());
   }
