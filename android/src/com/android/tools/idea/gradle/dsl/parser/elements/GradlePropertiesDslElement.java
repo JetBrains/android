@@ -107,6 +107,17 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     return result;
   }
 
+  @NotNull
+  public Map<String, GradleDslElement> getPropertyElements() {
+    Map<String, GradleDslElement> result = Maps.newLinkedHashMap();
+    result.putAll(myProperties);
+    result.putAll(myToBeAddedProperties);
+    for (String toBeRemoved : myToBeRemovedProperties) {
+      result.remove(toBeRemoved);
+    }
+    return result;
+  }
+
   /**
    * Returns the {@link GradleDslElement} corresponding to the given {@code property}, or {@code null} if the given {@code property}
    * does not exist in this element.
@@ -322,14 +333,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   @Override
   @NotNull
   protected Collection<GradleDslElement> getChildren() {
-    List<GradleDslElement> children = Lists.newArrayList();
-    for (String property : getProperties()) {
-      GradleDslElement element = getPropertyElement(property);
-      if (element != null) {
-        children.add(element);
-      }
-    }
-    return children;
+    return getPropertyElements().values();
   }
 
   @Override
