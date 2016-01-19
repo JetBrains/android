@@ -74,6 +74,7 @@ import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 @RunWith(GuiTestRunner.class)
 public abstract class GuiTestCase {
@@ -93,10 +94,7 @@ public abstract class GuiTestCase {
 
   @Before
   public void setUp() throws Exception {
-    if (!canRunGuiTests()) {
-      // We currently do not support running UI tests in headless environments.
-      return;
-    }
+    assumeTrue("Cannot run GUI tests headless.", canRunGuiTests());
 
     Application application = ApplicationManager.getApplication();
     assertNotNull(application); // verify that we are using the IDE's ClassLoader.
