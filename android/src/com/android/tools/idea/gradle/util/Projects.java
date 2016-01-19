@@ -31,6 +31,7 @@ import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
@@ -71,6 +72,8 @@ import static java.lang.Boolean.TRUE;
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
+  private static final Logger LOG = Logger.getInstance(Projects.class);
+
   private static final Key<String> GRADLE_VERSION = Key.create("project.gradle.version");
   private static final Key<LibraryDependency> MODULE_COMPILED_ARTIFACT = Key.create("module.compiled.artifact");
   private static final Key<Boolean> HAS_SYNC_ERRORS = Key.create("project.has.sync.errors");
@@ -445,6 +448,12 @@ public final class Projects {
         return null;
       }
     }
+
+    if (module.isDisposed()) {
+      LOG.warn("Attempted to get an Android Facet from a disposed module");
+      return null;
+    }
+
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
       AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
