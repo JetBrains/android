@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a map of {@link GradleDslElement}s from their names.
@@ -32,10 +33,10 @@ public class GradleDslElementMap extends GradlePropertiesDslElement {
   @NotNull
   protected <E extends GradleDslElement> Collection<E> getValues(Class<E> clazz) {
     List<E> result = Lists.newArrayList();
-    for (String property : getProperties()) {
-      GradleDslElement element = getPropertyElement(property);
-      if (element != null && clazz.isInstance(element)) {
-        result.add(clazz.cast(element));
+    for (Map.Entry<String, GradleDslElement> entry : getPropertyElements().entrySet()) {
+      GradleDslElement propertyElement = entry.getValue();
+      if (clazz.isInstance(propertyElement)) {
+        result.add(clazz.cast(propertyElement));
       }
     }
     return result;

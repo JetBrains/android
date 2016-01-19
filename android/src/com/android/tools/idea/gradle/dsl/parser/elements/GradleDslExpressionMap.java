@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -60,12 +62,12 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
   @NotNull
   public <V> Map<String, V> getValues(@NotNull Class<V> clazz) {
     Map<String, V> result = Maps.newHashMap();
-    for (String key : getProperties()) {
-      GradleDslElement propertyElement = getPropertyElement(key);
+    for (Map.Entry<String, GradleDslElement> entry : getPropertyElements().entrySet()) {
+      GradleDslElement propertyElement = entry.getValue();
       if (propertyElement instanceof GradleDslExpression) {
         V value = ((GradleDslExpression)propertyElement).getValue(clazz);
         if (value != null) {
-          result.put(key, value);
+          result.put(entry.getKey(), value);
         }
       }
     }
