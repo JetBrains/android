@@ -26,27 +26,18 @@
         <children>
           <scrollpane id="a7b8d" class="com.intellij.ui.components.JBScrollPane" binding="myTreeScroll">
             <constraints/>
-            <properties>
-              <maximumSize width="1250" height="937"/>
-              <preferredSize width="230" height="160"/>
-            </properties>
+            <properties/>
             <border type="none"/>
             <children>
               <component id="10c28" class="com.intellij.ui.treeStructure.Tree" binding="myChangeTree">
                 <constraints/>
-                <properties>
-                  <maximumSize width="1250" height="937"/>
-                  <preferredSize width="230" height="160"/>
-                </properties>
+                <properties/>
               </component>
             </children>
           </scrollpane>
           <scrollpane id="e2038" class="com.intellij.ui.components.JBScrollPane" binding="myLicensePane">
             <constraints/>
-            <properties>
-              <maximumSize width="1250" height="937"/>
-              <preferredSize width="230" height="160"/>
-            </properties>
+            <properties/>
             <border type="none"/>
             <children>
               <component id="4a3b" class="javax.swing.JTextPane" binding="myLicenseTextField">
