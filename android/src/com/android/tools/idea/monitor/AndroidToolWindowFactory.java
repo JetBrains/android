@@ -29,7 +29,7 @@ import com.android.tools.idea.ddms.actions.ScreenshotAction;
 import com.android.tools.idea.ddms.actions.TerminateVMAction;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.logcat.AndroidLogcatView;
-import com.android.tools.idea.run.AndroidDebugRunner;
+import com.android.tools.idea.run.AndroidProgramRunner;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -264,7 +264,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     JPanel logcatContentPanel = logcatView.getContentPanel();
 
     final Content logcatContent =
-      layoutUi.createContent(AndroidDebugRunner.ANDROID_LOGCAT_CONTENT_ID, logcatContentPanel, "logcat", AndroidIcons.Ddms.Logcat, null);
+      layoutUi.createContent(AndroidProgramRunner.ANDROID_LOGCAT_CONTENT_ID, logcatContentPanel, "logcat", AndroidIcons.Ddms.Logcat, null);
     logcatContent.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
     logcatContent.setDisposer(logcatView);
     logcatContent.setCloseable(false);

@@ -56,7 +56,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
       .info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
 
     // detach old process handler
-    RunContentDescriptor descriptor = ((AndroidDebugRunner)currentLaunchInfo.runner).getDescriptor();
+    RunContentDescriptor descriptor = ((AndroidProgramRunner)currentLaunchInfo.runner).getDescriptor();
     final ProcessHandler processHandler = descriptor.getProcessHandler();
     assert processHandler != null;
 
@@ -102,8 +102,8 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     int uniqueId = runProfile instanceof AndroidRunConfigurationBase ? ((AndroidRunConfigurationBase)runProfile).getUniqueID() : -1;
     AndroidSessionInfo value = new AndroidSessionInfo(debugProcessHandler, debugDescriptor, uniqueId, currentLaunchInfo.executor.getId());
     debugProcessHandler.putUserData(AndroidSessionInfo.KEY, value);
-    debugProcessHandler.putUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT, client);
-    debugProcessHandler.putUserData(AndroidDebugRunner.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());
+    debugProcessHandler.putUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT, client);
+    debugProcessHandler.putUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());
 
     // Reverted: b/25506206
     // kill the process when the debugger is stopped
