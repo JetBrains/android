@@ -107,7 +107,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       return null;
     }
 
-    if (InstantRunSettings.isInstantRunEnabled(myProject)) {
+    if (myRunConfig.supportsInstantRun() && InstantRunSettings.isInstantRunEnabled(myProject)) {
       AndroidGradleModel model = AndroidGradleModel.get(myFacet);
 
       if (model != null && InstantRunManager.isPatchableApp(model)) {
@@ -151,7 +151,11 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
     // regular APK deploy flow
     InstantRunManager.LOG.info("Using legacy/main APK deploy task");
-    return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider);
+    boolean instantRunAware =
+      myRunConfig.supportsInstantRun() &&
+      InstantRunSettings.isInstantRunEnabled(myProject) &&
+      InstantRunManager.isPatchableApp(myFacet.getModule());
+    return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider, instantRunAware);
   }
 
   @Nullable

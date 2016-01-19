@@ -179,6 +179,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @Override
+  public boolean supportsInstantRun() {
+    return true;
+  }
+
+  @Override
   protected boolean supportMultipleDevices() {
     // instant run can only work with a single device (a single API level to be precise, but we simplify that to be a single device)
     if (InstantRunSettings.isInstantRunEnabled(getProject())) {
