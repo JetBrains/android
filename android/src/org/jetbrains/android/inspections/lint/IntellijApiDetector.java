@@ -417,63 +417,76 @@ public class IntellijApiDetector extends ApiDetector {
       for (PsiParameter parameter : statement.getCatchBlockParameters()) {
         PsiTypeElement typeElement = parameter.getTypeElement();
         if (typeElement != null) {
-          PsiType type = typeElement.getType();
-          PsiClass resolved = null;
-          PsiElement reference = parameter;
-          if (type instanceof PsiDisjunctionType) {
-            type = ((PsiDisjunctionType)type).getLeastUpperBound();
-            if (type instanceof PsiClassType) {
-              resolved = ((PsiClassType)type).resolve();
-            }
-          } else if (type instanceof PsiClassReferenceType) {
-            PsiClassReferenceType referenceType = (PsiClassReferenceType)type;
-            resolved = referenceType.resolve();
-            reference = referenceType.getReference().getElement();
-          } else if (type instanceof PsiClassType) {
-            resolved = ((PsiClassType)type).resolve();
-          }
-          if (resolved != null) {
-            String signature = IntellijLintUtils.getInternalName(resolved);
-            if (signature == null) {
-              continue;
-            }
+          checkCatchTypeElement(statement, typeElement, typeElement.getType());
+        }
+      }
+    }
 
-            int api = mApiDatabase.getClassVersion(signature);
-            if (api == -1) {
-              continue;
+    private void checkCatchTypeElement(@NonNull PsiTryStatement statement,
+                                       @NotNull PsiTypeElement typeElement,
+                                       @Nullable PsiType type) {
+      PsiClass resolved = null;
+      if (type instanceof PsiDisjunctionType) {
+        PsiDisjunctionType disjunctionType = (PsiDisjunctionType)type;
+        type = disjunctionType.getLeastUpperBound();
+        if (type instanceof PsiClassType) {
+          resolved = ((PsiClassType)type).resolve();
+        }
+        for (PsiElement child : typeElement.getChildren()) {
+          if (child instanceof PsiTypeElement) {
+            PsiTypeElement childTypeElement = (PsiTypeElement)child;
+            PsiType childType = childTypeElement.getType();
+            if (!type.equals(childType)) {
+              checkCatchTypeElement(statement, childTypeElement, childType);
             }
-            int minSdk = getMinSdk(myContext);
-            if (api <= minSdk) {
-              continue;
-            }
-            if (mySeenTargetApi) {
-              int target = getTargetApi(statement, myFile);
-              if (target != -1) {
-                if (api <= target) {
-                  continue;
-                }
-              }
-            }
-            if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, myFile, UNSUPPORTED)) {
-              continue;
-            }
-
-            Location location;
-            location = IntellijLintUtils.getLocation(myContext.file, reference);
-            String fqcn = resolved.getName();
-            String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
-
-            // Special case reflective operation exception which can be implicitly used
-            // with multi-catches: see issue 153406
-            if (api == 19 && "ReflectiveOperationException".equals(fqcn)) {
-              message = String.format("Multi-catch with these reflection exceptions requires API level 19 (current min is %2$d) " +
-                                      "because they get compiled to the common but new super type `ReflectiveOperationException`. " +
-                                      "As a workaround either create individual catch statements, or catch `Exception`.",
-                                      api, minSdk);
-            }
-            myContext.report(UNSUPPORTED, location, message);
           }
         }
+      } else if (type instanceof PsiClassReferenceType) {
+        PsiClassReferenceType referenceType = (PsiClassReferenceType)type;
+        resolved = referenceType.resolve();
+      } else if (type instanceof PsiClassType) {
+        resolved = ((PsiClassType)type).resolve();
+      }
+      if (resolved != null) {
+        String signature = IntellijLintUtils.getInternalName(resolved);
+        if (signature == null) {
+          return;
+        }
+
+        int api = mApiDatabase.getClassVersion(signature);
+        if (api == -1) {
+          return;
+        }
+        int minSdk = getMinSdk(myContext);
+        if (api <= minSdk) {
+          return;
+        }
+        if (mySeenTargetApi) {
+          int target = getTargetApi(statement, myFile);
+          if (target != -1) {
+            if (api <= target) {
+              return;
+            }
+          }
+        }
+        if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, myFile, UNSUPPORTED)) {
+          return;
+        }
+
+        Location location;
+        location = IntellijLintUtils.getLocation(myContext.file, typeElement);
+        String fqcn = resolved.getName();
+        String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
+
+        // Special case reflective operation exception which can be implicitly used
+        // with multi-catches: see issue 153406
+        if (api == 19 && "ReflectiveOperationException".equals(fqcn)) {
+          message = String.format("Multi-catch with these reflection exceptions requires API level 19 (current min is %2$d) " +
+                                  "because they get compiled to the common but new super type `ReflectiveOperationException`. " +
+                                  "As a workaround either create individual catch statements, or catch `Exception`.",
+                                  api, minSdk);
+        }
+        myContext.report(UNSUPPORTED, location, message);
       }
     }
 
