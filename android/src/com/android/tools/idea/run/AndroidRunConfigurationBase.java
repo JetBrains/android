@@ -324,7 +324,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (rerunDevice != null) { // first check if this is a session that has been restarted with some info pre-filled in the env
       deviceFutures = DeviceFutures.forDevices(Collections.singletonList(rerunDevice));
     }
-    else if (info != null) { // if there is an existing previous session, then see if we can detect devices to fast deploy to
+    else if (info != null && supportsInstantRun()) { // if there is an existing previous session, then see if we can detect devices to fast deploy to
       deviceFutures = getFastDeployDevices(executor, facet, info);
     }
 
@@ -360,7 +360,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
-    if (InstantRunSettings.isInstantRunEnabled(project) && InstantRunManager.isPatchableApp(module)) {
+    if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled(project) && InstantRunManager.isPatchableApp(module)) {
       setInstantRunBuildOptions(env, module, deviceFutures);
     }
 
@@ -553,6 +553,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   /** @return true iff this run configuration supports deploying to multiple devices. */
   protected abstract boolean supportMultipleDevices();
+
+  /** @return true iff this run configuration supports instant run. */
+  public boolean supportsInstantRun() {
+    return false;
+  }
 
   @Override
   public void readExternal(Element element) throws InvalidDataException {

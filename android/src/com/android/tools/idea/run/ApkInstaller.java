@@ -68,15 +68,6 @@ public class ApkInstaller {
                                      @NotNull String packageName,
                                      @NotNull File localFile,
                                      @NotNull LaunchStatus launchStatus) {
-
-    if (InstantRunSettings.isInstantRunEnabled(myProject) && InstantRunManager.isPatchableApp(myFacet.getModule())) {
-      try {
-        InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-      } catch (Exception e) {
-        myPrinter.stderr(e.toString());
-      }
-    }
-
     if (!needsInstall(device, localFile, packageName)) {
       return true;
     }
