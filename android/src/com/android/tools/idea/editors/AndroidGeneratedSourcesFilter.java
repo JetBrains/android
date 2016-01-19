@@ -48,7 +48,7 @@ public class AndroidGeneratedSourcesFilter extends GeneratedSourcesFilter {
       // Gradle project model so we have to look for it by hardcoded name.
       VirtualFile build = project.getBaseDir().findChild(GradleUtil.BUILD_DIR_DEFAULT_NAME);
       if (build != null && Projects.isBuildWithGradle(project)) {
-        return VfsUtilCore.isAncestor(build, file, false);
+        return isAncestor(build, file, false);
       }
     }
     return false;
