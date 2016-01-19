@@ -41,6 +41,7 @@ import com.intellij.ui.navigation.BackAction;
 import com.intellij.ui.navigation.ForwardAction;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
+import com.intellij.util.SystemProperties;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
@@ -84,7 +85,8 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   private boolean myUiInitialized;
   private Configurable mySelectedConfigurable;
 
-  private final JLabel myEmptySelection = new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>", JLabel.CENTER);
+  private final JLabel myEmptySelection = new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
+                                                     SwingConstants.CENTER);
 
   @NotNull
   public static ProjectStructureConfigurable getInstance(@NotNull Project project) {
@@ -138,9 +140,10 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   }
 
   @Override
+  @NotNull
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     if (place == null) {
-      return null;
+      return ActionCallback.DONE;
     }
     Configurable toSelect = (Configurable)place.getPath(CATEGORY);
     JComponent detailsContent = myDetails.getTargetComponent();
@@ -250,7 +253,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   @Override
   @Nullable
   public String getHelpTopic() {
-    return null;
+    return mySelectedConfigurable != null ? mySelectedConfigurable.getHelpTopic() : "";
   }
 
   @Override
@@ -309,21 +312,23 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   }
 
   private void addConfigurables() {
-    for (ModuleStructureConfigurableContributor contributor : ModuleStructureConfigurableContributor.EP_NAME.getExtensions()) {
-      Configurable configurable = contributor.getModuleStructureConfigurable(myProject);
-      if (configurable != null) {
-        addConfigurable(configurable);
-        break;
+    if (SystemProperties.getBooleanProperty("psd.enable.prototype", false)) {
+      for (ModuleStructureConfigurableContributor contributor : ModuleStructureConfigurableContributor.EP_NAME.getExtensions()) {
+        Configurable configurable = contributor.getModuleStructureConfigurable(myProject);
+        if (configurable != null) {
+          addConfigurable(configurable);
+          break;
+        }
       }
-    }
 
-    for (ProjectStructureItemsContributor contributor : ProjectStructureItemsContributor.EP_NAME.getExtensions()) {
-      List<ProjectStructureItemGroup> itemGroups = contributor.getItemGroups(myProject);
-      for (ProjectStructureItemGroup group : itemGroups) {
-        String name = group.getGroupName();
-        mySidePanel.addSeparator(name);
-        for (Configurable item : group.getItems()) {
-          addConfigurable(item);
+      for (ProjectStructureItemsContributor contributor : ProjectStructureItemsContributor.EP_NAME.getExtensions()) {
+        List<ProjectStructureItemGroup> itemGroups = contributor.getItemGroups(myProject);
+        for (ProjectStructureItemGroup group : itemGroups) {
+          String name = group.getGroupName();
+          mySidePanel.addSeparator(name);
+          for (Configurable item : group.getItems()) {
+            addConfigurable(item);
+          }
         }
       }
     }
