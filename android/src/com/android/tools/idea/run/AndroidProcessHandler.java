@@ -29,7 +29,6 @@ import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -85,9 +84,9 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   }
 
   private void setMinDeviceApiLevel(@NotNull AndroidVersion deviceVersion) {
-    AndroidVersion apiLevel = getUserData(AndroidDebugRunner.ANDROID_DEVICE_API_LEVEL);
+    AndroidVersion apiLevel = getUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL);
     if (apiLevel == null || apiLevel.compareTo(deviceVersion) > 0) {
-      putUserData(AndroidDebugRunner.ANDROID_DEVICE_API_LEVEL, deviceVersion);
+      putUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL, deviceVersion);
     }
   }
 
