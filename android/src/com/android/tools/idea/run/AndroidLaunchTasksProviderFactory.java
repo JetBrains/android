@@ -21,9 +21,11 @@ import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFactory {
   private final AndroidRunConfigurationBase myRunConfig;
@@ -31,17 +33,20 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   private final AndroidFacet myFacet;
   private final ApkProvider myApkProvider;
   private final LaunchOptions myLaunchOptions;
+  private final ProcessHandler myPreviousSessionProcessHandler;
 
   public AndroidLaunchTasksProviderFactory(@NotNull AndroidRunConfigurationBase runConfig,
                                            @NotNull ExecutionEnvironment env,
                                            @NotNull AndroidFacet facet,
                                            @NotNull ApkProvider apkProvider,
-                                           @NotNull LaunchOptions launchOptions) {
+                                           @NotNull LaunchOptions launchOptions,
+                                           @Nullable ProcessHandler processHandler) {
     myRunConfig = runConfig;
     myEnv = env;
     myFacet = facet;
     myApkProvider = apkProvider;
     myLaunchOptions = launchOptions;
+    myPreviousSessionProcessHandler = processHandler;
   }
 
   @NotNull
@@ -56,6 +61,11 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
 
   // Returns whether the build results indicate that we can perform a hotswap
   private boolean canHotSwap() {
+    if (myPreviousSessionProcessHandler == null) {
+      // if there is no existing session, then even though the build ids might match, we can't use hotswap (possibly use dexswap)
+      return false;
+    }
+
     if (InstantRunUtils.needsFullBuild(myEnv) || !InstantRunUtils.isAppRunning(myEnv)) {
       // We knew before the build that we couldn't hot swap..
       return false;
