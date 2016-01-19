@@ -30,11 +30,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.Segment;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -89,7 +89,30 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     myElements = elements.toArray(new PsiElement[elements.size()]);
     UsageInfo[] result = new UsageInfo[myElements.length];
     for (int i = 0, n = myElements.length; i < n; i++) {
-      result[i] = new UsageInfo(myElements[i]);
+      PsiElement element = myElements[i];
+      if (element instanceof PsiBinaryFile) {
+        // The usage view doesn't handle binaries at all. Work around this (for example,
+        // the UsageInfo class asserts in the constructor if the element doesn't have
+        // a text range.)
+        SmartPointerManager smartPointerManager = SmartPointerManager.getInstance(myProject);
+        SmartPsiElementPointer<PsiElement> smartPointer = smartPointerManager.createSmartPsiElementPointer(element);
+        SmartPsiFileRange smartFileRange =
+          smartPointerManager.createSmartPsiFileRangePointer((PsiBinaryFile)element, TextRange.EMPTY_RANGE);
+        result[i] = new UsageInfo(smartPointer, smartFileRange, false, false) {
+          @Override
+          public boolean isValid() {
+            return true;
+          }
+
+          @Override
+          @Nullable
+          public Segment getSegment() {
+            return null;
+          }
+        };
+      } else {
+        result[i] = new UsageInfo(element);
+      }
     }
     return UsageViewUtil.removeDuplicatedUsages(result);
   }
