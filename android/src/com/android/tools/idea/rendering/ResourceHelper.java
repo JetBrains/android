@@ -471,6 +471,22 @@ public class ResourceHelper {
   @NotNull
   public static List<Color> resolveMultipleColors(@NotNull RenderResources resources, @Nullable ResourceValue value,
                                                   @NotNull Project project) {
+    return resolveMultipleColors(resources, value, project, 0);
+  }
+
+  /**
+   * Tries to resolve colors from given resource value. When state list is encountered all
+   * possibilities are explored.
+   */
+  @NotNull
+  private static List<Color> resolveMultipleColors(@NotNull RenderResources resources, @Nullable ResourceValue value,
+                                                  @NotNull Project project, int depth) {
+
+    if (depth >= MAX_RESOURCE_INDIRECTION) {
+      LOG.warn("too deep " + value);
+      return Collections.emptyList();
+    }
+
     if (value != null) {
       value = resources.resolveResValue(value);
     }
@@ -486,7 +502,7 @@ public class ResourceHelper {
         List<Color> stateColors;
         ResourceValue resolvedStateResource = resources.findResValue(state.getValue(), false);
         if (resolvedStateResource != null) {
-          stateColors = resolveMultipleColors(resources, resolvedStateResource, project);
+          stateColors = resolveMultipleColors(resources, resolvedStateResource, project, depth + 1);
         }
         else {
           Color color = parseColor(state.getValue());
@@ -848,8 +864,19 @@ public class ResourceHelper {
     }
 
     @NotNull
-    public ResourceFolderType getType() {
+    public ResourceFolderType getFolderType() {
       return ResourceFolderType.getFolderType(myDirName);
+    }
+
+    /**
+     * @return the type of statelist, can be {@link ResourceType#COLOR} or {@link ResourceType#DRAWABLE}
+     */
+    @NotNull
+    public ResourceType getType() {
+      final ResourceFolderType resFolderType = getFolderType();
+      final ResourceType resType = ResourceType.getEnum(resFolderType.getName());
+      assert resType != null;
+      return resType;
     }
 
     @NotNull
