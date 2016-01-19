@@ -144,8 +144,8 @@ public abstract class GuiTestCase {
       for (Window window : Window.getWindows()) {
         if (window.isShowing() && window instanceof Dialog) {
           if (((Dialog) window).getModalityType() == Dialog.ModalityType.APPLICATION_MODAL) {
-            fail("Modal dialog still active: " + window);
             myRobot.close(window);
+            fail("Modal dialog still active: " + window);
           }
         }
       }
