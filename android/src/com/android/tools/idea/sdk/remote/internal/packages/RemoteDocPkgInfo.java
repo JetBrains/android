@@ -18,16 +18,13 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Represents a doc XML node in an SDK repository.
@@ -61,37 +58,6 @@ public class RemoteDocPkgInfo extends RemotePkgInfo {
     pkgDescBuilder.setIsObsolete(isObsolete());
     pkgDescBuilder.setLicense(getLicense());
     mPkgDesc = pkgDescBuilder.create();
-  }
-
-  /**
-   * Save the properties of the current packages in the given {@link Properties} object.
-   * These properties will later be give the constructor that takes a {@link Properties} object.
-   */
-  @Override
-  public void saveProperties(Properties props) {
-    super.saveProperties(props);
-
-    AndroidVersionHelper.saveProperties(getPkgDesc().getAndroidVersion(), props);
-  }
-
-  /**
-   * Returns the version, for platform, add-on and doc packages.
-   * Can be 0 if this is a local package of unknown api-level.
-   */
-  @NotNull
-  public AndroidVersion getAndroidVersion() {
-    return getPkgDesc().getAndroidVersion();
-  }
-
-  /**
-   * Returns a string identifier to install this package from the command line.
-   * For docs, we use "doc-N" where N is the API or the preview codename.
-   * <p/>
-   * {@inheritDoc}
-   */
-  @Override
-  public String installId() {
-    return "doc";    //$NON-NLS-1$
   }
 
   /**

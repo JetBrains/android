@@ -63,14 +63,6 @@ public class SdkSysImgConstants extends RepoConstants {
     public static final String NODE_ADD_ON = SdkAddonConstants.NODE_ADD_ON;
 
     /**
-     * List of possible nodes in a repository XML. Used to populate options automatically
-     * in the no-GUI mode.
-     */
-    public static final String[] NODES = {
-        NODE_SYSTEM_IMAGE,
-    };
-
-    /**
      * Returns a stream to the requested {@code sdk-sys-img} XML Schema.
      *
      * @param version Between 1 and {@link #NS_LATEST_VERSION}, included.

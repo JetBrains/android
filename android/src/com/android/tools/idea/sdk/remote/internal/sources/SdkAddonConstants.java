@@ -61,15 +61,6 @@ public class SdkAddonConstants extends RepoConstants {
     public static final String NODE_EXTRA           = "extra";             //$NON-NLS-1$
 
     /**
-     * List of possible nodes in a repository XML. Used to populate options automatically
-     * in the no-GUI mode.
-     */
-    public static final String[] NODES = {
-        NODE_ADD_ON,
-        NODE_EXTRA
-    };
-
-    /**
      * Returns a stream to the requested {@code sdk-addon} XML Schema.
      *
      * @param version Between 1 and {@link #NS_LATEST_VERSION}, included.
