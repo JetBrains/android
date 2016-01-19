@@ -552,7 +552,6 @@ class IntellijLintProject extends Project {
     @Override
     public List<File> getProguardFiles() {
       if (mProguardFiles == null) {
-        assert !myFacet.requiresAndroidModel(); // Should be overridden to read from gradle state
         final JpsAndroidModuleProperties properties = myFacet.getProperties();
 
         if (properties.RUN_PROGUARD) {
