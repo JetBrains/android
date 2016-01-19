@@ -46,8 +46,11 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
+import java.io.File;
 import java.util.Map;
 
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.tools.idea.gradle.dsl.model.GradlePropertiesModel.parsePropertiesFile;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
@@ -58,6 +61,7 @@ import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLO
 import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class GradleBuildModel extends GradleFileModel {
   @Nullable
@@ -75,6 +79,7 @@ public class GradleBuildModel extends GradleFileModel {
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     GradleBuildDslFile buildDslFile = new GradleBuildDslFile(file, project, moduleName);
     populateWithParentModuleSubProjectsProperties(buildDslFile);
+    populateSiblingDslFileWithGradlePropertiesFile(buildDslFile);
     buildDslFile.parse();
     return new GradleBuildModel(buildDslFile);
   }
@@ -107,6 +112,23 @@ public class GradleBuildModel extends GradleFileModel {
     for (Map.Entry<String, GradleDslElement> entry : subProjectsDslElement.getPropertyElements().entrySet()) {
       buildDslFile.setParsedElement(entry.getKey(), entry.getValue());
     }
+  }
+
+  private static void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildDslFile buildDslFile) {
+    File propertiesFilePath = new File(buildDslFile.getDirectoryPath(), FN_GRADLE_PROPERTIES);
+    VirtualFile propertiesFile = findFileByIoFile(propertiesFilePath, true);
+    if (propertiesFile == null) {
+      return;
+    }
+
+    GradlePropertiesModel propertiesModel = parsePropertiesFile(propertiesFile, buildDslFile.getProject(), buildDslFile.getName());
+    if (propertiesModel == null) {
+      return;
+    }
+
+    GradleDslFile propertiesDslFile = propertiesModel.myGradleDslFile;
+    buildDslFile.setSiblingDslFile(propertiesDslFile);
+    propertiesDslFile.setSiblingDslFile(buildDslFile);
   }
 
   private GradleBuildModel(@NotNull GradleBuildDslFile buildDslFile) {

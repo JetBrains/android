@@ -345,6 +345,65 @@ public class ExtModelTest extends GradleFileModelTestCase {
                  defaultConfig.testInstrumentationRunnerArguments());
   }
 
+  public void testResolveVariableInSubModuleBuildFile() throws IOException {
+    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
+    String mainModulePropertiesText = "xyz=value_from_main_module_properties_file";
+    String mainModuleBuildText = "ext.xyz = \"value_from_main_module_build_file\"";
+    String subModulePropertiesText = "xyz=value_from_sub_module_properties_file";
+    String subModuleBuildText = "ext.xyz = \"value_from_sub_module_build_file\"\n" +
+                                "ext.test = xyz";
+
+    writeToSettingsFile(settingsText);
+    writeToPropertiesFile(mainModulePropertiesText);
+    writeToBuildFile(mainModuleBuildText);
+    writeToSubModulePropertiesFile(subModulePropertiesText);
+    writeToSubModuleBuildFile(subModuleBuildText);
+
+    assertEquals("value_from_sub_module_build_file", getSubModuleGradleBuildModel().ext().getProperty("test", String.class));
+  }
+
+  public void testResolveVariableInSubModulePropertiesFile() throws IOException {
+    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
+    String mainModulePropertiesText = "xyz=value_from_main_module_properties_file";
+    String mainModuleBuildText = "ext.xyz = \"value_from_main_module_build_file\"";
+    String subModulePropertiesText = "xyz=value_from_sub_module_properties_file";
+    String subModuleBuildText = "ext.test = xyz";
+
+    writeToSettingsFile(settingsText);
+    writeToPropertiesFile(mainModulePropertiesText);
+    writeToBuildFile(mainModuleBuildText);
+    writeToSubModulePropertiesFile(subModulePropertiesText);
+    writeToSubModuleBuildFile(subModuleBuildText);
+
+    assertEquals("value_from_sub_module_properties_file", getSubModuleGradleBuildModel().ext().getProperty("test", String.class));
+  }
+
+  public void testResolveVariableInMainModulePropertiesFile() throws IOException {
+    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
+    String mainModulePropertiesText = "xyz=value_from_main_module_properties_file";
+    String mainModuleBuildText = "ext.xyz = \"value_from_main_module_build_file\"";
+    String subModuleBuildText = "ext.test = xyz";
+
+    writeToSettingsFile(settingsText);
+    writeToPropertiesFile(mainModulePropertiesText);
+    writeToBuildFile(mainModuleBuildText);
+    writeToSubModuleBuildFile(subModuleBuildText);
+
+    assertEquals("value_from_main_module_properties_file", getSubModuleGradleBuildModel().ext().getProperty("test", String.class));
+  }
+
+  public void testResolveVariableInMainModuleBuildFile() throws IOException {
+    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
+    String mainModuleBuildText = "ext.xyz = \"value_from_main_module_build_file\"";
+    String subModuleBuildText = "ext.test = xyz";
+
+    writeToSettingsFile(settingsText);
+    writeToBuildFile(mainModuleBuildText);
+    writeToSubModuleBuildFile(subModuleBuildText);
+
+    assertEquals("value_from_main_module_build_file", getSubModuleGradleBuildModel().ext().getProperty("test", String.class));
+  }
+
   public void testResolveMultiLevelExtPropertyWithHistory() throws IOException {
     String text = "ext.FIRST = 123\n" +
                   "ext.SECOND = FIRST\n" +
@@ -384,9 +443,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
   public void testResolveMultiModuleExtPropertyWithHistory() throws IOException {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
-
     String mainModuleText = "ext.FIRST = 123";
-
     String subModuleText = "ext.SECOND = FIRST";
 
     writeToSettingsFile(settingsText);
@@ -411,6 +468,47 @@ public class ExtModelTest extends GradleFileModelTestCase {
     assertEquals(myBuildFile.getPath(), first.getFile().getPath());
     assertEquals("ext.FIRST", first.getPropertyName());
     assertEquals("ext.FIRST = 123", first.getDslText());
+    assertEquals(0, first.getResolvedVariables().size());
+  }
+
+  public void testResolveMultiModuleExtPropertyFromPropertiesFileWithHistory() throws IOException {
+    String settingsText = "include ':" + SUB_MODULE_NAME + "'";
+    String mainModulePropertiesText = "first=value_from_gradle_properties";
+    String mainModuleBuildText = "ext.second = first";
+    String subModuleBuildText = "ext.third = second";
+
+    writeToSettingsFile(settingsText);
+    writeToPropertiesFile(mainModulePropertiesText);
+    writeToBuildFile(mainModuleBuildText);
+    writeToSubModuleBuildFile(subModuleBuildText);
+
+    GradleBuildModel buildModel = getSubModuleGradleBuildModel();
+    ExtModel extModel = buildModel.ext();
+
+    GradleValue<String> third = extModel.getPropertyWithResolutionHistory("third", String.class);
+    assertNotNull(third);
+    assertEquals("value_from_gradle_properties", third.getValue());
+    assertEquals(mySubModuleBuildFile.getPath(), third.getFile().getPath());
+    assertEquals("ext.third", third.getPropertyName());
+    assertEquals("ext.third = second", third.getDslText());
+    Map<String, GradleValue<Object>> thirdResolvedVariables = third.getResolvedVariables();
+    assertEquals(1, thirdResolvedVariables.size());
+
+    GradleValue<Object> second = thirdResolvedVariables.get("second");
+    assertNotNull(second);
+    assertEquals("value_from_gradle_properties", second.getValue().toString());
+    assertEquals(myBuildFile.getPath(), second.getFile().getPath());
+    assertEquals("ext.second", second.getPropertyName());
+    assertEquals("ext.second = first", second.getDslText());
+    Map<String, GradleValue<Object>> secondResolvedVariables = second.getResolvedVariables();
+    assertEquals(1, secondResolvedVariables.size());
+
+    GradleValue<Object> first = secondResolvedVariables.get("first");
+    assertNotNull(first);
+    assertEquals("value_from_gradle_properties", first.getValue().toString());
+    assertEquals(myPropertiesFile.getPath(), first.getFile().getPath());
+    assertEquals("first", first.getPropertyName());
+    assertNull(first.getDslText()); // There are no psi elements in the properties file.
     assertEquals(0, first.getResolvedVariables().size());
   }
 }
