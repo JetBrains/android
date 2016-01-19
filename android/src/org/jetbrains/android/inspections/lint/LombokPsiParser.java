@@ -40,6 +40,7 @@ import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.ArrayUtil;
+import lombok.ast.Catch;
 import lombok.ast.Node;
 import lombok.ast.Position;
 import org.jetbrains.annotations.Contract;
@@ -206,6 +207,29 @@ public class LombokPsiParser extends JavaParser {
         return null;
       }
     });
+  }
+
+  @Override
+  public List<TypeDescriptor> getCatchTypes(@NonNull JavaContext context, @NonNull Catch catchBlock) {
+    Object nativeNode = catchBlock.getNativeNode();
+    if (nativeNode instanceof PsiCatchSection) {
+      PsiCatchSection node = (PsiCatchSection)nativeNode;
+      PsiType type = node.getCatchType();
+      if (type != null) {
+        if (type instanceof PsiDisjunctionType) {
+          List<PsiType> disjunctions = ((PsiDisjunctionType)type).getDisjunctions();
+          List<TypeDescriptor> list = Lists.newArrayListWithCapacity(disjunctions.size());
+          for (PsiType t : disjunctions) {
+            list.add(new LombokPsiParser.PsiTypeDescriptor(t));
+          }
+          return list;
+        } else {
+          return Collections.<TypeDescriptor>singletonList(new LombokPsiParser.PsiTypeDescriptor(type));
+        }
+      }
+    }
+
+    return super.getCatchTypes(context, catchBlock);
   }
 
   @Nullable
