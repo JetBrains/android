@@ -16,10 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.fd.InstantRunArtifact;
-import com.android.tools.idea.fd.InstantRunBuildInfo;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -107,7 +104,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       return null;
     }
 
-    if (myRunConfig.supportsInstantRun() && InstantRunSettings.isInstantRunEnabled(myProject)) {
+    if (InstantRunUtils.isInstantRunEnabled(myEnv) && InstantRunSettings.isInstantRunEnabled(myProject)) {
       AndroidGradleModel model = AndroidGradleModel.get(myFacet);
 
       if (model != null && InstantRunManager.isPatchableApp(model)) {
@@ -152,7 +149,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     // regular APK deploy flow
     InstantRunManager.LOG.info("Using legacy/main APK deploy task");
     boolean instantRunAware =
-      myRunConfig.supportsInstantRun() &&
+      InstantRunUtils.isInstantRunEnabled(myEnv) &&
       InstantRunSettings.isInstantRunEnabled(myProject) &&
       InstantRunManager.isPatchableApp(myFacet.getModule());
     return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider, instantRunAware);
