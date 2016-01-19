@@ -126,7 +126,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     return runConfiguration instanceof AndroidRunConfigurationBase || isUnitTestConfiguration(runConfiguration);
   }
 
-  public static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
+  private static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
     return runConfiguration instanceof JUnitConfiguration ||
            // Avoid direct dependency on the TestNG plugin:
            runConfiguration.getClass().getSimpleName().equals("TestNGConfiguration");
