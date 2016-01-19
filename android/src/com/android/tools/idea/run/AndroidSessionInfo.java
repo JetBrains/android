@@ -27,7 +27,6 @@ import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -70,7 +69,7 @@ public class AndroidSessionInfo {
       return ((AndroidProcessHandler)myProcessHandler).getDevices();
     }
     else {
-      Client client = myProcessHandler.getUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT);
+      Client client = myProcessHandler.getUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT);
       if (client != null) {
         return Collections.singletonList(client.getDevice());
       }

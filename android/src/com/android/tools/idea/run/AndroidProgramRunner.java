@@ -31,7 +31,7 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidDebugRunner extends DefaultProgramRunner {
+public class AndroidProgramRunner extends DefaultProgramRunner {
   public static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
 
   public static final Key<Client> ANDROID_DEBUG_CLIENT = new Key<Client>("ANDROID_DEBUG_CLIENT");
@@ -69,7 +69,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   @Override
   @NotNull
   public String getRunnerId() {
-    return "AndroidDebugRunner";
+    return "AndroidProgramRunner";
   }
 
   @Override
