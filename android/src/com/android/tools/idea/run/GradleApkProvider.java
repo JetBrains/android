@@ -35,8 +35,8 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -44,7 +44,8 @@ import java.util.Set;
  * Provides the information on APKs to install for run configurations in Gradle projects.
  */
 public class GradleApkProvider implements ApkProvider {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.GradleApkProvider");
+  private static final Logger LOG = Logger.getInstance(GradleApkProvider.class);
+
   /** Default suffix for test packages (as added by Android Gradle plugin) */
   private static final String DEFAULT_TEST_PACKAGE_SUFFIX = ".test";
 
@@ -60,12 +61,14 @@ public class GradleApkProvider implements ApkProvider {
   @Override
   @NotNull
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
     AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
-    assert androidModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
+    if (androidModel == null) {
+      LOG.warn("Android model is null. Sync might have failed");
+      return Collections.emptyList();
+    }
     Variant selectedVariant = androidModel.getSelectedVariant();
 
-    List<ApkInfo> apkList = new ArrayList<ApkInfo>();
+    List<ApkInfo> apkList = Lists.newArrayList();
 
     // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
     if (!androidModel.getAndroidProject().isLibrary()) {
