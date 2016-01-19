@@ -185,17 +185,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   protected boolean supportMultipleDevices() {
-    // instant run can only work with a single device (a single API level to be precise, but we simplify that to be a single device)
-    if (InstantRunSettings.isInstantRunEnabled(getProject())) {
-      JavaRunConfigurationModule configModule = getConfigurationModule();
-      if (configModule != null) {
-        Module module = configModule.getModule();
-        if (module != null && InstantRunManager.isPatchableApp(module)) {
-          return false;
-        }
-      }
-    }
-
     return true;
   }
 

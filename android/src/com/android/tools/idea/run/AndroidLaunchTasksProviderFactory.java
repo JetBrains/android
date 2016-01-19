@@ -52,7 +52,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   @NotNull
   @Override
   public LaunchTasksProvider get() {
-    if (myRunConfig.supportsInstantRun() && canHotSwap()) {
+    if (InstantRunUtils.isInstantRunEnabled(myEnv) && canHotSwap()) {
       return new HotSwapTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
     }
 
