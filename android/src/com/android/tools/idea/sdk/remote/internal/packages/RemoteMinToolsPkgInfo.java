@@ -22,7 +22,6 @@ import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
 
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Represents an XML node in an SDK repository that has a min-tools-rev requirement.
@@ -54,12 +53,6 @@ public abstract class RemoteMinToolsPkgInfo extends RemotePkgInfo implements IMi
     @Override
     public Revision getMinToolsRevision() {
         return mMinToolsMixin.getMinToolsRevision();
-    }
-
-    @Override
-    public void saveProperties(Properties props) {
-        super.saveProperties(props);
-        mMinToolsMixin.saveProperties(props);
     }
 
     @Override

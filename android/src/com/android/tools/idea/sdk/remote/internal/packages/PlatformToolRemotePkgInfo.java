@@ -30,15 +30,6 @@ import java.util.Map;
 public class PlatformToolRemotePkgInfo extends RemotePkgInfo {
 
   /**
-   * The value returned by {@link PlatformToolRemotePkgInfo#installId()}.
-   */
-  public static final String INSTALL_ID = "platform-tools";                       //$NON-NLS-1$
-  /**
-   * The value returned by {@link PlatformToolRemotePkgInfo#installId()}.
-   */
-  public static final String INSTALL_ID_PREVIEW = "platform-tools-preview";       //$NON-NLS-1$
-
-  /**
    * Creates a new platform-tool package from the attributes and elements of the given XML node.
    * This constructor should throw an exception if the package cannot be created.
    *
@@ -58,23 +49,6 @@ public class PlatformToolRemotePkgInfo extends RemotePkgInfo {
     pkgDescBuilder.setIsObsolete(isObsolete());
     pkgDescBuilder.setLicense(getLicense());
     mPkgDesc = pkgDescBuilder.create();
-  }
-
-  /**
-   * Returns a string identifier to install this package from the command line.
-   * For platform-tools, we use "platform-tools" or "platform-tools-preview" since
-   * this package type is unique.
-   * <p/>
-   * {@inheritDoc}
-   */
-  @Override
-  public String installId() {
-    if (getRevision().isPreview()) {
-      return INSTALL_ID_PREVIEW;
-    }
-    else {
-      return INSTALL_ID;
-    }
   }
 
   /**

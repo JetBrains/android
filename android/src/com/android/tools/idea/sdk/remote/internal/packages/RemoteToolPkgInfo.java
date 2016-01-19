@@ -16,38 +16,27 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
-import com.android.annotations.Nullable;
 import com.android.repository.Revision;
-import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import com.android.utils.GrabProcessOutput;
-import com.android.utils.GrabProcessOutput.IProcessOutput;
-import com.android.utils.GrabProcessOutput.Wait;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Represents a tool XML node in an SDK repository.
  */
-public class RemoteToolPkgInfo extends RemotePkgInfo implements IMinPlatformToolsDependency {
+public class RemoteToolPkgInfo extends RemotePkgInfo {
 
   /**
-   * The value returned by {@link RemoteToolPkgInfo#installId()}.
+   * The value of {@link #getMinPlatformToolsRevision()} when the
+   * {@link SdkRepoConstants#NODE_MIN_PLATFORM_TOOLS_REV} was not specified in the XML source.
+   * Since this is a required attribute in the XML schema, it can only happen when dealing
+   * with an invalid repository XML.
    */
-  public static final String INSTALL_ID = "tools";                             //$NON-NLS-1$
-  /**
-   * The value returned by {@link RemoteToolPkgInfo#installId()}.
-   */
-  private static final String INSTALL_ID_PREVIEW = "tools-preview";            //$NON-NLS-1$
+  Revision MIN_PLATFORM_TOOLS_REV_INVALID = new Revision(Revision.MISSING_MAJOR_REV);
 
   /**
    * The minimal revision of the platform-tools package required by this package
@@ -90,27 +79,6 @@ public class RemoteToolPkgInfo extends RemotePkgInfo implements IMinPlatformTool
     mPkgDesc = pkgDescBuilder.create();
   }
 
-  @Override
-  public Revision getMinPlatformToolsRevision() {
-    return mMinPlatformToolsRevision;
-  }
-
-  /**
-   * Returns a string identifier to install this package from the command line.
-   * For tools, we use "tools" or "tools-preview" since this package is unique.
-   * <p/>
-   * {@inheritDoc}
-   */
-  @Override
-  public String installId() {
-    if (getRevision().isPreview()) {
-      return INSTALL_ID_PREVIEW;
-    }
-    else {
-      return INSTALL_ID;
-    }
-  }
-
   /**
    * Returns a description of this package that is suitable for a list display.
    * <p/>
@@ -129,82 +97,6 @@ public class RemoteToolPkgInfo extends RemotePkgInfo implements IMinPlatformTool
     }
 
     return String.format("Android SDK Tools, revision %1$s%2$s", revision.toShortString(), obsolete ? " (Obsolete)" : "");
-  }
-
-  @Override
-  public void saveProperties(Properties props) {
-    super.saveProperties(props);
-
-    if (!getMinPlatformToolsRevision().equals(MIN_PLATFORM_TOOLS_REV_INVALID)) {
-      props.setProperty(PkgProps.MIN_PLATFORM_TOOLS_REV, getMinPlatformToolsRevision().toShortString());
-    }
-  }
-
-  /**
-   * The tool package executes tools/lib/post_tools_install[.bat|.sh]
-   * {@inheritDoc}
-   */
-  @Override
-  public void postInstallHook(Archive archive, final ITaskMonitor monitor, File installFolder) {
-    super.postInstallHook(archive, monitor, installFolder);
-
-    if (installFolder == null) {
-      return;
-    }
-
-    File libDir = new File(installFolder, SdkConstants.FD_LIB);
-    if (!libDir.isDirectory()) {
-      return;
-    }
-
-    String scriptName = "post_tools_install";   //$NON-NLS-1$
-    String shell = "";                          //$NON-NLS-1$
-    if (SdkConstants.currentPlatform() == SdkConstants.PLATFORM_WINDOWS) {
-      shell = "cmd.exe /c ";                  //$NON-NLS-1$
-      scriptName += ".bat";                   //$NON-NLS-1$
-    }
-    else {
-      scriptName += ".sh";                    //$NON-NLS-1$
-    }
-
-    File scriptFile = new File(libDir, scriptName);
-    if (!scriptFile.isFile()) {
-      return;
-    }
-
-    int status = -1;
-
-    try {
-      Process proc = Runtime.getRuntime().exec(shell + scriptName, // command
-                                               null,       // environment
-                                               libDir);    // working dir
-
-      final String tag = scriptName;
-      status = GrabProcessOutput.grabProcessOutput(proc, Wait.WAIT_FOR_PROCESS, new IProcessOutput() {
-        @Override
-        public void out(@Nullable String line) {
-          if (line != null) {
-            monitor.log("[%1$s] %2$s", tag, line);
-          }
-        }
-
-        @Override
-        public void err(@Nullable String line) {
-          if (line != null) {
-            monitor.logError("[%1$s] Error: %2$s", tag, line);
-          }
-        }
-      });
-
-    }
-    catch (Exception e) {
-      monitor.logError("Exception: %s", e.toString());
-    }
-
-    if (status != 0) {
-      monitor.logError("Failed to execute %s", scriptName);
-      return;
-    }
   }
 
   @Override

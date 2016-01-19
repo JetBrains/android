@@ -16,10 +16,7 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.annotations.Nullable;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.AndroidVersionHelper;
-import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalSysImgPkgInfo;
 import com.android.sdklib.repositoryv2.IdDisplay;
@@ -28,12 +25,9 @@ import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSysImgConstants;
-import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Represents a system-image XML node in an SDK repository.
@@ -106,26 +100,6 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo {
   }
 
   /**
-   * Save the properties of the current packages in the given {@link Properties} object.
-   * These properties will later be given to a constructor that takes a {@link Properties} object.
-   */
-  @Override
-  public void saveProperties(Properties props) {
-    super.saveProperties(props);
-
-    AndroidVersionHelper.saveProperties(getAndroidVersion(), props);
-    props.setProperty(PkgProps.SYS_IMG_ABI, getAbi());
-    props.setProperty(PkgProps.SYS_IMG_TAG_ID, getTag().getId());
-    props.setProperty(PkgProps.SYS_IMG_TAG_DISPLAY, getTag().getDisplay());
-
-    IdDisplay addonVendor = getAddonVendor();
-    if (addonVendor != null) {
-      props.setProperty(PkgProps.ADDON_VENDOR_ID, addonVendor.getId());
-      props.setProperty(PkgProps.ADDON_VENDOR_DISPLAY, addonVendor.getDisplay());
-    }
-  }
-
-  /**
    * Returns the tag of the system-image.
    */
   public IdDisplay getTag() {
@@ -138,61 +112,4 @@ public class RemoteSystemImagePkgInfo extends RemotePkgInfo {
   public String getAbi() {
     return getPkgDesc().getPath();
   }
-
-  /**
-   * Returns the version of the platform dependency of this package.
-   * <p/>
-   * A system-image has the same {@link AndroidVersion} as the platform it depends on.
-   */
-  @NotNull
-  public AndroidVersion getAndroidVersion() {
-    return getPkgDesc().getAndroidVersion();
-  }
-
-  /**
-   * Returns true if the system-image belongs to a standard Android platform.
-   * In this case {@link #getAddonVendor()} returns null.
-   * <p/.
-   * Returns false if the system-image belongs to an add-on.
-   * In this case {@link #getAndroidVersion()} returns a non-null {@link IdDisplay}.
-   */
-  public boolean isPlatform() {
-    return getAddonVendor() == null;
-  }
-
-  /**
-   * Returns the add-on vendor if this is an add-on system image.
-   * Returns null if this is a platform system-image.
-   */
-  @Nullable
-  public IdDisplay getAddonVendor() {
-    return getPkgDesc().getVendor();
-  }
-
-  /**
-   * Returns a string identifier to install this package from the command line.
-   * For system images, we use "sysimg-N" where N is the API or the preview codename.
-   * <p/>
-   * {@inheritDoc}
-   */
-  @Override
-  public String installId() {
-    StringBuilder sb = new StringBuilder("sys-img-");   //$NON-NLS-1$
-    sb.append(getAbi()).append('-');
-    if (!isPlatform()) {
-      sb.append("addon-");
-    }
-    sb.append(SystemImage.DEFAULT_TAG.equals(getTag()) ? "android" : getTag().getId());
-    sb.append('-');
-    if (!isPlatform()) {
-      sb.append(getAddonVendor().getId()).append('-');
-    }
-    sb.append(getAndroidVersion().getApiString());
-
-    String s = sb.toString();
-    s = s.toLowerCase(Locale.US).replaceAll("[^a-z0-9_.-]+", "_").replaceAll("_+", "_");
-    return s;
-
-  }
-
 }
