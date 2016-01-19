@@ -136,7 +136,7 @@ public final class InstantRunManager implements ProjectComponent {
       return ImmutableList.copyOf(((AndroidProcessHandler)processHandler).getDevices());
     }
     else {
-      Client c = processHandler.getUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT);
+      Client c = processHandler.getUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT);
       if (c != null && c.isValid()) {
         return Collections.singletonList(c.getDevice());
       }
@@ -147,7 +147,7 @@ public final class InstantRunManager implements ProjectComponent {
 
   @NotNull
   public static AndroidVersion getMinDeviceApiLevel(@NotNull ProcessHandler processHandler) {
-    AndroidVersion version = processHandler.getUserData(AndroidDebugRunner.ANDROID_DEVICE_API_LEVEL);
+    AndroidVersion version = processHandler.getUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL);
     return version == null ? AndroidVersion.DEFAULT : version;
   }
 
@@ -640,7 +640,7 @@ public final class InstantRunManager implements ProjectComponent {
     // Now we refresh the call-stacks and the variable panes.
     DebuggerManagerEx debugger = DebuggerManagerEx.getInstanceEx(myProject);
     for (final DebuggerSession session : debugger.getSessions()) {
-      Client client = session.getProcess().getProcessHandler().getUserData(AndroidDebugRunner.ANDROID_DEBUG_CLIENT);
+      Client client = session.getProcess().getProcessHandler().getUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT);
       if (client != null && client.isValid() && StringUtil.equals(packageName, client.getClientData().getClientDescription())) {
         session.getProcess().getManagerThread().invoke(new DebuggerCommandImpl() {
           @Override
