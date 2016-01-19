@@ -778,7 +778,9 @@ public class ChooseResourceDialog extends DialogWrapper {
       new DoubleClickListener() {
         @Override
         protected boolean onDoubleClick(MouseEvent e) {
-          if (myList.getSelectedElement() != null) {
+          ResourceItem selected = getSelectedElement();
+          if (selected != null) {
+            myResultResourceName = selected.getResourceUrl();
             close(OK_EXIT_CODE);
             return true;
           }
