@@ -130,6 +130,7 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
@@ -581,10 +582,7 @@ public class GradleSyncTest extends GuiTestCase {
   public void testUpdateGradleVersionWithLocalDistribution() throws IOException {
     File unsupportedGradleHome = getUnsupportedGradleHome();
     File gradleHomePath = getGradleHomePath();
-    if (unsupportedGradleHome == null || gradleHomePath == null) {
-      System.out.println("Skipping test 'testUpdateGradleVersionWithLocalDistribution'");
-      return;
-    }
+    assumeTrue(unsupportedGradleHome != null && gradleHomePath != null);
 
     myProjectFrame = importSimpleApplication();
 
@@ -602,10 +600,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
     File unsupportedGradleHome = getUnsupportedGradleHome();
-    if (unsupportedGradleHome == null) {
-      System.out.println("Skipping test 'testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle'");
-      return;
-    }
+    assumeTrue(unsupportedGradleHome != null);
 
     myProjectFrame = importMultiModule();
     myProjectFrame.deleteGradleWrapper().useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
@@ -972,10 +967,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testUserDefinedLibraryAttachments() throws IOException {
     File javadocJarPath = getFilePathProperty("guava.javadoc.jar.path", "the path of the Javadoc jar file for Guava", false);
-    if (javadocJarPath == null) {
-      System.out.println("Skipping test 'testUserDefinedLibraryAttachments'");
-      return;
-    }
+    assumeTrue(javadocJarPath != null);
 
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     LibraryPropertiesDialogFixture propertiesDialog = myProjectFrame.showPropertiesForLibrary("guava");
@@ -1108,10 +1100,7 @@ public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSdkSwitch() throws IOException {
     File secondSdkPath = getFilePathProperty("second.android.sdk.path", "the path of a secondary Android SDK", true);
-    if (secondSdkPath == null) {
-      System.out.println("Skipping test 'testSdkSwitch'");
-      return;
-    }
+    assumeTrue(secondSdkPath != null);
 
     getGuiTestSuiteState().setSkipSdkMerge(true);
 
