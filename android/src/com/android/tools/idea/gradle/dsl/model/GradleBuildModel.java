@@ -46,6 +46,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
+import java.util.Map;
+
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
@@ -102,10 +104,8 @@ public class GradleBuildModel extends GradleFileModel {
     }
 
     buildDslFile.setParsedElement(SUBPROJECTS_BLOCK_NAME, subProjectsDslElement);
-    for (String property : subProjectsDslElement.getProperties()) {
-      GradleDslElement propertyElement = subProjectsDslElement.getPropertyElement(property);
-      assert propertyElement != null;
-      buildDslFile.setParsedElement(property, propertyElement);
+    for (Map.Entry<String, GradleDslElement> entry : subProjectsDslElement.getPropertyElements().entrySet()) {
+      buildDslFile.setParsedElement(entry.getKey(), entry.getValue());
     }
   }
 

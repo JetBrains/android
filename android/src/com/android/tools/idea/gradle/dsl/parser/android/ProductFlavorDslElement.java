@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 
 public final class ProductFlavorDslElement extends GradlePropertiesDslElement {
 
@@ -77,11 +78,8 @@ public final class ProductFlavorDslElement extends GradlePropertiesDslElement {
       else {
         testInstrumentationRunnerArgumentsElement.setPsiElement(element.getPsiElement());
         GradleDslExpressionMap elementsToAdd = (GradleDslExpressionMap)element;
-        for (String key : elementsToAdd.getProperties()) {
-          GradleDslElement elementToAdd = elementsToAdd.getPropertyElement(key);
-          if (elementToAdd != null) {
-            testInstrumentationRunnerArgumentsElement.setParsedElement(key, elementToAdd);
-          }
+        for (Map.Entry<String, GradleDslElement> entry : elementsToAdd.getPropertyElements().entrySet()) {
+          testInstrumentationRunnerArgumentsElement.setParsedElement(entry.getKey(), entry.getValue());
         }
       }
       return;
