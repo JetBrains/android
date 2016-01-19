@@ -105,6 +105,7 @@ class DependenciesPanel extends JPanel {
     myEditorPanel = new JPanel(new BorderLayout());
     myEditorPanel.add(new HeaderPanel("Details"), BorderLayout.NORTH);
     myEditorScrollPane = new JBScrollPane();
+    myEditorScrollPane.setBorder(IdeBorderFactory.createEmptyBorder(2));
     myEditorPanel.add(myEditorScrollPane, BorderLayout.CENTER);
     myEditorPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.RIGHT));
 
@@ -184,7 +185,9 @@ class DependenciesPanel extends JPanel {
   @NotNull
   private JPanel createDependenciesEditorPanel() {
     JBSplitter splitter = new OnePixelSplitter(false, "psd.dependencies.editor.splitter.proportion", 0.65f);
-    splitter.setFirstComponent(new JBScrollPane(myDependencyTable));
+    JBScrollPane scrollPane = new JBScrollPane(myDependencyTable);
+    scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    splitter.setFirstComponent(scrollPane);
     splitter.setSecondComponent(myEditorPanel);
     setCurrentEditor(myEmptyEditorPanel);
 
