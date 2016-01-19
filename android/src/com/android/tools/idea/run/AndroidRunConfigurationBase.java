@@ -361,7 +361,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled(project) && InstantRunManager.isPatchableApp(module)) {
-      setInstantRunBuildOptions(env, module, deviceFutures);
+      List<AndroidDevice> devices = deviceFutures.getDevices();
+      if (devices.size() > 1) {
+        String message = "This launch does not use Instant Run as it does not support launching on multiple devices concurrently.";
+        new InstantRunUserFeedback(module).info(message);
+        LOG.info(message);
+      }
+      else {
+        InstantRunUtils.setInstantRunEnabled(env, true);
+        setInstantRunBuildOptions(env, module, deviceFutures);
+      }
     }
 
     // Store the chosen target on the execution environment so before-run tasks can access it.
@@ -416,7 +425,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    assert devices.size() == 1 : "Instant run is only supported on a single device, but previous launch was on " + devices.size();
+    if (devices.size() > 1) {
+      InstantRunManager.LOG.info("Last run was on > 1 device, not reusing devices and prompting again");
+      return null;
+    }
 
     return DeviceFutures.forDevices(devices);
   }

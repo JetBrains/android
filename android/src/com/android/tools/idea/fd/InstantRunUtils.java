@@ -26,6 +26,15 @@ public class InstantRunUtils {
   private static final Key<Boolean> FULL_BUILD = Key.create("android.instant.run.full.build");
   private static final Key<Boolean> APP_RUNNING = Key.create("android.instant.run.app.running");
   private static final Key<IDevice> RESTART_ON_DEVICE = Key.create("android.instant.run.restart.device");
+  private static final Key<Boolean> IR_ENABLED = Key.create("android.instant.run.enabled.for.run.config");
+
+  public static void setInstantRunEnabled(@NotNull ExecutionEnvironment env, boolean en) {
+    env.putCopyableUserData(IR_ENABLED, en);
+  }
+
+  public static boolean isInstantRunEnabled(@NotNull ExecutionEnvironment env) {
+    return Boolean.TRUE.equals(env.getCopyableUserData(IR_ENABLED));
+  }
 
   public static boolean needsFullBuild(@NotNull ExecutionEnvironment env) {
     return Boolean.TRUE.equals(env.getCopyableUserData(FULL_BUILD));
