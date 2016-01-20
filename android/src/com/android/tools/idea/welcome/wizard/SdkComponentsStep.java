@@ -93,6 +93,9 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                            @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey,
                            @NotNull FirstRunWizardMode mode) {
     super("SDK Components Setup");
+    // Since we create and initialize a new AndroidSdkHandler/RepoManager for every (partial)
+    // path that's entered, disallow direct editing of the path.
+    myPath.setEditable(false);
     myRootNode = rootNode;
     myMode = mode;
     myKeyCustomInstall = keyCustomInstall;
