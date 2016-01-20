@@ -298,10 +298,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
 
       String editorValue = null;
       if (dialog.isOK()) {
-        String value = dialog.getResourceName();
-        if (value != null) {
-          editorValue = dialog.getResourceName();
-        }
+        editorValue = dialog.getResourceName();
       }
       else {
         // User cancelled, clean up the preview
