@@ -45,7 +45,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
 
-    myScreenshotTaker = canRunGuiTests() ? new ScreenshotTaker() : null;
+    myScreenshotTaker = !GraphicsEnvironment.isHeadless() ? new ScreenshotTaker() : null;
 
     // UI_TEST_MODE is set whenever we run UI tests on top of a Studio build. In that case, we
     // assume the classpath has been properly configured. Otherwise, if we're running from the
@@ -100,10 +100,6 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     }
 
     return statement;
-  }
-
-  public static boolean canRunGuiTests() {
-    return !GraphicsEnvironment.isHeadless();
   }
 
   private void loadClassesWithIdeClassLoader() throws Exception {
