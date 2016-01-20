@@ -29,7 +29,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdkv2.StudioProgressRunner;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.ui.ApplicationUtils;
-import com.android.tools.idea.ui.Colors;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.wizard.ConsolidatedProgressStep;
@@ -468,9 +467,6 @@ public class SdkUpdaterConfigPanel {
 
         break;
       case WARN:
-        mySdkLocationLabel.setForeground(Colors.WARNING);
-
-        mySdkErrorLabel.setForeground(Colors.WARNING);
         mySdkErrorLabel.setIcon(AllIcons.General.BalloonWarning);
         mySdkErrorLabel.setText(result.getFormattedMessage());
         mySdkErrorLabel.setVisible(true);
@@ -480,9 +476,6 @@ public class SdkUpdaterConfigPanel {
 
         break;
       case ERROR:
-        mySdkLocationLabel.setForeground(Colors.ERROR);
-
-        mySdkErrorLabel.setForeground(Colors.ERROR);
         mySdkErrorLabel.setIcon(AllIcons.General.BalloonError);
         mySdkErrorLabel.setText(result.getFormattedMessage());
         mySdkErrorLabel.setVisible(true);
