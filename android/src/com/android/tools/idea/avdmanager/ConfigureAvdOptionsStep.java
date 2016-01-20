@@ -301,13 +301,15 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     File backupSkin = myState.get(BACKUP_SKIN_FILE_KEY);
     // If there is a backup skin but no normal skin, the "use device frame" checkbox should be unchecked.
     myState.put(DEVICE_FRAME_KEY, backupSkin == null || customSkin != null);
-    myState.put(DISPLAY_SKIN_FILE_KEY, AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(),
-                                                                     myState.get(SYSTEM_IMAGE_KEY), FileOpUtils.create()));
+
+    File hardwareSkin = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImage, FileOpUtils.create());
+    myState.put(DISPLAY_SKIN_FILE_KEY, hardwareSkin);
+
     // If customSkin is null but backupSkin is defined, we want to show it (with the checkbox unchecked).
     if (customSkin == null) {
       customSkin = backupSkin;
     }
-    File hardwareSkin = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImage, FileOpUtils.create());
+
     // If the skin is set and different from what would be provided by the hardware, set the value of the
     // control directly, so it is marked as user edited and not changed when the device is changed.
     if (customSkin != null && !FileUtil.filesEqual(customSkin, hardwareSkin)) {
@@ -658,8 +660,9 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         // taken into account here. The only case we care about is if the device is changed.
         Device device = myState.get(DEVICE_DEFINITION_KEY);
         assert device != null;
-        return AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(),
-                                             myState.get(SYSTEM_IMAGE_KEY), FileOpUtils.create());
+        File file = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(),
+                                                  myState.get(SYSTEM_IMAGE_KEY), FileOpUtils.create());
+        return file == null ? NO_SKIN : file;
       }
     });
 
