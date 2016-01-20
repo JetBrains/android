@@ -51,11 +51,6 @@ public class MethodInvoker extends Statement {
       return;
     }
     String testFqn = getTestFqn();
-    if (doesIdeHaveFatalErrors()) {
-      // Fatal errors were caused by previous test. Skipping this test.
-      System.out.println(String.format("Skipping test '%1$s': a fatal error has occurred in the IDE", testFqn));
-      return;
-    }
     System.out.println(String.format("Executing test '%1$s'", testFqn));
 
     int retryCount = myTestConfigurator.getRetryCount();
@@ -78,18 +73,6 @@ public class MethodInvoker extends Statement {
       }
     }
     failIfIdeHasFatalErrors();
-  }
-
-  public static boolean doesIdeHaveFatalErrors() {
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    try {
-      Class<?> guiTestsType = Class.forName(GuiTests.class.getCanonicalName(), true, classLoader);
-      //noinspection ConstantConditions
-      return method("doesIdeHaveFatalErrors").withReturnType(boolean.class).in(guiTestsType).invoke();
-    } catch (ClassNotFoundException ex) {
-      // ignore exception
-      return true;
-    }
   }
 
   /** Calls {@link GuiTests#failIfIdeHasFatalErrors} reflectively and on {@link AssertionError}, re-throws. */
