@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager.legacy;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.*;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repositoryv2.IdDisplay;
@@ -226,7 +227,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
     myState.put(HAS_GYROSCOPE_KEY, defaultHardware.getSensors().contains(Sensor.GYROSCOPE));
     myState.put(HAS_GPS_KEY, defaultHardware.getSensors().contains(Sensor.GPS));
     myState.put(HAS_PROXIMITY_SENSOR_KEY, defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
-    File skinFile = AvdEditWizard.resolveSkinPath(defaultHardware.getSkinFile(), null);
+    File skinFile = AvdEditWizard.resolveSkinPath(defaultHardware.getSkinFile(), null, FileOpUtils.create());
     if (skinFile != null) {
       myState.put(CUSTOM_SKIN_FILE_KEY, skinFile);
     } else {
