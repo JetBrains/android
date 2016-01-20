@@ -45,7 +45,7 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   private Boolean myUserSelection; // null means default component enablement is used
   private boolean myIsOptional = true;
   private boolean myIsInstalled = false;
-  private final FileOp myFileOp;
+  protected final FileOp myFileOp;
 
   public InstallableComponent(@NotNull ScopedStateStore stateStore,
                               @NotNull String name,
