@@ -27,15 +27,20 @@ public class NativeFileStub implements NativeFile {
     myFilePath = filePath;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public File getFilePath() {
     return myFilePath;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public String getSettingsName() {
     return "";
+  }
+
+  @Override
+  public File getWorkingDirectory() {
+    throw new UnsupportedOperationException();
   }
 }

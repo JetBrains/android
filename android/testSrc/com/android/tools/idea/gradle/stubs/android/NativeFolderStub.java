@@ -39,4 +39,9 @@ public class NativeFolderStub implements NativeFolder {
   public Map<String, String> getPerLanguageSettings() {
     return ImmutableMap.of();
   }
+
+  @Override
+  public File getWorkingDirectory() {
+    throw new UnsupportedOperationException();
+  }
 }
