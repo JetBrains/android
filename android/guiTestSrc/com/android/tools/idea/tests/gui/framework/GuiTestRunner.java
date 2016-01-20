@@ -71,10 +71,6 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     if (!canRunGuiTests()) {
       notifier.fireTestAssumptionFailed(new Failure(describeChild(method), new AssumptionViolatedException("Headless environment")));
       System.out.println(String.format("Skipping test '%1$s'. UI tests cannot run in a headless environment.", method.getName()));
-    } else if (MethodInvoker.doesIdeHaveFatalErrors()) {
-      notifier.fireTestIgnored(describeChild(method)); // TODO: can we restart the IDE at this point, instead of giving up?
-      System.out.println(String.format("Skipping test '%1$s': a fatal error has occurred in the IDE", method.getName()));
-      notifier.pleaseStop();
     } else {
       super.runChild(method, notifier);
     }

@@ -129,8 +129,6 @@ public final class GuiTests {
     }
   }
 
-  // Called by MethodInvoker via reflection
-  @SuppressWarnings("unused")
   public static boolean doesIdeHaveFatalErrors() {
     final MessagePool messagePool = MessagePool.getInstance();
     List<AbstractMessage> fatalErrors = messagePool.getFatalErrors(true, true);
