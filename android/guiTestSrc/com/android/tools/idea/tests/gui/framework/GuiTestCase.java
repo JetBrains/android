@@ -56,6 +56,11 @@ import org.junit.runner.RunWith;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
@@ -84,6 +89,9 @@ public abstract class GuiTestCase {
   private String myTestName;
 
   protected IdeFrameFixture myProjectFrame;
+
+  private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
+  private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
 
   /**
    * @return the name of the test method being executed.
@@ -114,6 +122,9 @@ public abstract class GuiTestCase {
     setUpSdks();
 
     refreshFiles();
+
+    printPerfStats();
+    printTimestamp();
   }
 
   private static void setIdeSettings() {
@@ -132,11 +143,30 @@ public abstract class GuiTestCase {
     // TODO: setUpDefaultGeneralSettings();
   }
 
+  private void printTimestamp() {
+    final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    System.out.println(dateFormat.format(new Date()));
+  }
+
+  private void printPerfStats() {
+    long gcCount = 0, gcTime = 0;
+    for (GarbageCollectorMXBean garbageCollectorMXBean : myGarbageCollectorMXBeans) {
+      gcCount += garbageCollectorMXBean.getCollectionCount();
+      gcTime += garbageCollectorMXBean.getCollectionTime();
+    }
+    System.out.printf("%d garbage collections; cumulative %d ms%n", gcCount, gcTime);
+    myMemoryMXBean.gc();
+    System.out.printf("heap: %s%n", myMemoryMXBean.getHeapMemoryUsage());
+    System.out.printf("non-heap: %s%n", myMemoryMXBean.getNonHeapMemoryUsage());
+  }
+
   @After
   public void tearDown() {
     if (myProjectFrame != null) {
       myProjectFrame.waitForBackgroundTasksToFinish();
     }
+    printTimestamp();
+    printPerfStats();
     if (myRobot != null) {
       myRobot.cleanUpWithoutDisposingWindows();
       // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
