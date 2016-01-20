@@ -163,8 +163,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
       // We need to have explicit <html> and </html> tags around the text; inspection infrastructure
       // such as the {@link com.intellij.codeInspection.ex.DescriptorComposer} will call
-      // {@link com.intellij.xml.util.XmlStringUtil.isWrappedInHtml}. See issue 177283, 199010 for uses.
-      final String formattedMessage = HTML_START + TextFormat.TEXT.convertTo(originalMessage, HTML) + HTML_END;
+      // {@link com.intellij.xml.util.XmlStringUtil.isWrappedInHtml}. See issue 177283 for uses.
+      final String formattedMessage = HTML_START + RAW.convertTo(originalMessage, HTML) + HTML_END;
       final TextRange range = problemData.getTextRange();
 
       if (range.getStartOffset() == range.getEndOffset()) {
