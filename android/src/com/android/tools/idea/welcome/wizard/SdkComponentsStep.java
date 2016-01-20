@@ -21,13 +21,13 @@ import com.android.tools.idea.npw.WizardUtils.ValidationResult;
 import com.android.tools.idea.npw.WizardUtils.ValidationResult.Status;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.ui.Colors;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -219,12 +219,13 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
     switch (status) {
       case WARN:
-        myErrorMessage.setForeground(Colors.WARNING);
+        myErrorMessage.setIcon(AllIcons.General.BalloonWarning);
         break;
       case ERROR:
-        myErrorMessage.setForeground(Colors.ERROR);
+        myErrorMessage.setIcon(AllIcons.General.BalloonError);
         break;
       default:
+        myErrorMessage.setIcon(null);
         break;
     }
 
