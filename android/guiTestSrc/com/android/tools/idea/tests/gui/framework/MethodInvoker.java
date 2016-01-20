@@ -26,7 +26,6 @@ import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.IdeTestApplication.getFailedTestScreenshotDirPath;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.reflect.core.Reflection.method;
@@ -101,10 +100,6 @@ public class MethodInvoker extends Statement {
     Class<?> guiTestCaseType = Class.forName(GuiTestCase.class.getCanonicalName(), true, classLoader);
 
     if (guiTestCaseType.isInstance(myTest)) {
-      if (!canRunGuiTests()) {
-        // We don't run tests in headless environment.
-        return;
-      }
       field("myTestName").ofType(String.class).in(myTest).set(myTestMethod.getName());
     }
     try {
