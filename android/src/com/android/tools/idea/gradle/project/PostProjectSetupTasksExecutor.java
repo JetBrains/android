@@ -23,8 +23,6 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -35,15 +33,11 @@ import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.*;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -91,8 +85,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
-import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
@@ -107,6 +100,7 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findCon
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.notification.NotificationType.INFORMATION;
+import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
@@ -409,6 +403,8 @@ public class PostProjectSetupTasksExecutor {
     // Piggy-back off of the SDK update check (which is called from a handful of places) to also see if this is an expired preview build
     checkExpiredPreviewBuild(project);
 
+    checkOlderPluginPreviewVersion(project);
+
     File androidHome = IdeSdks.getAndroidSdkPath();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
@@ -423,8 +419,8 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
-    String fullVersion = ApplicationInfo.getInstance().getFullVersion();
-    if (fullVersion.contains("Preview") || fullVersion.contains("Beta") || fullVersion.contains("RC")) {
+    String ideVersion = ApplicationInfo.getInstance().getFullVersion();
+    if (ideVersion.contains("Preview") || ideVersion.contains("Beta") || ideVersion.contains("RC")) {
       // Expire preview builds two months after their build date (which is going to be roughly six weeks after release; by
       // then will definitely have updated the build
       Calendar expirationDate = (Calendar)ApplicationInfo.getInstance().getBuildDate().clone();
@@ -434,13 +430,67 @@ public class PostProjectSetupTasksExecutor {
       if (now.after(expirationDate)) {
         OpenUrlHyperlink hyperlink = new OpenUrlHyperlink("http://tools.android.com/download/studio/", "Show Available Versions");
         String message =
-          String.format("This preview build (%1$s) is old; please update to a newer preview or a stable version", fullVersion);
+          String.format("This preview build (%1$s) is old; please update to a newer preview or a stable version.", ideVersion);
         AndroidGradleNotification.getInstance(project).showBalloon("Old Preview Build", message, INFORMATION, hyperlink);
         // If we show an expiration message, don't also show a second balloon regarding available SDKs
         ourNewSdkVersionToolsInfoAlreadyShown = true;
       }
     }
     ourCheckedExpiration = true;
+  }
+
+  // This is temporary code for "preview" release.
+  private static void checkOlderPluginPreviewVersion(@NotNull Project project) {
+    String latestVersion = GRADLE_PLUGIN_LATEST_VERSION;
+    String actualVersion = getAndroidGradlePluginVersion(project);
+    if (actualVersion != null && needsUpdate(actualVersion, latestVersion)) {
+      String message = String.format("%1$s is an old preview version of the Android plugin; please update to the latest version.",
+                                     actualVersion);
+      NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(latestVersion, null, false);
+      AndroidGradleNotification.getInstance(project).showBalloon("Old Preview Plugin", message, WARNING, quickFix);
+    }
+  }
+
+  static boolean needsUpdate(@NotNull String actual, @NotNull String latest) {
+    if (actual.equals(latest)) {
+      return false;
+    }
+    String supportedVersion = "2.0.0";
+    if (actual.startsWith(supportedVersion) && latest.startsWith(supportedVersion)) {
+      char dash = '-';
+      int ai = actual.indexOf(dash);
+      int li = latest.indexOf(dash);
+      if (ai == -1) {
+        return false;
+      }
+      else if (li == -1) {
+        return true;
+      }
+      String aPrev = actual.substring(ai);
+      String lPrev = latest.substring(li);
+      int comp = aPrev.compareTo(lPrev);
+      return comp < 0;
+    }
+
+    return false;
+  }
+
+  @Nullable
+  private static String getAndroidGradlePluginVersion(@NotNull Project project) {
+    String version = null;
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidProject androidProject = getAndroidProject(module);
+      if (androidProject == null) {
+        continue;
+      }
+      version = androidProject.getModelVersion();
+      if (!androidProject.isLibrary()) {
+        // prefer version in app
+        version = androidProject.getModelVersion();
+        break;
+      }
+    }
+    return version;
   }
 
   private void ensureValidSdks() {
