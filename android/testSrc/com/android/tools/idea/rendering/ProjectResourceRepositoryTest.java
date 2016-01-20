@@ -115,7 +115,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
     assertNotNull(layoutPsiFile);
     assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
-    final PsiResourceItem item = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
+    final ResourceItem item = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
 
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -138,7 +138,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
         assertTrue(generation < resources.getModificationCount());
         // Should still be defined:
         assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
-        PsiResourceItem newItem = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
+        ResourceItem newItem = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
         assertNotNull(newItem.getSource());
         // However, should be a different item
         assertNotSame(item, newItem);
