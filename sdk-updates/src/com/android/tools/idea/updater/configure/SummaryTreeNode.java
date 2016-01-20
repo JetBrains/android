@@ -184,7 +184,8 @@ class SummaryTreeNode extends UpdaterTreeNode {
     if (foundUpdate) {
       return "Update available";
     }
-    if (foundPlatform && foundSources) {
+    if (foundPlatform && (foundSources || myVersion.getApiLevel() < 14)) {
+      // APIs before 14 don't have separate sources
       return "Installed";
     }
     if (foundPlatform || foundSources) {
