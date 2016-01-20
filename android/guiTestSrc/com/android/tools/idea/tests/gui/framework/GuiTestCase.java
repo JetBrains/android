@@ -94,6 +94,12 @@ public abstract class GuiTestCase {
 
   @Before
   public void setUp() throws Exception {
+
+    // There is a race condition between reloading the configuration file after file deletion detected and the serialization of IDEA model
+    // we just customized so that modules can't be loaded correctly.
+    // This is a hack to prevent StoreAwareProjectManager from doing any reloading during test.
+    ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
+
     assumeTrue("Cannot run GUI tests headless.", canRunGuiTests());
 
     Application application = ApplicationManager.getApplication();
@@ -106,11 +112,6 @@ public abstract class GuiTestCase {
 
     setIdeSettings();
     setUpSdks();
-
-    // There is a race condition between reloading the configuration file after file deletion detected and the serialization of IDEA model
-    // we just customized so that modules can't be loaded correctly.
-    // This is a hack to prevent StoreAwareProjectManager from doing any reloading during test.
-    ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
 
     refreshFiles();
   }
