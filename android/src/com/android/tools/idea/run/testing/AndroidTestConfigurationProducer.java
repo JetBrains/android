@@ -179,11 +179,15 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
         if (testScopes == null) {
           return false;
         }
-        PsiFile psiFile = element.getContainingFile();
-        if (psiFile == null) {
-          return false;
+        VirtualFile virtualFile = null;
+        if (element instanceof PsiDirectory) {
+          virtualFile = ((PsiDirectory)element).getVirtualFile();
+        } else {
+          PsiFile psiFile = element.getContainingFile();
+          if (psiFile != null) {
+            virtualFile = psiFile.getVirtualFile();
+          }
         }
-        VirtualFile virtualFile = psiFile.getVirtualFile();
         if (virtualFile == null) {
           return false;
         }
