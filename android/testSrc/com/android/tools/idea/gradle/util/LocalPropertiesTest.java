@@ -125,7 +125,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
 
   public void testSetAndroidNdkPathWithFile() throws Exception {
     String androidNdkPath = toSystemDependentName("/home/ndk2");
-    myLocalProperties.setAndroidNdkPath(androidNdkPath);
+    myLocalProperties.setAndroidNdkPath(new File(androidNdkPath));
     myLocalProperties.save();
 
     File actual = myLocalProperties.getAndroidNdkPath();
@@ -174,11 +174,12 @@ public class LocalPropertiesTest extends IdeaTestCase {
     tempDir.delete();
   }
 
-
   public void testOnlyChangesAreSavedToFile() throws IOException {
     myLocalProperties.setAndroidSdkPath("~/sdk");
     myLocalProperties.save();
+
     File localPropertiesFile = new File(myProject.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
+    assertTrue(localPropertiesFile.setLastModified(localPropertiesFile.lastModified() - 5000));
     long lastModified = localPropertiesFile.lastModified();
 
     // Set the value again. The "lastModified" value should not change.
