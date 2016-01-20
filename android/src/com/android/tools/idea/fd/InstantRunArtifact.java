@@ -27,4 +27,9 @@ public class InstantRunArtifact {
     this.type = type;
     this.file = file;
   }
+
+  @Override
+  public String toString() {
+    return String.format("Artifact %s: %s", type, file.getPath());
+  }
 }
