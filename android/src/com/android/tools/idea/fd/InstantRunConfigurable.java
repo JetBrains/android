@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
@@ -35,7 +36,6 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -185,7 +185,7 @@ public class InstantRunConfigurable
   public static boolean updateProjectToInstantRunTools(@NotNull Project project, @Nullable GradleSyncListener listener) {
     String pluginVersion = MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
     // Pick max version of "recommended Gradle plugin" and "minimum required for instant run"
-    if (Revision.parseRevision(GRADLE_PLUGIN_RECOMMENDED_VERSION).compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) > 0) {
+    if (GradleVersion.parse(GRADLE_PLUGIN_RECOMMENDED_VERSION).compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) > 0) {
       pluginVersion = GRADLE_PLUGIN_RECOMMENDED_VERSION;
     }
 
