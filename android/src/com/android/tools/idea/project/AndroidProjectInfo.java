@@ -37,6 +37,7 @@ public class AndroidProjectInfo {
   }
 
   public boolean hasNativeModules() {
-    return myProject.getUserData(HAS_NATIVE_MODULES);
+    Boolean boolRes = myProject.getUserData(HAS_NATIVE_MODULES);
+    return (boolRes != null) ? boolRes.booleanValue() : false;
   }
 }
