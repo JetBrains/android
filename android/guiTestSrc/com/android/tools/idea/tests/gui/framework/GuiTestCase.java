@@ -64,7 +64,6 @@ import java.util.Date;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.project.ProjectCoreUtil.DIRECTORY_BASED_PROJECT_DIR;
@@ -108,7 +107,7 @@ public abstract class GuiTestCase {
     // This is a hack to prevent StoreAwareProjectManager from doing any reloading during test.
     ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
 
-    assumeTrue("Cannot run GUI tests headless.", canRunGuiTests());
+    assumeTrue("Cannot run GUI tests headless.", !GraphicsEnvironment.isHeadless());
     assumeTrue("An IDE internal error occurred previously.", !doesIdeHaveFatalErrors());  // TODO: can we restart the IDE instead?
 
     Application application = ApplicationManager.getApplication();
