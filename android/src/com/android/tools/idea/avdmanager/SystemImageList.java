@@ -299,13 +299,18 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       for (RemotePackage info : infos) {
         if (SystemImageDescription.hasSystemImage(info)) {
           SystemImageDescription image = new SystemImageDescription(info, null);
-          if (myFilter == null || myFilter.apply(image)) {
+          if (filter(image) && (myFilter == null || myFilter.apply(image))) {
             items.add(image);
           }
         }
       }
     }
     return items;
+  }
+
+  private static boolean filter(@NotNull SystemImageDescription img) {
+    // https://code.google.com/p/android/issues/detail?id=187938
+    return img.getVersion().getApiLevel() != 15;
   }
 
   public void refreshLocalImagesSynchronously() {
@@ -322,7 +327,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         for (ISystemImage image : systemImages) {
           // If we don't have a filter or this image passes the filter
           SystemImageDescription desc = new SystemImageDescription(target, image);
-          if (myFilter == null || myFilter.apply(desc)) {
+          if (filter(desc) && (myFilter == null || myFilter.apply(desc))) {
             items.add(desc);
           }
         }
