@@ -33,6 +33,7 @@ import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -50,12 +51,10 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
    */
   private static final int MIN_DRAWABLE_PREVIEW_SIZE = JBUI.scale(25);
 
-  private final @NotNull RenderTask myRenderTask;
+  private @Nullable RenderTask myRenderTask;
 
   public DrawableRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
     super(context, previewPanel, isEditor);
-
-    myRenderTask = configureRenderTask(context.getCurrentContextModule(), context.getConfiguration());
   }
 
   @NotNull
@@ -77,6 +76,11 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     // When the component it's been created but hasn't been added to the table yet, it might report a 0 size, so we set a minimum size.
     int iconWidth = Math.max(iconSize.width, MIN_DRAWABLE_PREVIEW_SIZE);
     int iconHeight = Math.max(iconSize.height, MIN_DRAWABLE_PREVIEW_SIZE);
+
+    if (myRenderTask == null || myRenderTask.getModule() != context.getCurrentContextModule()) {
+      myRenderTask = configureRenderTask(context.getCurrentContextModule(), context.getConfiguration());
+    }
+
     myRenderTask.setMaxRenderSize(iconWidth, iconHeight);
     List<BufferedImage> images = myRenderTask.renderDrawableAllStates(item.getSelectedValue());
     if (images.isEmpty()) {

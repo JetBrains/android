@@ -34,6 +34,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -56,6 +57,9 @@ import com.intellij.util.graph.Graph;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.augment.AndroidPsiElementFinder;
+import org.jetbrains.android.dom.AndroidDomElement;
+import org.jetbrains.android.dom.color.ColorSelector;
+import org.jetbrains.android.dom.drawable.DrawableSelector;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -1347,4 +1351,78 @@ public class AndroidResourceUtil {
 
     return foundFiles ? files : null;
   }
+
+  public static void updateStateList(@NotNull Module module, final @NotNull ResourceHelper.StateList stateList, @NotNull List<VirtualFile> files) {
+    Project project = module.getProject();
+    if (!ensureFilesWritable(project, files)) {
+      return;
+    }
+
+    List<PsiFile> psiFiles = Lists.newArrayListWithCapacity(files.size());
+    PsiManager manager = PsiManager.getInstance(project);
+    for (VirtualFile file : files) {
+      PsiFile psiFile = manager.findFile(file);
+      if (psiFile != null) {
+        psiFiles.add(psiFile);
+      }
+    }
+
+    final List<AndroidDomElement> selectors = Lists.newArrayListWithCapacity(files.size());
+
+    Class<? extends AndroidDomElement> selectorClass;
+
+    if (stateList.getFolderType() == ResourceFolderType.COLOR) {
+      selectorClass = ColorSelector.class;
+    }
+    else {
+      selectorClass = DrawableSelector.class;
+    }
+    for (VirtualFile file : files) {
+      final AndroidDomElement selector = AndroidUtils.loadDomElement(module, file, selectorClass);
+      if (selector == null) {
+        AndroidUtils.reportError(project, file.getName() + " is not a statelist file");
+        return;
+      }
+      selectors.add(selector);
+    }
+
+    new WriteCommandAction.Simple(project, "Change State List", psiFiles.toArray(new PsiFile[psiFiles.size()])) {
+      @Override
+      protected void run() {
+        for (AndroidDomElement selector : selectors) {
+          XmlTag tag = selector.getXmlTag();
+          for (XmlTag subtag : tag.getSubTags()) {
+            subtag.delete();
+          }
+          for (ResourceHelper.StateListState state : stateList.getStates()) {
+            XmlTag child = tag.createChildTag(SdkConstants.TAG_ITEM, tag.getNamespace(), null, false);
+            child = tag.addSubTag(child, false);
+
+            Map<String, Boolean> attributes = state.getAttributes();
+            for (String attributeName : attributes.keySet()) {
+              child.setAttribute(attributeName, SdkConstants.ANDROID_URI, attributes.get(attributeName).toString());
+            }
+
+            if (!StringUtil.isEmpty(state.getAlpha())) {
+              child.setAttribute("alpha", SdkConstants.ANDROID_URI, state.getAlpha());
+            }
+
+            if (selector instanceof ColorSelector) {
+              child.setAttribute(SdkConstants.ATTR_COLOR, SdkConstants.ANDROID_URI, state.getValue());
+            }
+            else if (selector instanceof DrawableSelector) {
+              child.setAttribute(SdkConstants.ATTR_DRAWABLE, SdkConstants.ANDROID_URI, state.getValue());
+            }
+          }
+        }
+
+        // The following is necessary since layoutlib will look on disk for the color state list file.
+        // So as soon as a color state list is modified, the change needs to be saved on disk
+        // for the correct values to be used in the theme editor preview.
+        // TODO: Remove this once layoutlib can get color state lists from PSI instead of disk
+        FileDocumentManager.getInstance().saveAllDocuments();
+      }
+    }.execute();
+  }
+
 }
