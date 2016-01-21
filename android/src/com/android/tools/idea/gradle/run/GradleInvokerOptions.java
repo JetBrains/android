@@ -239,7 +239,7 @@ public class GradleInvokerOptions {
     }
   }
 
-  interface GradleTasksProvider {
+  public interface GradleTasksProvider {
     @NotNull
     List<String> getCleanAndGenerateSourcesTasks();
 
