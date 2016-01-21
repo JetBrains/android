@@ -124,7 +124,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private @Nullable EditResourcePanel myStateListPickerPanel;
   private @Nullable StateListPicker myStateListPicker;
 
-  private ResourcePickerListener myResourcePickerListener;
+  private @Nullable ResourcePickerListener myResourcePickerListener;
 
   private boolean myAllowCreateResource = true;
   private final Action myNewResourceAction = new AbstractAction("New Resource", AllIcons.General.ComboArrowDown) {
@@ -162,7 +162,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private RenderTask myRenderTask;
 
   public interface ResourcePickerListener {
-    void resourceChanged(String resource);
+    void resourceChanged(@Nullable String resource);
   }
 
   public ChooseResourceDialog(@NotNull Module module, @NotNull ResourceType[] types, @Nullable String value, @Nullable XmlTag tag) {
@@ -449,11 +449,11 @@ public class ChooseResourceDialog extends DialogWrapper {
     return getSelectedPanel().doValidate();
   }
 
-  public void setResourcePickerListener(ResourcePickerListener resourcePickerListener) {
+  public void setResourcePickerListener(@Nullable ResourcePickerListener resourcePickerListener) {
     myResourcePickerListener = resourcePickerListener;
   }
 
-  protected void notifyResourcePickerListeners(String resource) {
+  protected void notifyResourcePickerListeners(@Nullable String resource) {
     if (myResourcePickerListener != null) {
       myResourcePickerListener.resourceChanged(resource);
     }
@@ -619,6 +619,9 @@ public class ChooseResourceDialog extends DialogWrapper {
   protected void doOKAction() {
     myResultResourceName = getSelectedPanel().getValueForLivePreview();
 
+    // we are about to close, and potentially create/edit resources, that may cause all sorts of refreshes, so lets clear any live preview values.
+    notifyResourcePickerListeners(null);
+
     if (myColorPickerPanel != null && myColorPickerPanel.isShowing()) {
       if (myColorPickerPanel.myResourceNameVisibility == ResourceNameVisibility.FORCE ||
           (myColorPickerPanel.myResourceNameVisibility == ResourceNameVisibility.SHOW && !myColorPickerPanel.getResourceNameField().getText().isEmpty())) {
@@ -642,17 +645,21 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
     else if (myStateListPickerPanel != null && myStateListPickerPanel.isShowing()) {
       String stateListName = myStateListPickerPanel.getResourceNameField().getText();
+      Module module = myStateListPickerPanel.getLocationSettings().getModule();
       List<String> dirNames = myStateListPickerPanel.getLocationSettings().getDirNames();
       ResourceFolderType resourceFolderType = ResourceFolderType.getFolderType(dirNames.get(0));
       ResourceType resourceType = ResourceType.getEnum(resourceFolderType.getName());
 
       List<VirtualFile> files = null;
       if (resourceType != null) {
-        files = AndroidResourceUtil.findOrCreateStateListFiles(myModule, resourceFolderType, resourceType, stateListName, dirNames);
+        assert module != null;
+        files = AndroidResourceUtil.findOrCreateStateListFiles(module, resourceFolderType, resourceType, stateListName, dirNames);
       }
       if (files != null) {
         assert myStateListPicker != null;
-        myStateListPicker.updateStateList(files);
+        ResourceHelper.StateList stateList = myStateListPicker.getStateList();
+        assert stateList != null;
+        AndroidResourceUtil.updateStateList(module, stateList, files);
       }
 
       if (resourceFolderType == ResourceFolderType.COLOR) {
