@@ -64,16 +64,15 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
       // checked first because loadClassesWithIdeClassLoader below (indirectly) throws an AWTException in a headless environment
       return falseAssumption("headless environment");
     }
-    FrameworkMethod newMethod;
+    Method methodFromClassLoader;
     try {
       loadClassesWithIdeClassLoader();
-      Method methodFromClassLoader = myTestClass.getJavaClass().getMethod(method.getName());
-      newMethod = new FrameworkMethod(methodFromClassLoader);
+      methodFromClassLoader = myTestClass.getJavaClass().getMethod(method.getName());
     }
     catch (Exception e) {
       return new Fail(e);
     }
-    return super.methodBlock(newMethod);
+    return super.methodBlock(new FrameworkMethod(methodFromClassLoader));
   }
 
   private static Statement falseAssumption(final String message) {
