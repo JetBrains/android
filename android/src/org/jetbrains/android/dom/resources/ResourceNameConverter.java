@@ -1,5 +1,6 @@
 package org.jetbrains.android.dom.resources;
 
+import com.android.SdkConstants;
 import com.android.ide.common.res2.ValueResourceNameValidator;
 import com.android.resources.ResourceType;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -9,6 +10,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -43,7 +45,14 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
 
   @Override
   public String getErrorMessage(@Nullable String s, ConvertContext context) {
-    return s == null ? null : ValueResourceNameValidator.getErrorText(s, null);
+    ResourceType type = null;
+    XmlTag tag = context.getTag();
+    if (tag != null && SdkConstants.TAG_ATTR.equals(tag.getName())) {
+      // The resource name validator needs to know if we're dealing with
+      // an <attr>
+      type = ResourceType.ATTR;
+    }
+    return s == null ? null : ValueResourceNameValidator.getErrorText(s, type);
   }
 
   @NotNull
