@@ -202,7 +202,7 @@ public abstract class ResourceManager {
     return files;
   }
 
-  protected List<ResourceElement> getValueResources(@NotNull final String resourceType, @Nullable Set<VirtualFile> files) {
+  protected List<ResourceElement> getValueResources(@NotNull final ResourceType resourceType, @Nullable Set<VirtualFile> files) {
     final List<ResourceElement> result = new ArrayList<ResourceElement>();
     List<Pair<Resources, VirtualFile>> resourceFiles = getResourceElements(files);
     for (final Pair<Resources, VirtualFile> pair : resourceFiles) {
@@ -217,7 +217,7 @@ public abstract class ResourceManager {
           for (ResourceElement valueResource : valueResources) {
             final String resName = valueResource.getName().getValue();
 
-            if (resName != null && isResourcePublic(resourceType, resName)) {
+            if (resName != null && isResourcePublic(resourceType.getName(), resName)) {
               result.add(valueResource);
             }
           }
