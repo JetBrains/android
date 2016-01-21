@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
@@ -35,29 +34,18 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.dom.AndroidDomElement;
-import org.jetbrains.android.dom.color.ColorSelector;
-import org.jetbrains.android.dom.drawable.DrawableSelector;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +54,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.Map;
 
 public class StateListPicker extends JPanel {
   private static final String API_ERROR_TEXT = "This resource requires at least an API level of %d";
@@ -177,79 +164,6 @@ public class StateListPicker extends JPanel {
     });
 
     return popupMenu;
-  }
-
-  public void updateStateList(@NotNull List<VirtualFile> files) {
-    Project project = myModule.getProject();
-    if (!AndroidResourceUtil.ensureFilesWritable(project, files)) {
-      return;
-    }
-
-    List<PsiFile> psiFiles = Lists.newArrayListWithCapacity(files.size());
-    PsiManager manager = PsiManager.getInstance(project);
-    for (VirtualFile file : files) {
-      PsiFile psiFile = manager.findFile(file);
-      if (psiFile != null) {
-        psiFiles.add(psiFile);
-      }
-    }
-
-    final List<AndroidDomElement> selectors = Lists.newArrayListWithCapacity(files.size());
-
-    Class<? extends AndroidDomElement> selectorClass;
-    assert myStateList != null;
-    if (myStateList.getFolderType() == ResourceFolderType.COLOR) {
-      selectorClass = ColorSelector.class;
-    }
-    else {
-      selectorClass = DrawableSelector.class;
-    }
-    for (VirtualFile file : files) {
-      final AndroidDomElement selector = AndroidUtils.loadDomElement(myModule, file, selectorClass);
-      if (selector == null) {
-        AndroidUtils.reportError(project, file.getName() + " is not a statelist file");
-        return;
-      }
-      selectors.add(selector);
-    }
-
-    new WriteCommandAction.Simple(project, "Change State List", psiFiles.toArray(new PsiFile[psiFiles.size()])) {
-      @Override
-      protected void run() {
-        for (AndroidDomElement selector : selectors) {
-          XmlTag tag = selector.getXmlTag();
-          for (XmlTag subtag : tag.getSubTags()) {
-            subtag.delete();
-          }
-          for (ResourceHelper.StateListState state : myStateList.getStates()) {
-            XmlTag child = tag.createChildTag(SdkConstants.TAG_ITEM, tag.getNamespace(), null, false);
-            child = tag.addSubTag(child, false);
-
-            Map<String, Boolean> attributes = state.getAttributes();
-            for (String attributeName : attributes.keySet()) {
-              child.setAttribute(attributeName, SdkConstants.ANDROID_URI, attributes.get(attributeName).toString());
-            }
-
-            if (!StringUtil.isEmpty(state.getAlpha())) {
-              child.setAttribute("alpha", SdkConstants.ANDROID_URI, state.getAlpha());
-            }
-
-            if (selector instanceof ColorSelector) {
-              child.setAttribute(SdkConstants.ATTR_COLOR, SdkConstants.ANDROID_URI, state.getValue());
-            }
-            else if (selector instanceof DrawableSelector) {
-              child.setAttribute(SdkConstants.ATTR_DRAWABLE, SdkConstants.ANDROID_URI, state.getValue());
-            }
-          }
-        }
-
-        // The following is necessary since layoutlib will look on disk for the color state list file.
-        // So as soon as a color state list is modified, the change needs to be saved on disk
-        // for the correct values to be used in the theme editor preview.
-        // TODO: Remove this once layoutlib can get color state lists from PSI instead of disk
-        FileDocumentManager.getInstance().saveAllDocuments();
-      }
-    }.execute();
   }
 
   /**
