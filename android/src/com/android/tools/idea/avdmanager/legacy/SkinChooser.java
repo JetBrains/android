@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager.legacy;
 
 import com.android.repository.api.ProgressIndicator;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repositoryv2.targets.SystemImageManager;
@@ -103,7 +104,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
     Set<File> result = Sets.newTreeSet();
     for (Device device : devices) {
-      File skinFile = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), null);
+      File skinFile = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), null, FileOpUtils.create());
       if (skinFile != null && skinFile.exists()) {
         result.add(skinFile);
       }
