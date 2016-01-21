@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
+import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
