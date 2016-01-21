@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.fd.FileChangeListener;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
@@ -171,6 +172,7 @@ public class GradleInvokerOptions {
 
   // These are defined in AndroidProject in the builder model for 1.5+; remove and reference directly
   // when Studio is updated to use the new model
+  private static final String PROPERTY_BUILD_ABI = "android.injected.build.abi";
   private static final String PROPERTY_BUILD_API = "android.injected.build.api";
   private static final String PROPERTY_BUILD_DENSITY = "android.injected.build.density";
 
@@ -193,7 +195,26 @@ public class GradleInvokerOptions {
       properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
     }
 
+    String abis = join(device.getAbis());
+    if (!abis.isEmpty()) {
+      properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, abis));
+    }
+
     return properties;
+  }
+
+  @NotNull
+  private static String join(@NotNull List<Abi> abis) {
+    StringBuilder sb = new StringBuilder();
+
+    String separator = "";
+    for (Abi abi : abis) {
+      sb.append(separator);
+      sb.append(abi.toString());
+      separator = ",";
+    }
+
+    return sb.toString();
   }
 
   @NotNull
