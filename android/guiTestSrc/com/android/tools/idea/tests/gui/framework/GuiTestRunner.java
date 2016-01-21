@@ -66,13 +66,15 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     }
     Method methodFromClassLoader;
     try {
-      loadClassesWithIdeClassLoader();
+      ClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
+      Thread.currentThread().setContextClassLoader(ideClassLoader);
+      myTestClass = new TestClass(ideClassLoader.loadClass(getTestClass().getJavaClass().getName()));
       methodFromClassLoader = myTestClass.getJavaClass().getMethod(method.getName());
     }
     catch (Exception e) {
       return new Fail(e);
     }
-    return super.methodBlock(new FrameworkMethod(methodFromClassLoader));
+    return super.methodBlock(new FrameworkMethod(methodFromClassLoader));  // calls createTest, overridden below
   }
 
   private static Statement falseAssumption(final String message) {
@@ -84,17 +86,9 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     };
   }
 
-  private void loadClassesWithIdeClassLoader() throws Exception {
-    ClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
-    Thread.currentThread().setContextClassLoader(ideClassLoader);
-
-    Class<?> testClass = getTestClass().getJavaClass();
-    myTestClass = new TestClass(ideClassLoader.loadClass(testClass.getName()));
-  }
-
   @Override
   protected Object createTest() throws Exception {
-    return myTestClass != null ? myTestClass.getJavaClass().newInstance() : super.createTest();
+    return myTestClass.getOnlyConstructor().newInstance();
   }
 
   @Override
