@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.repository.Revision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
@@ -196,8 +196,8 @@ public final class GradleUtil {
     }
   }
 
-  public static boolean isSupportedGradleVersion(@NotNull Revision gradleVersion) {
-    Revision supported = Revision.parseRevision(GRADLE_MINIMUM_VERSION);
+  public static boolean isSupportedGradleVersion(@NotNull GradleVersion gradleVersion) {
+    GradleVersion supported = GradleVersion.parse(GRADLE_MINIMUM_VERSION);
     return supported.compareTo(gradleVersion) <= 0;
   }
 
@@ -594,16 +594,15 @@ public final class GradleUtil {
   }
 
   @Nullable
-  public static Revision getGradleVersion(@NotNull Project project) {
+  public static GradleVersion getGradleVersion(@NotNull Project project) {
     String gradleVersion = getGradleVersionUsed(project);
     if (isNotEmpty(gradleVersion)) {
       // The version of Gradle used is retrieved one of the Gradle models. If that fails, we try to deduce it from the project's Gradle
       // settings.
-      Revision revision = parseRevision(removeTimestampFromGradleVersion(gradleVersion));
+      GradleVersion revision = GradleVersion.tryParse(removeTimestampFromGradleVersion(gradleVersion));
       if (revision != null) {
         return revision;
       }
-
     }
 
     GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
@@ -615,7 +614,7 @@ public final class GradleUtil {
           try {
             String wrapperVersion = getGradleWrapperVersion(wrapperPropertiesFile);
             if (wrapperVersion != null) {
-              return parseRevision(removeTimestampFromGradleVersion(wrapperVersion));
+              return GradleVersion.tryParse(removeTimestampFromGradleVersion(wrapperVersion));
             }
           }
           catch (IOException e) {
@@ -641,11 +640,11 @@ public final class GradleUtil {
    * @return the Gradle version of the given distribution, or {@code null} if it was not possible to obtain the version.
    */
   @Nullable
-  public static Revision getGradleVersion(@NotNull File gradleHomePath) {
+  public static GradleVersion getGradleVersion(@NotNull File gradleHomePath) {
     File libDirPath = new File(gradleHomePath, "lib");
 
     for (File child : notNullize(libDirPath.listFiles())) {
-      Revision version = getGradleVersionFromJar(child);
+      GradleVersion version = getGradleVersionFromJar(child);
       if (version != null) {
         return version;
       }
@@ -656,18 +655,13 @@ public final class GradleUtil {
 
   @VisibleForTesting
   @Nullable
-  static Revision getGradleVersionFromJar(@NotNull File libraryJarFile) {
+  static GradleVersion getGradleVersionFromJar(@NotNull File libraryJarFile) {
     String fileName = libraryJarFile.getName();
     Matcher matcher = GRADLE_JAR_NAME_PATTERN.matcher(fileName);
     if (matcher.matches()) {
       // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
       String version = matcher.group(2);
-      try {
-        return Revision.parseRevision(removeTimestampFromGradleVersion(version));
-      }
-      catch (NumberFormatException e) {
-        LOG.warn(String.format("Unable to parse version '%1$s' (obtained from file '%2$s')", version, fileName));
-      }
+      return GradleVersion.tryParse(removeTimestampFromGradleVersion(version));
     }
     return null;
   }
@@ -739,7 +733,7 @@ public final class GradleUtil {
    * @see #getAndroidGradleModelVersionFromBuildFile(Project)
    */
   @Nullable
-  public static Revision getAndroidGradleModelVersionInUse(@NotNull Project project) {
+  public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Project project) {
     Set<String> pluginVersionsUsedInProject = new SmartHashSet<String>();
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidProject androidProject = getAndroidProject(module);
@@ -751,7 +745,7 @@ public final class GradleUtil {
 
     // This should pretty much always be the case, but let's be safe here.
     if (pluginVersionsUsedInProject.size() == 1) {
-      return parseRevision(getOnlyElement(pluginVersionsUsedInProject));
+      return GradleVersion.tryParse(getOnlyElement(pluginVersionsUsedInProject));
     }
 
     return null;
@@ -778,13 +772,13 @@ public final class GradleUtil {
    * @see #getAndroidGradleModelVersionInUse(Project)
    */
   @Nullable
-  public static Revision getAndroidGradleModelVersionFromBuildFile(@NotNull final Project project) {
+  public static GradleVersion getAndroidGradleModelVersionFromBuildFile(@NotNull final Project project) {
     VirtualFile baseDir = project.getBaseDir();
     if (baseDir == null) {
       // This is default project.
       return null;
     }
-    final Ref<Revision> modelVersionRef = new Ref<Revision>();
+    final Ref<GradleVersion> modelVersionRef = new Ref<GradleVersion>();
     processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
       @Override
       public boolean process(VirtualFile virtualFile) {
@@ -792,7 +786,7 @@ public final class GradleUtil {
           File fileToCheck = virtualToIoFile(virtualFile);
           try {
             String contents = loadFile(fileToCheck);
-            Revision version = getAndroidGradleModelVersionFromBuildFile(contents, project);
+            GradleVersion version = getAndroidGradleModelVersionFromBuildFile(contents, project);
             if (version != null) {
               modelVersionRef.set(version);
               return false; // we found the model version. Stop.
@@ -811,24 +805,13 @@ public final class GradleUtil {
 
   @VisibleForTesting
   @Nullable
-  static Revision getAndroidGradleModelVersionFromBuildFile(@NotNull String fileContents, @Nullable Project project) {
+  static GradleVersion getAndroidGradleModelVersionFromBuildFile(@NotNull String fileContents, @Nullable Project project) {
     GradleCoordinate found = getPluginDefinition(fileContents, GRADLE_PLUGIN_NAME);
     if (found != null) {
       String revision = getAndroidGradleModelVersion(found, project);
       if (isNotEmpty(revision)) {
-        return parseRevision(revision);
+        return GradleVersion.tryParse(revision);
       }
-    }
-    return null;
-  }
-
-  @Nullable
-  private static Revision parseRevision(@NotNull String revision) {
-    try {
-      return Revision.parseRevision(revision);
-    }
-    catch (NumberFormatException e) {
-      LOG.info("Failed to parse revision '" + revision + "'", e);
     }
     return null;
   }
@@ -1328,7 +1311,7 @@ public final class GradleUtil {
       String basePath = project.getBasePath();
       if (basePath != null) {
         File wrapperPropertiesFilePath = getGradleWrapperPropertiesFilePath(new File(basePath));
-        Revision current = getGradleVersionInWrapper(wrapperPropertiesFilePath);
+        GradleVersion current = getGradleVersionInWrapper(wrapperPropertiesFilePath);
         if (current != null && !isSupportedGradleVersion(current)) {
           try {
             updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFilePath);
@@ -1343,7 +1326,7 @@ public final class GradleUtil {
   }
 
   @Nullable
-  private static Revision getGradleVersionInWrapper(@NotNull File wrapperPropertiesFilePath) {
+  private static GradleVersion getGradleVersionInWrapper(@NotNull File wrapperPropertiesFilePath) {
     String version = null;
     try {
       version = getGradleWrapperVersion(wrapperPropertiesFilePath);
@@ -1352,12 +1335,7 @@ public final class GradleUtil {
       LOG.warn("Failed to obtain Gradle version in wrapper", e);
     }
     if (isNotEmpty(version)) {
-      try {
-        return Revision.parseRevision(version);
-      }
-      catch (NumberFormatException e) {
-        LOG.warn("Failed to parse Gradle version " + version, e);
-      }
+      return GradleVersion.tryParse(version);
     }
     return null;
   }
