@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.repository.Revision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenGradleSettingsHyperlink;
@@ -115,9 +115,9 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
 
   private static boolean gradleModelIsRecent(@NotNull Project project) {
     // Sync has failed, so we can only check the build file.
-    Revision fromBuildFile = getAndroidGradleModelVersionFromBuildFile(project);
+    GradleVersion fromBuildFile = getAndroidGradleModelVersionFromBuildFile(project);
     if (fromBuildFile != null) {
-      return fromBuildFile.compareTo(Revision.parseRevision(GRADLE_PLUGIN_RECOMMENDED_VERSION)) >= 0;
+      return fromBuildFile.compareTo(GRADLE_PLUGIN_RECOMMENDED_VERSION) >= 0;
     }
     return false;
   }
