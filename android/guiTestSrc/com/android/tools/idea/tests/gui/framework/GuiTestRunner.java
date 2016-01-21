@@ -18,13 +18,8 @@ package com.android.tools.idea.tests.gui.framework;
 import com.google.common.base.Strings;
 import org.fest.swing.image.ScreenshotTaker;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
 import org.junit.AssumptionViolatedException;
-import org.junit.Before;
-import org.junit.internal.runners.model.ReflectiveCallable;
 import org.junit.internal.runners.statements.Fail;
-import org.junit.internal.runners.statements.RunAfters;
-import org.junit.internal.runners.statements.RunBefores;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
@@ -33,7 +28,6 @@ import org.junit.runners.model.TestClass;
 
 import java.awt.*;
 import java.lang.reflect.Method;
-import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -79,32 +73,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     catch (Exception e) {
       return new Fail(e);
     }
-    Object test;
-    try {
-      test = new ReflectiveCallable() {
-        @Override
-        protected Object runReflectiveCall() throws Throwable {
-          return createTest();
-        }
-      }.run();
-    }
-    catch (Throwable e) {
-      return new Fail(e);
-    }
-
-    Statement statement = methodInvoker(newMethod, test);
-
-    List<FrameworkMethod> beforeMethods = myTestClass.getAnnotatedMethods(Before.class);
-    if (!beforeMethods.isEmpty()) {
-      statement = new RunBefores(statement, beforeMethods, test);
-    }
-
-    List<FrameworkMethod> afterMethods = myTestClass.getAnnotatedMethods(After.class);
-    if (!afterMethods.isEmpty()) {
-      statement = new RunAfters(statement, afterMethods, test);
-    }
-
-    return statement;
+    return super.methodBlock(newMethod);
   }
 
   private static Statement falseAssumption(final String message) {
