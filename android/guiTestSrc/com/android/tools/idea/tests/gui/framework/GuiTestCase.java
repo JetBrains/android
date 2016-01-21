@@ -107,7 +107,6 @@ public abstract class GuiTestCase {
     // This is a hack to prevent StoreAwareProjectManager from doing any reloading during test.
     ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
 
-    assumeTrue("Cannot run GUI tests headless.", !GraphicsEnvironment.isHeadless());
     assumeTrue("An IDE internal error occurred previously.", !doesIdeHaveFatalErrors());  // TODO: can we restart the IDE instead?
 
     Application application = ApplicationManager.getApplication();

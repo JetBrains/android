@@ -19,6 +19,7 @@ import com.google.common.base.Strings;
 import org.fest.swing.image.ScreenshotTaker;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
+import org.junit.AssumptionViolatedException;
 import org.junit.Before;
 import org.junit.internal.runners.model.ReflectiveCallable;
 import org.junit.internal.runners.statements.Fail;
@@ -65,6 +66,10 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   @Override
   protected Statement methodBlock(FrameworkMethod method) {
+    if (GraphicsEnvironment.isHeadless()) {
+      // checked first because loadClassesWithIdeClassLoader below (indirectly) throws an AWTException in a headless environment
+      return falseAssumption("headless environment");
+    }
     FrameworkMethod newMethod;
     try {
       loadClassesWithIdeClassLoader();
@@ -100,6 +105,15 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     }
 
     return statement;
+  }
+
+  private static Statement falseAssumption(final String message) {
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        throw new AssumptionViolatedException(message);
+      }
+    };
   }
 
   private void loadClassesWithIdeClassLoader() throws Exception {
