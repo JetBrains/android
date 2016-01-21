@@ -18,11 +18,11 @@ package com.android.tools.idea.fd;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.packaging.PackagingUtils;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.AppState;
@@ -51,10 +51,7 @@ import com.intellij.debugger.ui.breakpoints.Breakpoint;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
@@ -62,7 +59,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.xdebugger.XDebugSession;
@@ -72,15 +68,11 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.fd.InstantRunArtifactType.*;
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 
 /**
  * The {@linkplain InstantRunManager} is responsible for handling Instant Run related functionality
@@ -88,7 +80,7 @@ import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
  */
 public final class InstantRunManager implements ProjectComponent {
   public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.0.0-alpha6";
-  public static final Revision MINIMUM_GRADLE_PLUGIN_VERSION = Revision.parseRevision(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+  public static final GradleVersion MINIMUM_GRADLE_PLUGIN_VERSION = GradleVersion.parse(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
 
   public static final Logger LOG = Logger.getInstance("#InstantRun");
@@ -485,10 +477,8 @@ public final class InstantRunManager implements ProjectComponent {
   public static boolean isInstantRunSupported(@NotNull AndroidGradleModel model) {
     String version = model.getAndroidProject().getModelVersion();
     try {
-      Revision modelVersion = Revision.parseRevision(version);
-
-      // Supported in version 2.0.0-alpha5 of the Gradle plugin and up
-      return modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
+      GradleVersion modelVersion = GradleVersion.tryParse(version);
+      return modelVersion == null || modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
     } catch (NumberFormatException e) {
       Logger.getInstance(InstantRunManager.class).warn("Failed to parse '" + version + "'", e);
       return false;
