@@ -1,0 +1,8 @@
+<resources>
+    <!-- Titles -->
+    <string name="app_name">Animations Demo</string>
+    <string name="app_name">Animations Demo</string>
+
+    <item type="id" name="action_next" />
+    <item type="id" name="action_next" />
+</resources>
