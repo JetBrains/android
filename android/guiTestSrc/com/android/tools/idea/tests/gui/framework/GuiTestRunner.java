@@ -20,13 +20,10 @@ import org.fest.swing.image.ScreenshotTaker;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.internal.AssumptionViolatedException;
 import org.junit.internal.runners.model.ReflectiveCallable;
 import org.junit.internal.runners.statements.Fail;
 import org.junit.internal.runners.statements.RunAfters;
 import org.junit.internal.runners.statements.RunBefores;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
@@ -63,16 +60,6 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
         throw new InitializationError("Invalid test run configuration. Edit your test configuration and make sure that " +
                                       "\"Use classpath of module\" is set to \"community-main\", *NOT* \"android\"!");
       }
-    }
-  }
-
-  @Override
-  protected void runChild(final FrameworkMethod method, RunNotifier notifier) {
-    if (!canRunGuiTests()) {
-      notifier.fireTestAssumptionFailed(new Failure(describeChild(method), new AssumptionViolatedException("Headless environment")));
-      System.out.println(String.format("Skipping test '%1$s'. UI tests cannot run in a headless environment.", method.getName()));
-    } else {
-      super.runChild(method, notifier);
     }
   }
 
