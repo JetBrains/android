@@ -78,6 +78,15 @@ public class DependenciesModel extends GradleDslBlockModel {
     }
   }
 
+  public boolean containsArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency) {
+    for (ArtifactDependencyModel artifactDependencyModel : artifacts(configurationName)) {
+      if (artifactDependencyModel.getSpec().equals(dependency)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @NotNull
   public DependenciesModel addArtifact(@NotNull String configurationName, @NotNull String compactNotation) {
     ArtifactDependencySpec dependency = ArtifactDependencySpec.create(compactNotation);
